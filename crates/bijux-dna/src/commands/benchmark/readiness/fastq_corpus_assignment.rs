@@ -426,7 +426,6 @@ fn ensure_amplicon_corpus_coverage(rows: &[FastqCorpusAssignmentRow]) -> Result<
         ("dada2", "fastq.infer_asvs"),
         ("vsearch", "fastq.cluster_otus"),
         ("seqkit", "fastq.normalize_abundance"),
-        ("seqfu", "fastq.normalize_abundance"),
     ];
     for (tool_id, stage_id) in expected_rows {
         let row = rows
@@ -566,7 +565,6 @@ mod tests {
             ("dada2", "fastq.infer_asvs"),
             ("vsearch", "fastq.cluster_otus"),
             ("seqkit", "fastq.normalize_abundance"),
-            ("seqfu", "fastq.normalize_abundance"),
         ] {
             assert!(report.rows.iter().any(|row| {
                 row.tool_id == tool_id

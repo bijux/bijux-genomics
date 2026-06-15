@@ -49,22 +49,22 @@ fn bench_readiness_stage_centric_report_tracks_multi_tool_stage_coverage() {
         Some("benchmarks/readiness/stage-centric-report.md")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
-    assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(30));
-    assert_eq!(payload.get("blocked_stage_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(29));
+    assert_eq!(payload.get("blocked_stage_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(
         payload.get("declared_shared_metric_stage_count").and_then(serde_json::Value::as_u64),
         Some(18)
     );
     assert_eq!(
         payload.get("not_declared_shared_metric_stage_count").and_then(serde_json::Value::as_u64),
-        Some(12)
+        Some(11)
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(122));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(118)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(
         payload
             .get("domain_counts")

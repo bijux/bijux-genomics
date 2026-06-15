@@ -120,7 +120,6 @@ fn bench_readiness_fastq_corpus_assignment_json_keeps_all_amplicon_tools_on_corp
         ("dada2", "fastq.infer_asvs"),
         ("vsearch", "fastq.cluster_otus"),
         ("seqkit", "fastq.normalize_abundance"),
-        ("seqfu", "fastq.normalize_abundance"),
     ] {
         assert!(rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)

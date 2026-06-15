@@ -48,21 +48,21 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/pair-readiness.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(122));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(118)
     );
     assert_eq!(
         payload.get("not_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(5)
+        Some(4)
     );
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(74)
+        Some(73)
     );
     assert_eq!(
         payload
@@ -80,7 +80,7 @@ fn bench_readiness_pair_readiness_reports_governed_gap_columns() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 123);
+    assert_eq!(rows.len(), 122);
 
     let taxonomy = rows
         .iter()

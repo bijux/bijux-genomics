@@ -43,7 +43,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 7, "TSV must retain the governed unregistered-pair row count");
+    assert_eq!(rows.len(), 3, "TSV must retain the governed unregistered-pair row count");
     assert!(
         !rows
             .iter()
@@ -59,10 +59,10 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         "TSV must not retain a registry-drift row for bam.recalibration / gatk once it is registered in production"
     );
     assert!(
-        rows.iter().any(|row| {
-            row == &"fastq\tfastq.estimate_library_complexity_prealign\tbijux_dna\tplanned_contract\ttool_registered_pair_missing\tfastq.detect_duplicates_premerge\tbenchmark matrix references `fastq.estimate_library_complexity_prealign` / `bijux_dna` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `bijux_dna`: fastq.detect_duplicates_premerge"
+        !rows.iter().any(|row| {
+            row.starts_with("fastq\tfastq.estimate_library_complexity_prealign\tbijux_dna\t")
         }),
-        "TSV must retain the governed fastq.estimate_library_complexity_prealign / bijux_dna registry drift row"
+        "TSV must not retain a fastq.estimate_library_complexity_prealign / bijux_dna registry drift row once the pair is registered"
     );
     assert!(
         rows.iter().any(|row| {
@@ -83,10 +83,8 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         "TSV must retain the governed fastq.trim_reads / seqpurge registry drift row"
     );
     assert!(
-        rows.iter().any(|row| {
-            row == &"fastq\tfastq.normalize_abundance\tseqfu\tplanned_contract\ttool_missing\t\tbenchmark matrix references `fastq.normalize_abundance` / `seqfu` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `seqfu`: <none>"
-        }),
-        "TSV must retain the governed fastq.normalize_abundance / seqfu registry drift row"
+        !rows.iter().any(|row| row.starts_with("fastq\tfastq.normalize_abundance\tseqfu\t")),
+        "TSV must not retain a fastq.normalize_abundance / seqfu registry drift row"
     );
     assert!(
         !rows.iter().any(|row| row.starts_with("bam\tbam.complexity\t")),
@@ -120,16 +118,14 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
             "TSV must no longer retain a registry-drift row for fastq.profile_read_lengths / {tool_id}"
         );
     }
-    for stage_id in ["fastq.profile_read_lengths", "fastq.profile_reads"] {
-        assert!(
-            rows.iter().any(|row| {
-                row.starts_with(&format!(
-                    "fastq\t{stage_id}\tseqfu\tgoverned_benchmark_cohort\ttool_missing\t\t"
-                ))
-            }),
-            "TSV must retain the governed {stage_id} / seqfu missing-tool row while seqfu stays experimental"
-        );
-    }
+    assert!(
+        !rows.iter().any(|row| row.starts_with("fastq\tfastq.profile_read_lengths\tseqfu\t")),
+        "TSV must not retain a fastq.profile_read_lengths / seqfu registry drift row"
+    );
+    assert!(
+        !rows.iter().any(|row| row.starts_with("fastq\tfastq.profile_reads\tseqfu\t")),
+        "TSV must not retain a fastq.profile_reads / seqfu registry drift row"
+    );
     for tool_id in [
         "adapterremoval",
         "alientrimmer",
@@ -262,11 +258,9 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         "TSV must not retain a registry-drift row for fastq.normalize_abundance / seqkit"
     );
     assert!(
-        rows.iter().any(|row| {
-            row.starts_with(
-                "fastq\tfastq.normalize_abundance\tseqfu\tplanned_contract\ttool_missing\t\t",
-            )
+        !rows.iter().any(|row| {
+            row.starts_with("fastq\tfastq.normalize_abundance\tseqfu\t")
         }),
-        "TSV must retain the planned fastq.normalize_abundance / seqfu registry-drift row"
+        "TSV must not retain a fastq.normalize_abundance / seqfu registry-drift row"
     );
 }

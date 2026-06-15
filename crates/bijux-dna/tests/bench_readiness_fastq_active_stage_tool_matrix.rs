@@ -46,15 +46,15 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/fastq/fastq-active-stage-tool-matrix.tsv")
     );
-    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(74));
+    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(73));
     assert_eq!(payload.get("retained_stage_count").and_then(serde_json::Value::as_u64), Some(27));
     assert_eq!(payload.get("retained_tool_count").and_then(serde_json::Value::as_u64), Some(44));
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(26));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(41));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(5));
-    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(4));
-    assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(
         payload.get("removed_from_scope_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/removed-from-scope.tsv")

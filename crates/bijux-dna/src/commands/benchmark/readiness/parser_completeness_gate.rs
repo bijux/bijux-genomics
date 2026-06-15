@@ -359,22 +359,22 @@ mod tests {
         assert_eq!(report.schema_version, PARSER_COMPLETENESS_GATE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_PARSER_COMPLETENESS_GATE_PATH);
         assert!(report.passes_gate);
-        assert_eq!(report.row_count, 123);
-        assert_eq!(report.benchmark_ready_row_count, 116);
+        assert_eq!(report.row_count, 122);
+        assert_eq!(report.benchmark_ready_row_count, 118);
         assert_eq!(report.gate_row_count, 116);
         assert_eq!(report.gate_passed_row_count, 116);
         assert_eq!(report.gate_failed_row_count, 0);
-        assert_eq!(report.excluded_row_count, 7);
+        assert_eq!(report.excluded_row_count, 6);
         assert_eq!(report.domain_stage_counts.get("fastq"), Some(&27));
         assert_eq!(report.domain_stage_counts.get("bam"), Some(&24));
         assert_eq!(report.domain_tool_counts.get("fastq"), Some(&44));
         assert_eq!(report.domain_tool_counts.get("bam"), Some(&25));
-        assert_eq!(report.domain_row_counts.get("fastq"), Some(&74));
+        assert_eq!(report.domain_row_counts.get("fastq"), Some(&73));
         assert_eq!(report.domain_row_counts.get("bam"), Some(&49));
         assert_eq!(report.gate_domain_row_counts.get("fastq"), Some(&67));
         assert_eq!(report.gate_domain_row_counts.get("bam"), Some(&49));
-        assert_eq!(report.excluded_readiness_gap_counts.get("corpus"), Some(&3));
-        assert_eq!(report.excluded_readiness_gap_counts.get("support"), Some(&5));
+        assert_eq!(report.excluded_readiness_gap_counts.get("corpus"), Some(&1));
+        assert_eq!(report.excluded_readiness_gap_counts.get("support"), Some(&3));
         assert!(!report.excluded_readiness_gap_counts.contains_key("parser"));
         assert!(report
             .rows
@@ -399,7 +399,7 @@ mod tests {
                 && row.stage_id == "fastq.index_reference"
                 && row.tool_id == "bowtie2_build"
                 && row.gate_status == super::ParserCompletenessGateStatus::Excluded
-                && row.readiness_gap == "corpus"
+                && row.readiness_gap == "none"
         }));
     }
 }

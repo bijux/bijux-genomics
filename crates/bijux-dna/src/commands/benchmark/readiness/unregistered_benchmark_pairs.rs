@@ -201,17 +201,18 @@ mod tests {
         .expect("render unregistered benchmark pairs");
 
         assert_eq!(report.schema_version, UNREGISTERED_BENCHMARK_PAIRS_SCHEMA_VERSION);
-        assert_eq!(report.unregistered_pair_count, 7);
+        assert_eq!(report.unregistered_pair_count, 3);
         assert!(!report.ok, "report must fail while registry drift remains");
-        assert_eq!(report.domain_counts.get("fastq"), Some(&7));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&3));
         assert_eq!(report.domain_counts.get("bam"), None);
-        assert!(report.rows.iter().any(|row| {
-            row.domain == "fastq"
-                && row.stage_id == "fastq.estimate_library_complexity_prealign"
-                && row.tool_id == "bijux_dna"
-                && row.registry_status == "tool_registered_pair_missing"
-                && row.registered_stage_ids == vec!["fastq.detect_duplicates_premerge".to_string()]
-        }));
+        assert!(
+            !report.rows.iter().any(|row| {
+                row.domain == "fastq"
+                    && row.stage_id == "fastq.estimate_library_complexity_prealign"
+                    && row.tool_id == "bijux_dna"
+            }),
+            "fastq.estimate_library_complexity_prealign must leave the registry-drift slice once bijux_dna is registered for that pair"
+        );
         assert!(
             !report.rows.iter().any(|row| row.domain == "bam" && row.stage_id == "bam.genotyping"),
             "bam.genotyping must leave the registry-drift slice once angsd is registered in production"
@@ -249,5 +250,9 @@ mod tests {
                 && row.registry_status == "tool_missing"
                 && row.registered_stage_ids.is_empty()
         }));
+        assert!(
+            !report.rows.iter().any(|row| row.tool_id == "seqfu"),
+            "seqfu must leave the unregistered-pair report once only admitted profile bindings remain"
+        );
     }
 }

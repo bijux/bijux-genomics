@@ -402,9 +402,9 @@ fn build_pair_reason(
 }
 
 fn ensure_pair_readiness_contract(rows: &[PairReadinessRow]) -> Result<()> {
-    if rows.len() != 123 {
+    if rows.len() != 122 {
         return Err(anyhow!(
-            "pair readiness report must retain exactly 123 FASTQ/BAM rows, found {}",
+            "pair readiness report must retain exactly 122 FASTQ/BAM rows, found {}",
             rows.len()
         ));
     }
@@ -577,10 +577,10 @@ mod tests {
 
         assert_eq!(report.schema_version, PAIR_READINESS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_PAIR_READINESS_PATH);
-        assert_eq!(report.row_count, 123);
+        assert_eq!(report.row_count, 122);
         assert_eq!(report.benchmark_ready_row_count, 118);
-        assert_eq!(report.not_benchmark_ready_row_count, 5);
-        assert_eq!(report.domain_counts.get("fastq").copied(), Some(74));
+        assert_eq!(report.not_benchmark_ready_row_count, 4);
+        assert_eq!(report.domain_counts.get("fastq").copied(), Some(73));
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
         assert_eq!(report.asset_status_counts.get("assigned").copied(), Some(20));
         assert!(report.rows.iter().any(|row| {

@@ -50,12 +50,12 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_ready_slice_and_excluded_pa
         Some("benchmarks/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json")
     );
     assert_eq!(payload.get("passes_gate").and_then(serde_json::Value::as_bool), Some(true));
-    assert_eq!(payload.get("expected_pair_count").and_then(serde_json::Value::as_u64), Some(123));
+    assert_eq!(payload.get("expected_pair_count").and_then(serde_json::Value::as_u64), Some(122));
     assert_eq!(
         payload.get("benchmark_ready_pair_count").and_then(serde_json::Value::as_u64),
         Some(118)
     );
-    assert_eq!(payload.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(payload.get("failing_pair_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("generated_job_pair_count").and_then(serde_json::Value::as_u64),
@@ -71,7 +71,7 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_ready_slice_and_excluded_pa
     );
     assert_eq!(
         payload.get("excluded_registry_gap_count").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(3)
     );
 
     let surfaces = payload
@@ -83,13 +83,13 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_ready_slice_and_excluded_pa
         surface.get("surface_id").and_then(serde_json::Value::as_str) == Some("tool_registry")
             && surface.get("surface_status").and_then(serde_json::Value::as_str)
                 == Some("ready_slice_complete")
-            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(4)
+            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(3)
             && surface.get("failing_count").and_then(serde_json::Value::as_u64) == Some(0)
     }));
     assert!(surfaces.iter().any(|surface| {
         surface.get("surface_id").and_then(serde_json::Value::as_str) == Some("command_adapters")
             && surface.get("covered_count").and_then(serde_json::Value::as_u64) == Some(118)
-            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(5)
+            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(4)
     }));
 
     let failing_pairs =
@@ -103,7 +103,7 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_ready_slice_and_excluded_pa
         .get("excluded_pairs")
         .and_then(serde_json::Value::as_array)
         .expect("excluded pairs");
-    assert_eq!(excluded_pairs.len(), 5);
+    assert_eq!(excluded_pairs.len(), 4);
     assert!(excluded_pairs.iter().any(|row| {
         row.get("row_id").and_then(serde_json::Value::as_str)
             == Some("fastq:fastq.trim_reads:seqpurge")

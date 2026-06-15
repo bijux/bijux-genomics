@@ -309,17 +309,17 @@ fn ensure_corpus_centric_report_contract(corpora: &[CorpusCentricCorpusReport]) 
         ));
     }
     let tool_row_count = corpora.iter().map(|corpus| corpus.tool_row_count).sum::<usize>();
-    if tool_row_count != 122 {
+    if tool_row_count != 121 {
         return Err(anyhow!(
-            "corpus-centric report must retain exactly 122 assigned stage-tool rows, found {}",
+            "corpus-centric report must retain exactly 121 assigned stage-tool rows, found {}",
             tool_row_count
         ));
     }
     let blocked_corpus_count =
         corpora.iter().filter(|corpus| corpus.blocked_stage_count > 0).count();
-    if blocked_corpus_count != 2 {
+    if blocked_corpus_count != 1 {
         return Err(anyhow!(
-            "corpus-centric report must retain exactly 2 corpora with blocked stages, found {}",
+            "corpus-centric report must retain exactly 1 corpus with blocked stages, found {}",
             blocked_corpus_count
         ));
     }
@@ -339,10 +339,10 @@ fn ensure_corpus_centric_report_contract(corpora: &[CorpusCentricCorpusReport]) 
         corpora,
         "corpus-03",
         5,
-        6,
-        1,
+        5,
+        0,
         &["corpus-03-amplicon-mini"],
-        &["fastq.normalize_abundance"],
+        &[],
     )?;
     ensure_corpus(
         corpora,
@@ -551,10 +551,10 @@ mod tests {
 
         assert_eq!(report.corpus_count, 8);
         assert_eq!(report.stage_count, 50);
-        assert_eq!(report.tool_row_count, 122);
+        assert_eq!(report.tool_row_count, 121);
         assert_eq!(report.benchmark_ready_tool_row_count, 118);
-        assert_eq!(report.blocked_tool_row_count, 4);
-        assert_eq!(report.blocked_corpus_count, 2);
+        assert_eq!(report.blocked_tool_row_count, 3);
+        assert_eq!(report.blocked_corpus_count, 1);
     }
 
     #[test]
@@ -571,7 +571,7 @@ mod tests {
         assert!(markdown.contains("## corpus-02"));
         assert!(markdown.contains("| fastq | fastq.screen_taxonomy | corpus-02-edna-mini | Contamination Screening | 4 | 4 | 0 | not_declared | none |"));
         assert!(markdown.contains("## corpus-03"));
-        assert!(markdown.contains("| fastq | fastq.normalize_abundance | corpus-03-amplicon-mini | Amplicon Interpretation | 2 | 1 | 1 | not_declared | seqfu (support) |"));
+        assert!(markdown.contains("| fastq | fastq.normalize_abundance | corpus-03-amplicon-mini | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |"));
         assert!(markdown.contains("## reference-index-assets"));
         assert!(markdown.contains("| fastq | fastq.index_reference | reference-index-assets | Reference Preparation | 2 | 2 | 0 | index_build_exit_code | none |"));
         assert!(markdown.contains("## corpus-01-adna-bam"));

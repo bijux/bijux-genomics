@@ -50,13 +50,13 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
     );
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(50));
-    assert_eq!(payload.get("tool_row_count").and_then(serde_json::Value::as_u64), Some(122));
+    assert_eq!(payload.get("tool_row_count").and_then(serde_json::Value::as_u64), Some(121));
     assert_eq!(
         payload.get("benchmark_ready_tool_row_count").and_then(serde_json::Value::as_u64),
         Some(118)
     );
-    assert_eq!(payload.get("blocked_tool_row_count").and_then(serde_json::Value::as_u64), Some(4));
-    assert_eq!(payload.get("blocked_corpus_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("blocked_tool_row_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("blocked_corpus_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
         payload
             .get("domain_counts")
@@ -167,13 +167,14 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
         corpus_03.get("blocked_stage_ids").and_then(serde_json::Value::as_array).map(|values| {
             values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()
         }),
-        Some(vec!["fastq.normalize_abundance"])
+        Some(vec![])
     );
     let corpus_03_stages =
         corpus_03.get("stages").and_then(serde_json::Value::as_array).expect("corpus-03 stages");
     for (stage_id, tool_count) in [
         ("fastq.cluster_otus", 1_u64),
         ("fastq.infer_asvs", 1_u64),
+        ("fastq.normalize_abundance", 1_u64),
         ("fastq.remove_chimeras", 1_u64),
     ] {
         let stage = corpus_03_stages

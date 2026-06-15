@@ -47,11 +47,11 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/fastq-adapter-output-contract.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(74));
-    assert_eq!(payload.get("adapter_row_count").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(73));
+    assert_eq!(payload.get("adapter_row_count").and_then(serde_json::Value::as_u64), Some(70));
     assert_eq!(
         payload.get("complete_adapter_row_count").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(70)
     );
     assert_eq!(
         payload.get("incomplete_adapter_row_count").and_then(serde_json::Value::as_u64),
@@ -59,11 +59,11 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("missing_adapter_row_count").and_then(serde_json::Value::as_u64),
-        Some(5)
+        Some(3)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 74, "report must retain the governed FASTQ 74-row slice");
+    assert_eq!(rows.len(), 73, "report must retain the governed FASTQ 73-row slice");
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqkit_stats")
@@ -165,10 +165,9 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.estimate_library_complexity_prealign")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("declared_only")
+                && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
                 && row.get("output_contract_status").and_then(serde_json::Value::as_str)
-                    == Some("missing_adapter")
+                    == Some("complete")
                 && row
                     .get("stage_output_ids")
                     .and_then(serde_json::Value::as_array)
@@ -178,11 +177,9 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
                 && row
                     .get("missing_declarations")
                     .and_then(serde_json::Value::as_array)
-                    .is_some_and(|artifacts| {
-                        artifacts == &vec![serde_json::Value::String("adapter".to_string())]
-                    })
+                    .is_some_and(|artifacts| artifacts.is_empty())
         }),
-        "report must keep the declared-only estimate-library-complexity row explicit while retaining its governed stage output contract"
+        "report must retain the governed estimate-library-complexity adapter contract row"
     );
     assert!(
         rows.iter().any(|row| {

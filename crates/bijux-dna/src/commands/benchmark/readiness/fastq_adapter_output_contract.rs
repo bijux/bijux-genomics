@@ -428,8 +428,8 @@ mod tests {
         .expect("render FASTQ adapter output contract");
 
         assert_eq!(report.schema_version, FASTQ_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION);
-        assert_eq!(report.row_count, 74);
-        assert_eq!(report.missing_adapter_row_count, 4);
+        assert_eq!(report.row_count, 73);
+        assert_eq!(report.missing_adapter_row_count, 3);
         assert_eq!(report.adapter_row_count, 70);
         assert_eq!(report.complete_adapter_row_count, 70);
         assert_eq!(report.incomplete_adapter_row_count, 0);

@@ -47,13 +47,13 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
         serde_json::from_str(&json_payload).expect("parse dashboard json");
 
     assert!(markdown.contains("# FASTQ + BAM Benchmark Readiness Dashboard"));
-    assert!(markdown.contains("- Expected pairs: 123"));
+    assert!(markdown.contains("- Expected pairs: 122"));
     assert!(markdown.contains("- Ready pairs: 118"));
-    assert!(markdown.contains("- Blocked pairs: 5"));
-    assert!(markdown.contains("| Matrix | attention_required | all governed fastq and bam stage-tool pairs | 123 | 118 | 5 |"));
+    assert!(markdown.contains("- Blocked pairs: 4"));
+    assert!(markdown.contains("| Matrix | attention_required | all governed fastq and bam stage-tool pairs | 122 | 118 | 4 |"));
     assert!(markdown.contains("| Reports | complete | governed local report surfaces | 5 | 5 | 0 | expected_results=118, stage_sections=51, tool_sections=67, corpus_sections=8 |"));
     assert!(markdown.contains(
-        "| pair_readiness | benchmarks/readiness/pair-readiness.tsv | 123 stage_tool_pairs |"
+        "| pair_readiness | benchmarks/readiness/pair-readiness.tsv | 122 stage_tool_pairs |"
     ));
     assert!(markdown.contains("| stage_centric_report | benchmarks/readiness/stage-centric-report.md | 51 stage_sections |"));
     assert!(markdown.contains("| fastq | fastq.report_qc | multiqc | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |"));

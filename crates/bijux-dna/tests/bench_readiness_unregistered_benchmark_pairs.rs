@@ -47,18 +47,18 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/unregistered-benchmark-pairs.tsv")
     );
-    assert_eq!(payload.get("unregistered_pair_count").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(payload.get("unregistered_pair_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
     let domain_counts = payload
         .get("domain_counts")
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(domain_counts.get("bam"), None);
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 7, "governed registry-drift slice must retain the current seven rows");
+    assert_eq!(rows.len(), 3, "governed registry-drift slice must retain the current three rows");
     assert!(
         !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -84,24 +84,13 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         "bam.recalibration / gatk must leave the registry-drift slice once the governed production row is registered"
     );
     assert!(
-        rows.iter().any(|row| {
+        !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.estimate_library_complexity_prealign")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")
-                && row.get("registry_status").and_then(serde_json::Value::as_str)
-                    == Some("tool_registered_pair_missing")
-                && row
-                    .get("registered_stage_ids")
-                    .and_then(serde_json::Value::as_array)
-                    .is_some_and(|value| {
-                        value
-                            == &vec![serde_json::Value::String(
-                                "fastq.detect_duplicates_premerge".to_string(),
-                            )]
-                    })
         }),
-        "fastq.estimate-library-complexity-prealign / bijux_dna must remain visible as a pair-missing row once bijux_dna is registered for detect-duplicates-premerge"
+        "fastq.estimate-library-complexity-prealign / bijux_dna must leave the registry-drift slice once the pair is registered"
     );
     assert!(
         rows.iter().any(|row| {
@@ -137,19 +126,13 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         "fastq.trim_reads / seqpurge must remain visible as a missing-tool registry row"
     );
     assert!(
-        rows.iter().any(|row| {
+        !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.normalize_abundance")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqfu")
-                && row.get("registry_status").and_then(serde_json::Value::as_str)
-                    == Some("tool_missing")
-                && row
-                    .get("registered_stage_ids")
-                    .and_then(serde_json::Value::as_array)
-                    .is_some_and(|value| value.is_empty())
         }),
-        "fastq.normalize_abundance / seqfu must remain visible as a missing-tool registry row"
+        "fastq.normalize_abundance / seqfu must leave the registry-drift slice once the fake binding is removed"
     );
     assert!(
         !rows.iter().any(|row| {
@@ -210,18 +193,12 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
             "fastq.profile_read_lengths / {tool_id} must no longer drift against the registry"
         );
     }
-    for stage_id in ["fastq.profile_read_lengths", "fastq.profile_reads"] {
-        assert!(
-            rows.iter().any(|row| {
-                row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
-                    && row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
-                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqfu")
-                    && row.get("registry_status").and_then(serde_json::Value::as_str)
-                        == Some("tool_missing")
-            }),
-            "{stage_id} / seqfu must remain visible as missing-tool registry drift while seqfu stays experimental"
-        );
-    }
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqfu")
+        }),
+        "seqfu must leave the unregistered-pair report once only admitted profile bindings remain"
+    );
     for tool_id in [
         "adapterremoval",
         "alientrimmer",

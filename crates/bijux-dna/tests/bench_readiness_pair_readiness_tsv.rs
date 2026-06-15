@@ -69,7 +69,7 @@ fn bench_readiness_pair_readiness_writes_gap_status_columns() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 123);
+    assert_eq!(rows.len(), 122);
 
     let taxonomy = rows
         .iter()

@@ -312,23 +312,23 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         ));
     }
     let row_count = stages.iter().map(|stage| stage.tool_count).sum::<usize>();
-    if row_count != 123 {
+    if row_count != 122 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 123 stage-tool rows, found {}",
+            "stage-centric report must retain exactly 122 stage-tool rows, found {}",
             row_count
         ));
     }
     let multi_tool_stage_count = stages.iter().filter(|stage| stage.tool_count > 1).count();
-    if multi_tool_stage_count != 30 {
+    if multi_tool_stage_count != 29 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 30 multi-tool stages, found {}",
+            "stage-centric report must retain exactly 29 multi-tool stages, found {}",
             multi_tool_stage_count
         ));
     }
     let blocked_stage_count = stages.iter().filter(|stage| stage.blocked_tool_count > 0).count();
-    if blocked_stage_count != 4 {
+    if blocked_stage_count != 3 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 4 blocked stages, found {}",
+            "stage-centric report must retain exactly 3 blocked stages, found {}",
             blocked_stage_count
         ));
     }
@@ -342,9 +342,9 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
     }
     let not_declared_shared_metric_stage_count =
         stages.iter().filter(|stage| stage.comparison_contract_status == "not_declared").count();
-    if not_declared_shared_metric_stage_count != 12 {
+    if not_declared_shared_metric_stage_count != 11 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 12 multi-tool stages without declared shared metrics, found {}",
+            "stage-centric report must retain exactly 11 multi-tool stages without declared shared metrics, found {}",
             not_declared_shared_metric_stage_count
         ));
     }
@@ -568,13 +568,13 @@ mod tests {
         .expect("render stage-centric report");
 
         assert_eq!(report.stage_count, 51);
-        assert_eq!(report.multi_tool_stage_count, 30);
-        assert_eq!(report.blocked_stage_count, 4);
+        assert_eq!(report.multi_tool_stage_count, 29);
+        assert_eq!(report.blocked_stage_count, 3);
         assert_eq!(report.declared_shared_metric_stage_count, 18);
-        assert_eq!(report.not_declared_shared_metric_stage_count, 12);
-        assert_eq!(report.row_count, 123);
+        assert_eq!(report.not_declared_shared_metric_stage_count, 11);
+        assert_eq!(report.row_count, 122);
         assert_eq!(report.benchmark_ready_row_count, 118);
-        assert_eq!(report.blocked_row_count, 5);
+        assert_eq!(report.blocked_row_count, 4);
 
         let trim_reads = report
             .stages

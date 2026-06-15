@@ -44,11 +44,12 @@ fn bench_readiness_tool_centric_report_writes_named_tool_sections() {
 
     assert!(markdown.contains("# Tool-Centric Benchmark Report"));
     assert!(markdown.contains("- Tool count: 67"));
-    assert!(markdown.contains("- Stage-tool rows: 123"));
+    assert!(markdown.contains("- Stage-tool rows: 122"));
     assert!(markdown.contains("| samtools | bam | 10 | 10 | 0 | none |"));
     assert!(
         markdown.contains("| fastp | fastq | 5 | 4 | 1 | fastq.filter_low_complexity (support) |")
     );
+    assert!(markdown.contains("| seqfu | fastq | 2 | 2 | 0 | none |"));
 
     assert!(markdown.contains("## samtools"));
     assert!(markdown.contains("| bam | bam.coverage | Coverage and Quality | Coverage, Bias, and QC | benchmark_ready | none | supported | runnable | parser_fixture_validated | fixture:corpus-01-bam-mini | not_required |"));

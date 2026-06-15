@@ -249,9 +249,9 @@ fn ensure_tool_centric_report_contract(tools: &[ToolCentricToolReport]) -> Resul
         ));
     }
     let row_count = tools.iter().map(|tool| tool.stage_count).sum::<usize>();
-    if row_count != 123 {
+    if row_count != 122 {
         return Err(anyhow!(
-            "tool-centric report must retain exactly 123 stage-tool rows, found {}",
+            "tool-centric report must retain exactly 122 stage-tool rows, found {}",
             row_count
         ));
     }
@@ -488,10 +488,10 @@ mod tests {
 
         assert_eq!(report.tool_count, 67);
         assert_eq!(report.unique_stage_count, 51);
-        assert_eq!(report.row_count, 123);
+        assert_eq!(report.row_count, 122);
         assert_eq!(report.benchmark_ready_row_count, 118);
-        assert_eq!(report.blocked_row_count, 5);
-        assert_eq!(report.blocked_tool_count, 5);
+        assert_eq!(report.blocked_row_count, 4);
+        assert_eq!(report.blocked_tool_count, 4);
 
         let samtools = report
             .tools

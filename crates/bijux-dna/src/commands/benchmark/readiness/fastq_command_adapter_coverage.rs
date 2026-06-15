@@ -325,12 +325,12 @@ mod tests {
         assert_eq!(report.schema_version, FASTQ_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 27);
         assert_eq!(report.tool_count, 44);
-        assert_eq!(report.row_count, 74);
+        assert_eq!(report.row_count, 73);
         assert_eq!(report.benchmark_ready_row_count, 69);
         assert_eq!(report.benchmark_ready_adapter_covered_row_count, 69);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
         assert_eq!(report.readiness_gap_counts.get("corpus"), Some(&1));
-        assert_eq!(report.readiness_gap_counts.get("support"), Some(&4));
+        assert_eq!(report.readiness_gap_counts.get("support"), Some(&3));
         assert!(
             report.readiness_gap_counts.get("adapter").is_none(),
             "the governed FASTQ readiness slice currently carries no adapter gap rows"

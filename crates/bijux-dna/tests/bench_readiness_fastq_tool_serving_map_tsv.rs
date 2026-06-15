@@ -181,10 +181,8 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
         "TSV must retain the governed normalize-abundance row for seqkit"
     );
     assert!(
-        rows.iter().any(|row| {
-            row == &"seqfu\tfastq.normalize_abundance\tplanned_contract\tdeclared_only\tnot_normalized\tfixture:corpus-03-amplicon-mini"
-        }),
-        "TSV must retain the planned normalize-abundance row for seqfu"
+        !rows.iter().any(|row| row.starts_with("seqfu\tfastq.normalize_abundance\t")),
+        "TSV must not retain a normalize-abundance row for seqfu"
     );
     assert!(
         rows.iter().any(|row| {
@@ -221,13 +219,6 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "governed_benchmark_cohort",
             "runnable",
             "benchmark_normalized",
-        ),
-        (
-            "seqfu",
-            "fastq.normalize_abundance",
-            "planned_contract",
-            "declared_only",
-            "not_normalized",
         ),
     ] {
         assert!(

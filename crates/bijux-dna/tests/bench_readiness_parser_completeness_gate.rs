@@ -50,21 +50,21 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
         Some("benchmarks/readiness/gate-parser-complete.json")
     );
     assert_eq!(payload.get("passes_gate"), Some(&serde_json::Value::Bool(true)));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(122));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(116)
+        Some(118)
     );
     assert_eq!(payload.get("gate_row_count").and_then(serde_json::Value::as_u64), Some(116));
     assert_eq!(payload.get("gate_passed_row_count").and_then(serde_json::Value::as_u64), Some(116));
     assert_eq!(payload.get("gate_failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(
         payload
             .get("domain_row_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(74)
+        Some(73)
     );
     assert_eq!(
         payload
@@ -92,14 +92,14 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
             .get("excluded_readiness_gap_counts")
             .and_then(|value| value.get("corpus"))
             .and_then(serde_json::Value::as_u64),
-        Some(3)
+        Some(1)
     );
     assert_eq!(
         payload
             .get("excluded_readiness_gap_counts")
             .and_then(|value| value.get("support"))
             .and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(3)
     );
     assert!(
         payload
@@ -110,7 +110,7 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 123);
+    assert_eq!(rows.len(), 122);
     assert!(rows
         .iter()
         .all(|row| { row.get("gate_status").and_then(serde_json::Value::as_str) != Some("fail") }));
@@ -166,6 +166,6 @@ fn bench_readiness_parser_completeness_gate_reports_parser_complete_benchmark_ro
     );
     assert_eq!(
         excluded_fastq.get("readiness_gap").and_then(serde_json::Value::as_str),
-        Some("corpus")
+        Some("none")
     );
 }

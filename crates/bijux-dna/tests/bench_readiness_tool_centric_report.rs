@@ -50,13 +50,13 @@ fn bench_readiness_tool_centric_report_tracks_named_tool_stage_lists() {
     );
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(67));
     assert_eq!(payload.get("unique_stage_count").and_then(serde_json::Value::as_u64), Some(51));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(122));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(118)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(5));
-    assert_eq!(payload.get("blocked_tool_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("blocked_tool_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(
         payload
             .get("domain_counts")
@@ -69,7 +69,7 @@ fn bench_readiness_tool_centric_report_tracks_named_tool_stage_lists() {
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(74)
+        Some(73)
     );
 
     let tools = payload.get("tools").and_then(serde_json::Value::as_array).expect("tools array");

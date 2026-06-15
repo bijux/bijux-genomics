@@ -204,13 +204,6 @@ fn ensure_fastq_amplicon_fixture_coverage(rows: &[ToolServingMapRow]) -> Result<
             "runnable",
             "benchmark_normalized",
         ),
-        (
-            "seqfu",
-            "fastq.normalize_abundance",
-            "planned_contract",
-            "declared_only",
-            "not_normalized",
-        ),
     ];
 
     for (tool_id, stage_id, support_status, adapter_status, parser_status) in expected_rows {

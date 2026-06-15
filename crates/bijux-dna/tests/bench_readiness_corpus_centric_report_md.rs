@@ -45,15 +45,16 @@ fn bench_readiness_corpus_centric_report_writes_named_corpus_sections() {
     assert!(markdown.contains("# Corpus-Centric Benchmark Report"));
     assert!(markdown.contains("- Corpus count: 8"));
     assert!(markdown.contains("- Assigned stages: 50"));
-    assert!(markdown.contains("- Assigned stage-tool rows: 122"));
+    assert!(markdown.contains("- Assigned stage-tool rows: 121"));
     assert!(markdown.contains("- Benchmark-ready rows: 118"));
-    assert!(markdown.contains("- Blocked rows: 4"));
-    assert!(markdown.contains("- Corpora with blocked stages: 2"));
+    assert!(markdown.contains("- Blocked rows: 3"));
+    assert!(markdown.contains("- Corpora with blocked stages: 1"));
 
     assert!(markdown.contains("## corpus-02"));
     assert!(markdown.contains("| fastq | fastq.screen_taxonomy | corpus-02-edna-mini | Contamination Screening | 4 | 4 | 0 | not_declared | none |"));
 
     assert!(markdown.contains("## corpus-03"));
+    assert!(markdown.contains("| fastq | fastq.normalize_abundance | corpus-03-amplicon-mini | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |"));
     assert!(markdown.contains("| fastq | fastq.cluster_otus | corpus-03-amplicon-mini | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |"));
     assert!(markdown.contains("| fastq | fastq.infer_asvs | corpus-03-amplicon-mini | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |"));
     assert!(markdown.contains("| fastq | fastq.remove_chimeras | corpus-03-amplicon-mini | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |"));

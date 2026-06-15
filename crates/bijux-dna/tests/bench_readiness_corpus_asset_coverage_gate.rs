@@ -50,7 +50,7 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
         Some("benchmarks/readiness/gate-corpus-assets-complete.json")
     );
     assert_eq!(payload.get("passes_gate"), Some(&serde_json::Value::Bool(true)));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(123));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(122));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(118)
@@ -58,7 +58,7 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
     assert_eq!(payload.get("gate_row_count").and_then(serde_json::Value::as_u64), Some(118));
     assert_eq!(payload.get("gate_passed_row_count").and_then(serde_json::Value::as_u64), Some(118));
     assert_eq!(payload.get("gate_failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(5));
+    assert_eq!(payload.get("excluded_row_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(
         payload.get("benchmark_ready_asset_required_row_count").and_then(serde_json::Value::as_u64),
         Some(20)
@@ -76,7 +76,7 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
             .get("domain_row_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(74)
+        Some(73)
     );
     assert_eq!(
         payload
@@ -87,7 +87,7 @@ fn bench_readiness_corpus_asset_coverage_gate_reports_complete_benchmark_rows() 
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 123);
+    assert_eq!(rows.len(), 122);
     assert!(rows
         .iter()
         .all(|row| { row.get("gate_status").and_then(serde_json::Value::as_str) != Some("fail") }));

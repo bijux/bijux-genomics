@@ -44,9 +44,10 @@ fn bench_readiness_stage_centric_report_writes_named_stage_sections() {
 
     assert!(markdown.contains("# Stage-Centric Benchmark Report"));
     assert!(markdown.contains("- Stage count: 51"));
-    assert!(markdown.contains("- Multi-tool stages: 30"));
+    assert!(markdown.contains("- Multi-tool stages: 29"));
     assert!(markdown.contains("| fastq | fastq.trim_reads | Read Cleanup | 14 | 13 | 1 | not_declared | seqpurge (support) |"));
     assert!(markdown.contains("| fastq | fastq.index_reference | Reference Preparation | 2 | 2 | 0 | index_build_exit_code | none |"));
+    assert!(markdown.contains("| fastq | fastq.normalize_abundance | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |"));
 
     assert!(markdown.contains("## fastq.profile_overrepresented_sequences"));
     assert!(markdown.contains("- Shared metric contract: declared"));
