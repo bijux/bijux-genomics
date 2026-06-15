@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "aa8afa7cdc2631f586f5d1cd67f606889aa877eb",
-  "bundle_checksum_sha256": "25f89cf5cae4ca1f721053bfc4016a133b012f2caf56091c1f0c019d14f8a2ae",
+  "source_commit": "309abc654f2dfad274ec2582e8e2b3e55fbf4910",
+  "bundle_checksum_sha256": "fe05968a8cfb68610081640e0f2b93975b9bd7b52a799a0f84e39f67591b256d",
   "domains": [
     {
       "domain_id": "bam",
@@ -1322,7 +1322,9 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": []
+          "planned_out_of_scope": [
+            "gatk"
+          ]
         },
         {
           "stage_id": "bam.haplogroups",
@@ -2925,7 +2927,9 @@
           "stage_ids": [
             "bam.recalibration"
           ],
-          "planned_stage_ids": [],
+          "planned_stage_ids": [
+            "bam.genotyping"
+          ],
           "expected_artifacts": [
             "recal_report"
           ],
@@ -4431,7 +4435,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "d9c7adfd67dc81ac565b2f8c994a8dd64744878a5d1d7a8b8c60485cc71601b4"
+      "checksum_sha256": "b96af8961828d68d18f8e6f49eeb9cbd351008b79f7aa2c91cd5ed87d25129d5"
     },
     {
       "domain_id": "fastq",
@@ -13570,7 +13574,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "b37be51369a2969cfed3c1af36b93c35f40d71e06e9ac87c8b0f1ffaef0b1bff"
+      "checksum_sha256": "cfeb7c29c1ff9d5a8f64092d9809e53562927cd050f4703437362ddac5300425"
     },
     {
       "domain_id": "vcf",
@@ -16294,7 +16298,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "c57ff23aae2dfe4d77abf51853cb61f210aa08b929b1658565e98324573f2f5b"
+      "checksum_sha256": "6db78f0fe98bed44c25a60eb19f26d2f8e489077ebde9e84abe853031554084e"
     }
   ]
 }

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: aa8afa7cdc2631f586f5d1cd67f606889aa877eb
+# source_commit: 309abc654f2dfad274ec2582e8e2b3e55fbf4910
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -2358,7 +2358,7 @@ primary_tools = ["angsd"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = []
-planned_out_of_scope = []
+planned_out_of_scope = ["gatk"]
 default_rationale = "Genotyping baseline preserves the governed low-depth ANGSD execution surface."
 requires_validation = false
 requires_reporting = false
