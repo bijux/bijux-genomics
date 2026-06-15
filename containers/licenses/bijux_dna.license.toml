@@ -1,0 +1,12 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+tool_id = "bijux_dna"
+container_kind = "bijux"
+spdx = "Apache-2.0"
+upstream_license_id = "Apache-2.0"
+upstream_url = "https://github.com/bijux/bijux-genomics"
+upstream_version = "0.1.0"
+upstream_checksum = "sha256:a6662f59c7283ff89d7f7c3b6aa23bcb2fda58f07fc2dd2831d85639166bc5f1"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+citation = "upstream:https://github.com/bijux/bijux-genomics"
+version = "0.1.0"

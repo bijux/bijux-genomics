@@ -230,6 +230,22 @@
       "version": "2.31.1"
     },
     {
+      "entry_sha256": "8e6d689dcf11b7734f97360a839bf2db21b686d08b8d2435bd89c800e8b7a3ea",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://github.com/bijux/bijux-genomics",
+      "source_sha256": "a6662f59c7283ff89d7f7c3b6aa23bcb2fda58f07fc2dd2831d85639166bc5f1",
+      "status": "production",
+      "tool": "bijux_dna",
+      "version": "0.1.0"
+    },
+    {
       "entry_sha256": "4eae1d193f64352f348841f3c7e525065d9867be731373db3fdb351a6ccfb924",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
@@ -1416,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "209939f09883a29475253f70ff129f9e2183c0f57a3bd051fce6507d2cd92110",
+  "source_sha256": "5b02ba4322b5b598128b1073bafe304bc8f85e2234ced53a5faf34154afd4158",
   "version_map_source": "artifacts/containers/version_map.json"
 }

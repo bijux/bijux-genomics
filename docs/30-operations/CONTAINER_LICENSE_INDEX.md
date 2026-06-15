@@ -32,6 +32,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `bcftools` | `non-bijux` | `NOASSERTION` | `https://github.com/samtools/bcftools` | `1.20` | `sha256:25b6c8ab18ad5eb053c969d2640f9eb58d4638a37f51e5188f9f09d8753ae923` |
 | `beagle` | `non-bijux` | `GPL-3.0` | `https://faculty.washington.edu/browning/beagle/beagle.html` | `5.4` | `sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f` |
 | `bedtools` | `bijux` | `NOASSERTION` | `https://github.com/arq5x/bedtools2` | `2.31.1` | `sha256:6862c44a3faf630cd20c5564dd6025f32258989f6079e736edba8e88e92940e5` |
+| `bijux_dna` | `bijux` | `Apache-2.0` | `https://github.com/bijux/bijux-genomics` | `0.1.0` | `sha256:a6662f59c7283ff89d7f7c3b6aa23bcb2fda58f07fc2dd2831d85639166bc5f1` |
 | `bowtie2` | `bijux` | `NOASSERTION` | `https://github.com/BenLangmead/bowtie2` | `2.5.4` | `sha256:d18520808b8c89328b402bd4cd374955ca6a87dc401f97d5784bdc56bd58e70a` |
 | `bowtie2_build` | `bijux` | `NOASSERTION` | `https://github.com/BenLangmead/bowtie2` | `2.5.4` | `sha256:4cd8f06ab7a68044434e81c6cd551795f02dae6c5787ac673f96cb841e709eba` |
 | `bracken` | `bijux` | `NOASSERTION` | `https://github.com/jenniferlu717/Bracken` | `2.9` | `sha256:11d39aca5485e3d5f1f482044422dd58f90c9a2023275b41c652bb76bd2ff7bd` |

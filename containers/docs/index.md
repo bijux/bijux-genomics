@@ -39,7 +39,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | tool_id | status | apptainer_source | docker_source |
 |---|---|---|---|
 | `adapterremoval` | `production` | `bijux` | `arm64` |
-| `addeam` | `experimental` | `bijux` | `arm64` |
+| `addeam` | `production` | `bijux` | `arm64` |
 | `alientrimmer` | `production` | `bijux` | `arm64` |
 | `angsd` | `planned` | `bijux` | `arm64` |
 | `atropos` | `production` | `bijux` | `arm64` |
@@ -50,8 +50,9 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `bbduk` | `production` | `bijux` | `arm64` |
 | `bbmerge` | `production` | `bijux` | `arm64` |
 | `bcftools` | `production` | `non-bijux` | `arm64` |
-| `beagle` | `production` | `non-bijux` | `arm64` |
+| `beagle` | `experimental` | `non-bijux` | `arm64` |
 | `bedtools` | `production` | `bijux` | `arm64` |
+| `bijux_dna` | `production` | `bijux` | `arm64` |
 | `bowtie2` | `production` | `bijux` | `arm64` |
 | `bowtie2_build` | `production` | `bijux` | `arm64` |
 | `bracken` | `experimental` | `bijux` | `arm64` |
@@ -61,7 +62,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `contammix` | `production` | `bijux` | `arm64` |
 | `cutadapt` | `production` | `bijux` | `arm64` |
 | `dada2` | `production` | `bijux` | `arm64` |
-| `damageprofiler` | `experimental` | `bijux` | `arm64` |
+| `damageprofiler` | `production` | `bijux` | `arm64` |
 | `diamond` | `experimental` | `bijux` | `arm64` |
 | `dustmasker` | `experimental` | `bijux` | `arm64` |
 | `eagle` | `experimental` | `non-bijux` | `arm64` |
@@ -80,7 +81,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `glimpse` | `planned` | `non-bijux` | `arm64` |
 | `ibdhap` | `planned` | `non-bijux` | `arm64` |
 | `ibdne` | `planned` | `non-bijux` | `arm64` |
-| `ibdseq` | `planned` | `bijux` | `none` |
+| `ibdseq` | `planned` | `bijux` | `arm64` |
 | `impute5` | `planned` | `non-bijux` | `arm64` |
 | `kaiju` | `production` | `bijux` | `arm64` |
 | `king` | `production` | `bijux` | `arm64` |
@@ -108,14 +109,14 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `rxy` | `production` | `bijux` | `arm64` |
 | `samtools` | `production` | `bijux` | `arm64` |
 | `schmutzi` | `production` | `bijux` | `arm64` |
-| `seqfu` | `experimental` | `bijux` | `arm64` |
+| `seqfu` | `production` | `bijux` | `arm64` |
 | `seqkit` | `production` | `bijux` | `arm64` |
 | `seqkit_stats` | `production` | `bijux` | `arm64` |
 | `seqprep` | `experimental` | `bijux` | `arm64` |
 | `seqpurge` | `experimental` | `bijux` | `arm64` |
 | `seqtk` | `production` | `bijux` | `arm64` |
 | `shapeit` | `planned` | `bijux` | `none` |
-| `shapeit5` | `production` | `non-bijux` | `arm64` |
+| `shapeit5` | `experimental` | `non-bijux` | `arm64` |
 | `skewer` | `production` | `bijux` | `arm64` |
 | `sortmerna` | `production` | `bijux` | `arm64` |
 | `spades` | `experimental` | `bijux` | `arm64` |
@@ -125,4 +126,4 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `umi_tools` | `production` | `bijux` | `arm64` |
 | `verifybamid2` | `production` | `bijux` | `arm64` |
 | `vsearch` | `production` | `bijux` | `arm64` |
-| `yleaf` | `experimental` | `bijux` | `arm64` |
+| `yleaf` | `production` | `bijux` | `arm64` |

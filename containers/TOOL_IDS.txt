@@ -2,7 +2,7 @@
 # Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids
 # format: <tool_id><TAB><status>
 adapterremoval	production
-addeam	experimental
+addeam	production
 alientrimmer	production
 angsd	planned
 atropos	production
@@ -15,6 +15,7 @@ bbmerge	production
 bcftools	production
 beagle	experimental
 bedtools	production
+bijux_dna	production
 bowtie2	production
 bowtie2_build	production
 bracken	experimental
@@ -24,7 +25,7 @@ clumpify	production
 contammix	production
 cutadapt	production
 dada2	production
-damageprofiler	experimental
+damageprofiler	production
 diamond	experimental
 dustmasker	experimental
 eagle	experimental
@@ -71,7 +72,7 @@ rcorrector	production
 rxy	production
 samtools	production
 schmutzi	production
-seqfu	experimental
+seqfu	production
 seqkit	production
 seqkit_stats	production
 seqprep	experimental
@@ -88,4 +89,4 @@ trimmomatic	production
 umi_tools	production
 verifybamid2	production
 vsearch	production
-yleaf	experimental
+yleaf	production
