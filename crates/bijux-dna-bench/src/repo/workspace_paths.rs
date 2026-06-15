@@ -47,7 +47,6 @@ pub fn bench_bam_local_stage_matrix_path() -> PathBuf {
 #[cfg(test)]
 mod tests {
     use std::fs;
-    use std::path::PathBuf;
 
     use super::{
         bench_bam_local_stage_matrix_path, bench_fastq_local_stage_matrix_path,

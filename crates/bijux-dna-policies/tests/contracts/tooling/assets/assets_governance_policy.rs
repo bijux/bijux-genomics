@@ -393,16 +393,16 @@ fn policy__contracts__assets_governance_policy__tests_must_not_write_into_assets
     let root = repo_root();
     let mut offenders = Vec::new();
     let write_into_assets_patterns = [
-        regex::Regex::new(r#"(?s)\bwrite\s*\(\s*[^,\n)]*assets/"#).expect("write regex"),
-        regex::Regex::new(r#"(?s)\bcreate_dir(?:_all)?\s*\(\s*[^)\n]*assets/"#)
+        regex::Regex::new(r"(?s)\bwrite\s*\(\s*[^,\n)]*assets/").expect("write regex"),
+        regex::Regex::new(r"(?s)\bcreate_dir(?:_all)?\s*\(\s*[^)\n]*assets/")
             .expect("create dir regex"),
-        regex::Regex::new(r#"(?s)\bremove_(?:file|dir(?:_all)?)\s*\(\s*[^)\n]*assets/"#)
+        regex::Regex::new(r"(?s)\bremove_(?:file|dir(?:_all)?)\s*\(\s*[^)\n]*assets/")
             .expect("remove regex"),
-        regex::Regex::new(r#"(?s)\brename\s*\(\s*[^,\n]*assets/"#).expect("rename from regex"),
-        regex::Regex::new(r#"(?s)\brename\s*\([^,\n]+,\s*[^)\n]*assets/"#)
+        regex::Regex::new(r"(?s)\brename\s*\(\s*[^,\n]*assets/").expect("rename from regex"),
+        regex::Regex::new(r"(?s)\brename\s*\([^,\n]+,\s*[^)\n]*assets/")
             .expect("rename into regex"),
-        regex::Regex::new(r#"(?s)\bcopy\s*\([^,\n]+,\s*[^)\n]*assets/"#).expect("copy regex"),
-        regex::Regex::new(r#"(?s)\bOpenOptions\b[\s\S]{0,200}\.open\s*\(\s*[^)\n]*assets/"#)
+        regex::Regex::new(r"(?s)\bcopy\s*\([^,\n]+,\s*[^)\n]*assets/").expect("copy regex"),
+        regex::Regex::new(r"(?s)\bOpenOptions\b[\s\S]{0,200}\.open\s*\(\s*[^)\n]*assets/")
             .expect("open options regex"),
     ];
     for dir in ["crates", "scripts", "makes"] {
