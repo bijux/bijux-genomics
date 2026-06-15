@@ -738,8 +738,7 @@ fn filter_stage_spec(stage_id: &str) -> Option<FilterStageSpec> {
 }
 
 fn filter_stage_binding_admitted(stage_id: &str, tool_id: &str) -> bool {
-    filter_stage_spec(stage_id)
-        .is_some_and(|spec| spec.expected_tool_ids.iter().any(|candidate| *candidate == tool_id))
+    filter_stage_spec(stage_id).is_some_and(|spec| spec.expected_tool_ids.contains(&tool_id))
 }
 
 fn binding_key(stage_id: &str, tool_id: &str) -> BindingKey {

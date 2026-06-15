@@ -90,6 +90,7 @@ pub struct SlurmMonitorSnapshot {
 }
 
 #[derive(Debug, Clone, Serialize)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct SlurmMonitorEntry {
     pub planned_job_id: String,
     pub scheduler_job_id: String,

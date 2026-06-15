@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -120,7 +120,7 @@ fn bench_readiness_vcf_imputation_family_adapter_reports_governed_rows() {
         beagle_imputation
             .get("parser_output_ids")
             .and_then(serde_json::Value::as_array)
-            .map(|items| items.len()),
+            .map(Vec::len),
         Some(5)
     );
     assert!(

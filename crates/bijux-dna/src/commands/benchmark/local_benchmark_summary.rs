@@ -333,7 +333,7 @@ fn render_local_benchmark_summary_markdown(report: &BenchLocalBenchmarkSummaryRe
 }
 
 fn sanitize_markdown(value: &str) -> String {
-    value.replace('|', "\\|").replace('\n', " ").replace('\r', " ")
+    value.replace('|', "\\|").replace(['\n', '\r'], " ")
 }
 
 fn missing_stage_error(report_name: &str, stage_id: &str) -> anyhow::Error {

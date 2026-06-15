@@ -201,8 +201,7 @@ pub(crate) fn render_all_domain_harness_ready(
             benchmark_ready_binding_count = report.benchmark_ready_unique_binding_count;
             stage_tool_report = Some(report);
             Ok(format!(
-                "validated {} benchmark-ready all-domain stage/tool bindings",
-                benchmark_ready_binding_count
+                "validated {benchmark_ready_binding_count} benchmark-ready all-domain stage/tool bindings"
             ))
         },
     );
@@ -233,8 +232,7 @@ pub(crate) fn render_all_domain_harness_ready(
             expected_result_row_count = report.row_count;
             expected_results_report = Some(report);
             Ok(format!(
-                "validated {} canonical all-domain expected benchmark results",
-                expected_result_row_count
+                "validated {expected_result_row_count} canonical all-domain expected benchmark results"
             ))
         },
     );
@@ -272,8 +270,7 @@ pub(crate) fn render_all_domain_harness_ready(
             rendered_command_row_count = report.row_count;
             rendered_commands_report = Some(report);
             Ok(format!(
-                "validated executable commands for all {} benchmark-ready all-domain results",
-                rendered_command_row_count
+                "validated executable commands for all {rendered_command_row_count} benchmark-ready all-domain results"
             ))
         },
     );
@@ -304,8 +301,7 @@ pub(crate) fn render_all_domain_harness_ready(
             output_declaration_row_count = report.row_count;
             output_declarations_report = Some(report);
             Ok(format!(
-                "validated complete output declarations for all {} benchmark-ready results",
-                output_declaration_row_count
+                "validated complete output declarations for all {output_declaration_row_count} benchmark-ready results"
             ))
         },
     );
@@ -333,8 +329,7 @@ pub(crate) fn render_all_domain_harness_ready(
             fake_run_output_count = report.created_output_count;
             fake_runs_report = Some(report);
             Ok(format!(
-                "validated fake-run materialization for all {} benchmark-ready results",
-                fake_run_result_count
+                "validated fake-run materialization for all {fake_run_result_count} benchmark-ready results"
             ))
         },
     );
@@ -364,8 +359,7 @@ pub(crate) fn render_all_domain_harness_ready(
             fake_failure_output_count = report.failed_output_count;
             fake_failures_report = Some(report);
             Ok(format!(
-                "validated structured failure records for all {} benchmark-ready results",
-                fake_failure_result_count
+                "validated structured failure records for all {fake_failure_result_count} benchmark-ready results"
             ))
         },
     );
@@ -394,8 +388,7 @@ pub(crate) fn render_all_domain_harness_ready(
             completion_row_count = report.row_count;
             completion_check_report = Some(report);
             Ok(format!(
-                "validated governed completion behavior across the {}-result harness slice",
-                completion_row_count
+                "validated governed completion behavior across the {completion_row_count}-result harness slice"
             ))
         },
     );
@@ -424,8 +417,7 @@ pub(crate) fn render_all_domain_harness_ready(
             parser_collector_row_count = report.row_count;
             parser_collector_report = Some(report);
             Ok(format!(
-                "validated parser collection for {} fake-run rows and 4 governed real-smoke rows",
-                benchmark_ready_binding_count
+                "validated parser collection for {benchmark_ready_binding_count} fake-run rows and 4 governed real-smoke rows"
             ))
         },
     );
@@ -455,8 +447,7 @@ pub(crate) fn render_all_domain_harness_ready(
             missing_result_row_count = report.expected_row_count;
             missing_result_report = Some(report);
             Ok(format!(
-                "validated one explicit missing result row per domain across the {}-result slice",
-                missing_result_row_count
+                "validated one explicit missing result row per domain across the {missing_result_row_count}-result slice"
             ))
         },
     );

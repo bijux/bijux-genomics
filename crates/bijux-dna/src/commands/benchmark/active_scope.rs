@@ -408,8 +408,7 @@ fn record_check<T, F, S>(
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root)
-        .map(|relative| relative.display().to_string())
-        .unwrap_or_else(|_| path.display().to_string())
+        .map_or_else(|_| path.display().to_string(), |relative| relative.display().to_string())
 }
 
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {

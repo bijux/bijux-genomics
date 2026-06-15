@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::similar_names, clippy::too_many_lines)]
 
 use std::path::PathBuf;
 use std::process::Command;
@@ -707,7 +707,7 @@ fn bench_local_materialize_stage_bam_complexity_json_writes_governed_smoke_bundl
     assert_eq!(report.get("estimated_library_size").and_then(serde_json::Value::as_u64), Some(12));
     assert_eq!(
         report.get("saturation_estimate").and_then(serde_json::Value::as_f64),
-        Some(0.33333333333333337_f64)
+        Some(0.333_333_333_333_333_37_f64)
     );
     assert_eq!(report.get("insufficient_data_reason"), Some(&serde_json::Value::Null));
 
@@ -815,7 +815,7 @@ fn bench_local_materialize_stage_bam_insert_size_json_writes_governed_smoke_bund
     assert_eq!(report.get("median_insert_size").and_then(serde_json::Value::as_f64), Some(20.0));
     assert_eq!(
         report.get("mean_insert_size").and_then(serde_json::Value::as_f64),
-        Some(21.666666666666668)
+        Some(21.666_666_666_666_668)
     );
     assert_eq!(report.get("min_insert_size").and_then(serde_json::Value::as_u64), Some(15));
     assert_eq!(report.get("max_insert_size").and_then(serde_json::Value::as_u64), Some(30));

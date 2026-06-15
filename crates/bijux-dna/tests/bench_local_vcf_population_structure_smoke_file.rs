@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -79,7 +79,7 @@ fn bench_local_vcf_population_structure_smoke_writes_governed_files() {
         Some(6)
     );
     assert_eq!(
-        report.get("sample_groups").and_then(serde_json::Value::as_array).map(|rows| rows.len()),
+        report.get("sample_groups").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(4)
     );
 
@@ -92,7 +92,7 @@ fn bench_local_vcf_population_structure_smoke_writes_governed_files() {
     );
     assert_eq!(source_stage.get("status").and_then(serde_json::Value::as_str), Some("complete"));
     assert_eq!(
-        source_stage.get("sample_ids").and_then(serde_json::Value::as_array).map(|rows| rows.len()),
+        source_stage.get("sample_ids").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(4)
     );
 

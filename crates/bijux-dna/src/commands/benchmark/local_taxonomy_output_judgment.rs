@@ -126,8 +126,7 @@ pub(crate) fn judge_edna_taxonomy_outputs(
     for sample_id in &manifest_samples {
         if !observed_reports.contains_key(*sample_id) {
             return Err(anyhow!(
-                "taxonomy output judgment is missing an observed report for sample_id `{}`",
-                sample_id
+                "taxonomy output judgment is missing an observed report for sample_id `{sample_id}`"
             ));
         }
     }

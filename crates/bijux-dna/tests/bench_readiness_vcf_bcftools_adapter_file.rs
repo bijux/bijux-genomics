@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -87,7 +87,7 @@ fn bench_readiness_vcf_bcftools_adapter_writes_governed_json_file() {
         stats_row
             .get("declared_outputs")
             .and_then(serde_json::Value::as_array)
-            .map(|items| items.len()),
+            .map(std::vec::Vec::len),
         Some(2),
         "stats row must retain both raw bcftools output and normalized parser output declarations"
     );
@@ -100,7 +100,7 @@ fn bench_readiness_vcf_bcftools_adapter_writes_governed_json_file() {
         qc_row
             .get("declared_outputs")
             .and_then(serde_json::Value::as_array)
-            .map(|items| items.len()),
+            .map(std::vec::Vec::len),
         Some(7),
         "qc row must retain six raw QC declarations plus the normalized QC report"
     );

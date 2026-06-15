@@ -151,7 +151,7 @@ pub(crate) fn collect_essential_pipeline_report_map_rows(
                     )
                 })?;
             let rendered_row =
-                rendered_tool_by_node.get(&(pipeline_id.to_string(), node.node_id.clone())).ok_or_else(
+                rendered_tool_by_node.get(&((*pipeline_id).to_string(), node.node_id.clone())).ok_or_else(
                     || {
                         anyhow!(
                             "essential pipeline report map is missing a rendered command row for `{pipeline_id}` / `{}`",
@@ -169,7 +169,7 @@ pub(crate) fn collect_essential_pipeline_report_map_rows(
             for output_metric in &node.outputs {
                 expected_output_count += 1;
                 rows.push(EssentialPipelineReportMapRow {
-                    pipeline_id: pipeline_id.to_string(),
+                    pipeline_id: (*pipeline_id).to_string(),
                     stage_id: node.stage_id.clone(),
                     tool_id: rendered_row.tool_id.clone(),
                     output_metric: output_metric.clone(),
@@ -291,7 +291,7 @@ fn stage_domain(stage_id: &str) -> &'static str {
 }
 
 fn sanitize_tsv(value: &str) -> String {
-    value.replace('\t', " ").replace('\n', " ")
+    value.replace(['\t', '\n'], " ")
 }
 
 fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {

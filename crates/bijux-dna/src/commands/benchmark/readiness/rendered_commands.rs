@@ -143,7 +143,7 @@ mod tests {
         assert_eq!(report.row_count, 118);
         assert_eq!(report.rows.len(), 118);
         assert!(report.rows.iter().all(|row| {
-            row.argv.first().is_some()
+            !row.argv.is_empty()
                 && !row.command.is_empty()
                 && row.command == crate::commands::benchmark::readiness::benchmark_command_rows::render_shell_command(&row.argv)
         }));

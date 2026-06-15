@@ -2310,16 +2310,16 @@ fn validate_edna_taxonomy_no_vcf_profile(
     }
 
     for node in &config.nodes {
-        if node.stage_id.starts_with("bam.") || node.stage_id.starts_with("vcf.") {
-            if node.upstream_inputs.iter().any(|value| {
+        if (node.stage_id.starts_with("bam.") || node.stage_id.starts_with("vcf."))
+            && node.upstream_inputs.iter().any(|value| {
                 value == "taxonomy_classification"
                     || value == "unclassified_reads"
                     || value == "taxonomy_summary"
-            }) {
-                return Err(anyhow!(
-                    "{PROFILE_ID}: taxonomy outputs must not bridge into BAM or VCF germline stages"
-                ));
-            }
+            })
+        {
+            return Err(anyhow!(
+                "{PROFILE_ID}: taxonomy outputs must not bridge into BAM or VCF germline stages"
+            ));
         }
     }
 
@@ -2549,18 +2549,18 @@ fn validate_amplicon_asv_otu_no_vcf_profile(
     }
 
     for node in &config.nodes {
-        if node.stage_id.starts_with("bam.") || node.stage_id.starts_with("vcf.") {
-            if node.upstream_inputs.iter().any(|value| {
+        if (node.stage_id.starts_with("bam.") || node.stage_id.starts_with("vcf."))
+            && node.upstream_inputs.iter().any(|value| {
                 value == "asv_table"
                     || value == "asv_representatives"
                     || value == "otu_table"
                     || value == "otu_representatives"
                     || value == "normalized_abundance_table"
-            }) {
-                return Err(anyhow!(
-                    "{PROFILE_ID}: ASV or OTU outputs must not bridge into BAM or VCF germline stages"
-                ));
-            }
+            })
+        {
+            return Err(anyhow!(
+                "{PROFILE_ID}: ASV or OTU outputs must not bridge into BAM or VCF germline stages"
+            ));
         }
     }
 

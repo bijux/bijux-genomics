@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -110,7 +110,8 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         !rows.iter().any(|row| row.starts_with("bam\tbam.damage\tdamageprofiler\t")),
         "TSV must not retain a registry-drift row for bam.damage / damageprofiler once it is registered"
     );
-    for tool_id in ["prinseq"] {
+    {
+        let tool_id = "prinseq";
         assert!(
             !rows.iter().any(|row| {
                 row.starts_with(&format!("fastq\tfastq.profile_read_lengths\t{tool_id}\t"))

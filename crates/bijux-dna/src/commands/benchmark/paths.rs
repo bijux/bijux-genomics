@@ -316,9 +316,7 @@ fn delete_disposable_root(
 ) -> Result<DisposableRootDeletionStatus> {
     let absolute_path = repo_root.join(relative_path);
     let existed_before = absolute_path.exists();
-    let removal_action = if !existed_before {
-        "already_absent".to_string()
-    } else {
+    let removal_action = if existed_before {
         let metadata = std::fs::symlink_metadata(&absolute_path)
             .with_context(|| format!("read metadata for {}", absolute_path.display()))?;
         let file_type = metadata.file_type();
@@ -329,6 +327,8 @@ fn delete_disposable_root(
                 .with_context(|| format!("remove file {}", absolute_path.display()))?;
         }
         "deleted".to_string()
+    } else {
+        "already_absent".to_string()
     };
     Ok(DisposableRootDeletionStatus {
         relative_path: relative_path.to_string(),
@@ -349,7 +349,7 @@ fn remove_directory_tree(path: &Path) -> Result<()> {
         if !status.success() {
             bail!("remove directory {} returned {}", path.display(), status);
         }
-        return Ok(());
+        Ok(())
     }
     #[cfg(not(unix))]
     {

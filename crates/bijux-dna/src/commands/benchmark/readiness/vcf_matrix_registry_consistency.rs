@@ -143,9 +143,10 @@ pub(crate) fn render_vcf_matrix_registry_consistency(
             .get(stage_id.as_str())
             .cloned()
             .unwrap_or_else(|| "unknown".to_string());
-        let tool_registry_status = registry_record
-            .map(|record| sorted_status_label(&record.statuses))
-            .unwrap_or_else(|| "tool_missing".to_string());
+        let tool_registry_status = registry_record.map_or_else(
+            || "tool_missing".to_string(),
+            |record| sorted_status_label(&record.statuses),
+        );
         let registry_stage_ids = registry_record
             .map(|record| record.stage_ids.iter().cloned().collect::<Vec<_>>())
             .unwrap_or_default();

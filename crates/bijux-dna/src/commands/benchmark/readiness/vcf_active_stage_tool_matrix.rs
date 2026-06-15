@@ -469,7 +469,7 @@ fn count_scope_state(rows: &[VcfActiveStageToolMatrixRow], scope_state: &str) ->
 }
 
 fn sanitize_tsv(value: &str) -> String {
-    value.replace('\t', " ").replace('\n', " ")
+    value.replace(['\t', '\n'], " ")
 }
 
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {

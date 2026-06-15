@@ -156,7 +156,8 @@ fn collect_sbatch_paths(root: &Path, paths: &mut Vec<PathBuf>) -> Result<()> {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .map(|relative| relative.to_string_lossy().replace('\\', "/"))
-        .unwrap_or_else(|_| path.to_string_lossy().replace('\\', "/"))
+    path.strip_prefix(repo_root).map_or_else(
+        |_| path.to_string_lossy().replace('\\', "/"),
+        |relative| relative.to_string_lossy().replace('\\', "/"),
+    )
 }

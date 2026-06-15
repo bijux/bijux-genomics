@@ -152,8 +152,7 @@ pub(crate) fn ensure_path_stays_outside_benchmark_readiness_root(
     let readiness_root = repo_root.join(DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE);
     if resolved == readiness_root || resolved.starts_with(&readiness_root) {
         bail!(
-            "{output_kind} must remain disposable and must not resolve inside `{}`",
-            DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE
+            "{output_kind} must remain disposable and must not resolve inside `{DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE}`"
         );
     }
     Ok(())
@@ -169,7 +168,7 @@ pub(crate) fn ensure_path_stays_within_benchmark_runs_root(
     if resolved == runs_root || resolved.starts_with(&runs_root) {
         return Ok(());
     }
-    bail!("{output_kind} must resolve inside `{}`", DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE);
+    bail!("{output_kind} must resolve inside `{DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE}`");
 }
 
 #[cfg(test)]

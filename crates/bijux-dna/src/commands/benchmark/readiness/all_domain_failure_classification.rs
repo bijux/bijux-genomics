@@ -466,10 +466,7 @@ fn classify_unsupported_pair(
     });
     if supported {
         return Err(anyhow!(
-            "governed unsupported-pair probe drifted because `{}` / `{}` / `{}` is now supported",
-            UNSUPPORTED_PAIR_DOMAIN,
-            UNSUPPORTED_PAIR_STAGE_ID,
-            UNSUPPORTED_PAIR_TOOL_ID
+            "governed unsupported-pair probe drifted because `{UNSUPPORTED_PAIR_DOMAIN}` / `{UNSUPPORTED_PAIR_STAGE_ID}` / `{UNSUPPORTED_PAIR_TOOL_ID}` is now supported"
         ));
     }
     Ok(AllDomainFailureClassificationRow {
@@ -482,8 +479,7 @@ fn classify_unsupported_pair(
         evidence_path: report.output_path.clone(),
         observed_status: "unsupported_pair".to_string(),
         observed_error: format!(
-            "benchmark pair `{}` / `{}` is absent from the governed all-domain stage-tool table",
-            UNSUPPORTED_PAIR_STAGE_ID, UNSUPPORTED_PAIR_TOOL_ID
+            "benchmark pair `{UNSUPPORTED_PAIR_STAGE_ID}` / `{UNSUPPORTED_PAIR_TOOL_ID}` is absent from the governed all-domain stage-tool table"
         ),
         detail: "unsupported-pair classification must remain explicit instead of collapsing into a generic failed status"
             .to_string(),

@@ -298,7 +298,7 @@ pub(crate) fn run_local_vcf_impute_smoke(
         );
     }
     if output_summary.sample_ids
-        != EXPECTED_SAMPLE_IDS.iter().map(|value| value.to_string()).collect::<Vec<_>>()
+        != EXPECTED_SAMPLE_IDS.iter().map(|value| (*value).to_string()).collect::<Vec<_>>()
     {
         bail!(
             "governed VCF impute smoke expected sample ids {:?}, found {:?}",
@@ -354,20 +354,12 @@ pub(crate) fn run_local_vcf_impute_smoke(
         || unresolved_count != EXPECTED_UNRESOLVED_COUNT
     {
         bail!(
-            "governed VCF impute smoke drifted from masked-truth contract: before={} after={} imputed={} low_confidence={} masked_sites={} matches={} unresolved={}",
-            missing_before,
-            missing_after,
-            imputed_genotypes,
-            low_confidence_count,
-            masked_truth_site_count,
-            masked_truth_match_count,
-            unresolved_count
+            "governed VCF impute smoke drifted from masked-truth contract: before={missing_before} after={missing_after} imputed={imputed_genotypes} low_confidence={low_confidence_count} masked_sites={masked_truth_site_count} matches={masked_truth_match_count} unresolved={unresolved_count}"
         );
     }
     if !not_imputable_reasons.is_empty() {
         bail!(
-            "governed VCF impute smoke expected zero unresolved reasons, found {:?}",
-            not_imputable_reasons
+            "governed VCF impute smoke expected zero unresolved reasons, found {not_imputable_reasons:?}"
         );
     }
 

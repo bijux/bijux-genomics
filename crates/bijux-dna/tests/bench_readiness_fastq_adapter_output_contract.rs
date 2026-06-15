@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -174,7 +174,7 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
                 && row
                     .get("missing_declarations")
                     .and_then(serde_json::Value::as_array)
-                    .is_some_and(|artifacts| artifacts.is_empty())
+                    .is_some_and(Vec::is_empty)
         }),
         "report must retain the governed estimate-library-complexity adapter contract row"
     );

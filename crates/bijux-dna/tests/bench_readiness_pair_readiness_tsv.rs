@@ -1,5 +1,5 @@
 #![cfg(feature = "bam_downstream")]
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::collections::BTreeMap;
 use std::process::Command;

@@ -51,7 +51,7 @@ pub(crate) fn render_command_argv(
     let output_path = repo_relative_path(repo_root, &output_path);
     let rows = collect_rendered_command_rows(repo_root)?
         .into_iter()
-        .map(|entry| rendered_command_argv_row(entry))
+        .map(rendered_command_argv_row)
         .collect::<Vec<_>>();
 
     if let Some(parent) = output_path.parent() {

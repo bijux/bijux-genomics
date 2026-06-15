@@ -243,17 +243,13 @@ fn build_stage_decision_row(
         primary_tool_id,
         selected_tool_id: selected_row.map(|row| row.tool_id.clone()),
         support_status: selected_row
-            .map(|row| row.support_status.clone())
-            .unwrap_or_else(|| "missing".to_string()),
+            .map_or_else(|| "missing".to_string(), |row| row.support_status.clone()),
         adapter_status: selected_row
-            .map(|row| row.adapter_status.clone())
-            .unwrap_or_else(|| "missing".to_string()),
+            .map_or_else(|| "missing".to_string(), |row| row.adapter_status.clone()),
         parser_status: selected_row
-            .map(|row| row.parser_status.clone())
-            .unwrap_or_else(|| "missing".to_string()),
+            .map_or_else(|| "missing".to_string(), |row| row.parser_status.clone()),
         corpus_status: selected_row
-            .map(|row| row.corpus_status.clone())
-            .unwrap_or_else(|| "missing".to_string()),
+            .map_or_else(|| "missing".to_string(), |row| row.corpus_status.clone()),
         reason,
     }
 }

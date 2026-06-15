@@ -322,9 +322,7 @@ fn ensure_all_domain_local_job_coverage_contract(
     let extra = rendered_keys.difference(active_keys).count();
     if missing != report.missing_row_count || extra != 0 {
         return Err(anyhow!(
-            "all-domain local-job coverage drifted from the governed active slice; missing={}, extra={}",
-            missing,
-            extra
+            "all-domain local-job coverage drifted from the governed active slice; missing={missing}, extra={extra}"
         ));
     }
     if report.violation_count != report.violations.len() {

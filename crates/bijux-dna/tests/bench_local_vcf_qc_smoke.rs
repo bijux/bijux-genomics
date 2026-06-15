@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -144,7 +144,7 @@ fn bench_local_vcf_qc_smoke_reports_real_governed_outputs() {
         hwe_summary.get("tested_variant_count").and_then(serde_json::Value::as_u64),
         Some(3)
     );
-    assert_eq!(hwe_summary.get("pvalue_mean").and_then(serde_json::Value::as_f64), Some(0.825656));
+    assert_eq!(hwe_summary.get("pvalue_mean").and_then(serde_json::Value::as_f64), Some(0.825_656));
     assert_eq!(
         hwe_summary.get("status").and_then(serde_json::Value::as_str),
         Some("computed_modern")

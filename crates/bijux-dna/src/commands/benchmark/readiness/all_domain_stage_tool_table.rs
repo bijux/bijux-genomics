@@ -299,9 +299,7 @@ fn ensure_all_domain_stage_tool_table_contract(
     let actual_vcf_row_count = rows.iter().filter(|row| row.domain == "vcf").count();
     if actual_vcf_row_count != expected_vcf_row_count {
         return Err(anyhow!(
-            "all-domain stage-tool table must include every governed VCF matrix row (expected {}, found {})",
-            expected_vcf_row_count,
-            actual_vcf_row_count
+            "all-domain stage-tool table must include every governed VCF matrix row (expected {expected_vcf_row_count}, found {actual_vcf_row_count})"
         ));
     }
 
@@ -349,7 +347,7 @@ fn normalized_parser_surface_id(domain: &str, stage_id: &str) -> String {
 }
 
 fn stage_suffix(stage_id: &str) -> &str {
-    stage_id.split_once('.').map(|(_, suffix)| suffix).unwrap_or(stage_id)
+    stage_id.split_once('.').map_or(stage_id, |(_, suffix)| suffix)
 }
 
 fn fastq_benchmark_status_label(status: FastqBenchmarkStatus) -> &'static str {

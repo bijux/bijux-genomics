@@ -411,8 +411,7 @@ fn ensure_taxonomy_corpus_coverage(rows: &[FastqCorpusAssignmentRow]) -> Result<
             || row.excluded_reason.is_some()
         {
             return Err(anyhow!(
-                "FASTQ taxonomy corpus assignment row `{}` must remain assigned to `corpus-02` via `corpus-02-edna-mini`",
-                tool_id
+                "FASTQ taxonomy corpus assignment row `{tool_id}` must remain assigned to `corpus-02` via `corpus-02-edna-mini`"
             ));
         }
     }
@@ -432,20 +431,14 @@ fn ensure_amplicon_corpus_coverage(rows: &[FastqCorpusAssignmentRow]) -> Result<
             .iter()
             .find(|row| row.tool_id == tool_id && row.stage_id == stage_id)
             .ok_or_else(|| {
-                anyhow!(
-                    "FASTQ amplicon corpus assignment is missing `{}` / `{}`",
-                    stage_id,
-                    tool_id
-                )
+                anyhow!("FASTQ amplicon corpus assignment is missing `{stage_id}` / `{tool_id}`")
             })?;
         if row.corpus_family_id.as_deref() != Some("corpus-03")
             || row.fixture_id.as_deref() != Some("corpus-03-amplicon-mini")
             || row.excluded_reason.is_some()
         {
             return Err(anyhow!(
-                "FASTQ amplicon corpus assignment row `{}` / `{}` must remain assigned to `corpus-03` via `corpus-03-amplicon-mini`",
-                stage_id,
-                tool_id
+                "FASTQ amplicon corpus assignment row `{stage_id}` / `{tool_id}` must remain assigned to `corpus-03` via `corpus-03-amplicon-mini`"
             ));
         }
     }

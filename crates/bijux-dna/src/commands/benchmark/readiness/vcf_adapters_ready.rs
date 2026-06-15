@@ -193,9 +193,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 report.decision_counts.get("limit_to_specialized_tool").copied().unwrap_or(0);
             if future_not_benchmark_ready != 9 || limit_to_specialized_tool != 1 {
                 bail!(
-                    "VCF undercovered-stage decisions drifted: future_not_benchmark_ready={}, limit_to_specialized_tool={}",
-                    future_not_benchmark_ready,
-                    limit_to_specialized_tool
+                    "VCF undercovered-stage decisions drifted: future_not_benchmark_ready={future_not_benchmark_ready}, limit_to_specialized_tool={limit_to_specialized_tool}"
                 );
             }
             Ok(
@@ -234,7 +232,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 || report
                     .get("rows")
                     .and_then(serde_json::Value::as_array)
-                    .map_or(true, |rows| !rows.is_empty())
+                    .is_none_or(|rows| !rows.is_empty())
             {
                 bail!("VCF matrix-registry consistency gate drifted from the governed clean pass state");
             }

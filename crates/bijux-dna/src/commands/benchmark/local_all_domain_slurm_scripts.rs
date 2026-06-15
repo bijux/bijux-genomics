@@ -209,7 +209,7 @@ pub(crate) fn render_all_domain_slurm_scripts(
                 )
             })?;
             let command = essential_pipeline_command_by_node
-                .get(&(pipeline_id.to_string(), node.node_id.clone()))
+                .get(&((*pipeline_id).to_string(), node.node_id.clone()))
                 .ok_or_else(|| {
                     anyhow!(
                         "all-domain slurm script generation is missing rendered command row for `{pipeline_id}` / `{}`",
@@ -233,8 +233,7 @@ pub(crate) fn render_all_domain_slurm_scripts(
                 &dag_report.default_corpus_id,
                 fixture_sample_scopes
                     .get(&dag_report.default_corpus_id)
-                    .map(String::as_str)
-                    .unwrap_or("sample-set"),
+                    .map_or("sample-set", String::as_str),
             );
             let entry = build_essential_pipeline_script_entry(
                 pipeline_id,
@@ -753,7 +752,8 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .map(|relative| relative.to_string_lossy().replace('\\', "/"))
-        .unwrap_or_else(|_| path.to_string_lossy().replace('\\', "/"))
+    path.strip_prefix(repo_root).map_or_else(
+        |_| path.to_string_lossy().replace('\\', "/"),
+        |relative| relative.to_string_lossy().replace('\\', "/"),
+    )
 }

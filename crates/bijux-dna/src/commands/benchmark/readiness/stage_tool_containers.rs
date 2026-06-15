@@ -226,23 +226,17 @@ fn render_stage_tool_container_row(
 
     if install_kind == "container" && container_id.is_none() && command_entrypoint.is_none() {
         return Err(anyhow!(
-            "benchmark-ready external row `{}` / `{}` must declare a container image or a command entrypoint",
-            stage_id,
-            tool_id
+            "benchmark-ready external row `{stage_id}` / `{tool_id}` must declare a container image or a command entrypoint"
         ));
     }
     if install_kind == "workspace_binary" && host_binary_mode.is_none() {
         return Err(anyhow!(
-            "benchmark-ready workspace row `{}` / `{}` must declare an explicit host-binary mode",
-            stage_id,
-            tool_id
+            "benchmark-ready workspace row `{stage_id}` / `{tool_id}` must declare an explicit host-binary mode"
         ));
     }
     if container_id.is_none() && command_entrypoint.is_none() && host_binary_mode.is_none() {
         return Err(anyhow!(
-            "benchmark-ready row `{}` / `{}` must declare runtime location details",
-            stage_id,
-            tool_id
+            "benchmark-ready row `{stage_id}` / `{tool_id}` must declare runtime location details"
         ));
     }
 

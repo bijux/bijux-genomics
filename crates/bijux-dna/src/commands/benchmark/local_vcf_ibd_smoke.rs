@@ -640,9 +640,7 @@ fn compute_pair_overlap_marker_counts(
         })?;
     if sample_ids != expected_samples {
         bail!(
-            "IBD overlap-count derivation expected samples {:?}, found {:?}",
-            expected_samples,
-            sample_ids
+            "IBD overlap-count derivation expected samples {expected_samples:?}, found {sample_ids:?}"
         );
     }
     let mut counts = BTreeMap::<(String, String), u64>::new();
@@ -674,8 +672,7 @@ fn genotype_is_called(sample_field: &str, gt_index: usize) -> bool {
     sample_field
         .split(':')
         .nth(gt_index)
-        .map(|gt| !gt.trim().is_empty() && gt != "." && gt != "./." && gt != ".|.")
-        .unwrap_or(false)
+        .is_some_and(|gt| !gt.trim().is_empty() && gt != "." && gt != "./." && gt != ".|.")
 }
 
 fn ordered_pair(sample_a: &str, sample_b: &str) -> (String, String) {

@@ -172,15 +172,7 @@ pub(crate) fn collect_vcf_parser_fixture_coverage_rows(
                 expected_normalized_path =
                     format!("{}/expected.normalized.json", fixture_row.fixture_path);
                 let fixture_root = repo_root.join(fixture_row.fixture_path);
-                if !fixture_root.is_dir() {
-                    (
-                        VcfParserFixtureCoverageStatus::MissingFixtureDirectory,
-                        format!(
-                            "active row `{}` / `{}` expects parser fixture directory `{}` but it is missing",
-                            active_row.stage_id, active_row.tool_id, fixture_row.fixture_path
-                        ),
-                    )
-                } else {
+                if fixture_root.is_dir() {
                     raw_fixture_paths = collect_raw_fixture_paths(repo_root, &fixture_root)?;
                     raw_fixture_count = raw_fixture_paths.len();
                     if raw_fixture_count == 0 {
@@ -193,15 +185,7 @@ pub(crate) fn collect_vcf_parser_fixture_coverage_rows(
                         )
                     } else {
                         let expected_path = fixture_root.join("expected.normalized.json");
-                        if !expected_path.is_file() {
-                            (
-                                VcfParserFixtureCoverageStatus::MissingExpectedNormalizedJson,
-                                format!(
-                                    "active row `{}` / `{}` fixture directory `{}` is missing `expected.normalized.json`",
-                                    active_row.stage_id, active_row.tool_id, fixture_row.fixture_path
-                                ),
-                            )
-                        } else {
+                        if expected_path.is_file() {
                             match validate_expected_normalized_fixture(
                                 &expected_path,
                                 &active_row.stage_id,
@@ -230,8 +214,24 @@ pub(crate) fn collect_vcf_parser_fixture_coverage_rows(
                                     ),
                                 ),
                             }
+                        } else {
+                            (
+                                VcfParserFixtureCoverageStatus::MissingExpectedNormalizedJson,
+                                format!(
+                                    "active row `{}` / `{}` fixture directory `{}` is missing `expected.normalized.json`",
+                                    active_row.stage_id, active_row.tool_id, fixture_row.fixture_path
+                                ),
+                            )
                         }
                     }
+                } else {
+                    (
+                        VcfParserFixtureCoverageStatus::MissingFixtureDirectory,
+                        format!(
+                            "active row `{}` / `{}` expects parser fixture directory `{}` but it is missing",
+                            active_row.stage_id, active_row.tool_id, fixture_row.fixture_path
+                        ),
+                    )
                 }
             }
             None => (

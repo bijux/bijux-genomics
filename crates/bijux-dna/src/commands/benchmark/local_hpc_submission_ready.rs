@@ -417,7 +417,7 @@ fn evaluate_local_stage_goals(
                     checks.push(fail_check(
                         goal_id,
                         "local_smokes",
-                        format!("{} local artifact materializes under governed target", stage_id),
+                        format!("{stage_id} local artifact materializes under governed target"),
                         Some(path_relative_to_repo(repo_root, &absolute_path)),
                         format!("materialized path `{}` does not exist", absolute_path.display()),
                     ));
@@ -425,7 +425,7 @@ fn evaluate_local_stage_goals(
                     checks.push(fail_check(
                         goal_id,
                         "local_smokes",
-                        format!("{} local artifact materializes under governed target", stage_id),
+                        format!("{stage_id} local artifact materializes under governed target"),
                         Some(path_relative_to_repo(repo_root, &absolute_path)),
                         format!(
                             "materialized path `{}` is outside governed root `{}`",
@@ -437,7 +437,7 @@ fn evaluate_local_stage_goals(
                     checks.push(ok_check(
                         goal_id,
                         "local_smokes",
-                        format!("{} local artifact materializes under governed target", stage_id),
+                        format!("{stage_id} local artifact materializes under governed target"),
                         Some(path_relative_to_repo(repo_root, &absolute_path)),
                         format!(
                             "materialized `{}` under `{}`",
@@ -451,7 +451,7 @@ fn evaluate_local_stage_goals(
                 checks.push(fail_check(
                     goal_id,
                     "local_smokes",
-                    format!("{} local artifact materializes under governed target", stage_id),
+                    format!("{stage_id} local artifact materializes under governed target"),
                     Some(expected_root.to_string()),
                     format!("{err:#}"),
                 ));
@@ -1421,12 +1421,9 @@ fn evaluate_corpus_skip_report_goal(
     report: &LocalCorpusSkipReport,
     compatibility_report: Option<LocalCorpusStageCompatibilityValidationReport>,
 ) {
-    let planner_only_count_matches = compatibility_report
-        .as_ref()
-        .map(|compatibility| {
-            compatibility.planner_only_stage_count == report.planner_only_stage_count
-        })
-        .unwrap_or(true);
+    let planner_only_count_matches = compatibility_report.as_ref().is_none_or(|compatibility| {
+        compatibility.planner_only_stage_count == report.planner_only_stage_count
+    });
     let skip_rows_are_complete = report.skips.iter().all(|skip| {
         !skip.stage_id.trim().is_empty()
             && !skip.corpus_id.trim().is_empty()
@@ -1472,7 +1469,7 @@ fn evaluate_pipeline_dag_goals(
             Err(err) => checks.push(fail_check(
                 goal_id,
                 "pipeline_dags",
-                format!("{} validates as an acyclic governed local DAG", config_path),
+                format!("{config_path} validates as an acyclic governed local DAG"),
                 Some(output_path.to_string()),
                 format!("{err:#}"),
             )),
@@ -2188,9 +2185,10 @@ fn absolutize(repo_root: &Path, path: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .map(|relative| relative.to_string_lossy().replace('\\', "/"))
-        .unwrap_or_else(|_| path.to_string_lossy().replace('\\', "/"))
+    path.strip_prefix(repo_root).map_or_else(
+        |_| path.to_string_lossy().replace('\\', "/"),
+        |relative| relative.to_string_lossy().replace('\\', "/"),
+    )
 }
 
 #[cfg(test)]

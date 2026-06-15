@@ -251,8 +251,7 @@ fn ensure_tool_centric_report_contract(tools: &[ToolCentricToolReport]) -> Resul
     let row_count = tools.iter().map(|tool| tool.stage_count).sum::<usize>();
     if row_count != 122 {
         return Err(anyhow!(
-            "tool-centric report must retain exactly 122 stage-tool rows, found {}",
-            row_count
+            "tool-centric report must retain exactly 122 stage-tool rows, found {row_count}"
         ));
     }
     let unique_stage_count = tools
@@ -264,8 +263,7 @@ fn ensure_tool_centric_report_contract(tools: &[ToolCentricToolReport]) -> Resul
         .len();
     if unique_stage_count != 51 {
         return Err(anyhow!(
-            "tool-centric report must retain exactly 51 unique benchmark stages, found {}",
-            unique_stage_count
+            "tool-centric report must retain exactly 51 unique benchmark stages, found {unique_stage_count}"
         ));
     }
 
@@ -341,9 +339,7 @@ fn ensure_tool_stages(
     let stage_ids = tool.stages.iter().map(|stage| stage.stage_id.as_str()).collect::<Vec<_>>();
     if stage_ids != expected_stage_ids {
         return Err(anyhow!(
-            "tool-centric report tool `{tool_id}` drifted from its governed stage list: expected {:?}, found {:?}",
-            expected_stage_ids,
-            stage_ids
+            "tool-centric report tool `{tool_id}` drifted from its governed stage list: expected {expected_stage_ids:?}, found {stage_ids:?}"
         ));
     }
     if tool.blocked_stage_count != expected_blocked_stage_count {

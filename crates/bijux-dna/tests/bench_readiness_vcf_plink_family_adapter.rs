@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -77,14 +77,11 @@ fn bench_readiness_vcf_plink_adapter_reports_governed_rows() {
         Some("qc_report")
     );
     assert_eq!(
-        qc_row.get("raw_output_ids").and_then(serde_json::Value::as_array).map(|items| items.len()),
+        qc_row.get("raw_output_ids").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(6)
     );
     assert_eq!(
-        qc_row
-            .get("declared_outputs")
-            .and_then(serde_json::Value::as_array)
-            .map(|items| items.len()),
+        qc_row.get("declared_outputs").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(7)
     );
     let qc_argv = qc_row
@@ -218,7 +215,7 @@ fn bench_readiness_vcf_plink2_adapter_reports_governed_rows() {
         population_structure_row
             .get("command_steps")
             .and_then(serde_json::Value::as_array)
-            .map(|items| items.len()),
+            .map(Vec::len),
         Some(2),
         "population-structure row must retain prune and PCA steps"
     );

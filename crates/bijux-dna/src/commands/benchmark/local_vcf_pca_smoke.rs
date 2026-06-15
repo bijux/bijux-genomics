@@ -4,7 +4,9 @@ use std::path::{Path, PathBuf};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
-use bijux_dna_stages_vcf::pipeline::{run_pca_stage, PcaStageParams};
+use bijux_dna_stages_vcf::pipeline::{
+    run_pca_stage, PcaStageParams, PopulationPreprocessingParams,
+};
 use serde::Serialize;
 
 use super::local_corpus_fixture::vcf::{
@@ -183,7 +185,7 @@ pub(crate) fn run_local_vcf_pca_smoke(
             toolchain: contract.tool_id.clone(),
             components: GOVERNED_PCA_COMPONENT_COUNT,
             sample_metadata_manifest: Some(population_labels_manifest_path.clone()),
-            preprocessing: Default::default(),
+            preprocessing: PopulationPreprocessingParams::default(),
         },
     )
     .with_context(|| format!("run governed VCF PCA smoke from {}", input_vcf_path.display()))?;
@@ -261,9 +263,7 @@ pub(crate) fn run_local_vcf_pca_smoke(
         || rows.len() != expected_samples.len()
     {
         bail!(
-            "governed VCF PCA smoke expected samples {:?}, observed {:?}",
-            expected_samples,
-            observed_samples
+            "governed VCF PCA smoke expected samples {expected_samples:?}, observed {observed_samples:?}"
         );
     }
 
@@ -629,9 +629,7 @@ fn validate_pca_manifest_samples(
         u64::try_from(expected_samples.len()).map_err(|_| anyhow!("sample count overflow"))?;
     if manifest_sample_count != expected_sample_count {
         bail!(
-            "PCA manifest sample_count drifted: expected {}, found {}",
-            expected_sample_count,
-            manifest_sample_count
+            "PCA manifest sample_count drifted: expected {expected_sample_count}, found {manifest_sample_count}"
         );
     }
     let manifest_sample_ids = manifest
@@ -647,9 +645,7 @@ fn validate_pca_manifest_samples(
         .collect::<Result<Vec<_>>>()?;
     if manifest_sample_ids != expected_samples {
         bail!(
-            "PCA manifest sample_ids drifted: expected {:?}, found {:?}",
-            expected_samples,
-            manifest_sample_ids
+            "PCA manifest sample_ids drifted: expected {expected_samples:?}, found {manifest_sample_ids:?}"
         );
     }
     let manifest_sample_labels = manifest

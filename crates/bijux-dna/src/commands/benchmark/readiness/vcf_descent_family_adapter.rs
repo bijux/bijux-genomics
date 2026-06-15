@@ -212,8 +212,7 @@ fn build_descent_family_row(
             anyhow!("VCF {stage_id} / {} row is missing parser id", registry_tool.tool_id)
         })?;
     let corpus_id = matrix_row
-        .map(|row| row.corpus_id.clone())
-        .unwrap_or_else(|| "vcf_production_regression".to_string());
+        .map_or_else(|| "vcf_production_regression".to_string(), |row| row.corpus_id.clone());
     let asset_profile_id =
         matrix_row.map(|row| row.asset_profile_id.clone()).unwrap_or_else(|| {
             if stage == VcfDomainStage::Demography {
@@ -607,9 +606,7 @@ fn ensure_vcf_descent_family_adapter_contract(rows: &[VcfDescentFamilyAdapterRow
         rows.iter().map(|row| format!("{}:{}", row.tool_id, row.stage_id)).collect::<BTreeSet<_>>();
     if expected != actual {
         bail!(
-            "VCF descent-family adapter row set drifted: expected {:?}, found {:?}",
-            expected,
-            actual
+            "VCF descent-family adapter row set drifted: expected {expected:?}, found {actual:?}"
         );
     }
     for row in rows {

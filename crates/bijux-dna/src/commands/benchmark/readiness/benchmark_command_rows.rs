@@ -978,10 +978,10 @@ fn readiness_kind_label(readiness_kind: LocalStageReadinessKind) -> &'static str
 }
 
 fn ensure_unique_rows(rows: &[BenchmarkCommandRow]) -> Result<()> {
-    let mut seen = BTreeMap::<(String, String), ()>::new();
+    let mut seen = BTreeSet::<(String, String)>::new();
     for row in rows {
         let pair = (row.stage_id.clone(), row.tool_id.clone());
-        if seen.insert(pair.clone(), ()).is_some() {
+        if !seen.insert(pair.clone()) {
             return Err(anyhow!(
                 "benchmark command rows repeat stage/tool pair `{}` / `{}`",
                 pair.0,

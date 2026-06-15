@@ -185,10 +185,10 @@ fn render_fastq_row(
     };
     let gate_status = match gate_scope {
         ParserCompletenessGateScope::BenchmarkReporting => {
-            if row.parser_status != "not_normalized" {
-                ParserCompletenessGateStatus::Pass
-            } else {
+            if row.parser_status == "not_normalized" {
                 ParserCompletenessGateStatus::Fail
+            } else {
+                ParserCompletenessGateStatus::Pass
             }
         }
         ParserCompletenessGateScope::Excluded => ParserCompletenessGateStatus::Excluded,

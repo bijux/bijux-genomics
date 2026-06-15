@@ -246,14 +246,12 @@ fn ensure_vcf_orphan_tool_contract(
             || row.decision != decision
         {
             return Err(anyhow!(
-                "VCF orphan tool `{}` drifted from its governed orphan decision contract",
-                tool_id
+                "VCF orphan tool `{tool_id}` drifted from its governed orphan decision contract"
             ));
         }
         if !required_tool_ids.contains(tool_id) {
             return Err(anyhow!(
-                "VCF orphan tool `{}` must remain visible only while it is still required by the governed VCF tool scope",
-                tool_id
+                "VCF orphan tool `{tool_id}` must remain visible only while it is still required by the governed VCF tool scope"
             ));
         }
     }

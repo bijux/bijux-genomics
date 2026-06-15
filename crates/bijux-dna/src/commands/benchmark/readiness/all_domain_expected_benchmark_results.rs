@@ -399,7 +399,7 @@ fn fastq_bam_asset_profile_id(
     let Some(asset_roles) = asset_roles_by_binding.get(key) else {
         return "corpus_only".to_string();
     };
-    let mut roles = asset_roles.iter().cloned().collect::<Vec<_>>();
+    let mut roles = asset_roles.clone();
     roles.sort();
     roles.dedup();
     if roles.is_empty() {

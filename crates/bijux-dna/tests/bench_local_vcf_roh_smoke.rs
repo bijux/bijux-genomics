@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -135,7 +135,7 @@ fn bench_local_vcf_roh_smoke_reports_normalized_segments_and_summary() {
         persisted
             .get("per_sample_summary")
             .and_then(serde_json::Value::as_array)
-            .map(|rows| rows.len()),
+            .map(std::vec::Vec::len),
         Some(4)
     );
 }

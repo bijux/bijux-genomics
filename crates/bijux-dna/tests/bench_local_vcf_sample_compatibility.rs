@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -78,7 +78,7 @@ fn bench_local_vcf_sample_compatibility_reports_cohort_label_parity() {
     assert!(payload
         .get("missing_metadata")
         .and_then(serde_json::Value::as_array)
-        .is_some_and(|values| values.is_empty()));
+        .is_some_and(Vec::is_empty));
     assert_eq!(
         payload
             .get("extra_metadata")
@@ -121,9 +121,9 @@ fn bench_local_vcf_sample_compatibility_reports_cohort_label_parity() {
     assert!(payload
         .get("missing_population_labels")
         .and_then(serde_json::Value::as_array)
-        .is_some_and(|values| values.is_empty()));
+        .is_some_and(Vec::is_empty));
     assert!(payload
         .get("missing_sex_labels")
         .and_then(serde_json::Value::as_array)
-        .is_some_and(|values| values.is_empty()));
+        .is_some_and(Vec::is_empty));
 }

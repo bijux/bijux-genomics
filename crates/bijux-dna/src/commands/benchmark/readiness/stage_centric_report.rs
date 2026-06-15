@@ -179,9 +179,7 @@ pub(crate) fn collect_stage_centric_stage_reports(
             let metadata =
                 stage_metadata.get(&(domain.clone(), stage_id.clone())).ok_or_else(|| {
                     anyhow!(
-                        "stage-centric report is missing stage metadata for `{}` / `{}`",
-                        domain,
-                        stage_id
+                        "stage-centric report is missing stage metadata for `{domain}` / `{stage_id}`"
                     )
                 })?;
             tools.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
@@ -314,38 +312,33 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
     let row_count = stages.iter().map(|stage| stage.tool_count).sum::<usize>();
     if row_count != 122 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 122 stage-tool rows, found {}",
-            row_count
+            "stage-centric report must retain exactly 122 stage-tool rows, found {row_count}"
         ));
     }
     let multi_tool_stage_count = stages.iter().filter(|stage| stage.tool_count > 1).count();
     if multi_tool_stage_count != 29 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 29 multi-tool stages, found {}",
-            multi_tool_stage_count
+            "stage-centric report must retain exactly 29 multi-tool stages, found {multi_tool_stage_count}"
         ));
     }
     let blocked_stage_count = stages.iter().filter(|stage| stage.blocked_tool_count > 0).count();
     if blocked_stage_count != 3 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 3 blocked stages, found {}",
-            blocked_stage_count
+            "stage-centric report must retain exactly 3 blocked stages, found {blocked_stage_count}"
         ));
     }
     let declared_shared_metric_stage_count =
         stages.iter().filter(|stage| stage.comparison_contract_status == "declared").count();
     if declared_shared_metric_stage_count != 18 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 18 stages with declared shared metrics, found {}",
-            declared_shared_metric_stage_count
+            "stage-centric report must retain exactly 18 stages with declared shared metrics, found {declared_shared_metric_stage_count}"
         ));
     }
     let not_declared_shared_metric_stage_count =
         stages.iter().filter(|stage| stage.comparison_contract_status == "not_declared").count();
     if not_declared_shared_metric_stage_count != 11 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 11 multi-tool stages without declared shared metrics, found {}",
-            not_declared_shared_metric_stage_count
+            "stage-centric report must retain exactly 11 multi-tool stages without declared shared metrics, found {not_declared_shared_metric_stage_count}"
         ));
     }
 
@@ -402,7 +395,7 @@ fn ensure_stage(
         .iter()
         .find(|stage| stage.domain == domain && stage.stage_id == stage_id)
         .ok_or_else(|| {
-            anyhow!("stage-centric report is missing stage `{}` / `{}`", domain, stage_id)
+            anyhow!("stage-centric report is missing stage `{domain}` / `{stage_id}`")
         })?;
     if stage.tool_count != expected_tool_count
         || stage.blocked_tool_count != expected_blocked_tool_count
@@ -414,9 +407,7 @@ fn ensure_stage(
                 .collect::<Vec<_>>()
     {
         return Err(anyhow!(
-            "stage-centric report stage `{}` / `{}` drifted from its governed contract",
-            domain,
-            stage_id
+            "stage-centric report stage `{domain}` / `{stage_id}` drifted from its governed contract"
         ));
     }
     Ok(())

@@ -105,8 +105,7 @@ fn render_vcf_commands_shell_script(
 ) -> String {
     let mut rendered = String::from("#!/usr/bin/env bash\nset -euo pipefail\n");
     rendered.push_str(&format!(
-        "repo_root=\"$(cd \"$(dirname \"${{BASH_SOURCE[0]}}\")/{}\" && pwd)\"\n",
-        repo_root_relative_to_output
+        "repo_root=\"$(cd \"$(dirname \"${{BASH_SOURCE[0]}}\")/{repo_root_relative_to_output}\" && pwd)\"\n"
     ));
     rendered.push_str("cd \"$repo_root\"\n\n");
     for (index, row) in rows.iter().enumerate() {
@@ -177,8 +176,7 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 
 fn repo_root_relative_to_output(repo_root: &Path, output_path: &Path) -> String {
     let relative_output_path = output_path.strip_prefix(repo_root).unwrap_or(output_path);
-    let depth =
-        relative_output_path.parent().map(|parent| parent.components().count()).unwrap_or(0);
+    let depth = relative_output_path.parent().map_or(0, |parent| parent.components().count());
     if depth == 0 {
         ".".to_string()
     } else {

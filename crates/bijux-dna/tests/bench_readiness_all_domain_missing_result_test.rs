@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::collections::BTreeSet;
 use std::process::Command;
@@ -104,7 +104,7 @@ fn bench_readiness_all_domain_missing_result_test_tracks_three_governed_missing_
     assert!(missing_rows.iter().all(|row| {
         row.get("observed_output_artifact_ids")
             .and_then(serde_json::Value::as_array)
-            .is_some_and(|values| values.is_empty())
+            .is_some_and(std::vec::Vec::is_empty)
     }));
 
     let fastq_missing = rows

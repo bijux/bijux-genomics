@@ -389,7 +389,7 @@ fn render_removed_from_scope_tsv(rows: &[RemovedFromScopeRow]) -> String {
 }
 
 fn sanitize_tsv(value: &str) -> String {
-    value.replace('\t', " ").replace('\n', " ")
+    value.replace(['\t', '\n'], " ")
 }
 
 fn binding_key_from_active_row(row: &AllDomainActiveStageToolMatrixRow) -> BindingKey {

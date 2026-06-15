@@ -4,7 +4,8 @@ use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_stages_vcf::pipeline::{
-    run_population_structure_stage, AdmixtureStageParams, PopulationStructureStageParams,
+    run_population_structure_stage, AdmixtureStageParams, PopulationPreprocessingParams,
+    PopulationStructureStageParams,
 };
 use serde::Serialize;
 
@@ -211,7 +212,7 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
                 k_values: vec![2, 3, 4],
                 sample_metadata_manifest: Some(upstream_population_labels_manifest.clone()),
             }),
-            preprocessing: Default::default(),
+            preprocessing: PopulationPreprocessingParams::default(),
         },
     )
     .with_context(|| {
@@ -661,16 +662,12 @@ fn validate_consumed_stage_inputs(
         admixture_rows.iter().map(|row| row.sample_id.clone()).collect::<Vec<_>>();
     if stage_sample_ids != pca_sample_ids {
         bail!(
-            "population-structure stage sample_ids drifted from consumed PCA rows: {:?} vs {:?}",
-            stage_sample_ids,
-            pca_sample_ids
+            "population-structure stage sample_ids drifted from consumed PCA rows: {stage_sample_ids:?} vs {pca_sample_ids:?}"
         );
     }
     if stage_sample_ids != admixture_sample_ids {
         bail!(
-            "population-structure stage sample_ids drifted from consumed admixture rows: {:?} vs {:?}",
-            stage_sample_ids,
-            admixture_sample_ids
+            "population-structure stage sample_ids drifted from consumed admixture rows: {stage_sample_ids:?} vs {admixture_sample_ids:?}"
         );
     }
     Ok(())
@@ -740,10 +737,8 @@ fn build_distance_summary(
     let (min_pc_distance, max_pc_distance, mean_pc_distance) = if distances.is_empty() {
         (0.0, 0.0, 0.0)
     } else {
-        let min =
-            distances.iter().copied().fold(f64::INFINITY, |current, value| current.min(value));
-        let max =
-            distances.iter().copied().fold(f64::NEG_INFINITY, |current, value| current.max(value));
+        let min = distances.iter().copied().fold(f64::INFINITY, f64::min);
+        let max = distances.iter().copied().fold(f64::NEG_INFINITY, f64::max);
         let mean = distances.iter().copied().sum::<f64>() / distances.len() as f64;
         (min, max, mean)
     };

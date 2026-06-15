@@ -404,26 +404,23 @@ pub(crate) fn render_stage_tool_benchmark_ready(
                 tool_id: key.tool_id.clone(),
                 failure_surfaces: surfaces,
                 benchmark_status: row
-                    .map(|row| row.benchmark_status.clone())
-                    .unwrap_or_else(|| "unknown".to_string()),
-                readiness_gap: row
-                    .map(|row| pair_readiness_gap_label(row.readiness_gap).to_string())
-                    .unwrap_or_else(|| "unknown".to_string()),
+                    .map_or_else(|| "unknown".to_string(), |row| row.benchmark_status.clone()),
+                readiness_gap: row.map_or_else(
+                    || "unknown".to_string(),
+                    |row| pair_readiness_gap_label(row.readiness_gap).to_string(),
+                ),
                 support_status: row
-                    .map(|row| row.support_status.clone())
-                    .unwrap_or_else(|| "unknown".to_string()),
+                    .map_or_else(|| "unknown".to_string(), |row| row.support_status.clone()),
                 adapter_status: row
-                    .map(|row| row.adapter_status.clone())
-                    .unwrap_or_else(|| "unknown".to_string()),
+                    .map_or_else(|| "unknown".to_string(), |row| row.adapter_status.clone()),
                 parser_status: row
-                    .map(|row| row.parser_status.clone())
-                    .unwrap_or_else(|| "unknown".to_string()),
+                    .map_or_else(|| "unknown".to_string(), |row| row.parser_status.clone()),
                 corpus_status: row
-                    .map(|row| row.corpus_status.clone())
-                    .unwrap_or_else(|| "unknown".to_string()),
-                asset_status: row
-                    .map(|row| pair_asset_status_label(row.asset_status).to_string())
-                    .unwrap_or_else(|| "unknown".to_string()),
+                    .map_or_else(|| "unknown".to_string(), |row| row.corpus_status.clone()),
+                asset_status: row.map_or_else(
+                    || "unknown".to_string(),
+                    |row| pair_asset_status_label(row.asset_status).to_string(),
+                ),
                 registry_status: unregistered_by_key
                     .get(&key)
                     .cloned()

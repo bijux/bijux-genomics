@@ -235,17 +235,17 @@ pub(crate) fn collect_fastq_report_stage_metadata(
     for stage in inventory.stages {
         let stage_id = StageId::new(stage.stage_id.clone());
         let placement = placement_for_stage(stage_id.as_str()).ok_or_else(|| {
-            anyhow!("FASTQ report map is missing stage placement for `{}`", stage_id)
+            anyhow!("FASTQ report map is missing stage placement for `{stage_id}`")
         })?;
         let semantics = stage_semantics(&stage_id).ok_or_else(|| {
-            anyhow!("FASTQ report map is missing stage semantics for `{}`", stage_id)
+            anyhow!("FASTQ report map is missing stage semantics for `{stage_id}`")
         })?;
         let stage_kind = stage_kind(&stage_id)
-            .ok_or_else(|| anyhow!("FASTQ report map is missing stage kind for `{}`", stage_id))?;
+            .ok_or_else(|| anyhow!("FASTQ report map is missing stage kind for `{stage_id}`"))?;
         let criticality = stage_criticality(&stage_id)
-            .ok_or_else(|| anyhow!("FASTQ report map is missing criticality for `{}`", stage_id))?;
+            .ok_or_else(|| anyhow!("FASTQ report map is missing criticality for `{stage_id}`"))?;
         let admissions = stage_admissions.get(stage_id.as_str()).ok_or_else(|| {
-            anyhow!("FASTQ report map is missing admitted benchmark tools for `{}`", stage_id)
+            anyhow!("FASTQ report map is missing admitted benchmark tools for `{stage_id}`")
         })?;
         let preferred_default_tool_id =
             default_execution_tool_for_stage(&stage_id).map(|tool_id| tool_id.to_string());
@@ -260,7 +260,7 @@ pub(crate) fn collect_fastq_report_stage_metadata(
         let canonical_stage_rank = canonical_rank_by_stage
             .get(stage_id.as_str())
             .copied()
-            .ok_or_else(|| anyhow!("FASTQ canonical stage order is missing `{}`", stage_id))?;
+            .ok_or_else(|| anyhow!("FASTQ canonical stage order is missing `{stage_id}`"))?;
 
         rows.insert(
             stage_id.to_string(),
@@ -371,15 +371,11 @@ fn ensure_fastq_report_map_contract(
     let report_result_ids =
         rows.iter().map(|row| row.result_row_id.as_str()).collect::<BTreeSet<_>>();
     if report_result_ids.len() != rows.len() {
-        return Err(anyhow!(
-            "FASTQ report map must keep one row per expected FASTQ result row"
-        ));
+        return Err(anyhow!("FASTQ report map must keep one row per expected FASTQ result row"));
     }
 
-    let expected_result_ids = expected_rows
-        .iter()
-        .map(|row| row.result_row_id.as_str())
-        .collect::<BTreeSet<_>>();
+    let expected_result_ids =
+        expected_rows.iter().map(|row| row.result_row_id.as_str()).collect::<BTreeSet<_>>();
     if report_result_ids != expected_result_ids {
         return Err(anyhow!(
             "FASTQ report map must retain every FASTQ expected-result row; expected {} rows and found {} report rows",

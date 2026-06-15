@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -94,10 +94,7 @@ fn bench_local_vcf_admixture_smoke_writes_governed_files() {
         Some("bijux.vcf.admixture.v1")
     );
     assert_eq!(
-        source_manifest
-            .get("cluster_headers")
-            .and_then(serde_json::Value::as_array)
-            .map(|rows| rows.len()),
+        source_manifest.get("cluster_headers").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(2)
     );
     assert_eq!(source_manifest.get("sample_count").and_then(serde_json::Value::as_u64), Some(4));

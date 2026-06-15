@@ -773,12 +773,12 @@ pub(crate) fn render_operational_benchmark_ready(
                     ));
                 }
                 Some(_) => {}
-            };
+            }
         }
     }
 
     checks.push(fastq_bam_binding_check(
-        &expected_results,
+        expected_results.as_ref(),
         stage_tool_table.is_some(),
         rendered_commands.is_some(),
         output_declarations.is_some(),
@@ -1027,7 +1027,7 @@ fn failed_check(
 }
 
 fn fastq_bam_binding_check(
-    expected_results: &Option<AllDomainExpectedBenchmarkResultsReport>,
+    expected_results: Option<&AllDomainExpectedBenchmarkResultsReport>,
     has_stage_tool_table: bool,
     has_rendered_commands: bool,
     has_output_declarations: bool,
@@ -1065,8 +1065,7 @@ fn fastq_bam_binding_check(
             let ok = binding_count > 0 && blocker_count == 0 && missing_prerequisites.is_empty();
             let detail = if ok {
                 format!(
-                    "validated {} FASTQ/BAM benchmark-ready bindings through expected-result, command, parser, resource, and output coverage",
-                    binding_count
+                    "validated {binding_count} FASTQ/BAM benchmark-ready bindings through expected-result, command, parser, resource, and output coverage"
                 )
             } else if !missing_prerequisites.is_empty() {
                 format!(
@@ -1075,8 +1074,7 @@ fn fastq_bam_binding_check(
                 )
             } else {
                 format!(
-                    "FASTQ/BAM benchmark binding coverage found {} blockers across {} bindings",
-                    blocker_count, binding_count
+                    "FASTQ/BAM benchmark binding coverage found {blocker_count} blockers across {binding_count} bindings"
                 )
             };
             OperationalBenchmarkReadyCheck {

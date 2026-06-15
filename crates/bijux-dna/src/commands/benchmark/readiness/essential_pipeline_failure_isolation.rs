@@ -214,7 +214,7 @@ fn collect_failure_isolation_rows(
         let mut classifications = BTreeMap::<String, FailureClassification>::new();
         for node_id in &dag_report.topological_order {
             let fake_node = fake_nodes
-                .get(&(pipeline_id.to_string(), node_id.clone()))
+                .get(&((*pipeline_id).to_string(), node_id.clone()))
                 .ok_or_else(|| {
                     anyhow!(
                         "essential pipeline failure-isolation simulation is missing fake-run node `{pipeline_id}` / `{node_id}`"
@@ -247,7 +247,7 @@ fn collect_failure_isolation_rows(
                 (ExecutionState::Completed, classification.detail.clone())
             };
             let fake_node =
-                fake_nodes.get(&(pipeline_id.to_string(), node_id.clone())).expect("fake node");
+                fake_nodes.get(&((*pipeline_id).to_string(), node_id.clone())).expect("fake node");
             rows.push(EssentialPipelineFailureIsolationRow {
                 pipeline_id: (*pipeline_id).to_string(),
                 node_id: node_id.clone(),

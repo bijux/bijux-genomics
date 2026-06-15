@@ -206,8 +206,7 @@ fn build_angsd_row(
         .ok_or_else(|| anyhow!("VCF angsd adapter row `{stage_id}` is missing adapter id"))?;
     let parser_id = vcf_domain_stage_parser_id(stage)
         .ok_or_else(|| anyhow!("VCF angsd adapter row `{stage_id}` is missing parser id"))?;
-    let output_root =
-        format!("benchmarks/readiness/adapters/{}/{}", GOVERNED_ANGSD_TOOL_ID, stage_id);
+    let output_root = format!("benchmarks/readiness/adapters/{GOVERNED_ANGSD_TOOL_ID}/{stage_id}");
     let bam_member_paths =
         if uses_bam_inputs(stage) { vec![GOVERNED_BAM_PATH.to_string()] } else { Vec::new() };
     let bam_list_path = if uses_bam_inputs(stage) {
@@ -726,9 +725,7 @@ fn ensure_vcf_angsd_adapter_contract(rows: &[VcfAngsdAdapterRow]) -> Result<()> 
     let observed_stages = rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>();
     if observed_stages != expected_stages {
         return Err(anyhow!(
-            "VCF angsd adapter stage set drifted: expected {:?}, found {:?}",
-            expected_stages,
-            observed_stages
+            "VCF angsd adapter stage set drifted: expected {expected_stages:?}, found {observed_stages:?}"
         ));
     }
     for row in rows {

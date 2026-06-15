@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -89,7 +89,7 @@ fn bench_local_vcf_qc_smoke_writes_governed_files() {
             .get("hwe_summary")
             .and_then(|value| value.get("pvalue_mean"))
             .and_then(serde_json::Value::as_f64),
-        Some(0.825656)
+        Some(0.825_656)
     );
     let excluded_samples = summary
         .get("excluded_samples")

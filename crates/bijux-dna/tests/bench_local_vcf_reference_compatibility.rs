@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -82,11 +82,11 @@ fn bench_local_vcf_reference_compatibility_reports_governed_contig_parity() {
     assert!(payload
         .get("missing_contigs")
         .and_then(serde_json::Value::as_array)
-        .is_some_and(|values| values.is_empty()));
+        .is_some_and(Vec::is_empty));
     assert!(payload
         .get("extra_contigs")
         .and_then(serde_json::Value::as_array)
-        .is_some_and(|values| values.is_empty()));
+        .is_some_and(Vec::is_empty));
 
     let variant_sets = payload
         .get("variant_sets")

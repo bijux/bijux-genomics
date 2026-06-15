@@ -124,8 +124,7 @@ fn memory_value(
         BenchStageResultResourceMetricSource::Measured
         | BenchStageResultResourceMetricSource::Estimated => resource_metrics
             .memory_mb
-            .map(|memory_mb| format!("{memory_mb:.1}"))
-            .unwrap_or_else(|| "not_available".to_string()),
+            .map_or_else(|| "not_available".to_string(), |memory_mb| format!("{memory_mb:.1}")),
         BenchStageResultResourceMetricSource::NotAvailable => "not_available".to_string(),
     }
 }

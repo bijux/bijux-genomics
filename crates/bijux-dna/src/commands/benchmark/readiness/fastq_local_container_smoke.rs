@@ -427,9 +427,7 @@ fn ensure_fastq_local_container_smoke_contract(
         rows.iter().filter(|row| row.smoke_path_kind == "host_stage_smoke").count();
     if host_stage_smoke_row_count != host_default_wrapper_row_count {
         return Err(anyhow!(
-            "FASTQ local-container smoke host wrapper count drifted from the governed FASTQ execution-default wrapper surface (expected {}, found {})",
-            host_default_wrapper_row_count,
-            host_stage_smoke_row_count
+            "FASTQ local-container smoke host wrapper count drifted from the governed FASTQ execution-default wrapper surface (expected {host_default_wrapper_row_count}, found {host_stage_smoke_row_count})"
         ));
     }
 
@@ -545,7 +543,7 @@ fn render_fastq_local_container_smoke_tsv(rows: &[FastqLocalContainerSmokeRow]) 
 }
 
 fn sanitize_tsv(value: &str) -> String {
-    value.replace('\t', " ").replace('\n', " ")
+    value.replace(['\t', '\n'], " ")
 }
 
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {

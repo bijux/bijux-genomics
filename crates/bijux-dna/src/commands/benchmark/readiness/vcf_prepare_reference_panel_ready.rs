@@ -240,8 +240,7 @@ fn build_vcf_prepare_reference_panel_ready_row(
     let result_id = binding
         .expected_row
         .as_ref()
-        .map(expected_result_id)
-        .unwrap_or_else(|| retained_result_id(&binding));
+        .map_or_else(|| retained_result_id(&binding), expected_result_id);
     let required_metric_names = required_metric_names();
     let mut missing_surfaces = Vec::new();
 
@@ -372,11 +371,7 @@ fn build_vcf_prepare_reference_panel_ready_row(
         },
         command_ready,
         command_source: "vcf_bcftools_adapter".to_string(),
-        command_step_count: binding
-            .command_row
-            .as_ref()
-            .map(|row| row.command_steps.len())
-            .unwrap_or(0),
+        command_step_count: binding.command_row.as_ref().map_or(0, |row| row.command_steps.len()),
         command_step_ids: binding
             .command_row
             .as_ref()
@@ -404,8 +399,7 @@ fn build_vcf_prepare_reference_panel_ready_row(
         manifest_output: binding
             .output_row
             .as_ref()
-            .map(|row| row.manifest.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |row| row.manifest.clone()),
         index_outputs: binding
             .output_row
             .as_ref()
@@ -416,18 +410,15 @@ fn build_vcf_prepare_reference_panel_ready_row(
         parser_fixture_parser_id: binding
             .parser_row
             .as_ref()
-            .map(|row| row.parser_fixture_parser_id.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |row| row.parser_fixture_parser_id.clone()),
         parser_fixture_schema_id: binding
             .parser_row
             .as_ref()
-            .map(|row| row.parser_fixture_schema_id.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |row| row.parser_fixture_schema_id.clone()),
         parser_fixture_path: binding
             .parser_row
             .as_ref()
-            .map(|row| row.parser_fixture_root_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |row| row.parser_fixture_root_path.clone()),
         expected_result_ready,
         expected_result_proof_path: DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH.to_string(),
         expected_outputs: binding
@@ -443,15 +434,13 @@ fn build_vcf_prepare_reference_panel_ready_row(
         report_section_id: binding
             .report_row
             .as_ref()
-            .map(|row| row.section_id.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |row| row.section_id.clone()),
         report_ready,
         report_map_proof_path: DEFAULT_VCF_REPORT_MAP_PATH.to_string(),
         summary_table_id: binding
             .report_row
             .as_ref()
-            .map(|row| row.summary_table.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |row| row.summary_table.clone()),
         report_metric_columns: binding
             .report_row
             .as_ref()
@@ -459,72 +448,53 @@ fn build_vcf_prepare_reference_panel_ready_row(
             .unwrap_or_default(),
         smoke_ready,
         smoke_command: smoke_report
-            .map(|report| report.command.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.command.clone()),
         smoke_output_root: smoke_report
-            .map(|report| report.output_root.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.output_root.clone()),
         smoke_input_vcf_path: smoke_report
-            .map(|report| report.input_vcf_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.input_vcf_path.clone()),
         smoke_raw_panel_path: smoke_report
-            .map(|report| report.raw_panel_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.raw_panel_path.clone()),
         smoke_panel_vcf_path: smoke_report
-            .map(|report| report.panel_vcf_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.panel_vcf_path.clone()),
         smoke_panel_tbi_path: smoke_report
-            .map(|report| report.panel_tbi_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.panel_tbi_path.clone()),
         smoke_panel_manifest_path: smoke_report
-            .map(|report| report.panel_manifest_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.panel_manifest_path.clone()),
         smoke_overlap_path: smoke_report
-            .map(|report| report.overlap_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.overlap_path.clone()),
         smoke_panel_overlap_path: smoke_report
-            .map(|report| report.panel_overlap_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.panel_overlap_path.clone()),
         smoke_panel_files_path: smoke_report
-            .map(|report| report.panel_files_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.panel_files_path.clone()),
         smoke_overlap_tsv_path: smoke_report
-            .map(|report| report.overlap_tsv_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.overlap_tsv_path.clone()),
         smoke_chunks_path: smoke_report
-            .map(|report| report.chunks_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.chunks_path.clone()),
         smoke_metrics_path: smoke_report
-            .map(|report| report.metrics_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
-        smoke_stage_result_manifest_path: smoke_report
-            .map(|report| report.stage_result_manifest_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.metrics_path.clone()),
+        smoke_stage_result_manifest_path: smoke_report.map_or_else(
+            || NO_VALUE.to_string(),
+            |report| report.stage_result_manifest_path.clone(),
+        ),
         smoke_panel_id: smoke_report
-            .map(|report| report.panel_id.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.panel_id.clone()),
         smoke_map_id: smoke_report
-            .map(|report| report.map_id.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
-        smoke_input_variants: smoke_report.map(|report| report.input_variants).unwrap_or(0),
-        smoke_output_variants: smoke_report.map(|report| report.output_variants).unwrap_or(0),
-        smoke_sample_count: smoke_report.map(|report| report.sample_count).unwrap_or(0),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.map_id.clone()),
+        smoke_input_variants: smoke_report.map_or(0, |report| report.input_variants),
+        smoke_output_variants: smoke_report.map_or(0, |report| report.output_variants),
+        smoke_sample_count: smoke_report.map_or(0, |report| report.sample_count),
         smoke_sample_ids: smoke_report.map(|report| report.sample_ids.clone()).unwrap_or_default(),
-        smoke_sample_consistent: smoke_report
-            .map(|report| report.sample_consistent)
-            .unwrap_or(false),
+        smoke_sample_consistent: smoke_report.is_some_and(|report| report.sample_consistent),
         smoke_duplicate_sites_removed: smoke_report
-            .map(|report| report.duplicate_sites_removed)
-            .unwrap_or(0),
+            .map_or(0, |report| report.duplicate_sites_removed),
         smoke_normalization_status: smoke_report
-            .map(|report| report.normalization_status.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.normalization_status.clone()),
         smoke_index_path: smoke_report
-            .map(|report| report.index_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
-        smoke_parseable: smoke_report.map(|report| report.parseable).unwrap_or(false),
-        smoke_gt_present: smoke_report.map(|report| report.gt_present).unwrap_or(false),
-        smoke_gl_present: smoke_report.map(|report| report.gl_present).unwrap_or(false),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.index_path.clone()),
+        smoke_parseable: smoke_report.is_some_and(|report| report.parseable),
+        smoke_gt_present: smoke_report.is_some_and(|report| report.gt_present),
+        smoke_gl_present: smoke_report.is_some_and(|report| report.gl_present),
         smoke_validation_checks: smoke_report
             .map(|report| report.validation_checks.clone())
             .unwrap_or_default(),

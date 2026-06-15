@@ -217,9 +217,7 @@ fn ensure_fastq_amplicon_fixture_coverage(rows: &[ToolServingMapRow]) -> Result<
             || row.corpus_status != "fixture:corpus-03-amplicon-mini"
         {
             return Err(anyhow!(
-                "FASTQ amplicon serving row `{}` / `{}` must keep its governed corpus-03 readiness contract",
-                stage_id,
-                tool_id
+                "FASTQ amplicon serving row `{stage_id}` / `{tool_id}` must keep its governed corpus-03 readiness contract"
             ));
         }
     }

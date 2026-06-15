@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -128,7 +128,7 @@ fn bench_local_render_slurm_submit_manifest_captures_governed_metadata_fields() 
         screen_taxonomy
             .get("sample_ids")
             .and_then(serde_json::Value::as_array)
-            .map(|rows| rows.len()),
+            .map(std::vec::Vec::len),
         Some(2)
     );
     assert_eq!(
@@ -149,7 +149,7 @@ fn bench_local_render_slurm_submit_manifest_captures_governed_metadata_fields() 
         Some("adna_damage_non_udg")
     );
     assert_eq!(
-        bam_damage.get("sample_ids").and_then(serde_json::Value::as_array).map(|rows| rows.len()),
+        bam_damage.get("sample_ids").and_then(serde_json::Value::as_array).map(std::vec::Vec::len),
         Some(1)
     );
     assert!(
@@ -175,7 +175,7 @@ fn bench_local_render_slurm_submit_manifest_captures_governed_metadata_fields() 
         index_reference
             .get("sample_ids")
             .and_then(serde_json::Value::as_array)
-            .map(|rows| rows.len()),
+            .map(std::vec::Vec::len),
         Some(0)
     );
     assert_eq!(

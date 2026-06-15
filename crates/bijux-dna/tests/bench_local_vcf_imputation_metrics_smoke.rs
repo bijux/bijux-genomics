@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -111,10 +111,7 @@ fn bench_local_vcf_imputation_metrics_smoke_reports_quality_contract() {
     assert_eq!(payload.get("low_confidence_sites").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("masked_truth_sites").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
-        payload
-            .get("missing_quality_fields")
-            .and_then(serde_json::Value::as_array)
-            .map(|rows| rows.len()),
+        payload.get("missing_quality_fields").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(0)
     );
     assert_eq!(payload.get("status").and_then(serde_json::Value::as_str), Some("complete"));

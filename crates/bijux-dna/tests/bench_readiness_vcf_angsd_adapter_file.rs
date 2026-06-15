@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -92,7 +92,7 @@ fn bench_readiness_vcf_angsd_adapter_writes_governed_json_file() {
         gl_propagation
             .get("declared_outputs")
             .and_then(serde_json::Value::as_array)
-            .map(|items| items.len()),
+            .map(Vec::len),
         Some(3),
         "gl_propagation row must retain raw VCF, angsd arg, and normalized parser output declarations"
     );

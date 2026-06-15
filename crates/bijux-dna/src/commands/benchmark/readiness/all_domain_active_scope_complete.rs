@@ -551,8 +551,7 @@ fn validate_vcf_imputation_identity(
         + removed_rows.iter().filter(|row| row.stage_id == VCF_LEGACY_IMPUTATION_STAGE_ID).count();
     if legacy_imputation_row_count != 0 {
         return Err(anyhow!(
-            "legacy VCF stage id `{}` is still present in governed active-scope surfaces",
-            VCF_LEGACY_IMPUTATION_STAGE_ID
+            "legacy VCF stage id `{VCF_LEGACY_IMPUTATION_STAGE_ID}` is still present in governed active-scope surfaces"
         ));
     }
 
@@ -568,14 +567,12 @@ fn validate_vcf_imputation_identity(
     );
     if impute_row_count == 0 {
         return Err(anyhow!(
-            "normalized VCF stage id `{}` is missing from governed active-scope surfaces",
-            VCF_IMPUTE_STAGE_ID
+            "normalized VCF stage id `{VCF_IMPUTE_STAGE_ID}` is missing from governed active-scope surfaces"
         ));
     }
     if imputation_metrics_row_count == 0 {
         return Err(anyhow!(
-            "normalized VCF stage id `{}` is missing from governed active-scope surfaces",
-            VCF_IMPUTATION_METRICS_STAGE_ID
+            "normalized VCF stage id `{VCF_IMPUTATION_METRICS_STAGE_ID}` is missing from governed active-scope surfaces"
         ));
     }
 
@@ -635,8 +632,7 @@ fn validate_vcf_imputation_identity(
     }
 
     Ok(format!(
-        "legacy_imputation_row_count={}, impute_row_count={}, imputation_metrics_row_count={}",
-        legacy_imputation_row_count, impute_row_count, imputation_metrics_row_count
+        "legacy_imputation_row_count={legacy_imputation_row_count}, impute_row_count={impute_row_count}, imputation_metrics_row_count={imputation_metrics_row_count}"
     ))
 }
 
@@ -674,10 +670,7 @@ fn validate_vcf_postprocess_closure(
         .map(binding_key_from_active_row)
         .collect::<BTreeSet<_>>();
     if active_postprocess_keys.is_empty() {
-        return Err(anyhow!(
-            "`{}` must remain inside final active scope",
-            VCF_POSTPROCESS_STAGE_ID
-        ));
+        return Err(anyhow!("`{VCF_POSTPROCESS_STAGE_ID}` must remain inside final active scope"));
     }
 
     let removed_postprocess_keys = removed_from_scope
@@ -688,8 +681,7 @@ fn validate_vcf_postprocess_closure(
         .collect::<BTreeSet<_>>();
     if !removed_postprocess_keys.is_empty() {
         return Err(anyhow!(
-            "`{}` cannot be both active and removed from scope",
-            VCF_POSTPROCESS_STAGE_ID
+            "`{VCF_POSTPROCESS_STAGE_ID}` cannot be both active and removed from scope"
         ));
     }
 
@@ -993,8 +985,7 @@ fn render_binding_key(key: &BindingKey) -> String {
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root)
-        .map(|relative| relative.display().to_string())
-        .unwrap_or_else(|_| path.display().to_string())
+        .map_or_else(|_| path.display().to_string(), |relative| relative.display().to_string())
 }
 
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {

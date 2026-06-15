@@ -497,13 +497,7 @@ fn result_row_id(
 
 fn result_root_path(fixture_id: &str, stage_id: &str, sample_scope: &str, tool_id: &str) -> String {
     format!(
-        "{}/runs/{}/{}/{}/{}/{}",
-        DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE,
-        LOCAL_SLURM_DRY_RUN_RUN_ID,
-        fixture_id,
-        stage_id,
-        sample_scope,
-        tool_id
+        "{DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE}/runs/{LOCAL_SLURM_DRY_RUN_RUN_ID}/{fixture_id}/{stage_id}/{sample_scope}/{tool_id}"
     )
 }
 

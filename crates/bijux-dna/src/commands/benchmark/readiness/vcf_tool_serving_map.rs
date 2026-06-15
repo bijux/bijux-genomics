@@ -315,9 +315,7 @@ fn ensure_vcf_tool_serving_map_contract(rows: &[VcfToolServingMapRow]) -> Result
             || row.benchmark_status != benchmark_status
         {
             return Err(anyhow!(
-                "VCF tool-serving row `{}` / `{}` drifted from its governed readiness contract",
-                stage_id,
-                tool_id
+                "VCF tool-serving row `{stage_id}` / `{tool_id}` drifted from its governed readiness contract"
             ));
         }
     }

@@ -258,11 +258,9 @@ fn build_imputation_family_row(
             anyhow!("VCF {stage_id} / {} row is missing parser id", registry_tool.tool_id)
         })?;
     let corpus_id = matrix_row
-        .map(|row| row.corpus_id.clone())
-        .unwrap_or_else(|| "vcf_production_regression".to_string());
+        .map_or_else(|| "vcf_production_regression".to_string(), |row| row.corpus_id.clone());
     let asset_profile_id = matrix_row
-        .map(|row| row.asset_profile_id.clone())
-        .unwrap_or_else(|| "vcf_cohort_with_panel".to_string());
+        .map_or_else(|| "vcf_cohort_with_panel".to_string(), |row| row.asset_profile_id.clone());
     let output_root =
         format!("benchmarks/readiness/adapters/imputation/{}/{}", registry_tool.tool_id, stage_id);
     let output_prefix = format!("{output_root}/imputed");
@@ -745,8 +743,7 @@ fn load_registry_tool_contract(repo_root: &Path, tool_id: &str) -> Result<Regist
     }
 
     Err(anyhow!(
-        "missing {tool_id} VCF registry row covering {:?} in the governed VCF registries",
-        GOVERNED_IMPUTATION_STAGE_IDS
+        "missing {tool_id} VCF registry row covering {GOVERNED_IMPUTATION_STAGE_IDS:?} in the governed VCF registries"
     ))
 }
 
@@ -869,9 +866,7 @@ fn ensure_vcf_imputation_family_adapter_contract(
     let expected_tools = GOVERNED_IMPUTATION_TOOL_IDS.iter().copied().collect::<BTreeSet<_>>();
     if observed_tools != expected_tools {
         return Err(anyhow!(
-            "VCF imputation-family adapter tool set drifted: expected {:?}, found {:?}",
-            expected_tools,
-            observed_tools
+            "VCF imputation-family adapter tool set drifted: expected {expected_tools:?}, found {observed_tools:?}"
         ));
     }
     for tool_id in GOVERNED_IMPUTATION_TOOL_IDS {
@@ -896,9 +891,7 @@ fn ensure_vcf_imputation_family_adapter_contract(
         }
         if observed_stage_ids != expected_stage_ids {
             return Err(anyhow!(
-                "VCF imputation-family adapter stage set drifted for `{tool_id}`: expected {:?}, found {:?}",
-                expected_stage_ids,
-                observed_stage_ids
+                "VCF imputation-family adapter stage set drifted for `{tool_id}`: expected {expected_stage_ids:?}, found {observed_stage_ids:?}"
             ));
         }
         for row in tool_rows {

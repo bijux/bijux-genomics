@@ -1,3 +1,5 @@
+#![cfg_attr(test, allow(clippy::expect_used))]
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
@@ -1199,6 +1201,7 @@ fn validate_ibd_expected_truth(
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 fn summarize_vcf_variant_set(vcf_path: &Path) -> Result<VcfVariantTruthSummary> {
     let raw =
         fs::read_to_string(vcf_path).with_context(|| format!("read {}", vcf_path.display()))?;
@@ -1491,8 +1494,7 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 
 fn checked_f64_from_u64(value: u64, context: &str) -> f64 {
     u32::try_from(value)
-        .map(f64::from)
-        .unwrap_or_else(|_| panic!("{context} exceeds the supported fixture range"))
+        .map_or_else(|_| panic!("{context} exceeds the supported fixture range"), f64::from)
 }
 
 fn float_eq(left: f64, right: f64) -> bool {

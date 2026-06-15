@@ -251,7 +251,7 @@ pub(crate) fn run_local_vcf_phasing_smoke(
         );
     }
     if output_summary.sample_ids
-        != EXPECTED_SAMPLE_IDS.iter().map(|value| value.to_string()).collect::<Vec<_>>()
+        != EXPECTED_SAMPLE_IDS.iter().map(|value| (*value).to_string()).collect::<Vec<_>>()
     {
         bail!(
             "governed VCF phasing smoke expected sample ids {:?}, found {:?}",

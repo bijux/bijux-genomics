@@ -470,8 +470,7 @@ fn vcf_status(status: VcfAdapterOutputCoverageStatus) -> AllDomainOutputDeclarat
 fn artifact_id(entry: &str) -> String {
     entry
         .split_once('=')
-        .map(|(artifact_id, _)| artifact_id.to_string())
-        .unwrap_or_else(|| entry.to_string())
+        .map_or_else(|| entry.to_string(), |(artifact_id, _)| artifact_id.to_string())
 }
 
 fn vcf_result_root(row: &VcfExpectedBenchmarkResultRow) -> String {

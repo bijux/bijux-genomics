@@ -217,10 +217,7 @@ fn load_stage_assignments(repo_root: &Path) -> Result<BTreeMap<(String, String),
                         fixture_ids: Vec::new(),
                     });
                 if entry.corpus_family_id != corpus_family_id {
-                    return Err(anyhow!(
-                        "FASTQ stage `{}` drifted across corpus families",
-                        stage_id
-                    ));
+                    return Err(anyhow!("FASTQ stage `{stage_id}` drifted across corpus families"));
                 }
                 entry.fixture_ids.push(fixture_id);
             }
@@ -237,8 +234,7 @@ fn load_stage_assignments(repo_root: &Path) -> Result<BTreeMap<(String, String),
                     });
                 if entry.corpus_family_id != benchmark_scope_id {
                     return Err(anyhow!(
-                        "FASTQ stage `{}` drifted across asset-backed benchmark scopes",
-                        stage_id
+                        "FASTQ stage `{stage_id}` drifted across asset-backed benchmark scopes"
                     ));
                 }
                 entry.fixture_ids.push(benchmark_scope_id);
@@ -304,23 +300,20 @@ fn ensure_corpus_centric_report_contract(corpora: &[CorpusCentricCorpusReport]) 
     let stage_count = corpora.iter().map(|corpus| corpus.stage_count).sum::<usize>();
     if stage_count != 50 {
         return Err(anyhow!(
-            "corpus-centric report must retain exactly 50 assigned stages, found {}",
-            stage_count
+            "corpus-centric report must retain exactly 50 assigned stages, found {stage_count}"
         ));
     }
     let tool_row_count = corpora.iter().map(|corpus| corpus.tool_row_count).sum::<usize>();
     if tool_row_count != 121 {
         return Err(anyhow!(
-            "corpus-centric report must retain exactly 121 assigned stage-tool rows, found {}",
-            tool_row_count
+            "corpus-centric report must retain exactly 121 assigned stage-tool rows, found {tool_row_count}"
         ));
     }
     let blocked_corpus_count =
         corpora.iter().filter(|corpus| corpus.blocked_stage_count > 0).count();
     if blocked_corpus_count != 1 {
         return Err(anyhow!(
-            "corpus-centric report must retain exactly 1 corpus with blocked stages, found {}",
-            blocked_corpus_count
+            "corpus-centric report must retain exactly 1 corpus with blocked stages, found {blocked_corpus_count}"
         ));
     }
 
@@ -372,7 +365,7 @@ fn ensure_corpus(
     let corpus = corpora
         .iter()
         .find(|corpus| corpus.corpus_family_id == corpus_family_id)
-        .ok_or_else(|| anyhow!("corpus-centric report is missing corpus `{}`", corpus_family_id))?;
+        .ok_or_else(|| anyhow!("corpus-centric report is missing corpus `{corpus_family_id}`"))?;
     if corpus.stage_count != expected_stage_count
         || corpus.tool_row_count != expected_tool_row_count
         || corpus.blocked_stage_count != expected_blocked_stage_count
@@ -403,16 +396,15 @@ fn ensure_stage(
     let corpus = corpora
         .iter()
         .find(|corpus| corpus.corpus_family_id == corpus_family_id)
-        .ok_or_else(|| anyhow!("corpus-centric report is missing corpus `{}`", corpus_family_id))?;
-    let stage =
-        corpus.stages.iter().find(|stage| stage.stage_id == stage_id).ok_or_else(|| {
-            anyhow!("corpus `{}` is missing stage `{}`", corpus_family_id, stage_id)
-        })?;
+        .ok_or_else(|| anyhow!("corpus-centric report is missing corpus `{corpus_family_id}`"))?;
+    let stage = corpus
+        .stages
+        .iter()
+        .find(|stage| stage.stage_id == stage_id)
+        .ok_or_else(|| anyhow!("corpus `{corpus_family_id}` is missing stage `{stage_id}`"))?;
     if stage.tool_count != expected_tool_count {
         return Err(anyhow!(
-            "corpus `{}` stage `{}` drifted from its governed tool count",
-            corpus_family_id,
-            stage_id
+            "corpus `{corpus_family_id}` stage `{stage_id}` drifted from its governed tool count"
         ));
     }
     Ok(())

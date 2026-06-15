@@ -286,8 +286,7 @@ fn build_vcf_pca_ready_row(
     let result_id = binding
         .expected_row
         .as_ref()
-        .map(|row| row.result_id.clone())
-        .unwrap_or_else(|| retained_result_id(&binding.retained_row));
+        .map_or_else(|| retained_result_id(&binding.retained_row), |row| row.result_id.clone());
     let required_metric_names = required_metric_names();
     let mut missing_surfaces = Vec::new();
 
@@ -414,13 +413,8 @@ fn build_vcf_pca_ready_row(
         command_source: binding
             .command_row
             .as_ref()
-            .map(|row| row.command_source.clone())
-            .unwrap_or_else(no_value_string),
-        command_step_count: binding
-            .command_row
-            .as_ref()
-            .map(|row| row.command_steps.len())
-            .unwrap_or(0),
+            .map_or_else(no_value_string, |row| row.command_source.clone()),
+        command_step_count: binding.command_row.as_ref().map_or(0, |row| row.command_steps.len()),
         command_step_ids: binding
             .command_row
             .as_ref()
@@ -449,18 +443,15 @@ fn build_vcf_pca_ready_row(
         parser_fixture_parser_id: binding
             .parser_row
             .as_ref()
-            .map(|row| row.parser_fixture_parser_id.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |row| row.parser_fixture_parser_id.clone()),
         parser_fixture_schema_id: binding
             .parser_row
             .as_ref()
-            .map(|row| row.parser_fixture_schema_id.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |row| row.parser_fixture_schema_id.clone()),
         parser_fixture_path: binding
             .parser_row
             .as_ref()
-            .map(|row| row.parser_fixture_root_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |row| row.parser_fixture_root_path.clone()),
         expected_result_ready,
         expected_result_proof_path: DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH.to_string(),
         expected_outputs: binding
@@ -476,66 +467,49 @@ fn build_vcf_pca_ready_row(
         report_section_id: binding
             .expected_row
             .as_ref()
-            .map(|row| row.report_section.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |row| row.report_section.clone()),
         report_ready,
         report_map_proof_path: DEFAULT_VCF_REPORT_MAP_PATH.to_string(),
         summary_table_id: binding
             .report_row
             .as_ref()
-            .map(|row| row.summary_table.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |row| row.summary_table.clone()),
         report_metric_columns: binding
             .report_row
             .as_ref()
             .map(|row| row.metric_columns.clone())
             .unwrap_or_default(),
         smoke_ready,
-        smoke_command: smoke_report
-            .map(|report| report.command.clone())
-            .unwrap_or_else(no_value_string),
+        smoke_command: smoke_report.map_or_else(no_value_string, |report| report.command.clone()),
         smoke_output_root: smoke_report
-            .map(|report| report.output_root.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.output_root.clone()),
         smoke_input_vcf_path: smoke_report
-            .map(|report| report.input_vcf_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.input_vcf_path.clone()),
         smoke_sample_metadata_path: smoke_report
-            .map(|report| report.sample_metadata_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.sample_metadata_path.clone()),
         smoke_population_metadata_path: smoke_report
-            .map(|report| report.population_metadata_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.population_metadata_path.clone()),
         smoke_population_labels_manifest_path: smoke_report
-            .map(|report| report.population_labels_manifest_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.population_labels_manifest_path.clone()),
         smoke_pca_tsv_path: smoke_report
-            .map(|report| report.pca_tsv_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.pca_tsv_path.clone()),
         smoke_pca_json_path: smoke_report
-            .map(|report| report.pca_json_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.pca_json_path.clone()),
         smoke_source_eigenvec_path: smoke_report
-            .map(|report| report.source_eigenvec_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.source_eigenvec_path.clone()),
         smoke_source_eigenval_path: smoke_report
-            .map(|report| report.source_eigenval_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.source_eigenval_path.clone()),
         smoke_source_pca_manifest_path: smoke_report
-            .map(|report| report.source_pca_manifest_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.source_pca_manifest_path.clone()),
         smoke_source_logs_path: smoke_report
-            .map(|report| report.source_logs_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.source_logs_path.clone()),
         smoke_stage_result_manifest_path: smoke_report
-            .map(|report| report.stage_result_manifest_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.stage_result_manifest_path.clone()),
         smoke_execution_mode: smoke_report
-            .map(|report| report.execution_mode.clone())
-            .unwrap_or_else(no_value_string),
-        smoke_tool_ok: smoke_report.map(|report| report.tool_ok).unwrap_or(false),
-        smoke_variant_count: smoke_report.map(|report| report.variant_count).unwrap_or(0),
-        smoke_sample_count: smoke_report.map(|report| report.sample_count).unwrap_or(0),
+            .map_or_else(no_value_string, |report| report.execution_mode.clone()),
+        smoke_tool_ok: smoke_report.is_some_and(|report| report.tool_ok),
+        smoke_variant_count: smoke_report.map_or(0, |report| report.variant_count),
+        smoke_sample_count: smoke_report.map_or(0, |report| report.sample_count),
         smoke_excluded_samples: smoke_report
             .map(|report| report.excluded_samples.clone())
             .unwrap_or_default(),
@@ -719,8 +693,7 @@ fn render_vcf_pca_commands_shell_script(
 ) -> String {
     let mut rendered = String::from("#!/usr/bin/env bash\nset -euo pipefail\n");
     rendered.push_str(&format!(
-        "repo_root=\"$(cd \"$(dirname \"${{BASH_SOURCE[0]}}\")/{}\" && pwd)\"\n",
-        repo_root_relative_to_output
+        "repo_root=\"$(cd \"$(dirname \"${{BASH_SOURCE[0]}}\")/{repo_root_relative_to_output}\" && pwd)\"\n"
     ));
     rendered.push_str("cd \"$repo_root\"\n\n");
     for (index, row) in rows.iter().enumerate() {
@@ -956,8 +929,7 @@ fn ensure_vcf_pca_ready_contract(report: &VcfPcaReadyReport) -> Result<()> {
     let expected_tools = BTreeSet::from(["eigensoft", "plink2"]);
     if observed_tools != expected_tools {
         return Err(anyhow!(
-            "VCF PCA readiness must retain the governed PCA tools `eigensoft` and `plink2`, found {:?}",
-            observed_tools
+            "VCF PCA readiness must retain the governed PCA tools `eigensoft` and `plink2`, found {observed_tools:?}"
         ));
     }
     for row in &report.rows {
@@ -1006,7 +978,7 @@ fn render_stage_result_manifest_path(stage_id: &str, tool_id: &str) -> String {
 }
 
 fn artifact_id(entry: &str) -> &str {
-    entry.split_once('=').map(|(id, _)| id).unwrap_or(entry)
+    entry.split_once('=').map_or(entry, |(id, _)| id)
 }
 
 fn is_index_artifact(path: &str) -> bool {
@@ -1043,8 +1015,7 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 
 fn repo_root_relative_to_output(repo_root: &Path, output_path: &Path) -> String {
     let relative_output_path = output_path.strip_prefix(repo_root).unwrap_or(output_path);
-    let depth =
-        relative_output_path.parent().map(|parent| parent.components().count()).unwrap_or(0);
+    let depth = relative_output_path.parent().map_or(0, |parent| parent.components().count());
     if depth == 0 {
         ".".to_string()
     } else {

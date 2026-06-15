@@ -286,11 +286,9 @@ fn build_phasing_family_row(
             anyhow!("VCF {stage_id} / {} row is missing parser id", registry_tool.tool_id)
         })?;
     let corpus_id = matrix_row
-        .map(|row| row.corpus_id.clone())
-        .unwrap_or_else(|| "vcf_production_regression".to_string());
+        .map_or_else(|| "vcf_production_regression".to_string(), |row| row.corpus_id.clone());
     let asset_profile_id = matrix_row
-        .map(|row| row.asset_profile_id.clone())
-        .unwrap_or_else(|| "vcf_cohort_with_panel".to_string());
+        .map_or_else(|| "vcf_cohort_with_panel".to_string(), |row| row.asset_profile_id.clone());
     let output_root =
         format!("benchmarks/readiness/adapters/{}/{}", registry_tool.tool_id, stage_id);
     let output_prefix = format!("{output_root}/phased");

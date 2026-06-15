@@ -37,6 +37,7 @@ impl Drop for EnvGuard {
     }
 }
 
+#[allow(dead_code)]
 pub fn crate_root(name: &str) -> Result<PathBuf> {
     test_support::crate_root(name)
 }
@@ -58,12 +59,12 @@ where
 }
 
 #[allow(dead_code)]
-pub fn json_u64<'a>(value: &'a Value, key: &str) -> Option<u64> {
+pub fn json_u64(value: &Value, key: &str) -> Option<u64> {
     value.get(key).and_then(Value::as_u64)
 }
 
 #[allow(dead_code)]
-pub fn json_bool<'a>(value: &'a Value, key: &str) -> Option<bool> {
+pub fn json_bool(value: &Value, key: &str) -> Option<bool> {
     value.get(key).and_then(Value::as_bool)
 }
 

@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::fs;
 use std::process::Command;
@@ -54,7 +54,7 @@ fn bench_local_render_all_domain_slurm_submit_manifest_writes_governed_manifest_
         benchmark_job
             .get("dependencies")
             .and_then(serde_json::Value::as_array)
-            .map(|rows| rows.len()),
+            .map(std::vec::Vec::len),
         Some(0)
     );
     assert_eq!(

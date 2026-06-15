@@ -569,23 +569,19 @@ fn json_bool_field(value: &Value, key: &str) -> Result<bool> {
 }
 
 fn case_artifact_count(report: &Value, artifact_keys: &[&str]) -> usize {
-    report
-        .get("cases")
-        .and_then(Value::as_array)
-        .map(|cases| {
-            cases
-                .iter()
-                .map(|case| {
-                    artifact_keys
-                        .iter()
-                        .filter(|artifact_key| {
-                            case.get(**artifact_key).and_then(Value::as_str).is_some()
-                        })
-                        .count()
-                })
-                .sum()
-        })
-        .unwrap_or(0)
+    report.get("cases").and_then(Value::as_array).map_or(0, |cases| {
+        cases
+            .iter()
+            .map(|case| {
+                artifact_keys
+                    .iter()
+                    .filter(|artifact_key| {
+                        case.get(**artifact_key).and_then(Value::as_str).is_some()
+                    })
+                    .count()
+            })
+            .sum()
+    })
 }
 
 fn manifest_status_label(

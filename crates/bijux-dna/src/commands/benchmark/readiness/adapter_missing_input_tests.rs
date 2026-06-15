@@ -464,8 +464,7 @@ fn invoke_probe_planner(repo_root: &Path, probe: &AdapterMissingInputProbe) -> R
         "bam.genotyping" => {
             #[cfg(feature = "bam_downstream")]
             {
-                return bijux_dna_planner_bam::stage_api::local_genotyping_plan(repo_root)
-                    .map(|_| ());
+                bijux_dna_planner_bam::stage_api::local_genotyping_plan(repo_root).map(|_| ())
             }
             #[cfg(not(feature = "bam_downstream"))]
             {
@@ -475,8 +474,7 @@ fn invoke_probe_planner(repo_root: &Path, probe: &AdapterMissingInputProbe) -> R
         "bam.haplogroups" => {
             #[cfg(feature = "bam_downstream")]
             {
-                return bijux_dna_planner_bam::stage_api::local_haplogroups_plan(repo_root)
-                    .map(|_| ());
+                bijux_dna_planner_bam::stage_api::local_haplogroups_plan(repo_root).map(|_| ())
             }
             #[cfg(not(feature = "bam_downstream"))]
             {

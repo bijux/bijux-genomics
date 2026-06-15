@@ -568,9 +568,7 @@ fn validate_admixture_manifest(
         .collect::<Result<Vec<_>>>()?;
     if manifest_sample_ids != expected_samples {
         bail!(
-            "admixture manifest sample_ids drifted: expected {:?}, found {:?}",
-            expected_samples,
-            manifest_sample_ids
+            "admixture manifest sample_ids drifted: expected {expected_samples:?}, found {manifest_sample_ids:?}"
         );
     }
     if cluster_headers.len() != selected_k {
@@ -690,9 +688,7 @@ fn validate_sample_coverage(
         || rows.len() != expected_samples.len()
     {
         bail!(
-            "governed VCF admixture smoke expected samples {:?}, observed {:?}",
-            expected_samples,
-            observed_samples
+            "governed VCF admixture smoke expected samples {expected_samples:?}, observed {observed_samples:?}"
         );
     }
     Ok(())
@@ -722,8 +718,7 @@ fn build_admixture_tsv(rows: &[LocalVcfAdmixtureSmokeRow], cluster_headers: &[St
             rendered.push_str(
                 &row.clusters
                     .get(cluster_header)
-                    .map(|value| format!("{value:.6}"))
-                    .unwrap_or_else(|| "0.000000".to_string()),
+                    .map_or_else(|| "0.000000".to_string(), |value| format!("{value:.6}")),
             );
         }
         rendered.push('\n');

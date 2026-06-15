@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::fs;
 use std::process::Command;
@@ -224,11 +224,11 @@ fn bench_local_validate_slurm_dependencies_reports_governed_submit_manifest_sour
             && job
                 .get("manifest_dependencies")
                 .and_then(serde_json::Value::as_array)
-                .is_some_and(|dependencies| dependencies.is_empty())
+                .is_some_and(std::vec::Vec::is_empty)
             && job
                 .get("script_header_dependencies")
                 .and_then(serde_json::Value::as_array)
-                .is_some_and(|dependencies| dependencies.is_empty())
+                .is_some_and(std::vec::Vec::is_empty)
             && job.get("script_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
                 path.starts_with("runs/bench/slurm-dry-run/") && path.ends_with(".sbatch")
             })

@@ -203,14 +203,12 @@ fn validate_taxonomy_database_fixture_manifest_contract(
         }
         if !ADMITTED_CLASSIFIER_COMPATIBILITY.contains(&classifier.as_str()) {
             return Err(anyhow!(
-                "taxonomy database fixture classifier `{}` is not admitted",
-                classifier
+                "taxonomy database fixture classifier `{classifier}` is not admitted"
             ));
         }
         if !expected_classifiers.insert(classifier.clone()) {
             return Err(anyhow!(
-                "taxonomy database fixture repeats classifier compatibility `{}`",
-                classifier
+                "taxonomy database fixture repeats classifier compatibility `{classifier}`"
             ));
         }
     }

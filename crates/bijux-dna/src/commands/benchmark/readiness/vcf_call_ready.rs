@@ -205,8 +205,7 @@ fn build_vcf_call_ready_row(
     let result_id = binding
         .expected_row
         .as_ref()
-        .map(expected_result_id)
-        .unwrap_or_else(|| retained_result_id(&binding));
+        .map_or_else(|| retained_result_id(&binding), expected_result_id);
     let required_metric_names = required_metric_names();
     let mut missing_surfaces = Vec::new();
 
@@ -332,13 +331,8 @@ fn build_vcf_call_ready_row(
         command_source: binding
             .command_row
             .as_ref()
-            .map(|row| row.command_source.clone())
-            .unwrap_or_else(no_value_string),
-        command_step_count: binding
-            .command_row
-            .as_ref()
-            .map(|row| row.command_steps.len())
-            .unwrap_or(0),
+            .map_or_else(no_value_string, |row| row.command_source.clone()),
+        command_step_count: binding.command_row.as_ref().map_or(0, |row| row.command_steps.len()),
         command_step_ids: binding
             .command_row
             .as_ref()
@@ -371,8 +365,7 @@ fn build_vcf_call_ready_row(
         manifest_output: binding
             .output_row
             .as_ref()
-            .map(|row| row.manifest.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |row| row.manifest.clone()),
         index_outputs: binding
             .output_row
             .as_ref()
@@ -383,18 +376,15 @@ fn build_vcf_call_ready_row(
         parser_fixture_parser_id: binding
             .parser_row
             .as_ref()
-            .map(|row| row.parser_fixture_parser_id.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |row| row.parser_fixture_parser_id.clone()),
         parser_fixture_schema_id: binding
             .parser_row
             .as_ref()
-            .map(|row| row.parser_fixture_schema_id.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |row| row.parser_fixture_schema_id.clone()),
         parser_fixture_path: binding
             .parser_row
             .as_ref()
-            .map(|row| row.parser_fixture_root_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |row| row.parser_fixture_root_path.clone()),
         expected_result_ready,
         expected_result_proof_path: DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH.to_string(),
         expected_outputs: binding
@@ -410,46 +400,37 @@ fn build_vcf_call_ready_row(
         report_section_id: binding
             .expected_row
             .as_ref()
-            .map(|row| row.report_section.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |row| row.report_section.clone()),
         report_ready,
         report_map_proof_path: DEFAULT_VCF_REPORT_MAP_PATH.to_string(),
         summary_table_id: binding
             .report_row
             .as_ref()
-            .map(|row| row.summary_table.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |row| row.summary_table.clone()),
         report_metric_columns: binding
             .report_row
             .as_ref()
             .map(|row| row.metric_columns.clone())
             .unwrap_or_default(),
         smoke_ready,
-        smoke_command: smoke_report
-            .map(|report| report.command.clone())
-            .unwrap_or_else(no_value_string),
+        smoke_command: smoke_report.map_or_else(no_value_string, |report| report.command.clone()),
         smoke_output_root: smoke_report
-            .map(|report| report.output_root.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.output_root.clone()),
         smoke_output_vcf_path: smoke_report
-            .map(|report| report.output_vcf_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.output_vcf_path.clone()),
         smoke_output_tbi_path: smoke_report
-            .map(|report| report.output_tbi_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.output_tbi_path.clone()),
         smoke_metrics_path: smoke_report
-            .map(|report| report.metrics_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.metrics_path.clone()),
         smoke_stage_result_manifest_path: smoke_report
-            .map(|report| report.stage_result_manifest_path.clone())
-            .unwrap_or_else(no_value_string),
+            .map_or_else(no_value_string, |report| report.stage_result_manifest_path.clone()),
         smoke_parseable: smoke_report.is_some_and(|report| report.parseable),
         smoke_gt_present: smoke_report.is_some_and(|report| report.gt_present),
         smoke_gl_present: smoke_report.is_some_and(|report| report.gl_present),
-        smoke_variant_count: smoke_report.map(|report| report.variant_count).unwrap_or(0),
-        smoke_snp_count: smoke_report.map(|report| report.snp_count).unwrap_or(0),
-        smoke_indel_count: smoke_report.map(|report| report.indel_count).unwrap_or(0),
-        smoke_sample_count: smoke_report.map(|report| report.sample_count).unwrap_or(0),
+        smoke_variant_count: smoke_report.map_or(0, |report| report.variant_count),
+        smoke_snp_count: smoke_report.map_or(0, |report| report.snp_count),
+        smoke_indel_count: smoke_report.map_or(0, |report| report.indel_count),
+        smoke_sample_count: smoke_report.map_or(0, |report| report.sample_count),
         required_metric_names,
         missing_surfaces,
         coverage_status,
@@ -515,7 +496,7 @@ fn contains_artifact_id(entries: &[String], expected_id: &str) -> bool {
 }
 
 fn artifact_id(entry: &str) -> &str {
-    entry.split_once('=').map(|(id, _)| id).unwrap_or(entry)
+    entry.split_once('=').map_or(entry, |(id, _)| id)
 }
 
 fn required_metric_names() -> Vec<String> {

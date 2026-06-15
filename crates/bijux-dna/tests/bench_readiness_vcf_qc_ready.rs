@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -195,7 +195,7 @@ fn bench_readiness_vcf_qc_ready_reports_complete_retained_qc_callers() {
                 .and_then(serde_json::Value::as_object)
                 .and_then(|summary| summary.get("pvalue_mean"))
                 .and_then(serde_json::Value::as_f64),
-            Some(0.825656)
+            Some(0.825_656)
         );
         assert_eq!(
             row.get("smoke_hwe_summary")

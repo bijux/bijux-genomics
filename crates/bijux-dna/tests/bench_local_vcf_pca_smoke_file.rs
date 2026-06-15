@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -96,7 +96,7 @@ fn bench_local_vcf_pca_smoke_writes_governed_files() {
         source_manifest
             .get("sample_population_labels")
             .and_then(serde_json::Value::as_array)
-            .map(|rows| rows.len()),
+            .map(std::vec::Vec::len),
         Some(4)
     );
 

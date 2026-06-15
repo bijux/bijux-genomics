@@ -803,7 +803,10 @@ fn validate_variant_set(
             expected_sample_ids
         ));
     }
-    if validation_summary.sample_count != expected_sample_ids.len() as u32 {
+    let expected_sample_count = u32::try_from(expected_sample_ids.len()).map_err(|_| {
+        anyhow!("VCF corpus fixture {} expected sample count exceeds u32 capacity", role.as_str())
+    })?;
+    if validation_summary.sample_count != expected_sample_count {
         return Err(anyhow!(
             "VCF corpus fixture {} VCF reported {} samples, expected {}",
             role.as_str(),

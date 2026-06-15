@@ -1,6 +1,5 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
-#[cfg(feature = "bam_downstream")]
 #[cfg(feature = "bam_downstream")]
 use std::process::Command;
 

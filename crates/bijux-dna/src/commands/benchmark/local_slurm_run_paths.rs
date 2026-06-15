@@ -112,7 +112,7 @@ fn build_run_paths(
     if sample_ids.is_empty() {
         if let Some(fixture_id) = &job.fixture_id {
             if let Some(index) = fixture_sample_index.get(fixture_id) {
-                sample_ids = index.sample_ids.clone();
+                sample_ids.clone_from(&index.sample_ids);
             }
         }
     }

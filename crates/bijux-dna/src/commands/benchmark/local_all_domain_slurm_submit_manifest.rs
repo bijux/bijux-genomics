@@ -175,7 +175,7 @@ fn load_pipeline_contexts(repo_root: &Path) -> Result<BTreeMap<String, PipelineN
             .join(format!("{pipeline_id}.json"));
         let report = validate_pipeline_dag_path(repo_root, &config_path, &report_path)?;
         contexts.insert(
-            pipeline_id.to_string(),
+            (*pipeline_id).to_string(),
             PipelineNodeContext {
                 default_corpus_id: report.default_corpus_id,
                 node_by_id: report
@@ -390,8 +390,7 @@ fn validate_script_dependency_header_absence(repo_root: &Path, script_path: &str
         let trimmed = line.trim();
         if trimmed.starts_with("#SBATCH") && trimmed.contains("--dependency") {
             return Err(anyhow!(
-                "all-domain slurm submit manifest requires dependencies to live only in the manifest, found `#SBATCH --dependency` in {}",
-                script_path
+                "all-domain slurm submit manifest requires dependencies to live only in the manifest, found `#SBATCH --dependency` in {script_path}"
             ));
         }
     }
@@ -458,7 +457,8 @@ fn ensure_all_domain_slurm_submit_manifest_contract(
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .map(|relative| relative.to_string_lossy().replace('\\', "/"))
-        .unwrap_or_else(|_| path.to_string_lossy().replace('\\', "/"))
+    path.strip_prefix(repo_root).map_or_else(
+        |_| path.to_string_lossy().replace('\\', "/"),
+        |relative| relative.to_string_lossy().replace('\\', "/"),
+    )
 }

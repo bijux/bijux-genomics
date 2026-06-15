@@ -588,7 +588,13 @@ fn validate_amplicon_corpus_fixture_manifest_contract(
                 table.sample_id
             ));
         }
-        if biological_sample_ids.len() < table.expected_sample_count as usize {
+        let expected_sample_count = usize::try_from(table.expected_sample_count).map_err(|_| {
+            anyhow!(
+                "amplicon corpus fixture abundance table `{}` uses an unsupported `expected_sample_count`",
+                table.sample_id
+            )
+        })?;
+        if biological_sample_ids.len() < expected_sample_count {
             return Err(anyhow!(
                 "amplicon corpus fixture abundance table `{}` expects {} biological samples but only {} are declared",
                 table.sample_id,
@@ -1283,8 +1289,7 @@ fn validate_amplicon_abundance_table(
         }
         let abundance_value = abundance.parse::<f64>().with_context(|| {
             format!(
-                "parse abundance value for sample `{sample_id}` feature `{feature_id}` in {}",
-                manifest_relative_path
+                "parse abundance value for sample `{sample_id}` feature `{feature_id}` in {manifest_relative_path}"
             )
         })?;
         if !abundance_value.is_finite() || abundance_value < 0.0 {

@@ -395,5 +395,5 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 }
 
 fn sanitize_tsv(value: &str) -> String {
-    value.replace('\t', " ").replace('\n', " ").replace('\r', " ")
+    value.replace(['\t', '\n', '\r'], " ")
 }

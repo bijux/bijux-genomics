@@ -686,7 +686,7 @@ fn ensure_required_tool_set<'a>(
     let observed = tool_ids.map(str::to_string).collect::<BTreeSet<_>>();
     let expected = required_tool_ids().into_iter().collect::<BTreeSet<_>>();
     if observed != expected {
-        return Err(anyhow!("{surface} must contain exactly {:?}, found {:?}", expected, observed));
+        return Err(anyhow!("{surface} must contain exactly {expected:?}, found {observed:?}"));
     }
     Ok(())
 }

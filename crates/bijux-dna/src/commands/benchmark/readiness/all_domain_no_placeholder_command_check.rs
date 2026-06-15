@@ -352,7 +352,7 @@ fn is_shell_wrapper(executable: &str) -> bool {
 }
 
 fn shell_payload(argv: &[String]) -> &str {
-    argv.last().map(|value| value.as_str()).unwrap_or("")
+    argv.last().map_or("", std::string::String::as_str)
 }
 
 fn direct_command_has_real_invocation(executable: &str) -> bool {
@@ -408,7 +408,7 @@ fn payload_is_standalone_success(payload: &str) -> bool {
         .lines()
         .map(str::trim)
         .filter(|line| !line.is_empty())
-        .map(|line| line.to_ascii_lowercase())
+        .map(str::to_ascii_lowercase)
         .collect::<Vec<_>>();
     match normalized_lines.as_slice() {
         [] => false,

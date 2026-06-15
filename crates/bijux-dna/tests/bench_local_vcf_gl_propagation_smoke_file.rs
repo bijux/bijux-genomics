@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::similar_names, clippy::too_many_lines)]
 
 use std::process::Command;
 

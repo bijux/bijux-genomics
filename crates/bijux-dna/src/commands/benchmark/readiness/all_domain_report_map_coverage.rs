@@ -234,9 +234,8 @@ fn render_row(
     report_map_row: Option<&ReportMapSourceRow>,
 ) -> AllDomainReportMapCoverageRow {
     let expected_report_section =
-        expected_row.map(|row| row.report_section.clone()).unwrap_or_else(|| NO_VALUE.to_string());
-    let result_id =
-        expected_row.map(|row| row.result_id.clone()).unwrap_or_else(|| NO_VALUE.to_string());
+        expected_row.map_or_else(|| NO_VALUE.to_string(), |row| row.report_section.clone());
+    let result_id = expected_row.map_or_else(|| NO_VALUE.to_string(), |row| row.result_id.clone());
     match (expected_row, report_map_row) {
         (None, Some(report_map_row)) => AllDomainReportMapCoverageRow {
             result_id,

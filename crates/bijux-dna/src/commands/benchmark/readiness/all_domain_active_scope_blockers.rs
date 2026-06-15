@@ -283,7 +283,7 @@ fn render_all_domain_active_scope_blockers_tsv(rows: &[AllDomainActiveScopeBlock
 }
 
 fn sanitize_tsv(value: &str) -> String {
-    value.replace('\t', " ").replace('\n', " ")
+    value.replace(['\t', '\n'], " ")
 }
 
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {

@@ -652,8 +652,8 @@ fn validate_bam_corpus_fixture_sample(
         ));
     }
 
-    let observed_contigs = BTreeSet::from_iter(document.header_contigs.iter().cloned());
-    let declared_contigs = BTreeSet::from_iter(sample.expected_contigs.iter().cloned());
+    let observed_contigs = document.header_contigs.iter().cloned().collect::<BTreeSet<_>>();
+    let declared_contigs = sample.expected_contigs.iter().cloned().collect::<BTreeSet<_>>();
     if observed_contigs != declared_contigs {
         return Err(anyhow!(
             "BAM corpus fixture sample `{}` expected contigs {:?} but observed {:?}",
@@ -670,9 +670,9 @@ fn validate_bam_corpus_fixture_sample(
     }
 
     let observed_header_sample_ids =
-        BTreeSet::from_iter(document.header_sample_ids.iter().cloned());
+        document.header_sample_ids.iter().cloned().collect::<BTreeSet<_>>();
     let declared_header_sample_ids =
-        BTreeSet::from_iter(sample.expected_header_sample_ids.iter().cloned());
+        sample.expected_header_sample_ids.iter().cloned().collect::<BTreeSet<_>>();
     if observed_header_sample_ids != declared_header_sample_ids {
         return Err(anyhow!(
             "BAM corpus fixture sample `{}` expected header sample IDs {:?} but observed {:?}",
@@ -682,9 +682,9 @@ fn validate_bam_corpus_fixture_sample(
         ));
     }
 
-    let observed_read_group_ids = BTreeSet::from_iter(document.read_group_ids.iter().cloned());
+    let observed_read_group_ids = document.read_group_ids.iter().cloned().collect::<BTreeSet<_>>();
     let declared_read_group_ids =
-        BTreeSet::from_iter(sample.expected_read_group_ids.iter().cloned());
+        sample.expected_read_group_ids.iter().cloned().collect::<BTreeSet<_>>();
     if observed_read_group_ids != declared_read_group_ids {
         return Err(anyhow!(
             "BAM corpus fixture sample `{}` expected read-group IDs {:?} but observed {:?}",
@@ -694,7 +694,8 @@ fn validate_bam_corpus_fixture_sample(
         ));
     }
 
-    let mapped_record_contigs = BTreeSet::from_iter(document.mapped_record_contigs.iter().cloned());
+    let mapped_record_contigs =
+        document.mapped_record_contigs.iter().cloned().collect::<BTreeSet<_>>();
     if !mapped_record_contigs.iter().all(|contig| observed_contigs.contains(contig)) {
         return Err(anyhow!(
             "BAM corpus fixture sample `{}` has mapped records on contigs absent from `@SQ`",

@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -114,14 +114,14 @@ fn bench_local_vcf_pca_smoke_reports_complete_cohort_contract() {
         payload
             .get("excluded_samples")
             .and_then(serde_json::Value::as_array)
-            .map(|rows| rows.len()),
+            .map(std::vec::Vec::len),
         Some(0)
     );
     assert_eq!(
         payload
             .get("unexpected_samples")
             .and_then(serde_json::Value::as_array)
-            .map(|rows| rows.len()),
+            .map(std::vec::Vec::len),
         Some(0)
     );
 

@@ -695,22 +695,21 @@ fn ensure_all_domain_output_contract_coverage_contract(
                 row.tool_id
             ));
         }
-        if row.coverage_status == COVERAGE_STATUS_COVERED {
-            if !row.raw_outputs_declared
+        if row.coverage_status == COVERAGE_STATUS_COVERED
+            && (!row.raw_outputs_declared
                 || !row.normalized_metrics_declared
                 || !row.logs_declared
                 || !row.manifest_declared
                 || row.index_coverage_status == INDEX_STATUS_MISMATCH
                 || row.source_contract_status != SOURCE_STATUS_COMPLETE
-                || row.output_declaration_status != OUTPUT_STATUS_COMPLETE
-            {
-                return Err(anyhow!(
+                || row.output_declaration_status != OUTPUT_STATUS_COMPLETE)
+        {
+            return Err(anyhow!(
                     "all-domain output-contract coverage row `{}` / `{}` / `{}` is missing covered proof detail",
                     row.domain,
                     row.stage_id,
                     row.tool_id
                 ));
-            }
         }
     }
 
@@ -836,8 +835,7 @@ fn string_set(values: &[String]) -> BTreeSet<&str> {
 fn artifact_id(entry: &str) -> String {
     entry
         .split_once('=')
-        .map(|(artifact_id, _)| artifact_id.to_string())
-        .unwrap_or_else(|| entry.to_string())
+        .map_or_else(|| entry.to_string(), |(artifact_id, _)| artifact_id.to_string())
 }
 
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {

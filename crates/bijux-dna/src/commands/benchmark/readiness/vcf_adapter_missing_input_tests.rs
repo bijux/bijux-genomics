@@ -357,8 +357,7 @@ fn build_adapter_probe_row(
         observed_error,
         passed,
         reason: format!(
-            "{row_reason}; Goal 243 probes `{}` on this retained adapter surface before tool execution",
-            artifact_id
+            "{row_reason}; Goal 243 probes `{artifact_id}` on this retained adapter surface before tool execution"
         ),
     })
 }
@@ -449,9 +448,7 @@ fn ensure_required_role_coverage(rows: &[VcfAdapterMissingInputTestRow]) -> Resu
     let expected_role_set = expected_roles.into_iter().collect::<BTreeSet<_>>();
     if observed_roles != expected_role_set {
         return Err(anyhow!(
-            "VCF missing-input test role coverage drifted: expected {:?}, found {:?}",
-            expected_role_set,
-            observed_roles
+            "VCF missing-input test role coverage drifted: expected {expected_role_set:?}, found {observed_roles:?}"
         ));
     }
     Ok(())

@@ -400,9 +400,7 @@ fn ensure_vcf_local_container_smoke_contract(
         rows.iter().filter(|row| row.smoke_path_kind == "host_stage_smoke").count();
     if host_stage_smoke_row_count != host_stage_matrix_row_count {
         return Err(anyhow!(
-            "VCF local-container smoke host wrapper count drifted from the governed VCF stage matrix (expected {}, found {})",
-            host_stage_matrix_row_count,
-            host_stage_smoke_row_count
+            "VCF local-container smoke host wrapper count drifted from the governed VCF stage matrix (expected {host_stage_matrix_row_count}, found {host_stage_smoke_row_count})"
         ));
     }
 

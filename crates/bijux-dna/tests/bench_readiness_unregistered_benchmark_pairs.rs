@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -182,7 +182,8 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         }),
         "bam.damage / damageprofiler must not drift against the registry once it is registered in production"
     );
-    for tool_id in ["prinseq"] {
+    {
+        let tool_id = "prinseq";
         assert!(
             !rows.iter().any(|row| {
                 row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")

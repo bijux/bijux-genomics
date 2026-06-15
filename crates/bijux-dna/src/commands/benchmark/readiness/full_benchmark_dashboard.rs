@@ -445,7 +445,7 @@ fn render_full_benchmark_dashboard_markdown(report: &FullBenchmarkDashboardRepor
             metric.metric_id, metric.count, metric.source_path, metric.source_field, metric.detail
         ));
     }
-    markdown.push_str("\n");
+    markdown.push('\n');
     markdown.push_str(&format!(
         "Unsupported pairs tracked outside the expected-job slice: {}.\n",
         report.explicit_unsupported_pairs

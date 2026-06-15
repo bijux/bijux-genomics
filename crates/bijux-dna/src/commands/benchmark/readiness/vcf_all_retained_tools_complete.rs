@@ -197,9 +197,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 || active_tool_count != EXPECTED_ACTIVE_TOOL_COUNT
             {
                 bail!(
-                    "VCF active retained matrix drifted: active_stages={}, active_tools={}",
-                    active_stage_count,
-                    active_tool_count
+                    "VCF active retained matrix drifted: active_stages={active_stage_count}, active_tools={active_tool_count}"
                 );
             }
             Ok(

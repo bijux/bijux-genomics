@@ -436,9 +436,7 @@ fn ensure_vcf_adapter_output_coverage_contract(
         .collect::<BTreeSet<_>>();
     if &actual_benchmark_ready_pairs != benchmark_ready_pairs {
         bail!(
-            "VCF adapter output coverage drifted from the benchmark-ready matrix rows: expected {:?}, found {:?}",
-            benchmark_ready_pairs,
-            actual_benchmark_ready_pairs
+            "VCF adapter output coverage drifted from the benchmark-ready matrix rows: expected {benchmark_ready_pairs:?}, found {actual_benchmark_ready_pairs:?}"
         );
     }
 

@@ -389,8 +389,7 @@ fn ensure_taxonomy_database_asset_coverage(rows: &[StageToolAssetRow]) -> Result
             || row.asset_path != "assets/reference/taxonomy/references/mock_community_taxonomy"
         {
             return Err(anyhow!(
-                "FASTQ taxonomy asset row `{}` must stay bound to the governed taxonomy reference root",
-                tool_id
+                "FASTQ taxonomy asset row `{tool_id}` must stay bound to the governed taxonomy reference root"
             ));
         }
     }
@@ -864,8 +863,7 @@ fn json_string_list(value: Option<&serde_json::Value>) -> Result<Vec<String>> {
 fn asset_id_from_path(path: &Path) -> String {
     let file_name = path
         .file_name()
-        .map(|value| value.to_string_lossy().into_owned())
-        .unwrap_or_else(|| path.display().to_string());
+        .map_or_else(|| path.display().to_string(), |value| value.to_string_lossy().into_owned());
     for suffix in [
         ".vcf.gz",
         ".fastq.gz",

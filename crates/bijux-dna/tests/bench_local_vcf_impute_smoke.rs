@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -122,7 +122,7 @@ fn bench_local_vcf_impute_smoke_reports_masked_truth_contract() {
         payload
             .get("not_imputable_reasons")
             .and_then(serde_json::Value::as_object)
-            .map(|rows| rows.len()),
+            .map(serde_json::Map::len),
         Some(0)
     );
     assert_eq!(payload.get("parseable").and_then(serde_json::Value::as_bool), Some(true));

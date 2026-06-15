@@ -1,3 +1,26 @@
+#![allow(
+    clippy::case_sensitive_file_extension_comparisons,
+    clippy::cast_precision_loss,
+    clippy::expect_used,
+    clippy::float_cmp,
+    clippy::fn_params_excessive_bools,
+    clippy::format_push_string,
+    clippy::if_same_then_else,
+    clippy::inefficient_to_string,
+    clippy::map_unwrap_or,
+    clippy::match_same_arms,
+    clippy::needless_pass_by_value,
+    clippy::struct_excessive_bools,
+    clippy::struct_field_names,
+    clippy::too_many_arguments,
+    clippy::too_many_lines,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::type_complexity,
+    clippy::uninlined_format_args,
+    clippy::unnecessary_first_then_check,
+    clippy::unnecessary_get_then_check,
+    clippy::unnecessary_wraps
+)]
 pub(crate) mod active_scope;
 pub(crate) mod alias_inventory;
 pub(crate) mod config;

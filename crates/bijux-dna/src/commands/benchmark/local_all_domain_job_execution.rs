@@ -125,11 +125,7 @@ fn run_shell_command(repo_root: &Path, command: &str) -> Result<()> {
     } else {
         Err(anyhow!(
             "shell command failed with status {}: {}\nstdout:\n{}\nstderr:\n{}",
-            output
-                .status
-                .code()
-                .map(|value| value.to_string())
-                .unwrap_or_else(|| "signal".to_string()),
+            output.status.code().map_or_else(|| "signal".to_string(), |value| value.to_string()),
             command,
             String::from_utf8_lossy(&output.stdout),
             String::from_utf8_lossy(&output.stderr)

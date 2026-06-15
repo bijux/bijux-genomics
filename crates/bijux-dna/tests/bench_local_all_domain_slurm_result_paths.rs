@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -71,7 +71,7 @@ fn bench_local_validate_all_domain_slurm_result_paths_reports_governed_run_root(
             && job
                 .get("findings")
                 .and_then(serde_json::Value::as_array)
-                .is_some_and(|findings| findings.is_empty())
+                .is_some_and(std::vec::Vec::is_empty)
     }));
 
     let benchmark_job = jobs

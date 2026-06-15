@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -109,7 +109,7 @@ fn bench_local_vcf_gl_propagation_smoke_reports_real_governed_outputs() {
         Some(vec!["GL", "GP", "PL"])
     );
     assert_eq!(
-        payload.get("lost_fields").and_then(serde_json::Value::as_array).map(|rows| rows.len()),
+        payload.get("lost_fields").and_then(serde_json::Value::as_array).map(std::vec::Vec::len),
         Some(0)
     );
     assert_eq!(payload.get("site_count_before").and_then(serde_json::Value::as_u64), Some(3));
@@ -141,7 +141,7 @@ fn bench_local_vcf_gl_propagation_smoke_reports_real_governed_outputs() {
     assert_eq!(metrics.get("site_count_before").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(metrics.get("site_count_after").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(
-        metrics.get("lost_fields").and_then(serde_json::Value::as_array).map(|rows| rows.len()),
+        metrics.get("lost_fields").and_then(serde_json::Value::as_array).map(std::vec::Vec::len),
         Some(0)
     );
 }

@@ -193,9 +193,7 @@ pub(crate) fn collect_all_domain_active_stage_catalog_rows(
         .map(|((domain, stage_id), acc)| {
             let readiness_kind = acc.readiness_kind.ok_or_else(|| {
                 anyhow!(
-                    "all-domain active stage catalog is missing config-backed readiness kind for `{}` / `{}`",
-                    domain,
-                    stage_id
+                    "all-domain active stage catalog is missing config-backed readiness kind for `{domain}` / `{stage_id}`"
                 )
             })?;
             Ok(AllDomainActiveStageCatalogRow {

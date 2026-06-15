@@ -236,8 +236,7 @@ fn build_vcf_admixture_ready_row(
     let result_id = binding
         .expected_row
         .as_ref()
-        .map(expected_result_id)
-        .unwrap_or_else(|| retained_result_id(&binding));
+        .map_or_else(|| retained_result_id(&binding), expected_result_id);
     let required_metric_names = required_metric_names();
     let mut missing_surfaces = Vec::new();
 
@@ -395,17 +394,15 @@ fn build_vcf_admixture_ready_row(
         retained_scope_detail: binding.retained_row.scope_detail.clone(),
         retained_scope_proof_path: binding.retained_row.scope_proof_path.clone(),
         all_domain_active_row_present,
-        all_domain_active_row_proof_path: binding
-            .active_row
-            .as_ref()
-            .map(|_| "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv".to_string())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+        all_domain_active_row_proof_path: binding.active_row.as_ref().map_or_else(
+            || NO_VALUE.to_string(),
+            |_| "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv".to_string(),
+        ),
         command_ready,
         command_source: binding
             .command_row
             .as_ref()
-            .map(|row| row.command_source.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |row| row.command_source.clone()),
         command_step_count: binding.command_row.as_ref().map_or(0, |row| row.command_steps.len()),
         command_step_ids: binding
             .command_row
@@ -430,8 +427,7 @@ fn build_vcf_admixture_ready_row(
         manifest_output: binding
             .output_row
             .as_ref()
-            .map(|row| row.manifest.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |row| row.manifest.clone()),
         index_outputs: binding
             .output_row
             .as_ref()
@@ -442,18 +438,15 @@ fn build_vcf_admixture_ready_row(
         parser_fixture_parser_id: binding
             .parser_row
             .as_ref()
-            .map(|row| row.parser_fixture_parser_id.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |row| row.parser_fixture_parser_id.clone()),
         parser_fixture_schema_id: binding
             .parser_row
             .as_ref()
-            .map(|row| row.parser_fixture_schema_id.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |row| row.parser_fixture_schema_id.clone()),
         parser_fixture_path: binding
             .parser_row
             .as_ref()
-            .map(|row| row.parser_fixture_root_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |row| row.parser_fixture_root_path.clone()),
         expected_result_ready,
         expected_result_proof_path: DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH.to_string(),
         expected_outputs: binding
@@ -477,8 +470,7 @@ fn build_vcf_admixture_ready_row(
         summary_table_id: binding
             .report_row
             .as_ref()
-            .map(|row| row.summary_table.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |row| row.summary_table.clone()),
         report_metric_columns: binding
             .report_row
             .as_ref()
@@ -486,49 +478,39 @@ fn build_vcf_admixture_ready_row(
             .unwrap_or_default(),
         smoke_ready,
         smoke_command: smoke_report
-            .map(|report| report.command.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.command.clone()),
         smoke_output_root: smoke_report
-            .map(|report| report.output_root.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.output_root.clone()),
         smoke_input_vcf_path: smoke_report
-            .map(|report| report.input_vcf_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.input_vcf_path.clone()),
         smoke_sample_metadata_path: smoke_report
-            .map(|report| report.sample_metadata_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.sample_metadata_path.clone()),
         smoke_population_metadata_path: smoke_report
-            .map(|report| report.population_metadata_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
-        smoke_population_labels_manifest_path: smoke_report
-            .map(|report| report.population_labels_manifest_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.population_metadata_path.clone()),
+        smoke_population_labels_manifest_path: smoke_report.map_or_else(
+            || NO_VALUE.to_string(),
+            |report| report.population_labels_manifest_path.clone(),
+        ),
         smoke_admixture_tsv_path: smoke_report
-            .map(|report| report.admixture_tsv_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.admixture_tsv_path.clone()),
         smoke_admixture_json_path: smoke_report
-            .map(|report| report.admixture_json_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.admixture_json_path.clone()),
         smoke_source_q_matrix_path: smoke_report
-            .map(|report| report.source_q_matrix_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.source_q_matrix_path.clone()),
         smoke_source_k_selection_path: smoke_report
-            .map(|report| report.source_k_selection_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.source_k_selection_path.clone()),
         smoke_source_logs_path: smoke_report
-            .map(|report| report.source_logs_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
-        smoke_stage_result_manifest_path: smoke_report
-            .map(|report| report.stage_result_manifest_path.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.source_logs_path.clone()),
+        smoke_stage_result_manifest_path: smoke_report.map_or_else(
+            || NO_VALUE.to_string(),
+            |report| report.stage_result_manifest_path.clone(),
+        ),
         smoke_execution_mode: smoke_report
-            .map(|report| report.execution_mode.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.execution_mode.clone()),
         smoke_tool_ok: smoke_report.is_some_and(|report| report.tool_ok),
         smoke_selected_k: smoke_report.map_or(0, |report| report.selected_k),
         smoke_status: smoke_report
-            .map(|report| report.status.clone())
-            .unwrap_or_else(|| NO_VALUE.to_string()),
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.status.clone()),
         smoke_sample_count: smoke_report.map_or(0, |report| report.sample_count),
         smoke_population_count: smoke_report.map_or(0, |report| report.population_count),
         smoke_cluster_headers: smoke_report

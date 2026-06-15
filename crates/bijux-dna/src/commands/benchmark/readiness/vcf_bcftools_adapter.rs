@@ -875,9 +875,7 @@ fn ensure_vcf_bcftools_adapter_contract(rows: &[VcfBcftoolsAdapterRow]) -> Resul
     let observed_stages = rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>();
     if observed_stages != expected_stages {
         return Err(anyhow!(
-            "VCF bcftools adapter stage set drifted: expected {:?}, found {:?}",
-            expected_stages,
-            observed_stages
+            "VCF bcftools adapter stage set drifted: expected {expected_stages:?}, found {observed_stages:?}"
         ));
     }
     for row in rows {

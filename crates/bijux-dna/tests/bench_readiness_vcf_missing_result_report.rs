@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used)]
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::process::Command;
 
@@ -96,5 +96,5 @@ fn bench_readiness_vcf_missing_result_report_tracks_one_removed_row() {
     assert!(removed_row
         .get("observed_output_artifact_ids")
         .and_then(serde_json::Value::as_array)
-        .is_some_and(|items| items.is_empty()));
+        .is_some_and(std::vec::Vec::is_empty));
 }
