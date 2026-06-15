@@ -748,7 +748,7 @@ fn validate_primer_table_contract(
         .filter(|line| !line.trim().is_empty())
         .map(|line| {
             let mut fields = line.split('\t');
-            let row = AmpliconPrimerTableRow {
+            let primer_row = AmpliconPrimerTableRow {
                 primer_id: fields
                     .next()
                     .ok_or_else(|| {
@@ -786,7 +786,7 @@ fn validate_primer_table_contract(
                     primers_tsv_path.display()
                 ));
             }
-            Ok(row)
+            Ok(primer_row)
         })
         .collect::<Result<Vec<_>>>()?;
     if rows.is_empty() {
@@ -888,7 +888,7 @@ fn validate_expected_asvs_contract(
         .filter(|line| !line.trim().is_empty())
         .map(|line| {
             let mut fields = line.split('\t');
-            let row = AmpliconExpectedAsvRow {
+            let expected_asv_row = AmpliconExpectedAsvRow {
                 asv_id: fields
                     .next()
                     .ok_or_else(|| {
@@ -922,7 +922,7 @@ fn validate_expected_asvs_contract(
                     expected_asvs_path.display()
                 ));
             }
-            Ok(row)
+            Ok(expected_asv_row)
         })
         .collect::<Result<Vec<_>>>()?;
     if rows.is_empty() {
@@ -1020,7 +1020,7 @@ fn validate_chimera_expectations_contract(
         .filter(|line| !line.trim().is_empty())
         .map(|line| {
             let mut fields = line.split('\t');
-            let row = AmpliconExpectedChimeraRow {
+            let chimera_row = AmpliconExpectedChimeraRow {
                 chimera_id: fields
                     .next()
                     .ok_or_else(|| {
@@ -1060,7 +1060,7 @@ fn validate_chimera_expectations_contract(
                     chimera_expectations_path.display()
                 ));
             }
-            Ok(row)
+            Ok(chimera_row)
         })
         .collect::<Result<Vec<_>>>()?;
     if rows.is_empty() {

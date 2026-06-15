@@ -161,7 +161,7 @@ pub(crate) fn validate_active_scope_fast(
             validate_benchmark_fixture_root(
                 repo_root,
                 &fixture_root,
-                PathBuf::from(DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH),
+                Path::new(DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH),
             )
         },
         |report| {
