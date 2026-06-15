@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 75c67e6efbcdd41bf016ef40315542e0b3e6d83d
+# source_commit: 46720b46284cb9e1ad04b898a0c6f39c7a27427a
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -267,13 +267,13 @@ pin_strategy = "pinned"
 container_ref = "bijuxdna/bamutil:1.0.15"
 runtimes = ["docker", "apptainer"]
 container = true
-version_cmd = "bam clipOverlap --help"
-help_cmd = "bam clipOverlap --help"
-smoke_version_cmd = "bam clipOverlap --help"
-smoke_help_cmd = "bam clipOverlap --help"
+version_cmd = "bamutil --version"
+help_cmd = "bamutil --help"
+smoke_version_cmd = "bamutil --version"
+smoke_help_cmd = "bamutil --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "bam clipOverlap --help"
-expected_bin = "bam"
+healthcheck_cmd = "bamutil --help"
+expected_bin = "bamutil"
 expected_artifacts = ["overlap_corrected_bam", "overlap_corrected_bai", "flagstat_before", "flagstat_after", "idxstats_before", "idxstats_after", "summary", "stage_metrics"]
 metrics_schema = "bijux.bam.overlap_correction.v1"
 comparability_notes = "Comparable only within overlap-correction stage with identical paired-end inputs."
@@ -435,7 +435,7 @@ citation = "software:https://github.com/bijux/bijux-genomics"
 pinned_commit = "release:workspace"
 pin_strategy = "workspace_commit"
 container_ref = "bijuxdna/bijux_dna:workspace"
-runtimes = ["docker"]
+runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "bijux-dna --version"
 help_cmd = "bijux-dna --help"
