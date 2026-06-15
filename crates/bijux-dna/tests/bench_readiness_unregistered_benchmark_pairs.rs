@@ -194,9 +194,9 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         );
     }
     assert!(
-        !rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqfu")
-        }),
+        !rows
+            .iter()
+            .any(|row| { row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqfu") }),
         "seqfu must leave the unregistered-pair report once only admitted profile bindings remain"
     );
     for tool_id in [

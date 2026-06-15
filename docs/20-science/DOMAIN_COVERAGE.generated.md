@@ -20,4 +20,4 @@ Derived from `domain/*/{stages,tools,fixtures}`.
 |---|---:|---:|---:|
 | `bam` | 24 | 25 | 49 |
 | `vcf` | 20 | 15 | 42 |
-| `fastq` | 45 | 45 | 92 |
+| `fastq` | 45 | 45 | 91 |

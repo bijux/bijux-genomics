@@ -101,10 +101,7 @@ fn benchmark_corpus_assignment_preserves_precise_exclusion_reasons() {
         &ToolId::new("bowtie2_build".to_string()),
     )
     .unwrap_or_else(|| panic!("index-reference assignment"));
-    assert_eq!(
-        index_reference.benchmark_scope_id(),
-        Some("reference-index-assets")
-    );
+    assert_eq!(index_reference.benchmark_scope_id(), Some("reference-index-assets"));
 
     let overrepresented = benchmark_corpus_assignment_for_stage_tool(
         &StageId::new("fastq.profile_overrepresented_sequences".to_string()),

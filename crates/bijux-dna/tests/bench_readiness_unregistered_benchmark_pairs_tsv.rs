@@ -258,9 +258,7 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         "TSV must not retain a registry-drift row for fastq.normalize_abundance / seqkit"
     );
     assert!(
-        !rows.iter().any(|row| {
-            row.starts_with("fastq\tfastq.normalize_abundance\tseqfu\t")
-        }),
+        !rows.iter().any(|row| { row.starts_with("fastq\tfastq.normalize_abundance\tseqfu\t") }),
         "TSV must not retain a fastq.normalize_abundance / seqfu registry-drift row"
     );
 }

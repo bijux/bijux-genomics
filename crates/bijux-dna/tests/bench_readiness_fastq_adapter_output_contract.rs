@@ -168,12 +168,9 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
                 && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
                 && row.get("output_contract_status").and_then(serde_json::Value::as_str)
                     == Some("complete")
-                && row
-                    .get("stage_output_ids")
-                    .and_then(serde_json::Value::as_array)
-                    .is_some_and(|artifacts| {
-                        artifacts.iter().any(|value| value == "library_complexity_report")
-                    })
+                && row.get("stage_output_ids").and_then(serde_json::Value::as_array).is_some_and(
+                    |artifacts| artifacts.iter().any(|value| value == "library_complexity_report"),
+                )
                 && row
                     .get("missing_declarations")
                     .and_then(serde_json::Value::as_array)
