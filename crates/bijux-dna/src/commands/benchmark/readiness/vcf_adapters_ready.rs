@@ -110,7 +110,7 @@ pub(crate) fn render_vcf_adapters_ready(
     let mut imputation_family_adapter_report = None;
     let mut adapter_output_coverage_report = None;
     let mut plink_adapter_report = None;
-    let mut plink2_adapter_report = None;
+    let mut plink2_family_adapter_report = None;
     let mut rendered_commands_report = None;
 
     record_goal_check(
@@ -314,7 +314,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 "plink",
                 PathBuf::from(DEFAULT_VCF_PLINK_ADAPTER_PATH),
             )?;
-            let plink2_report = render_vcf_plink_family_adapter(
+            let plink2_family_report = render_vcf_plink_family_adapter(
                 repo_root,
                 "plink2",
                 PathBuf::from(DEFAULT_VCF_PLINK2_ADAPTER_PATH),
@@ -328,12 +328,15 @@ pub(crate) fn render_vcf_adapters_ready(
             {
                 bail!("VCF plink adapter report drifted from the governed retained row contract");
             }
-            if plink2_report.row_count != 5
-                || plink2_report.benchmark_ready_row_count != 5
-                || plink2_report.parser_output_row_count != plink2_report.row_count
-                || plink2_report.normalized_metrics_row_count != plink2_report.row_count
-                || plink2_report.raw_output_declared_row_count != plink2_report.row_count
-                || plink2_report.missing_input_test_passed_row_count != plink2_report.row_count
+            if plink2_family_report.row_count != 5
+                || plink2_family_report.benchmark_ready_row_count != 5
+                || plink2_family_report.parser_output_row_count != plink2_family_report.row_count
+                || plink2_family_report.normalized_metrics_row_count
+                    != plink2_family_report.row_count
+                || plink2_family_report.raw_output_declared_row_count
+                    != plink2_family_report.row_count
+                || plink2_family_report.missing_input_test_passed_row_count
+                    != plink2_family_report.row_count
             {
                 bail!(
                     "VCF plink2 adapter report drifted from the governed benchmarked row contract"
@@ -348,7 +351,7 @@ pub(crate) fn render_vcf_adapters_ready(
                         && row.missing_input_test_passed
                 })
                 .count();
-            adapter_complete_pair_count += plink2_report
+            adapter_complete_pair_count += plink2_family_report
                 .rows
                 .iter()
                 .filter(|row| {
@@ -358,7 +361,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 })
                 .count();
             plink_adapter_report = Some(plink_report);
-            plink2_adapter_report = Some(plink2_report);
+            plink2_family_adapter_report = Some(plink2_family_report);
             Ok(
                 "validated governed plink and plink2 adapter rows with explicit raw and normalized outputs"
                     .to_string(),
@@ -594,7 +597,7 @@ pub(crate) fn render_vcf_adapters_ready(
             let plink_adapter_report = plink_adapter_report
                 .as_ref()
                 .ok_or_else(|| anyhow!("VCF plink adapter check did not produce a report"))?;
-            let plink2_adapter_report = plink2_adapter_report
+            let plink2_family_adapter_report = plink2_family_adapter_report
                 .as_ref()
                 .ok_or_else(|| anyhow!("VCF plink2 adapter check did not produce a report"))?;
             let adapter_output_coverage_report =
@@ -650,7 +653,7 @@ pub(crate) fn render_vcf_adapters_ready(
                     .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
             );
             adapter_pairs.extend(
-                plink2_adapter_report
+                plink2_family_adapter_report
                     .rows
                     .iter()
                     .filter(|row| {

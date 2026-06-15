@@ -257,20 +257,23 @@ fn render_vcf_resource_row(
 fn fastq_walltime_minutes(stage_id: &str, tool_id: &str) -> u32 {
     match (stage_id, tool_id) {
         ("fastq.infer_asvs", "dada2") => FASTQ_MINUTES_DADA2,
-        ("fastq.correct_errors", _) | ("fastq.cluster_otus", _) | ("fastq.remove_chimeras", _) => {
+        ("fastq.correct_errors" | "fastq.cluster_otus" | "fastq.remove_chimeras", _) => {
             FASTQ_MINUTES_HEAVY_ANALYSIS
         }
-        ("fastq.deplete_host", _)
-        | ("fastq.deplete_reference_contaminants", _)
-        | ("fastq.deplete_rrna", _)
-        | ("fastq.index_reference", _)
-        | ("fastq.screen_taxonomy", _) => FASTQ_MINUTES_REFERENCE,
-        ("fastq.merge_pairs", _) | ("fastq.normalize_primers", _) | ("fastq.trim_reads", _) => {
+        (
+            "fastq.deplete_host"
+            | "fastq.deplete_reference_contaminants"
+            | "fastq.deplete_rrna"
+            | "fastq.index_reference"
+            | "fastq.screen_taxonomy",
+            _,
+        ) => FASTQ_MINUTES_REFERENCE,
+        ("fastq.merge_pairs" | "fastq.normalize_primers" | "fastq.trim_reads", _) => {
             FASTQ_MINUTES_TRANSFORM
         }
-        ("fastq.profile_read_lengths", _)
-        | ("fastq.profile_reads", _)
-        | ("fastq.validate_reads", _) => FASTQ_MINUTES_QC,
+        ("fastq.profile_read_lengths" | "fastq.profile_reads" | "fastq.validate_reads", _) => {
+            FASTQ_MINUTES_QC
+        }
         _ => FASTQ_MINUTES_TRANSFORM,
     }
 }

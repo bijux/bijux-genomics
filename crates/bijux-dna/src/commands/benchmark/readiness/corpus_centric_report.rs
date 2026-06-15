@@ -243,7 +243,7 @@ fn load_stage_assignments(repo_root: &Path) -> Result<BTreeMap<(String, String),
                 }
                 entry.fixture_ids.push(benchmark_scope_id);
             }
-            FastqCorpusAssignmentStatus::Excluded => continue,
+            FastqCorpusAssignmentStatus::Excluded => {}
         }
     }
 

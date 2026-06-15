@@ -419,7 +419,7 @@ mod tests {
         assert_eq!(report.row_count, 20);
         assert_eq!(report.covered_row_count, 20);
         assert_eq!(report.missing_row_count, 0);
-        assert_eq!(report.parser_fixture_coverage_percent, 100.0);
+        assert!((report.parser_fixture_coverage_percent - 100.0).abs() < f64::EPSILON);
         assert_eq!(report.coverage_status_counts.get("covered"), Some(&20));
         assert!(report.rows.iter().all(|row| {
             row.schema_id.starts_with("bijux.schemas.bench.vcf-normalized-metrics.")

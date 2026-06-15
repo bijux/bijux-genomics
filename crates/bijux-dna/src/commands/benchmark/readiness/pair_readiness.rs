@@ -326,30 +326,20 @@ fn assigned_asset_roles(
 
 fn required_asset_roles(domain: &str, stage_id: &str, tool_id: &str) -> Vec<String> {
     let roles: &[&str] = match (domain, stage_id, tool_id) {
-        ("fastq", "fastq.screen_taxonomy", "centrifuge")
-        | ("fastq", "fastq.screen_taxonomy", "kaiju")
-        | ("fastq", "fastq.screen_taxonomy", "kraken2")
-        | ("fastq", "fastq.screen_taxonomy", "krakenuniq") => {
+        ("fastq", "fastq.screen_taxonomy", "centrifuge" | "kaiju" | "kraken2" | "krakenuniq") => {
             &["taxonomy_database_root", "database_artifact_id"]
         }
-        ("fastq", "fastq.deplete_host", "bowtie2")
-        | ("fastq", "fastq.deplete_reference_contaminants", "bowtie2") => {
+        ("fastq", "fastq.deplete_host" | "fastq.deplete_reference_contaminants", "bowtie2") => {
             &["reference_catalog_id", "reference_index_artifact_id"]
         }
         ("fastq", "fastq.deplete_rrna", "sortmerna") => &["rrna_reference", "database_artifact_id"],
-        ("fastq", "fastq.index_reference", "bowtie2_build")
-        | ("fastq", "fastq.index_reference", "star") => {
+        ("fastq", "fastq.index_reference", "bowtie2_build" | "star") => {
             &["reference_fasta", "reference_index_output"]
         }
-        ("bam", "bam.contamination", "contammix")
-        | ("bam", "bam.contamination", "schmutzi")
-        | ("bam", "bam.contamination", "verifybamid2")
+        ("bam", "bam.contamination", "contammix" | "schmutzi" | "verifybamid2")
         | ("bam", "bam.haplogroups", "yleaf")
-        | ("bam", "bam.kinship", "angsd")
-        | ("bam", "bam.kinship", "king") => &["reference_fasta", "reference_panel"],
-        ("bam", "bam.sex", "angsd") | ("bam", "bam.sex", "rxy") | ("bam", "bam.sex", "yleaf") => {
-            &["reference_fasta"]
-        }
+        | ("bam", "bam.kinship", "angsd" | "king") => &["reference_fasta", "reference_panel"],
+        ("bam", "bam.sex", "angsd" | "rxy" | "yleaf") => &["reference_fasta"],
         ("bam", "bam.genotyping", "angsd") => &["reference_fasta", "sites_vcf", "regions"],
         ("bam", "bam.recalibration", "gatk") => &["reference_fasta", "known_sites"],
         _ => &[],
