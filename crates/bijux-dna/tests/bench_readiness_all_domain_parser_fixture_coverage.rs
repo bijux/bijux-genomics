@@ -80,7 +80,9 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
         .and_then(serde_json::Value::as_object)
         .expect("proof source counts");
     assert_eq!(
-        proof_source_counts.get("fastq_parser_coverage").and_then(serde_json::Value::as_u64),
+        proof_source_counts
+            .get("fastq_parser_fixture_coverage")
+            .and_then(serde_json::Value::as_u64),
         Some(69)
     );
     assert_eq!(
@@ -114,11 +116,11 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
             && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.trim_reads")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("trimmomatic")
             && row.get("parser_fixture_reference_kind").and_then(serde_json::Value::as_str)
-                == Some("fixture_corpus")
+                == Some("fixture_case")
             && row.get("parser_fixture_reference").and_then(serde_json::Value::as_str)
-                == Some("fixture:corpus-01-mini")
+                == Some("fastq.trim_reads.report_json")
             && row.get("proof_source").and_then(serde_json::Value::as_str)
-                == Some("fastq_parser_coverage")
+                == Some("fastq_parser_fixture_coverage")
     }));
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -157,11 +159,13 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
                 == Some("fastq.index_reference")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2_build")
             && row.get("parser_fixture_reference_kind").and_then(serde_json::Value::as_str)
-                == Some("asset_scope")
+                == Some("fixture_case")
             && row.get("parser_fixture_reference").and_then(serde_json::Value::as_str)
-                == Some("asset:reference-index-assets")
+                == Some("fastq.index_reference.report_json")
+            && row.get("parser_fixture_parser_id").and_then(serde_json::Value::as_str)
+                == Some("parse_index_reference_report")
             && row.get("proof_source").and_then(serde_json::Value::as_str)
-                == Some("fastq_parser_coverage")
+                == Some("fastq_parser_fixture_coverage")
     }));
 
     let violations =
