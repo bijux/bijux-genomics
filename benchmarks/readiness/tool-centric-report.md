@@ -3,10 +3,10 @@
 ## Summary
 
 - Tool count: 67
-- Stage-tool rows: 123
+- Stage-tool rows: 122
 - Benchmark-ready rows: 118
-- Blocked rows: 5
-- Tools with blockers: 5
+- Blocked rows: 4
+- Tools with blockers: 4
 
 | Tool | Domains | Stage rows | Ready | Blocked | Blocked stages |
 | --- | --- | ---: | ---: | ---: | --- |
@@ -63,7 +63,7 @@
 | rxy | bam | 1 | 1 | 0 | none |
 | samtools | bam | 10 | 10 | 0 | none |
 | schmutzi | bam | 1 | 1 | 0 | none |
-| seqfu | fastq | 3 | 2 | 1 | fastq.normalize_abundance (support) |
+| seqfu | fastq | 2 | 2 | 0 | none |
 | seqkit | fastq | 6 | 6 | 0 | none |
 | seqkit_stats | fastq | 2 | 2 | 0 | none |
 | seqpurge | fastq | 1 | 0 | 1 | fastq.trim_reads (support) |
@@ -762,14 +762,13 @@
 ## seqfu
 
 - Domains: fastq
-- Stage rows: 3
+- Stage rows: 2
 - Benchmark-ready rows: 2
-- Blocked rows: 1
-- Report sections: amplicon_interpretation, quality_profiling
+- Blocked rows: 0
+- Report sections: quality_profiling
 
 | Domain | Stage | Report section | Summary table | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| fastq | fastq.normalize_abundance | Amplicon Interpretation | Amplicon Feature Tables | not_benchmark_ready | support | planned_contract | declared_only | not_normalized | fixture:corpus-03-amplicon-mini | not_required |
 | fastq | fastq.profile_read_lengths | Quality Profiling | QC Signal Profiles | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 | fastq | fastq.profile_reads | Quality Profiling | QC Signal Profiles | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 

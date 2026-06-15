@@ -51,7 +51,6 @@ prinseq	fastq.filter_reads	governed_benchmark_cohort	runnable	benchmark_normaliz
 prinseq	fastq.profile_read_lengths	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 prinseq	fastq.trim_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 rcorrector	fastq.correct_errors	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
-seqfu	fastq.normalize_abundance	planned_contract	declared_only	not_normalized	fixture:corpus-03-amplicon-mini
 seqfu	fastq.profile_read_lengths	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 seqfu	fastq.profile_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 seqkit	fastq.filter_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini

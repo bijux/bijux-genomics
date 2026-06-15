@@ -2,12 +2,12 @@
   "schema_version": "bijux.bench.readiness.parser_completeness_gate.v1",
   "output_path": "benchmarks/readiness/gate-parser-complete.json",
   "passes_gate": true,
-  "row_count": 123,
+  "row_count": 122,
   "benchmark_ready_row_count": 118,
   "gate_row_count": 116,
   "gate_passed_row_count": 116,
   "gate_failed_row_count": 0,
-  "excluded_row_count": 7,
+  "excluded_row_count": 6,
   "domain_stage_counts": {
     "bam": 24,
     "fastq": 27
@@ -18,7 +18,7 @@
   },
   "domain_row_counts": {
     "bam": 49,
-    "fastq": 74
+    "fastq": 73
   },
   "gate_domain_row_counts": {
     "bam": 49,
@@ -26,7 +26,7 @@
   },
   "excluded_readiness_gap_counts": {
     "corpus": 1,
-    "support": 4
+    "support": 3
   },
   "rows": [
     {
@@ -1120,20 +1120,6 @@
       "parser_status": "benchmark_normalized",
       "corpus_status": "fixture:corpus-01-mini",
       "reason": "row `fastq.merge_pairs` / `vsearch` requires parser completeness for benchmark reporting and satisfies it with `benchmark_normalized`"
-    },
-    {
-      "domain": "fastq",
-      "stage_id": "fastq.normalize_abundance",
-      "tool_id": "seqfu",
-      "gate_scope": "excluded",
-      "gate_status": "excluded",
-      "benchmark_status": "not_benchmark_ready",
-      "readiness_gap": "support",
-      "support_status": "planned_contract",
-      "adapter_status": "declared_only",
-      "parser_status": "not_normalized",
-      "corpus_status": "fixture:corpus-03-amplicon-mini",
-      "reason": "row `fastq.normalize_abundance` / `seqfu` is not yet in governed benchmark support for HPC readiness (`planned_contract`)"
     },
     {
       "domain": "fastq",

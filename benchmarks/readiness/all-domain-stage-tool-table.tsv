@@ -77,7 +77,6 @@ fastq	fastq.merge_pairs	flash2	corpus-01-mini	corpus_only	fastq.adapter.merge_pa
 fastq	fastq.merge_pairs	leehom	corpus-01-mini	corpus_only	fastq.adapter.merge_pairs	fastq.parser.merge_pairs	benchmark_ready
 fastq	fastq.merge_pairs	pear	corpus-01-mini	corpus_only	fastq.adapter.merge_pairs	fastq.parser.merge_pairs	benchmark_ready
 fastq	fastq.merge_pairs	vsearch	corpus-01-mini	corpus_only	fastq.adapter.merge_pairs	fastq.parser.merge_pairs	benchmark_ready
-fastq	fastq.normalize_abundance	seqfu	corpus-03-amplicon-mini	corpus_only	fastq.adapter.normalize_abundance	fastq.parser.normalize_abundance	not_benchmark_ready
 fastq	fastq.normalize_abundance	seqkit	corpus-03-amplicon-mini	corpus_only	fastq.adapter.normalize_abundance	fastq.parser.normalize_abundance	benchmark_ready
 fastq	fastq.normalize_primers	cutadapt	corpus-03-amplicon-mini	corpus_only	fastq.adapter.normalize_primers	fastq.parser.normalize_primers	benchmark_ready
 fastq	fastq.profile_overrepresented_sequences	fastq_scan	corpus-01-mini	corpus_only	fastq.adapter.profile_overrepresented_sequences	fastq.parser.profile_overrepresented_sequences	benchmark_ready

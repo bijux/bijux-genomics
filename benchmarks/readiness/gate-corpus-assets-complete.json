@@ -2,12 +2,12 @@
   "schema_version": "bijux.bench.readiness.corpus_asset_coverage_gate.v1",
   "output_path": "benchmarks/readiness/gate-corpus-assets-complete.json",
   "passes_gate": true,
-  "row_count": 123,
+  "row_count": 122,
   "benchmark_ready_row_count": 118,
   "gate_row_count": 118,
   "gate_passed_row_count": 118,
   "gate_failed_row_count": 0,
-  "excluded_row_count": 5,
+  "excluded_row_count": 4,
   "benchmark_ready_asset_required_row_count": 20,
   "benchmark_ready_asset_assigned_row_count": 20,
   "benchmark_ready_asset_missing_row_count": 0,
@@ -21,7 +21,7 @@
   },
   "domain_row_counts": {
     "bam": 49,
-    "fastq": 74
+    "fastq": 73
   },
   "gate_domain_row_counts": {
     "bam": 49,
@@ -29,7 +29,7 @@
   },
   "excluded_readiness_gap_counts": {
     "corpus": 1,
-    "support": 4
+    "support": 3
   },
   "rows": [
     {
@@ -1527,24 +1527,6 @@
       "required_asset_roles": [],
       "assigned_assets": [],
       "reason": "row `fastq.merge_pairs` / `vsearch` stays inside the fastq benchmark submission gate with governed fixture-backed corpus assignment coverage and no required asset bindings"
-    },
-    {
-      "domain": "fastq",
-      "stage_id": "fastq.normalize_abundance",
-      "tool_id": "seqfu",
-      "gate_scope": "excluded",
-      "gate_status": "excluded",
-      "benchmark_status": "not_benchmark_ready",
-      "readiness_gap": "support",
-      "support_status": "planned_contract",
-      "adapter_status": "declared_only",
-      "parser_status": "not_normalized",
-      "corpus_status": "fixture:corpus-03-amplicon-mini",
-      "corpus_assignment_status": "assigned",
-      "asset_assignment_status": "not_required",
-      "required_asset_roles": [],
-      "assigned_assets": [],
-      "reason": "row `fastq.normalize_abundance` / `seqfu` is not yet in governed benchmark support for HPC readiness (`planned_contract`)"
     },
     {
       "domain": "fastq",

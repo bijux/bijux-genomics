@@ -2,14 +2,14 @@
   "schema_version": "bijux.bench.readiness.fastq_bam_stage_tool_benchmark_ready.v1",
   "output_path": "benchmarks/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json",
   "passes_gate": true,
-  "expected_pair_count": 123,
+  "expected_pair_count": 122,
   "benchmark_ready_pair_count": 118,
-  "excluded_pair_count": 5,
+  "excluded_pair_count": 4,
   "failing_pair_count": 0,
   "generated_job_pair_count": 118,
   "expected_result_pair_count": 118,
   "benchmark_ready_stage_count": 50,
-  "excluded_registry_gap_count": 4,
+  "excluded_registry_gap_count": 3,
   "surface_summaries": [
     {
       "surface_id": "stage_tool_matrix",
@@ -17,7 +17,7 @@
       "measured_scope": "admitted_pairs_and_multi_tool_stages",
       "expected_count": 118,
       "covered_count": 118,
-      "excluded_count": 5,
+      "excluded_count": 4,
       "failing_count": 0,
       "evidence_paths": [
         "benchmarks/readiness/missing-benchmark-pairs.tsv",
@@ -31,13 +31,13 @@
       "measured_scope": "benchmark_ready_pairs",
       "expected_count": 118,
       "covered_count": 118,
-      "excluded_count": 4,
+      "excluded_count": 3,
       "failing_count": 0,
       "evidence_paths": [
         "benchmarks/readiness/unregistered-benchmark-pairs.tsv",
         "benchmarks/readiness/stage-registry-extra-pairs.tsv"
       ],
-      "detail": "benchmark-ready registry gaps: 0; excluded registry gaps: 4; extra registry pairs: 0"
+      "detail": "benchmark-ready registry gaps: 0; excluded registry gaps: 3; extra registry pairs: 0"
     },
     {
       "surface_id": "command_adapters",
@@ -45,12 +45,12 @@
       "measured_scope": "benchmark_ready_pairs",
       "expected_count": 118,
       "covered_count": 118,
-      "excluded_count": 5,
+      "excluded_count": 4,
       "failing_count": 0,
       "evidence_paths": [
         "benchmarks/readiness/pair-readiness.tsv"
       ],
-      "detail": "generated benchmark command rows: 118; excluded pairs kept out of generated jobs: 5"
+      "detail": "generated benchmark command rows: 118; excluded pairs kept out of generated jobs: 4"
     },
     {
       "surface_id": "parsers",
@@ -58,12 +58,12 @@
       "measured_scope": "benchmark_ready_pairs",
       "expected_count": 116,
       "covered_count": 116,
-      "excluded_count": 7,
+      "excluded_count": 6,
       "failing_count": 0,
       "evidence_paths": [
         "benchmarks/readiness/gate-parser-complete.json"
       ],
-      "detail": "parser gate rows: 116; excluded rows: 7"
+      "detail": "parser gate rows: 116; excluded rows: 6"
     },
     {
       "surface_id": "corpus_assignments",
@@ -71,7 +71,7 @@
       "measured_scope": "benchmark_ready_pairs",
       "expected_count": 118,
       "covered_count": 118,
-      "excluded_count": 5,
+      "excluded_count": 4,
       "failing_count": 0,
       "evidence_paths": [
         "benchmarks/readiness/fastq-corpus-assignment.tsv",
@@ -85,7 +85,7 @@
       "measured_scope": "benchmark_ready_pairs",
       "expected_count": 118,
       "covered_count": 20,
-      "excluded_count": 5,
+      "excluded_count": 4,
       "failing_count": 0,
       "evidence_paths": [
         "benchmarks/readiness/gate-corpus-assets-complete.json"
@@ -98,12 +98,12 @@
       "measured_scope": "benchmark_ready_pairs",
       "expected_count": 118,
       "covered_count": 118,
-      "excluded_count": 5,
+      "excluded_count": 4,
       "failing_count": 0,
       "evidence_paths": [
         "benchmarks/readiness/expected-benchmark-results.tsv"
       ],
-      "detail": "expected benchmark result rows: 118; excluded pairs kept out of expected results: 5"
+      "detail": "expected benchmark result rows: 118; excluded pairs kept out of expected results: 4"
     },
     {
       "surface_id": "report_maps",
@@ -153,22 +153,6 @@
       "excluded_from_generated_jobs": true,
       "excluded_from_expected_results": true,
       "reason": "row `fastq` / `fastq.filter_low_complexity` / `fastp` is blocked by benchmark support status `planned_contract`"
-    },
-    {
-      "row_id": "fastq:fastq.normalize_abundance:seqfu",
-      "domain": "fastq",
-      "stage_id": "fastq.normalize_abundance",
-      "tool_id": "seqfu",
-      "readiness_gap": "support",
-      "support_status": "planned_contract",
-      "adapter_status": "declared_only",
-      "parser_status": "not_normalized",
-      "corpus_status": "fixture:corpus-03-amplicon-mini",
-      "asset_status": "not_required",
-      "registry_status": "tool_registered_pair_missing",
-      "excluded_from_generated_jobs": true,
-      "excluded_from_expected_results": true,
-      "reason": "row `fastq` / `fastq.normalize_abundance` / `seqfu` is blocked by benchmark support status `planned_contract`"
     },
     {
       "row_id": "fastq:fastq.report_qc:multiqc",

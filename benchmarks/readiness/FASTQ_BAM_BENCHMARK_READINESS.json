@@ -2,40 +2,40 @@
   "schema_version": "bijux.bench.readiness.benchmark_readiness_dashboard.v1",
   "markdown_output_path": "benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.md",
   "json_output_path": "benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.json",
-  "expected_pair_count": 123,
+  "expected_pair_count": 122,
   "ready_pair_count": 118,
-  "blocked_pair_count": 5,
+  "blocked_pair_count": 4,
   "blocker_counts": {
     "corpus": 1,
-    "support": 4
+    "support": 3
   },
   "matrix": {
     "surface_status": "attention_required",
     "scope": "all governed fastq and bam stage-tool pairs",
     "output_path": "benchmarks/readiness/pair-readiness.tsv",
-    "expected_pair_count": 123,
+    "expected_pair_count": 122,
     "ready_pair_count": 118,
-    "blocked_pair_count": 5,
+    "blocked_pair_count": 4,
     "stage_count": 51,
     "tool_count": 67,
     "domain_counts": {
       "bam": 49,
-      "fastq": 74
+      "fastq": 73
     },
     "readiness_gap_counts": {
       "corpus": 1,
       "none": 118,
-      "support": 4
+      "support": 3
     }
   },
   "adapters": {
     "surface_status": "attention_required",
     "scope": "all governed fastq and bam stage-tool pairs",
-    "total_pair_count": 123,
+    "total_pair_count": 122,
     "ready_pair_count": 119,
-    "attention_required_pair_count": 4,
+    "attention_required_pair_count": 3,
     "status_counts": {
-      "declared_only": 4,
+      "declared_only": 3,
       "runnable": 119
     },
     "output_paths": [
@@ -50,11 +50,11 @@
     "benchmark_reporting_pair_count": 116,
     "ready_pair_count": 116,
     "blocked_pair_count": 0,
-    "excluded_pair_count": 7,
+    "excluded_pair_count": 6,
     "status_counts": {
       "benchmark_normalized": 55,
       "comparable": 12,
-      "not_normalized": 4,
+      "not_normalized": 3,
       "parse_normalized": 3,
       "parser_fixture_validated": 49
     }
@@ -62,8 +62,8 @@
   "corpora": {
     "surface_status": "attention_required",
     "scope": "all governed fastq and bam stage-tool pairs",
-    "total_pair_count": 123,
-    "ready_pair_count": 122,
+    "total_pair_count": 122,
+    "ready_pair_count": 121,
     "blocked_pair_count": 1,
     "corpus_family_count": 8,
     "corpus_family_ids": [
@@ -86,7 +86,7 @@
       "fixture:corpus-01-kinship-mini": 2,
       "fixture:corpus-01-mini": 63,
       "fixture:corpus-02-edna-mini": 4,
-      "fixture:corpus-03-amplicon-mini": 6,
+      "fixture:corpus-03-amplicon-mini": 5,
       "planner_only": 1
     },
     "output_paths": [
@@ -104,7 +104,7 @@
     "blocked_pair_count": 0,
     "overall_status_counts": {
       "assigned": 20,
-      "not_required": 103
+      "not_required": 102
     }
   },
   "reports": {
@@ -123,7 +123,7 @@
       "report_id": "pair_readiness",
       "output_path": "benchmarks/readiness/pair-readiness.tsv",
       "item_kind": "stage_tool_pairs",
-      "item_count": 123
+      "item_count": 122
     },
     {
       "report_id": "expected_benchmark_results",
@@ -176,19 +176,6 @@
       "corpus_status": "fixture:corpus-01-mini",
       "asset_status": "not_required",
       "reason": "row `fastq` / `fastq.filter_low_complexity` / `fastp` is blocked by benchmark support status `planned_contract`"
-    },
-    {
-      "row_id": "fastq:fastq.normalize_abundance:seqfu",
-      "domain": "fastq",
-      "stage_id": "fastq.normalize_abundance",
-      "tool_id": "seqfu",
-      "readiness_gap": "support",
-      "support_status": "planned_contract",
-      "adapter_status": "declared_only",
-      "parser_status": "not_normalized",
-      "corpus_status": "fixture:corpus-03-amplicon-mini",
-      "asset_status": "not_required",
-      "reason": "row `fastq` / `fastq.normalize_abundance` / `seqfu` is blocked by benchmark support status `planned_contract`"
     },
     {
       "row_id": "fastq:fastq.report_qc:multiqc",

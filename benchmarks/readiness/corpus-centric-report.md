@@ -4,10 +4,10 @@
 
 - Corpus count: 8
 - Assigned stages: 50
-- Assigned stage-tool rows: 122
+- Assigned stage-tool rows: 121
 - Benchmark-ready rows: 118
-- Blocked rows: 4
-- Corpora with blocked stages: 2
+- Blocked rows: 3
+- Corpora with blocked stages: 1
 
 | Corpus | Domains | Fixtures | Stages | Tool rows | Ready | Blocked stages | Blocked stage ids |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
@@ -17,7 +17,7 @@
 | corpus-01-genotyping | bam | corpus-01-genotyping-mini | 1 | 1 | 1 | 0 | none |
 | corpus-01-kinship | bam | corpus-01-kinship-mini | 1 | 2 | 2 | 0 | none |
 | corpus-02 | fastq | corpus-02-edna-mini | 1 | 4 | 4 | 0 | none |
-| corpus-03 | fastq | corpus-03-amplicon-mini | 5 | 6 | 5 | 1 | fastq.normalize_abundance |
+| corpus-03 | fastq | corpus-03-amplicon-mini | 5 | 5 | 5 | 0 | none |
 | reference-index-assets | fastq | reference-index-assets | 1 | 2 | 2 | 0 | none |
 
 ## corpus-01
@@ -141,9 +141,9 @@
 - Domains: fastq
 - Fixtures: corpus-03-amplicon-mini
 - Stages: 5
-- Tool rows: 6
+- Tool rows: 5
 - Benchmark-ready rows: 5
-- Blocked stages: 1
+- Blocked stages: 0
 
 | Domain | Stage | Fixtures | Report section | Tools | Ready | Blocked | Shared metrics | Blocked tools |
 | --- | --- | --- | --- | ---: | ---: | ---: | --- | --- |
@@ -151,7 +151,7 @@
 | fastq | fastq.remove_chimeras | corpus-03-amplicon-mini | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.infer_asvs | corpus-03-amplicon-mini | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.cluster_otus | corpus-03-amplicon-mini | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
-| fastq | fastq.normalize_abundance | corpus-03-amplicon-mini | Amplicon Interpretation | 2 | 1 | 1 | not_declared | seqfu (support) |
+| fastq | fastq.normalize_abundance | corpus-03-amplicon-mini | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
 
 ## reference-index-assets
 

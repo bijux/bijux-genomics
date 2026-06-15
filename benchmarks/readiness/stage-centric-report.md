@@ -3,11 +3,11 @@
 ## Summary
 
 - Stage count: 51
-- Multi-tool stages: 30
-- Stage-tool rows: 123
+- Multi-tool stages: 29
+- Stage-tool rows: 122
 - Benchmark-ready rows: 118
-- Blocked rows: 5
-- Stages with blockers: 4
+- Blocked rows: 4
+- Stages with blockers: 3
 
 | Domain | Stage | Report section | Tools | Ready | Blocked | Shared metrics | Blocked tools |
 | --- | --- | --- | ---: | ---: | ---: | --- | --- |
@@ -58,7 +58,7 @@
 | fastq | fastq.remove_chimeras | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.infer_asvs | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.cluster_otus | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
-| fastq | fastq.normalize_abundance | Amplicon Interpretation | 2 | 1 | 1 | not_declared | seqfu (support) |
+| fastq | fastq.normalize_abundance | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.screen_taxonomy | Contamination Screening | 4 | 4 | 0 | not_declared | none |
 | fastq | fastq.report_qc | Quality Profiling | 1 | 0 | 1 | not_applicable | multiqc (corpus) |
 | fastq | fastq.index_reference | Reference Preparation | 2 | 2 | 0 | index_build_exit_code | none |
@@ -888,15 +888,14 @@
 - Report section: Amplicon Interpretation
 - Summary table: Amplicon Feature Tables
 - Anchor tool: seqkit (supported)
-- Tools: 2
+- Tools: 1
 - Ready tools: 1
-- Blocked tools: 1
-- Shared metric contract: not_declared
+- Blocked tools: 0
+- Shared metric contract: not_applicable
 - Shared metrics: none
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| seqfu | not_benchmark_ready | support | planned_contract | declared_only | not_normalized | fixture:corpus-03-amplicon-mini | not_required |
 | seqkit | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-03-amplicon-mini | not_required |
 
 ## fastq.screen_taxonomy
