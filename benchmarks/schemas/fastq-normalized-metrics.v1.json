@@ -121,9 +121,11 @@
             },
             "required": [
               "depleted_reads",
+              "depletion_summary",
               "host_depleted_reads_r1",
               "host_hit_rate",
               "host_index_artifact_id",
+              "removed_host_reads_r1",
               "report_json",
               "schema_version",
               "stage",
@@ -152,6 +154,8 @@
               "contaminant_reads",
               "contaminant_reference",
               "contaminant_screened_reads_r1",
+              "depletion_summary",
+              "removed_contaminant_reads_r1",
               "report_json",
               "schema_version",
               "stage",
@@ -177,10 +181,12 @@
             "required": [
               "database_artifact_id",
               "depletion_rate",
+              "depletion_summary",
               "removed_reads",
               "report_json",
               "retained_reads",
               "rrna_db",
+              "rrna_removed_reads_r1",
               "schema_version",
               "stage",
               "tool"

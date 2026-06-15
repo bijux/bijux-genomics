@@ -52,7 +52,7 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows()
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(
         payload.get("report_map_binding_count").and_then(serde_json::Value::as_u64),
-        Some(70)
+        Some(113)
     );
     assert_eq!(
         payload.get("covered_row_count").and_then(serde_json::Value::as_u64),

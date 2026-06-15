@@ -114,7 +114,7 @@
       "excluded_count": 0,
       "failing_count": 0,
       "evidence_paths": [
-        "benchmarks/readiness/fastq-report-map.tsv",
+        "benchmarks/readiness/fastq/fastq-report-map.tsv",
         "benchmarks/readiness/bam-report-map.tsv"
       ],
       "detail": "ready-stage report map coverage: fastq=27 bam=24"

@@ -99,7 +99,7 @@
       "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
       "comparable_metrics_proof_path": "benchmarks/readiness/fastq-comparable-metrics.tsv",
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/fastq-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
       "smoke_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
       "smoke_sample_ids": [
         "toy-pe",
@@ -188,7 +188,7 @@
       "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
       "comparable_metrics_proof_path": "benchmarks/readiness/fastq-comparable-metrics.tsv",
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/fastq-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
       "smoke_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
       "smoke_sample_ids": [
         "toy-pe",
@@ -272,7 +272,7 @@
       "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
       "comparable_metrics_proof_path": "benchmarks/readiness/fastq-comparable-metrics.tsv",
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/fastq-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
       "smoke_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
       "smoke_sample_ids": [
         "toy-pe",
@@ -356,7 +356,7 @@
       "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
       "comparable_metrics_proof_path": "benchmarks/readiness/fastq-comparable-metrics.tsv",
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/fastq-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
       "smoke_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
       "smoke_sample_ids": [
         "toy-pe",
@@ -440,7 +440,7 @@
       "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
       "comparable_metrics_proof_path": "benchmarks/readiness/fastq-comparable-metrics.tsv",
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/fastq-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
       "smoke_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
       "smoke_sample_ids": [
         "toy-pe",
