@@ -350,9 +350,10 @@ Visible aliases are part of the operator surface:
   `damage`, and `contamination` remain reviewer-visible with complete tool coverage and precise
   pending rows.
 - `bijux-dna bench readiness render-fastq-report-map`
-  `render-fastq-report-map` writes `benchmarks/readiness/fastq-report-map.tsv` with one
-  governed row per FASTQ benchmark-ready stage, fixing the report section, summary table, and
-  benchmark anchor tool that downstream stage-centric benchmark reporting must use.
+  `render-fastq-report-map` writes `benchmarks/readiness/fastq/fastq-report-map.tsv` with one
+  governed row per FASTQ benchmark-ready stage-tool result binding, fixing the report section and
+  summary table that downstream benchmark reporting must use while preserving exact tool-level
+  coverage for every retained FASTQ result row.
 - `bijux-dna bench readiness render-bam-report-map`
   `render-bam-report-map` writes `benchmarks/readiness/bam-report-map.tsv` with one governed
   row per BAM benchmark-ready stage, fixing the report section, summary table, workflow branch,
