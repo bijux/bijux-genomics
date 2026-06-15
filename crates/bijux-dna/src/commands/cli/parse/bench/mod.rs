@@ -119,6 +119,7 @@ pub use self::readiness::{
     BenchReadinessRenderFastqAdapterOutputContractArgs,
     BenchReadinessRenderFastqCommandAdapterCoverageArgs,
     BenchReadinessRenderFastqComparableMetricsArgs, BenchReadinessRenderFastqCorpusAssignmentArgs,
+    BenchReadinessRenderFastqCommandsArgs,
     BenchReadinessRenderFastqDuplicateStagesReadyArgs,
     BenchReadinessRenderFastqFilterStagesReadyArgs,
     BenchReadinessRenderFastqLocalContainerSmokeArgs,

@@ -58,6 +58,7 @@ pub(crate) mod fastq_local_container_smoke;
 pub(crate) mod fastq_normalized_metrics_schema;
 pub(crate) mod fastq_parser_coverage;
 pub(crate) mod fastq_parser_fixture_coverage;
+pub(crate) mod fastq_rendered_commands;
 pub(crate) mod fastq_report_map;
 pub(crate) mod fastq_trim_stages_ready;
 pub(crate) mod fastq_validate_reads_ready;

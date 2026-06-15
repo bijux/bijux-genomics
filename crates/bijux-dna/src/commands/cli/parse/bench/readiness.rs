@@ -82,6 +82,8 @@ pub enum BenchReadinessCommand {
     RenderFastqParserCoverage(BenchReadinessRenderFastqParserCoverageArgs),
     #[command(name = "render-fastq-parser-fixture-coverage")]
     RenderFastqParserFixtureCoverage(BenchReadinessRenderFastqParserFixtureCoverageArgs),
+    #[command(name = "render-fastq-commands")]
+    RenderFastqCommands(BenchReadinessRenderFastqCommandsArgs),
     #[command(name = "render-fastq-report-map")]
     RenderFastqReportMap(BenchReadinessRenderFastqReportMapArgs),
     #[command(name = "render-fastq-active-stage-tool-matrix")]
@@ -882,6 +884,14 @@ pub struct BenchReadinessRenderFastqParserCoverageArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderFastqParserFixtureCoverageArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderFastqCommandsArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
