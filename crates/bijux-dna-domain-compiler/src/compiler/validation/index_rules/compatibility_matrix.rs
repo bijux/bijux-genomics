@@ -9,10 +9,6 @@ pub(super) struct ToolCatalogs<'a> {
     pub(super) metrics_schemas: &'a BTreeMap<String, String>,
 }
 
-fn domain_tool_key(dom: &str, tool_id: &str) -> String {
-    format!("{dom}::{tool_id}")
-}
-
 #[allow(clippy::too_many_lines)]
 pub(super) fn validate_index_matrix_and_pipelines(
     options: &ValidateOptions,
@@ -59,8 +55,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
         .flat_map(|tools| tools.iter().cloned())
         .collect::<BTreeSet<_>>();
     for tool_id in &index.tool_ids {
-        let scoped_key = domain_tool_key(dom, tool_id);
-        if tool_catalogs.statuses.get(&scoped_key).is_some_and(|status| status != "supported") {
+        if tool_catalogs.statuses.get(tool_id).is_some_and(|status| status != "supported") {
             continue;
         }
         if !reachable_tools.contains(tool_id) {
@@ -330,8 +325,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 );
             }
             if stage.status == "supported" {
-                let scoped_key = domain_tool_key(dom, tool);
-                let caps = tool_catalogs.capabilities.get(&scoped_key).ok_or_else(|| {
+                let caps = tool_catalogs.capabilities.get(tool).ok_or_else(|| {
                     anyhow!(
                         "{} missing capabilities for supported tool {}",
                         index_path.display(),
@@ -357,10 +351,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 );
             }
             if stage.status == "supported"
-                && tool_catalogs
-                    .statuses
-                    .get(&domain_tool_key(dom, tool))
-                    .is_some_and(|status| status == "supported")
+                && tool_catalogs.statuses.get(tool).is_some_and(|status| status == "supported")
             {
                 supported_tools_for_stage += 1;
                 supported_tool_fixture_seen.insert(tool.clone());
