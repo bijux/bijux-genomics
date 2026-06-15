@@ -56,6 +56,7 @@ nested_root_command_args!(EnvRootArgs, EnvCommand);
 nested_root_command_args!(RegistryRootArgs, RegistryCommand);
 nested_root_command_args!(EnaRootArgs, EnaCommand);
 nested_root_command_args!(CorpusRootArgs, CorpusCommand);
+nested_root_command_args!(FixturesRootArgs, FixturesCommand);
 nested_root_command_args!(ToolRootArgs, ToolCommand);
 nested_root_command_args!(DomainRootArgs, DomainCommand);
 nested_root_command_args!(LabRootArgs, LabCommand);
@@ -78,6 +79,7 @@ pub enum DnaCommand {
     #[cfg_attr(not(debug_assertions), command(hide = true))]
     Ena(EnaRootArgs),
     Corpus(CorpusRootArgs),
+    Fixtures(FixturesRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
     Tool(ToolRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
@@ -95,7 +97,7 @@ pub enum DnaCommand {
     Bam(BamRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
     Vcf(VcfRootArgs),
-    #[command(name = "plan")]
+    #[command(name = "plan", alias = "pipeline")]
     Pipelines(PipelinesRootArgs),
     Analyze(AnalyzeRootArgs),
     Explain(AnalyzeRootArgs),

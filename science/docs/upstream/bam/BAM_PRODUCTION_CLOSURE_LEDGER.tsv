@@ -9,7 +9,7 @@ bowtie2	bam.align	supported	https://github.com/BenLangmead/bowtie2	governed_cita
 bwa	bam.align	supported	https://github.com/lh3/bwa	governed_citation_present	ready	current_surface_documented	informational	none	bijux-science	2026-04-28
 contammix	bam.contamination	supported	https://bioconductor.org/packages/contamMix	pending_primary_source_verification	evidence_class_unresolved	release_review_blocked	blocked	citation_pending:tool-publication;upstream_identity:evidence_class_unresolved	bijux-science	2026-04-27
 damageprofiler	bam.damage;bam.authenticity	supported	https://github.com/Integrative-Transcriptomics/DamageProfiler	governed_citation_present	ready	current_surface_documented	informational	none	bijux-science	2026-04-28
-gatk	bam.recalibration	planned	https://github.com/broadinstitute/gatk	governed_citation_present	ready	promotion_contract_missing	blocked	promotion_status:planned	bijux-science	2026-04-28
+gatk	bam.recalibration	supported	https://github.com/broadinstitute/gatk	governed_citation_present	ready	current_surface_documented	informational	none	bijux-science	2026-06-05
 king	bam.kinship	supported	https://www.kingrelatedness.com/	governed_citation_present	ready	current_surface_documented	informational	none	bijux-science	2026-04-28
 mapdamage2	bam.damage	supported	https://github.com/ginolhac/mapDamage	governed_citation_present	ready	current_surface_documented	informational	none	bijux-science	2026-04-28
 mosdepth	bam.coverage	supported	https://github.com/brentp/mosdepth	governed_citation_present	ready	current_surface_documented	informational	none	bijux-science	2026-04-28

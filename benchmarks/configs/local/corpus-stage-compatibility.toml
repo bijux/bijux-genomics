@@ -1,0 +1,410 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Governed corpus compatibility matrix for local FASTQ and BAM benchmark stages.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.local_corpus_stage_compatibility.v1"
+
+[[fixtures]]
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-01-mini/manifest.toml"
+summary = "General FASTQ corpus with governed single-end and paired-end human-like and aDNA-like reads."
+
+[[fixtures]]
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml"
+summary = "General BAM-stage proxy corpus with governed validation, duplicate-flagged qc-pre, and aDNA-like tiny alignment fixtures."
+
+[[fixtures]]
+corpus_family_id = "corpus-01-adna-bam"
+fixture_id = "corpus-01-adna-damage-mini"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml"
+summary = "Ancient-like BAM-stage proxy fixture with governed terminal-damage expectations."
+
+[[fixtures]]
+corpus_family_id = "corpus-01-adna-bam"
+fixture_id = "corpus-01-adna-bam-mini"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml"
+summary = "Ancient-like BAM-stage proxy corpus with governed contamination, sex, and haplogroup support fixtures plus the shared non-UDG reference contract."
+
+[[fixtures]]
+corpus_family_id = "corpus-01-genotyping"
+fixture_id = "corpus-01-genotyping-mini"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml"
+summary = "Genotyping-focused BAM corpus with governed candidate-sites, target-regions, and human-like variant-read coverage."
+
+[[fixtures]]
+corpus_family_id = "corpus-01-kinship"
+fixture_id = "corpus-01-kinship-mini"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-01-kinship-mini/manifest.toml"
+summary = "Kinship-focused BAM corpus with governed low-overlap and related-pair samples plus the shared relatedness panel."
+
+[[fixtures]]
+corpus_family_id = "corpus-02"
+fixture_id = "corpus-02-edna-mini"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml"
+summary = "Mock-community eDNA FASTQ corpus with governed expected taxonomy outputs."
+
+[[fixtures]]
+corpus_family_id = "corpus-03"
+fixture_id = "corpus-03-amplicon-mini"
+fixture_manifest = "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml"
+summary = "Amplicon FASTQ corpus with governed primer, ASV, and chimera-control contracts."
+
+[[mappings]]
+stage_id = "fastq.index_reference"
+compatibility_kind = "asset_backed"
+benchmark_scope_id = "reference-index-assets"
+compatibility_note = "This stage benchmarks governed reference-index preparation against owned reference assets rather than a read corpus."
+
+[[mappings]]
+stage_id = "fastq.validate_reads"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus already owns normalized single-end and paired-end reads suitable for local validation smoke coverage."
+
+[[mappings]]
+stage_id = "fastq.profile_read_lengths"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus already owns normalized single-end and paired-end reads suitable for local read-length profiling."
+
+[[mappings]]
+stage_id = "fastq.detect_adapters"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus now owns adapter-hit and adapter-clear single-end reads for governed local adapter-detection smoke checks."
+
+[[mappings]]
+stage_id = "fastq.detect_duplicates_premerge"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus now owns duplicate-signal and distinct-pair paired-end reads for governed premerge duplicate detection smoke checks."
+
+[[mappings]]
+stage_id = "fastq.estimate_library_complexity_prealign"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus now owns duplicate-signal and distinct-pair paired-end reads for governed prealignment complexity smoke checks."
+
+[[mappings]]
+stage_id = "fastq.trim_terminal_damage"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus already owns aDNA-like reads suitable for governed terminal-damage trimming smoke checks."
+
+[[mappings]]
+stage_id = "fastq.normalize_primers"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-03"
+fixture_id = "corpus-03-amplicon-mini"
+compatibility_note = "The amplicon corpus already owns governed primer metadata and primer-bearing reads for local primer normalization."
+
+[[mappings]]
+stage_id = "fastq.trim_polyg_tails"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus already owns poly-G tail reads suitable for governed trim-polyg benchmarking."
+
+[[mappings]]
+stage_id = "fastq.trim_reads"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus already owns paired trim-signal reads suitable for local quality and adapter trimming."
+
+[[mappings]]
+stage_id = "fastq.filter_reads"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus already owns N-content and low-complexity reads suitable for governed read-filter benchmarking."
+
+[[mappings]]
+stage_id = "fastq.profile_reads"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus already owns normalized single-end and paired-end reads suitable for local read profiling."
+
+[[mappings]]
+stage_id = "fastq.deplete_rrna"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus provides governed reads suitable for local rRNA-depletion planning and smoke-safe execution."
+
+[[mappings]]
+stage_id = "fastq.merge_pairs"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus already owns paired reads with merge-overlap behavior for local pair merging."
+
+[[mappings]]
+stage_id = "fastq.remove_duplicates"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus owns paired duplicate-signal normalized reads for governed duplicate-removal smoke checks."
+
+[[mappings]]
+stage_id = "fastq.filter_low_complexity"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus owns low-complexity and complexity-clear single-end reads for governed low-complexity filtering smoke checks."
+
+[[mappings]]
+stage_id = "fastq.deplete_host"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus provides governed host-like reads suitable for local host-depletion planning and smoke-safe execution."
+
+[[mappings]]
+stage_id = "fastq.deplete_reference_contaminants"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus provides governed reads suitable for contaminant-reference depletion planning and smoke-safe execution."
+
+[[mappings]]
+stage_id = "fastq.correct_errors"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus already owns paired reads suitable for local error-correction planning and smoke-safe execution."
+
+[[mappings]]
+stage_id = "fastq.extract_umis"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus owns paired reads with known UMI-prefix behavior for governed local UMI extraction smoke checks."
+
+[[mappings]]
+stage_id = "fastq.profile_overrepresented_sequences"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus owns a governed repeated-sequence sample for local overrepresentation profiling checks."
+
+[[mappings]]
+stage_id = "fastq.report_qc"
+compatibility_kind = "planner_only"
+compatibility_note = "The governed MultiQC bundle used for local QC reporting is not yet owned by any corpus fixture manifest."
+
+[[mappings]]
+stage_id = "fastq.remove_chimeras"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-03"
+fixture_id = "corpus-03-amplicon-mini"
+compatibility_note = "The amplicon corpus already owns governed chimera controls and expectation tables for local chimera-removal checks."
+
+[[mappings]]
+stage_id = "fastq.infer_asvs"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-03"
+fixture_id = "corpus-03-amplicon-mini"
+compatibility_note = "The amplicon corpus already owns governed expected ASV targets for local ASV inference checks."
+
+[[mappings]]
+stage_id = "fastq.cluster_otus"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-03"
+fixture_id = "corpus-03-amplicon-mini"
+compatibility_note = "The amplicon corpus already owns governed 16S reads suitable for local OTU clustering checks."
+
+[[mappings]]
+stage_id = "fastq.normalize_abundance"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-03"
+fixture_id = "corpus-03-amplicon-mini"
+compatibility_note = "The amplicon corpus already owns a governed OTU abundance table suitable for local abundance-normalization smoke checks."
+
+[[mappings]]
+stage_id = "fastq.screen_taxonomy"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-02"
+fixture_id = "corpus-02-edna-mini"
+compatibility_note = "The eDNA corpus already owns governed mock-community FASTQ reads and expected taxonomy outputs for local taxonomy screening."
+
+[[mappings]]
+stage_id = "bam.align"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus already owns paired human-like reads suitable for local BAM alignment planning and smoke-safe execution."
+
+[[mappings]]
+stage_id = "bam.authenticity"
+fixture_id = "corpus-01-adna-damage-mini"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-adna-bam"
+compatibility_note = "The governed BAM corpus owns the ancient-like damage fixture needed to compose authenticity smoke evidence across damage, contamination, complexity, coverage, and mapping summaries."
+
+[[mappings]]
+stage_id = "bam.bias_mitigation"
+fixture_id = "corpus-01-bam-mini"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+compatibility_note = "The general BAM corpus now owns the GC-window ladder fixture and governed before-and-after bias expectations needed for local bias-mitigation smoke checks."
+
+[[mappings]]
+stage_id = "bam.complexity"
+fixture_id = "corpus-01-bam-mini"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+compatibility_note = "The governed BAM corpus now owns an observed-unique-read complexity fixture that emits deterministic extrapolation, estimated library size, and saturation metrics."
+
+[[mappings]]
+stage_id = "bam.contamination"
+fixture_id = "corpus-01-adna-bam-mini"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-adna-bam"
+compatibility_note = "The aDNA BAM corpus now owns a contamination-panel alignment fixture, shared non-UDG reference, and governed population-AF panel suitable for local ancient-like contamination planning."
+
+[[mappings]]
+stage_id = "bam.coverage"
+fixture_id = "corpus-01-bam-mini"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+compatibility_note = "The governed BAM corpus now owns a target-window coverage fixture with explicit BED windows and expected depth-and-breadth rows."
+
+[[mappings]]
+stage_id = "bam.damage"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-adna-bam"
+fixture_id = "corpus-01-adna-damage-mini"
+compatibility_note = "The ancient-like damage fixture already owns governed terminal-damage expectations for local damage smoke checks."
+
+[[mappings]]
+stage_id = "bam.duplication_metrics"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a duplicate-cluster alignment fixture suitable for governed duplication-metrics smoke checks."
+
+[[mappings]]
+stage_id = "bam.endogenous_content"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns an endogenous partial-mapping alignment fixture suitable for governed endogenous-content smoke checks."
+
+[[mappings]]
+stage_id = "bam.filter"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The BAM mini corpus fixture owns the mixed-filter alignment contract used by local BAM filter smoke checks."
+
+[[mappings]]
+stage_id = "bam.gc_bias"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The governed BAM corpus now owns a GC-window ladder fixture and reference contract suitable for local GC-bias smoke checks."
+
+[[mappings]]
+stage_id = "bam.genotyping"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-genotyping"
+fixture_id = "corpus-01-genotyping-mini"
+compatibility_note = "The governed genotyping BAM corpus owns the candidate-sites sample, target-regions contract, and shared reference required for local ANGSD genotyping smoke checks."
+
+[[mappings]]
+stage_id = "bam.haplogroups"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-adna-bam"
+fixture_id = "corpus-01-adna-bam-mini"
+compatibility_note = "The governed aDNA BAM corpus now owns a Y-reference haplogroup panel fixture suitable for local ancient-like haplogroup planning and benchmark contract checks."
+
+[[mappings]]
+stage_id = "bam.insert_size"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The governed BAM corpus now owns a paired-fragment insert-size triplet fixture suitable for local insert-size smoke checks."
+
+[[mappings]]
+stage_id = "bam.kinship"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-kinship"
+fixture_id = "corpus-01-kinship-mini"
+compatibility_note = "The governed kinship BAM corpus owns low-overlap and related-pair fixtures plus the relatedness panel contract required for local ANGSD and KING kinship smoke checks."
+
+[[mappings]]
+stage_id = "bam.length_filter"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a governed length-threshold ladder alignment fixture for local read-length filtering smoke checks."
+
+[[mappings]]
+stage_id = "bam.mapping_summary"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a partial-mapping alignment fixture suitable for governed local mapping-summary smoke checks."
+
+[[mappings]]
+stage_id = "bam.mapq_filter"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a MAPQ-threshold ladder alignment fixture suitable for governed local MAPQ-filter smoke checks."
+
+[[mappings]]
+stage_id = "bam.markdup"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a duplicate-cluster alignment fixture suitable for governed local duplicate-marking smoke checks."
+
+[[mappings]]
+stage_id = "bam.overlap_correction"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a paired-overlap control alignment fixture suitable for governed local overlap-correction smoke checks."
+
+[[mappings]]
+stage_id = "bam.qc_pre"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a multi-contig duplicate-flagged alignment fixture suitable for governed local qc_pre smoke checks."
+
+[[mappings]]
+stage_id = "bam.recalibration"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus now owns a low-coverage recalibration fixture together with governed known-sites and shared-reference inputs for local recalibration smoke checks."
+
+[[mappings]]
+stage_id = "bam.sex"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-adna-bam"
+fixture_id = "corpus-01-adna-bam-mini"
+compatibility_note = "The governed aDNA BAM corpus now owns an XY-autosome coverage fixture suitable for governed local ancient-like sex-inference smoke checks."
+
+[[mappings]]
+stage_id = "bam.validate"
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01-bam"
+fixture_id = "corpus-01-bam-mini"
+compatibility_note = "The general BAM corpus already owns a governed validation-oriented alignment fixture with header, contig, and index expectations."

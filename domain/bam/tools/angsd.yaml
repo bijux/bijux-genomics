@@ -5,12 +5,73 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "0.940"
 install_kind: "container"
+container:
+  image: "bijuxdna/angsd"
 license: "GPL-3.0"
 citation: "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4"
-stage_ids: ["bam.sex","bam.kinship"]
-planned_stage_ids: ["bam.genotyping"]
+outputs:
+  - name: "sex_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "kinship_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "genotyping_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+  - name: "population_metrics"
+    data_type: "tsv"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "sex_report"
+    - "kinship_report"
+    - "genotyping_report"
+    - "summary"
+    - "stage_metrics"
+    - "population_metrics"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
+stage_ids: ["bam.sex","bam.kinship","bam.genotyping"]
+planned_stage_ids: []
 status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.sex:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "sex_report"
+      - "summary"
+      - "stage_metrics"
+      - "population_metrics"
+    notes: "ANGSD sex inference preserves the governed sex report outputs while retaining the native population metrics table as backend evidence."
+  bam.kinship:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "kinship_report"
+      - "summary"
+      - "stage_metrics"
+      - "population_metrics"
+    notes: "ANGSD kinship inference preserves the governed kinship report outputs while retaining the native population metrics table as backend evidence."
+  bam.genotyping:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "genotyping_report"
+      - "summary"
+      - "stage_metrics"
+      - "population_metrics"
+    notes: "ANGSD genotyping preserves the governed genotyping report outputs while retaining the native population metrics table as backend evidence."
 expected_artifacts: ["population_metrics"]
 metrics_schema_id: "bijux.bam.population.v1"
 metrics_schema: "bijux.bam.population.v1"

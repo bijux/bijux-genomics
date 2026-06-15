@@ -1,6 +1,6 @@
 schema_version: "bijux.stage.v1"
 stage_id: "vcf.phasing"
-status: "planned"
+status: "supported"
 scope: "post_vcf"
 domain: "vcf"
 description: "VCF stage contract for vcf.phasing in the governed domain registry."
@@ -9,19 +9,19 @@ inputs:
     data_type: "vcf"
     cardinality: "One"
 outputs:
-  - name: "phasing_out"
-    data_type: "json"
+  - name: "phased_vcf"
+    data_type: "vcf"
     cardinality: "One"
 required_inputs: ["vcf"]
-required_outputs: ["phasing_out"]
+required_outputs: ["phased_vcf"]
 tool_capability_requirements: []
 metrics:
   - name: "phasing_status"
 compatible_tools: ["beagle", "shapeit5", "eagle"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
-assumptions: ["planned_stage"]
+assumptions: ["panel_required", "genetic_map_required"]
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness:
   - "none"
-planned_out_of_scope: ["full scientific validation pending downstream admission"]
+planned_out_of_scope: []

@@ -1,0 +1,10 @@
+tool=minimac4
+shipping=external
+tool_version=pinned
+stage=vcf.imputation_metrics
+domain=vcf
+fixture_kind=planned
+command=sh
+args=-lc "minimac4 --refHaps panel.m3vcf.gz --haps input.vcf --prefix imputed --cpus 8 > logs.txt 2>&1 && mv imputed.dose.vcf.gz imputed.vcf.gz && bcftools index -t imputed.vcf.gz"
+expected_outputs=imputation_metrics_json,imputation_metrics_tsv,imputation_summary_json,imputation_qc_json,imputation_accept_json,imputation_manifest_json,orchestration_manifest_json,logs_txt
+expected_stdout_patterns=minimac4

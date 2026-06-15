@@ -1,0 +1,66 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.call-pseudohaploid.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "called_sites": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "covered_sites": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "missing_sites": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "random_seed": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sampling_policy": {
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.call_pseudohaploid.v1"
+        },
+        "stage_id": {
+          "const": "vcf.call_pseudohaploid"
+        },
+        "target_sites": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "target_sites",
+        "covered_sites",
+        "called_sites",
+        "missing_sites",
+        "sampling_policy",
+        "random_seed",
+        "sample_count"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_call_pseudohaploid_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.call_pseudohaploid`.",
+  "title": "VCF normalized benchmark metrics: vcf.call_pseudohaploid"
+}

@@ -1,0 +1,289 @@
+schema_version = "bijux.bench.vcf.local_stage_catalog.v1"
+
+[[rows]]
+stage_id = "vcf.prepare_reference_panel"
+stage_name = "Reference Panel Preparation"
+support_status = "supported"
+default_tool_id = "bcftools"
+metrics_schema_id = "bijux.vcf.prepare_reference_panel.v1"
+input_types = ["vcf"]
+output_types = ["vcf"]
+required_assets = [
+    "genetic_map",
+    "reference_dict",
+    "reference_fai",
+    "reference_fasta",
+    "reference_panel_lock",
+    "vcf_index",
+]
+benchmark_category = "reference_panel_preparation"
+local_smoke_mode = "vcf_reference_panel"
+
+[[rows]]
+stage_id = "vcf.call"
+stage_name = "Variant Calling"
+support_status = "supported"
+default_tool_id = "bcftools"
+metrics_schema_id = "bijux.vcf.call.v1"
+input_types = ["bam"]
+output_types = ["vcf"]
+required_assets = [
+    "bam_index",
+    "reference_dict",
+    "reference_fai",
+    "reference_fasta",
+]
+benchmark_category = "variant_calling"
+local_smoke_mode = "bam_bundle"
+
+[[rows]]
+stage_id = "vcf.call_gl"
+stage_name = "Genotype Likelihood Calling"
+support_status = "supported"
+default_tool_id = "bcftools"
+metrics_schema_id = "bijux.vcf.call_gl.v1"
+input_types = ["bam"]
+output_types = ["vcf"]
+required_assets = [
+    "bam_index",
+    "reference_dict",
+    "reference_fai",
+    "reference_fasta",
+]
+benchmark_category = "variant_calling"
+local_smoke_mode = "bam_bundle"
+
+[[rows]]
+stage_id = "vcf.call_diploid"
+stage_name = "Diploid Variant Calling"
+support_status = "supported"
+default_tool_id = "bcftools"
+metrics_schema_id = "bijux.vcf.call_diploid.v1"
+input_types = ["bam"]
+output_types = ["vcf"]
+required_assets = [
+    "bam_index",
+    "reference_dict",
+    "reference_fai",
+    "reference_fasta",
+]
+benchmark_category = "variant_calling"
+local_smoke_mode = "bam_bundle"
+
+[[rows]]
+stage_id = "vcf.call_pseudohaploid"
+stage_name = "Pseudohaploid Calling"
+support_status = "supported"
+default_tool_id = "bcftools"
+metrics_schema_id = "bijux.vcf.call_pseudohaploid.v1"
+input_types = ["bam"]
+output_types = ["vcf"]
+required_assets = [
+    "bam_index",
+    "reference_dict",
+    "reference_fai",
+    "reference_fasta",
+]
+benchmark_category = "variant_calling"
+local_smoke_mode = "bam_bundle"
+
+[[rows]]
+stage_id = "vcf.damage_filter"
+stage_name = "Damage-Aware Variant Filtering"
+support_status = "supported"
+default_tool_id = "bcftools"
+metrics_schema_id = "bijux.vcf.damage_filter.v1"
+input_types = ["vcf"]
+output_types = ["vcf"]
+required_assets = ["vcf_index"]
+benchmark_category = "damage_aware_filtering"
+local_smoke_mode = "vcf_single_sample"
+
+[[rows]]
+stage_id = "vcf.filter"
+stage_name = "Variant Filtering"
+support_status = "supported"
+default_tool_id = "bcftools"
+metrics_schema_id = "bijux.vcf.filter.v1"
+input_types = ["vcf"]
+output_types = ["vcf"]
+required_assets = ["vcf_index"]
+benchmark_category = "quality_control"
+local_smoke_mode = "vcf_single_sample"
+
+[[rows]]
+stage_id = "vcf.gl_propagation"
+stage_name = "Genotype Likelihood Propagation"
+support_status = "supported"
+default_tool_id = "bcftools"
+metrics_schema_id = "bijux.vcf.gl_propagation.v1"
+input_types = ["vcf"]
+output_types = ["vcf"]
+required_assets = ["vcf_index"]
+benchmark_category = "likelihood_postprocess"
+local_smoke_mode = "vcf_single_sample"
+
+[[rows]]
+stage_id = "vcf.qc"
+stage_name = "Variant Quality Control"
+support_status = "supported"
+default_tool_id = "plink2"
+metrics_schema_id = "bijux.vcf.qc.v1"
+input_types = ["vcf"]
+output_types = ["json"]
+required_assets = ["vcf_index"]
+benchmark_category = "quality_control"
+local_smoke_mode = "vcf_cohort"
+
+[[rows]]
+stage_id = "vcf.phasing"
+stage_name = "Haplotype Phasing"
+support_status = "supported"
+default_tool_id = "shapeit5"
+metrics_schema_id = "bijux.vcf.phasing.v1"
+input_types = ["vcf"]
+output_types = ["vcf"]
+required_assets = [
+    "genetic_map",
+    "reference_panel_lock",
+    "vcf_index",
+]
+benchmark_category = "phasing"
+local_smoke_mode = "vcf_cohort_with_panel"
+
+[[rows]]
+stage_id = "vcf.imputation_metrics"
+stage_name = "Imputation Quality Metrics"
+support_status = "supported"
+default_tool_id = "beagle"
+metrics_schema_id = "bijux.vcf.imputation_metrics.v1"
+input_types = ["vcf"]
+output_types = ["json"]
+required_assets = [
+    "genetic_map",
+    "reference_panel_lock",
+    "vcf_index",
+]
+benchmark_category = "imputation"
+local_smoke_mode = "vcf_cohort_with_panel"
+
+[[rows]]
+stage_id = "vcf.impute"
+stage_name = "Imputed Genotype Refinement"
+support_status = "supported"
+default_tool_id = "beagle"
+metrics_schema_id = "bijux.vcf.impute.v1"
+input_types = ["vcf"]
+output_types = ["vcf"]
+required_assets = [
+    "genetic_map",
+    "reference_panel_lock",
+    "vcf_index",
+]
+benchmark_category = "imputation"
+local_smoke_mode = "vcf_cohort_with_panel"
+
+[[rows]]
+stage_id = "vcf.postprocess"
+stage_name = "VCF Postprocess Normalization"
+support_status = "supported"
+default_tool_id = "bcftools"
+metrics_schema_id = "bijux.vcf.postprocess.v1"
+input_types = ["vcf"]
+output_types = ["vcf"]
+required_assets = ["vcf_index"]
+benchmark_category = "normalization"
+local_smoke_mode = "vcf_single_sample"
+
+[[rows]]
+stage_id = "vcf.population_structure"
+stage_name = "Population Structure Analysis"
+support_status = "supported"
+default_tool_id = "plink2"
+metrics_schema_id = "bijux.vcf.population_structure.v1"
+input_types = ["vcf"]
+output_types = ["json"]
+required_assets = [
+    "sample_metadata_manifest",
+    "vcf_index",
+]
+benchmark_category = "population_structure"
+local_smoke_mode = "vcf_cohort"
+
+[[rows]]
+stage_id = "vcf.pca"
+stage_name = "Principal Component Analysis"
+support_status = "supported"
+default_tool_id = "plink2"
+metrics_schema_id = "bijux.vcf.pca.v1"
+input_types = ["vcf"]
+output_types = ["json"]
+required_assets = [
+    "sample_metadata_manifest",
+    "vcf_index",
+]
+benchmark_category = "population_structure"
+local_smoke_mode = "vcf_cohort"
+
+[[rows]]
+stage_id = "vcf.admixture"
+stage_name = "Admixture Inference"
+support_status = "supported"
+default_tool_id = "plink2"
+metrics_schema_id = "bijux.vcf.admixture.v1"
+input_types = ["vcf"]
+output_types = ["json"]
+required_assets = [
+    "sample_metadata_manifest",
+    "vcf_index",
+]
+benchmark_category = "population_structure"
+local_smoke_mode = "vcf_cohort"
+
+[[rows]]
+stage_id = "vcf.roh"
+stage_name = "Runs of Homozygosity"
+support_status = "planned"
+default_tool_id = "plink2"
+metrics_schema_id = "bijux.vcf.roh.v1"
+input_types = ["vcf"]
+output_types = ["json"]
+required_assets = ["vcf_index"]
+benchmark_category = "runs_of_homozygosity"
+local_smoke_mode = "vcf_cohort"
+
+[[rows]]
+stage_id = "vcf.ibd"
+stage_name = "Identity-by-Descent Inference"
+support_status = "planned"
+default_tool_id = "germline"
+metrics_schema_id = "bijux.vcf.ibd.v1"
+input_types = ["vcf"]
+output_types = ["tsv"]
+required_assets = ["vcf_index"]
+benchmark_category = "identity_by_descent"
+local_smoke_mode = "vcf_cohort"
+
+[[rows]]
+stage_id = "vcf.demography"
+stage_name = "Demographic Inference"
+support_status = "planned"
+default_tool_id = "ibdne"
+metrics_schema_id = "bijux.vcf.demography.v1"
+input_types = ["tsv"]
+output_types = ["json"]
+required_assets = []
+benchmark_category = "demography"
+local_smoke_mode = "json_ibd_segments"
+
+[[rows]]
+stage_id = "vcf.stats"
+stage_name = "VCF Summary Statistics"
+support_status = "supported"
+default_tool_id = "bcftools"
+metrics_schema_id = "bijux.vcf.stats.v1"
+input_types = ["vcf"]
+output_types = ["json"]
+required_assets = ["vcf_index"]
+benchmark_category = "quality_control"
+local_smoke_mode = "vcf_cohort"

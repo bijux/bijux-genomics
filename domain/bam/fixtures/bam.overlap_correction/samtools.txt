@@ -1,9 +1,0 @@
-tool=samtools
-tool_version=pinned
-stage=bam.overlap_correction
-domain=bam
-fixture_kind=truth
-command=samtools
-args=
-expected_outputs=contract_artifacts
-expected_stdout_patterns=contract_ok

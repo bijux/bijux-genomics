@@ -25,6 +25,8 @@
 
 pub mod alignment;
 mod artifacts;
+mod benchmark_corpus_assignment;
+mod comparison_contract;
 pub mod defaults;
 pub mod invariants;
 pub mod metrics;
@@ -41,42 +43,73 @@ pub use artifacts::{
     bam_bench_corpus_manifest, bam_contamination_workflow_contract, bam_post_alignment_chain,
     bam_sample_identity, bam_scientific_report_contract_for_stage, bam_scientific_report_contracts,
     bam_workflow_template_by_id, bam_workflow_templates, classify_bam_coverage_regime,
-    compare_bam_duplicate_methods, estimate_bam_stage_resources,
+    compare_bam_duplicate_methods, correct_tiny_bam_overlaps, estimate_bam_stage_resources,
     estimate_bam_stage_resources_with_origin, estimate_endogenous_content,
     evaluate_bam_merge_compatibility, evaluate_haplogroup_readiness,
     evaluate_kinship_prerequisites, evaluate_sex_inference_par_aware,
     execute_ancient_damage_evidence, execute_bam_validation,
     execute_mitochondrial_contamination_workflow, execute_nuclear_contamination_workflow,
-    execute_pmd_authenticity_advisory, filter_tiny_bam_by_mapq,
-    merge_tiny_bam_with_conflict_refusal, propagate_bam_sample_identity,
-    required_bam_bench_corpus_scenarios, sort_and_index_tiny_bam, summarize_tiny_bam_coverage,
-    summarize_tiny_bam_mapping, BamAdnaWorkflowV1, BamAdvisoryBoundaryV1, BamAlignmentProvenanceV1,
-    BamAlignmentStrategyV1, BamAlignmentSuitabilityV1, BamArtifactEntryV1, BamArtifactInventoryV1,
+    execute_pmd_authenticity_advisory, filter_tiny_bam, filter_tiny_bam_by_length,
+    filter_tiny_bam_by_mapq, inspect_tiny_alignment, merge_tiny_bam_with_conflict_refusal,
+    propagate_bam_sample_identity, required_bam_bench_corpus_scenarios, sort_and_index_tiny_bam,
+    summarize_bam_bias_mitigation, summarize_bam_complexity, summarize_bam_duplication_metrics,
+    summarize_bam_endogenous_content, summarize_bam_gc_bias, summarize_bam_insert_size,
+    summarize_bam_markdup, summarize_bam_overlap_correction,
+    summarize_tiny_bam_authenticity_advisory, summarize_tiny_bam_bias_mitigation,
+    summarize_tiny_bam_complexity, summarize_tiny_bam_coverage,
+    summarize_tiny_bam_coverage_regions, summarize_tiny_bam_damage_evidence,
+    summarize_tiny_bam_duplication_metrics, summarize_tiny_bam_endogenous_content,
+    summarize_tiny_bam_gc_bias, summarize_tiny_bam_insert_size, summarize_tiny_bam_kinship,
+    summarize_tiny_bam_mapping, summarize_tiny_bam_overlap_correction_outputs,
+    summarize_tiny_bam_qc_pre, summarize_tiny_bam_recalibration, summarize_tiny_bam_sex,
+    BamAdnaWorkflowV1, BamAdvisoryBoundaryV1, BamAlignmentProvenanceV1, BamAlignmentStrategyV1,
+    BamAlignmentSuitabilityV1, BamArtifactEntryV1, BamArtifactInventoryV1,
     BamAuthenticityAdvisoryV1, BamBenchCorpusDatasetManifestEntryV1, BamBenchCorpusManifestV1,
-    BamBenchDatasetScenarioV1, BamContaminationEvidenceV1, BamContaminationToolContractV1,
-    BamContaminationWorkflowV1, BamCoverageRegimeClassV1, BamCoverageRegimeV1,
+    BamBenchDatasetScenarioV1, BamBiasMitigationSummaryV1, BamComplexitySummaryV1,
+    BamContaminationEvidenceV1, BamContaminationToolContractV1, BamContaminationWorkflowV1,
+    BamCoverageRegimeClassV1, BamCoverageRegimeV1, BamCoverageRegionSummaryV1,
     BamCoverageSummaryV1, BamDamageEvidenceV1, BamDuplicateComparisonV1,
-    BamDuplicateMethodMetricsV1, BamDuplicatePolicyV1, BamEndogenousContentEstimateV1,
-    BamFlagstatCountsV1, BamHaplogroupReadinessV1, BamInputOriginV1, BamInputScaleV1,
-    BamKinshipPrerequisitesV1, BamMappingSummaryV1, BamMapqFilterSummaryV1, BamMapqRegimeV1,
-    BamMergeCompatibilityV1, BamMergeInputIdentityV1, BamPostAlignmentChainV1,
-    BamReadGroupMappingCountV1, BamReferenceAssetIdentityV1, BamReferencePreflightV1,
-    BamSampleIdentityV1, BamScientificReportContractV1, BamScientificReportIdV1,
-    BamSexInferenceEvidenceV1, BamStageResourcePlanV1, BamValidationSummaryV1, BamWorkflowModeV1,
-    BamWorkflowTemplateV1, BAM_ADNA_WORKFLOW_SCHEMA_VERSION, BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION,
-    BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION, BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION,
-    BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION, BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION,
-    BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION, BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION,
-    BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION, BAM_COVERAGE_REGIME_SCHEMA_VERSION,
-    BAM_COVERAGE_SUMMARY_SCHEMA_VERSION, BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION,
-    BAM_DUPLICATE_COMPARISON_SCHEMA_VERSION, BAM_DUPLICATE_POLICY_SCHEMA_VERSION,
-    BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION, BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION,
-    BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION, BAM_MAPPING_SUMMARY_SCHEMA_VERSION,
-    BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION, BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION,
-    BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION, BAM_REFERENCE_PREFLIGHT_SCHEMA_VERSION,
-    BAM_RESOURCE_PLAN_SCHEMA_VERSION, BAM_SAMPLE_IDENTITY_SCHEMA_VERSION,
-    BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION, BAM_SEX_EVIDENCE_SCHEMA_VERSION,
+    BamDuplicateMethodMetricsV1, BamDuplicatePolicyV1, BamDuplicationMetricsSummaryV1,
+    BamEndogenousContentEstimateV1, BamFilterSummaryV1, BamFlagstatCountsV1, BamGcBiasBinSummaryV1,
+    BamGcBiasSummaryV1, BamHaplogroupReadinessV1, BamInputOriginV1, BamInputScaleV1,
+    BamInsertSizeSummaryV1, BamKinshipPairResultV1, BamKinshipPrerequisitesV1, BamKinshipSummaryV1,
+    BamLengthFilterSummaryV1, BamMappingSummaryV1, BamMapqFilterSummaryV1, BamMapqRegimeV1,
+    BamMarkdupSummaryV1, BamMergeCompatibilityV1, BamMergeInputIdentityV1,
+    BamOverlapCorrectionSummaryV1, BamPostAlignmentChainV1, BamQcPreSummaryV1,
+    BamReadGroupMappingCountV1, BamRecalibrationCoverageGateV1, BamRecalibrationSummaryV1,
+    BamReferenceAssetIdentityV1, BamReferencePreflightV1, BamSampleIdentityV1,
+    BamScientificReportContractV1, BamScientificReportIdV1, BamSexInferenceEvidenceV1,
+    BamSexSummaryV1, BamStageResourcePlanV1, BamTinyAlignmentInspectionV1, BamValidationSummaryV1,
+    BamWorkflowModeV1, BamWorkflowTemplateV1, BAM_ADNA_WORKFLOW_SCHEMA_VERSION,
+    BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION, BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION,
+    BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION, BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION,
+    BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION, BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION,
+    BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION, BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION,
+    BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION, BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION,
+    BAM_COVERAGE_REGIME_SCHEMA_VERSION, BAM_COVERAGE_SUMMARY_SCHEMA_VERSION,
+    BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION, BAM_DUPLICATE_COMPARISON_SCHEMA_VERSION,
+    BAM_DUPLICATE_POLICY_SCHEMA_VERSION, BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION,
+    BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION, BAM_FILTER_SUMMARY_SCHEMA_VERSION,
+    BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION, BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION,
+    BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION, BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION,
+    BAM_KINSHIP_SUMMARY_SCHEMA_VERSION, BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION,
+    BAM_MAPPING_SUMMARY_SCHEMA_VERSION, BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION,
+    BAM_MARKDUP_SUMMARY_SCHEMA_VERSION, BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION,
+    BAM_OVERLAP_CORRECTION_SUMMARY_SCHEMA_VERSION, BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION,
+    BAM_QC_PRE_SUMMARY_SCHEMA_VERSION, BAM_RECALIBRATION_SUMMARY_SCHEMA_VERSION,
+    BAM_REFERENCE_PREFLIGHT_SCHEMA_VERSION, BAM_RESOURCE_PLAN_SCHEMA_VERSION,
+    BAM_SAMPLE_IDENTITY_SCHEMA_VERSION, BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION,
+    BAM_SEX_EVIDENCE_SCHEMA_VERSION, BAM_SEX_SUMMARY_SCHEMA_VERSION,
     BAM_VALIDATION_SUMMARY_SCHEMA_VERSION, BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
+};
+pub use benchmark_corpus_assignment::{
+    benchmark_corpus_assignment_for_stage_tool, governed_benchmark_stage_tool_bindings,
+    BenchmarkCorpusAssignment, BenchmarkCorpusFamily,
+};
+pub use comparison_contract::{
+    comparable_benchmark_stage_contract_for_stage, comparable_benchmark_stage_contracts,
+    comparable_benchmark_stage_ids, comparable_tool_ids_for_stage,
+    stage_comparable_metric_fields_for_stage, BamComparableStageContract,
 };
 pub use invariants::bam_invariant_specs;
 pub use stage_specs::{
@@ -85,7 +118,8 @@ pub use stage_specs::{
     BamStage, BamStageContract, BamStageSpec, StageSpec, STAGE_PREFIX,
 };
 pub use types::{
-    BamInvariantsPreset, BAM_METRICS_CATALOG, BAM_PARAMS_CATALOG, BAM_STAGE_ID_CATALOG,
+    BamInvariantsPreset, BAM_LOCAL_BENCH_STAGE_ID_CATALOG, BAM_METRICS_CATALOG, BAM_PARAMS_CATALOG,
+    BAM_STAGE_ID_CATALOG,
 };
 
 #[allow(clippy::struct_excessive_bools)]
@@ -120,16 +154,22 @@ pub fn bam_stage_has_invariants(stage: BamStage) -> bool {
             | BamStage::MappingSummary
             | BamStage::QcPre
             | BamStage::Filter
+            | BamStage::OverlapCorrection
             | BamStage::Markdup
             | BamStage::Complexity
             | BamStage::Coverage
             | BamStage::InsertSize
             | BamStage::GcBias
+            | BamStage::EndogenousContent
             | BamStage::Damage
             | BamStage::Authenticity
             | BamStage::Contamination
             | BamStage::Sex
+            | BamStage::Kinship
             | BamStage::BiasMitigation
+            | BamStage::Recalibration
+            | BamStage::Genotyping
+            | BamStage::Haplogroups
     )
 }
 
@@ -143,30 +183,54 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
         BamStage::Align
             | BamStage::Validate
             | BamStage::MappingSummary
+            | BamStage::MapqFilter
+            | BamStage::LengthFilter
             | BamStage::QcPre
             | BamStage::Filter
+            | BamStage::OverlapCorrection
             | BamStage::Markdup
+            | BamStage::DuplicationMetrics
             | BamStage::Complexity
             | BamStage::Coverage
             | BamStage::InsertSize
             | BamStage::GcBias
+            | BamStage::EndogenousContent
             | BamStage::Damage
             | BamStage::Authenticity
             | BamStage::Contamination
             | BamStage::Sex
+            | BamStage::Kinship
             | BamStage::BiasMitigation
             | BamStage::Recalibration
+            | BamStage::Genotyping
+            | BamStage::Haplogroups
     );
     let has_parser_fixtures = matches!(
         stage,
-        BamStage::Validate
+        BamStage::Align
+            | BamStage::Validate
             | BamStage::MappingSummary
+            | BamStage::MapqFilter
+            | BamStage::LengthFilter
             | BamStage::QcPre
             | BamStage::Filter
+            | BamStage::OverlapCorrection
+            | BamStage::Markdup
+            | BamStage::DuplicationMetrics
+            | BamStage::Complexity
             | BamStage::Coverage
             | BamStage::InsertSize
             | BamStage::GcBias
+            | BamStage::EndogenousContent
             | BamStage::Damage
+            | BamStage::Authenticity
+            | BamStage::Contamination
+            | BamStage::Sex
+            | BamStage::Kinship
+            | BamStage::BiasMitigation
+            | BamStage::Recalibration
+            | BamStage::Genotyping
+            | BamStage::Haplogroups
     );
     let has_invariants = bam_stage_has_invariants(stage);
     StageCompleteness {
@@ -185,9 +249,147 @@ pub fn bam_stage_is_stable(stage: BamStage) -> bool {
             | BamStage::MappingSummary
             | BamStage::QcPre
             | BamStage::Filter
+            | BamStage::OverlapCorrection
+            | BamStage::Markdup
+            | BamStage::DuplicationMetrics
+            | BamStage::Complexity
             | BamStage::Coverage
             | BamStage::InsertSize
             | BamStage::GcBias
+            | BamStage::EndogenousContent
             | BamStage::Damage
+            | BamStage::Authenticity
+            | BamStage::Contamination
+            | BamStage::Sex
+            | BamStage::Kinship
+            | BamStage::BiasMitigation
+            | BamStage::Recalibration
+            | BamStage::Genotyping
+            | BamStage::Haplogroups
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{bam_stage_completeness, bam_stage_has_invariants, bam_stage_is_stable, BamStage};
+
+    #[test]
+    fn endogenous_content_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::EndogenousContent);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::EndogenousContent));
+        assert!(bam_stage_is_stable(BamStage::EndogenousContent));
+    }
+
+    #[test]
+    fn contamination_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::Contamination);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::Contamination));
+        assert!(bam_stage_is_stable(BamStage::Contamination));
+    }
+
+    #[test]
+    fn bias_mitigation_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::BiasMitigation);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::BiasMitigation));
+        assert!(bam_stage_is_stable(BamStage::BiasMitigation));
+    }
+
+    #[test]
+    fn overlap_correction_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::OverlapCorrection);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::OverlapCorrection));
+        assert!(bam_stage_is_stable(BamStage::OverlapCorrection));
+    }
+
+    #[test]
+    fn authenticity_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::Authenticity);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::Authenticity));
+        assert!(bam_stage_is_stable(BamStage::Authenticity));
+    }
+
+    #[test]
+    fn sex_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::Sex);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::Sex));
+        assert!(bam_stage_is_stable(BamStage::Sex));
+    }
+
+    #[test]
+    fn recalibration_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::Recalibration);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::Recalibration));
+        assert!(bam_stage_is_stable(BamStage::Recalibration));
+    }
+
+    #[test]
+    fn genotyping_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::Genotyping);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::Genotyping));
+        assert!(bam_stage_is_stable(BamStage::Genotyping));
+    }
+
+    #[test]
+    fn haplogroups_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::Haplogroups);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::Haplogroups));
+        assert!(bam_stage_is_stable(BamStage::Haplogroups));
+    }
+
+    #[test]
+    fn kinship_stage_is_fixture_validated_and_stable() {
+        let completeness = bam_stage_completeness(BamStage::Kinship);
+        assert!(completeness.has_args_builder);
+        assert!(completeness.has_artifact_contract);
+        assert!(completeness.has_parser_fixtures);
+        assert!(completeness.has_invariants);
+        assert!(completeness.is_complete());
+        assert!(bam_stage_has_invariants(BamStage::Kinship));
+        assert!(bam_stage_is_stable(BamStage::Kinship));
+    }
 }

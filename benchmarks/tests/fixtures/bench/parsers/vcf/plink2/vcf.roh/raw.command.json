@@ -1,0 +1,9 @@
+{
+  "tool_id": "plink2",
+  "stage_id": "vcf.roh",
+  "argv": [
+    "sh",
+    "-lc",
+    "plink2 --vcf 'cohort.vcf.gz' --double-id --allow-extra-chr --homozyg --out 'roh' > 'raw.log' 2>&1"
+  ]
+}

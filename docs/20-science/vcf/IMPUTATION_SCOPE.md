@@ -4,10 +4,10 @@
 Define what "imputation" means in bijux for VCF workflows and the scientific/operational boundaries.
 
 ## Scope
-This scope covers the governed planned imputation family:
+This scope covers the governed imputation family:
 - `vcf.prepare_reference_panel` for panel normalization and admission.
 - `vcf.phasing` for haplotype preparation before downstream inference.
-- `vcf.imputation` as the admitted imputation-method family surface.
+- `vcf.imputation_metrics` as the admitted imputation-metrics surface.
 - `vcf.impute` for explicit panel-backed imputation execution.
 - `vcf.postprocess` for deterministic normalization after imputation.
 - `vcf.qc` for downstream acceptance summaries on final outputs.
@@ -51,8 +51,8 @@ Imputation in bijux means: converting partially observed genotypes into inferred
 - `variant_set_compatibility` must be validated before run admission.
 
 ## Contracts
-- Every planned imputation stage in the `vcf.prepare_reference_panel` -> `vcf.phasing` -> `vcf.impute` -> `vcf.postprocess` -> `vcf.qc` chain must have domain stage YAML + fixture coverage.
-- `vcf.imputation` exists as the admitted method-family contract that keeps comparative tool admission explicit while `vcf.impute` stays the executable stage boundary.
+- Every stage in the `vcf.prepare_reference_panel` -> `vcf.phasing` -> `vcf.impute` -> `vcf.postprocess` -> `vcf.qc` chain must have domain stage YAML + fixture coverage.
+- `vcf.imputation_metrics` exists as the admitted metrics contract that keeps comparative tool admission explicit while `vcf.impute` stays the executable stage boundary.
 - Tool admission follows `docs/50-reference/TOOL_ADMISSION.md` and container policy gates.
 - Uncontainerized tools remain explicitly external until promoted.
 

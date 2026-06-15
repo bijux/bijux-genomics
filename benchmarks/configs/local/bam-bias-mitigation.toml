@@ -1,0 +1,15 @@
+schema_version = "bijux.bench.bam.local_bias_mitigation.v1"
+tool_id = "mapdamage2"
+threads = 2
+output_dir = "runs/bench/local-smoke/bam.bias_mitigation"
+
+[[cases]]
+sample_id = "human_like_gc_window_ladder"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"
+reference = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+window_size = 10
+gc_bias_correction = true
+map_bias_correction = false
+expected_metric_name = "gc_bias_score"
+expected_pre_mitigation_metric = 0.25
+expected_post_mitigation_metric = 0.125

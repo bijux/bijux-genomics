@@ -1,0 +1,142 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_imputation_metrics_ready.v1",
+  "output_path": "benchmarks/readiness/vcf/imputation-metrics-ready.json",
+  "retained_row_count": 1,
+  "active_row_count": 1,
+  "complete_row_count": 1,
+  "incomplete_row_count": 0,
+  "checked_surface_count": 8,
+  "required_metric_names": [
+    "status",
+    "concordance",
+    "mean_info_score",
+    "r2_available",
+    "dosage_r2",
+    "low_confidence_sites",
+    "masked_truth_sites",
+    "missing_quality_fields"
+  ],
+  "tool_status_counts": {
+    "production": 1
+  },
+  "coverage_status_counts": {
+    "complete": 1
+  },
+  "violation_count": 0,
+  "ok": true,
+  "rows": [
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
+      "stage_id": "vcf.imputation_metrics",
+      "tool_id": "beagle",
+      "tool_status": "production",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "adapter_id": "vcf.adapter.panel_workflow",
+      "parser_id": "vcf.parser.report_json",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1",
+      "retained_scope_state": "active",
+      "retained_scope_detail": "active",
+      "retained_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "all_domain_active_row_present": true,
+      "all_domain_active_row_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_ready": true,
+      "command_source": "vcf_imputation_family_adapter",
+      "command_step_count": 3,
+      "command_step_ids": [
+        "impute",
+        "index_imputed_vcf",
+        "derive_imputation_metrics"
+      ],
+      "primary_executables": [
+        "sh",
+        "bcftools",
+        "sh"
+      ],
+      "command_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
+      "command_argv_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl",
+      "output_ready": true,
+      "output_proof_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
+      "raw_outputs": [
+        "imputed_vcf=benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputed.vcf.gz",
+        "imputation_qc_json=benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_qc.json",
+        "imputation_accept_json=benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_accept.json",
+        "imputation_manifest_json=benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_manifest.json",
+        "logs_txt=benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/logs.txt",
+        "imputation_metrics_json=benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_metrics.json",
+        "orchestration_manifest_json=benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/orchestration_manifest.json"
+      ],
+      "normalized_metrics_outputs": [
+        "imputation_metrics_json=benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_metrics.json"
+      ],
+      "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.imputation_metrics/{sample_scope}/beagle/stage-result.json",
+      "index_outputs": [
+        "imputed_tbi=benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputed.vcf.gz.tbi"
+      ],
+      "parser_ready": true,
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
+      "parser_fixture_parser_id": "parse_beagle_imputation_metrics",
+      "parser_fixture_schema_id": "bijux.vcf.imputation_metrics.v1",
+      "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics",
+      "expected_result_ready": true,
+      "expected_result_proof_path": "benchmarks/readiness/vcf-expected-benchmark-results.tsv",
+      "expected_outputs": [
+        "imputation_metrics_json"
+      ],
+      "expected_metrics": [
+        "status",
+        "concordance",
+        "mean_info_score",
+        "r2_available",
+        "dosage_r2",
+        "low_confidence_sites",
+        "masked_truth_sites",
+        "missing_quality_fields"
+      ],
+      "report_section_id": "imputation",
+      "report_ready": true,
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
+      "summary_table_id": "imputation_metrics",
+      "report_metric_columns": [
+        "status",
+        "concordance",
+        "mean_info_score",
+        "r2_available",
+        "dosage_r2",
+        "low_confidence_sites",
+        "masked_truth_sites",
+        "missing_quality_fields"
+      ],
+      "smoke_ready": true,
+      "smoke_command": "bijux-dna bench local run-vcf-imputation-metrics-smoke --tool-id beagle",
+      "smoke_output_root": "runs/bench/local-smoke/vcf.imputation_metrics/beagle",
+      "smoke_imputation_metrics_path": "runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json",
+      "smoke_source_imputation_qc_path": "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_imputation_qc.json",
+      "smoke_source_impute_smoke_metrics_path": "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_impute_smoke_metrics.json",
+      "smoke_source_imputation_manifest_path": "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_imputation_manifest.json",
+      "smoke_stage_result_manifest_path": "runs/bench/local-smoke/vcf.imputation_metrics/beagle/stage-result.json",
+      "smoke_status": "complete",
+      "smoke_concordance": 1.0,
+      "smoke_mean_info_score": 0.825,
+      "smoke_r2_available": true,
+      "smoke_dosage_r2": 0.775,
+      "smoke_low_confidence_sites": 1,
+      "smoke_masked_truth_sites": 1,
+      "smoke_missing_quality_fields": [],
+      "required_metric_names": [
+        "status",
+        "concordance",
+        "mean_info_score",
+        "r2_available",
+        "dosage_r2",
+        "low_confidence_sites",
+        "masked_truth_sites",
+        "missing_quality_fields"
+      ],
+      "missing_surfaces": [],
+      "coverage_status": "complete",
+      "reason": "active retained VCF imputation-metrics caller `beagle` keeps active scope, command, output, parser, expected-result, report, and normalized imputation-quality smoke proof for `vcf.imputation_metrics`"
+    }
+  ],
+  "violations": []
+}

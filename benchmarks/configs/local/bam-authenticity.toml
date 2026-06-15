@@ -1,0 +1,28 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.authenticity.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_authenticity.v1"
+tool_id = "authenticct"
+threads = 2
+output_dir = "runs/bench/local-smoke/bam.authenticity"
+
+[[cases]]
+sample_id = "adna_damage_non_udg"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
+damage_terminal_c_to_t_5p = 0.18
+damage_terminal_g_to_a_3p = 0.11
+contamination_method = "mitochondrial_panel_screen"
+contamination_estimate = 0.03
+contamination_ci_low = 0.01
+contamination_ci_high = 0.05
+complexity_min_reads = 3
+complexity_projection_points = [6, 12]
+coverage_depth_thresholds = [1, 5, 10]
+expected_score = 0.5333333333333333
+expected_confidence = 0.8133333333333334
+expected_pmd_like_signal_present = true
+expected_consumed_metrics = ["damage", "contamination", "complexity", "coverage", "mapping"]

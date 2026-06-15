@@ -23,7 +23,7 @@ ARG VERSION_PICARD=3.3.0
 ENV VERSION_PICARD=${VERSION_PICARD}
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates wget openjdk-21-jre-headless && \
+    apt-get install -y --no-install-recommends ca-certificates=20240203 wget=1.21.4-1ubuntu4.1 openjdk-21-jre-headless=21.0.11+10-1~24.04.2 && \
     wget -q -O /opt/picard.jar "https://github.com/broadinstitute/picard/releases/download/${VERSION_PICARD}/picard.jar" && \
     printf '#!/bin/sh\n' > /usr/local/bin/picard && \
     printf 'if [ "$1" = "--version" ]; then echo "picard %s"; exit 0; fi\n' "$VERSION_PICARD" >> /usr/local/bin/picard && \

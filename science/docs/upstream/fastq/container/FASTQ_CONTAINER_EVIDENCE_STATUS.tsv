@@ -1,5 +1,6 @@
 default_tool	archive_path	archive_status	paper_root	paper_status	citation	readiness
 bbduk	science/docs/upstream/fastq/tools/bbduk/download	present	science/docs/upstream/papers/paper.fastq.bbduk.bbtools-software-citation	software_citation_only	software:https://bbmap.org/tools/bbduk	ready
+bijux_dna	science/docs/upstream/fastq/tools/bijux_dna/repo	missing	science/docs/upstream/papers/paper.fastq.bijux-dna.software-citation	software_citation_only	software:https://github.com/bijux/bijux-genomics	needs_evidence
 bowtie2	science/docs/upstream/fastq/tools/bowtie2/repo	present	science/docs/upstream/papers/paper.fastq.bowtie2.langmead-2012	mapped	paper:https://www.nature.com/articles/nmeth.1923	ready
 bowtie2_build	science/docs/upstream/fastq/tools/bowtie2_build/repo	present	science/docs/upstream/papers/paper.fastq.bowtie2-build.langmead-2012	mapped	paper:https://www.nature.com/articles/nmeth.1923	ready
 clumpify	science/docs/upstream/fastq/tools/clumpify/download	present	science/docs/upstream/papers/paper.fastq.clumpify.bbtools-software-citation	software_citation_only	software:https://bbmap.org/tools/clumpify	ready

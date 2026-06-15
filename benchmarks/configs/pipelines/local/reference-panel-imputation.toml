@@ -1,0 +1,131 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for the local target-cohort reference-panel imputation DAG.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-06
+
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "reference-panel-imputation"
+domain = "vcf"
+summary = "Target-cohort VCF DAG for governed reference-panel preparation, target QC, optional prephasing, imputation, and downstream imputation metrics with explicit panel identity and asset-profile provenance."
+default_corpus_id = "vcf_production_regression"
+
+[[nodes]]
+node_id = "vcf.prepare_reference_panel"
+stage_id = "vcf.prepare_reference_panel"
+readiness_kind = "smoke"
+summary = "Prepare the governed raw reference panel into a normalized panel handoff with explicit panel identity, map, and reference provenance for downstream phasing and imputation."
+depends_on = []
+external_inputs = [
+  "corpus.reference_panel_vcf",
+  "corpus.reference_panel_vcf_tbi",
+  "reference_panel_id_contract",
+  "reference_panel_lock_contract",
+  "genetic_map_contract",
+  "reference_fasta_contract",
+  "reference_fai_contract",
+  "reference_dict_contract",
+]
+upstream_inputs = []
+outputs = [
+  "prepared_panel_vcf",
+  "prepared_panel_vcf_tbi",
+  "prepared_panel_chunks_json",
+  "prepared_panel_manifest_json",
+  "prepared_panel_panel_id",
+]
+
+[[nodes]]
+node_id = "vcf.qc"
+stage_id = "vcf.qc"
+readiness_kind = "smoke"
+summary = "Run governed target-cohort QC on the input VCF and emit both a QC-qualified target handoff and an explicit prephasing decision artifact."
+depends_on = []
+external_inputs = ["corpus.target_cohort_vcf", "corpus.target_cohort_vcf_tbi"]
+upstream_inputs = []
+outputs = [
+  "qc_target_vcf",
+  "qc_target_vcf_tbi",
+  "qc_report",
+  "target_qc_report_tsv",
+  "phasing_requirement_decision_json",
+]
+
+[[nodes]]
+node_id = "vcf.phasing"
+stage_id = "vcf.phasing"
+readiness_kind = "smoke"
+summary = "Run the optional prephasing branch from the QC-qualified target cohort and prepared panel while preserving the explicit phasing-decision handoff."
+depends_on = ["vcf.prepare_reference_panel", "vcf.qc"]
+external_inputs = [
+  "reference_panel_id_contract",
+  "reference_panel_lock_contract",
+  "genetic_map_contract",
+]
+upstream_inputs = [
+  "prepared_panel_vcf",
+  "prepared_panel_vcf_tbi",
+  "prepared_panel_panel_id",
+  "qc_target_vcf",
+  "qc_target_vcf_tbi",
+  "qc_report",
+  "phasing_requirement_decision_json",
+]
+outputs = ["phased_vcf", "phased_vcf_tbi", "phasing_manifest_json", "phasing_stage_metrics"]
+
+[[nodes]]
+node_id = "vcf.impute"
+stage_id = "vcf.impute"
+readiness_kind = "smoke"
+summary = "Run governed panel-backed imputation from the QC target fallback path or the phased run path, while refusing to proceed without explicit panel identity."
+depends_on = ["vcf.prepare_reference_panel", "vcf.qc", "vcf.phasing"]
+external_inputs = [
+  "reference_panel_id_contract",
+  "reference_panel_lock_contract",
+  "genetic_map_contract",
+  "reference_fasta_contract",
+  "reference_fai_contract",
+]
+upstream_inputs = [
+  "prepared_panel_vcf",
+  "prepared_panel_vcf_tbi",
+  "prepared_panel_chunks_json",
+  "prepared_panel_panel_id",
+  "qc_target_vcf",
+  "qc_target_vcf_tbi",
+  "target_qc_report_tsv",
+  "phasing_requirement_decision_json",
+  "phased_vcf",
+  "phased_vcf_tbi",
+  "phasing_manifest_json",
+]
+outputs = [
+  "imputed_vcf",
+  "imputed_vcf_tbi",
+  "imputation_qc_json",
+  "imputation_qc_tsv",
+  "imputation_manifest_json",
+  "imputation_stage_metrics",
+]
+
+[[nodes]]
+node_id = "vcf.imputation_metrics"
+stage_id = "vcf.imputation_metrics"
+readiness_kind = "smoke"
+summary = "Summarize governed imputation metrics from the imputed cohort while retaining explicit panel identity, map provenance, and imputation QC evidence."
+depends_on = ["vcf.prepare_reference_panel", "vcf.impute"]
+external_inputs = [
+  "reference_panel_id_contract",
+  "reference_panel_lock_contract",
+  "genetic_map_contract",
+]
+upstream_inputs = [
+  "prepared_panel_panel_id",
+  "imputed_vcf",
+  "imputed_vcf_tbi",
+  "imputation_qc_json",
+  "imputation_qc_tsv",
+  "imputation_manifest_json",
+]
+outputs = ["imputation_metrics_json", "imputation_metrics_tsv", "imputation_summary_json"]

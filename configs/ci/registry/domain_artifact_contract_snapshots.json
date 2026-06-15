@@ -3,6 +3,18 @@
     "domain_id": "bam",
     "artifacts": [
       {
+        "artifact_id": "align_bai",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "align_bam",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "align_metrics",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "align_report_json",
         "artifact_type": null
       },
@@ -35,7 +47,15 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "bias_report",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "complexity_curve",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "complexity_report",
         "artifact_type": null
       },
       {
@@ -47,6 +67,10 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "contamination_report",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "contamination_report_json",
         "artifact_type": null
       },
@@ -55,11 +79,19 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "coverage_depth",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "coverage_report",
         "artifact_type": null
       },
       {
         "artifact_id": "coverage_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "coverage_summary",
         "artifact_type": null
       },
       {
@@ -76,6 +108,10 @@
       },
       {
         "artifact_id": "damage_profile",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "damage_report",
         "artifact_type": null
       },
       {
@@ -103,7 +139,31 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "endogenous_report",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "filter_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "filtered_bai",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "filtered_bam",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "flagstat",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "flagstat_after",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "flagstat_before",
         "artifact_type": null
       },
       {
@@ -119,7 +179,15 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "genotyping_report",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "genotyping_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "governed_qc_inputs_manifest",
         "artifact_type": null
       },
       {
@@ -127,7 +195,23 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "haplogroups",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "haplogroups_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "idxstats",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "idxstats_after",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "idxstats_before",
         "artifact_type": null
       },
       {
@@ -167,6 +251,10 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "markdup_bai",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "markdup_bam",
         "artifact_type": null
       },
@@ -176,6 +264,18 @@
       },
       {
         "artifact_id": "mt_consensus",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "multiqc_data",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "multiqc_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "overlap_corrected_bai",
         "artifact_type": null
       },
       {
@@ -191,6 +291,10 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "parser_output",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "pmd_scores",
         "artifact_type": null
       },
@@ -200,6 +304,14 @@
       },
       {
         "artifact_id": "qc_pre_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "recal_bai",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "recal_bam",
         "artifact_type": null
       },
       {
@@ -219,82 +331,224 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "sex_report",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "sex_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "stage_metrics",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "stats",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "summary",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "terminal_position_metrics",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "validation_report",
         "artifact_type": null
       }
     ],
     "stage_outputs": {
       "bam.align": [
-        "align_report_json"
+        "align_bam",
+        "align_bai",
+        "align_metrics",
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics"
       ],
       "bam.authenticity": [
-        "authenticity_report_json"
+        "authenticity_report_json",
+        "authenticity_report",
+        "summary",
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot",
+        "pmd_scores"
       ],
       "bam.bias_mitigation": [
-        "bias_mitigation_report_json"
+        "bias_mitigation_report_json",
+        "bias_report",
+        "summary",
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot"
       ],
       "bam.complexity": [
-        "complexity_report_json"
+        "complexity_report",
+        "complexity_curve",
+        "summary",
+        "stage_metrics"
       ],
       "bam.contamination": [
-        "contamination_report_json"
+        "contamination_report_json",
+        "contamination_report",
+        "contamination_estimate",
+        "contammix_report",
+        "mt_consensus",
+        "summary",
+        "stage_metrics"
       ],
       "bam.coverage": [
-        "coverage_report_json"
+        "coverage_summary",
+        "coverage_depth",
+        "stage_metrics"
       ],
       "bam.damage": [
-        "damage_report_json"
+        "damage_report",
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot",
+        "damage_clusters",
+        "damage_parameters",
+        "pmd_scores"
       ],
       "bam.duplication_metrics": [
-        "duplication_metrics_report_json"
+        "duplication_report",
+        "duplication_histogram",
+        "summary",
+        "stage_metrics"
       ],
       "bam.endogenous_content": [
-        "endogenous_content_report_json"
+        "endogenous_report",
+        "summary",
+        "stage_metrics"
       ],
       "bam.filter": [
-        "filter_report_json"
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "summary",
+        "stage_metrics"
       ],
       "bam.gc_bias": [
-        "gc_bias_report_json"
+        "gc_bias_report",
+        "gc_bias_plot",
+        "summary",
+        "stage_metrics"
       ],
       "bam.genotyping": [
-        "genotyping_report_json"
+        "genotyping_report_json",
+        "genotyping_report",
+        "population_metrics",
+        "summary",
+        "stage_metrics"
       ],
       "bam.haplogroups": [
-        "haplogroups_report_json"
+        "haplogroups_report_json",
+        "haplogroup_report",
+        "haplogroups",
+        "summary",
+        "stage_metrics"
       ],
       "bam.insert_size": [
-        "insert_size_report_json"
+        "insert_size_report",
+        "insert_size_histogram",
+        "summary",
+        "stage_metrics"
       ],
       "bam.kinship": [
-        "kinship_report_json"
+        "kinship_report_json",
+        "kinship_report",
+        "population_metrics",
+        "summary",
+        "stage_metrics"
       ],
       "bam.length_filter": [
-        "length_filter_report_json"
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "summary",
+        "stage_metrics"
       ],
       "bam.mapping_summary": [
-        "mapping_summary_report_json"
+        "flagstat",
+        "idxstats",
+        "stats",
+        "summary",
+        "stage_metrics"
       ],
       "bam.mapq_filter": [
-        "mapq_filter_report_json"
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "summary",
+        "stage_metrics"
       ],
       "bam.markdup": [
-        "markdup_report_json"
+        "markdup_bam",
+        "markdup_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "summary",
+        "stage_metrics"
       ],
       "bam.overlap_correction": [
-        "overlap_correction_report_json"
+        "overlap_corrected_bam",
+        "overlap_corrected_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "summary",
+        "stage_metrics"
       ],
       "bam.qc_pre": [
-        "qc_pre_report_json"
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics",
+        "report_json",
+        "multiqc_report",
+        "multiqc_data",
+        "governed_qc_inputs_manifest"
       ],
       "bam.recalibration": [
-        "recalibration_report_json"
+        "recalibration_report_json",
+        "recal_bam",
+        "recal_bai",
+        "recal_report",
+        "summary",
+        "stage_metrics"
       ],
       "bam.sex": [
-        "sex_report_json"
+        "sex_report_json",
+        "sex_report",
+        "sex_estimate",
+        "population_metrics",
+        "haplogroup_report",
+        "summary",
+        "stage_metrics"
       ],
       "bam.validate": [
-        "report_json"
+        "validation_report",
+        "flagstat",
+        "stage_metrics"
       ]
     }
   },
@@ -662,6 +916,10 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "otu_table_tsv",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "overrepresented_sequence_tool_benchmark_cohort_json",
         "artifact_type": null
       },
@@ -794,6 +1052,14 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "removed_contaminant_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "removed_contaminant_reads_r2",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "removed_host_reads_r1",
         "artifact_type": null
       },
@@ -818,6 +1084,10 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "representative_sequences_fasta",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "rrna_database",
         "artifact_type": null
       },
@@ -839,6 +1109,14 @@
       },
       {
         "artifact_id": "rrna_filtered_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "rrna_removed_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "rrna_removed_reads_r2",
         "artifact_type": null
       },
       {
@@ -958,6 +1236,14 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "unclassified_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "unclassified_reads_r2",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "unmerged_reads_r1",
         "artifact_type": null
       },
@@ -1008,7 +1294,9 @@
       "fastq.cluster_otus": [
         "report_json",
         "otu_table",
+        "otu_table_tsv",
         "otu_representatives",
+        "representative_sequences_fasta",
         "taxonomy_ready_fasta",
         "taxonomy_ready_fastq"
       ],
@@ -1040,11 +1328,15 @@
       "fastq.deplete_reference_contaminants": [
         "contaminant_screened_reads_r1",
         "contaminant_screened_reads_r2",
+        "removed_contaminant_reads_r1",
+        "removed_contaminant_reads_r2",
         "contaminant_screen_report_json"
       ],
       "fastq.deplete_rrna": [
         "rrna_filtered_reads_r1",
         "rrna_filtered_reads_r2",
+        "rrna_removed_reads_r1",
+        "rrna_removed_reads_r2",
         "rrna_report_tsv",
         "rrna_report_json"
       ],
@@ -1171,7 +1463,9 @@
       ],
       "fastq.screen_taxonomy": [
         "screen_report_tsv",
-        "classification_report_json"
+        "classification_report_json",
+        "unclassified_reads_r1",
+        "unclassified_reads_r2"
       ],
       "fastq.subsample_reads": [
         "subsampled_reads",
@@ -1210,7 +1504,7 @@
     "domain_id": "vcf",
     "artifacts": [
       {
-        "artifact_id": "admixture_out",
+        "artifact_id": "admixture_report",
         "artifact_type": "json"
       },
       {
@@ -1258,7 +1552,7 @@
         "artifact_type": "json"
       },
       {
-        "artifact_id": "imputation_out",
+        "artifact_id": "imputation_metrics_json",
         "artifact_type": "json"
       },
       {
@@ -1266,8 +1560,12 @@
         "artifact_type": "vcf"
       },
       {
-        "artifact_id": "pca_out",
+        "artifact_id": "pca_report",
         "artifact_type": "json"
+      },
+      {
+        "artifact_id": "phased_vcf",
+        "artifact_type": "vcf"
       },
       {
         "artifact_id": "phasing_out",
@@ -1294,7 +1592,7 @@
         "artifact_type": "vcf"
       },
       {
-        "artifact_id": "qc_out",
+        "artifact_id": "qc_report",
         "artifact_type": "json"
       },
       {
@@ -1308,7 +1606,7 @@
     ],
     "stage_outputs": {
       "vcf.admixture": [
-        "admixture_out"
+        "admixture_report"
       ],
       "vcf.call": [
         "called_vcf"
@@ -1341,17 +1639,17 @@
       "vcf.ibd": [
         "ibd_segments"
       ],
-      "vcf.imputation": [
-        "imputation_out"
+      "vcf.imputation_metrics": [
+        "imputation_metrics_json"
       ],
       "vcf.impute": [
         "imputed_vcf"
       ],
       "vcf.pca": [
-        "pca_out"
+        "pca_report"
       ],
       "vcf.phasing": [
-        "phasing_out"
+        "phased_vcf"
       ],
       "vcf.population_structure": [
         "population_structure_report"
@@ -1363,7 +1661,7 @@
         "prepared_panel"
       ],
       "vcf.qc": [
-        "qc_out"
+        "qc_report"
       ],
       "vcf.roh": [
         "roh_report"

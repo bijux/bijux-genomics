@@ -42,6 +42,7 @@ fn parse_profile_reads_report_parses_governed_contract() -> Result<()> {
                 "qc_json": "qc.json",
                 "qc_tsv": "qc.tsv",
                 "qc_plots_dir": "plots",
+                "length_histogram_source": "seqkit_fx2tab",
                 "reads_total": 200,
                 "bases_total": 20000,
                 "mean_q": 31.2,
@@ -103,7 +104,9 @@ fn parse_profile_read_lengths_report_parses_governed_contract() -> Result<()> {
             "length_distribution_json": "length_distribution.json",
             "report_json": "profile_read_lengths_report.json",
             "read_count": 200,
+            "min_read_length": 90,
             "mean_read_length": 101.5,
+            "median_read_length": 100.0,
             "max_read_length": 150,
             "distinct_lengths": 12,
             "histogram": [{"read_length": 100, "count": 180}],
@@ -119,6 +122,8 @@ fn parse_profile_read_lengths_report_parses_governed_contract() -> Result<()> {
     assert_eq!(parsed.threads, 2);
     assert_eq!(parsed.histogram_bins, 64);
     assert_eq!(parsed.read_count, 200);
+    assert_eq!(parsed.min_read_length, 90);
+    assert_eq!(parsed.median_read_length, 100.0);
     assert_eq!(parsed.histogram.len(), 1);
     Ok(())
 }
@@ -136,6 +141,8 @@ fn parse_profile_read_lengths_report_accepts_legacy_histogram_payload() -> Resul
         .to_string(),
     )?;
     assert_eq!(parsed.read_count, 100);
+    assert_eq!(parsed.min_read_length, 100);
+    assert_eq!(parsed.median_read_length, 100.0);
     assert_eq!(parsed.max_read_length, 101);
     assert_eq!(parsed.distinct_lengths, 2);
     Ok(())

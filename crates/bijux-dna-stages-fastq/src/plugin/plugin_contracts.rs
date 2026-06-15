@@ -9,7 +9,7 @@ use bijux_dna_domain_fastq::params::{
     PairedMode,
 };
 use bijux_dna_domain_fastq::{
-    ValidateFailureClass, ValidatedReadsManifestV1, ValidationReportV1,
+    DetectAdaptersReportV1, ValidateFailureClass, ValidatedReadsManifestV1, ValidationReportV1,
     VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
 };
 use bijux_dna_stage_contract::{ArtifactRef, PlanDecisionReason, StagePlugin};
@@ -272,46 +272,55 @@ fn parse_outputs_surfaces_detect_adapter_semantics() {
     bijux_dna_infra::ensure_dir(&evidence_dir).expect("create evidence dir");
     bijux_dna_infra::write_bytes(
         &report_path,
-        serde_json::json!({
-            "schema_version": "bijux.fastq.detect_adapters.report.v2",
-            "stage": "fastq.detect_adapters",
-            "stage_id": "fastq.detect_adapters",
-            "tool_id": "fastqc",
-            "paired_mode": "paired_end",
-            "threads": 4,
-            "inspection_mode": "evidence_only",
-            "report_only": true,
-            "evidence_engine": "fastqc",
-            "evidence_scope": "full_input",
-            "evidence_format": "fastqc_summary",
-            "evidence_artifact_id": "report_json",
-            "detected_adapter_source": "normalized_fastqc_evidence",
-            "input_r1": "reads_R1.fastq.gz",
-            "input_r2": "reads_R2.fastq.gz",
-            "report_json": report_path,
-            "adapter_evidence_dir": evidence_dir,
-            "reads_in": 200_u64,
-            "reads_out": 200_u64,
-            "bases_in": 20_000_u64,
-            "bases_out": 20_000_u64,
-            "pairs_in": 100_u64,
-            "pairs_out": 100_u64,
-            "mean_q": 31.2,
-            "candidate_adapter_count": 2_u64,
-            "adapter_trimmed_fraction": 0.08,
-            "adapter_content_max": 12.5,
-            "adapter_content_mean": 3.2,
-            "duplication_rate": 0.15,
-            "n_rate": 0.001,
-            "kmer_warning_count": 4_u64,
-            "overrepresented_sequence_count": 3_u64,
-            "runtime_s": 4.0,
-            "memory_mb": 64.0,
-            "exit_code": 0,
-            "raw_backend_report": null,
-            "raw_backend_report_format": null
+        serde_json::to_string(&DetectAdaptersReportV1 {
+            schema_version: "bijux.fastq.detect_adapters.report.v3".to_string(),
+            stage: "fastq.detect_adapters".to_string(),
+            stage_id: "fastq.detect_adapters".to_string(),
+            tool_id: "fastqc".to_string(),
+            paired_mode: PairedMode::PairedEnd,
+            threads: 4,
+            inspection_mode:
+                bijux_dna_domain_fastq::params::detect_adapters::AdapterInspectionMode::EvidenceOnly,
+            report_only: true,
+            evidence_engine: "fastqc".to_string(),
+            evidence_scope:
+                bijux_dna_domain_fastq::params::detect_adapters::AdapterEvidenceScope::FullInput,
+            evidence_format:
+                bijux_dna_domain_fastq::params::detect_adapters::AdapterEvidenceFormat::FastqcSummary,
+            evidence_artifact_id: "report_json".to_string(),
+            detected_adapter_source: "normalized_fastqc_evidence".to_string(),
+            detected_adapter_ids: vec!["truseq_universal".to_string()],
+            detection_confidence: None,
+            detection_threshold: None,
+            input_r1: "reads_R1.fastq.gz".to_string(),
+            input_r2: Some("reads_R2.fastq.gz".to_string()),
+            report_json: report_path.display().to_string(),
+            adapter_evidence_dir: evidence_dir.display().to_string(),
+            recommended_adapter_bank_id: None,
+            recommended_adapter_bank_hash: None,
+            recommended_adapter_preset: None,
+            reads_in: 200,
+            reads_out: 200,
+            bases_in: 20_000,
+            bases_out: 20_000,
+            pairs_in: Some(100),
+            pairs_out: Some(100),
+            mean_q: 31.2,
+            candidate_adapter_count: 2,
+            adapter_trimmed_fraction: Some(0.08),
+            adapter_content_max: Some(12.5),
+            adapter_content_mean: Some(3.2),
+            duplication_rate: Some(0.15),
+            n_rate: Some(0.001),
+            kmer_warning_count: Some(4),
+            overrepresented_sequence_count: Some(3),
+            runtime_s: Some(4.0),
+            memory_mb: Some(64.0),
+            exit_code: Some(0),
+            raw_backend_report: None,
+            raw_backend_report_format: None,
         })
-        .to_string(),
+        .expect("serialize report"),
     )
     .expect("write report");
     let mut plan = plan("fastq.detect_adapters");
@@ -498,6 +507,18 @@ fn parse_outputs_surfaces_observed_merge_semantics() {
     assert_eq!(
         output.report_parts[0].payload["semantic_metrics"]["reads_merged"],
         serde_json::json!(87)
+    );
+    assert_eq!(
+        output.report_parts[0].payload["semantic_metrics"]["merged_pair_count"],
+        serde_json::json!(87)
+    );
+    assert_eq!(
+        output.report_parts[0].payload["semantic_metrics"]["unmerged_pair_count"],
+        serde_json::json!(13)
+    );
+    assert_eq!(
+        output.report_parts[0].payload["semantic_metrics"]["discarded_pair_count"],
+        serde_json::json!(0)
     );
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["merge_rate"],
@@ -1214,8 +1235,23 @@ fn parse_outputs_surfaces_extract_umis_semantics() {
         serde_json::json!("NNNNNNNN")
     );
     assert_eq!(
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+            ["tag_header_format"],
+        serde_json::json!("append_to_header")
+    );
+    assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["reads_with_umi"],
         serde_json::json!(2_u64)
+    );
+    assert_eq!(
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+            ["extracted_umi_count"],
+        serde_json::json!(2_u64)
+    );
+    assert_eq!(
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+            ["invalid_umi_count"],
+        serde_json::json!(0_u64)
     );
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
@@ -1552,10 +1588,12 @@ fn parse_outputs_surfaces_deplete_rrna_semantics() {
     let temp = tempfile::tempdir().expect("tempdir");
     let reads_path = temp.path().join("reads.fastq");
     let output_path = temp.path().join("rrna_filtered.fastq");
+    let removed_path = temp.path().join("removed_rrna.fastq");
     let report_tsv = temp.path().join("rrna_report.tsv");
     let report_json = temp.path().join("rrna_report.json");
     bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
     bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
+    bijux_dna_infra::write_bytes(&removed_path, b"@r2\nGG\n+\n##\n").expect("write removed reads");
     bijux_dna_infra::write_bytes(&report_tsv, b"sample\treads_removed\tfraction\n")
         .expect("write tsv");
     bijux_dna_infra::write_bytes(
@@ -1580,6 +1618,8 @@ fn parse_outputs_surfaces_deplete_rrna_semantics() {
             "input_r2": null,
             "output_r1": "rrna_filtered.fastq",
             "output_r2": null,
+            "removed_reads_r1": "removed_rrna.fastq",
+            "removed_reads_r2": null,
             "rrna_report_tsv": "rrna_report.tsv",
             "rrna_report_json": "rrna_report.json",
             "reads_in": 100_u64,
@@ -1617,6 +1657,11 @@ fn parse_outputs_surfaces_deplete_rrna_semantics() {
                     ArtifactRole::Reads,
                 ),
                 ArtifactRef::required(
+                    ArtifactId::new("rrna_removed_reads_r1"),
+                    removed_path,
+                    ArtifactRole::Reads,
+                ),
+                ArtifactRef::required(
                     ArtifactId::new("rrna_report_tsv"),
                     report_tsv,
                     ArtifactRole::SummaryTsv,
@@ -1647,6 +1692,11 @@ fn parse_outputs_surfaces_deplete_rrna_semantics() {
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["reads_removed"],
         serde_json::json!(36_u64)
     );
+    assert_eq!(
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+            ["rrna_removed_reads_r1"],
+        serde_json::json!("removed_rrna.fastq")
+    );
 }
 
 #[test]
@@ -1655,9 +1705,11 @@ fn parse_outputs_surfaces_deplete_reference_contaminants_semantics() {
     let temp = tempfile::tempdir().expect("tempdir");
     let reads_path = temp.path().join("reads.fastq");
     let output_path = temp.path().join("contaminant_screened.fastq.gz");
+    let removed_path = temp.path().join("removed_contaminant.fastq.gz");
     let report_json = temp.path().join("contaminant_screen_report.json");
     bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
     bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
+    bijux_dna_infra::write_bytes(&removed_path, b"@r2\nGG\n+\n##\n").expect("write removed reads");
     bijux_dna_infra::write_bytes(
         &report_json,
         serde_json::json!({
@@ -1681,6 +1733,8 @@ fn parse_outputs_surfaces_deplete_reference_contaminants_semantics() {
             "input_r2": null,
             "output_r1": "contaminant_screened.fastq.gz",
             "output_r2": null,
+            "removed_reads_r1": "removed_contaminant.fastq.gz",
+            "removed_reads_r2": null,
             "report_json": "contaminant_screen_report.json",
             "reads_in": 100_u64,
             "reads_out": 72_u64,
@@ -1717,6 +1771,11 @@ fn parse_outputs_surfaces_deplete_reference_contaminants_semantics() {
                     ArtifactRole::Reads,
                 ),
                 ArtifactRef::required(
+                    ArtifactId::new("removed_contaminant_reads_r1"),
+                    removed_path,
+                    ArtifactRole::Reads,
+                ),
+                ArtifactRef::required(
                     ArtifactId::new("contaminant_screen_report_json"),
                     report_json,
                     ArtifactRole::ReportJson,
@@ -1741,6 +1800,11 @@ fn parse_outputs_surfaces_deplete_reference_contaminants_semantics() {
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["reads_removed"],
         serde_json::json!(28_u64)
+    );
+    assert_eq!(
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+            ["removed_contaminant_reads_r1"],
+        serde_json::json!("removed_contaminant.fastq.gz")
     );
 }
 
@@ -1842,6 +1906,11 @@ fn parse_outputs_surfaces_deplete_host_semantics() {
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
             ["host_fraction_removed"],
         serde_json::json!(0.30)
+    );
+    assert_eq!(
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+            ["depletion_summary"]["removed_host_r1"],
+        serde_json::json!("removed_host.fastq.gz")
     );
 }
 

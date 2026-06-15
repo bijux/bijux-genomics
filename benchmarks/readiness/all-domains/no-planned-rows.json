@@ -1,0 +1,95 @@
+{
+  "schema_version": "bijux.bench.readiness.all_domain_no_planned_rows.v1",
+  "output_path": "benchmarks/readiness/all-domains/no-planned-rows.json",
+  "active_row_count": 136,
+  "active_stage_count": 66,
+  "active_tool_count": 69,
+  "removed_row_count": 7,
+  "removed_stage_count": 6,
+  "removed_tool_count": 7,
+  "removed_status_counts": {
+    "planned": 7
+  },
+  "violation_count": 0,
+  "ok": true,
+  "removed_rows": [
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "dustmasker",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "adapter_id": "fastq.adapter.filter_low_complexity",
+      "parser_id": "fastq.parser.filter_low_complexity",
+      "schema_id": "fastq_low_complexity_v1",
+      "status": "planned"
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "fastp",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "adapter_id": "fastq.adapter.filter_low_complexity",
+      "parser_id": "fastq.parser.filter_low_complexity",
+      "schema_id": "fastq_low_complexity_v1",
+      "status": "planned"
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.normalize_abundance",
+      "tool_id": "seqfu",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "asset_profile_id": "corpus_only",
+      "adapter_id": "fastq.adapter.normalize_abundance",
+      "parser_id": "fastq.parser.normalize_abundance",
+      "schema_id": "fastq_normalize_abundance_v1",
+      "status": "planned"
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "seqpurge",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "adapter_id": "fastq.adapter.trim_reads",
+      "parser_id": "fastq.parser.trim_reads",
+      "schema_id": "fastq_trim_reads_v2",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.demography",
+      "tool_id": "ibdne",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "json_ibd_segments",
+      "adapter_id": "vcf.adapter.demography",
+      "parser_id": "vcf.parser.report_json",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.demography.v1",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.ibd",
+      "tool_id": "germline",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "adapter_id": "vcf.adapter.ibd",
+      "parser_id": "vcf.parser.report_json",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.ibd.v1",
+      "status": "planned"
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.roh",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "adapter_id": "vcf.adapter.roh",
+      "parser_id": "vcf.parser.report_json",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.roh.v1",
+      "status": "planned"
+    }
+  ],
+  "violations": []
+}

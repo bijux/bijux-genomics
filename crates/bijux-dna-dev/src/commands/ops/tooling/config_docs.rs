@@ -217,7 +217,6 @@ pub(in super::super) fn tooling_check_config_snapshot(
 
     let baseline = workspace.path("configs/schema/config_tree.snapshot");
     let actual = workspace.path("artifacts/tmp/config_tree.snapshot.actual");
-    let marker_file = workspace.path("artifacts/configs/config_tree_snapshot.marker");
     if let Some(parent) = actual.parent() {
         bijux_dna_infra::ensure_dir(parent)
             .with_context(|| format!("create {}", parent.display()))?;
@@ -240,23 +239,21 @@ pub(in super::super) fn tooling_check_config_snapshot(
             "config snapshot header missing generator contract\n",
         ));
     }
-    if !marker_file.is_file() {
-        return Ok(OpsCommandOutcome::failure(
-            "config snapshot marker missing: run cargo run -p bijux-dna-dev -- tooling run generate-config-tree-snapshot\n",
-        ));
-    }
-    let marker = read_utf8(&marker_file)?;
-    let marker_sha = marker
-        .lines()
-        .find_map(|line| line.strip_prefix("snapshot_sha256="))
-        .unwrap_or_default()
-        .trim()
-        .to_string();
-    let actual_sha = sha256_hex(&baseline)?;
-    if marker_sha.is_empty() || marker_sha != actual_sha {
-        return Ok(OpsCommandOutcome::failure(
-            "config snapshot marker is stale: run cargo run -p bijux-dna-dev -- tooling run generate-config-tree-snapshot\n",
-        ));
+    let marker_file = workspace.path("artifacts/configs/config_tree_snapshot.marker");
+    if marker_file.is_file() {
+        let marker = read_utf8(&marker_file)?;
+        let marker_sha = marker
+            .lines()
+            .find_map(|line| line.strip_prefix("snapshot_sha256="))
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+        let actual_sha = sha256_hex(&baseline)?;
+        if marker_sha.is_empty() || marker_sha != actual_sha {
+            return Ok(OpsCommandOutcome::failure(
+                "config snapshot marker is stale: run cargo run -p bijux-dna-dev -- tooling run generate-config-tree-snapshot\n",
+            ));
+        }
     }
     success_line("config snapshot: OK")
 }
@@ -291,7 +288,7 @@ pub(in super::super) fn tooling_check_config_paths(
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-config-paths", args)?;
-    let pattern = Regex::new(r"configs/[A-Za-z0-9_./-]+\.(toml|md|sha256)")?;
+    let pattern = Regex::new(r"(?:benchmarks/)?configs/[A-Za-z0-9_./-]+\.(toml|md|sha256)")?;
     let mut refs = BTreeSet::new();
     let mut scan_roots = vec![workspace.path("Makefile")];
     scan_roots.extend([

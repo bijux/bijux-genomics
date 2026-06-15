@@ -14,8 +14,8 @@ This science surface covers:
 
 ## Contracts
 - `vcf.demography` emits `demography_report` with schema `bijux.vcf.demography.v1`.
-- The admitted and default planned backend is `ibdne`, matching `domain/vcf/stages/demography.yaml` and `domain/vcf/docs/DEFAULT_SETTINGS.md`.
-- Required metrics include `ne_recent`, `ne_time_series`, `ne_confidence_interval`, and `assumption_flags`.
+- The admitted and default backend is `ibdne`, matching `domain/vcf/stages/demography.yaml` and `domain/vcf/docs/DEFAULT_SETTINGS.md`, while runtime packaging remains planned.
+- Required metrics include `method`, `inference_status`, `status`, `insufficient_reason`, `time_bins`, `ne_estimates`, and `insufficient_data_probe`.
 - The stage must preserve enough provenance to identify which `vcf.ibd` backend and segment thresholds produced the demography input.
 
 ## Validity Limits

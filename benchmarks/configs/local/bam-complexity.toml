@@ -1,0 +1,15 @@
+# purpose = Governed local-smoke inputs for bam.complexity.
+
+schema_version = "bijux.bench.bam.local_complexity.v1"
+tool_id = "preseq"
+threads = 2
+output_dir = "runs/bench/local-smoke/bam.complexity"
+
+[[cases]]
+sample_id = "human_like_complexity_projection"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_complexity_projection.sam"
+min_reads = 3
+projection_points = [12, 18]
+expected_observed_total_reads = 6
+expected_observed_unique_reads = 4
+expected_estimated_unique_reads = 12

@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: Apache-2.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# VERSION_SOURCE: containers/versions/versions.toml
+FROM rust:1.88.0-bookworm@sha256:8aa70d1416cf5b1cff4b95ec6c57f1c5e4e649a3b53d616a26695cda6fbb46bc AS build
+
+WORKDIR /workspace
+
+COPY .cargo .cargo
+COPY Cargo.toml Cargo.lock rust-toolchain.toml rustfmt.toml ./
+COPY crates crates
+COPY configs configs
+COPY domain domain
+COPY benchmarks benchmarks
+
+RUN cargo build --release -p bijux-dna
+
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=0.1.0
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="Apache-2.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+LABEL org.opencontainers.image.tool="bijux_dna"
+LABEL org.opencontainers.image.title="bijux_dna"
+LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq && apt-get install -y --no-install-recommends ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /opt/bijux
+COPY --from=build /workspace/target/release/bijux-dna /usr/local/bin/bijux-dna
+COPY --from=build /workspace/configs /opt/bijux/configs
+COPY --from=build /workspace/domain /opt/bijux/domain
+COPY --from=build /workspace/benchmarks /opt/bijux/benchmarks
+
+WORKDIR /data
+ENTRYPOINT ["/usr/local/bin/bijux-dna"]
+CMD ["--help"]

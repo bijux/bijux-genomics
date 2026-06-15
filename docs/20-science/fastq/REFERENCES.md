@@ -44,7 +44,7 @@ The FASTQ domain is only reviewable when each supported backend can be traced to
 | bbduk | `fastq.trim_reads`, `fastq.filter_reads`, `fastq.trim_polyg_tails`, `fastq.filter_low_complexity` | BBTools software citation; no dedicated BBDuk paper confirmed | https://archive.jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbduk-guide/ |
 | prinseq | `fastq.filter_reads`, `fastq.filter_low_complexity`, read-length profiling | paper | https://pmc.ncbi.nlm.nih.gov/articles/PMC3051327/ |
 | seqkit | `fastq.filter_reads`, `fastq.profile_overrepresented_sequences`, `fastq.trim_terminal_damage`, `fastq.normalize_abundance` | paper | https://pmc.ncbi.nlm.nih.gov/articles/PMC5051824/ |
-| seqfu | planned read-length and abundance support | paper | https://pmc.ncbi.nlm.nih.gov/articles/PMC8148589/ |
+| seqfu | planned read-length profiling support | paper | https://pmc.ncbi.nlm.nih.gov/articles/PMC8148589/ |
 | dustmasker | `fastq.filter_low_complexity` planned support | paper for symmetric DUST implementation | https://journals.sagepub.com/doi/abs/10.1089/cmb.2006.13.1028 |
 
 ## Merging and Duplicate Removal

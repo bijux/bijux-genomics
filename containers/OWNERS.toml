@@ -74,6 +74,12 @@ contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
+tool_id = "bijux_dna"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
 tool_id = "bedtools"
 team = "bijux-dna-platform"
 contact = "bijux.github.io@gmail.com"

@@ -23,6 +23,7 @@ pub(super) struct GovernedEvidenceArtifacts {
     pub run_summary_text_path: PathBuf,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(super) fn materialize_governed_evidence(
     layout: &RunLayout,
     graph: &ExecutionGraph,

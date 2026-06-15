@@ -1,0 +1,4 @@
+# Governed Y-haplogroup marker panel fixture for local haplogroup planning.
+marker_id	contig	position	ref	alt	haplogroup	lineage_scope
+human-like-y-snp1	chrY	4	G	A	R1b	screening
+human-like-y-snp2	chrY	15	C	T	R1b1a	screening

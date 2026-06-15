@@ -41,6 +41,16 @@ pub mod markdup {
                 &summary,
                 params,
             ),
+            "picard" => crate::tool_adapters::tools::core::picard::markdup_args_with_audit(
+                bam,
+                &out_bam,
+                &flagstat_before,
+                &flagstat_after,
+                &idxstats_before,
+                &idxstats_after,
+                &summary,
+                params,
+            ),
             _ => crate::tool_adapters::tools::gatk::markdup_args_with_audit(
                 bam,
                 &out_bam,
@@ -127,7 +137,7 @@ pub mod complexity {
             bijux_dna_domain_bam::BamStage::Complexity,
             out_dir,
         );
-        let preseq_txt = out_dir.join("preseq.txt");
+        let complexity_curve_tsv = out_dir.join("complexity_curve.tsv");
         let complexity_json = out_dir.join("complexity.json");
         let summary_json = out_dir.join("complexity.summary.json");
         let plan = StagePlanV1 {
@@ -141,14 +151,14 @@ pub mod complexity {
                 template: match tool.tool_id.as_str() {
                     "preseq" => crate::tool_adapters::tools::preseq::args_with_outputs(
                         bam,
-                        &preseq_txt,
+                        &complexity_curve_tsv,
                         &complexity_json,
                         &summary_json,
                         params,
                     ),
                     _ => crate::tool_adapters::tools::preseq::args_with_outputs(
                         bam,
-                        &preseq_txt,
+                        &complexity_curve_tsv,
                         &complexity_json,
                         &summary_json,
                         params,
@@ -183,7 +193,7 @@ pub mod complexity {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &["complexity_report", "preseq", "summary"],
+            &["complexity_report", "complexity_curve", "summary"],
         )
     }
 }
@@ -311,7 +321,7 @@ pub mod coverage {
         out_dir: &Path,
         params: &CoverageEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
-        let mut outputs = crate::tool_adapters::stages_support::audit_outputs(
+        let outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::Coverage,
             out_dir,
         );
@@ -319,14 +329,18 @@ pub mod coverage {
         let depth_path = out_dir.join("coverage.depth.txt");
         let summary_path = out_dir.join("coverage.mosdepth.summary.txt");
         let command = match tool.tool_id.as_str() {
-            "samtools" => {
-                outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
-                    ArtifactId::from_static("coverage_depth"),
-                    depth_path.clone(),
-                    ArtifactRole::ReportJson,
-                ));
-                crate::tool_adapters::tools::samtools::depth_args(bam, &depth_path, &summary_path)
-            }
+            "samtools" => crate::tool_adapters::tools::samtools::depth_args(
+                bam,
+                &depth_path,
+                &summary_path,
+                params.regions.as_ref(),
+            ),
+            "bedtools" => crate::tool_adapters::tools::bedtools::coverage_args(
+                bam,
+                &depth_path,
+                &summary_path,
+                params.regions.as_ref(),
+            ),
             _ => crate::tool_adapters::tools::mosdepth::args(bam, &prefix, params),
         };
         let plan = StagePlanV1 {
@@ -374,9 +388,11 @@ pub mod coverage {
 pub mod endogenous_content {
     use std::path::Path;
 
-    use bijux_dna_core::prelude::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
-    use bijux_dna_domain_bam::params::{CoverageEffectiveParams, EndogenousContentEffectiveParams};
-    use bijux_dna_stage_contract::StagePlanV1;
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
+    use bijux_dna_domain_bam::params::EndogenousContentEffectiveParams;
+    use bijux_dna_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::EndogenousContent.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -389,29 +405,61 @@ pub mod endogenous_content {
         out_dir: &Path,
         params: &EndogenousContentEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
-        let coverage_params = CoverageEffectiveParams {
-            regions: params.regions.clone(),
-            depth_thresholds: params.depth_thresholds.clone(),
-            regime_mode: "advisory_and_enforced".to_string(),
+        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+            bijux_dna_domain_bam::BamStage::EndogenousContent,
+            out_dir,
+        );
+        let flagstat = out_dir.join("flagstat.txt");
+        let report = out_dir.join("endogenous.content.json");
+        let command = match tool.tool_id.as_str() {
+            "samtools" => crate::tool_adapters::tools::samtools::endogenous_content_args(
+                bam, &flagstat, &report, params,
+            ),
+            _ => crate::tool_adapters::tools::samtools::endogenous_content_args(
+                bam, &flagstat, &report, params,
+            ),
         };
-        let mut plan = super::coverage::plan(tool, bam, out_dir, &coverage_params)?;
-        plan.stage_id = StageId::from_static(STAGE_ID);
-        plan.stage_version = STAGE_VERSION;
-        plan.command = CommandSpecV1 { template: plan.command.template.clone() };
-        plan.params = serde_json::json!({
-            "bam": bam,
-            "regions": params.regions,
-            "depth_thresholds": params.depth_thresholds,
-            "host_reference_scope": params.host_reference_scope,
-            "host_reference_digest": params.host_reference_digest,
-            "refuse_without_host_reference": params.refuse_without_host_reference,
-        });
-        plan.effective_params = crate::tool_adapters::stages_support::ensure_effective_params(
-            serde_json::to_value(params).map_err(|error| {
-                anyhow::anyhow!("BAM stage effective params must serialize: {error}")
-            })?,
-        )?;
-        Ok(plan)
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
+            stage_version: STAGE_VERSION,
+            tool_id: tool.tool_id.clone(),
+            tool_version: tool.tool_version.clone(),
+            image: tool.image.clone(),
+            command: CommandSpecV1 { template: command },
+            resources: tool.resources.clone(),
+            io: StageIO {
+                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
+                    ArtifactId::from_static("bam"),
+                    bam.to_path_buf(),
+                    ArtifactRole::Bam,
+                )],
+                outputs,
+            },
+            out_dir: out_dir.to_path_buf(),
+            params: serde_json::json!({
+                "bam": bam,
+                "regions": params.regions,
+                "depth_thresholds": params.depth_thresholds,
+                "host_reference_scope": params.host_reference_scope,
+                "host_reference_digest": params.host_reference_digest,
+                "refuse_without_host_reference": params.refuse_without_host_reference,
+            }),
+            effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
+                serde_json::to_value(params).map_err(|error| {
+                    anyhow::anyhow!("BAM stage effective params must serialize: {error}")
+                })?,
+            )?,
+            aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
+            reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+        };
+        crate::tool_adapters::stages_support::ensure_required_outputs(
+            plan,
+            &["endogenous_report", "summary", "stage_metrics"],
+        )
     }
 }
 
@@ -592,6 +640,7 @@ pub mod recalibration {
     pub fn plan(
         tool: &ToolExecutionSpecV1,
         bam: &Path,
+        reference: Option<&Path>,
         out_dir: &Path,
         params: &BqsrEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
@@ -599,9 +648,29 @@ pub mod recalibration {
             bijux_dna_domain_bam::BamStage::Recalibration,
             out_dir,
         );
-        let out_bam = out_dir.join("recalibrated.bam");
-        let recal_report = out_dir.join("recalibration.table");
-        let summary = out_dir.join("recalibration.summary.json");
+        let resolve_output = |name: &str| -> anyhow::Result<std::path::PathBuf> {
+            outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == name)
+                .map(|artifact| artifact.path.clone())
+                .ok_or_else(|| anyhow::anyhow!("bam.recalibration plan missing output `{name}`"))
+        };
+        let out_bam = resolve_output("recal_bam")?;
+        let out_bai = resolve_output("recal_bai")?;
+        let recal_report = resolve_output("recal_report")?;
+        let summary = resolve_output("summary")?;
+        let mut inputs = vec![bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("bam"),
+            bam.to_path_buf(),
+            ArtifactRole::Bam,
+        )];
+        if let Some(reference) = reference {
+            inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("reference"),
+                reference.to_path_buf(),
+                ArtifactRole::Reference,
+            ));
+        }
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_instance_id: None,
@@ -613,14 +682,18 @@ pub mod recalibration {
                 template: match tool.tool_id.as_str() {
                     "gatk" => crate::tool_adapters::tools::gatk::recalibration_args_with_outputs(
                         bam,
+                        reference,
                         &out_bam,
+                        &out_bai,
                         &recal_report,
                         &summary,
                         params,
                     ),
                     _ => crate::tool_adapters::tools::gatk::recalibration_args_with_outputs(
                         bam,
+                        reference,
                         &out_bam,
+                        &out_bai,
                         &recal_report,
                         &summary,
                         params,
@@ -628,17 +701,11 @@ pub mod recalibration {
                 },
             },
             resources: tool.resources.clone(),
-            io: StageIO {
-                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
-                    ArtifactId::from_static("bam"),
-                    bam.to_path_buf(),
-                    ArtifactRole::Bam,
-                )],
-                outputs,
-            },
+            io: StageIO { inputs, outputs },
             out_dir: out_dir.to_path_buf(),
             params: serde_json::json!({
                 "bam": bam,
+                "reference": reference,
                 "known_sites": params.known_sites,
                 "mode": params.mode,
                 "skip_criteria": params.skip_criteria,
@@ -656,7 +723,7 @@ pub mod recalibration {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &["recal_bam", "recal_bai", "recal_report", "summary"],
+            &["recal_bam", "recal_bai", "recal_report", "summary", "stage_metrics"],
         )
     }
 }

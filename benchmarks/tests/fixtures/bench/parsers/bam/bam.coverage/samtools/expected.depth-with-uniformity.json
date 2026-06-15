@@ -1,0 +1,19 @@
+{
+  "schema_version": "bijux.fixture.bam_raw_parser.v1",
+  "stage_id": "bam.coverage",
+  "tool_id": "samtools",
+  "parser_id": "parse_samtools_depth_with_uniformity",
+  "normalized": {
+    "coverage": {
+      "mean": 2.5,
+      "median": 2.5,
+      "breadth_1x": 0.75,
+      "breadth_3x": 0.5,
+      "breadth_5x": 0.25
+    },
+    "uniformity": {
+      "coefficient_of_variation": 0.7211102550927978,
+      "dropout_fraction": 0.25
+    }
+  }
+}

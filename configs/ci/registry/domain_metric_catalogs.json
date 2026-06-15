@@ -3,11 +3,267 @@
     "domain_id": "bam",
     "metrics": [
       {
+        "metric_id": "active_filters",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "alignment_rate",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "at_dropout",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "autosomal_coverage",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "breadth_1x",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "call",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "ci_high",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "ci_low",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "confidence",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "consumed_metric_ids",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "contig_summary",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "corrected_bam",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "corrected_overlap_bases",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "corrected_pairs",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "covered_bases",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "damage_signal",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "duplicate_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "duplicate_flagged_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "duplicate_fraction",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "duplicate_metrics",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "endogenous_fraction",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "endogenous_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "estimate",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "estimated_library_size",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "filtered_bam",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "gc_bias_score",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "gc_dropout",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "input_bam_identity",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "input_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "kept_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "mapped_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "mapping_fraction",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "mapq_threshold",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "marked_bam",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "mean_depth",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "mean_insert_size",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "median_insert_size",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "memory_mb",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "min_length_threshold",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "missing_metric_ids",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "observed_max_overlap_snps",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "observed_region_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "pair_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "pairwise_results",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "pmd_like_signal_present",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "prerequisites_passed",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "read_pairs",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "region_ids",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "removed_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "runtime_s",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "saturation_estimate",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "scope",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "score",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "secondary_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "standard_deviation",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "status",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "supplementary_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "terminal_c_to_t_5p",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "terminal_g_to_a_3p",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "total_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "unmapped_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "validation_errors",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "validation_status",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "validation_warnings",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "x_coverage",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "y_coverage",
         "schema_version": "bijux.domain.metrics.v1"
       }
     ]
@@ -48,6 +304,10 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "adapter_report",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "adapter_trimmed_fraction",
         "schema_version": "bijux.domain.metrics.v1"
       },
@@ -84,6 +344,10 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "bases_removed",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "bases_total",
         "schema_version": "bijux.domain.metrics.v1"
       },
@@ -100,6 +364,14 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "changed_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "chimera_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "chimera_fraction",
         "schema_version": "bijux.domain.metrics.v1"
       },
@@ -112,7 +384,15 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "classified_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "classifier",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "clustering_threshold",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -120,7 +400,15 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "contaminant_hit_rate",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "contaminant_policy",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "contaminant_reads",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -129,6 +417,10 @@
       },
       {
         "metric_id": "contamination_summary",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "corrected_reads",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -168,7 +460,31 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "depleted_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "depletion_rate",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "depletion_summary",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "detected_adapter_ids",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "detection_confidence",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "detection_threshold",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "discarded_pair_count",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -180,7 +496,23 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "duplicate_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "duplicate_detection_policy",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "duplicate_fraction",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "duplicate_provenance_json",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "duplicate_reads",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -196,7 +528,15 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "elapsed_time_s",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "emit_unclassified",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "estimated_complexity",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -208,7 +548,27 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "extracted_umi_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "failed_extractions",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "failure_class",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "feature_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "filtered_fastq_r1",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "filtered_fastq_r2",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -240,11 +600,47 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "host_hit_rate",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "index_bytes",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "index_directory",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "index_file_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "index_files",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "index_size_bytes",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "input_pair_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "input_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "inspected_pair_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "insufficient_data_reason",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "invalid_umi_count",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -272,6 +668,10 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "matched_primers",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "max_read_length",
         "schema_version": "bijux.domain.metrics.v1"
       },
@@ -292,6 +692,14 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "measurement_scope",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "median_read_length",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "memory_mb",
         "schema_version": "bijux.domain.metrics.v1"
       },
@@ -300,7 +708,15 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "merged_pair_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "min_polyg_run",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "min_read_length",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -332,6 +748,18 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "non_chimera_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "normalization_method",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "numeric_output_valid",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "orientation_forward_fraction",
         "schema_version": "bijux.domain.metrics.v1"
       },
@@ -341,6 +769,10 @@
       },
       {
         "metric_id": "otu_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "output_reads",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -452,6 +884,10 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "reads_removed",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "reads_removed_by_entropy",
         "schema_version": "bijux.domain.metrics.v1"
       },
@@ -473,6 +909,10 @@
       },
       {
         "metric_id": "reads_removed_low_complexity",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "reads_retained",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -504,6 +944,10 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "removed_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "renamed_reads",
         "schema_version": "bijux.domain.metrics.v1"
       },
@@ -520,11 +964,19 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "representative_sequence_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "requested_trim_3p_bases",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
         "metric_id": "requested_trim_5p_bases",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "retained_reads",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -537,6 +989,10 @@
       },
       {
         "metric_id": "sample_count",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "sample_totals",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -560,6 +1016,14 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "tag_header_format",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "taxonomy_database_id",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "threads",
         "schema_version": "bijux.domain.metrics.v1"
       },
@@ -576,6 +1040,14 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "trim_3p_bases",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "trim_5p_bases",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "trim_polyg",
         "schema_version": "bijux.domain.metrics.v1"
       },
@@ -584,7 +1056,15 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "trimmed_primer_bases",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "trimmed_read_fraction",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "trimmed_tail_count",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -592,7 +1072,27 @@
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
+        "metric_id": "unchanged_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
         "metric_id": "unclassified_fraction",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "unclassified_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "unique_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "unmatched_reads",
+        "schema_version": "bijux.domain.metrics.v1"
+      },
+      {
+        "metric_id": "unmerged_pair_count",
         "schema_version": "bijux.domain.metrics.v1"
       },
       {
@@ -629,15 +1129,15 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
-        "metric_id": "assumption_flags",
-        "schema_version": "bijux.metrics.v1"
-      },
-      {
         "metric_id": "called_variants",
         "schema_version": "bijux.metrics.v1"
       },
       {
         "metric_id": "cluster_assignments",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "cross_population_pair_count",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -654,6 +1154,18 @@
       },
       {
         "metric_id": "diploid_called_variants",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "eigenvalues",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "excluded_samples",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "excluded_variants",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -685,6 +1197,14 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "heterozygosity",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "hwe_summary",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "ibd_length_bins_cM",
         "schema_version": "bijux.metrics.v1"
       },
@@ -697,11 +1217,39 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
-        "metric_id": "imputation_status",
+        "metric_id": "impute_status",
         "schema_version": "bijux.metrics.v1"
       },
       {
-        "metric_id": "impute_status",
+        "metric_id": "indel_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "inference_status",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "insufficient_data_probe",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "insufficient_overlap_probe",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "insufficient_reason",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "low_confidence_sites",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "maf_summary",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "masked_truth_sites",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -709,15 +1257,23 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
-        "metric_id": "ne_confidence_interval",
+        "metric_id": "mean_info_score",
         "schema_version": "bijux.metrics.v1"
       },
       {
-        "metric_id": "ne_recent",
+        "metric_id": "method",
         "schema_version": "bijux.metrics.v1"
       },
       {
-        "metric_id": "ne_time_series",
+        "metric_id": "missing_quality_fields",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "ne_estimates",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "pair_count",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -737,11 +1293,19 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "per_sample_summary",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "phasing_status",
         "schema_version": "bijux.metrics.v1"
       },
       {
         "metric_id": "pmd_filtered_reads",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "population_count",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -762,6 +1326,10 @@
       },
       {
         "metric_id": "qc_status",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "r2_available",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -789,11 +1357,83 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "rows",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "sample_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "sample_missingness",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "sample_missingness_exclusion_threshold",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "segment_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "segments",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "selected_k",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "snp_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "status",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "ti_tv",
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "time_bins",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "total_length",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "transition_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "transversion_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "unexpected_samples",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "variant_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "variant_missingness",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "variant_missingness_exclusion_threshold",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "variants_total",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "within_population_pair_count",
         "schema_version": "bijux.metrics.v1"
       }
     ]

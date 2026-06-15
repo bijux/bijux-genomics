@@ -1,0 +1,21 @@
+{
+  "tool_id": "angsd",
+  "stage_id": "vcf.call_pseudohaploid",
+  "sampling_policy": "seeded_haploid_projection",
+  "random_seed": 42,
+  "argv": [
+    "angsd",
+    "-b",
+    "bam.list",
+    "-ref",
+    "ref.fa",
+    "-doHaploCall",
+    "1",
+    "-doCounts",
+    "1",
+    "-seed",
+    "42",
+    "-out",
+    "pseudo"
+  ]
+}

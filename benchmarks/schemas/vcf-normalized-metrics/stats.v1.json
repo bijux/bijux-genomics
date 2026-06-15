@@ -1,0 +1,66 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.stats.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "indel_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.stats.v1"
+        },
+        "snp_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage_id": {
+          "const": "vcf.stats"
+        },
+        "ti_tv": {
+          "type": "number"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "transition_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "transversion_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "variant_count": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "variant_count",
+        "snp_count",
+        "indel_count",
+        "transition_count",
+        "transversion_count",
+        "ti_tv",
+        "sample_count"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_stats_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.stats`.",
+  "title": "VCF normalized benchmark metrics: vcf.stats"
+}

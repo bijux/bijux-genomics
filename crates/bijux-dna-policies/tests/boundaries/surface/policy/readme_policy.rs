@@ -1,4 +1,6 @@
 #![allow(non_snake_case)]
+#![allow(clippy::expect_used, clippy::unwrap_used, clippy::too_many_lines)]
+
 #[path = "../../../support/fs.rs"]
 mod support;
 

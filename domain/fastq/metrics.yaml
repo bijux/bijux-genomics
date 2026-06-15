@@ -15,6 +15,7 @@ metric_ids:
   - candidate_adapter_count
   - chimera_fraction
   - chimeras_removed
+  - clustering_threshold
   - contaminant_fraction_removed
   - ct_ga_asymmetry_post
   - ct_ga_asymmetry_pre
@@ -62,6 +63,7 @@ metric_ids:
   - reads_total
   - reads_with_umi
   - representative_count
+  - representative_sequence_count
   - rrna_fraction_removed
   - reads_unmerged
   - reads_valid
@@ -83,6 +85,7 @@ metric_ids:
   - aggregation_scope
   - assigned_reads
   - bundle_file_count
+  - classified_reads
   - classified_fraction
   - classifier
   - contaminant_policy
@@ -92,11 +95,15 @@ metric_ids:
   - dedup_mode
   - depletion_summary
   - distinct_lengths
+  - duplicate_count
   - duplicate_class_count
+  - duplicate_fraction
   - duplicate_provenance_json
   - duplicate_signal_fraction
   - duplicates_removed
   - duplication_rate
+  - estimated_complexity
+  - insufficient_data_reason
   - emit_unclassified
   - execution_policy
   - failure_class
@@ -105,6 +112,7 @@ metric_ids:
   - governed_qc_contributor_tool_ids
   - governed_qc_input_count
   - governed_qc_lineage_hash
+  - inspected_pair_count
   - keep_order
   - kmer_warning_count
   - lane_count
@@ -136,10 +144,12 @@ metric_ids:
   - source_record_count
   - source_sequence_count
   - strict_pass
+  - taxonomy_database_id
   - threads
   - tool
   - top_taxa
   - trim_polyg
+  - unclassified_reads
   - unclassified_fraction
   - validated_inputs
   - validated_pairs
@@ -150,3 +160,54 @@ metric_ids:
   - primer_count
   - reads_sampled
   - estimated_duplicate_fraction
+  - adapter_report
+  - bases_removed
+  - changed_reads
+  - chimera_count
+  - contaminant_hit_rate
+  - contaminant_reads
+  - corrected_reads
+  - depleted_reads
+  - depletion_rate
+  - detected_adapter_ids
+  - detection_confidence
+  - detection_threshold
+  - discarded_pair_count
+  - duplicate_detection_policy
+  - duplicate_reads
+  - elapsed_time_s
+  - extracted_umi_count
+  - failed_extractions
+  - feature_count
+  - filtered_fastq_r1
+  - filtered_fastq_r2
+  - host_hit_rate
+  - index_directory
+  - index_files
+  - index_size_bytes
+  - input_pair_count
+  - input_reads
+  - invalid_umi_count
+  - matched_primers
+  - measurement_scope
+  - median_read_length
+  - merged_pair_count
+  - min_read_length
+  - non_chimera_count
+  - normalization_method
+  - numeric_output_valid
+  - output_reads
+  - reads_removed
+  - reads_retained
+  - removed_reads
+  - retained_reads
+  - sample_totals
+  - tag_header_format
+  - trim_3p_bases
+  - trim_5p_bases
+  - trimmed_primer_bases
+  - trimmed_tail_count
+  - unchanged_reads
+  - unique_reads
+  - unmatched_reads
+  - unmerged_pair_count

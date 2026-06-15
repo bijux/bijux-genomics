@@ -127,7 +127,7 @@ fn stage_metric_spec_profile(kind: defs::StageMetricKind) -> Option<defs::StageM
         )),
         defs::StageMetricKind::FastqDetectAdapters => Some(stage_metric_spec_entry(
             "fastq.detect_adapters",
-            1,
+            2,
             &fields::FASTQ_DETECT_ADAPTERS_METRICS,
             &fields::FASTQ_DETECT_ADAPTERS_INVARIANTS,
         )),

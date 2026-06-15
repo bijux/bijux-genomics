@@ -1,0 +1,7 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chr1	LN:125
+@RG	ID:rg-genotyping-human-like	SM:human_like_genotyping_candidate_panel
+genotype_site_read_1	0	chr1	10	60	12M	*	0	0	CGTACGTACGTA	FFFFFFFFFFFF	RG:Z:rg-genotyping-human-like
+genotype_site_read_2	0	chr1	40	60	12M	*	0	0	ACGTACGTACGT	FFFFFFFFFFFF	RG:Z:rg-genotyping-human-like
+genotype_site_read_3	0	chr1	70	60	12M	*	0	0	TACGTACGTACG	FFFFFFFFFFFF	RG:Z:rg-genotyping-human-like
+genotype_site_read_4	0	chr1	90	60	12M	*	0	0	GTACGTACGTAC	FFFFFFFFFFFF	RG:Z:rg-genotyping-human-like

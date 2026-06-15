@@ -1,0 +1,137 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_gl_propagation_ready.v1",
+  "output_path": "benchmarks/readiness/vcf/gl-propagation-ready.json",
+  "retained_row_count": 1,
+  "active_row_count": 1,
+  "complete_row_count": 1,
+  "incomplete_row_count": 0,
+  "checked_surface_count": 8,
+  "required_metric_names": [
+    "input_likelihood_fields",
+    "output_likelihood_fields",
+    "lost_fields",
+    "site_count_before",
+    "site_count_after",
+    "sample_count"
+  ],
+  "tool_status_counts": {
+    "production": 1
+  },
+  "coverage_status_counts": {
+    "complete": 1
+  },
+  "violation_count": 0,
+  "ok": true,
+  "rows": [
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.gl_propagation:vcf_single_sample:bcftools",
+      "stage_id": "vcf.gl_propagation",
+      "tool_id": "bcftools",
+      "tool_status": "production",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "adapter_id": "vcf.adapter.transform",
+      "parser_id": "vcf.parser.vcf_output",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.gl-propagation.v1",
+      "retained_scope_state": "active",
+      "retained_scope_detail": "active",
+      "retained_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "all_domain_active_row_present": true,
+      "all_domain_active_row_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_ready": true,
+      "command_source": "vcf_bcftools_adapter",
+      "command_step_count": 2,
+      "command_step_ids": [
+        "propagate_gl_fields",
+        "index_gl_propagated_vcf"
+      ],
+      "primary_executables": [
+        "bcftools",
+        "bcftools"
+      ],
+      "command_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
+      "command_argv_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl",
+      "output_ready": true,
+      "output_proof_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
+      "raw_outputs": [
+        "gl_propagated_vcf=benchmarks/readiness/adapters/bcftools/vcf.gl_propagation/gl_propagated_vcf.vcf.gz"
+      ],
+      "normalized_metrics_outputs": [
+        "gl_propagated_vcf=benchmarks/readiness/adapters/bcftools/vcf.gl_propagation/gl_propagated_vcf.vcf.gz"
+      ],
+      "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.gl_propagation/{sample_scope}/bcftools/stage-result.json",
+      "index_outputs": [
+        "gl_propagated_vcf_tbi=benchmarks/readiness/adapters/bcftools/vcf.gl_propagation/gl_propagated_vcf.vcf.gz.tbi"
+      ],
+      "parser_ready": true,
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
+      "parser_fixture_parser_id": "parse_bcftools_gl_propagation_metrics",
+      "parser_fixture_schema_id": "bijux.vcf.gl_propagation.v1",
+      "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.gl_propagation",
+      "expected_result_ready": true,
+      "expected_result_proof_path": "benchmarks/readiness/vcf-expected-benchmark-results.tsv",
+      "expected_outputs": [
+        "gl_propagated_vcf"
+      ],
+      "expected_metrics": [
+        "input_likelihood_fields",
+        "output_likelihood_fields",
+        "lost_fields",
+        "site_count_before",
+        "site_count_after",
+        "sample_count"
+      ],
+      "report_section_id": "likelihood_postprocess",
+      "report_ready": true,
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
+      "summary_table_id": "likelihood_postprocess_metrics",
+      "report_metric_columns": [
+        "input_likelihood_fields",
+        "output_likelihood_fields",
+        "lost_fields",
+        "site_count_before",
+        "site_count_after",
+        "sample_count"
+      ],
+      "smoke_ready": true,
+      "smoke_command": "bijux-dna bench local run-vcf-gl-propagation-smoke --tool-id bcftools",
+      "smoke_output_root": "runs/bench/local-smoke/vcf.gl_propagation/bcftools",
+      "smoke_output_vcf_path": "runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz",
+      "smoke_output_tbi_path": "runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz.tbi",
+      "smoke_output_bcf_path": "runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf",
+      "smoke_output_bcf_csi_path": "runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf.csi",
+      "smoke_report_path": "runs/bench/local-smoke/vcf.gl_propagation/bcftools/gl_propagation_report.json",
+      "smoke_metrics_path": "runs/bench/local-smoke/vcf.gl_propagation/bcftools/metrics.json",
+      "smoke_stage_result_manifest_path": "runs/bench/local-smoke/vcf.gl_propagation/bcftools/stage-result.json",
+      "smoke_parseable": true,
+      "smoke_gt_present": true,
+      "smoke_gl_present": true,
+      "smoke_input_likelihood_fields": [
+        "GL",
+        "GP",
+        "PL"
+      ],
+      "smoke_output_likelihood_fields": [
+        "GL",
+        "GP",
+        "PL"
+      ],
+      "smoke_lost_fields": [],
+      "smoke_site_count_before": 3,
+      "smoke_site_count_after": 3,
+      "smoke_sample_count": 1,
+      "required_metric_names": [
+        "input_likelihood_fields",
+        "output_likelihood_fields",
+        "lost_fields",
+        "site_count_before",
+        "site_count_after",
+        "sample_count"
+      ],
+      "missing_surfaces": [],
+      "coverage_status": "complete",
+      "reason": "active retained VCF GL propagation caller `bcftools` keeps active scope, command, output, parser, expected-result, report, and likelihood-preserving smoke proof for `vcf.gl_propagation`"
+    }
+  ],
+  "violations": []
+}

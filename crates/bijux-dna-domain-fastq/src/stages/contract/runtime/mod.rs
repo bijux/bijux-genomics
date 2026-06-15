@@ -25,17 +25,21 @@ mod edna_branch;
 mod estimate_library_complexity_prealign;
 mod extract_umis;
 mod fastq_io;
+mod filter_low_complexity;
 mod header_inspection;
 mod interleave_reads;
 mod layout_classification;
+mod merge_pairs;
 mod merge_suitability;
 mod normalize_read_names;
 mod output_normalization;
 mod prepare_adapter_bank;
 mod prepare_host_reference_bundle;
 mod prepare_primer_bank;
+mod profile_overrepresented_sequences;
 mod provenance_snapshot;
 mod qc_manifest;
+mod remove_duplicates;
 mod repair_pairs;
 mod screen_taxonomy;
 mod subsample_reads;
@@ -63,24 +67,37 @@ pub use edna_branch::{
 };
 pub use estimate_library_complexity_prealign::estimate_library_complexity_prealign;
 pub use extract_umis::extract_umis;
+pub use filter_low_complexity::filter_low_complexity;
 pub use header_inspection::{
     ensure_umi_headers, inspect_headers, log_header_warnings, HeaderInspection,
 };
 pub use interleave_reads::interleave_reads;
 pub use layout_classification::{classify_layout, ensure_layout_is_coherent};
+#[allow(unused_imports)]
+pub use merge_pairs::merge_pairs;
 pub use merge_suitability::{assess_merge_suitability, MergeSuitability};
 pub use normalize_read_names::normalize_read_names;
 pub use output_normalization::{find_first_fastq, normalize_outputs, NormalizedOutputs};
 pub use prepare_adapter_bank::prepare_adapter_bank;
 pub use prepare_host_reference_bundle::prepare_host_reference_bundle;
 pub use prepare_primer_bank::prepare_primer_bank;
+pub use profile_overrepresented_sequences::profile_overrepresented_sequences;
 pub use provenance_snapshot::capture_provenance_snapshot;
 pub use qc_manifest::materialize_qc_manifest;
+pub use remove_duplicates::remove_duplicates;
 pub use repair_pairs::repair_pairs;
 pub use screen_taxonomy::screen_taxonomy;
 pub use subsample_reads::{subsample_reads, SubsampleTarget};
 pub use trim_reads::trim_reads;
 pub use validate_reads::validate_reads;
+
+/// Compare FASTQ inputs and outputs record-by-record to count changed versus unchanged reads.
+///
+/// # Errors
+/// Returns an error when either FASTQ input is malformed.
+pub fn count_changed_fastq_reads(input: &Path, output: &Path) -> Result<(u64, u64)> {
+    fastq_io::count_changed_fastq_reads(input, output)
+}
 
 /// Validate that a stage can accept the provided input kind.
 ///

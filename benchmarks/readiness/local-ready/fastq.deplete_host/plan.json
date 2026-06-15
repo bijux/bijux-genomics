@@ -1,0 +1,115 @@
+{
+  "stage_id": "fastq.deplete_host",
+  "stage_instance_id": "fastq.deplete_host.tool.bowtie2",
+  "stage_version": 1,
+  "tool_id": "bowtie2",
+  "tool_version": "2.5.4",
+  "image": {
+    "image": "bijuxdna/bowtie2",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "bowtie2",
+      "-x",
+      "assets/reference/host/references/toy_host_reference",
+      "--threads",
+      "4",
+      "-S",
+      "/dev/null",
+      "-U",
+      "assets/toy/core-v1/fastq/reads_1.fastq",
+      "--un-gz",
+      "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted.fastq.gz",
+      "--al-gz",
+      "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host.fastq.gz",
+      "--met-file",
+      "benchmarks/readiness/local-ready/fastq.deplete_host/bowtie2.host.metrics.txt"
+    ]
+  },
+  "resources": {
+    "runtime": "local",
+    "mem_gb": 8,
+    "tmp_gb": 8,
+    "threads": 4
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "assets/toy/core-v1/fastq/reads_1.fastq",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "reference_index",
+        "path": "assets/reference/host/references/toy_host_reference",
+        "role": "index",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "host_depleted_reads_r1",
+        "path": "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "removed_host_reads_r1",
+        "path": "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "host_depletion_report_json",
+        "path": "benchmarks/readiness/local-ready/fastq.deplete_host/host_depletion_report.json",
+        "role": "report_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "benchmarks/readiness/local-ready/fastq.deplete_host",
+  "params": {
+    "host_identity_threshold": 0.95,
+    "input_r1": "assets/toy/core-v1/fastq/reads_1.fastq",
+    "output": "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted.fastq.gz",
+    "raw_backend_report": "benchmarks/readiness/local-ready/fastq.deplete_host/bowtie2.host.metrics.txt",
+    "raw_backend_report_format": "bowtie2_met_file",
+    "reference_index": "assets/reference/host/references/toy_host_reference",
+    "reference_index_backend": "bowtie2_build",
+    "removed_host_reads": "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host.fastq.gz",
+    "report_json": "benchmarks/readiness/local-ready/fastq.deplete_host/host_depletion_report.json",
+    "retain_unmapped_only": true,
+    "threads": 4,
+    "tool": "bowtie2"
+  },
+  "effective_params": {
+    "decoy_catalog_id": null,
+    "decoy_policy": "none",
+    "emit_removed_reads": true,
+    "identity_threshold": 0.95,
+    "masking_policy": "unmasked",
+    "paired_mode": "single_end",
+    "reference_build_id": null,
+    "reference_catalog_id": "host_reference",
+    "reference_digest": null,
+    "reference_index_artifact_id": "reference_index",
+    "reference_index_backend": "bowtie2_build",
+    "reference_scope": "host",
+    "report_format": "bowtie2_metrics_file",
+    "retain_unmapped_pairs": false,
+    "retained_read_policy": "keep_non_host_reads",
+    "schema_version": "bijux.fastq.params.deplete_host.v1",
+    "threads": 4
+  },
+  "operating_mode": "enforced",
+  "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}

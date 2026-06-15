@@ -1,0 +1,145 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_filter_ready.v1",
+  "output_path": "benchmarks/readiness/vcf/filter-ready.json",
+  "retained_row_count": 1,
+  "active_row_count": 1,
+  "complete_row_count": 1,
+  "incomplete_row_count": 0,
+  "checked_surface_count": 8,
+  "required_metric_names": [
+    "input_variants",
+    "pass_variants",
+    "failed_variants",
+    "filter_ids",
+    "depth_threshold",
+    "quality_threshold",
+    "missingness_threshold",
+    "sample_count"
+  ],
+  "tool_status_counts": {
+    "production": 1
+  },
+  "coverage_status_counts": {
+    "complete": 1
+  },
+  "violation_count": 0,
+  "ok": true,
+  "rows": [
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools",
+      "stage_id": "vcf.filter",
+      "tool_id": "bcftools",
+      "tool_status": "production",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "adapter_id": "vcf.adapter.transform",
+      "parser_id": "vcf.parser.vcf_output",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.filter.v1",
+      "retained_scope_state": "active",
+      "retained_scope_detail": "active",
+      "retained_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "all_domain_active_row_present": true,
+      "all_domain_active_row_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_ready": true,
+      "command_source": "vcf_bcftools_adapter",
+      "command_step_count": 2,
+      "command_step_ids": [
+        "filter_sites",
+        "index_filtered_vcf"
+      ],
+      "primary_executables": [
+        "bcftools",
+        "bcftools"
+      ],
+      "command_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
+      "command_argv_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl",
+      "output_ready": true,
+      "output_proof_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
+      "raw_outputs": [
+        "filtered_vcf=benchmarks/readiness/adapters/bcftools/vcf.filter/filtered_vcf.vcf.gz"
+      ],
+      "normalized_metrics_outputs": [
+        "filtered_vcf=benchmarks/readiness/adapters/bcftools/vcf.filter/filtered_vcf.vcf.gz"
+      ],
+      "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.filter/{sample_scope}/bcftools/stage-result.json",
+      "index_outputs": [
+        "filtered_vcf_tbi=benchmarks/readiness/adapters/bcftools/vcf.filter/filtered_vcf.vcf.gz.tbi"
+      ],
+      "parser_ready": true,
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
+      "parser_fixture_parser_id": "parse_bcftools_filter_metrics",
+      "parser_fixture_schema_id": "bijux.vcf.filter.v1",
+      "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter",
+      "expected_result_ready": true,
+      "expected_result_proof_path": "benchmarks/readiness/vcf-expected-benchmark-results.tsv",
+      "expected_outputs": [
+        "filtered_vcf"
+      ],
+      "expected_metrics": [
+        "input_variants",
+        "pass_variants",
+        "failed_variants",
+        "filter_ids",
+        "depth_threshold",
+        "quality_threshold",
+        "missingness_threshold",
+        "sample_count"
+      ],
+      "report_section_id": "quality_control",
+      "report_ready": true,
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
+      "summary_table_id": "quality_control_metrics",
+      "report_metric_columns": [
+        "input_variants",
+        "pass_variants",
+        "failed_variants",
+        "filter_ids",
+        "depth_threshold",
+        "quality_threshold",
+        "missingness_threshold",
+        "sample_count"
+      ],
+      "smoke_ready": true,
+      "smoke_command": "bijux-dna bench local run-vcf-filter-smoke --tool-id bcftools",
+      "smoke_output_root": "runs/bench/local-smoke/vcf.filter/bcftools",
+      "smoke_input_vcf_path": "runs/bench/local-smoke/vcf.filter/bcftools/artifacts/input/filter_input.vcf",
+      "smoke_output_vcf_path": "runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz",
+      "smoke_output_tbi_path": "runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz.tbi",
+      "smoke_metrics_path": "runs/bench/local-smoke/vcf.filter/bcftools/metrics.json",
+      "smoke_filter_breakdown_path": "runs/bench/local-smoke/vcf.filter/bcftools/filter_breakdown.json",
+      "smoke_filter_breakdown_tsv_path": "runs/bench/local-smoke/vcf.filter/bcftools/filter_breakdown.tsv",
+      "smoke_filter_explain_path": "runs/bench/local-smoke/vcf.filter/bcftools/filter_explain.json",
+      "smoke_stage_result_manifest_path": "runs/bench/local-smoke/vcf.filter/bcftools/stage-result.json",
+      "smoke_parseable": true,
+      "smoke_gt_present": true,
+      "smoke_gl_present": false,
+      "smoke_input_variants": 5,
+      "smoke_pass_variants": 1,
+      "smoke_failed_variants": 4,
+      "smoke_filter_ids": [
+        "HIGH_MISSING",
+        "LOWQUAL",
+        "LOW_DP",
+        "LOW_MQ"
+      ],
+      "smoke_depth_threshold": 8.0,
+      "smoke_quality_threshold": 30.0,
+      "smoke_missingness_threshold": 0.2,
+      "smoke_sample_count": 1,
+      "required_metric_names": [
+        "input_variants",
+        "pass_variants",
+        "failed_variants",
+        "filter_ids",
+        "depth_threshold",
+        "quality_threshold",
+        "missingness_threshold",
+        "sample_count"
+      ],
+      "missing_surfaces": [],
+      "coverage_status": "complete",
+      "reason": "active retained VCF filter caller `bcftools` keeps active scope, command, output, parser, expected-result, report, and threshold-normalized smoke proof for `vcf.filter`"
+    }
+  ],
+  "violations": []
+}

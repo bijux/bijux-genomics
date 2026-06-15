@@ -6,6 +6,32 @@ use super::{
 
 use super::set_assets_readonly;
 
+const VALIDATION_PASS_BAM_BYTES: &[u8] = &[
+    31, 139, 8, 4, 0, 0, 0, 0, 0, 255, 6, 0, 66, 67, 2, 0, 235, 0, 141, 80, 177, 110, 194, 48, 16,
+    13, 3, 131, 243, 5, 140, 30, 97, 112, 140, 169, 232, 224, 41, 45, 72, 45, 18, 4, 104, 68, 87,
+    116, 9, 46, 53, 34, 49, 242, 153, 0, 127, 143, 3, 8, 6, 22, 134, 123, 122, 186, 187, 247, 244,
+    238, 62, 63, 38, 141, 86, 35, 8, 226, 239, 33, 249, 77, 164, 136, 222, 73, 58, 149, 185, 49,
+    118, 165, 75, 112, 42, 140, 211, 57, 73, 19, 153, 255, 91, 65, 198, 137, 236, 119, 195, 248,
+    231, 139, 140, 134, 210, 174, 5, 73, 39, 126, 213, 42, 86, 9, 182, 3, 196, 48, 158, 93, 70, 8,
+    133, 51, 102, 139, 100, 150, 60, 248, 197, 189, 247, 22, 9, 218, 222, 157, 124, 183, 67, 6,
+    227, 251, 148, 86, 90, 29, 40, 203, 40, 51, 148, 47, 80, 89, 228, 153, 222, 64, 89, 227, 254,
+    120, 69, 182, 86, 165, 41, 116, 142, 28, 172, 211, 127, 144, 59, 228, 21, 108, 245, 10, 156,
+    54, 229, 178, 14, 16, 101, 80, 188, 162, 71, 84, 94, 236, 204, 137, 223, 226, 115, 47, 124, 50,
+    243, 225, 66, 255, 154, 160, 233, 171, 190, 63, 232, 121, 114, 6, 166, 14, 77, 99, 49, 1, 0, 0,
+    31, 139, 8, 4, 0, 0, 0, 0, 0, 255, 6, 0, 66, 67, 2, 0, 79, 0, 179, 100, 64, 0, 86, 27, 79, 33,
+    70, 134, 100, 6, 54, 40, 31, 70, 23, 25, 24, 24, 50, 36, 0, 25, 66, 30, 66, 170, 96, 16, 228,
+    30, 85, 148, 110, 200, 96, 137, 164, 16, 162, 121, 50, 92, 19, 3, 186, 230, 14, 65, 13, 20,
+    205, 0, 47, 32, 160, 28, 122, 0, 0, 0, 31, 139, 8, 4, 0, 0, 0, 0, 0, 255, 6, 0, 66, 67, 2, 0,
+    27, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+];
+
+const VALIDATION_PASS_BAI_BYTES: &[u8] = &[
+    66, 65, 73, 1, 1, 0, 0, 0, 2, 0, 0, 0, 73, 18, 0, 0, 1, 0, 0, 0, 0, 0, 236, 0, 0, 0, 0, 0, 0,
+    0, 60, 1, 0, 0, 0, 0, 74, 146, 0, 0, 2, 0, 0, 0, 0, 0, 236, 0, 0, 0, 0, 0, 0, 0, 60, 1, 0, 0,
+    0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 236, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0,
+];
+
 fn with_assets_writable<F>(workspace: &Workspace, action: F) -> Result<OpsCommandOutcome>
 where
     F: FnOnce() -> Result<OpsCommandOutcome>,
@@ -143,6 +169,8 @@ pub(super) fn assets_refresh_toy(
             .with_context(|| format!("create {}", stage_dir.join("bam").display()))?;
         bijux_dna_infra::ensure_dir(stage_dir.join("vcf"))
             .with_context(|| format!("create {}", stage_dir.join("vcf").display()))?;
+        bijux_dna_infra::ensure_dir(stage_dir.join("tables"))
+            .with_context(|| format!("create {}", stage_dir.join("tables").display()))?;
         if let Some(parent) = report_path.parent() {
             bijux_dna_infra::ensure_dir(parent)
                 .with_context(|| format!("create {}", parent.display()))?;
@@ -161,18 +189,82 @@ pub(super) fn assets_refresh_toy(
             "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:1000\nread1\t0\tchr1\t1\t60\t12M\t*\t0\t0\tACGTTGCAACGT\tFFFFFFFFFFFF\nread2\t0\tchr1\t50\t60\t12M\t*\t0\t0\tTGCATGCATGCA\tFFFFFFFFFFFF\n",
         )?;
         write_utf8(
+            &stage_dir.join("bam/qc_pre_core_metrics.sam"),
+            "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:100\n@SQ\tSN:chr2\tLN:80\n@RG\tID:rg1\tSM:core-v1-qc-pre\nr001\t0\tchr1\t5\t60\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tRG:Z:rg1\nr002\t1024\tchr1\t20\t25\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\nr003\t0\tchr2\t10\t10\t8M\t*\t0\t0\tCCGGAATT\tFFFFFFFF\tRG:Z:rg1\n",
+        )?;
+        write_utf8(
+            &stage_dir.join("bam/mapping_summary_partial_mapping.sam"),
+            "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:50\n@RG\tID:rg1\tSM:core-v1-mapping-summary\nr001\t0\tchr1\t1\t45\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\nr002\t0\tchr1\t10\t20\t6M\t*\t0\t0\tTGCATG\tFFFFFF\tRG:Z:rg1\nr003\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
+        )?;
+        write_utf8(
+            &stage_dir.join("bam/filter_mixed_constraints.sam"),
+            "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:100\n@RG\tID:rg1\tSM:core-v1-filter\ngood001\t0\tchr1\t1\t60\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tRG:Z:rg1\nlowq001\t0\tchr1\t10\t10\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\nshort001\t0\tchr1\t20\t60\t6M\t*\t0\t0\tGATTAC\tFFFFFF\tRG:Z:rg1\ndup001\t1024\tchr1\t30\t60\t8M\t*\t0\t0\tCCCCGGGG\tFFFFFFFF\tRG:Z:rg1\nunmap001\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNNNN\tFFFFFFFF\tRG:Z:rg1\n",
+        )?;
+        write_utf8(
+            &stage_dir.join("bam/mapq_threshold_ladder.sam"),
+            "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:100\n@RG\tID:rg1\tSM:core-v1-mapq-filter\nmapq60\t0\tchr1\t1\t60\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tRG:Z:rg1\nmapq30\t0\tchr1\t12\t30\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\nmapq10\t0\tchr1\t24\t10\t8M\t*\t0\t0\tGGGGTTTT\tFFFFFFFF\tRG:Z:rg1\nunmapped\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNNNN\tFFFFFFFF\tRG:Z:rg1\n",
+        )?;
+        write_utf8(
+            &stage_dir.join("bam/length_threshold_ladder.sam"),
+            "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:100\n@RG\tID:rg1\tSM:core-v1-length-filter\nlen12\t0\tchr1\t1\t60\t12M\t*\t0\t0\tACGTACGTACGT\tFFFFFFFFFFFF\tRG:Z:rg1\nlen8\t0\tchr1\t20\t60\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\nlen5\t0\tchr1\t35\t60\t5M\t*\t0\t0\tGATTA\tFFFFF\tRG:Z:rg1\nunmapped10\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNNNNNN\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )?;
+        write_utf8(
+            &stage_dir.join("bam/validation_reference.fasta"),
+            ">chr1\nACGTACGTACGTACGTACGT\n",
+        )?;
+        fs::write(stage_dir.join("bam/validation_pass.bam"), VALIDATION_PASS_BAM_BYTES)?;
+        fs::write(stage_dir.join("bam/validation_pass.bam.bai"), VALIDATION_PASS_BAI_BYTES)?;
+        fs::write(stage_dir.join("bam/validation_malformed.bam"), b"not-bam\n")?;
+        write_utf8(
             &stage_dir.join("vcf/toy.vcf"),
             "##fileformat=VCFv4.2\n##contig=<ID=chr1,length=1000>\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\nchr1\t10\t.\tA\tG\t60\tPASS\t.\n",
+        )?;
+        write_utf8(
+            &stage_dir.join("tables/otu_abundance_small.tsv"),
+            "sample_id\tfeature_id\tabundance\nsample_a\totu_001\t10\nsample_a\totu_002\t30\nsample_b\totu_001\t5\nsample_b\totu_003\t5\n",
         )?;
 
         write_checksum_manifest(
             &stage_dir.join("CHECKSUMS.sha256"),
-            &["bam/toy.sam", "fastq/reads_1.fastq", "fastq/reads_2.fastq", "vcf/toy.vcf"],
+            &[
+                "bam/toy.sam",
+                "bam/qc_pre_core_metrics.sam",
+                "bam/mapping_summary_partial_mapping.sam",
+                "bam/filter_mixed_constraints.sam",
+                "bam/mapq_threshold_ladder.sam",
+                "bam/length_threshold_ladder.sam",
+                "bam/validation_malformed.bam",
+                "bam/validation_pass.bam",
+                "bam/validation_pass.bam.bai",
+                "bam/validation_reference.fasta",
+                "fastq/reads_1.fastq",
+                "fastq/reads_2.fastq",
+                "tables/otu_abundance_small.tsv",
+                "vcf/toy.vcf",
+            ],
         )?;
-        write_checksum_manifest(&stage_dir.join("bam/CHECKSUMS.sha256"), &["toy.sam"])?;
+        write_checksum_manifest(
+            &stage_dir.join("bam/CHECKSUMS.sha256"),
+            &[
+                "toy.sam",
+                "qc_pre_core_metrics.sam",
+                "mapping_summary_partial_mapping.sam",
+                "filter_mixed_constraints.sam",
+                "mapq_threshold_ladder.sam",
+                "length_threshold_ladder.sam",
+                "validation_malformed.bam",
+                "validation_pass.bam",
+                "validation_pass.bam.bai",
+                "validation_reference.fasta",
+            ],
+        )?;
         write_checksum_manifest(
             &stage_dir.join("fastq/CHECKSUMS.sha256"),
             &["reads_1.fastq", "reads_2.fastq"],
+        )?;
+        write_checksum_manifest(
+            &stage_dir.join("tables/CHECKSUMS.sha256"),
+            &["otu_abundance_small.tsv"],
         )?;
         write_checksum_manifest(&stage_dir.join("vcf/CHECKSUMS.sha256"), &["toy.vcf"])?;
 
@@ -193,6 +285,16 @@ Generated via `cargo run -p bijux-dna-dev -- assets run refresh-toy`.
 - `fastq/reads_1.fastq`
 - `fastq/reads_2.fastq`
 - `bam/toy.sam`
+- `bam/qc_pre_core_metrics.sam`
+- `bam/mapping_summary_partial_mapping.sam`
+- `bam/filter_mixed_constraints.sam`
+- `bam/mapq_threshold_ladder.sam`
+- `bam/length_threshold_ladder.sam`
+- `bam/validation_reference.fasta`
+- `bam/validation_pass.bam`
+- `bam/validation_pass.bam.bai`
+- `bam/validation_malformed.bam`
+- `tables/otu_abundance_small.tsv`
 - `vcf/toy.vcf`
 - `CHECKSUMS.sha256`
 ",

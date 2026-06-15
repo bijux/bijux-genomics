@@ -7,21 +7,43 @@ inputs:
   - name: "bam"
     data_type: "bam"
     cardinality: "One"
+  - name: "reference"
+    data_type: "fasta"
+    cardinality: "One"
 outputs:
-  - name: "gc_bias_report_json"
+  - name: "gc_bias_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "gc_bias_plot"
+    data_type: "png"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
     data_type: "json"
     cardinality: "One"
 parameters: []
 metrics:
+  - name: "gc_bias_score"
+    meaning: "Observed GC-bias score preserved in the governed BAM GC-bias benchmark row"
+  - name: "at_dropout"
+    meaning: "Observed AT-dropout percentage preserved in the governed BAM GC-bias benchmark row"
+  - name: "gc_dropout"
+    meaning: "Observed GC-dropout percentage preserved in the governed BAM GC-bias benchmark row"
   - name: "runtime_s"
     meaning: "Wall-clock runtime in seconds"
   - name: "memory_mb"
     meaning: "Peak memory usage in MB"
-description: "BAM GC-bias assessment stage contract."
+description: "BAM GC-bias stage contract with governed metrics report, plot, summary JSON, and benchmark-facing GC-dropout metrics."
 required_inputs:
   - bam
+  - reference
 required_outputs:
-  - gc_bias_report_json
+  - gc_bias_report
+  - gc_bias_plot
+  - summary
+  - stage_metrics
 tool_capability_requirements:
   - bam_input
   - reference_indexing
@@ -37,6 +59,7 @@ compatible_tools:
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "reference GC context and aligned read depth are available"
+  - "admitted GC-bias tools must preserve the governed metrics report, plot, summary JSON, and benchmark-facing dropout metric contract"
 bank_hooks:
   - "reference_bank"
 metrics_schema: "bijux.stage.metrics.v1"

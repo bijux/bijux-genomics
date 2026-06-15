@@ -20,13 +20,13 @@ The VCF domain mixes currently supported calling stages with many planned downst
 ## Supported Calling and Filtering
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
-| bcftools | `vcf.call`, `vcf.call_gl`, `vcf.call_diploid`, `vcf.call_pseudohaploid`, `vcf.damage_filter`, `vcf.gl_propagation`, `vcf.filter`, `vcf.stats` | DOI captured in governed tool contract | https://github.com/samtools/bcftools |
+| bcftools | `vcf.call`, `vcf.call_gl`, `vcf.call_diploid`, `vcf.call_pseudohaploid`, `vcf.damage_filter`, `vcf.gl_propagation`, `vcf.filter`, `vcf.qc`, `vcf.stats` | DOI captured in governed tool contract | https://github.com/samtools/bcftools |
 | angsd | `vcf.call_gl`, `vcf.call_pseudohaploid`, `vcf.damage_filter`, `vcf.gl_propagation` | paper-style citation captured in governed tool contract; runtime promotion still planned | https://github.com/ANGSD/angsd |
 
-## Planned Downstream Inference Families
+## Downstream Inference Families
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
-| beagle | `vcf.phasing`, `vcf.imputation`, `vcf.impute` | planned citation closure | https://faculty.washington.edu/browning/beagle/beagle.html |
+| beagle | `vcf.imputation_metrics`, `vcf.impute` | governed paper locator present | https://faculty.washington.edu/browning/beagle/beagle.html |
 | eagle | `vcf.phasing` | planned citation closure | https://alkesgroup.broadinstitute.org/Eagle/ |
 | eigensoft | `vcf.pca`, `vcf.population_structure` | planned citation closure | https://github.com/DReichLab/EIG |
 | germline | `vcf.ibd` | governed paper locator present; promotion and runtime evidence still pending | https://www.cs.columbia.edu/~gusev/germline/ |

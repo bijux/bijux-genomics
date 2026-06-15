@@ -1,0 +1,232 @@
+{
+  "schema_version": "bijux.bench.local_dag_watchdog_simulation.v1",
+  "scenario": "failure_isolation",
+  "config_path": "benchmarks/configs/pipelines/local/fastq-core-preprocess.toml",
+  "dag_report_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json",
+  "output_path": "benchmarks/readiness/local-ready/dag-sim/failure-isolation.json",
+  "pipeline_id": "fastq-core-preprocess",
+  "node_count": 14,
+  "sample_count": 2,
+  "simulated_makespan_seconds": 8,
+  "slow_branch_stage_id": "",
+  "slow_branch_finish_second": 0,
+  "ready_while_slow_branch_running_stage_ids": [],
+  "no_global_wait_proven": false,
+  "failed_sample_id": "sample_alpha",
+  "failed_stage_id": "fastq.detect_adapters",
+  "failure_second": 3,
+  "continued_unrelated_node_ids": [
+    "sample_beta::fastq.profile_read_lengths",
+    "sample_beta::fastq.trim_reads",
+    "sample_beta::fastq.filter_reads",
+    "sample_beta::fastq.profile_reads",
+    "sample_beta::fastq.report_qc"
+  ],
+  "blocked_node_ids": [
+    "sample_alpha::fastq.trim_reads",
+    "sample_alpha::fastq.filter_reads",
+    "sample_alpha::fastq.profile_reads",
+    "sample_alpha::fastq.report_qc"
+  ],
+  "failure_isolation_proven": true,
+  "reused_valid_node_ids": [],
+  "invalid_node_ids": [],
+  "missing_node_ids": [],
+  "planned_node_ids": [],
+  "partial_resume_proven": false,
+  "completion_check_stage_id": null,
+  "completion_checks": [],
+  "completion_rules_proven": false,
+  "nodes": [
+    {
+      "node_id": "sample_alpha::fastq.validate_reads",
+      "sample_id": "sample_alpha",
+      "stage_id": "fastq.validate_reads",
+      "status": "completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "start_second": 0,
+      "finish_second": 1,
+      "duration_seconds": 1
+    },
+    {
+      "node_id": "sample_alpha::fastq.profile_read_lengths",
+      "sample_id": "sample_alpha",
+      "stage_id": "fastq.profile_read_lengths",
+      "status": "completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "sample_alpha::fastq.validate_reads"
+      ],
+      "start_second": 1,
+      "finish_second": 7,
+      "duration_seconds": 6
+    },
+    {
+      "node_id": "sample_alpha::fastq.detect_adapters",
+      "sample_id": "sample_alpha",
+      "stage_id": "fastq.detect_adapters",
+      "status": "failed",
+      "dependency_count": 1,
+      "depends_on": [
+        "sample_alpha::fastq.validate_reads"
+      ],
+      "start_second": 1,
+      "finish_second": 3,
+      "duration_seconds": 2
+    },
+    {
+      "node_id": "sample_alpha::fastq.trim_reads",
+      "sample_id": "sample_alpha",
+      "stage_id": "fastq.trim_reads",
+      "status": "blocked",
+      "dependency_count": 2,
+      "depends_on": [
+        "sample_alpha::fastq.validate_reads",
+        "sample_alpha::fastq.detect_adapters"
+      ],
+      "start_second": 0,
+      "finish_second": 0,
+      "duration_seconds": 0
+    },
+    {
+      "node_id": "sample_alpha::fastq.filter_reads",
+      "sample_id": "sample_alpha",
+      "stage_id": "fastq.filter_reads",
+      "status": "blocked",
+      "dependency_count": 1,
+      "depends_on": [
+        "sample_alpha::fastq.trim_reads"
+      ],
+      "start_second": 0,
+      "finish_second": 0,
+      "duration_seconds": 0
+    },
+    {
+      "node_id": "sample_alpha::fastq.profile_reads",
+      "sample_id": "sample_alpha",
+      "stage_id": "fastq.profile_reads",
+      "status": "blocked",
+      "dependency_count": 1,
+      "depends_on": [
+        "sample_alpha::fastq.filter_reads"
+      ],
+      "start_second": 0,
+      "finish_second": 0,
+      "duration_seconds": 0
+    },
+    {
+      "node_id": "sample_alpha::fastq.report_qc",
+      "sample_id": "sample_alpha",
+      "stage_id": "fastq.report_qc",
+      "status": "blocked",
+      "dependency_count": 6,
+      "depends_on": [
+        "sample_alpha::fastq.validate_reads",
+        "sample_alpha::fastq.profile_read_lengths",
+        "sample_alpha::fastq.detect_adapters",
+        "sample_alpha::fastq.trim_reads",
+        "sample_alpha::fastq.filter_reads",
+        "sample_alpha::fastq.profile_reads"
+      ],
+      "start_second": 0,
+      "finish_second": 0,
+      "duration_seconds": 0
+    },
+    {
+      "node_id": "sample_beta::fastq.validate_reads",
+      "sample_id": "sample_beta",
+      "stage_id": "fastq.validate_reads",
+      "status": "completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "start_second": 0,
+      "finish_second": 1,
+      "duration_seconds": 1
+    },
+    {
+      "node_id": "sample_beta::fastq.profile_read_lengths",
+      "sample_id": "sample_beta",
+      "stage_id": "fastq.profile_read_lengths",
+      "status": "completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "sample_beta::fastq.validate_reads"
+      ],
+      "start_second": 1,
+      "finish_second": 7,
+      "duration_seconds": 6
+    },
+    {
+      "node_id": "sample_beta::fastq.detect_adapters",
+      "sample_id": "sample_beta",
+      "stage_id": "fastq.detect_adapters",
+      "status": "completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "sample_beta::fastq.validate_reads"
+      ],
+      "start_second": 1,
+      "finish_second": 3,
+      "duration_seconds": 2
+    },
+    {
+      "node_id": "sample_beta::fastq.trim_reads",
+      "sample_id": "sample_beta",
+      "stage_id": "fastq.trim_reads",
+      "status": "completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "sample_beta::fastq.validate_reads",
+        "sample_beta::fastq.detect_adapters"
+      ],
+      "start_second": 3,
+      "finish_second": 4,
+      "duration_seconds": 1
+    },
+    {
+      "node_id": "sample_beta::fastq.filter_reads",
+      "sample_id": "sample_beta",
+      "stage_id": "fastq.filter_reads",
+      "status": "completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "sample_beta::fastq.trim_reads"
+      ],
+      "start_second": 4,
+      "finish_second": 5,
+      "duration_seconds": 1
+    },
+    {
+      "node_id": "sample_beta::fastq.profile_reads",
+      "sample_id": "sample_beta",
+      "stage_id": "fastq.profile_reads",
+      "status": "completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "sample_beta::fastq.filter_reads"
+      ],
+      "start_second": 5,
+      "finish_second": 6,
+      "duration_seconds": 1
+    },
+    {
+      "node_id": "sample_beta::fastq.report_qc",
+      "sample_id": "sample_beta",
+      "stage_id": "fastq.report_qc",
+      "status": "completed",
+      "dependency_count": 6,
+      "depends_on": [
+        "sample_beta::fastq.validate_reads",
+        "sample_beta::fastq.profile_read_lengths",
+        "sample_beta::fastq.detect_adapters",
+        "sample_beta::fastq.trim_reads",
+        "sample_beta::fastq.filter_reads",
+        "sample_beta::fastq.profile_reads"
+      ],
+      "start_second": 7,
+      "finish_second": 8,
+      "duration_seconds": 1
+    }
+  ]
+}

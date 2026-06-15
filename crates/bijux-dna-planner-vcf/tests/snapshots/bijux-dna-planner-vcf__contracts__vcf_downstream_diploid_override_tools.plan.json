@@ -55,8 +55,12 @@
       "command": {
         "template": [
           "bcftools",
-          "prepare-panel",
-          "--lock"
+          "norm",
+          "-m-any",
+          "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+          "-Oz",
+          "-o",
+          "out/prepared_panel.vcf.gz"
         ]
       },
       "effective_params": {
@@ -106,10 +110,10 @@
       "io": {
         "inputs": [
           {
-            "name": "vcf",
+            "name": "reference_panel_vcf",
             "optional": false,
-            "path": "out/panel.vcf.gz",
-            "role": "reads"
+            "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+            "role": "variant"
           }
         ],
         "outputs": [
@@ -117,7 +121,7 @@
             "name": "prepared_panel",
             "optional": false,
             "path": "out/prepared_panel.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           },
           {
             "name": "chunks_json",
@@ -195,8 +199,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "bcftools",
-          "--help"
+          "sh",
+          "-lc",
+          "bcftools mpileup -Ou -f 'benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta' 'benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam' | bcftools call -mv -Oz -o 'out/diploid_vcf.vcf.gz'"
         ]
       },
       "effective_params": {
@@ -219,10 +224,22 @@
       "io": {
         "inputs": [
           {
-            "name": "vcf",
+            "name": "input_bam",
             "optional": false,
-            "path": "sample.vcf.gz",
-            "role": "reads"
+            "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
+            "role": "bam"
+          },
+          {
+            "name": "input_bam_index",
+            "optional": false,
+            "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai",
+            "role": "index"
+          },
+          {
+            "name": "reference_fasta",
+            "optional": false,
+            "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+            "role": "reference"
           }
         ],
         "outputs": [
@@ -230,7 +247,7 @@
             "name": "diploid_vcf",
             "optional": false,
             "path": "out/diploid_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ]
       },
@@ -277,7 +294,12 @@
         "template": [
           "bcftools",
           "filter",
-          "--damage-aware"
+          "-e",
+          "((REF=\"C\" && ALT=\"T\") || (REF=\"G\" && ALT=\"A\")) && INFO/PMD>3",
+          "out/diploid_vcf.vcf.gz",
+          "-Oz",
+          "-o",
+          "out/damage_filtered_vcf.vcf.gz"
         ]
       },
       "effective_params": {
@@ -325,7 +347,7 @@
             "name": "vcf",
             "optional": false,
             "path": "out/diploid_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [
@@ -333,7 +355,7 @@
             "name": "damage_filtered_vcf",
             "optional": false,
             "path": "out/damage_filtered_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ]
       },
@@ -401,7 +423,15 @@
       "command": {
         "template": [
           "bcftools",
-          "--help"
+          "filter",
+          "-s",
+          "LOWQUAL",
+          "-e",
+          "QUAL<30",
+          "out/damage_filtered_vcf.vcf.gz",
+          "-Oz",
+          "-o",
+          "out/filtered_vcf.vcf.gz"
         ]
       },
       "effective_params": {
@@ -427,7 +457,7 @@
             "name": "vcf",
             "optional": false,
             "path": "out/damage_filtered_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [
@@ -435,7 +465,7 @@
             "name": "filtered_vcf",
             "optional": false,
             "path": "out/filtered_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ]
       },
@@ -480,10 +510,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "eagle",
-          "phase",
-          "--input",
-          "vcf"
+          "sh",
+          "-lc",
+          "eagle --vcfTarget 'out/filtered_vcf.vcf.gz' --vcfRef 'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf' --geneticMapFile 'artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' --outPrefix 'out/phased_vcf' --numThreads 8 > 'out/phased_vcf.log' 2>&1 && bcftools index -t 'out/phased_vcf.vcf.gz'"
         ]
       },
       "effective_params": {
@@ -1165,7 +1194,19 @@
             "name": "vcf",
             "optional": false,
             "path": "out/filtered_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
+          },
+          {
+            "name": "reference_panel_vcf",
+            "optional": false,
+            "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+            "role": "variant"
+          },
+          {
+            "name": "genetic_map_tsv",
+            "optional": false,
+            "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+            "role": "reference"
           }
         ],
         "outputs": [
@@ -1173,7 +1214,7 @@
             "name": "phased_vcf",
             "optional": false,
             "path": "out/phased_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ]
       },
@@ -1874,10 +1915,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "minimac4",
-          "impute",
-          "--input",
-          "vcf"
+          "sh",
+          "-lc",
+          "minimac4 --refHaps 'artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/panels/1000g_phase3/panel.m3vcf.gz' --haps 'out/phased_vcf.vcf.gz' --prefix 'out/imputed_vcf' --cpus 8 > 'out/imputed_vcf.log' 2>&1 && mv 'out/imputed_vcf.dose.vcf.gz' 'out/imputed_vcf.vcf.gz' && bcftools index -t 'out/imputed_vcf.vcf.gz'"
         ]
       },
       "effective_params": {
@@ -2559,7 +2599,25 @@
             "name": "vcf",
             "optional": false,
             "path": "out/phased_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
+          },
+          {
+            "name": "reference_panel_vcf",
+            "optional": false,
+            "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+            "role": "variant"
+          },
+          {
+            "name": "genetic_map_tsv",
+            "optional": false,
+            "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+            "role": "reference"
+          },
+          {
+            "name": "reference_panel_m3vcf",
+            "optional": false,
+            "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/panels/1000g_phase3/panel.m3vcf.gz",
+            "role": "variant"
           }
         ],
         "outputs": [
@@ -2567,7 +2625,7 @@
             "name": "imputed_vcf",
             "optional": false,
             "path": "out/imputed_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ]
       },
@@ -3269,7 +3327,14 @@
       "command": {
         "template": [
           "bcftools",
-          "--help"
+          "+fill-tags",
+          "out/imputed_vcf.vcf.gz",
+          "-Oz",
+          "-o",
+          "out/postprocess_vcf.vcf.gz",
+          "--",
+          "-t",
+          "AC,AN,AF"
         ]
       },
       "effective_params": {
@@ -3312,7 +3377,7 @@
             "name": "vcf",
             "optional": false,
             "path": "out/imputed_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [
@@ -3320,7 +3385,7 @@
             "name": "postprocess_vcf",
             "optional": false,
             "path": "out/postprocess_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ]
       },
@@ -3382,9 +3447,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "plink2",
-          "pca",
-          "--structure"
+          "sh",
+          "-lc",
+          "plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --indep-pairwise 50 5 0.2 --out 'out/population_structure_report' && plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --pca 10 --out 'out/population_structure_report.pca'"
         ]
       },
       "effective_params": {
@@ -3438,7 +3503,7 @@
             "name": "vcf",
             "optional": false,
             "path": "out/postprocess_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [
@@ -3520,9 +3585,13 @@
       "command": {
         "template": [
           "plink2",
-          "roh",
-          "--min-kb",
-          "500"
+          "--vcf",
+          "out/postprocess_vcf.vcf.gz",
+          "--double-id",
+          "--allow-extra-chr",
+          "--homozyg",
+          "--out",
+          "out/roh_report"
         ]
       },
       "effective_params": {
@@ -3560,7 +3629,7 @@
             "name": "vcf",
             "optional": false,
             "path": "out/postprocess_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [
@@ -3625,10 +3694,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "germline",
-          "ibd",
-          "--min-seg",
-          "3.0"
+          "sh",
+          "-lc",
+          "plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --make-bed --out 'out/ibd_segments.cohort' >/dev/null 2>&1 && germline -input 'out/ibd_segments.cohort' -bits 128 -min_m 3 -err_hom 2 -err_het 1 -output 'out/ibd_segments' > 'out/ibd_segments.log' 2>&1"
         ]
       },
       "effective_params": {
@@ -3669,15 +3737,15 @@
             "name": "vcf",
             "optional": false,
             "path": "out/postprocess_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [
           {
             "name": "ibd_segments",
             "optional": false,
-            "path": "out/ibd_segments.json",
-            "role": "metrics_json"
+            "path": "out/ibd_segments.tsv",
+            "role": "summary_tsv"
           }
         ]
       },
@@ -3737,9 +3805,9 @@
       "canonical_contract": null,
       "command": {
         "template": [
-          "ibdne",
-          "estimate-ne",
-          "--from-ibd"
+          "sh",
+          "-lc",
+          "ibdne --ibd 'out/ibd_segments.tsv' --out 'out/demography_report' > 'out/demography_report.log' 2>&1"
         ]
       },
       "effective_params": {
@@ -3773,10 +3841,10 @@
       "io": {
         "inputs": [
           {
-            "name": "vcf",
+            "name": "ibd_segments",
             "optional": false,
-            "path": "out/ibd_segments.json",
-            "role": "metrics_json"
+            "path": "out/ibd_segments.tsv",
+            "role": "summary_tsv"
           }
         ],
         "outputs": [
@@ -3841,7 +3909,12 @@
       "command": {
         "template": [
           "bcftools",
-          "--help"
+          "stats",
+          "-s",
+          "-",
+          "-o",
+          "out/stats_json.json",
+          "out/postprocess_vcf.vcf.gz"
         ]
       },
       "effective_params": {
@@ -3880,7 +3953,7 @@
             "name": "vcf",
             "optional": false,
             "path": "out/postprocess_vcf.vcf.gz",
-            "role": "reads"
+            "role": "variant"
           }
         ],
         "outputs": [

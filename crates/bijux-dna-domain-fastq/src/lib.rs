@@ -42,6 +42,7 @@ mod bench;
 pub mod bench_repository;
 mod chunking;
 mod comparison_contract;
+pub mod contracts;
 mod domain_adapter;
 pub mod execution_support;
 mod filter_policy_matrix;
@@ -202,10 +203,14 @@ pub use comparison_contract::{
     trim_backend_comparison_contract, StageComparisonContract, TrimBackendComparisonContract,
     TrimComparisonToolProfile,
 };
+pub use contracts::{
+    fastq_parser_fixture_bindings, fastq_parser_fixture_cases, find_fastq_parser_fixture_binding,
+    find_fastq_parser_fixture_case, FastqParserFixtureBinding, FastqParserFixtureCase,
+};
 pub use domain_adapter::FastqDomain;
 pub use execution_support::{
     admitted_tools_for_stage as admitted_execution_tools_for_stage, all_stage_execution_support,
-    closed_stage_ids as execution_closed_stage_ids,
+    closed_stage_ids as execution_closed_stage_ids, comparable_benchmark_stage_ids,
     declared_only_stage_ids as execution_declared_only_stage_ids,
     default_tool_for_stage as default_execution_tool_for_stage, execution_support_for_stage,
     ExecutionStatus, StageExecutionSupport,
@@ -214,14 +219,15 @@ pub use filter_policy_matrix::{
     governed_filter_policy_matrix, FilterPolicyEntryV1, FilterScientificBoundary,
 };
 pub use id_catalog::{
-    FastqInvariantsPreset, FASTQ_METRICS_CATALOG, FASTQ_PARAMS_CATALOG, FASTQ_STAGE_ID_CATALOG,
+    FastqInvariantsPreset, FASTQ_LOCAL_BENCH_STAGE_ID_CATALOG, FASTQ_METRICS_CATALOG,
+    FASTQ_PARAMS_CATALOG, FASTQ_STAGE_ID_CATALOG,
 };
 pub use integration_matrix::{
     benchmark_scenarios, benchmark_scenarios_for_stage, governed_tool_ids_for_stage,
     is_reference_index_backend_compatible, planned_tool_ids_for_stage,
-    reference_index_backends_for_tool, registered_tool_ids_for_stage, stage_tool_binding,
-    stage_tool_bindings, stage_tool_bindings_for_stage, BenchmarkScenario, StageToolBinding,
-    ToolIntegrationLevel,
+    reference_index_backends_for_tool, registered_tool_ids_for_stage,
+    stage_sanity_metrics_for_stage, stage_tool_binding, stage_tool_bindings,
+    stage_tool_bindings_for_stage, BenchmarkScenario, StageToolBinding, ToolIntegrationLevel,
 };
 pub use invariants::{
     evaluate_invariants, fastq_invariant_specs, thresholds_from_env, validate_edna_table,
@@ -236,6 +242,10 @@ pub use observer::contracts::{
     is_observer_specialized_stage_tool, observer_semantic_surface_for_stage_tool,
     observer_specialization_contract_for_stage_tool, observer_specialization_contracts,
     observer_specialized_stage_tool_bindings, ObserverSpecializationContract,
+};
+pub use observer::{
+    evaluate_fastq_raw_parser_failure_contracts, FastqRawParserFailureClass,
+    FastqRawParserFailureContractRow,
 };
 pub use params::correct::FastqCorrectParams;
 pub use params::defaults::{
@@ -272,13 +282,14 @@ pub use run::{
     BenchDatasetScenario, BENCH_CORPUS_MANIFEST_SCHEMA_VERSION,
 };
 pub use stage_tool_governance::{
-    benchmark_readiness_for_stage_tool, declared_input_layouts_for_stage,
-    filter_tools_for_input_layout, stage_accepts_input_layout, stage_benchmark_governance,
-    stage_tool_capability_contract, stage_tool_governance_profile,
+    benchmark_corpus_assignment_for_stage_tool, benchmark_readiness_for_stage_tool,
+    declared_input_layouts_for_stage, filter_tools_for_input_layout, stage_accepts_input_layout,
+    stage_benchmark_governance, stage_tool_capability_contract, stage_tool_governance_profile,
     stage_tool_governance_profiles_for_stage, stage_tool_maturity, tool_supports_input_layout,
-    BenchmarkReadinessLevel, FastqStageLayoutPolicy, RuntimeNormalizationLevel,
-    StageBenchmarkGovernance, StageToolBenchmarkContractMaturity, StageToolCapabilityContract,
-    StageToolGovernanceProfile, StageToolMaturityLevel, StageToolNormalizationMaturity,
+    BenchmarkCorpusAssignment, BenchmarkCorpusFamily, BenchmarkReadinessLevel,
+    FastqStageLayoutPolicy, RuntimeNormalizationLevel, StageBenchmarkGovernance,
+    StageToolBenchmarkContractMaturity, StageToolCapabilityContract, StageToolGovernanceProfile,
+    StageToolMaturityLevel, StageToolNormalizationMaturity,
 };
 pub use stages::{
     assess_merge_suitability, contract_for_stage, ensure_umi_headers, inspect_headers,

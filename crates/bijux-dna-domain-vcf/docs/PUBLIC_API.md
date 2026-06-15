@@ -10,6 +10,7 @@ private implementation details.
 - `coverage`
 - `metrics`
 - `params`
+- `parsers`
 - `registry_emit`
 - `run`
 - `stage_baseline`
@@ -25,6 +26,10 @@ private implementation details.
   `DomainSupportStatus`, `VCF_STAGE_TAXONOMY`, `VCF_STAGE_ORDER_DOWNSTREAM`, and
   `VCF_FORBIDDEN_TRANSITIONS`.
 - Metrics: `VcfCallSummaryMetricsV1`, `VcfFilterBreakdownMetricsV1`, and `VcfStatsMetricsV1`.
+- Parser normalization: `parse_bcftools_stage_metrics`, `parse_angsd_stage_metrics`,
+  `parse_eigensoft_stage_metrics`, `parse_imputation_stage_metrics`,
+  `parse_phasing_stage_metrics`, `parse_plink_stage_metrics`,
+  `parse_plink2_stage_metrics`, and `parse_segment_stage_metrics`.
 - Registry rendering: `param_registry_toml` and `required_tools_toml`.
 - Corpus manifests: `VcfBenchCorpusId`, `VcfBenchScenario`, `VcfBenchCorpusManifestV1`,
   `vcf_bench_corpus_manifest`, and `required_vcf_bench_corpus_scenarios`.

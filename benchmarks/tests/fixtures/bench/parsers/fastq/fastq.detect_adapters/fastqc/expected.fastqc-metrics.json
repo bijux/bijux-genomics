@@ -1,0 +1,11 @@
+{
+  "schema_version": "bijux.fixture.fastq_raw_parser.v1",
+  "stage_id": "fastq.detect_adapters",
+  "tool_id": "fastqc",
+  "parser_id": "parse_fastqc_summary_metrics",
+  "normalized": {
+    "schema_version": "bijux.fastqc.metrics.v1",
+    "total_sequences": 1000,
+    "gc_percent": 42.0
+  }
+}

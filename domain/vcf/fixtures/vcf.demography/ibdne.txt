@@ -1,9 +1,9 @@
 tool=ibdne
-tool_version=pinned
+tool_version=planned
 stage=vcf.demography
 domain=vcf
-fixture_kind=planned
-command=ibdne
-args=--ibd ibd_segments.txt --out demography
-expected_outputs=demography_report
+fixture_kind=governed_contract
+command=sh
+args=-lc "ibdne --ibd ibd_segments.tsv --out demography_report > demography_report.log 2>&1"
+expected_outputs=demography_report,ne_trajectory_tsv,logs_txt
 expected_stdout_patterns=ibdne

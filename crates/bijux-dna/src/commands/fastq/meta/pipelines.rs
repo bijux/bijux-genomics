@@ -1,7 +1,27 @@
+use crate::commands::benchmark::path_resolution::BenchmarkPathResolver;
 use crate::commands::fastq::api_bridge::resolve_profile_alias;
 use crate::commands::support::prelude::{
     anyhow, cli, load_manifests, render, PipelinesCommand, Result,
 };
+use serde::Serialize;
+use std::fs;
+use std::path::{Path, PathBuf};
+
+const LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_VERSION: &str =
+    "bijux.bench.local_pipeline_dag_validation_set.v1";
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalPipelineDagValidationSetReport {
+    schema_version: &'static str,
+    benchmark_root: String,
+    config_root: String,
+    output_path: String,
+    pipeline_count: usize,
+    valid_pipeline_count: usize,
+    all_valid: bool,
+    pipelines:
+        Vec<crate::commands::benchmark::local_pipeline_dag::LocalPipelineDagValidationReport>,
+}
 
 #[allow(clippy::too_many_lines)]
 pub(crate) fn handle_pipelines_command(
@@ -76,6 +96,57 @@ pub(crate) fn handle_pipelines_command(
             render::json::print_pretty(&bijux_dna_api::v1::api::plan::validate_pipeline_profile(
                 resolved_id,
             )?)?;
+            Ok(true)
+        }
+        PipelinesCommand::Validate { id, all, benchmark_root, strict, output, json } => {
+            let repo_root = std::env::current_dir()?;
+            let benchmark_paths = BenchmarkPathResolver::new(&repo_root, benchmark_root.as_deref());
+            if *all {
+                let report = validate_all_local_pipelines(
+                    &repo_root,
+                    &benchmark_paths,
+                    *strict,
+                    output.as_deref(),
+                )?;
+                if *json {
+                    render::json::print_pretty(&report)?;
+                } else {
+                    println!("{}", report.output_path);
+                }
+            } else {
+                let pipeline_id = id
+                    .as_deref()
+                    .ok_or_else(|| anyhow!("pipeline id is required unless `--all` is passed"))?;
+                let config_path = local_pipeline_config_path(
+                    benchmark_paths.benchmark_pipeline_config_root().as_path(),
+                    pipeline_id,
+                )?;
+                let output_path = output.clone().unwrap_or_else(|| {
+                    PathBuf::from("benchmarks/readiness/local-ready/pipeline-dag")
+                        .join(format!("{pipeline_id}.json"))
+                });
+                let report =
+                    crate::commands::benchmark::local_pipeline_dag::validate_pipeline_dag_path(
+                        &repo_root,
+                        &config_path,
+                        &benchmark_paths.resolve_repo_relative(&output_path),
+                    )?;
+
+                if *strict {
+                    validate_local_pipeline_identity(
+                        &repo_root,
+                        &report,
+                        &config_path,
+                        pipeline_id,
+                    )?;
+                }
+
+                if *json {
+                    render::json::print_pretty(&report)?;
+                } else {
+                    println!("{}", report.output_path);
+                }
+            }
             Ok(true)
         }
         PipelinesCommand::ProfileDiff { left, right } => {
@@ -189,4 +260,122 @@ pub(crate) fn handle_pipelines_command(
             Ok(true)
         }
     }
+}
+
+fn absolute_or_repo_relative(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn local_pipeline_config_path(pipeline_config_root: &Path, pipeline_id: &str) -> Result<PathBuf> {
+    if pipeline_id.trim().is_empty() {
+        return Err(anyhow!("pipeline id must be non-empty"));
+    }
+    if pipeline_id.contains('/') || pipeline_id.contains('\\') {
+        return Err(anyhow!(
+            "pipeline id `{pipeline_id}` must be a governed local pipeline id, not a path"
+        ));
+    }
+    Ok(pipeline_config_root.join(format!("{pipeline_id}.toml")))
+}
+
+fn validate_all_local_pipelines(
+    repo_root: &Path,
+    benchmark_paths: &BenchmarkPathResolver,
+    strict: bool,
+    output: Option<&Path>,
+) -> Result<LocalPipelineDagValidationSetReport> {
+    let config_root = benchmark_paths.benchmark_pipeline_config_root();
+    let config_paths = discover_local_pipeline_config_paths(&config_root)?;
+    if config_paths.is_empty() {
+        return Err(anyhow!(
+            "benchmark pipeline config root `{}` does not contain any governed local pipeline configs",
+            config_root.display()
+        ));
+    }
+
+    let output_path = absolute_or_repo_relative(
+        repo_root,
+        output.unwrap_or_else(|| {
+            Path::new("benchmarks/readiness/local-ready/pipeline-dag/all-benchmark-pipelines.json")
+        }),
+    );
+    let mut pipelines = Vec::with_capacity(config_paths.len());
+    for config_path in config_paths {
+        let pipeline_id =
+            config_path.file_stem().and_then(|value| value.to_str()).ok_or_else(|| {
+                anyhow!("pipeline config `{}` must have a utf-8 file stem", config_path.display())
+            })?;
+        let pipeline_output_path = repo_root
+            .join("benchmarks/readiness/local-ready/pipeline-dag")
+            .join(format!("{pipeline_id}.json"));
+        let report = crate::commands::benchmark::local_pipeline_dag::validate_pipeline_dag_path(
+            repo_root,
+            &config_path,
+            &pipeline_output_path,
+        )?;
+        if strict {
+            validate_local_pipeline_identity(repo_root, &report, &config_path, pipeline_id)?;
+        }
+        pipelines.push(report);
+    }
+
+    let valid_pipeline_count = pipelines.iter().filter(|report| report.valid).count();
+    let report = LocalPipelineDagValidationSetReport {
+        schema_version: LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_VERSION,
+        benchmark_root: path_relative_to_repo(repo_root, benchmark_paths.benchmark_root()),
+        config_root: path_relative_to_repo(repo_root, &config_root),
+        output_path: path_relative_to_repo(repo_root, &output_path),
+        pipeline_count: pipelines.len(),
+        valid_pipeline_count,
+        all_valid: valid_pipeline_count == pipelines.len(),
+        pipelines,
+    };
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    bijux_dna_infra::atomic_write_json(&output_path, &report)?;
+    Ok(report)
+}
+
+fn discover_local_pipeline_config_paths(config_root: &Path) -> Result<Vec<PathBuf>> {
+    let mut config_paths = fs::read_dir(config_root)
+        .map_err(|error| anyhow!("read {}: {error}", config_root.display()))?
+        .filter_map(|entry| entry.ok().map(|entry| entry.path()))
+        .filter(|path| {
+            path.is_file() && path.extension().and_then(|value| value.to_str()) == Some("toml")
+        })
+        .collect::<Vec<_>>();
+    config_paths.sort();
+    Ok(config_paths)
+}
+
+fn validate_local_pipeline_identity(
+    repo_root: &Path,
+    report: &crate::commands::benchmark::local_pipeline_dag::LocalPipelineDagValidationReport,
+    config_path: &Path,
+    expected_pipeline_id: &str,
+) -> Result<()> {
+    if report.pipeline_id != expected_pipeline_id {
+        return Err(anyhow!(
+            "governed local pipeline `{expected_pipeline_id}` resolved config `{}` with pipeline_id `{}`",
+            config_path.display(),
+            report.pipeline_id
+        ));
+    }
+    let expected_config_path = path_relative_to_repo(repo_root, config_path);
+    if report.config_path != expected_config_path {
+        return Err(anyhow!(
+            "strict local pipeline validation expected config `{expected_config_path}` but validator resolved `{}`",
+            report.config_path
+        ));
+    }
+    Ok(())
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }

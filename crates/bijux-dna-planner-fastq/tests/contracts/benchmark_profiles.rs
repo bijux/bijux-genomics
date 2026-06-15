@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use bijux_dna_core::ids::{StageId, ToolId};
 
 #[test]
@@ -73,24 +75,28 @@ fn benchmark_profiles_keep_observer_coverage_visible() {
 
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
     let profiles = bijux_dna_planner_fastq::stage_api::benchmark_profiles_for_stage(&screen_stage);
+    let mut screen_tool_ids =
+        profiles.iter().map(|profile| profile.tool_id.as_str().to_string()).collect::<Vec<_>>();
+    screen_tool_ids.sort();
+    assert_eq!(screen_tool_ids, vec!["centrifuge", "kaiju", "kraken2", "krakenuniq"]);
     assert!(
-        profiles.iter().any(|profile| {
-            profile.tool_id.as_str() == "diamond"
+        profiles.iter().all(|profile| {
+            profile.integration_level
+                == bijux_dna_planner_fastq::stage_api::ToolIntegrationLevel::GovernedContract
                 && profile.readiness
-                    == bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::PlannedContract
-        }),
-        "planned taxonomy bindings must remain visible as planned-only profiles",
-    );
-    assert!(
-        profiles.iter().filter(|profile| profile.integration_level
-            == bijux_dna_planner_fastq::stage_api::ToolIntegrationLevel::GovernedContract)
-            .all(|profile| {
-            profile.readiness
-                == bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedBenchmarkCohort
+                    == bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedBenchmarkCohort
                 && profile.runtime_interpretation
                     == bijux_dna_planner_fastq::stage_api::RuntimeInterpretationLevel::ObserverSpecialized
         }),
         "governed taxonomy screening backends must stay observer-specialized and cohort-benchmarkable",
+    );
+    assert!(
+        profiles.iter().all(|profile| {
+            profile.readiness
+                == bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedBenchmarkCohort
+                && profile.benchmark_scenarios == vec!["screen_fairness"]
+        }),
+        "taxonomy screening benchmark profiles must stay attached to the governed fairness cohort",
     );
 }
 
@@ -129,6 +135,7 @@ fn stage_tool_capabilities_distinguish_declared_runnable_and_comparable_bindings
     assert!(detect_capability.normalization.comparable);
 }
 
+#[allow(clippy::too_many_lines)]
 #[test]
 fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     let trim_stage = StageId::from_static("fastq.trim_reads");
@@ -258,7 +265,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(read_length_cohorts[0].scenario_id, "read_length_fairness");
     assert_eq!(
         read_length_cohorts[0].tool_ids.iter().map(ToolId::as_str).collect::<Vec<_>>(),
-        vec!["seqkit_stats"]
+        vec!["fastp", "prinseq", "seqfu", "seqkit_stats"]
     );
     assert_eq!(
         read_length_cohorts[0]
@@ -266,7 +273,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .map(ToolId::as_str)
             .collect::<Vec<_>>(),
-        vec!["seqkit_stats"]
+        vec!["fastp", "prinseq", "seqfu", "seqkit_stats"]
     );
 
     let correction_stage = StageId::from_static("fastq.correct_errors");

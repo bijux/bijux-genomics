@@ -12,6 +12,7 @@ bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 bijux-dna-stages-bam = { path = "../bijux-dna-stages-bam", features = ["bam_downstream"] }
 bijux-dna-pipelines = { path = "../bijux-dna-pipelines" }
 bijux-dna-infra = { path = "../bijux-dna-infra" }
+serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
 toml = { workspace = true }
@@ -20,6 +21,7 @@ toml = { workspace = true }
 bijux-dna-policies.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 insta = { workspace = true, features = ["json", "filters"] }
+tempfile.workspace = true
 
 [features]
 bam_downstream = [

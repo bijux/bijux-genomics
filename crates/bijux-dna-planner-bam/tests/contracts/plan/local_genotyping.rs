@@ -1,0 +1,321 @@
+#![cfg(feature = "bam_downstream")]
+
+use anyhow::Result;
+use std::fs;
+use std::path::{Path, PathBuf};
+
+fn repo_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root"))
+        .to_path_buf()
+}
+
+fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
+    let temp = tempfile::tempdir()?;
+    let repo_root = repo_root();
+    let tool_dir = temp.path().join("domain/bam/tools");
+    fs::create_dir_all(&tool_dir)?;
+    fs::copy(repo_root.join("domain/bam/tools/angsd.yaml"), tool_dir.join("angsd.yaml"))?;
+    let runtime_dir = temp.path().join("configs/runtime/profiles");
+    fs::create_dir_all(&runtime_dir)?;
+    fs::copy(
+        repo_root.join("configs/runtime/profiles/local.toml"),
+        runtime_dir.join("local.toml"),
+    )?;
+    Ok(temp)
+}
+
+fn write_local_genotyping_config(root: &Path, body: &str) -> Result<()> {
+    let config_dir = root.join("benchmarks/configs/local");
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("bam-genotyping.toml"), body)?;
+    Ok(())
+}
+
+#[test]
+fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Result<()> {
+    let repo_root = repo_root();
+    let plan = bijux_dna_planner_bam::stage_api::local_genotyping_plan(&repo_root)?;
+
+    assert_eq!(plan.stage_id.as_str(), "bam.genotyping");
+    assert_eq!(plan.tool_id.as_str(), "angsd");
+    assert_eq!(plan.resources.threads, 2);
+    assert_eq!(plan.resources.mem_gb, 8);
+    assert_eq!(plan.out_dir, PathBuf::from("benchmarks/readiness/local-ready/bam.genotyping"));
+
+    let bam = plan
+        .io
+        .inputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "bam")
+        .unwrap_or_else(|| panic!("bam input missing from local-ready genotyping plan"));
+    assert_eq!(
+        bam.path,
+        PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam",
+        )
+    );
+
+    let bai = plan
+        .io
+        .inputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "bam_bai")
+        .unwrap_or_else(|| panic!("bam_bai input missing from local-ready genotyping plan"));
+    assert_eq!(
+        bai.path,
+        PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai",
+        )
+    );
+
+    let reference = plan
+        .io
+        .inputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "reference")
+        .unwrap_or_else(|| panic!("reference input missing from local-ready genotyping plan"));
+    assert_eq!(
+        reference.path,
+        PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
+    );
+
+    let sites = plan
+        .io
+        .inputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "sites")
+        .unwrap_or_else(|| panic!("sites input missing from local-ready genotyping plan"));
+    assert_eq!(
+        sites.path,
+        PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+        )
+    );
+
+    let regions = plan
+        .io
+        .inputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "regions")
+        .unwrap_or_else(|| panic!("regions input missing from local-ready genotyping plan"));
+    assert_eq!(
+        regions.path,
+        PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt",
+        )
+    );
+
+    let bcf = plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "genotyping_bcf")
+        .unwrap_or_else(|| panic!("genotyping_bcf output missing from local-ready plan"));
+    assert_eq!(
+        bcf.path,
+        PathBuf::from("benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf")
+    );
+
+    let vcf = plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "genotyping_vcf")
+        .unwrap_or_else(|| panic!("genotyping_vcf output missing from local-ready plan"));
+    assert_eq!(
+        vcf.path,
+        PathBuf::from("benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz")
+    );
+
+    assert_eq!(
+        plan.params["reference"],
+        serde_json::json!(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        )
+    );
+    assert_eq!(
+        plan.params["sites"],
+        serde_json::json!(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+        )
+    );
+    assert_eq!(
+        plan.params["regions"],
+        serde_json::json!(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+        )
+    );
+    assert_eq!(
+        plan.params["producer_contract"]["bcf"],
+        serde_json::json!("benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf")
+    );
+    assert_eq!(
+        plan.params["producer_contract"]["vcf"],
+        serde_json::json!("benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz")
+    );
+    assert_eq!(
+        plan.params["sample_id"],
+        serde_json::json!("human_like_genotyping_candidate_panel")
+    );
+    assert_eq!(plan.params["tool"], serde_json::json!("angsd"));
+    assert_eq!(plan.effective_params["caller"], serde_json::json!("angsd"));
+    assert_eq!(plan.effective_params["min_posterior"], serde_json::json!(0.9));
+    assert_eq!(plan.effective_params["min_call_rate"], serde_json::json!(0.5));
+
+    let command = plan
+        .command
+        .template
+        .iter()
+        .last()
+        .unwrap_or_else(|| panic!("bam.genotyping command template must contain a shell body"));
+    assert!(
+        command.contains(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai"
+        )
+            && command.contains(
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+            )
+            && command.contains(
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+            )
+            && command.contains(
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+            )
+            && command.contains("benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf")
+            && command.contains("benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz"),
+        "local-ready genotyping command must carry the governed BAI, reference, sites, regions, BCF, and VCF outputs"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn local_genotyping_plan_stage_api_surface_stays_callable() {
+    let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
+        bijux_dna_planner_bam::stage_api::local_genotyping_plan;
+}
+
+#[test]
+fn local_genotyping_plan_rejects_empty_sample_ids() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_genotyping_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_genotyping.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+sites_vcf = "{sites}"
+regions = "{regions}"
+tool_id = "angsd"
+sample_id = " "
+min_posterior = 0.9
+min_call_rate = 0.5
+threads = 2
+output_dir = "benchmarks/readiness/local-ready/bam.genotyping"
+"#,
+            bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
+            bai = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
+            reference =
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta").display(),
+            sites =
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf").display(),
+            regions =
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_genotyping_plan(temp.path())
+        .expect_err("empty sample_id must be rejected before genotyping plan construction");
+    assert_eq!(error.to_string(), "local-ready bam.genotyping sample_id must not be empty");
+    Ok(())
+}
+
+#[test]
+fn local_genotyping_plan_requires_posteriors_within_unit_interval() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_genotyping_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_genotyping.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+sites_vcf = "{sites}"
+regions = "{regions}"
+tool_id = "angsd"
+sample_id = "bad-posterior-threshold"
+min_posterior = 1.1
+min_call_rate = 0.5
+threads = 2
+output_dir = "benchmarks/readiness/local-ready/bam.genotyping"
+"#,
+            bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
+            bai = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
+            reference =
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta").display(),
+            sites =
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf").display(),
+            regions =
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_genotyping_plan(temp.path())
+        .expect_err("out-of-range min_posterior must be rejected for governed genotyping planning");
+    assert_eq!(
+        error.to_string(),
+        "local-ready bam.genotyping min_posterior must be finite and within [0, 1]"
+    );
+    Ok(())
+}
+
+#[test]
+fn local_genotyping_plan_requires_call_rates_within_unit_interval() -> Result<()> {
+    let temp = stage_api_temp_repo()?;
+    let repo_root = repo_root();
+    write_local_genotyping_config(
+        temp.path(),
+        &format!(
+            r#"
+schema_version = "bijux.bench.bam.local_genotyping.v1"
+bam = "{bam}"
+bai = "{bai}"
+reference_fasta = "{reference}"
+sites_vcf = "{sites}"
+regions = "{regions}"
+tool_id = "angsd"
+sample_id = "bad-call-rate-threshold"
+min_posterior = 0.9
+min_call_rate = -0.1
+threads = 2
+output_dir = "benchmarks/readiness/local-ready/bam.genotyping"
+"#,
+            bam = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam").display(),
+            bai = repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai").display(),
+            reference =
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta").display(),
+            sites =
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf").display(),
+            regions =
+                repo_root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt").display(),
+        ),
+    )?;
+
+    let error = bijux_dna_planner_bam::stage_api::local_genotyping_plan(temp.path())
+        .expect_err("out-of-range min_call_rate must be rejected for governed genotyping planning");
+    assert_eq!(
+        error.to_string(),
+        "local-ready bam.genotyping min_call_rate must be finite and within [0, 1]"
+    );
+    Ok(())
+}

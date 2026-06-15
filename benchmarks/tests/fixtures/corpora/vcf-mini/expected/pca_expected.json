@@ -1,0 +1,55 @@
+{
+  "schema_version": "bijux.bench.vcf_expected_truth.pca_expected.v1",
+  "corpus_id": "vcf-mini",
+  "source_variant_role": "multisample",
+  "sample_population_labels": [
+    {
+      "sample_id": "sample_a",
+      "population_id": "cohort_alpha"
+    },
+    {
+      "sample_id": "sample_b",
+      "population_id": "cohort_alpha"
+    },
+    {
+      "sample_id": "sample_c",
+      "population_id": "cohort_beta"
+    },
+    {
+      "sample_id": "sample_d",
+      "population_id": "cohort_beta"
+    }
+  ],
+  "pairwise_squared_distances": [
+    {
+      "left_sample_id": "sample_a",
+      "right_sample_id": "sample_b",
+      "distance_sq": 2.0
+    },
+    {
+      "left_sample_id": "sample_a",
+      "right_sample_id": "sample_c",
+      "distance_sq": 4.0
+    },
+    {
+      "left_sample_id": "sample_a",
+      "right_sample_id": "sample_d",
+      "distance_sq": 2.0
+    },
+    {
+      "left_sample_id": "sample_b",
+      "right_sample_id": "sample_c",
+      "distance_sq": 2.0
+    },
+    {
+      "left_sample_id": "sample_b",
+      "right_sample_id": "sample_d",
+      "distance_sq": 4.0
+    },
+    {
+      "left_sample_id": "sample_c",
+      "right_sample_id": "sample_d",
+      "distance_sq": 2.0
+    }
+  ]
+}

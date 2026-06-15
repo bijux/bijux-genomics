@@ -5,6 +5,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{ContainerImageRefV1, StepId};
 use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::stages::ids::{
+    STAGE_DETECT_DUPLICATES_PREMERGE, STAGE_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN,
     STAGE_INDEX_REFERENCE, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, STAGE_PROFILE_READ_LENGTHS,
     STAGE_TRIM_POLYG_TAILS,
 };
@@ -36,7 +37,7 @@ use lineage::{
 use models::{PlannedStageLineage, ReferenceIndexState};
 pub use models::{
     StageArtifactInputBinding, StageArtifactInputPolicy, StageDependencyPolicy,
-    SyntheticStageArtifactPolicy,
+    SyntheticStageArtifact, SyntheticStageArtifactPolicy,
 };
 use qc_inputs::qc_input_artifacts_for_stage;
 use stage_params::{
@@ -146,6 +147,25 @@ where
                     stage_r2.as_deref(),
                     &out_dir,
                     &detect_adapters_params(binding),
+                )?;
+                (plan, stage_r1.clone(), stage_r2.clone(), inherited.feature_table.clone())
+            }
+            stage if stage == STAGE_DETECT_DUPLICATES_PREMERGE.as_str() => {
+                let plan = crate::tool_adapters::fastq::detect_duplicates_premerge::plan(
+                    tool,
+                    &stage_r1,
+                    stage_r2.as_deref(),
+                    &out_dir,
+                )?;
+                (plan, stage_r1.clone(), stage_r2.clone(), inherited.feature_table.clone())
+            }
+            stage if stage == STAGE_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN.as_str() => {
+                let plan = crate::tool_adapters::fastq::estimate_library_complexity_prealign::plan(
+                    tool,
+                    &stage_r1,
+                    stage_r2.as_deref(),
+                    &out_dir,
+                    None,
                 )?;
                 (plan, stage_r1.clone(), stage_r2.clone(), inherited.feature_table.clone())
             }

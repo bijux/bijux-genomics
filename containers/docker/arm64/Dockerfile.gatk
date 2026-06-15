@@ -23,7 +23,7 @@ ARG VERSION_GATK=4.6.2.0
 ENV VERSION_GATK=${VERSION_GATK}
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates wget unzip openjdk-21-jre-headless && \
+    apt-get install -y --no-install-recommends ca-certificates=20240203 wget=1.21.4-1ubuntu4.1 unzip=6.0-28ubuntu4.1 openjdk-21-jre-headless=21.0.11+10-1~24.04.2 && \
     wget -q -O /tmp/gatk.zip "https://github.com/broadinstitute/gatk/releases/download/${VERSION_GATK}/gatk-${VERSION_GATK}.zip" && \
     unzip -q /tmp/gatk.zip -d /opt && \
     mv "/opt/gatk-${VERSION_GATK}/gatk" /usr/local/bin/gatk-bin && \

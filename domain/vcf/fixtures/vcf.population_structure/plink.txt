@@ -1,0 +1,9 @@
+tool=plink
+tool_version=pinned
+stage=vcf.population_structure
+domain=vcf
+fixture_kind=truth
+command=plink
+args=--vcf cohort.vcf.gz --double-id --allow-extra-chr --cluster --mds-plot 2 --out population_structure
+expected_outputs=population_structure.mds,population_structure.log,population_structure_report.json
+expected_stdout_patterns=mds,cluster_labels,population_structure_report

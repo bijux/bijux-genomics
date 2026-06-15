@@ -1,0 +1,44 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.kinship.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_kinship.v1"
+tool_id = "king"
+threads = 2
+output_dir = "runs/bench/local-smoke/bam.kinship"
+
+[[cases]]
+sample_id = "human_like_kinship_low_overlap_pair"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam"
+reference_panel = "human_like_relatedness_panel"
+reference_build = "grch38"
+population_scope = "human_diploid_panel"
+min_overlap_snps = 5
+requires_cohort_context = true
+expected_status = "insufficient"
+expected_observed_max_overlap_snps = 4
+expected_insufficiency_reason = "insufficient_overlap_snps"
+
+[[cases]]
+sample_id = "human_like_kinship_related_pair"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam"
+reference_panel = "human_like_relatedness_panel"
+reference_build = "grch38"
+population_scope = "human_diploid_panel"
+min_overlap_snps = 6
+requires_cohort_context = true
+expected_status = "ok"
+expected_observed_max_overlap_snps = 6
+
+[[cases.expected_pairwise_results]]
+sample_a = "sample_a"
+sample_b = "sample_b"
+overlap_snps = 6
+matching_sites = 5
+mismatch_sites = 1
+concordance = 0.833333
+kinship_coefficient = 0.416667
+relationship_label = "first_degree"

@@ -1,0 +1,139 @@
+{
+  "schema_version": "bijux.bench.vcf_expected_truth.genotype_states.v1",
+  "corpus_id": "vcf-mini",
+  "variant_sets": [
+    {
+      "variant_role": "raw",
+      "samples": [
+        {
+          "sample_id": "sample_a",
+          "hom_ref": 0,
+          "het": 1,
+          "hom_alt": 1,
+          "missing": 0,
+          "phased_calls": 0,
+          "unphased_calls": 2
+        }
+      ]
+    },
+    {
+      "variant_role": "filtered",
+      "samples": [
+        {
+          "sample_id": "sample_a",
+          "hom_ref": 0,
+          "het": 1,
+          "hom_alt": 0,
+          "missing": 0,
+          "phased_calls": 0,
+          "unphased_calls": 1
+        }
+      ]
+    },
+    {
+      "variant_role": "multisample",
+      "samples": [
+        {
+          "sample_id": "sample_a",
+          "hom_ref": 0,
+          "het": 1,
+          "hom_alt": 1,
+          "missing": 0,
+          "phased_calls": 0,
+          "unphased_calls": 2
+        },
+        {
+          "sample_id": "sample_b",
+          "hom_ref": 1,
+          "het": 1,
+          "hom_alt": 0,
+          "missing": 0,
+          "phased_calls": 0,
+          "unphased_calls": 2
+        },
+        {
+          "sample_id": "sample_c",
+          "hom_ref": 1,
+          "het": 1,
+          "hom_alt": 0,
+          "missing": 0,
+          "phased_calls": 0,
+          "unphased_calls": 2
+        },
+        {
+          "sample_id": "sample_d",
+          "hom_ref": 0,
+          "het": 1,
+          "hom_alt": 1,
+          "missing": 0,
+          "phased_calls": 0,
+          "unphased_calls": 2
+        }
+      ]
+    },
+    {
+      "variant_role": "phased",
+      "samples": [
+        {
+          "sample_id": "sample_a",
+          "hom_ref": 0,
+          "het": 1,
+          "hom_alt": 1,
+          "missing": 0,
+          "phased_calls": 2,
+          "unphased_calls": 0
+        },
+        {
+          "sample_id": "sample_b",
+          "hom_ref": 1,
+          "het": 1,
+          "hom_alt": 0,
+          "missing": 0,
+          "phased_calls": 2,
+          "unphased_calls": 0
+        },
+        {
+          "sample_id": "sample_c",
+          "hom_ref": 1,
+          "het": 1,
+          "hom_alt": 0,
+          "missing": 0,
+          "phased_calls": 2,
+          "unphased_calls": 0
+        },
+        {
+          "sample_id": "sample_d",
+          "hom_ref": 0,
+          "het": 1,
+          "hom_alt": 1,
+          "missing": 0,
+          "phased_calls": 2,
+          "unphased_calls": 0
+        }
+      ]
+    },
+    {
+      "variant_role": "panel",
+      "samples": [
+        {
+          "sample_id": "panel_ref_1",
+          "hom_ref": 1,
+          "het": 1,
+          "hom_alt": 0,
+          "missing": 0,
+          "phased_calls": 0,
+          "unphased_calls": 2
+        },
+        {
+          "sample_id": "panel_ref_2",
+          "hom_ref": 0,
+          "het": 1,
+          "hom_alt": 1,
+          "missing": 0,
+          "phased_calls": 0,
+          "unphased_calls": 2
+        }
+      ]
+    }
+  ]
+}

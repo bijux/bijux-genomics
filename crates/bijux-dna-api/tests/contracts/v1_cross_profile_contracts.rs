@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use bijux_dna_api::v1::api::plan::{explain_pipeline_profile, validate_pipeline_profile};
 
 #[test]

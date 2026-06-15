@@ -1,0 +1,72 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "concordance": {
+          "type": "number"
+        },
+        "dosage_r2": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "low_confidence_sites": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "masked_truth_sites": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "mean_info_score": {
+          "type": "number"
+        },
+        "missing_quality_fields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "r2_available": {
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.imputation_metrics.v1"
+        },
+        "stage_id": {
+          "const": "vcf.imputation_metrics"
+        },
+        "status": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "status",
+        "concordance",
+        "mean_info_score",
+        "r2_available",
+        "dosage_r2",
+        "low_confidence_sites",
+        "masked_truth_sites",
+        "missing_quality_fields"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_imputation_metrics_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.imputation_metrics`.",
+  "title": "VCF normalized benchmark metrics: vcf.imputation_metrics"
+}

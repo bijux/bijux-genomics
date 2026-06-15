@@ -75,6 +75,126 @@
     }
 
     #[test]
+    fn prepare_reference_panel_stage_deduplicates_and_records_normalization_counts() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let panel_root = dir.path().join("panel_store/hsapiens_grch38_mini").join("dup001");
+        let panel_raw = panel_root.join("raw");
+        let panel_normalized = panel_root.join("normalized");
+        let panel_derived = panel_root.join("derived");
+        std::fs::create_dir_all(&panel_raw).unwrap_or_else(|err| panic!("mkdir raw: {err}"));
+        std::fs::create_dir_all(&panel_normalized)
+            .unwrap_or_else(|err| panic!("mkdir normalized: {err}"));
+        std::fs::create_dir_all(&panel_derived).unwrap_or_else(|err| panic!("mkdir derived: {err}"));
+        let panel = panel_raw.join("panel.vcf.gz");
+        std::fs::write(
+            &panel,
+            "##fileformat=VCFv4.2\n\
+##contig=<ID=1,length=248956422>\n\
+##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Depth\">\n\
+##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n\
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample1\n\
+1\t140\t.\tT\tC\t85\tPASS\tDP=31\tGT\t0/1\n\
+1\t101\t.\tA\tG\t60\tPASS\tDP=8\tGT\t0/1\n\
+1\t105\t.\tC\tT\t42\tPASS\tDP=13\tGT\t0/1\n\
+1\t111\t.\tG\tGA\t12\tLOWQUAL\tDP=5\tGT\t0/1\n\
+1\t105\t.\tC\tT\t42\tPASS\tDP=13\tGT\t0/1\n",
+        )
+        .unwrap_or_else(|err| panic!("write panel fixture: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                .to_string(),
+            contigs: vec![
+                ContigSpec {
+                    name: "1".to_string(),
+                    length_bp: 248956422,
+                },
+                ContigSpec {
+                    name: "2".to_string(),
+                    length_bp: 242193529,
+                },
+                ContigSpec {
+                    name: "chr1".to_string(),
+                    length_bp: 248956422,
+                },
+                ContigSpec {
+                    name: "chr2".to_string(),
+                    length_bp: 242193529,
+                },
+            ],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let outputs = run_prepare_reference_panel_stage(
+            input,
+            &panel,
+            dir.path(),
+            &species,
+            &PrepareReferencePanelParams {
+                species_id: "Homo sapiens".to_string(),
+                build_id: "GRCh38".to_string(),
+                panel_id: Some("hsapiens_grch38_mini".to_string()),
+                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+            },
+        )
+        .unwrap_or_else(|err| panic!("prepare_reference_panel: {err}"));
+
+        let prepared_raw = bijux_dna_stages_vcf::vcf_io::read_vcf_text(&outputs.prepared_panel_vcf)
+            .unwrap_or_else(|err| panic!("read prepared panel: {err}"));
+        let positions = prepared_raw
+            .lines()
+            .filter(|line| !line.starts_with('#') && !line.trim().is_empty())
+            .map(|line| {
+                line.split('\t')
+                    .nth(1)
+                    .and_then(|value| value.parse::<u64>().ok())
+                    .unwrap_or_else(|| panic!("missing position in prepared panel record"))
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(positions, vec![101, 105, 111, 140]);
+
+        let manifest_raw = std::fs::read_to_string(&outputs.panel_manifest_json)
+            .unwrap_or_else(|err| panic!("read panel manifest: {err}"));
+        let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
+            .unwrap_or_else(|err| panic!("parse panel manifest: {err}"));
+        assert_eq!(
+            manifest.pointer("/normalization/status").and_then(serde_json::Value::as_str),
+            Some("sorted_indexed_deduplicated")
+        );
+        assert_eq!(
+            manifest
+                .pointer("/normalization/input_variant_count")
+                .and_then(serde_json::Value::as_u64),
+            Some(5)
+        );
+        assert_eq!(
+            manifest
+                .pointer("/normalization/output_variant_count")
+                .and_then(serde_json::Value::as_u64),
+            Some(4)
+        );
+        assert_eq!(
+            manifest
+                .pointer("/normalization/duplicate_sites_removed")
+                .and_then(serde_json::Value::as_u64),
+            Some(1)
+        );
+        assert_eq!(
+            manifest.pointer("/normalization/sample_count").and_then(serde_json::Value::as_u64),
+            Some(1)
+        );
+        assert_eq!(
+            manifest
+                .pointer("/normalization/sample_ids/0")
+                .and_then(serde_json::Value::as_str),
+            Some("sample1")
+        );
+    }
+
+    #[test]
     fn prepare_reference_panel_refuses_excessive_allele_mismatch_fraction() {
         let old = std::env::var("BIJUX_VCF_PANEL_MISMATCH_MAX").ok();
         let old_overlap = std::env::var("BIJUX_VCF_PANEL_OVERLAP_MIN").ok();

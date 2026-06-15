@@ -1,0 +1,134 @@
+{
+  "stage_id": "bam.genotyping",
+  "stage_version": 1,
+  "tool_id": "angsd",
+  "tool_version": "0.940",
+  "image": {
+    "image": "bijuxdna/angsd",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "/bin/sh",
+      "-c",
+      "test -f benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai && test -f benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta && test -f benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf && test -f benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt && angsd -i benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam -sites benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf -rf benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt -doGlf 2 -doMajorMinor 1 -doMaf 1 -out benchmarks/readiness/local-ready/bam.genotyping/genotyping && bcftools view benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf -Oz -o benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz && tabix -f -p vcf benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz && python - <<'PY' > benchmarks/readiness/local-ready/bam.genotyping/genotyping.gl.json\nimport json\nprint(json.dumps({\"producer\": \"angsd\", \"gl_source\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.glf.gz\", \"bcf_source\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf\"}, indent=2))\nPY && python - <<'PY' > benchmarks/readiness/local-ready/bam.genotyping/genotyping.summary.json\nimport json\nprint(json.dumps({\"caller\": \"angsd\", \"reference\": \"benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta\", \"sites\": \"benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf\", \"regions\": \"benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt\", \"bcf\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf\", \"vcf\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz\", \"tbi\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz.tbi\", \"min_posterior\": 0.9, \"min_call_rate\": 0.5}, indent=2))\nPY && python - <<'PY' > benchmarks/readiness/local-ready/bam.genotyping/genotyping.json\nimport json\nprint(json.dumps({\"status\": \"ok\", \"producer\": \"bam.genotyping\", \"reference\": \"benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta\", \"sites\": \"benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf\", \"regions\": \"benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt\", \"output_bcf\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf\", \"output_vcf\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz\"}, indent=2))\nPY"
+    ]
+  },
+  "resources": {
+    "runtime": "local",
+    "mem_gb": 8,
+    "tmp_gb": 8,
+    "threads": 2
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam",
+        "role": "bam",
+        "optional": false
+      },
+      {
+        "name": "bam_bai",
+        "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai",
+        "role": "index",
+        "optional": false
+      },
+      {
+        "name": "reference",
+        "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+        "role": "reference",
+        "optional": false
+      },
+      {
+        "name": "sites",
+        "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+        "role": "variant",
+        "optional": false
+      },
+      {
+        "name": "regions",
+        "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt",
+        "role": "reference",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "genotyping_report",
+        "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "summary",
+        "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.summary.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "stage_metrics",
+        "path": "benchmarks/readiness/local-ready/bam.genotyping/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
+      },
+      {
+        "name": "genotyping_bcf",
+        "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf",
+        "role": "variant",
+        "optional": true
+      },
+      {
+        "name": "genotyping_vcf",
+        "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz",
+        "role": "variant",
+        "optional": true
+      },
+      {
+        "name": "genotyping_vcf_tbi",
+        "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz.tbi",
+        "role": "index",
+        "optional": true
+      },
+      {
+        "name": "genotyping_gl",
+        "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.gl.json",
+        "role": "report_json",
+        "optional": true
+      }
+    ]
+  },
+  "out_dir": "benchmarks/readiness/local-ready/bam.genotyping",
+  "params": {
+    "bai": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai",
+    "bam": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam",
+    "caller": "angsd",
+    "min_call_rate": 0.5,
+    "min_posterior": 0.9,
+    "producer_contract": {
+      "bcf": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf",
+      "gl": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.gl.json",
+      "tbi": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz.tbi",
+      "vcf": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz"
+    },
+    "reference": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+    "regions": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt",
+    "sample_id": "human_like_genotyping_candidate_panel",
+    "sites": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+    "tool": "angsd"
+  },
+  "effective_params": {
+    "caller": "angsd",
+    "min_call_rate": 0.5,
+    "min_posterior": 0.9
+  },
+  "operating_mode": "enforced",
+  "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}

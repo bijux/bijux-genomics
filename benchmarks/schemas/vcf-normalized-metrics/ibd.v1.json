@@ -1,0 +1,52 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.ibd.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "insufficient_overlap_probe": {
+          "type": "object"
+        },
+        "pair_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "rows": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.ibd.v1"
+        },
+        "stage_id": {
+          "const": "vcf.ibd"
+        },
+        "status": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "status",
+        "pair_count",
+        "rows",
+        "insufficient_overlap_probe"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_ibd_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.ibd`.",
+  "title": "VCF normalized benchmark metrics: vcf.ibd"
+}

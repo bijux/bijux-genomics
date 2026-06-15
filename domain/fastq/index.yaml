@@ -102,6 +102,8 @@ governed_stage_ids:
   - fastq.deplete_reference_contaminants
   - fastq.deplete_rrna
   - fastq.detect_adapters
+  - fastq.detect_duplicates_premerge
+  - fastq.estimate_library_complexity_prealign
   - fastq.extract_umis
   - fastq.filter_low_complexity
   - fastq.filter_reads
@@ -128,6 +130,7 @@ governed_tool_ids:
   - bayeshammer
   - bbduk
   - bbmerge
+  - bijux_dna
   - bowtie2
   - bowtie2_build
   - centrifuge
@@ -152,6 +155,7 @@ governed_tool_ids:
   - pear
   - prinseq
   - rcorrector
+  - seqfu
   - seqkit
   - seqkit_stats
   - seqtk
@@ -187,8 +191,10 @@ stage_tool_compatibility:
   fastq.detect_adapters:
   - fastqc
   fastq.detect_duplicates_premerge:
+  - bijux_dna
   fastq.detect_instrument_artifacts:
   fastq.estimate_library_complexity_prealign:
+  - bijux_dna
   fastq.extract_umis:
   - umi_tools
   fastq.filter_low_complexity:
@@ -226,8 +232,13 @@ stage_tool_compatibility:
   - fastq_scan
   - seqkit
   fastq.profile_read_lengths:
+  - fastp
+  - prinseq
+  - seqfu
   - seqkit_stats
   fastq.profile_reads:
+  - seqfu
+  - seqkit
   - seqkit_stats
   fastq.remove_chimeras:
   - vsearch
@@ -282,9 +293,14 @@ stage_tool_integration:
     seqtk: governed_contract
     fqtools: governed_contract
   fastq.profile_read_lengths:
+    fastp: governed_contract
+    prinseq: governed_contract
+    seqfu: governed_contract
     seqkit_stats: governed_contract
   fastq.detect_adapters:
     fastqc: governed_contract
+  fastq.detect_duplicates_premerge:
+    bijux_dna: governed_contract
   fastq.trim_terminal_damage:
     adapterremoval: governed_contract
     cutadapt: governed_contract
@@ -314,6 +330,8 @@ stage_tool_integration:
     prinseq: governed_contract
     bbduk: governed_contract
   fastq.profile_reads:
+    seqfu: governed_contract
+    seqkit: governed_contract
     seqkit_stats: governed_contract
   fastq.deplete_rrna:
     sortmerna: governed_contract
@@ -360,6 +378,8 @@ stage_tool_integration:
     kaiju: governed_contract
   fastq.report_qc:
     multiqc: governed_contract
+  fastq.estimate_library_complexity_prealign:
+    bijux_dna: governed_contract
 reference_index_compatibility:
   bowtie2:
   - bowtie2_build
@@ -368,6 +388,7 @@ active_defaults:
   fastq.validate_reads: fastqvalidator
   fastq.profile_read_lengths: seqkit_stats
   fastq.detect_adapters: fastqc
+  fastq.detect_duplicates_premerge: bijux_dna
   fastq.trim_terminal_damage: cutadapt
   fastq.normalize_primers: cutadapt
   fastq.trim_polyg_tails: fastp
@@ -389,11 +410,18 @@ active_defaults:
   fastq.normalize_abundance: seqkit
   fastq.screen_taxonomy: kraken2
   fastq.report_qc: multiqc
+  fastq.estimate_library_complexity_prealign: bijux_dna
 active_default_rationale:
   fastq.cluster_otus: Stable OTU cluster policy with reproducible identifiers.
   fastq.index_reference: Default FASTQ reference preparation must emit the mapper
     index consumed by governed host and reference-contaminant depletion.
   fastq.detect_adapters: Default adapter detector remains report-only and avoids mutating reads.
+  fastq.detect_duplicates_premerge: Governed internal contract harness records report-only
+    duplicate-signal expectations from the owned paired-end corpus without treating
+    the result as scientific duplicate removal.
+  fastq.estimate_library_complexity_prealign: Governed internal contract harness records
+    prealignment library-complexity report expectations without substituting for
+    alignment-derived metrics.
   fastq.trim_reads: Baseline trimmer for deterministic quality/throughput tradeoff.
   fastq.filter_reads: Default filter preserves compatibility with downstream metrics.
   fastq.validate_reads: Validation default has broad FASTQ format coverage.
@@ -449,6 +477,18 @@ stage_completeness_checklist:
   - fixtures_present
   - compatible_tools_declared
   fastq.detect_adapters:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.detect_duplicates_premerge:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.estimate_library_complexity_prealign:
   - inputs_defined
   - outputs_defined
   - metrics_defined
@@ -614,6 +654,14 @@ stage_default_settings:
     fastqc:
       profile: adna_sane_default
       notes: adapter-content reporting preset without read mutation
+  fastq.detect_duplicates_premerge:
+    bijux_dna:
+      profile: adna_sane_default
+      notes: report-only paired duplicate-signature preset without mutating reads
+  fastq.estimate_library_complexity_prealign:
+    bijux_dna:
+      profile: adna_sane_default
+      notes: report-only prealignment complexity-estimate preset without mutating reads
   fastq.extract_umis:
     umi_tools:
       profile: adna_sane_default
@@ -687,10 +735,25 @@ stage_default_settings:
       profile: adna_sane_default
       notes: sequence counting preset for overrepresentation summaries
   fastq.profile_read_lengths:
+    fastp:
+      profile: adna_sane_default
+      notes: report-only read-length profiling preset
+    prinseq:
+      profile: adna_sane_default
+      notes: non-destructive read-length profiling preset
+    seqfu:
+      profile: adna_sane_default
+      notes: seqfu compatibility-wrapper read-length profiling preset
     seqkit_stats:
       profile: adna_sane_default
       notes: deterministic read-length histogram preset
   fastq.profile_reads:
+    seqfu:
+      profile: adna_sane_default
+      notes: seqfu compatibility-wrapper read profiling preset
+    seqkit:
+      profile: adna_sane_default
+      notes: stream-safe FASTQ statistics preset
     seqkit_stats:
       profile: adna_sane_default
       notes: neutral FASTQ statistics preset
@@ -806,6 +869,13 @@ stage_comparability_mapping:
   - reference_index_build_metrics
   fastq.detect_adapters:
   - adapter_detection_rate
+  fastq.detect_duplicates_premerge:
+  - duplicate_count
+  - duplicate_fraction
+  - inspected_pair_count
+  fastq.estimate_library_complexity_prealign:
+  - estimated_complexity
+  - estimated_duplicate_fraction
   fastq.trim_reads:
   - trimmed_read_fraction
   - post_trim_read_length_mean
@@ -825,8 +895,12 @@ stage_comparability_mapping:
   - qc_warn_count
   - qc_fail_count
   fastq.screen_taxonomy:
-  - taxonomy_abundance_fraction
-  - classified_read_fraction
+  - taxonomy_database_id
+  - classified_reads
+  - unclassified_reads
+  - classified_fraction
+  - unclassified_fraction
+  - top_taxa
   fastq.merge_pairs:
   - merge_rate
   - merged_read_length_mean
@@ -877,6 +951,12 @@ stage_min_quality_gates:
   - index_build_exit_code=0
   fastq.detect_adapters:
   - adapter_detection_rate>=0.0
+  fastq.detect_duplicates_premerge:
+  - reads_in>0
+  - duplicate_fraction>=0.0
+  fastq.estimate_library_complexity_prealign:
+  - reads_in>0
+  - estimated_duplicate_fraction>=0.0
   fastq.trim_reads:
   - post_trim_read_count>0
   fastq.filter_reads:
@@ -891,7 +971,10 @@ stage_min_quality_gates:
   fastq.report_qc:
   - qc_report_present=true
   fastq.screen_taxonomy:
-  - classified_read_fraction>=0.0
+  - classified_fraction>=0.0
+  - unclassified_fraction>=0.0
+  - classified_reads>=0
+  - unclassified_reads>=0
   fastq.merge_pairs:
   - merge_rate>=0.0
   fastq.remove_duplicates:
@@ -929,6 +1012,12 @@ stage_failure_diagnosis_hints:
   - verify reference fasta path and index write permissions
   fastq.detect_adapters:
   - check input read quality and adapter bank selection
+  fastq.detect_duplicates_premerge:
+  - verify paired FASTQ coherence and gzip integrity before duplicate-signature comparison
+  - inspect repeated sequence signatures and sample duplication policy expectations
+  fastq.estimate_library_complexity_prealign:
+  - verify paired FASTQ coherence and gzip integrity before advisory complexity estimation
+  - inspect low-depth inputs and repeated leading k-mer signatures before interpreting advisory complexity estimates
   fastq.trim_reads:
   - inspect adapter parameters and minimum length thresholds
   fastq.filter_reads:
@@ -1001,6 +1090,10 @@ stage_ordering_constraints:
   fastq.validate_reads: []
   fastq.detect_adapters:
   - fastq.validate_reads
+  fastq.detect_duplicates_premerge:
+  - fastq.filter_reads
+  fastq.estimate_library_complexity_prealign:
+  - fastq.filter_reads
   fastq.normalize_abundance: []
   fastq.normalize_primers:
   - fastq.trim_terminal_damage
@@ -1051,6 +1144,10 @@ stage_prerequisites:
   fastq.validate_reads: []
   fastq.detect_adapters:
   - fastq.validate_reads
+  fastq.detect_duplicates_premerge:
+  - fastq.filter_reads
+  fastq.estimate_library_complexity_prealign:
+  - fastq.filter_reads
   fastq.normalize_abundance: []
   fastq.normalize_primers:
   - fastq.trim_terminal_damage
@@ -1110,6 +1207,14 @@ stage_resource_hints:
     memory_gb: 4.0
     time_minutes: 20
     threads: 4
+  fastq.detect_duplicates_premerge:
+    memory_gb: 2.0
+    time_minutes: 10
+    threads: 2
+  fastq.estimate_library_complexity_prealign:
+    memory_gb: 2.0
+    time_minutes: 10
+    threads: 2
   fastq.trim_reads:
     memory_gb: 6.0
     time_minutes: 30
@@ -1235,6 +1340,7 @@ stage_output_size_estimates_mb:
     contaminant_screen_report_json: 10.0
   fastq.deplete_rrna:
     rrna_filtered_reads_r1: 1700.0
+    rrna_removed_reads_r1: 1000.0
     rrna_report_tsv: 6.0
     rrna_report_json: 4.0
   fastq.detect_adapters:
@@ -1352,6 +1458,12 @@ stage_sanity_metrics:
   - index_build_exit_code
   fastq.detect_adapters:
   - adapter_detection_rate
+  fastq.detect_duplicates_premerge:
+  - duplicate_count
+  - duplicate_fraction
+  fastq.estimate_library_complexity_prealign:
+  - estimated_complexity
+  - estimated_duplicate_fraction
   fastq.trim_reads:
   - trimmed_read_fraction
   - post_trim_read_length_mean
@@ -1368,7 +1480,12 @@ stage_sanity_metrics:
   - qc_warn_count
   - qc_fail_count
   fastq.screen_taxonomy:
-  - classified_read_fraction
+  - taxonomy_database_id
+  - classified_reads
+  - unclassified_reads
+  - classified_fraction
+  - unclassified_fraction
+  - top_taxa
   fastq.merge_pairs:
   - merge_rate
   fastq.remove_duplicates:
@@ -1397,7 +1514,9 @@ stage_sanity_metrics:
   - primer_trimmed_fraction
   - orientation_forward_fraction
   fastq.profile_overrepresented_sequences:
-  - reads_total
+  - sequence_count
+  - flagged_sequences
+  - top_fraction
   fastq.remove_chimeras:
   - chimera_fraction
   - chimeras_removed
@@ -1418,6 +1537,14 @@ stage_qc_thresholds:
     adapter_detection_rate:
       warn: <0.01
       fail: <0.001
+  fastq.detect_duplicates_premerge:
+    duplicate_fraction:
+      warn: '>=0.5'
+      fail: '>=0.8'
+  fastq.estimate_library_complexity_prealign:
+    estimated_duplicate_fraction:
+      warn: '>=0.5'
+      fail: '>=0.8'
   fastq.trim_reads:
     trimmed_read_fraction:
       warn: <0.4
@@ -1443,7 +1570,7 @@ stage_qc_thresholds:
       warn: '>0'
       fail: '>5'
   fastq.screen_taxonomy:
-    classified_read_fraction:
+    classified_fraction:
       warn: <0.1
       fail: <0.01
   fastq.merge_pairs:
@@ -1519,6 +1646,14 @@ stage_contamination_thresholds:
     contamination_rate:
       warn: '>=0.0'
       fail: '>=1.0'
+  fastq.detect_duplicates_premerge:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.estimate_library_complexity_prealign:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
   fastq.trim_reads:
     contamination_rate:
       warn: '>=0.05'
@@ -1617,6 +1752,14 @@ stage_authenticity_thresholds:
       warn: <=1.0
       fail: <=0.0
   fastq.detect_adapters:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.detect_duplicates_premerge:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.estimate_library_complexity_prealign:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
@@ -1721,6 +1864,14 @@ stage_duplication_thresholds:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
+  fastq.detect_duplicates_premerge:
+    duplicate_fraction:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.estimate_library_complexity_prealign:
+    estimated_duplicate_fraction:
+      warn: '>=0.7'
+      fail: '>=0.9'
   fastq.trim_reads:
     duplication_rate:
       warn: '>=0.7'
@@ -1814,6 +1965,10 @@ stage_coverage_sufficiency:
   - not_applicable
   fastq.detect_adapters:
   - not_applicable
+  fastq.detect_duplicates_premerge:
+  - not_applicable
+  fastq.estimate_library_complexity_prealign:
+  - not_applicable
   fastq.trim_reads:
   - not_applicable
   fastq.filter_reads:
@@ -1864,6 +2019,10 @@ stage_sex_kinship_sufficiency:
   fastq.index_reference:
   - not_applicable
   fastq.detect_adapters:
+  - not_applicable
+  fastq.detect_duplicates_premerge:
+  - not_applicable
+  fastq.estimate_library_complexity_prealign:
   - not_applicable
   fastq.trim_reads:
   - not_applicable

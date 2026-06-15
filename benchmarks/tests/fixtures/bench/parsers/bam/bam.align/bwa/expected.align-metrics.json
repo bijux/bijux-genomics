@@ -1,0 +1,32 @@
+{
+  "schema_version": "bijux.fixture.bam_alignment_metrics.v1",
+  "stage_id": "bam.align",
+  "tool_id": "bwa",
+  "normalized": {
+    "provenance": {
+      "backend_tool_id": "bwa",
+      "strategy_id": "bwa_mem_default",
+      "preset": "default",
+      "mode": "end_to_end",
+      "sensitivity_profile": null,
+      "seed_length": 12,
+      "sample_id": "sample1",
+      "read_group_id": "sample1.rg1",
+      "read_group_sample": "sample1",
+      "output_names": [
+        "align_bai",
+        "align_bam"
+      ]
+    },
+    "mapping_summary": {
+      "total_reads": 4,
+      "mapped_reads": 2,
+      "duplicate_reads": 0,
+      "mapped_fraction": 0.5,
+      "proper_pair_reads": 2,
+      "secondary_reads": 0,
+      "supplementary_reads": 0,
+      "mapq_status": "pass"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": "bijux.bench.stage_result.v2",
+  "stage_id": "fastq.remove_duplicates",
+  "tool": {
+    "id": "clumpify"
+  },
+  "command": {
+    "rendered": "bijux-dna bench readiness missing-result-fixture --stage fastq.remove_duplicates --tool clumpify"
+  },
+  "runtime": {
+    "mode": "fake_benchmark_result",
+    "status": "succeeded",
+    "started_at": "1970-01-01T00:00:00Z",
+    "finished_at": "1970-01-01T00:00:01Z",
+    "elapsed_seconds": 1.0,
+    "exit_code": 0
+  },
+  "resource_metrics": {
+    "source": "estimated",
+    "memory_mb": 512.0,
+    "cpu_threads": 1
+  },
+  "outputs": [
+    {
+      "artifact_id": "dedup_reads_r1",
+      "declared_path": "outputs/dedup_reads_r1.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.remove_duplicates/sample-set/clumpify/outputs/dedup_reads_r1.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "duplicate_classes_tsv",
+      "declared_path": "outputs/duplicate_classes_tsv.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.remove_duplicates/sample-set/clumpify/outputs/duplicate_classes_tsv.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "duplicate_provenance_json",
+      "declared_path": "outputs/duplicate_provenance_json.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.remove_duplicates/sample-set/clumpify/outputs/duplicate_provenance_json.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "report_json",
+      "declared_path": "outputs/report_json.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.remove_duplicates/sample-set/clumpify/outputs/report_json.json",
+      "role": "normalized_metrics",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "dedup_reads_r2",
+      "declared_path": "outputs/dedup_reads_r2.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.remove_duplicates/sample-set/clumpify/outputs/dedup_reads_r2.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "bijux.fixture.fastq_raw_parser.v1",
+  "stage_id": "fastq.screen_taxonomy",
+  "tool_id": "fastq_screen",
+  "parser_id": "parse_screen_summary_tsv",
+  "normalized": [
+    {
+      "label": "unmapped",
+      "percent": 72.1
+    },
+    {
+      "label": "human",
+      "percent": 20.3
+    },
+    {
+      "label": "bacteria",
+      "percent": 7.6
+    }
+  ]
+}

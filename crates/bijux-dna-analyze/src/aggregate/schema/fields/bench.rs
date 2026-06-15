@@ -80,13 +80,17 @@ pub const FASTQ_VALIDATE_METRICS: [MetricId; 17] = [
     MetricId::FailureClass,
 ];
 
-pub const FASTQ_DETECT_ADAPTERS_METRICS: [MetricId; 7] = [
+pub const FASTQ_DETECT_ADAPTERS_METRICS: [MetricId; 11] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::BasesIn,
     MetricId::BasesOut,
     MetricId::MeanQ,
+    MetricId::AdapterReport,
     MetricId::CandidateAdapterCount,
+    MetricId::DetectedAdapterIds,
+    MetricId::DetectionConfidence,
+    MetricId::DetectionThreshold,
     MetricId::AdapterTrimmedFraction,
 ];
 
@@ -265,9 +269,11 @@ pub const FASTQ_STATS_METRICS: [MetricId; 5] = [
     MetricId::LengthHistogram,
 ];
 
-pub const FASTQ_READ_LENGTH_METRICS: [MetricId; 4] = [
+pub const FASTQ_READ_LENGTH_METRICS: [MetricId; 6] = [
     MetricId::ReadCount,
+    MetricId::MinReadLength,
     MetricId::MeanReadLength,
+    MetricId::MedianReadLength,
     MetricId::MaxReadLength,
     MetricId::DistinctLengths,
 ];
@@ -371,9 +377,12 @@ pub const FASTQ_NORMALIZE_PRIMERS_INVARIANTS: [&str; 4] = [
 
 pub const FASTQ_STATS_INVARIANTS: [&str; 2] = ["mean_q in [0, 45]", "gc_percent in [0, 100]"];
 
-pub const FASTQ_READ_LENGTH_INVARIANTS: [&str; 3] = [
+pub const FASTQ_READ_LENGTH_INVARIANTS: [&str; 6] = [
     "mean_read_length >= 0",
+    "min_read_length > 0 when reads are present",
+    "median_read_length >= min_read_length when reads are present",
     "max_read_length > 0 when reads are present",
+    "median_read_length <= max_read_length when reads are present",
     "distinct_lengths <= read_count",
 ];
 

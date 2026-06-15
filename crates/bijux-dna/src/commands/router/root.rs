@@ -11,7 +11,7 @@ use crate::commands::router::root_commands::{
     handle_tool_root,
 };
 use crate::commands::router::root_commands::{
-    handle_corpus_root, handle_environment_root, handle_registry_root,
+    handle_corpus_root, handle_environment_root, handle_fixtures_root, handle_registry_root,
 };
 use crate::commands::status::handle_status_root;
 
@@ -38,6 +38,10 @@ pub(crate) fn try_handle_root_command(
         }
         cli::DnaCommand::Corpus(args) => {
             handle_corpus_root(&args.command, cwd)?;
+            Ok(true)
+        }
+        cli::DnaCommand::Fixtures(args) => {
+            handle_fixtures_root(&args.command, cwd)?;
             Ok(true)
         }
         #[cfg(debug_assertions)]

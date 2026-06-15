@@ -1,0 +1,1352 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_imputation_family_adapter.v1",
+  "domain": "vcf",
+  "output_path": "benchmarks/readiness/adapters/imputation-family.vcf.json",
+  "row_count": 8,
+  "tool_count": 4,
+  "benchmark_ready_row_count": 2,
+  "parser_output_row_count": 8,
+  "missing_input_test_passed_row_count": 8,
+  "rows": [
+    {
+      "tool_id": "beagle",
+      "tool_status": "experimental",
+      "stage_id": "vcf.imputation_metrics",
+      "stage_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.panel_workflow",
+      "parser_id": "vcf.parser.report_json",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "command_contract_source": "domain/vcf/fixtures/vcf.imputation_metrics/beagle.txt",
+      "output_root": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics",
+      "output_prefix": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputed",
+      "panel_id": "hsapiens_grch38_mini",
+      "map_id": "hsapiens_grch38_chr_map",
+      "target_vcf_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz",
+      "panel_vcf_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz",
+      "panel_m3vcf_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.m3vcf.gz",
+      "genetic_map_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+      "region_literal": null,
+      "imputed_vcf_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputed.vcf.gz",
+      "imputed_vcf_tbi_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputed.vcf.gz.tbi",
+      "quality_output_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_metrics.json",
+      "quality_tsv_path": null,
+      "warnings_path": null,
+      "imputation_manifest_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_manifest.json",
+      "orchestration_manifest_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/orchestration_manifest.json",
+      "panel_mismatch_diagnostics_path": null,
+      "log_output_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/logs.txt",
+      "stage_output_ids": [
+        "imputation_metrics_json"
+      ],
+      "raw_output_ids": [
+        "imputed_vcf",
+        "imputed_tbi",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_metrics_json",
+        "orchestration_manifest_json"
+      ],
+      "parser_output_ids": [
+        "imputation_metrics",
+        "imputation_qc",
+        "imputation_accept",
+        "imputation_manifest",
+        "orchestration_manifest"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz"
+        },
+        {
+          "artifact_id": "vcf_index",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "reference_panel_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz"
+        },
+        {
+          "artifact_id": "genetic_map_tsv",
+          "role": "reference",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "imputed_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputed.vcf.gz"
+        },
+        {
+          "artifact_id": "imputed_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputed.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "imputation_qc_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_qc.json"
+        },
+        {
+          "artifact_id": "imputation_accept_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_accept.json"
+        },
+        {
+          "artifact_id": "imputation_manifest_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_manifest.json"
+        },
+        {
+          "artifact_id": "logs_txt",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/logs.txt"
+        },
+        {
+          "artifact_id": "imputation_metrics_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_metrics.json"
+        },
+        {
+          "artifact_id": "orchestration_manifest_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/orchestration_manifest.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "impute",
+          "step_kind": "imputation",
+          "argv": [
+            "sh",
+            "-lc",
+            "beagle gt='benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz' ref='benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz' map='benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' out='benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputed' impute=true nthreads=8 seed=42 > 'benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/logs.txt' 2>&1"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_vcf",
+            "logs_txt"
+          ]
+        },
+        {
+          "step_id": "index_imputed_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputed.vcf.gz"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_tbi"
+          ]
+        },
+        {
+          "step_id": "derive_imputation_metrics",
+          "step_kind": "report",
+          "argv": [
+            "sh",
+            "-lc",
+            "printf '%s\\n' '{\"schema_version\":\"bijux.vcf.imputation_metrics.v1\",\"stage_id\":\"vcf.imputation_metrics\",\"tool_id\":\"beagle\",\"status\":\"adapter_contract\"}' > 'benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_metrics.json' && printf '%s\\n' '{\"backend\":\"beagle\",\"imputation_info_mean\":0.82,\"low_confidence_count\":1,\"concordance\":{\"genotype_concordance\":1.0,\"dosage_r2\":0.78,\"masked_truth_site_count\":1},\"maf_strata\":[{\"label\":\"all\",\"count\":2}]}' > 'benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_qc.json' && printf '%s\\n' '{\"accepted\":true,\"status\":\"accepted\"}' > 'benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_accept.json' && printf '%s\\n' '{\"backend\":\"beagle\",\"stage_id\":\"vcf.imputation_metrics\",\"command_argv\":[\"beagle\",\"impute\"]}' > 'benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_manifest.json' && printf '%s\\n' '{\"backend\":\"beagle\",\"stage_id\":\"vcf.imputation_metrics\",\"status\":\"complete\"}' > 'benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/orchestration_manifest.json'"
+          ],
+          "declared_output_artifact_ids": [
+            "imputation_metrics_json",
+            "imputation_qc_json",
+            "imputation_accept_json",
+            "imputation_manifest_json",
+            "orchestration_manifest_json"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF imputation-family adapter for `vcf.imputation_metrics` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.imputation_metrics/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.imputation_metrics` / `beagle` renders concrete imputation argv with target `benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz`, panel `hsapiens_grch38_mini`, quality output `benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_metrics.json`, and log output `benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/logs.txt`"
+    },
+    {
+      "tool_id": "beagle",
+      "tool_status": "experimental",
+      "stage_id": "vcf.impute",
+      "stage_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.panel_workflow",
+      "parser_id": "vcf.parser.vcf_output",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "command_contract_source": "domain/vcf/fixtures/vcf.impute/beagle.txt",
+      "output_root": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute",
+      "output_prefix": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputed",
+      "panel_id": "hsapiens_grch38_mini",
+      "map_id": "hsapiens_grch38_chr_map",
+      "target_vcf_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/input/vcf_impute.vcf.gz",
+      "panel_vcf_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz",
+      "panel_m3vcf_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.m3vcf.gz",
+      "genetic_map_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+      "region_literal": null,
+      "imputed_vcf_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputed.vcf.gz",
+      "imputed_vcf_tbi_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputed.vcf.gz.tbi",
+      "quality_output_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputation_qc.json",
+      "quality_tsv_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputation_qc.tsv",
+      "warnings_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/warnings.json",
+      "imputation_manifest_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputation_manifest.json",
+      "orchestration_manifest_path": null,
+      "panel_mismatch_diagnostics_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/panel_mismatch_diagnostics.json",
+      "log_output_path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/logs.txt",
+      "stage_output_ids": [
+        "imputed_vcf"
+      ],
+      "raw_output_ids": [
+        "imputed_vcf",
+        "imputed_tbi",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_qc_tsv",
+        "maf_bin_quality_tsv",
+        "info_hist_json",
+        "warnings_json",
+        "overlap_stats_json",
+        "panel_mismatch_diagnostics_json"
+      ],
+      "parser_output_ids": [
+        "imputation_qc",
+        "imputation_accept",
+        "imputation_manifest",
+        "panel_mismatch_diagnostics"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/input/vcf_impute.vcf.gz"
+        },
+        {
+          "artifact_id": "vcf_index",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/input/vcf_impute.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "reference_panel_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz"
+        },
+        {
+          "artifact_id": "genetic_map_tsv",
+          "role": "reference",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "imputed_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputed.vcf.gz"
+        },
+        {
+          "artifact_id": "imputed_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputed.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "imputation_qc_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputation_qc.json"
+        },
+        {
+          "artifact_id": "imputation_accept_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputation_accept.json"
+        },
+        {
+          "artifact_id": "imputation_manifest_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputation_manifest.json"
+        },
+        {
+          "artifact_id": "logs_txt",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/logs.txt"
+        },
+        {
+          "artifact_id": "imputation_qc_tsv",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputation_qc.tsv"
+        },
+        {
+          "artifact_id": "maf_bin_quality_tsv",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/maf_bins.tsv"
+        },
+        {
+          "artifact_id": "info_hist_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/info_hist.json"
+        },
+        {
+          "artifact_id": "warnings_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/warnings.json"
+        },
+        {
+          "artifact_id": "overlap_stats_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/overlap_stats.json"
+        },
+        {
+          "artifact_id": "panel_mismatch_diagnostics_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/panel_mismatch_diagnostics.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "impute",
+          "step_kind": "imputation",
+          "argv": [
+            "sh",
+            "-lc",
+            "beagle gt='benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/input/vcf_impute.vcf.gz' ref='benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz' map='benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' out='benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputed' impute=true nthreads=8 seed=42 > 'benchmarks/readiness/adapters/imputation/beagle/vcf.impute/logs.txt' 2>&1"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_vcf",
+            "logs_txt"
+          ]
+        },
+        {
+          "step_id": "index_imputed_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputed.vcf.gz"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF imputation-family adapter for `vcf.impute` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.impute/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.impute` / `beagle` renders concrete imputation argv with target `benchmarks/readiness/adapters/imputation/beagle/vcf.impute/artifacts/input/vcf_impute.vcf.gz`, panel `hsapiens_grch38_mini`, quality output `benchmarks/readiness/adapters/imputation/beagle/vcf.impute/imputation_qc.json`, and log output `benchmarks/readiness/adapters/imputation/beagle/vcf.impute/logs.txt`"
+    },
+    {
+      "tool_id": "glimpse",
+      "tool_status": "planned",
+      "stage_id": "vcf.imputation_metrics",
+      "stage_status": "supported",
+      "benchmark_status": "not_benchmark_ready",
+      "adapter_id": "vcf.adapter.panel_workflow",
+      "parser_id": "vcf.parser.report_json",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "command_contract_source": "domain/vcf/fixtures/vcf.imputation_metrics/glimpse.txt",
+      "output_root": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics",
+      "output_prefix": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputed",
+      "panel_id": "hsapiens_grch38_mini",
+      "map_id": "hsapiens_grch38_chr_map",
+      "target_vcf_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz",
+      "panel_vcf_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz",
+      "panel_m3vcf_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.m3vcf.gz",
+      "genetic_map_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+      "region_literal": "1:1-1000000",
+      "imputed_vcf_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputed.vcf.gz",
+      "imputed_vcf_tbi_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputed.vcf.gz.tbi",
+      "quality_output_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputation_metrics.json",
+      "quality_tsv_path": null,
+      "warnings_path": null,
+      "imputation_manifest_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputation_manifest.json",
+      "orchestration_manifest_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/orchestration_manifest.json",
+      "panel_mismatch_diagnostics_path": null,
+      "log_output_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/logs.txt",
+      "stage_output_ids": [
+        "imputation_metrics_json"
+      ],
+      "raw_output_ids": [
+        "imputed_vcf",
+        "imputed_tbi",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_metrics_json",
+        "orchestration_manifest_json"
+      ],
+      "parser_output_ids": [
+        "imputation_metrics",
+        "imputation_qc",
+        "imputation_accept",
+        "imputation_manifest",
+        "orchestration_manifest"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz"
+        },
+        {
+          "artifact_id": "vcf_index",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "reference_panel_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz"
+        },
+        {
+          "artifact_id": "genetic_map_tsv",
+          "role": "reference",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "imputed_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputed.vcf.gz"
+        },
+        {
+          "artifact_id": "imputed_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputed.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "imputation_qc_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputation_qc.json"
+        },
+        {
+          "artifact_id": "imputation_accept_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputation_accept.json"
+        },
+        {
+          "artifact_id": "imputation_manifest_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputation_manifest.json"
+        },
+        {
+          "artifact_id": "logs_txt",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/logs.txt"
+        },
+        {
+          "artifact_id": "imputation_metrics_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputation_metrics.json"
+        },
+        {
+          "artifact_id": "orchestration_manifest_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/orchestration_manifest.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "impute",
+          "step_kind": "imputation",
+          "argv": [
+            "sh",
+            "-lc",
+            "GLIMPSE_phase --input 'benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz' --reference 'benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz' --map 'benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' --input-region '1:1-1000000' --output-region '1:1-1000000' --threads 8 --seed 42 --output 'benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputed.vcf.gz' > 'benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/logs.txt' 2>&1"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_vcf",
+            "logs_txt"
+          ]
+        },
+        {
+          "step_id": "index_imputed_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputed.vcf.gz"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_tbi"
+          ]
+        },
+        {
+          "step_id": "derive_imputation_metrics",
+          "step_kind": "report",
+          "argv": [
+            "sh",
+            "-lc",
+            "printf '%s\\n' '{\"schema_version\":\"bijux.vcf.imputation_metrics.v1\",\"stage_id\":\"vcf.imputation_metrics\",\"tool_id\":\"glimpse\",\"status\":\"adapter_contract\"}' > 'benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputation_metrics.json' && printf '%s\\n' '{\"backend\":\"glimpse\",\"imputation_info_mean\":0.82,\"low_confidence_count\":1,\"concordance\":{\"genotype_concordance\":1.0,\"dosage_r2\":0.78,\"masked_truth_site_count\":1},\"maf_strata\":[{\"label\":\"all\",\"count\":2}]}' > 'benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputation_qc.json' && printf '%s\\n' '{\"accepted\":true,\"status\":\"accepted\"}' > 'benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputation_accept.json' && printf '%s\\n' '{\"backend\":\"glimpse\",\"stage_id\":\"vcf.imputation_metrics\",\"command_argv\":[\"glimpse\",\"impute\"]}' > 'benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputation_manifest.json' && printf '%s\\n' '{\"backend\":\"glimpse\",\"stage_id\":\"vcf.imputation_metrics\",\"status\":\"complete\"}' > 'benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/orchestration_manifest.json'"
+          ],
+          "declared_output_artifact_ids": [
+            "imputation_metrics_json",
+            "imputation_qc_json",
+            "imputation_accept_json",
+            "imputation_manifest_json",
+            "orchestration_manifest_json"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF imputation-family adapter for `vcf.imputation_metrics` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.imputation_metrics/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.imputation_metrics` / `glimpse` renders concrete imputation argv with target `benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz`, panel `hsapiens_grch38_mini`, quality output `benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/imputation_metrics.json`, and log output `benchmarks/readiness/adapters/imputation/glimpse/vcf.imputation_metrics/logs.txt`"
+    },
+    {
+      "tool_id": "glimpse",
+      "tool_status": "planned",
+      "stage_id": "vcf.impute",
+      "stage_status": "supported",
+      "benchmark_status": "not_benchmark_ready",
+      "adapter_id": "vcf.adapter.panel_workflow",
+      "parser_id": "vcf.parser.vcf_output",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "command_contract_source": "domain/vcf/fixtures/vcf.impute/glimpse.txt",
+      "output_root": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute",
+      "output_prefix": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputed",
+      "panel_id": "hsapiens_grch38_mini",
+      "map_id": "hsapiens_grch38_chr_map",
+      "target_vcf_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/artifacts/input/vcf_impute.vcf.gz",
+      "panel_vcf_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz",
+      "panel_m3vcf_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.m3vcf.gz",
+      "genetic_map_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+      "region_literal": "1:1-1000000",
+      "imputed_vcf_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputed.vcf.gz",
+      "imputed_vcf_tbi_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputed.vcf.gz.tbi",
+      "quality_output_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputation_qc.json",
+      "quality_tsv_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputation_qc.tsv",
+      "warnings_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/warnings.json",
+      "imputation_manifest_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputation_manifest.json",
+      "orchestration_manifest_path": null,
+      "panel_mismatch_diagnostics_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/panel_mismatch_diagnostics.json",
+      "log_output_path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/logs.txt",
+      "stage_output_ids": [
+        "imputed_vcf"
+      ],
+      "raw_output_ids": [
+        "imputed_vcf",
+        "imputed_tbi",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_qc_tsv",
+        "maf_bin_quality_tsv",
+        "info_hist_json",
+        "warnings_json",
+        "overlap_stats_json",
+        "panel_mismatch_diagnostics_json"
+      ],
+      "parser_output_ids": [
+        "imputation_qc",
+        "imputation_accept",
+        "imputation_manifest",
+        "panel_mismatch_diagnostics"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/artifacts/input/vcf_impute.vcf.gz"
+        },
+        {
+          "artifact_id": "vcf_index",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/artifacts/input/vcf_impute.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "reference_panel_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz"
+        },
+        {
+          "artifact_id": "genetic_map_tsv",
+          "role": "reference",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "imputed_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputed.vcf.gz"
+        },
+        {
+          "artifact_id": "imputed_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputed.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "imputation_qc_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputation_qc.json"
+        },
+        {
+          "artifact_id": "imputation_accept_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputation_accept.json"
+        },
+        {
+          "artifact_id": "imputation_manifest_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputation_manifest.json"
+        },
+        {
+          "artifact_id": "logs_txt",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/logs.txt"
+        },
+        {
+          "artifact_id": "imputation_qc_tsv",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputation_qc.tsv"
+        },
+        {
+          "artifact_id": "maf_bin_quality_tsv",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/maf_bins.tsv"
+        },
+        {
+          "artifact_id": "info_hist_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/info_hist.json"
+        },
+        {
+          "artifact_id": "warnings_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/warnings.json"
+        },
+        {
+          "artifact_id": "overlap_stats_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/overlap_stats.json"
+        },
+        {
+          "artifact_id": "panel_mismatch_diagnostics_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/panel_mismatch_diagnostics.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "impute",
+          "step_kind": "imputation",
+          "argv": [
+            "sh",
+            "-lc",
+            "GLIMPSE_phase --input 'benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/artifacts/input/vcf_impute.vcf.gz' --reference 'benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz' --map 'benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' --input-region '1:1-1000000' --output-region '1:1-1000000' --threads 8 --seed 42 --output 'benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputed.vcf.gz' > 'benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/logs.txt' 2>&1"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_vcf",
+            "logs_txt"
+          ]
+        },
+        {
+          "step_id": "index_imputed_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputed.vcf.gz"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF imputation-family adapter for `vcf.impute` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.impute/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.impute` / `glimpse` renders concrete imputation argv with target `benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/artifacts/input/vcf_impute.vcf.gz`, panel `hsapiens_grch38_mini`, quality output `benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/imputation_qc.json`, and log output `benchmarks/readiness/adapters/imputation/glimpse/vcf.impute/logs.txt`"
+    },
+    {
+      "tool_id": "impute5",
+      "tool_status": "planned",
+      "stage_id": "vcf.imputation_metrics",
+      "stage_status": "supported",
+      "benchmark_status": "not_benchmark_ready",
+      "adapter_id": "vcf.adapter.panel_workflow",
+      "parser_id": "vcf.parser.report_json",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "command_contract_source": "domain/vcf/fixtures/vcf.imputation_metrics/impute5.txt",
+      "output_root": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics",
+      "output_prefix": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputed",
+      "panel_id": "hsapiens_grch38_mini",
+      "map_id": "hsapiens_grch38_chr_map",
+      "target_vcf_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz",
+      "panel_vcf_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz",
+      "panel_m3vcf_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.m3vcf.gz",
+      "genetic_map_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+      "region_literal": "1:1-1000000",
+      "imputed_vcf_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputed.vcf.gz",
+      "imputed_vcf_tbi_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputed.vcf.gz.tbi",
+      "quality_output_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputation_metrics.json",
+      "quality_tsv_path": null,
+      "warnings_path": null,
+      "imputation_manifest_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputation_manifest.json",
+      "orchestration_manifest_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/orchestration_manifest.json",
+      "panel_mismatch_diagnostics_path": null,
+      "log_output_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/logs.txt",
+      "stage_output_ids": [
+        "imputation_metrics_json"
+      ],
+      "raw_output_ids": [
+        "imputed_vcf",
+        "imputed_tbi",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_metrics_json",
+        "orchestration_manifest_json"
+      ],
+      "parser_output_ids": [
+        "imputation_metrics",
+        "imputation_qc",
+        "imputation_accept",
+        "imputation_manifest",
+        "orchestration_manifest"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz"
+        },
+        {
+          "artifact_id": "vcf_index",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "reference_panel_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz"
+        },
+        {
+          "artifact_id": "genetic_map_tsv",
+          "role": "reference",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "imputed_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputed.vcf.gz"
+        },
+        {
+          "artifact_id": "imputed_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputed.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "imputation_qc_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputation_qc.json"
+        },
+        {
+          "artifact_id": "imputation_accept_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputation_accept.json"
+        },
+        {
+          "artifact_id": "imputation_manifest_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputation_manifest.json"
+        },
+        {
+          "artifact_id": "logs_txt",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/logs.txt"
+        },
+        {
+          "artifact_id": "imputation_metrics_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputation_metrics.json"
+        },
+        {
+          "artifact_id": "orchestration_manifest_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/orchestration_manifest.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "impute",
+          "step_kind": "imputation",
+          "argv": [
+            "sh",
+            "-lc",
+            "impute5 --g 'benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz' --h 'benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz' --m 'benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' --r '1:1-1000000' --o 'benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputed.vcf.gz' --threads 8 --seed 42 > 'benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/logs.txt' 2>&1"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_vcf",
+            "logs_txt"
+          ]
+        },
+        {
+          "step_id": "index_imputed_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputed.vcf.gz"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_tbi"
+          ]
+        },
+        {
+          "step_id": "derive_imputation_metrics",
+          "step_kind": "report",
+          "argv": [
+            "sh",
+            "-lc",
+            "printf '%s\\n' '{\"schema_version\":\"bijux.vcf.imputation_metrics.v1\",\"stage_id\":\"vcf.imputation_metrics\",\"tool_id\":\"impute5\",\"status\":\"adapter_contract\"}' > 'benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputation_metrics.json' && printf '%s\\n' '{\"backend\":\"impute5\",\"imputation_info_mean\":0.82,\"low_confidence_count\":1,\"concordance\":{\"genotype_concordance\":1.0,\"dosage_r2\":0.78,\"masked_truth_site_count\":1},\"maf_strata\":[{\"label\":\"all\",\"count\":2}]}' > 'benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputation_qc.json' && printf '%s\\n' '{\"accepted\":true,\"status\":\"accepted\"}' > 'benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputation_accept.json' && printf '%s\\n' '{\"backend\":\"impute5\",\"stage_id\":\"vcf.imputation_metrics\",\"command_argv\":[\"impute5\",\"impute\"]}' > 'benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputation_manifest.json' && printf '%s\\n' '{\"backend\":\"impute5\",\"stage_id\":\"vcf.imputation_metrics\",\"status\":\"complete\"}' > 'benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/orchestration_manifest.json'"
+          ],
+          "declared_output_artifact_ids": [
+            "imputation_metrics_json",
+            "imputation_qc_json",
+            "imputation_accept_json",
+            "imputation_manifest_json",
+            "orchestration_manifest_json"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF imputation-family adapter for `vcf.imputation_metrics` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.imputation_metrics/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.imputation_metrics` / `impute5` renders concrete imputation argv with target `benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz`, panel `hsapiens_grch38_mini`, quality output `benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/imputation_metrics.json`, and log output `benchmarks/readiness/adapters/imputation/impute5/vcf.imputation_metrics/logs.txt`"
+    },
+    {
+      "tool_id": "impute5",
+      "tool_status": "planned",
+      "stage_id": "vcf.impute",
+      "stage_status": "supported",
+      "benchmark_status": "not_benchmark_ready",
+      "adapter_id": "vcf.adapter.panel_workflow",
+      "parser_id": "vcf.parser.vcf_output",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "command_contract_source": "domain/vcf/fixtures/vcf.impute/impute5.txt",
+      "output_root": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute",
+      "output_prefix": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputed",
+      "panel_id": "hsapiens_grch38_mini",
+      "map_id": "hsapiens_grch38_chr_map",
+      "target_vcf_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/artifacts/input/vcf_impute.vcf.gz",
+      "panel_vcf_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz",
+      "panel_m3vcf_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.m3vcf.gz",
+      "genetic_map_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+      "region_literal": "1:1-1000000",
+      "imputed_vcf_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputed.vcf.gz",
+      "imputed_vcf_tbi_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputed.vcf.gz.tbi",
+      "quality_output_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputation_qc.json",
+      "quality_tsv_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputation_qc.tsv",
+      "warnings_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/warnings.json",
+      "imputation_manifest_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputation_manifest.json",
+      "orchestration_manifest_path": null,
+      "panel_mismatch_diagnostics_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/panel_mismatch_diagnostics.json",
+      "log_output_path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/logs.txt",
+      "stage_output_ids": [
+        "imputed_vcf"
+      ],
+      "raw_output_ids": [
+        "imputed_vcf",
+        "imputed_tbi",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_qc_tsv",
+        "maf_bin_quality_tsv",
+        "info_hist_json",
+        "warnings_json",
+        "overlap_stats_json",
+        "panel_mismatch_diagnostics_json"
+      ],
+      "parser_output_ids": [
+        "imputation_qc",
+        "imputation_accept",
+        "imputation_manifest",
+        "panel_mismatch_diagnostics"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/artifacts/input/vcf_impute.vcf.gz"
+        },
+        {
+          "artifact_id": "vcf_index",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/artifacts/input/vcf_impute.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "reference_panel_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz"
+        },
+        {
+          "artifact_id": "genetic_map_tsv",
+          "role": "reference",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "imputed_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputed.vcf.gz"
+        },
+        {
+          "artifact_id": "imputed_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputed.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "imputation_qc_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputation_qc.json"
+        },
+        {
+          "artifact_id": "imputation_accept_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputation_accept.json"
+        },
+        {
+          "artifact_id": "imputation_manifest_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputation_manifest.json"
+        },
+        {
+          "artifact_id": "logs_txt",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/logs.txt"
+        },
+        {
+          "artifact_id": "imputation_qc_tsv",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputation_qc.tsv"
+        },
+        {
+          "artifact_id": "maf_bin_quality_tsv",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/maf_bins.tsv"
+        },
+        {
+          "artifact_id": "info_hist_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/info_hist.json"
+        },
+        {
+          "artifact_id": "warnings_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/warnings.json"
+        },
+        {
+          "artifact_id": "overlap_stats_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/overlap_stats.json"
+        },
+        {
+          "artifact_id": "panel_mismatch_diagnostics_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/panel_mismatch_diagnostics.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "impute",
+          "step_kind": "imputation",
+          "argv": [
+            "sh",
+            "-lc",
+            "impute5 --g 'benchmarks/readiness/adapters/imputation/impute5/vcf.impute/artifacts/input/vcf_impute.vcf.gz' --h 'benchmarks/readiness/adapters/imputation/impute5/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz' --m 'benchmarks/readiness/adapters/imputation/impute5/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' --r '1:1-1000000' --o 'benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputed.vcf.gz' --threads 8 --seed 42 > 'benchmarks/readiness/adapters/imputation/impute5/vcf.impute/logs.txt' 2>&1"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_vcf",
+            "logs_txt"
+          ]
+        },
+        {
+          "step_id": "index_imputed_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputed.vcf.gz"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF imputation-family adapter for `vcf.impute` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.impute/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.impute` / `impute5` renders concrete imputation argv with target `benchmarks/readiness/adapters/imputation/impute5/vcf.impute/artifacts/input/vcf_impute.vcf.gz`, panel `hsapiens_grch38_mini`, quality output `benchmarks/readiness/adapters/imputation/impute5/vcf.impute/imputation_qc.json`, and log output `benchmarks/readiness/adapters/imputation/impute5/vcf.impute/logs.txt`"
+    },
+    {
+      "tool_id": "minimac4",
+      "tool_status": "planned",
+      "stage_id": "vcf.imputation_metrics",
+      "stage_status": "supported",
+      "benchmark_status": "not_benchmark_ready",
+      "adapter_id": "vcf.adapter.panel_workflow",
+      "parser_id": "vcf.parser.report_json",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "command_contract_source": "domain/vcf/fixtures/vcf.imputation_metrics/minimac4.txt",
+      "output_root": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics",
+      "output_prefix": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputed",
+      "panel_id": "hsapiens_grch38_mini",
+      "map_id": "hsapiens_grch38_chr_map",
+      "target_vcf_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz",
+      "panel_vcf_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz",
+      "panel_m3vcf_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.m3vcf.gz",
+      "genetic_map_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+      "region_literal": null,
+      "imputed_vcf_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputed.vcf.gz",
+      "imputed_vcf_tbi_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputed.vcf.gz.tbi",
+      "quality_output_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputation_metrics.json",
+      "quality_tsv_path": null,
+      "warnings_path": null,
+      "imputation_manifest_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputation_manifest.json",
+      "orchestration_manifest_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/orchestration_manifest.json",
+      "panel_mismatch_diagnostics_path": null,
+      "log_output_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/logs.txt",
+      "stage_output_ids": [
+        "imputation_metrics_json"
+      ],
+      "raw_output_ids": [
+        "imputed_vcf",
+        "imputed_tbi",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_metrics_json",
+        "orchestration_manifest_json"
+      ],
+      "parser_output_ids": [
+        "imputation_metrics",
+        "imputation_qc",
+        "imputation_accept",
+        "imputation_manifest",
+        "orchestration_manifest"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz"
+        },
+        {
+          "artifact_id": "vcf_index",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "reference_panel_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz"
+        },
+        {
+          "artifact_id": "reference_panel_m3vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.m3vcf.gz"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "imputed_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputed.vcf.gz"
+        },
+        {
+          "artifact_id": "imputed_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputed.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "imputation_qc_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputation_qc.json"
+        },
+        {
+          "artifact_id": "imputation_accept_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputation_accept.json"
+        },
+        {
+          "artifact_id": "imputation_manifest_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputation_manifest.json"
+        },
+        {
+          "artifact_id": "logs_txt",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/logs.txt"
+        },
+        {
+          "artifact_id": "imputation_metrics_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputation_metrics.json"
+        },
+        {
+          "artifact_id": "orchestration_manifest_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/orchestration_manifest.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "impute",
+          "step_kind": "imputation",
+          "argv": [
+            "sh",
+            "-lc",
+            "minimac4 --refHaps 'benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.m3vcf.gz' --haps 'benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz' --prefix 'benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputed' --cpus 8 > 'benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/logs.txt' 2>&1 && mv 'benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputed.dose.vcf.gz' 'benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputed.vcf.gz'"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_vcf",
+            "logs_txt"
+          ]
+        },
+        {
+          "step_id": "index_imputed_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputed.vcf.gz"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_tbi"
+          ]
+        },
+        {
+          "step_id": "derive_imputation_metrics",
+          "step_kind": "report",
+          "argv": [
+            "sh",
+            "-lc",
+            "printf '%s\\n' '{\"schema_version\":\"bijux.vcf.imputation_metrics.v1\",\"stage_id\":\"vcf.imputation_metrics\",\"tool_id\":\"minimac4\",\"status\":\"adapter_contract\"}' > 'benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputation_metrics.json' && printf '%s\\n' '{\"backend\":\"minimac4\",\"imputation_info_mean\":0.82,\"low_confidence_count\":1,\"concordance\":{\"genotype_concordance\":1.0,\"dosage_r2\":0.78,\"masked_truth_site_count\":1},\"maf_strata\":[{\"label\":\"all\",\"count\":2}]}' > 'benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputation_qc.json' && printf '%s\\n' '{\"accepted\":true,\"status\":\"accepted\"}' > 'benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputation_accept.json' && printf '%s\\n' '{\"backend\":\"minimac4\",\"stage_id\":\"vcf.imputation_metrics\",\"command_argv\":[\"minimac4\",\"impute\"]}' > 'benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputation_manifest.json' && printf '%s\\n' '{\"backend\":\"minimac4\",\"stage_id\":\"vcf.imputation_metrics\",\"status\":\"complete\"}' > 'benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/orchestration_manifest.json'"
+          ],
+          "declared_output_artifact_ids": [
+            "imputation_metrics_json",
+            "imputation_qc_json",
+            "imputation_accept_json",
+            "imputation_manifest_json",
+            "orchestration_manifest_json"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF imputation-family adapter for `vcf.imputation_metrics` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.imputation_metrics/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.imputation_metrics` / `minimac4` renders concrete imputation argv with target `benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz`, panel `hsapiens_grch38_mini`, quality output `benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/imputation_metrics.json`, and log output `benchmarks/readiness/adapters/imputation/minimac4/vcf.imputation_metrics/logs.txt`"
+    },
+    {
+      "tool_id": "minimac4",
+      "tool_status": "planned",
+      "stage_id": "vcf.impute",
+      "stage_status": "supported",
+      "benchmark_status": "not_benchmark_ready",
+      "adapter_id": "vcf.adapter.panel_workflow",
+      "parser_id": "vcf.parser.vcf_output",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "command_contract_source": "domain/vcf/fixtures/vcf.impute/minimac4.txt",
+      "output_root": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute",
+      "output_prefix": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputed",
+      "panel_id": "hsapiens_grch38_mini",
+      "map_id": "hsapiens_grch38_chr_map",
+      "target_vcf_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/artifacts/input/vcf_impute.vcf.gz",
+      "panel_vcf_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz",
+      "panel_m3vcf_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.m3vcf.gz",
+      "genetic_map_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
+      "region_literal": null,
+      "imputed_vcf_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputed.vcf.gz",
+      "imputed_vcf_tbi_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputed.vcf.gz.tbi",
+      "quality_output_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputation_qc.json",
+      "quality_tsv_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputation_qc.tsv",
+      "warnings_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/warnings.json",
+      "imputation_manifest_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputation_manifest.json",
+      "orchestration_manifest_path": null,
+      "panel_mismatch_diagnostics_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/panel_mismatch_diagnostics.json",
+      "log_output_path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/logs.txt",
+      "stage_output_ids": [
+        "imputed_vcf"
+      ],
+      "raw_output_ids": [
+        "imputed_vcf",
+        "imputed_tbi",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_qc_tsv",
+        "maf_bin_quality_tsv",
+        "info_hist_json",
+        "warnings_json",
+        "overlap_stats_json",
+        "panel_mismatch_diagnostics_json"
+      ],
+      "parser_output_ids": [
+        "imputation_qc",
+        "imputation_accept",
+        "imputation_manifest",
+        "panel_mismatch_diagnostics"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/artifacts/input/vcf_impute.vcf.gz"
+        },
+        {
+          "artifact_id": "vcf_index",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/artifacts/input/vcf_impute.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "reference_panel_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz"
+        },
+        {
+          "artifact_id": "reference_panel_m3vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.m3vcf.gz"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "imputed_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputed.vcf.gz"
+        },
+        {
+          "artifact_id": "imputed_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputed.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "imputation_qc_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputation_qc.json"
+        },
+        {
+          "artifact_id": "imputation_accept_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputation_accept.json"
+        },
+        {
+          "artifact_id": "imputation_manifest_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputation_manifest.json"
+        },
+        {
+          "artifact_id": "logs_txt",
+          "role": "log",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/logs.txt"
+        },
+        {
+          "artifact_id": "imputation_qc_tsv",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputation_qc.tsv"
+        },
+        {
+          "artifact_id": "maf_bin_quality_tsv",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/maf_bins.tsv"
+        },
+        {
+          "artifact_id": "info_hist_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/info_hist.json"
+        },
+        {
+          "artifact_id": "warnings_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/warnings.json"
+        },
+        {
+          "artifact_id": "overlap_stats_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/overlap_stats.json"
+        },
+        {
+          "artifact_id": "panel_mismatch_diagnostics_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/panel_mismatch_diagnostics.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "impute",
+          "step_kind": "imputation",
+          "argv": [
+            "sh",
+            "-lc",
+            "minimac4 --refHaps 'benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.m3vcf.gz' --haps 'benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/artifacts/input/vcf_impute.vcf.gz' --prefix 'benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputed' --cpus 8 > 'benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/logs.txt' 2>&1 && mv 'benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputed.dose.vcf.gz' 'benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputed.vcf.gz'"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_vcf",
+            "logs_txt"
+          ]
+        },
+        {
+          "step_id": "index_imputed_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputed.vcf.gz"
+          ],
+          "declared_output_artifact_ids": [
+            "imputed_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF imputation-family adapter for `vcf.impute` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.impute/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.impute` / `minimac4` renders concrete imputation argv with target `benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/artifacts/input/vcf_impute.vcf.gz`, panel `hsapiens_grch38_mini`, quality output `benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/imputation_qc.json`, and log output `benchmarks/readiness/adapters/imputation/minimac4/vcf.impute/logs.txt`"
+    }
+  ]
+}

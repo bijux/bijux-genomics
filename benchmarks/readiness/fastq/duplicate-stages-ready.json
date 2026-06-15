@@ -1,0 +1,270 @@
+{
+  "schema_version": "bijux.bench.readiness.fastq_duplicate_stages_ready.v1",
+  "output_path": "benchmarks/readiness/fastq/duplicate-stages-ready.json",
+  "active_row_count": 3,
+  "complete_row_count": 3,
+  "incomplete_row_count": 0,
+  "checked_surface_count": 7,
+  "stage_count": 2,
+  "expected_tool_ids_by_stage": {
+    "fastq.detect_duplicates_premerge": [
+      "bijux_dna"
+    ],
+    "fastq.remove_duplicates": [
+      "clumpify",
+      "fastuniq"
+    ]
+  },
+  "required_output_ids_by_stage": {
+    "fastq.detect_duplicates_premerge": [
+      "duplicate_signal_report"
+    ],
+    "fastq.remove_duplicates": [
+      "dedup_reads_r1"
+    ]
+  },
+  "required_metric_fields_by_stage": {
+    "fastq.detect_duplicates_premerge": [
+      "duplicate_count",
+      "duplicate_fraction",
+      "inspected_pair_count",
+      "report_json"
+    ],
+    "fastq.remove_duplicates": [
+      "unique_reads",
+      "output_reads",
+      "duplicates_removed",
+      "dedup_rate",
+      "report_json"
+    ]
+  },
+  "report_targets_by_stage": {
+    "fastq.detect_duplicates_premerge": [
+      "quality_profiling",
+      "premerge_complexity"
+    ],
+    "fastq.remove_duplicates": [
+      "read_cleanup",
+      "cleanup_retention"
+    ]
+  },
+  "coverage_status_counts": {
+    "complete": 3
+  },
+  "violation_count": 0,
+  "ok": true,
+  "rows": [
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna",
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "tool_id": "bijux_dna",
+      "corpus_id": "corpus-01-mini",
+      "sample_scope": "sample-set",
+      "benchmark_status": "benchmark_ready",
+      "support_status": "governed_execution",
+      "adapter_status": "runnable",
+      "parser_status": "parse_normalized",
+      "corpus_status": "fixture:corpus-01-mini",
+      "report_section_id": "quality_profiling",
+      "summary_table_id": "premerge_complexity",
+      "command_readiness_kind": "smoke",
+      "expected_outputs": [
+        "duplicate_signal_report"
+      ],
+      "required_output_ids": [
+        "duplicate_signal_report"
+      ],
+      "raw_output_artifact_ids": [
+        "duplicate_signal_report"
+      ],
+      "normalized_metrics_output_id": "duplicate_signal_report",
+      "expected_normalized_metrics_output_id": "duplicate_signal_report",
+      "schema_extension_id": "fastq_detect_duplicates_premerge_v1",
+      "required_metric_fields": [
+        "duplicate_count",
+        "duplicate_fraction",
+        "inspected_pair_count",
+        "report_json"
+      ],
+      "schema_required_fields": [
+        "duplicate_count",
+        "duplicate_fraction",
+        "inspected_pair_count",
+        "report_json",
+        "schema_version",
+        "stage",
+        "tool"
+      ],
+      "active_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_proof_path": "benchmarks/readiness/fastq-command-adapter-coverage.tsv",
+      "output_contract_proof_path": "benchmarks/readiness/fastq-adapter-output-contract.tsv",
+      "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
+      "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
+      "schema_proof_path": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
+      "active_scope_ready": true,
+      "command_ready": true,
+      "output_ready": true,
+      "parser_ready": true,
+      "expected_result_ready": true,
+      "report_ready": true,
+      "schema_ready": true,
+      "coverage_status": "complete",
+      "missing_surfaces": [],
+      "reason": "duplicate binding `fastq.detect_duplicates_premerge` / `bijux_dna` keeps active scope, command, output, parser, expected-result, report, and schema proof for `fastq.detect_duplicates_premerge`"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:clumpify",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "clumpify",
+      "corpus_id": "corpus-01-mini",
+      "sample_scope": "sample-set",
+      "benchmark_status": "benchmark_ready",
+      "support_status": "governed_benchmark_cohort",
+      "adapter_status": "runnable",
+      "parser_status": "benchmark_normalized",
+      "corpus_status": "fixture:corpus-01-mini",
+      "report_section_id": "read_cleanup",
+      "summary_table_id": "cleanup_retention",
+      "command_readiness_kind": "smoke",
+      "expected_outputs": [
+        "dedup_reads_r1",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json",
+        "report_json",
+        "dedup_reads_r2"
+      ],
+      "required_output_ids": [
+        "dedup_reads_r1"
+      ],
+      "raw_output_artifact_ids": [
+        "dedup_reads_r1",
+        "dedup_reads_r2",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json"
+      ],
+      "normalized_metrics_output_id": "report_json",
+      "expected_normalized_metrics_output_id": "report_json",
+      "schema_extension_id": "fastq_deduplicate_v1",
+      "required_metric_fields": [
+        "unique_reads",
+        "output_reads",
+        "duplicates_removed",
+        "dedup_rate",
+        "report_json"
+      ],
+      "schema_required_fields": [
+        "dedup_mode",
+        "dedup_rate",
+        "duplicate_class_count",
+        "duplicate_reads",
+        "duplicates_removed",
+        "input_reads",
+        "keep_order",
+        "output_reads",
+        "reads_in",
+        "reads_out",
+        "report_json",
+        "schema_version",
+        "stage",
+        "threads",
+        "tool",
+        "unique_reads"
+      ],
+      "active_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_proof_path": "benchmarks/readiness/fastq-command-adapter-coverage.tsv",
+      "output_contract_proof_path": "benchmarks/readiness/fastq-adapter-output-contract.tsv",
+      "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
+      "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
+      "schema_proof_path": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
+      "active_scope_ready": true,
+      "command_ready": true,
+      "output_ready": true,
+      "parser_ready": true,
+      "expected_result_ready": true,
+      "report_ready": true,
+      "schema_ready": true,
+      "coverage_status": "complete",
+      "missing_surfaces": [],
+      "reason": "duplicate binding `fastq.remove_duplicates` / `clumpify` keeps active scope, command, output, parser, expected-result, report, and schema proof for `fastq.remove_duplicates`"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "fastuniq",
+      "corpus_id": "corpus-01-mini",
+      "sample_scope": "sample-set",
+      "benchmark_status": "benchmark_ready",
+      "support_status": "governed_benchmark_cohort",
+      "adapter_status": "runnable",
+      "parser_status": "benchmark_normalized",
+      "corpus_status": "fixture:corpus-01-mini",
+      "report_section_id": "read_cleanup",
+      "summary_table_id": "cleanup_retention",
+      "command_readiness_kind": "smoke",
+      "expected_outputs": [
+        "dedup_reads_r1",
+        "dedup_reads_r2",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json",
+        "report_json"
+      ],
+      "required_output_ids": [
+        "dedup_reads_r1"
+      ],
+      "raw_output_artifact_ids": [
+        "dedup_reads_r1",
+        "dedup_reads_r2",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json"
+      ],
+      "normalized_metrics_output_id": "report_json",
+      "expected_normalized_metrics_output_id": "report_json",
+      "schema_extension_id": "fastq_deduplicate_v1",
+      "required_metric_fields": [
+        "unique_reads",
+        "output_reads",
+        "duplicates_removed",
+        "dedup_rate",
+        "report_json"
+      ],
+      "schema_required_fields": [
+        "dedup_mode",
+        "dedup_rate",
+        "duplicate_class_count",
+        "duplicate_reads",
+        "duplicates_removed",
+        "input_reads",
+        "keep_order",
+        "output_reads",
+        "reads_in",
+        "reads_out",
+        "report_json",
+        "schema_version",
+        "stage",
+        "threads",
+        "tool",
+        "unique_reads"
+      ],
+      "active_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_proof_path": "benchmarks/readiness/fastq-command-adapter-coverage.tsv",
+      "output_contract_proof_path": "benchmarks/readiness/fastq-adapter-output-contract.tsv",
+      "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
+      "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
+      "schema_proof_path": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
+      "active_scope_ready": true,
+      "command_ready": true,
+      "output_ready": true,
+      "parser_ready": true,
+      "expected_result_ready": true,
+      "report_ready": true,
+      "schema_ready": true,
+      "coverage_status": "complete",
+      "missing_surfaces": [],
+      "reason": "duplicate binding `fastq.remove_duplicates` / `fastuniq` keeps active scope, command, output, parser, expected-result, report, and schema proof for `fastq.remove_duplicates`"
+    }
+  ],
+  "violations": []
+}

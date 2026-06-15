@@ -54,6 +54,7 @@ pub fn plan_umi(
 /// # Errors
 /// Returns an error if the requested UMI extraction tool or options are unsupported, or if the
 /// stage plan cannot be built.
+#[allow(clippy::too_many_lines)]
 pub fn plan_umi_with_options(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
@@ -264,6 +265,7 @@ fn parse_downstream_dedup_policy(value: &str) -> Result<UmiDedupPolicy> {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{plan_umi, plan_umi_with_options};
     use bijux_dna_core::id_catalog;

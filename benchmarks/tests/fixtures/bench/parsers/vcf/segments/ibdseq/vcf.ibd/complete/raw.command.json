@@ -1,0 +1,9 @@
+{
+  "tool_id": "ibdseq",
+  "stage_id": "vcf.ibd",
+  "argv": [
+    "sh",
+    "-lc",
+    "ibdseq --vcf 'cohort.vcf.gz' --out 'ibdseq.segments.tsv' > 'raw.log' 2>&1"
+  ]
+}

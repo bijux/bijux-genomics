@@ -1,0 +1,6 @@
+##fileformat=VCFv4.2
+##contig=<ID=chr1,length=125>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	10	genotype_site_1	C	T	60	PASS	.
+chr1	40	genotype_site_2	T	G	60	PASS	.
+chr1	70	genotype_site_3	C	A	60	PASS	.

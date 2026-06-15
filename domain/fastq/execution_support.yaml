@@ -31,6 +31,9 @@ stages:
     benchmark_support: "cohort"
     default_tool: "seqkit_stats"
     admitted_tools:
+      - "fastp"
+      - "prinseq"
+      - "seqfu"
       - "seqkit_stats"
   - stage_id: "fastq.detect_adapters"
     execution_status: "closed"
@@ -41,6 +44,15 @@ stages:
     default_tool: "fastqc"
     admitted_tools:
       - "fastqc"
+  - stage_id: "fastq.detect_duplicates_premerge"
+    execution_status: "closed"
+    planning_support: "stage_family"
+    runtime_support: "runnable"
+    normalization_support: "generic_envelope"
+    benchmark_support: "none"
+    default_tool: "bijux_dna"
+    admitted_tools:
+      - "bijux_dna"
   - stage_id: "fastq.trim_terminal_damage"
     execution_status: "closed"
     planning_support: "stage_family"
@@ -112,6 +124,8 @@ stages:
     benchmark_support: "cohort"
     default_tool: "seqkit_stats"
     admitted_tools:
+      - "seqfu"
+      - "seqkit"
       - "seqkit_stats"
   - stage_id: "fastq.deplete_rrna"
     execution_status: "closed"
@@ -319,13 +333,6 @@ stages:
     normalization_support: "none"
     benchmark_support: "none"
     admitted_tools: []
-  - stage_id: "fastq.detect_duplicates_premerge"
-    execution_status: "declared_only"
-    planning_support: "declared_only"
-    runtime_support: "declared_only"
-    normalization_support: "none"
-    benchmark_support: "none"
-    admitted_tools: []
   - stage_id: "fastq.detect_instrument_artifacts"
     execution_status: "declared_only"
     planning_support: "declared_only"
@@ -334,12 +341,14 @@ stages:
     benchmark_support: "none"
     admitted_tools: []
   - stage_id: "fastq.estimate_library_complexity_prealign"
-    execution_status: "declared_only"
-    planning_support: "declared_only"
-    runtime_support: "declared_only"
-    normalization_support: "none"
+    execution_status: "closed"
+    planning_support: "stage_family"
+    runtime_support: "runnable"
+    normalization_support: "generic_envelope"
     benchmark_support: "none"
-    admitted_tools: []
+    default_tool: "bijux_dna"
+    admitted_tools:
+      - "bijux_dna"
   - stage_id: "fastq.interleave_reads"
     execution_status: "declared_only"
     planning_support: "declared_only"

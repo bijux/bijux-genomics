@@ -1,0 +1,175 @@
+{
+  "schema_version": "bijux.bench.readiness.all_domain_active_scope_complete.v1",
+  "output_path": "benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json",
+  "active_row_count": 136,
+  "active_stage_count": 66,
+  "active_tool_count": 69,
+  "removed_row_count": 10,
+  "checked_surface_count": 19,
+  "passed_surface_count": 19,
+  "failed_surface_count": 0,
+  "ok": true,
+  "checks": [
+    {
+      "surface_id": "all_domain_retained_tools",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/retained-tools.tsv"
+      ],
+      "ok": true,
+      "detail": "row_count=69, active_matrix_tool_count=69, benchmark_ready_tool_count=69"
+    },
+    {
+      "surface_id": "all_domain_active_stage_catalog",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/active-stage-catalog.tsv"
+      ],
+      "ok": true,
+      "detail": "row_count=66, stages_with_benchmark_ready_tools=66, stages_with_report_rows=66"
+    },
+    {
+      "surface_id": "all_domain_active_stage_tool_matrix",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv"
+      ],
+      "ok": true,
+      "detail": "row_count=136, stage_count=66, tool_count=69"
+    },
+    {
+      "surface_id": "all_domain_no_planned_rows",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/no-planned-rows.json"
+      ],
+      "ok": true,
+      "detail": "active_row_count=136, removed_row_count=7, violation_count=0"
+    },
+    {
+      "surface_id": "all_domain_no_declared_only_rows",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/no-declared-only-rows.json"
+      ],
+      "ok": true,
+      "detail": "active_row_count=139, removed_row_count=0, violation_count=0"
+    },
+    {
+      "surface_id": "all_domain_no_not_benchmark_ready_rows",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json"
+      ],
+      "ok": true,
+      "detail": "active_row_count=136, removed_row_count=3, violation_count=0"
+    },
+    {
+      "surface_id": "removed_from_scope",
+      "proof_paths": [
+        "benchmarks/readiness/removed-from-scope.tsv"
+      ],
+      "ok": true,
+      "detail": "removed_row_count=10, removed_stage_count=8, removed_tool_count=10"
+    },
+    {
+      "surface_id": "stage_tool_alias_check",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/stage-tool-alias-check.json"
+      ],
+      "ok": true,
+      "detail": "candidate_row_count=146, active_row_count=136, violation_count=0"
+    },
+    {
+      "surface_id": "all_domain_parser_fixture_coverage",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/parser-fixture-coverage.tsv"
+      ],
+      "ok": true,
+      "detail": "covered_row_count=136, missing_row_count=0, coverage_percent=100.0"
+    },
+    {
+      "surface_id": "all_domain_adapter_coverage",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/adapter-coverage.tsv"
+      ],
+      "ok": true,
+      "detail": "covered_row_count=136, missing_row_count=0, coverage_percent=100.0"
+    },
+    {
+      "surface_id": "all_domain_output_contract_coverage",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/output-contract-coverage.tsv"
+      ],
+      "ok": true,
+      "detail": "covered_row_count=136, missing_row_count=0, index_declared_row_count=12"
+    },
+    {
+      "surface_id": "all_domain_expected_result_coverage",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/expected-result-coverage.tsv"
+      ],
+      "ok": true,
+      "detail": "covered_row_count=136, missing_row_count=0, coverage_percent=100.0"
+    },
+    {
+      "surface_id": "all_domain_report_map_coverage",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/report-map-coverage.tsv"
+      ],
+      "ok": true,
+      "detail": "covered_row_count=136, missing_row_count=0, report_map_binding_count=69"
+    },
+    {
+      "surface_id": "all_domain_local_job_coverage",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/local-job-coverage.tsv"
+      ],
+      "ok": true,
+      "detail": "covered_row_count=136, missing_row_count=0, local_job_binding_count=136"
+    },
+    {
+      "surface_id": "all_domain_active_scope_blockers",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/active-scope-blockers.tsv"
+      ],
+      "ok": true,
+      "detail": "row_count=10, blocker_type_count=2, violation_count=0"
+    },
+    {
+      "surface_id": "all_domain_no_placeholder_command_check",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/no-placeholder-command-check.json"
+      ],
+      "ok": true,
+      "detail": "valid_row_count=136, invalid_row_count=0, command_step_count=158"
+    },
+    {
+      "surface_id": "active_scope_validate_fast",
+      "proof_paths": [
+        "artifacts/bench-active-scope/validate-fast.json"
+      ],
+      "ok": true,
+      "detail": "checked_surface_count=10, failed_surface_count=0"
+    },
+    {
+      "surface_id": "vcf_imputation_identity",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+        "benchmarks/readiness/removed-from-scope.tsv"
+      ],
+      "ok": true,
+      "detail": "legacy_imputation_row_count=0, impute_row_count=1, imputation_metrics_row_count=1"
+    },
+    {
+      "surface_id": "vcf_postprocess_closure",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+        "benchmarks/readiness/removed-from-scope.tsv",
+        "benchmarks/readiness/all-domains/parser-fixture-coverage.tsv",
+        "benchmarks/readiness/all-domains/output-contract-coverage.tsv",
+        "benchmarks/readiness/all-domains/expected-result-coverage.tsv",
+        "benchmarks/readiness/all-domains/report-map-coverage.tsv",
+        "benchmarks/readiness/all-domains/local-job-coverage.tsv",
+        "benchmarks/readiness/all-domains/no-placeholder-command-check.json"
+      ],
+      "ok": true,
+      "detail": "active_postprocess_row_count=1, parser_fixture_match_count=1, output_contract_match_count=1, expected_result_match_count=1, report_map_match_count=1, local_job_match_count=1, command_audit_match_count=1"
+    }
+  ],
+  "failed_checks": []
+}

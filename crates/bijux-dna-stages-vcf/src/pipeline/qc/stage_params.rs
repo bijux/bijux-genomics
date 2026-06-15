@@ -270,7 +270,7 @@ impl Default for PopulationStructureStageParams {
         Self {
             toolchain: "plink2".to_string(),
             smartpca: true,
-            run_admixture: false,
+            run_admixture: true,
             sample_metadata_manifest: None,
             admixture_params: None,
             preprocessing: PopulationPreprocessingParams::default(),
@@ -367,7 +367,7 @@ pub struct IbdStageParams {
 impl Default for IbdStageParams {
     fn default() -> Self {
         Self {
-            toolchain: "germline+ibdhap".to_string(),
+            toolchain: "germline".to_string(),
             expected_build: None,
             min_variant_density_per_mb: 1.0,
             max_missingness: 0.2,

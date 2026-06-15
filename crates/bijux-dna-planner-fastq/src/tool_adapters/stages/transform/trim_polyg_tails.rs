@@ -66,6 +66,7 @@ pub fn plan_trim_polyg_tails(
 
 /// # Errors
 /// Returns an error when the tool does not support `fastq.trim_polyg_tails`.
+#[allow(clippy::too_many_lines)]
 pub fn plan_trim_polyg_tails_with_options(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
@@ -314,6 +315,7 @@ fn wrap_polyg_command_with_report(
         pairs_out: None,
         mean_q_before: None,
         mean_q_after: None,
+        trimmed_tail_count: None,
         bases_trimmed_polyg: None,
         polyx_bank_id: None,
         polyx_bank_hash: None,
@@ -354,6 +356,7 @@ fn shell_quote_str(value: &str) -> String {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{
         plan_trim_polyg_tails_with_options, raw_backend_report_artifact, TrimPolygPlanOptions,

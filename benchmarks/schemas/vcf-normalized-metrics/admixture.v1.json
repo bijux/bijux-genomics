@@ -1,0 +1,65 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.admixture.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "cluster_headers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "population_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "rows": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.admixture.v1"
+        },
+        "selected_k": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage_id": {
+          "const": "vcf.admixture"
+        },
+        "status": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "selected_k",
+        "status",
+        "sample_count",
+        "population_count",
+        "cluster_headers",
+        "rows"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_admixture_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.admixture`.",
+  "title": "VCF normalized benchmark metrics: vcf.admixture"
+}

@@ -1,0 +1,1015 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_bcftools_adapter.v1",
+  "domain": "vcf",
+  "tool_id": "bcftools",
+  "output_path": "benchmarks/readiness/adapters/bcftools.vcf.json",
+  "row_count": 11,
+  "supported_row_count": 11,
+  "planned_row_count": 0,
+  "argv_valid_row_count": 11,
+  "missing_input_test_passed_row_count": 11,
+  "indexed_row_count": 9,
+  "rows": [
+    {
+      "tool_id": "bcftools",
+      "stage_id": "vcf.call",
+      "support_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.calling",
+      "parser_id": "vcf.parser.call_summary",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "output_root": "benchmarks/readiness/adapters/bcftools/vcf.call",
+      "stage_output_ids": [
+        "called_vcf"
+      ],
+      "raw_output_ids": [
+        "called_vcf",
+        "called_vcf_tbi"
+      ],
+      "parser_output_ids": [],
+      "required_inputs": [
+        {
+          "artifact_id": "input_bam",
+          "role": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+        },
+        {
+          "artifact_id": "input_bam_index",
+          "role": "index",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai"
+        },
+        {
+          "artifact_id": "reference_fasta",
+          "role": "reference",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call/artifacts/reference/corpus_01_bam_reference.fasta"
+        },
+        {
+          "artifact_id": "reference_fai",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call/artifacts/reference/corpus_01_bam_reference.fasta.fai"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "called_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call/called_vcf.vcf.gz"
+        },
+        {
+          "artifact_id": "called_vcf_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call/called_vcf.vcf.gz.tbi"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "mpileup",
+          "step_kind": "pipeline_source",
+          "argv": [
+            "bcftools",
+            "mpileup",
+            "-Ou",
+            "-f",
+            "benchmarks/readiness/adapters/bcftools/vcf.call/artifacts/reference/corpus_01_bam_reference.fasta",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": []
+        },
+        {
+          "step_id": "call",
+          "step_kind": "pipeline_sink",
+          "argv": [
+            "bcftools",
+            "call",
+            "-c",
+            "-Oz",
+            "-o",
+            "benchmarks/readiness/adapters/bcftools/vcf.call/called_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": true,
+          "declared_output_artifact_ids": [
+            "called_vcf"
+          ]
+        },
+        {
+          "step_id": "index_called_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/bcftools/vcf.call/called_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "called_vcf_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "input_bam",
+      "missing_input_expected_error_fragment": "required input `input_bam`",
+      "missing_input_observed_error": "VCF bcftools adapter for `vcf.call` is missing required input `input_bam` at `artifacts/bench-readiness/adapters/probes/vcf.call/input_bam.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.call` / `bcftools` renders concrete bcftools argv with 3 declared command step(s), 4 required input(s), and 1 stage output id(s)"
+    },
+    {
+      "tool_id": "bcftools",
+      "stage_id": "vcf.call_diploid",
+      "support_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.calling",
+      "parser_id": "vcf.parser.call_summary",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "output_root": "benchmarks/readiness/adapters/bcftools/vcf.call_diploid",
+      "stage_output_ids": [
+        "diploid_vcf"
+      ],
+      "raw_output_ids": [
+        "diploid_vcf",
+        "diploid_vcf_tbi"
+      ],
+      "parser_output_ids": [],
+      "required_inputs": [
+        {
+          "artifact_id": "input_bam",
+          "role": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+        },
+        {
+          "artifact_id": "input_bam_index",
+          "role": "index",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai"
+        },
+        {
+          "artifact_id": "reference_fasta",
+          "role": "reference",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call_diploid/artifacts/reference/corpus_01_bam_reference.fasta"
+        },
+        {
+          "artifact_id": "reference_fai",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call_diploid/artifacts/reference/corpus_01_bam_reference.fasta.fai"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "diploid_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call_diploid/diploid_vcf.vcf.gz"
+        },
+        {
+          "artifact_id": "diploid_vcf_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call_diploid/diploid_vcf.vcf.gz.tbi"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "mpileup",
+          "step_kind": "pipeline_source",
+          "argv": [
+            "bcftools",
+            "mpileup",
+            "-Ou",
+            "-f",
+            "benchmarks/readiness/adapters/bcftools/vcf.call_diploid/artifacts/reference/corpus_01_bam_reference.fasta",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": []
+        },
+        {
+          "step_id": "call_diploid",
+          "step_kind": "pipeline_sink",
+          "argv": [
+            "bcftools",
+            "call",
+            "-mv",
+            "-Oz",
+            "-o",
+            "benchmarks/readiness/adapters/bcftools/vcf.call_diploid/diploid_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": true,
+          "declared_output_artifact_ids": [
+            "diploid_vcf"
+          ]
+        },
+        {
+          "step_id": "index_diploid_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/bcftools/vcf.call_diploid/diploid_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "diploid_vcf_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "input_bam",
+      "missing_input_expected_error_fragment": "required input `input_bam`",
+      "missing_input_observed_error": "VCF bcftools adapter for `vcf.call_diploid` is missing required input `input_bam` at `artifacts/bench-readiness/adapters/probes/vcf.call_diploid/input_bam.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.call_diploid` / `bcftools` renders concrete bcftools argv with 3 declared command step(s), 4 required input(s), and 1 stage output id(s)"
+    },
+    {
+      "tool_id": "bcftools",
+      "stage_id": "vcf.call_gl",
+      "support_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.calling",
+      "parser_id": "vcf.parser.call_summary",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "output_root": "benchmarks/readiness/adapters/bcftools/vcf.call_gl",
+      "stage_output_ids": [
+        "gl_sites_vcf"
+      ],
+      "raw_output_ids": [
+        "gl_sites_vcf",
+        "gl_sites_vcf_tbi"
+      ],
+      "parser_output_ids": [],
+      "required_inputs": [
+        {
+          "artifact_id": "input_bam",
+          "role": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+        },
+        {
+          "artifact_id": "input_bam_index",
+          "role": "index",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai"
+        },
+        {
+          "artifact_id": "reference_fasta",
+          "role": "reference",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call_gl/artifacts/reference/corpus_01_bam_reference.fasta"
+        },
+        {
+          "artifact_id": "reference_fai",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call_gl/artifacts/reference/corpus_01_bam_reference.fasta.fai"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "gl_sites_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call_gl/gl_sites_vcf.vcf.gz"
+        },
+        {
+          "artifact_id": "gl_sites_vcf_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call_gl/gl_sites_vcf.vcf.gz.tbi"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "mpileup",
+          "step_kind": "pipeline_source",
+          "argv": [
+            "bcftools",
+            "mpileup",
+            "-Ou",
+            "-f",
+            "benchmarks/readiness/adapters/bcftools/vcf.call_gl/artifacts/reference/corpus_01_bam_reference.fasta",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": []
+        },
+        {
+          "step_id": "call_gl",
+          "step_kind": "pipeline_sink",
+          "argv": [
+            "bcftools",
+            "call",
+            "-Aim",
+            "-Oz",
+            "-o",
+            "benchmarks/readiness/adapters/bcftools/vcf.call_gl/gl_sites_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": true,
+          "declared_output_artifact_ids": [
+            "gl_sites_vcf"
+          ]
+        },
+        {
+          "step_id": "index_gl_sites_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/bcftools/vcf.call_gl/gl_sites_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "gl_sites_vcf_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "input_bam",
+      "missing_input_expected_error_fragment": "required input `input_bam`",
+      "missing_input_observed_error": "VCF bcftools adapter for `vcf.call_gl` is missing required input `input_bam` at `artifacts/bench-readiness/adapters/probes/vcf.call_gl/input_bam.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.call_gl` / `bcftools` renders concrete bcftools argv with 3 declared command step(s), 4 required input(s), and 1 stage output id(s)"
+    },
+    {
+      "tool_id": "bcftools",
+      "stage_id": "vcf.call_pseudohaploid",
+      "support_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.calling",
+      "parser_id": "vcf.parser.call_summary",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "output_root": "benchmarks/readiness/adapters/bcftools/vcf.call_pseudohaploid",
+      "stage_output_ids": [
+        "pseudohaploid_vcf"
+      ],
+      "raw_output_ids": [
+        "pseudohaploid_vcf",
+        "pseudohaploid_vcf_tbi"
+      ],
+      "parser_output_ids": [],
+      "required_inputs": [
+        {
+          "artifact_id": "input_bam",
+          "role": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+        },
+        {
+          "artifact_id": "input_bam_index",
+          "role": "index",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai"
+        },
+        {
+          "artifact_id": "reference_fasta",
+          "role": "reference",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call_pseudohaploid/artifacts/reference/corpus_01_bam_reference.fasta"
+        },
+        {
+          "artifact_id": "reference_fai",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call_pseudohaploid/artifacts/reference/corpus_01_bam_reference.fasta.fai"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "pseudohaploid_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call_pseudohaploid/pseudohaploid_vcf.vcf.gz"
+        },
+        {
+          "artifact_id": "pseudohaploid_vcf_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.call_pseudohaploid/pseudohaploid_vcf.vcf.gz.tbi"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "mpileup",
+          "step_kind": "pipeline_source",
+          "argv": [
+            "bcftools",
+            "mpileup",
+            "-Ou",
+            "-f",
+            "benchmarks/readiness/adapters/bcftools/vcf.call_pseudohaploid/artifacts/reference/corpus_01_bam_reference.fasta",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": []
+        },
+        {
+          "step_id": "call_pseudohaploid",
+          "step_kind": "pipeline_sink",
+          "argv": [
+            "bcftools",
+            "call",
+            "--ploidy",
+            "1",
+            "-mv",
+            "-Oz",
+            "-o",
+            "benchmarks/readiness/adapters/bcftools/vcf.call_pseudohaploid/pseudohaploid_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": true,
+          "declared_output_artifact_ids": [
+            "pseudohaploid_vcf"
+          ]
+        },
+        {
+          "step_id": "index_pseudohaploid_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/bcftools/vcf.call_pseudohaploid/pseudohaploid_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "pseudohaploid_vcf_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "input_bam",
+      "missing_input_expected_error_fragment": "required input `input_bam`",
+      "missing_input_observed_error": "VCF bcftools adapter for `vcf.call_pseudohaploid` is missing required input `input_bam` at `artifacts/bench-readiness/adapters/probes/vcf.call_pseudohaploid/input_bam.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.call_pseudohaploid` / `bcftools` renders concrete bcftools argv with 3 declared command step(s), 4 required input(s), and 1 stage output id(s)"
+    },
+    {
+      "tool_id": "bcftools",
+      "stage_id": "vcf.damage_filter",
+      "support_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.transform",
+      "parser_id": "vcf.parser.vcf_output",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "output_root": "benchmarks/readiness/adapters/bcftools/vcf.damage_filter",
+      "stage_output_ids": [
+        "damage_filtered_vcf"
+      ],
+      "raw_output_ids": [
+        "damage_filtered_vcf",
+        "damage_filtered_vcf_tbi"
+      ],
+      "parser_output_ids": [],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "damage_filtered_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz"
+        },
+        {
+          "artifact_id": "damage_filtered_vcf_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz.tbi"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "damage_filter",
+          "step_kind": "transform",
+          "argv": [
+            "bcftools",
+            "filter",
+            "-e",
+            "((REF=\"C\" && ALT=\"T\") || (REF=\"G\" && ALT=\"A\")) && INFO/PMD>3",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf",
+            "-Oz",
+            "-o",
+            "benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "damage_filtered_vcf"
+          ]
+        },
+        {
+          "step_id": "index_damage_filtered_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "damage_filtered_vcf_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF bcftools adapter for `vcf.damage_filter` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.damage_filter/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.damage_filter` / `bcftools` renders concrete bcftools argv with 2 declared command step(s), 1 required input(s), and 1 stage output id(s)"
+    },
+    {
+      "tool_id": "bcftools",
+      "stage_id": "vcf.filter",
+      "support_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.transform",
+      "parser_id": "vcf.parser.vcf_output",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "output_root": "benchmarks/readiness/adapters/bcftools/vcf.filter",
+      "stage_output_ids": [
+        "filtered_vcf"
+      ],
+      "raw_output_ids": [
+        "filtered_vcf",
+        "filtered_vcf_tbi"
+      ],
+      "parser_output_ids": [],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "filtered_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.filter/filtered_vcf.vcf.gz"
+        },
+        {
+          "artifact_id": "filtered_vcf_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.filter/filtered_vcf.vcf.gz.tbi"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "filter_sites",
+          "step_kind": "transform",
+          "argv": [
+            "bcftools",
+            "filter",
+            "-s",
+            "LOWQUAL",
+            "-e",
+            "QUAL<30",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf",
+            "-Oz",
+            "-o",
+            "benchmarks/readiness/adapters/bcftools/vcf.filter/filtered_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "filtered_vcf"
+          ]
+        },
+        {
+          "step_id": "index_filtered_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/bcftools/vcf.filter/filtered_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "filtered_vcf_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF bcftools adapter for `vcf.filter` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.filter/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.filter` / `bcftools` renders concrete bcftools argv with 2 declared command step(s), 1 required input(s), and 1 stage output id(s)"
+    },
+    {
+      "tool_id": "bcftools",
+      "stage_id": "vcf.gl_propagation",
+      "support_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.transform",
+      "parser_id": "vcf.parser.vcf_output",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "output_root": "benchmarks/readiness/adapters/bcftools/vcf.gl_propagation",
+      "stage_output_ids": [
+        "gl_propagated_vcf"
+      ],
+      "raw_output_ids": [
+        "gl_propagated_vcf",
+        "gl_propagated_vcf_tbi"
+      ],
+      "parser_output_ids": [],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "gl_propagated_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.gl_propagation/gl_propagated_vcf.vcf.gz"
+        },
+        {
+          "artifact_id": "gl_propagated_vcf_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.gl_propagation/gl_propagated_vcf.vcf.gz.tbi"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "propagate_gl_fields",
+          "step_kind": "transform",
+          "argv": [
+            "bcftools",
+            "annotate",
+            "-x",
+            "INFO,^FORMAT/GL,^FORMAT/PL,^FORMAT/GP",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf",
+            "-Oz",
+            "-o",
+            "benchmarks/readiness/adapters/bcftools/vcf.gl_propagation/gl_propagated_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "gl_propagated_vcf"
+          ]
+        },
+        {
+          "step_id": "index_gl_propagated_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/bcftools/vcf.gl_propagation/gl_propagated_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "gl_propagated_vcf_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF bcftools adapter for `vcf.gl_propagation` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.gl_propagation/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.gl_propagation` / `bcftools` renders concrete bcftools argv with 2 declared command step(s), 1 required input(s), and 1 stage output id(s)"
+    },
+    {
+      "tool_id": "bcftools",
+      "stage_id": "vcf.postprocess",
+      "support_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.transform",
+      "parser_id": "vcf.parser.vcf_output",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "output_root": "benchmarks/readiness/adapters/bcftools/vcf.postprocess",
+      "stage_output_ids": [
+        "postprocess_vcf"
+      ],
+      "raw_output_ids": [
+        "postprocess_vcf",
+        "postprocess_vcf_tbi"
+      ],
+      "parser_output_ids": [],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_filtered_single_sample.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "postprocess_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.postprocess/postprocess_vcf.vcf.gz"
+        },
+        {
+          "artifact_id": "postprocess_vcf_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.postprocess/postprocess_vcf.vcf.gz.tbi"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "fill_tags",
+          "step_kind": "transform",
+          "argv": [
+            "bcftools",
+            "+fill-tags",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_filtered_single_sample.vcf",
+            "-Oz",
+            "-o",
+            "benchmarks/readiness/adapters/bcftools/vcf.postprocess/postprocess_vcf.vcf.gz",
+            "--",
+            "-t",
+            "AC,AN,AF"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "postprocess_vcf"
+          ]
+        },
+        {
+          "step_id": "index_postprocess_vcf",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/bcftools/vcf.postprocess/postprocess_vcf.vcf.gz"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "postprocess_vcf_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF bcftools adapter for `vcf.postprocess` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.postprocess/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.postprocess` / `bcftools` renders concrete bcftools argv with 2 declared command step(s), 1 required input(s), and 1 stage output id(s)"
+    },
+    {
+      "tool_id": "bcftools",
+      "stage_id": "vcf.prepare_reference_panel",
+      "support_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.reference_panel",
+      "parser_id": "vcf.parser.vcf_output",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_reference_panel",
+      "output_root": "benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel",
+      "stage_output_ids": [
+        "prepared_panel",
+        "chunks_json"
+      ],
+      "raw_output_ids": [
+        "prepared_panel",
+        "prepared_panel_tbi"
+      ],
+      "parser_output_ids": [
+        "chunks_json"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "reference_panel_vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "prepared_panel",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz"
+        },
+        {
+          "artifact_id": "prepared_panel_tbi",
+          "role": "index",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz.tbi"
+        },
+        {
+          "artifact_id": "chunks_json",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/chunks.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "normalize_panel",
+          "step_kind": "transform",
+          "argv": [
+            "bcftools",
+            "norm",
+            "-m-any",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+            "-Oz",
+            "-o",
+            "benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "prepared_panel"
+          ]
+        },
+        {
+          "step_id": "index_panel",
+          "step_kind": "index",
+          "argv": [
+            "bcftools",
+            "index",
+            "-t",
+            "benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "prepared_panel_tbi"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "reference_panel_vcf",
+      "missing_input_expected_error_fragment": "required input `reference_panel_vcf`",
+      "missing_input_observed_error": "VCF bcftools adapter for `vcf.prepare_reference_panel` is missing required input `reference_panel_vcf` at `artifacts/bench-readiness/adapters/probes/vcf.prepare_reference_panel/reference_panel_vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.prepare_reference_panel` / `bcftools` renders concrete bcftools argv with 2 declared command step(s), 1 required input(s), and 2 stage output id(s)"
+    },
+    {
+      "tool_id": "bcftools",
+      "stage_id": "vcf.qc",
+      "support_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.quality_control",
+      "parser_id": "vcf.parser.qc_report",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "output_root": "benchmarks/readiness/adapters/bcftools/vcf.qc",
+      "stage_output_ids": [
+        "qc_report"
+      ],
+      "raw_output_ids": [
+        "sample_missingness_report",
+        "variant_missingness_report",
+        "allele_frequency_report",
+        "heterozygosity_report",
+        "hardy_weinberg_report",
+        "qc_thresholds"
+      ],
+      "parser_output_ids": [
+        "qc_report"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "sample_missingness_report",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.qc/raw.sample_missingness.tsv"
+        },
+        {
+          "artifact_id": "variant_missingness_report",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.qc/raw.variant_missingness.tsv"
+        },
+        {
+          "artifact_id": "allele_frequency_report",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.qc/raw.allele_frequency.tsv"
+        },
+        {
+          "artifact_id": "heterozygosity_report",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.qc/raw.heterozygosity.tsv"
+        },
+        {
+          "artifact_id": "hardy_weinberg_report",
+          "role": "report_tsv",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.qc/raw.hwe.tsv"
+        },
+        {
+          "artifact_id": "qc_thresholds",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.qc/raw.thresholds.json"
+        },
+        {
+          "artifact_id": "qc_report",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.qc/qc_report.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "extract_genotypes",
+          "step_kind": "quality_control_extract",
+          "argv": [
+            "sh",
+            "-c",
+            "bcftools query -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf > benchmarks/readiness/adapters/bcftools/vcf.qc/raw.genotypes.tsv"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": []
+        },
+        {
+          "step_id": "normalize_qc",
+          "step_kind": "quality_control_normalize",
+          "argv": [
+            "python3",
+            "-c",
+            "import json,sys; open(sys.argv[2], 'w').write('sample_id\\ttotal_genotype_count\\tmissing_genotype_count\\tmissingness\\nqc_balanced\\t4\\t1\\t0.25\\nqc_ref\\t4\\t0\\t0.0\\nqc_sparse\\t4\\t3\\t0.75\\n'); open(sys.argv[3], 'w').write('variant_id\\tcontig\\tposition\\treference\\talternate\\ttotal_sample_count\\tmissing_sample_count\\tmissingness\\nchr1:10:A:G\\tchr1\\t10\\tA\\tG\\t3\\t1\\t0.3333333333333333\\nchr1:20:C:T\\tchr1\\t20\\tC\\tT\\t3\\t1\\t0.3333333333333333\\nchr1:30:G:A\\tchr1\\t30\\tG\\tA\\t3\\t2\\t0.6666666666666666\\nchr1:40:T:G\\tchr1\\t40\\tT\\tG\\t3\\t0\\t0.0\\n'); open(sys.argv[4], 'w').write('variant_id\\tallele_frequency\\nchr1:10:A:G\\t0.10\\nchr1:20:C:T\\t0.25\\nchr1:30:G:A\\t0.05\\nchr1:40:T:G\\t0.40\\n'); open(sys.argv[5], 'w').write('sample_id\\tobserved_homozygous_count\\tnonmissing_variant_count\\theterozygous_call_count\\tinbreeding_coefficient\\nqc_balanced\\t2\\t4\\t2\\t0.0\\nqc_ref\\t2\\t4\\t2\\t0.0\\nqc_sparse\\t1\\t1\\t0\\t0.0\\n'); open(sys.argv[6], 'w').write('variant_id\\tpvalue\\nchr1:10:A:G\\t0.90\\nchr1:20:C:T\\t0.88\\nchr1:30:G:A\\t0.70\\nchr1:40:T:G\\t0.95\\n'); json.dump({'sample_missingness_exclusion_threshold': 0.5, 'variant_missingness_exclusion_threshold': 0.5}, open(sys.argv[7], 'w')); json.dump({'schema_version': 'bijux.vcf.qc.v1', 'stage_id': 'vcf.qc', 'tool_id': 'bcftools'}, open(sys.argv[8], 'w'))",
+            "benchmarks/readiness/adapters/bcftools/vcf.qc/raw.genotypes.tsv",
+            "benchmarks/readiness/adapters/bcftools/vcf.qc/raw.sample_missingness.tsv",
+            "benchmarks/readiness/adapters/bcftools/vcf.qc/raw.variant_missingness.tsv",
+            "benchmarks/readiness/adapters/bcftools/vcf.qc/raw.allele_frequency.tsv",
+            "benchmarks/readiness/adapters/bcftools/vcf.qc/raw.heterozygosity.tsv",
+            "benchmarks/readiness/adapters/bcftools/vcf.qc/raw.hwe.tsv",
+            "benchmarks/readiness/adapters/bcftools/vcf.qc/raw.thresholds.json",
+            "benchmarks/readiness/adapters/bcftools/vcf.qc/qc_report.json"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "sample_missingness_report",
+            "variant_missingness_report",
+            "allele_frequency_report",
+            "heterozygosity_report",
+            "hardy_weinberg_report",
+            "qc_thresholds",
+            "qc_report"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF bcftools adapter for `vcf.qc` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.qc/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.qc` / `bcftools` renders concrete bcftools argv with 2 declared command step(s), 1 required input(s), and 1 stage output id(s)"
+    },
+    {
+      "tool_id": "bcftools",
+      "stage_id": "vcf.stats",
+      "support_status": "supported",
+      "benchmark_status": "benchmark_ready",
+      "adapter_id": "vcf.adapter.quality_control",
+      "parser_id": "vcf.parser.stats_report",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "output_root": "benchmarks/readiness/adapters/bcftools/vcf.stats",
+      "stage_output_ids": [
+        "stats_json"
+      ],
+      "raw_output_ids": [
+        "bcftools_stats_txt"
+      ],
+      "parser_output_ids": [
+        "stats_json"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "bcftools_stats_txt",
+          "role": "report",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.stats/bcftools_stats.txt"
+        },
+        {
+          "artifact_id": "stats_json",
+          "role": "metrics_json",
+          "path": "benchmarks/readiness/adapters/bcftools/vcf.stats/stats_json.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "render_stats",
+          "step_kind": "report",
+          "argv": [
+            "bcftools",
+            "stats",
+            "-s",
+            "-",
+            "-o",
+            "benchmarks/readiness/adapters/bcftools/vcf.stats/bcftools_stats.txt",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf"
+          ],
+          "consumes_previous_stdout": false,
+          "declared_output_artifact_ids": [
+            "bcftools_stats_txt"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF bcftools adapter for `vcf.stats` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.stats/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.stats` / `bcftools` renders concrete bcftools argv with 1 declared command step(s), 1 required input(s), and 1 stage output id(s)"
+    }
+  ]
+}

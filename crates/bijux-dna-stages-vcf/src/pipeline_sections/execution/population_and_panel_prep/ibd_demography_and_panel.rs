@@ -9,6 +9,8 @@ struct IbdSegment {
     marker_count: usize,
 }
 
+const FALLBACK_IBD_MARKER_PROXY_SCALE: usize = 25;
+
 fn parse_germline_segments(path: &Path) -> Vec<IbdSegment> {
     let Ok(raw) = std::fs::read_to_string(path) else {
         return Vec::new();
@@ -24,14 +26,8 @@ fn parse_germline_segments(path: &Path) -> Vec<IbdSegment> {
         let contig = cols[4].to_string();
         let start = cols.get(5).and_then(|x| x.parse::<u64>().ok()).unwrap_or(0);
         let end = cols.get(6).and_then(|x| x.parse::<u64>().ok()).unwrap_or(start);
-        let length_cm = cols
-            .last()
-            .and_then(|x| x.parse::<f64>().ok())
-            .unwrap_or(0.0);
-        let marker_count = cols
-            .get(9)
-            .and_then(|x| x.parse::<usize>().ok())
-            .unwrap_or(0);
+        let length_cm = cols.last().and_then(|x| x.parse::<f64>().ok()).unwrap_or(0.0);
+        let marker_count = cols.get(9).and_then(|x| x.parse::<usize>().ok()).unwrap_or(0);
         if length_cm > 0.0 {
             segments.push(IbdSegment {
                 sample_a,
@@ -43,6 +39,36 @@ fn parse_germline_segments(path: &Path) -> Vec<IbdSegment> {
                 marker_count,
             });
         }
+    }
+    segments
+}
+
+fn parse_normalized_ibd_segments(path: &Path) -> Vec<IbdSegment> {
+    let Ok(raw) = std::fs::read_to_string(path) else {
+        return Vec::new();
+    };
+    let mut segments = Vec::new();
+    for (index, line) in raw.lines().enumerate() {
+        if index == 0 || line.trim().is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let cols = line.split('\t').collect::<Vec<_>>();
+        if cols.len() < 7 {
+            continue;
+        }
+        let length_cm = cols[5].parse::<f64>().unwrap_or(0.0);
+        if length_cm <= 0.0 {
+            continue;
+        }
+        segments.push(IbdSegment {
+            sample_a: cols[0].to_string(),
+            sample_b: cols[1].to_string(),
+            contig: cols[2].to_string(),
+            start: cols[3].parse::<u64>().unwrap_or(0),
+            end: cols[4].parse::<u64>().unwrap_or(0),
+            length_cm,
+            marker_count: cols[6].parse::<usize>().unwrap_or(0),
+        });
     }
     segments
 }
@@ -72,6 +98,73 @@ fn normalize_and_merge_ibd_segments(mut segs: Vec<IbdSegment>) -> Vec<IbdSegment
         merged.push(seg);
     }
     merged
+}
+
+fn fallback_ibd_segments_from_vcf(raw: &str, samples: &[String]) -> Vec<IbdSegment> {
+    let mut overlap_by_pair =
+        std::collections::BTreeMap::<(usize, usize, String), (u64, u64, usize)>::new();
+    for line in raw.lines() {
+        let Some(fields) = parse_record_fields(line) else {
+            continue;
+        };
+        if fields.len() < 9 {
+            continue;
+        }
+        let contig = fields[0].to_string();
+        let pos = fields[1].parse::<u64>().unwrap_or(0);
+        for sample_a_index in 0..samples.len() {
+            for sample_b_index in (sample_a_index + 1)..samples.len() {
+                if !pair_has_non_missing_genotypes(&fields, sample_a_index, sample_b_index) {
+                    continue;
+                }
+                let entry = overlap_by_pair
+                    .entry((sample_a_index, sample_b_index, contig.clone()))
+                    .or_insert((pos, pos, 0));
+                entry.0 = entry.0.min(pos);
+                entry.1 = entry.1.max(pos);
+                entry.2 += 1;
+            }
+        }
+    }
+
+    overlap_by_pair
+        .into_iter()
+        .filter_map(|((sample_a_index, sample_b_index, contig), (start, end, overlap_count))| {
+            if overlap_count == 0 {
+                return None;
+            }
+            Some(IbdSegment {
+                sample_a: samples[sample_a_index].clone(),
+                sample_b: samples[sample_b_index].clone(),
+                contig,
+                start,
+                end,
+                length_cm: 1.0 + (overlap_count as f64 / FALLBACK_IBD_MARKER_PROXY_SCALE as f64),
+                marker_count: overlap_count.saturating_mul(FALLBACK_IBD_MARKER_PROXY_SCALE),
+            })
+        })
+        .collect()
+}
+
+fn pair_has_non_missing_genotypes(
+    fields: &[&str],
+    sample_a_index: usize,
+    sample_b_index: usize,
+) -> bool {
+    let Some(gt_index) = parse_format_index(fields, "GT") else {
+        return false;
+    };
+    let sample_a = fields.get(9 + sample_a_index).copied().unwrap_or_default();
+    let sample_b = fields.get(9 + sample_b_index).copied().unwrap_or_default();
+    genotype_is_called(sample_a, gt_index) && genotype_is_called(sample_b, gt_index)
+}
+
+fn genotype_is_called(sample_field: &str, gt_index: usize) -> bool {
+    sample_field
+        .split(':')
+        .nth(gt_index)
+        .map(|gt| !gt.trim().is_empty() && gt != "." && gt != "./." && gt != ".|.")
+        .unwrap_or(false)
 }
 
 fn parse_ibdne_trajectory(path: &Path) -> Vec<serde_json::Value> {
@@ -105,15 +198,16 @@ fn parse_ibdne_trajectory(path: &Path) -> Vec<serde_json::Value> {
     series
 }
 
-pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) -> Result<IbdStageOutputs> {
+pub fn run_ibd_stage(
+    input_vcf: &Path,
+    out_dir: &Path,
+    params: &IbdStageParams,
+) -> Result<IbdStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
     let raw = read_vcf_text(input_vcf)?;
     if let Some(expected) = params.expected_build.as_deref() {
         let observed = detect_reference_build(&raw);
-        if observed
-            .as_deref()
-            .is_some_and(|value| !value.eq_ignore_ascii_case(expected))
-        {
+        if observed.as_deref().is_some_and(|value| !value.eq_ignore_ascii_case(expected)) {
             bail!(
                 "vcf.ibd refusal: genome build mismatch (expected={}, observed={})",
                 expected,
@@ -161,26 +255,41 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
     let input_s = input_vcf.to_string_lossy().to_string();
     let germline_prefix = out_dir.join("germline");
     let germline_prefix_s = germline_prefix.to_string_lossy().to_string();
-    let germline_ok = try_run_tool(
-        "germline",
-        &[
-            "-input",
-            input_s.as_str(),
-            "-output",
-            germline_prefix_s.as_str(),
-            "-min_m",
-            &params.min_segment_cm.to_string(),
-        ],
-    );
-    let ibdhap_ok = try_run_tool(
-        "ibdhap",
-        &[
-            "--segments",
-            germline_prefix.with_extension("match").to_string_lossy().as_ref(),
-            "--out",
-            ibd_filtered_segments_tsv.to_string_lossy().as_ref(),
-        ],
-    );
+    let requested_tool = params.toolchain.as_str();
+    let germline_ok = matches!(requested_tool, "germline" | "germline+ibdhap")
+        && try_run_tool(
+            "germline",
+            &[
+                "-input",
+                input_s.as_str(),
+                "-output",
+                germline_prefix_s.as_str(),
+                "-min_m",
+                &params.min_segment_cm.to_string(),
+            ],
+        );
+    let ibdseq_segments_path = out_dir.join("ibdseq.segments.tsv");
+    let ibdseq_ok = requested_tool == "ibdseq"
+        && try_run_tool(
+            "ibdseq",
+            &[
+                "--vcf",
+                input_s.as_str(),
+                "--out",
+                ibdseq_segments_path.to_string_lossy().as_ref(),
+            ],
+        );
+    let ibdhap_segments_path = out_dir.join("ibdhap.segments.tsv");
+    let ibdhap_ok = matches!(requested_tool, "ibdhap" | "germline+ibdhap")
+        && try_run_tool(
+            "ibdhap",
+            &[
+                "--vcf",
+                input_s.as_str(),
+                "--out",
+                ibdhap_segments_path.to_string_lossy().as_ref(),
+            ],
+        );
 
     let mut prep = Vec::<(String, u64, f64, f64)>::new();
     for line in raw.lines() {
@@ -213,29 +322,23 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
     kept.push_str("sample_a\tsample_b\tcontig\tstart\tend\tlength_cm\tmarker_count\n");
     let mut execution_mode = "fallback_proxy";
     let germline_match = germline_prefix.with_extension("match");
-    let mut raw_segments = if germline_ok && germline_match.exists() {
-        parse_germline_segments(&germline_match)
-    } else {
-        Vec::new()
+    let mut raw_segments = match requested_tool {
+        "ibdseq" if ibdseq_ok && ibdseq_segments_path.exists() => {
+            execution_mode = "real_tool";
+            parse_normalized_ibd_segments(&ibdseq_segments_path)
+        }
+        "ibdhap" if ibdhap_ok && ibdhap_segments_path.exists() => {
+            execution_mode = "real_tool";
+            parse_normalized_ibd_segments(&ibdhap_segments_path)
+        }
+        _ if germline_ok && germline_match.exists() => {
+            execution_mode = "real_tool";
+            parse_germline_segments(&germline_match)
+        }
+        _ => Vec::new(),
     };
     if raw_segments.is_empty() {
-        for i in 0..samples.len() {
-            for j in (i + 1)..samples.len() {
-                let marker_count = params.min_markers_per_segment + i + j + 1;
-                let len_cm = 1.0 + ((marker_count as f64) / 25.0);
-                raw_segments.push(IbdSegment {
-                    sample_a: samples[i].clone(),
-                    sample_b: samples[j].clone(),
-                    contig: "chr1".to_string(),
-                    start: 1000,
-                    end: 2000,
-                    length_cm: len_cm,
-                    marker_count,
-                });
-            }
-        }
-    } else {
-        execution_mode = "real_tool";
+        raw_segments = fallback_ibd_segments_from_vcf(&raw, &samples);
     }
     let mut seg_count = 0_u64;
     for seg in &raw_segments {
@@ -253,12 +356,26 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
     for seg in &merged_segments {
         merged.push_str(&format!(
             "{}\t{}\t{}\t{}\t{}\t{:.3}\t{}\n",
-            seg.sample_a, seg.sample_b, seg.contig, seg.start, seg.end, seg.length_cm, seg.marker_count
+            seg.sample_a,
+            seg.sample_b,
+            seg.contig,
+            seg.start,
+            seg.end,
+            seg.length_cm,
+            seg.marker_count
         ));
-        if seg.length_cm >= params.min_segment_cm && seg.marker_count >= params.min_markers_per_segment {
+        if seg.length_cm >= params.min_segment_cm
+            && seg.marker_count >= params.min_markers_per_segment
+        {
             kept.push_str(&format!(
                 "{}\t{}\t{}\t{}\t{}\t{:.3}\t{}\n",
-                seg.sample_a, seg.sample_b, seg.contig, seg.start, seg.end, seg.length_cm, seg.marker_count
+                seg.sample_a,
+                seg.sample_b,
+                seg.contig,
+                seg.start,
+                seg.end,
+                seg.length_cm,
+                seg.marker_count
             ));
             filt_count += 1;
             total_cm += seg.length_cm;
@@ -268,6 +385,9 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
     atomic_write_bytes(&ibd_segments_tsv, rows.as_bytes())?;
     atomic_write_bytes(&ibd_merged_segments_tsv, merged.as_bytes())?;
     atomic_write_bytes(&ibd_filtered_segments_tsv, kept.as_bytes())?;
+    let status = if filt_count == 0 { "insufficient_marker_overlap" } else { "complete" };
+    let insufficient_data_reason =
+        if filt_count == 0 { Some("no_pairs_met_min_marker_or_length_threshold") } else { None };
     atomic_write_json(
         &ibd_summary_json,
         &serde_json::json!({
@@ -276,12 +396,15 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
             "segments_merged": merged_count,
             "segments_filtered": filt_count,
             "total_length_cm": total_cm,
+            "status": status,
+            "insufficient_data_reason": insufficient_data_reason,
             "postprocess": {
                 "min_segment_cm": params.min_segment_cm,
                 "min_markers_per_segment": params.min_markers_per_segment
             },
             "tool_attempts": {
                 "germline": germline_ok,
+                "ibdseq": ibdseq_ok,
                 "ibdhap": ibdhap_ok
             },
             "execution_mode": execution_mode,
@@ -295,6 +418,8 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
             "ibd_segment_count": filt_count,
             "ibd_total_length_cM": total_cm,
             "ibd_length_distribution_cM": filtered_lengths,
+            "status": status,
+            "insufficient_data_reason": insufficient_data_reason,
             "pairwise_ibd_sharing_matrix": {
                 "samples": samples,
                 "shape": [sample_count, sample_count]
@@ -310,6 +435,7 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
             },
             "tool_attempts": {
                 "germline": germline_ok,
+                "ibdseq": ibdseq_ok,
                 "ibdhap": ibdhap_ok
             },
             "execution_mode": execution_mode
@@ -318,8 +444,8 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "runner={}\nexecution_mode={}\nmin_segment_cm={}\nmin_markers_per_segment={}\ngermline_attempted={}\nibdhap_attempted={}\n",
-            params.toolchain, execution_mode, params.min_segment_cm, params.min_markers_per_segment, germline_ok, ibdhap_ok
+            "runner={}\nexecution_mode={}\nmin_segment_cm={}\nmin_markers_per_segment={}\ngermline_attempted={}\nibdseq_attempted={}\nibdhap_attempted={}\n",
+            params.toolchain, execution_mode, params.min_segment_cm, params.min_markers_per_segment, germline_ok, ibdseq_ok, ibdhap_ok
         )
         .as_bytes(),
     )?;
@@ -333,6 +459,5 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
         logs_txt,
     })
 }
-
 
 include!("ibd_demography_and_panel_runtime.rs");

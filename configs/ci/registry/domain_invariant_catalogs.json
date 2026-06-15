@@ -129,7 +129,9 @@
       ],
       "fastq.cluster_otus": [
         "stable_artifact_contract",
-        "deterministic_output_order"
+        "deterministic_output_order",
+        "clustering_threshold == otu_identity",
+        "representative_sequence_count == representative_count"
       ],
       "fastq.concatenate_lanes": [
         "stable_artifact_contract",
@@ -218,7 +220,8 @@
       "fastq.normalize_abundance": [
         "stable_artifact_contract",
         "amplicon_only_stage",
-        "per_sample_abundance_is_compositional"
+        "per_sample_abundance_is_compositional",
+        "normalization_method == method"
       ],
       "fastq.normalize_primers": [
         "stable_artifact_contract",
@@ -258,7 +261,9 @@
         "stable_artifact_contract",
         "deterministic_output_order",
         "reads_out <= reads_in",
+        "non_chimera_count == reads_out",
         "chimeras_removed == reads_in - reads_out",
+        "chimera_count == chimeras_removed",
         "chimera_fraction in [0, 1]"
       ],
       "fastq.remove_duplicates": [
@@ -344,7 +349,7 @@
       "vcf.ibd": [
         "stable_artifact_contract"
       ],
-      "vcf.imputation": [
+      "vcf.imputation_metrics": [
         "stable_artifact_contract"
       ],
       "vcf.impute": [

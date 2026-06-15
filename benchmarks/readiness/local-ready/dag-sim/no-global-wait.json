@@ -1,0 +1,131 @@
+{
+  "schema_version": "bijux.bench.local_dag_watchdog_simulation.v1",
+  "scenario": "no_global_wait",
+  "config_path": "benchmarks/configs/pipelines/local/fastq-core-preprocess.toml",
+  "dag_report_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json",
+  "output_path": "benchmarks/readiness/local-ready/dag-sim/no-global-wait.json",
+  "pipeline_id": "fastq-core-preprocess",
+  "node_count": 7,
+  "sample_count": 1,
+  "simulated_makespan_seconds": 14,
+  "slow_branch_stage_id": "fastq.profile_read_lengths",
+  "slow_branch_finish_second": 13,
+  "ready_while_slow_branch_running_stage_ids": [
+    "fastq.detect_adapters",
+    "fastq.trim_reads",
+    "fastq.filter_reads",
+    "fastq.profile_reads"
+  ],
+  "no_global_wait_proven": true,
+  "failed_sample_id": null,
+  "failed_stage_id": null,
+  "failure_second": null,
+  "continued_unrelated_node_ids": [],
+  "blocked_node_ids": [],
+  "failure_isolation_proven": false,
+  "reused_valid_node_ids": [],
+  "invalid_node_ids": [],
+  "missing_node_ids": [],
+  "planned_node_ids": [],
+  "partial_resume_proven": false,
+  "completion_check_stage_id": null,
+  "completion_checks": [],
+  "completion_rules_proven": false,
+  "nodes": [
+    {
+      "node_id": "fastq.validate_reads",
+      "sample_id": "sample_primary",
+      "stage_id": "fastq.validate_reads",
+      "status": "completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "start_second": 0,
+      "finish_second": 1,
+      "duration_seconds": 1
+    },
+    {
+      "node_id": "fastq.profile_read_lengths",
+      "sample_id": "sample_primary",
+      "stage_id": "fastq.profile_read_lengths",
+      "status": "completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "start_second": 1,
+      "finish_second": 13,
+      "duration_seconds": 12
+    },
+    {
+      "node_id": "fastq.detect_adapters",
+      "sample_id": "sample_primary",
+      "stage_id": "fastq.detect_adapters",
+      "status": "completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "start_second": 1,
+      "finish_second": 3,
+      "duration_seconds": 2
+    },
+    {
+      "node_id": "fastq.trim_reads",
+      "sample_id": "sample_primary",
+      "stage_id": "fastq.trim_reads",
+      "status": "completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters"
+      ],
+      "start_second": 3,
+      "finish_second": 4,
+      "duration_seconds": 1
+    },
+    {
+      "node_id": "fastq.filter_reads",
+      "sample_id": "sample_primary",
+      "stage_id": "fastq.filter_reads",
+      "status": "completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "start_second": 4,
+      "finish_second": 5,
+      "duration_seconds": 1
+    },
+    {
+      "node_id": "fastq.profile_reads",
+      "sample_id": "sample_primary",
+      "stage_id": "fastq.profile_reads",
+      "status": "completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.filter_reads"
+      ],
+      "start_second": 5,
+      "finish_second": 6,
+      "duration_seconds": 1
+    },
+    {
+      "node_id": "fastq.report_qc",
+      "sample_id": "sample_primary",
+      "stage_id": "fastq.report_qc",
+      "status": "completed",
+      "dependency_count": 6,
+      "depends_on": [
+        "fastq.validate_reads",
+        "fastq.profile_read_lengths",
+        "fastq.detect_adapters",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads"
+      ],
+      "start_second": 13,
+      "finish_second": 14,
+      "duration_seconds": 1
+    }
+  ]
+}

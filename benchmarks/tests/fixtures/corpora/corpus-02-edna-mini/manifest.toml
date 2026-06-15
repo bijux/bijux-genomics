@@ -1,0 +1,35 @@
+schema_version = "bijux.bench.edna_corpus_fixture.v1"
+corpus_id = "corpus-02-edna-mini"
+community_id = "mock_community_taxonomy"
+description = "Tiny synthetic eDNA FASTQ fixture with two single-end mock-community samples for local taxonomy and microbiome contract checks."
+compression = "gzip"
+expected_taxa_path = "expected_taxa.tsv"
+
+[[expected_taxa]]
+taxon_id = 561
+name = "Escherichia coli"
+rank = "species"
+
+[[expected_taxa]]
+taxon_id = 28901
+name = "Salmonella enterica"
+rank = "species"
+
+[[expected_taxa]]
+taxon_id = 28890
+name = "Halobacterium salinarum"
+rank = "species"
+
+[[samples]]
+sample_id = "mock_community_sample_a"
+community_label = "mixed_microbiome"
+fastq_path = "normalized/mock_community_sample_a.fastq.gz"
+expected_read_count = 2
+source_paths = ["assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq"]
+
+[[samples]]
+sample_id = "mock_community_sample_b"
+community_label = "mixed_microbiome"
+fastq_path = "normalized/mock_community_sample_b.fastq.gz"
+expected_read_count = 2
+source_paths = ["assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq"]

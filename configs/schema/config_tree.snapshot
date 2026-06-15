@@ -6,10 +6,6 @@ configs/OWNERS.toml
 configs/bench/benchmark.toml
 configs/bench/index.md
 configs/bench/knobs.toml
-artifacts/planning/cards.yaml
-artifacts/planning/index.md
-artifacts/planning/issue_labels.yaml
-artifacts/planning/scoreboard.yaml
 configs/ci/compatibility/deprecations.toml
 configs/ci/compatibility/index.md
 configs/ci/compatibility/release_changes.toml

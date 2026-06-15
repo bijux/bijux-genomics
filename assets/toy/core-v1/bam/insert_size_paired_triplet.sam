@@ -1,0 +1,9 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chr1	LN:120
+@RG	ID:rg1	SM:insert-size-sample
+pair001	99	chr1	1	60	5M	=	16	20	ACGTA	FFFFF	RG:Z:rg1
+pair001	147	chr1	16	60	5M	=	1	-20	TGCAT	FFFFF	RG:Z:rg1
+pair002	99	chr1	30	60	5M	=	40	15	CCCCC	FFFFF	RG:Z:rg1
+pair002	147	chr1	40	60	5M	=	30	-15	GGGGG	FFFFF	RG:Z:rg1
+pair003	99	chr1	60	60	5M	=	85	30	TTTTT	FFFFF	RG:Z:rg1
+pair003	147	chr1	85	60	5M	=	60	-30	AAAAA	FFFFF	RG:Z:rg1

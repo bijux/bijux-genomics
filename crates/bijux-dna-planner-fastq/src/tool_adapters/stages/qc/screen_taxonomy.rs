@@ -67,8 +67,11 @@ pub fn plan_screen_with_options(
     effective_params.report_format = report_format;
     effective_params.assignment_format = assignment_format;
     if let Some(database_root) = options.database_root.as_ref() {
-        let resolved_database_root =
-            std::fs::canonicalize(database_root).unwrap_or_else(|_| database_root.clone());
+        let resolved_database_root = if database_root.is_absolute() {
+            std::fs::canonicalize(database_root).unwrap_or_else(|_| database_root.clone())
+        } else {
+            database_root.clone()
+        };
         effective_params.contaminant_db = Some(resolved_database_root.display().to_string());
     }
     if let Some(threads) = options.threads {
@@ -91,7 +94,7 @@ pub fn plan_screen_with_effective_params(
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_screen_tool_list(std::slice::from_ref(&tool_id))?;
-    let outputs = taxonomy_outputs(&tool.tool_id.0, out_dir)?;
+    let outputs = taxonomy_outputs(&tool.tool_id.0, out_dir, r2.is_some())?;
     let effective_params =
         normalized_screen_effective_params(tool.tool_id.as_str(), r2.is_some(), effective_params)?;
     let inputs = screen_inputs(r1, r2, &effective_params);
@@ -115,6 +118,7 @@ pub fn plan_screen_with_effective_params(
                 r2,
                 &outputs.report,
                 &outputs.assignments,
+                outputs.unclassified_output_pattern.as_deref(),
                 &effective_params,
             )?,
         },
@@ -222,7 +226,7 @@ fn screen_inputs(
 }
 
 fn screen_outputs(outputs: &TaxonomyOutputs) -> Vec<ArtifactRef> {
-    vec![
+    let mut artifacts = vec![
         ArtifactRef::required(
             ArtifactId::from_static("screen_report_tsv"),
             outputs.report.clone(),
@@ -233,7 +237,22 @@ fn screen_outputs(outputs: &TaxonomyOutputs) -> Vec<ArtifactRef> {
             outputs.assignments.clone(),
             ArtifactRole::ReportJson,
         ),
-    ]
+    ];
+    if let Some(path) = outputs.unclassified_r1.as_ref() {
+        artifacts.push(ArtifactRef::optional(
+            ArtifactId::from_static("unclassified_reads_r1"),
+            path.clone(),
+            ArtifactRole::Reads,
+        ));
+    }
+    if let Some(path) = outputs.unclassified_r2.as_ref() {
+        artifacts.push(ArtifactRef::optional(
+            ArtifactId::from_static("unclassified_reads_r2"),
+            path.clone(),
+            ArtifactRole::Reads,
+        ));
+    }
+    artifacts
 }
 
 fn screen_plan_params(
@@ -251,6 +270,8 @@ fn screen_plan_params(
         "out_dir": out_dir,
         "report": outputs.report,
         "assignments": outputs.assignments,
+        "unclassified_reads_r1": outputs.unclassified_r1,
+        "unclassified_reads_r2": outputs.unclassified_r2,
         "threads": effective_params.threads,
         "contaminant_db": effective_params.contaminant_db,
         "database_root": effective_params.contaminant_db,
@@ -274,6 +295,7 @@ fn screen_command_template(
     r2: Option<&Path>,
     report_path: &Path,
     classification_report_path: &Path,
+    unclassified_output_pattern: Option<&Path>,
     effective_params: &ScreenEffectiveParams,
 ) -> Result<Vec<String>> {
     let governed_report = ScreenTaxonomyReportV1 {
@@ -300,6 +322,10 @@ fn screen_command_template(
         input_r2: r2.map(|path| path.display().to_string()),
         screen_report_tsv: report_path.display().to_string(),
         classification_report_json: classification_report_path.display().to_string(),
+        unclassified_reads_r1: outputs_unclassified_r1(unclassified_output_pattern, r2.is_some())
+            .map(|path| path.display().to_string()),
+        unclassified_reads_r2: outputs_unclassified_r2(unclassified_output_pattern, r2.is_some())
+            .map(|path| path.display().to_string()),
         reads_in: None,
         reads_out: None,
         bases_in: None,
@@ -325,6 +351,7 @@ fn screen_command_template(
             &native_report_path,
             &native_assignments_path,
             report_path,
+            unclassified_output_pattern,
             effective_params.threads,
         )?
     } else {
@@ -368,6 +395,7 @@ fn screen_native_command(
     native_report_path: &Path,
     native_assignments_path: &Path,
     normalized_report_path: &Path,
+    unclassified_output_pattern: Option<&Path>,
     threads: u32,
 ) -> Result<String> {
     let script = match tool_id {
@@ -378,6 +406,7 @@ fn screen_native_command(
             native_report_path,
             native_assignments_path,
             normalized_report_path,
+            unclassified_output_pattern,
             threads,
         ),
         "krakenuniq" => krakenuniq_screen_script(
@@ -419,6 +448,7 @@ fn kraken2_screen_script(
     native_report_path: &Path,
     native_assignments_path: &Path,
     normalized_report_path: &Path,
+    unclassified_output_pattern: Option<&Path>,
     threads: u32,
 ) -> String {
     let reads_clause = if let Some(r2) = r2 {
@@ -426,14 +456,17 @@ fn kraken2_screen_script(
     } else {
         shell_quote_path(r1)
     };
+    let unclassified_clause = unclassified_output_pattern
+        .map_or_else(String::new, |path| format!(" --unclassified-out {}", shell_quote_path(path)));
     format!(
         "mkdir -p {db}\n\
-         kraken2 --db {db} --threads {threads} --report {native_report} --output {native_assignments} {reads}\n\
+         kraken2 --db {db} --threads {threads} --report {native_report} --output {native_assignments}{unclassified_clause} {reads}\n\
          awk -F '\\t' 'NF >= 6 {{ label=$6; sub(/^[[:space:]]+/, \"\", label); pct=$1; sub(/%$/, \"\", pct); printf \"%s\\t0\\t%s%%\\n\", label, pct }}' {native_report} > {normalized_report}\n",
         db = shell_quote_path(&database_root.join("kraken2")),
         threads = threads,
         native_report = shell_quote_path(native_report_path),
         native_assignments = shell_quote_path(native_assignments_path),
+        unclassified_clause = unclassified_clause,
         reads = reads_clause,
         normalized_report = shell_quote_path(normalized_report_path),
     )
@@ -591,29 +624,84 @@ fn normalize_tools_with_allowlist(
 struct TaxonomyOutputs {
     report: std::path::PathBuf,
     assignments: std::path::PathBuf,
+    unclassified_r1: Option<std::path::PathBuf>,
+    unclassified_r2: Option<std::path::PathBuf>,
+    unclassified_output_pattern: Option<std::path::PathBuf>,
 }
 
-fn taxonomy_outputs(tool_id: &str, out_dir: &Path) -> Result<TaxonomyOutputs> {
+fn taxonomy_outputs(tool_id: &str, out_dir: &Path, paired: bool) -> Result<TaxonomyOutputs> {
     let outputs = match tool_id {
-        "kraken2" => TaxonomyOutputs {
-            report: out_dir.join("kraken2.report.tsv"),
-            assignments: out_dir.join("kraken2.classifications.json"),
-        },
+        "kraken2" => {
+            let unclassified_output_pattern = kraken2_unclassified_output_pattern(out_dir, paired);
+            TaxonomyOutputs {
+                report: out_dir.join("kraken2.report.tsv"),
+                assignments: out_dir.join("kraken2.classifications.json"),
+                unclassified_r1: outputs_unclassified_r1(
+                    Some(unclassified_output_pattern.as_path()),
+                    paired,
+                ),
+                unclassified_r2: outputs_unclassified_r2(
+                    Some(unclassified_output_pattern.as_path()),
+                    paired,
+                ),
+                unclassified_output_pattern: Some(unclassified_output_pattern),
+            }
+        }
         "krakenuniq" => TaxonomyOutputs {
             report: out_dir.join("krakenuniq.report.tsv"),
             assignments: out_dir.join("krakenuniq.classifications.json"),
+            unclassified_r1: None,
+            unclassified_r2: None,
+            unclassified_output_pattern: None,
         },
         "centrifuge" => TaxonomyOutputs {
             report: out_dir.join("centrifuge.report.tsv"),
             assignments: out_dir.join("centrifuge.classifications.json"),
+            unclassified_r1: None,
+            unclassified_r2: None,
+            unclassified_output_pattern: None,
         },
         "kaiju" => TaxonomyOutputs {
             report: out_dir.join("kaiju.summary.tsv"),
             assignments: out_dir.join("kaiju.classifications.json"),
+            unclassified_r1: None,
+            unclassified_r2: None,
+            unclassified_output_pattern: None,
         },
         _ => return Err(anyhow!("unsupported taxonomy screening tool: {tool_id}")),
     };
     Ok(outputs)
+}
+
+fn kraken2_unclassified_output_pattern(out_dir: &Path, paired: bool) -> std::path::PathBuf {
+    if paired {
+        out_dir.join("kraken2.unclassified_reads_#.fastq")
+    } else {
+        out_dir.join("kraken2.unclassified_reads.fastq")
+    }
+}
+
+fn outputs_unclassified_r1(
+    unclassified_output_pattern: Option<&Path>,
+    paired: bool,
+) -> Option<std::path::PathBuf> {
+    let path = unclassified_output_pattern?;
+    if paired {
+        Some(path.with_file_name("kraken2.unclassified_reads_1.fastq"))
+    } else {
+        Some(path.to_path_buf())
+    }
+}
+
+fn outputs_unclassified_r2(
+    unclassified_output_pattern: Option<&Path>,
+    paired: bool,
+) -> Option<std::path::PathBuf> {
+    if paired {
+        Some(unclassified_output_pattern?.with_file_name("kraken2.unclassified_reads_2.fastq"))
+    } else {
+        None
+    }
 }
 
 fn classifier_contract(
@@ -664,6 +752,7 @@ fn is_gzip_input(path: &Path) -> bool {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{
         plan_screen_with_effective_params, plan_screen_with_options, ScreenPlanOptions, STAGE_ID,

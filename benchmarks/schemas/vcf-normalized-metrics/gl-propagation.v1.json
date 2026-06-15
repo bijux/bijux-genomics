@@ -1,0 +1,68 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.gl-propagation.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "input_likelihood_fields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "lost_fields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "output_likelihood_fields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.gl_propagation.v1"
+        },
+        "site_count_after": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "site_count_before": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage_id": {
+          "const": "vcf.gl_propagation"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "input_likelihood_fields",
+        "output_likelihood_fields",
+        "lost_fields",
+        "site_count_before",
+        "site_count_after",
+        "sample_count"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_gl_propagation_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.gl_propagation`.",
+  "title": "VCF normalized benchmark metrics: vcf.gl_propagation"
+}

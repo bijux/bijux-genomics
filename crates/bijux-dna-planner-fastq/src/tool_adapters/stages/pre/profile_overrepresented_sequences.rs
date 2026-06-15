@@ -197,6 +197,7 @@ fn shell_quote_str(value: &str) -> String {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::plan_with_options;
     use bijux_dna_core::prelude::{

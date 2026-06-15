@@ -1,0 +1,13 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local-ready plan input for fastq.screen_taxonomy.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.fastq.local_screen_taxonomy.v1"
+input_r1 = "assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq"
+database_root = "assets/reference/taxonomy/references/mock_community_taxonomy"
+tool_id = "kraken2"
+threads = 4
+output_dir = "benchmarks/readiness/local-ready/fastq.screen_taxonomy"

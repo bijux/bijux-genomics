@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use std::collections::BTreeMap;
 
 use bijux_dna_core::contract::PlanPolicy;
@@ -117,7 +119,7 @@ fn benchmark_fanout_plans_parallel_tool_steps_for_one_stage() -> anyhow::Result<
 }
 
 #[test]
-fn benchmark_fanout_rejects_planned_only_tools_without_override() -> anyhow::Result<()> {
+fn benchmark_fanout_rejects_unadmitted_taxonomy_tools() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-benchmark-fanout-planned")?;
     let r1 = temp.path().join("reads_R1.fastq");
     let r2 = temp.path().join("reads_R2.fastq");
@@ -143,9 +145,11 @@ fn benchmark_fanout_rejects_planned_only_tools_without_override() -> anyhow::Res
             allow_planned: false,
         },
     )
-    .expect_err("planned-only trim binding must require explicit override");
+    .expect_err("unadmitted taxonomy binding must be rejected");
 
-    assert!(error.to_string().contains("planned-only binding"));
+    let message = error.to_string();
+    assert!(message.contains("diamond"));
+    assert!(message.contains("fastq.screen_taxonomy"));
     Ok(())
 }
 

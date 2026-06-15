@@ -1,0 +1,20 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.damage_filter",
+  "tool_id": "angsd",
+  "parser_id": "parse_angsd_damage_filter_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.damage_filter.v1",
+    "stage_id": "vcf.damage_filter",
+    "tool_id": "angsd",
+    "input_variants": 4,
+    "removed_variants": 2,
+    "retained_variants": 2,
+    "low_quality_filtered_variants": 1,
+    "damage_ratio_filtered_variants": 1,
+    "terminal_damage_filtered_variants": 1,
+    "damage_context_rule": "remove_ct_ga_with_ratio_gt_0.35_or_terminal_signal_ge_0.50_or_pmd_lt_1.0",
+    "terminal_context_count": 1,
+    "sample_count": 1
+  }
+}

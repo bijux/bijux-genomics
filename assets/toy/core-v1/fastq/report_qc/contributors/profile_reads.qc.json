@@ -1,0 +1,9 @@
+{
+  "schema_version": "bijux.fastq.profile_reads.report.v1",
+  "stage_id": "fastq.profile_reads",
+  "tool_id": "seqkit_stats",
+  "sample_id": "toy-se",
+  "reads": 8,
+  "bases": 96,
+  "mean_q": 31.4
+}

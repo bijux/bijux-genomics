@@ -5,9 +5,11 @@ use anyhow::{anyhow, Context, Result};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
+use crate::commands::benchmark::path_resolution::BenchmarkPathResolver;
+
 const CAMPAIGN_SCHEMA_VERSION: &str = "bijux.hpc.campaign.v1";
 const ENV_DEFAULT_PATH: &str = "configs/hpc/.env";
-const USER_POLICY_DEFAULT_PATH: &str = "configs/hpc/campaign/user.policy.toml";
+const DEFAULT_CAMPAIGN_PROFILE_OUT_DIR: &str = "benchmarks/configs/hpc/campaign";
 
 const BUILTIN_LUNARC_PROFILE: &str = "lunarc";
 const BUILTIN_GENERIC_PROFILE: &str = "generic";
@@ -962,6 +964,66 @@ fn load_env_map(
     }
 }
 
+fn workspace_root_for_campaign_stage_catalog(start: &Path) -> Option<PathBuf> {
+    let mut cursor =
+        if start.is_dir() { start.to_path_buf() } else { start.parent()?.to_path_buf() };
+    loop {
+        let domain_dir = cursor.join("domain");
+        let registry = bijux_dna_infra::configs_file(&cursor, "ci/registry/tool_registry.toml");
+        if domain_dir.is_dir() && registry.is_file() {
+            return Some(cursor);
+        }
+        let parent = cursor.parent()?.to_path_buf();
+        cursor = parent;
+    }
+}
+
+fn campaign_stage_catalog(root: &Path) -> Result<BTreeSet<String>> {
+    let mut stage_ids = BTreeSet::new();
+    for domain in ["fastq", "bam", "vcf"] {
+        let stages_dir = root.join("domain").join(domain).join("stages");
+        for entry in std::fs::read_dir(&stages_dir)
+            .with_context(|| format!("read {}", stages_dir.display()))?
+        {
+            let path = entry?.path();
+            if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+                continue;
+            }
+            let Some(stem) = path.file_stem().and_then(|value| value.to_str()) else {
+                continue;
+            };
+            if stem.starts_with('_') {
+                continue;
+            }
+            stage_ids.insert(format!("{domain}.{stem}"));
+        }
+    }
+    Ok(stage_ids)
+}
+
+fn validate_campaign_job_stage_ids(config_path: &Path, config: &CampaignConfig) -> Result<()> {
+    let workspace_root = workspace_root_for_campaign_stage_catalog(config_path).or_else(|| {
+        std::env::current_dir().ok().and_then(|cwd| workspace_root_for_campaign_stage_catalog(&cwd))
+    });
+    let workspace_root = workspace_root.ok_or_else(|| {
+        anyhow!(
+            "unable to locate workspace root for stage catalog validation from {}",
+            config_path.display()
+        )
+    })?;
+    let known_stage_ids = campaign_stage_catalog(&workspace_root)?;
+    for job in &config.jobs {
+        if !known_stage_ids.contains(&job.stage) {
+            return Err(anyhow!(
+                "campaign job `{}` references unknown stage `{}`",
+                job.name.as_deref().unwrap_or("<unnamed>"),
+                job.stage
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn resolve_campaign_config(
     config_path: &Path,
     env_file_policy: Option<&Path>,
@@ -969,10 +1031,16 @@ fn resolve_campaign_config(
 ) -> Result<(CampaignConfig, ResolvedSlurm, ResolutionMetadata)> {
     let (mut config, _) = load_campaign_config_raw(config_path)?;
     merge_site_profile_file(&mut config, config_path)?;
+    validate_campaign_job_stage_ids(config_path, &config)?;
 
-    let policy_path = user_policy_path
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| PathBuf::from(USER_POLICY_DEFAULT_PATH));
+    let policy_path = if let Some(path) = user_policy_path {
+        path.to_path_buf()
+    } else {
+        let cwd = std::env::current_dir().context("resolve current directory")?;
+        BenchmarkPathResolver::new(&cwd, None)
+            .benchmark_hpc_campaign_root()
+            .join("user.policy.toml")
+    };
     let mut user_policies_applied = false;
     if policy_path.exists() {
         let policies = load_policy_file(&policy_path)?;
@@ -991,12 +1059,23 @@ fn resolve_campaign_config(
 }
 
 pub fn write_campaign_profiles(out_dir: &Path) -> Result<Vec<PathBuf>> {
-    bijux_dna_infra::ensure_dir(out_dir)
-        .with_context(|| format!("create {}", out_dir.display()))?;
+    let cwd = std::env::current_dir().context("resolve current directory")?;
+    let resolved_out_dir = if out_dir == Path::new(DEFAULT_CAMPAIGN_PROFILE_OUT_DIR) {
+        BenchmarkPathResolver::new(&cwd, None).benchmark_hpc_campaign_root()
+    } else if out_dir.is_absolute() {
+        out_dir.to_path_buf()
+    } else {
+        cwd.join(out_dir)
+    };
+    bijux_dna_infra::ensure_dir(&resolved_out_dir)
+        .with_context(|| format!("create {}", resolved_out_dir.display()))?;
 
-    let lunarc_path = out_dir.join("lunarc-small.toml");
-    let generic_path = out_dir.join("generic-small.toml");
-    let cross_path = out_dir.join("cross-mini.toml");
+    let lunarc_path = resolved_out_dir.join("lunarc-small.toml");
+    let lunarc_local_ready_path = resolved_out_dir.join("lunarc-fastq-bam-local-ready.toml");
+    let lunarc_local_ready_vcf_path =
+        resolved_out_dir.join("lunarc-fastq-bam-vcf-local-ready.toml");
+    let generic_path = resolved_out_dir.join("generic-small.toml");
+    let cross_path = resolved_out_dir.join("cross-mini.toml");
 
     let lunarc = r#"schema_version = "bijux.hpc.campaign.v1"
 
@@ -1044,6 +1123,228 @@ sample = "sample_0001"
 resource_template = "standard"
 "#;
 
+    let lunarc_local_ready = r#"schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "adna-equus-caballus-local-ready"
+domain = "cross"
+description = "Lunarc local dry-run profile for prepared FASTQ-to-BAM horse benchmarking"
+
+[layout]
+corpora_root = "/mnt/shared/bijux/corpora"
+databases_root = "/mnt/shared/bijux/databases"
+images_root = "/mnt/shared/bijux/images"
+scratch_root = "/mnt/shared/bijux/scratch"
+logs_root = "/mnt/shared/bijux/logs"
+encrypted_results_root = "/mnt/shared/bijux/results"
+encrypted_code_root = "/mnt/shared/bijux/code"
+appraiser_imports_root = "/mnt/shared/bijux/appraiser-imports"
+baselines_root = "/mnt/shared/bijux/baselines"
+
+[slurm]
+site_profile = "lunarc"
+default_resource_template = "fastq_small"
+retry_attempts = 2
+retry_backoff_seconds = 30
+retry_on_exit_codes = [137, 143]
+
+[resources]
+default = "fastq_small"
+
+[resources.templates.fastq_small]
+cpus = 8
+mem_gb = 24
+walltime = "01:00:00"
+scratch_gb = 32
+
+[resources.templates.bam_align]
+cpus = 16
+mem_gb = 64
+walltime = "04:00:00"
+scratch_gb = 128
+
+[resources.templates.bam_qc]
+cpus = 8
+mem_gb = 24
+walltime = "01:00:00"
+scratch_gb = 48
+
+[resources.stage_defaults]
+fastq = "fastq_small"
+bam = "bam_qc"
+
+[security]
+encryption_backend = "mock-envelope-v1"
+encryption_recipients = ["bio-team"]
+encrypt_operator_outputs = false
+env_file = "configs/hpc/.env"
+
+[[jobs]]
+name = "fastq_validate_adna_equus_caballus_0001"
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "adna_equus_caballus_0001"
+
+[[jobs]]
+name = "fastq_trim_adna_equus_caballus_0001"
+stage = "fastq.trim_reads"
+tool = "fastp"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_validate_adna_equus_caballus_0001"]
+
+[[jobs]]
+name = "bam_align_adna_equus_caballus_0001"
+stage = "bam.align"
+tool = "bwa"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_trim_adna_equus_caballus_0001"]
+resource_template = "bam_align"
+
+[[jobs]]
+name = "bam_qc_pre_adna_equus_caballus_0001"
+stage = "bam.qc_pre"
+tool = "samtools"
+sample = "adna_equus_caballus_0001"
+depends_on = ["bam_align_adna_equus_caballus_0001"]
+resource_template = "bam_qc"
+"#;
+
+    let lunarc_local_ready_vcf = r#"schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "adna-equus-caballus-fastq-bam-vcf-local-ready"
+domain = "cross"
+description = "Lunarc local dry-run profile for prepared FASTQ-to-BAM-to-VCF horse benchmarking"
+
+[layout]
+corpora_root = "/mnt/shared/bijux/corpora"
+databases_root = "/mnt/shared/bijux/databases"
+images_root = "/mnt/shared/bijux/images"
+scratch_root = "/mnt/shared/bijux/scratch"
+logs_root = "/mnt/shared/bijux/logs"
+encrypted_results_root = "/mnt/shared/bijux/results"
+encrypted_code_root = "/mnt/shared/bijux/code"
+appraiser_imports_root = "/mnt/shared/bijux/appraiser-imports"
+baselines_root = "/mnt/shared/bijux/baselines"
+
+[slurm]
+site_profile = "lunarc"
+default_resource_template = "fastq_small"
+retry_attempts = 2
+retry_backoff_seconds = 30
+retry_on_exit_codes = [137, 143]
+
+[resources]
+default = "fastq_small"
+
+[resources.templates.fastq_small]
+cpus = 8
+mem_gb = 24
+walltime = "01:00:00"
+scratch_gb = 32
+
+[resources.templates.bam_align]
+cpus = 16
+mem_gb = 64
+walltime = "04:00:00"
+scratch_gb = 128
+
+[resources.templates.bam_qc]
+cpus = 8
+mem_gb = 24
+walltime = "01:00:00"
+scratch_gb = 48
+
+[resources.templates.vcf_call]
+cpus = 8
+mem_gb = 32
+walltime = "02:00:00"
+scratch_gb = 64
+
+[resources.templates.vcf_qc]
+cpus = 8
+mem_gb = 24
+walltime = "01:00:00"
+scratch_gb = 48
+
+[resources.stage_defaults]
+fastq = "fastq_small"
+bam = "bam_qc"
+vcf = "vcf_qc"
+
+[security]
+encryption_backend = "mock-envelope-v1"
+encryption_recipients = ["bio-team"]
+encrypt_operator_outputs = false
+env_file = "configs/hpc/.env"
+
+[[jobs]]
+name = "fastq_validate_adna_equus_caballus_0001"
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "adna_equus_caballus_0001"
+
+[[jobs]]
+name = "fastq_trim_adna_equus_caballus_0001"
+stage = "fastq.trim_reads"
+tool = "fastp"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_validate_adna_equus_caballus_0001"]
+
+[[jobs]]
+name = "bam_align_adna_equus_caballus_0001"
+stage = "bam.align"
+tool = "bwa"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_trim_adna_equus_caballus_0001"]
+resource_template = "bam_align"
+
+[[jobs]]
+name = "bam_qc_pre_adna_equus_caballus_0001"
+stage = "bam.qc_pre"
+tool = "samtools"
+sample = "adna_equus_caballus_0001"
+depends_on = ["bam_align_adna_equus_caballus_0001"]
+resource_template = "bam_qc"
+
+[[jobs]]
+name = "bam_recalibration_adna_equus_caballus_0001"
+stage = "bam.recalibration"
+tool = "gatk"
+sample = "adna_equus_caballus_0001"
+depends_on = ["bam_qc_pre_adna_equus_caballus_0001"]
+resource_template = "bam_qc"
+
+[[jobs]]
+name = "vcf_call_adna_equus_caballus_0001"
+stage = "vcf.call"
+tool = "bcftools"
+sample = "adna_equus_caballus_0001"
+depends_on = ["bam_recalibration_adna_equus_caballus_0001"]
+resource_template = "vcf_call"
+
+[[jobs]]
+name = "vcf_filter_adna_equus_caballus_0001"
+stage = "vcf.filter"
+tool = "bcftools"
+sample = "adna_equus_caballus_0001"
+depends_on = ["vcf_call_adna_equus_caballus_0001"]
+
+[[jobs]]
+name = "vcf_stats_adna_equus_caballus_0001"
+stage = "vcf.stats"
+tool = "bcftools"
+sample = "adna_equus_caballus_0001"
+depends_on = ["vcf_filter_adna_equus_caballus_0001"]
+
+[[jobs]]
+name = "vcf_qc_adna_equus_caballus_0001"
+stage = "vcf.qc"
+tool = "plink2"
+sample = "adna_equus_caballus_0001"
+depends_on = ["vcf_filter_adna_equus_caballus_0001"]
+"#;
+
     let generic = r#"schema_version = "bijux.hpc.campaign.v1"
 
 [campaign]
@@ -1082,8 +1383,8 @@ encrypt_operator_outputs = false
 env_file = "configs/hpc/.env"
 
 [[jobs]]
-stage = "vcf.validate"
-tool = "bcftools_v1_20"
+stage = "vcf.stats"
+tool = "bcftools"
 sample = "cohort_01"
 resource_template = "standard"
 "#;
@@ -1132,21 +1433,37 @@ tool = "seqkit_v2"
 sample = "sample_0001"
 
 [[jobs]]
-name = "bam_sort_sample_0001"
-stage = "bam.sort"
-tool = "samtools_v1_20"
+name = "bam_align_sample_0001"
+stage = "bam.align"
+tool = "bwa"
 sample = "sample_0001"
 depends_on = ["fastq_validate_sample_0001"]
 "#;
 
     bijux_dna_api::v1::api::run::atomic_write_bytes(&lunarc_path, lunarc.as_bytes())
         .with_context(|| format!("write {}", lunarc_path.display()))?;
+    bijux_dna_api::v1::api::run::atomic_write_bytes(
+        &lunarc_local_ready_path,
+        lunarc_local_ready.as_bytes(),
+    )
+    .with_context(|| format!("write {}", lunarc_local_ready_path.display()))?;
+    bijux_dna_api::v1::api::run::atomic_write_bytes(
+        &lunarc_local_ready_vcf_path,
+        lunarc_local_ready_vcf.as_bytes(),
+    )
+    .with_context(|| format!("write {}", lunarc_local_ready_vcf_path.display()))?;
     bijux_dna_api::v1::api::run::atomic_write_bytes(&generic_path, generic.as_bytes())
         .with_context(|| format!("write {}", generic_path.display()))?;
     bijux_dna_api::v1::api::run::atomic_write_bytes(&cross_path, cross.as_bytes())
         .with_context(|| format!("write {}", cross_path.display()))?;
 
-    Ok(vec![lunarc_path, generic_path, cross_path])
+    Ok(vec![
+        lunarc_path,
+        lunarc_local_ready_path,
+        lunarc_local_ready_vcf_path,
+        generic_path,
+        cross_path,
+    ])
 }
 
 pub fn campaign_preflight(
@@ -1872,8 +2189,8 @@ default_resource_template = "standard"
 encryption_recipients = ["alice"]
 
 [[jobs]]
-stage = "bam.sort"
-tool = "samtools"
+stage = "bam.align"
+tool = "bwa"
 sample = "sample-1"
 resource_template = "missing"
 "#;
@@ -1891,6 +2208,47 @@ resource_template = "missing"
             .iter()
             .any(|check| check.name.starts_with("job_template_present") && !check.ok));
         assert!(default_resource_template_map().contains_key("standard"));
+    }
+
+    #[test]
+    fn campaign_preflight_rejects_unknown_stage_ids() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let config = r#"
+schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "mini"
+domain = "cross"
+
+[layout]
+corpora_root = "/shared/corpora"
+databases_root = "/shared/databases"
+images_root = "/shared/images"
+scratch_root = "/shared/scratch"
+logs_root = "/shared/logs"
+encrypted_results_root = "/shared/results"
+encrypted_code_root = "/shared/code"
+appraiser_imports_root = "/shared/imports"
+baselines_root = "/shared/baselines"
+
+[slurm]
+site_profile = "generic"
+
+[security]
+encryption_recipients = ["alice"]
+
+[[jobs]]
+name = "bam_sort_sample_1"
+stage = "bam.sort"
+tool = "samtools"
+sample = "sample-1"
+"#;
+        bijux_dna_infra::write_bytes(&config_path, config).expect("write config");
+
+        let err =
+            campaign_preflight(&config_path, None, None).expect_err("must reject stale stage");
+        assert!(err.to_string().contains("unknown stage `bam.sort`"));
     }
 
     #[test]
@@ -2285,12 +2643,100 @@ sample = "sample-1"
     fn write_campaign_profiles_emits_expected_files() {
         let root = tempfile::tempdir().expect("tempdir");
         let written = write_campaign_profiles(root.path()).expect("write profiles");
-        assert_eq!(written.len(), 3);
+        assert_eq!(written.len(), 5);
         assert!(written.iter().any(|path| path.ends_with("lunarc-small.toml")));
+        assert!(written.iter().any(|path| path.ends_with("lunarc-fastq-bam-local-ready.toml")));
+        assert!(written.iter().any(|path| path.ends_with("lunarc-fastq-bam-vcf-local-ready.toml")));
         assert!(written.iter().any(|path| path.ends_with("generic-small.toml")));
         assert!(written.iter().any(|path| path.ends_with("cross-mini.toml")));
         for path in written {
             assert!(path.is_file());
         }
+    }
+
+    #[test]
+    fn lunarc_fastq_bam_local_ready_profile_expands_prepared_roots_and_jobs() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let written = write_campaign_profiles(root.path()).expect("write profiles");
+        let config_path = written
+            .into_iter()
+            .find(|path| path.ends_with("lunarc-fastq-bam-local-ready.toml"))
+            .expect("local-ready profile");
+
+        let report = campaign_dry_run(
+            &config_path,
+            Some(root.path().join("missing.env").as_path()),
+            Some(root.path().join("missing.policy").as_path()),
+        )
+        .expect("dry run");
+
+        assert_eq!(report.campaign_id, "adna-equus-caballus-local-ready");
+        assert_eq!(report.domain, "cross");
+        assert_eq!(report.layout.corpora_root, "/mnt/shared/bijux/corpora");
+        assert_eq!(report.layout.databases_root, "/mnt/shared/bijux/databases");
+        assert_eq!(report.layout.images_root, "/mnt/shared/bijux/images");
+        assert_eq!(report.resolved_slurm.site_profile, "lunarc");
+        assert_eq!(report.resolved_slurm.partition, "main");
+        assert_eq!(report.resolved_slurm.qos, "normal");
+        assert_eq!(report.planned_jobs.len(), 4);
+        assert_eq!(report.planned_jobs[0].stage, "fastq.validate_reads");
+        assert_eq!(report.planned_jobs[1].stage, "fastq.trim_reads");
+        assert_eq!(report.planned_jobs[2].stage, "bam.align");
+        assert_eq!(report.planned_jobs[3].stage, "bam.qc_pre");
+        assert_eq!(report.planned_jobs[2].resource_template, "bam_align");
+        assert_eq!(report.planned_jobs[3].resource_template, "bam_qc");
+    }
+
+    #[test]
+    fn lunarc_fastq_bam_vcf_local_ready_profile_expands_prepared_roots_and_jobs() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let written = write_campaign_profiles(root.path()).expect("write profiles");
+        let config_path = written
+            .into_iter()
+            .find(|path| path.ends_with("lunarc-fastq-bam-vcf-local-ready.toml"))
+            .expect("local-ready vcf profile");
+
+        let report = campaign_dry_run(
+            &config_path,
+            Some(root.path().join("missing.env").as_path()),
+            Some(root.path().join("missing.policy").as_path()),
+        )
+        .expect("dry run");
+
+        let stage_ids: Vec<_> = report.planned_jobs.iter().map(|job| job.stage.as_str()).collect();
+        assert_eq!(report.campaign_id, "adna-equus-caballus-fastq-bam-vcf-local-ready");
+        assert_eq!(report.domain, "cross");
+        assert_eq!(report.layout.corpora_root, "/mnt/shared/bijux/corpora");
+        assert_eq!(report.layout.databases_root, "/mnt/shared/bijux/databases");
+        assert_eq!(report.layout.images_root, "/mnt/shared/bijux/images");
+        assert_eq!(report.resolved_slurm.site_profile, "lunarc");
+        assert_eq!(report.resolved_slurm.partition, "main");
+        assert_eq!(report.resolved_slurm.qos, "normal");
+        assert_eq!(report.planned_jobs.len(), 9);
+        assert_eq!(
+            stage_ids,
+            vec![
+                "fastq.validate_reads",
+                "fastq.trim_reads",
+                "bam.align",
+                "bam.qc_pre",
+                "bam.recalibration",
+                "vcf.call",
+                "vcf.filter",
+                "vcf.stats",
+                "vcf.qc",
+            ]
+        );
+        assert_eq!(report.planned_jobs[2].resource_template, "bam_align");
+        assert_eq!(report.planned_jobs[5].resource_template, "vcf_call");
+        assert_eq!(report.planned_jobs[6].resource_template, "vcf_qc");
+        assert_eq!(report.planned_jobs[7].resource_template, "vcf_qc");
+        assert_eq!(report.planned_jobs[8].resource_template, "vcf_qc");
+        assert!(report.planned_jobs.iter().all(|job| {
+            !matches!(
+                job.stage.as_str(),
+                "fastq.index_reference" | "vcf.prepare_reference_panel" | "bam.index_reference"
+            )
+        }));
     }
 }

@@ -1,0 +1,7 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chrY	LN:20
+@RG	ID:rg-haplogroups-human-like	SM:human_like_y_haplogroup_panel
+yhap1	0	chrY	1	60	10M	*	0	0	GGGGAAAATT	FFFFFFFFFF	RG:Z:rg-haplogroups-human-like
+yhap2	0	chrY	1	60	10M	*	0	0	GGGGAAAATT	FFFFFFFFFF	RG:Z:rg-haplogroups-human-like
+yhap3	0	chrY	11	60	10M	*	0	0	CCGGTTCCGG	FFFFFFFFFF	RG:Z:rg-haplogroups-human-like
+yhap4	0	chrY	11	60	10M	*	0	0	CCGGTTCCGG	FFFFFFFFFF	RG:Z:rg-haplogroups-human-like

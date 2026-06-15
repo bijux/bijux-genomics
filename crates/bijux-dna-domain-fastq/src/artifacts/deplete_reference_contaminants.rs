@@ -29,6 +29,8 @@ pub struct DepleteReferenceContaminantsReportV1 {
     pub input_r2: Option<String>,
     pub output_r1: String,
     pub output_r2: Option<String>,
+    pub removed_reads_r1: String,
+    pub removed_reads_r2: Option<String>,
     pub report_json: String,
     pub reads_in: u64,
     pub reads_out: u64,
@@ -77,6 +79,8 @@ mod tests {
             input_r2: Some("reads_R2.fastq.gz".to_string()),
             output_r1: "contaminant_screened_R1.fastq.gz".to_string(),
             output_r2: Some("contaminant_screened_R2.fastq.gz".to_string()),
+            removed_reads_r1: "removed_contaminant_R1.fastq.gz".to_string(),
+            removed_reads_r2: Some("removed_contaminant_R2.fastq.gz".to_string()),
             report_json: "contaminant_screen_report.json".to_string(),
             reads_in: 200,
             reads_out: 160,
@@ -102,6 +106,7 @@ mod tests {
         let decoded: DepleteReferenceContaminantsReportV1 = serde_json::from_str(&encoded)
             .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "bowtie2");
+        assert_eq!(decoded.removed_reads_r1, "removed_contaminant_R1.fastq.gz");
         assert_eq!(decoded.reads_removed, 40);
         assert_eq!(decoded.match_threshold, Some(0.95));
         assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("bowtie2_met_file"));

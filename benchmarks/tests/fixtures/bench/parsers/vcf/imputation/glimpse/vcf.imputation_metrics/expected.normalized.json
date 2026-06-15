@@ -1,0 +1,27 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.imputation_metrics",
+  "tool_id": "glimpse",
+  "parser_id": "parse_glimpse_imputation_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.imputation_metrics.v1",
+    "stage_id": "vcf.imputation_metrics",
+    "tool_id": "glimpse",
+    "status": "explicit_missing_quality_fields",
+    "mean_info_score": 0.825,
+    "r2_available": false,
+    "low_confidence_sites": 1,
+    "masked_truth_sites": 1,
+    "missing_quality_fields": [
+      "dosage_r2"
+    ],
+    "concordance": 1.0,
+    "dosage_r2": null,
+    "variant_count": 2,
+    "sample_count": 2,
+    "sample_ids": [
+      "masked_sample",
+      "donor_sample"
+    ]
+  }
+}

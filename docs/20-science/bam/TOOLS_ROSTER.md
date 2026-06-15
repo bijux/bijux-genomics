@@ -36,7 +36,7 @@ Clarifies tool coverage and rationale.
 | bam.markdup | planned | picard, samtools | Duplicate marking stays planned until the governed runtime/reporting contract is promoted. |
 | bam.duplication_metrics | supported | samtools, picard | Duplicate-rate reporting is supported even while full markdup mutation remains planned. |
 | bam.complexity | planned | preseq | Library-complexity extrapolation remains planned until promotion evidence closes. |
-| bam.coverage | supported | mosdepth, samtools | Coverage reporting keeps both low-overhead and samtools-derived summaries visible. |
+| bam.coverage | supported | mosdepth, samtools, bedtools | Coverage reporting keeps low-overhead, depth-derived, and interval-coverage summaries visible inside one governed contract. |
 | bam.insert_size | planned | picard | Insert-size reporting remains planned alongside other QC-expansion stages. |
 | bam.gc_bias | planned | picard | GC-bias analysis stays planned until the broader QC bundle is promoted. |
 | bam.endogenous_content | supported | samtools | Endogenous-content estimation currently resolves through governed samtools summaries. |
@@ -46,7 +46,7 @@ Clarifies tool coverage and rationale.
 | bam.contamination | supported | schmutzi, verifybamid2, contammix | Contamination estimation requires multiple model families for method comparison. |
 | bam.sex | supported | rxy, yleaf, angsd | Sex inference admits ratio-, haplogroup-, and GL-aware backends. |
 | bam.bias_mitigation | planned | samtools | Bias-mitigation remains planned until its mutation/reporting contract is promoted. |
-| bam.recalibration | planned | gatk | BQSR remains visible as a planned stage, not an admitted default surface. |
-| bam.haplogroups | planned | yleaf | Haplogroup inference stays planned until reference and scientific acceptance are closed. |
-| bam.genotyping | planned | gatk | BAM-driven genotype summaries remain planned in the current pre-HPC surface. |
+| bam.recalibration | supported | gatk | BQSR is admitted through the governed low-coverage skip contract with owned known-sites evidence. |
+| bam.haplogroups | supported | yleaf | Haplogroup inference is admitted through the governed Y-panel fixture and owned readiness contract. |
+| bam.genotyping | supported | angsd | BAM-driven genotype summaries are admitted through the governed low-depth ANGSD contract with owned candidate-sites and target-regions inputs. |
 | bam.kinship | supported | king, angsd | Kinship inference admits pairwise and GL-aware method families. |

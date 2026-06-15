@@ -47,6 +47,8 @@ fn parse_legacy_deplete_rrna_report(report_json: &str) -> Result<DepleteRrnaRepo
         input_r2: None,
         output_r1: String::new(),
         output_r2: None,
+        removed_reads_r1: String::new(),
+        removed_reads_r2: None,
         rrna_report_tsv: "rrna_report.tsv".to_string(),
         rrna_report_json: "rrna_report.json".to_string(),
         reads_in: legacy.reads_in,

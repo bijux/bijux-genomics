@@ -2,6 +2,54 @@
 mod artifacts_contract;
 #[path = "plan/contract_handshake.rs"]
 mod contract_handshake;
+#[path = "plan/local_align.rs"]
+mod local_align;
+#[path = "plan/local_authenticity_smoke.rs"]
+mod local_authenticity_smoke;
+#[path = "plan/local_bias_mitigation_smoke.rs"]
+mod local_bias_mitigation_smoke;
+#[path = "plan/local_complexity_smoke.rs"]
+mod local_complexity_smoke;
+#[path = "plan/local_contamination.rs"]
+mod local_contamination;
+#[path = "plan/local_coverage_smoke.rs"]
+mod local_coverage_smoke;
+#[path = "plan/local_damage_smoke.rs"]
+mod local_damage_smoke;
+#[path = "plan/local_duplication_metrics_smoke.rs"]
+mod local_duplication_metrics_smoke;
+#[path = "plan/local_endogenous_content_smoke.rs"]
+mod local_endogenous_content_smoke;
+#[path = "plan/local_filter_smoke.rs"]
+mod local_filter_smoke;
+#[path = "plan/local_gc_bias_smoke.rs"]
+mod local_gc_bias_smoke;
+#[path = "plan/local_genotyping.rs"]
+mod local_genotyping;
+#[path = "plan/local_haplogroups.rs"]
+mod local_haplogroups;
+#[path = "plan/local_insert_size_smoke.rs"]
+mod local_insert_size_smoke;
+#[path = "plan/local_kinship_smoke.rs"]
+mod local_kinship_smoke;
+#[path = "plan/local_length_filter_smoke.rs"]
+mod local_length_filter_smoke;
+#[path = "plan/local_mapping_summary_smoke.rs"]
+mod local_mapping_summary_smoke;
+#[path = "plan/local_mapq_filter_smoke.rs"]
+mod local_mapq_filter_smoke;
+#[path = "plan/local_markdup_smoke.rs"]
+mod local_markdup_smoke;
+#[path = "plan/local_overlap_correction_smoke.rs"]
+mod local_overlap_correction_smoke;
+#[path = "plan/local_qc_pre_smoke.rs"]
+mod local_qc_pre_smoke;
+#[path = "plan/local_recalibration_smoke.rs"]
+mod local_recalibration_smoke;
+#[path = "plan/local_sex_smoke.rs"]
+mod local_sex_smoke;
+#[path = "plan/local_validate_smoke.rs"]
+mod local_validate_smoke;
 #[path = "plan/no_parsing_execution.rs"]
 mod no_parsing_execution;
 #[path = "plan/params_complete.rs"]

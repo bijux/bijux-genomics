@@ -116,6 +116,8 @@ pub fn screen_taxonomy(
         input_r2: r2.map(|path| path.display().to_string()),
         screen_report_tsv: screen_report_tsv.display().to_string(),
         classification_report_json: classification_report_json.display().to_string(),
+        unclassified_reads_r1: None,
+        unclassified_reads_r2: None,
         reads_in: Some(reads_in),
         reads_out: Some(reads_in),
         bases_in: Some(bases_in),

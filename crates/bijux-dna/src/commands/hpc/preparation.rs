@@ -9,6 +9,7 @@ use crate::commands::hpc::{campaign_dry_run, sha256_hex};
 const PREPARATION_GRAPH_SCHEMA_VERSION: &str = "bijux.hpc.preparation_graph.v1";
 const PREPARATION_APPLY_SCHEMA_VERSION: &str = "bijux.hpc.preparation_apply.v1";
 const PREPARATION_CLEANUP_SCHEMA_VERSION: &str = "bijux.hpc.preparation_cleanup.v1";
+pub const FOUNDATION_LOCK_FILE_NAME: &str = ".bijux.prepare.lock.json";
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PreparationDependencyGraphReport {
@@ -142,8 +143,8 @@ fn preparation_surfaces(
     ]
 }
 
-fn lock_path(root: &Path) -> PathBuf {
-    root.join(".bijux.prepare.lock.json")
+pub fn foundation_lock_path(root: &Path) -> PathBuf {
+    root.join(FOUNDATION_LOCK_FILE_NAME)
 }
 
 fn surface_fingerprint(campaign_id: &str, domain: &str, surface: &str, root_path: &str) -> String {
@@ -165,7 +166,7 @@ pub fn prepare_foundation(
             bijux_dna_infra::ensure_dir(root)
                 .with_context(|| format!("create {}", root.display()))?;
         }
-        let lock = lock_path(root);
+        let lock = foundation_lock_path(root);
         let fingerprint =
             surface_fingerprint(&report.campaign_id, &report.domain, surface, root_str);
         let state = PreparationLock {
@@ -336,9 +337,9 @@ tool = "seqkit_v2"
 sample = "sample-1"
 
 [[jobs]]
-name = "bam_sort"
-stage = "bam.sort"
-tool = "samtools"
+name = "bam_align"
+stage = "bam.align"
+tool = "bwa"
 sample = "sample-1"
 depends_on = ["fastq_validate"]
 "#,
@@ -354,7 +355,7 @@ depends_on = ["fastq_validate"]
         let bam_node = graph
             .nodes
             .iter()
-            .find(|node| node.kind == "planned_job" && node.path.contains("bam.sort"))
+            .find(|node| node.kind == "planned_job" && node.path.contains("bam.align"))
             .expect("bam node");
         assert!(bam_node.depends_on.iter().any(|dep| dep.starts_with("dryrun-0001")));
     }

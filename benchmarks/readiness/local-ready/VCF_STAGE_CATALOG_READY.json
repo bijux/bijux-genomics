@@ -1,0 +1,74 @@
+{
+  "schema_version": "bijux.bench.local_vcf_stage_catalog_ready.v1",
+  "output_path": "benchmarks/readiness/local-ready/VCF_STAGE_CATALOG_READY.json",
+  "checked_goal_count": 9,
+  "passed_goal_count": 9,
+  "failed_goal_count": 0,
+  "failing_goal_ids": [],
+  "ok": true,
+  "checks": [
+    {
+      "goal_id": 201,
+      "surface": "vcf stage catalog",
+      "output_path": "benchmarks/configs/local/vcf-stage-catalog.toml",
+      "ok": true,
+      "detail": "wrote 20 rows with 17 supported and 3 planned stages"
+    },
+    {
+      "goal_id": 202,
+      "surface": "vcf stage matrix",
+      "output_path": "benchmarks/configs/local/vcf-stage-matrix.toml",
+      "ok": true,
+      "detail": "validated 20 rows across 20 stages in strict mode using 17 required tools"
+    },
+    {
+      "goal_id": 203,
+      "surface": "vcf mini corpus fixture",
+      "output_path": "benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml",
+      "ok": true,
+      "detail": "validated corpus `vcf-mini` with 6 samples, 4 populations, and 5 variant sets"
+    },
+    {
+      "goal_id": 204,
+      "surface": "vcf expected truth",
+      "output_path": "benchmarks/tests/fixtures/corpora/vcf-mini/expected",
+      "ok": true,
+      "detail": "validated 8 truth files for 4 cohort samples and 6 pairs"
+    },
+    {
+      "goal_id": 205,
+      "surface": "vcf reference compatibility",
+      "output_path": "benchmarks/readiness/local-ready/vcf/reference-compatibility.json",
+      "ok": true,
+      "detail": "validated 2 reference contigs across 5 variant sets"
+    },
+    {
+      "goal_id": 206,
+      "surface": "vcf sample compatibility",
+      "output_path": "benchmarks/readiness/local-ready/vcf/sample-compatibility.json",
+      "ok": true,
+      "detail": "validated 4 downstream samples across 5 stage consumers"
+    },
+    {
+      "goal_id": 207,
+      "surface": "vcf mini regeneration",
+      "output_path": "artifacts/fixtures/vcf-mini-regeneration/manifest.json",
+      "ok": true,
+      "detail": "regenerated 21 files with 8 truth files and matching governed counts"
+    },
+    {
+      "goal_id": 208,
+      "surface": "vcf smoke root",
+      "output_path": "runs/bench/local-smoke/vcf/SMOKE_ROOT.json",
+      "ok": true,
+      "detail": "rendered deterministic smoke root `vcf-local-smoke-5ddee85e6ca8` with 20 stages and 20 tool pairs"
+    },
+    {
+      "goal_id": 209,
+      "surface": "vcf no-empty-output gate",
+      "output_path": "benchmarks/readiness/local-ready/vcf/no-empty-output-check.json",
+      "ok": true,
+      "detail": "validated 61 declared outputs with 61 non-empty rows"
+    }
+  ]
+}

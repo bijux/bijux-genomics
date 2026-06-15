@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::io::{BufRead, BufReader, Write};
+use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -13,6 +15,7 @@ use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_domain_fastq::observer::{parse_bbduk_reads_removed, parse_fastp_metrics};
+use bijux_dna_domain_fastq::params::trim::TrimPolygTailsParams;
 use bijux_dna_domain_fastq::TrimPolygReportV1;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
@@ -30,7 +33,47 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_TRIM_POLYG_TAILS,
 };
-use std::path::{Path, PathBuf};
+use serde::Serialize;
+
+const LOCAL_TRIM_POLYG_TAILS_SMOKE_METRICS_SCHEMA_VERSION: &str =
+    "bijux.fastq.trim_polyg_tails.local_smoke.metrics.v1";
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalTrimPolygTailsSmokeMetrics {
+    schema_version: String,
+    stage_id: String,
+    sample_id: String,
+    tool_id: String,
+    trim_polyg: bool,
+    min_polyg_run: u32,
+    input_reads: u64,
+    output_reads: u64,
+    reads_retained: u64,
+    reads_dropped: u64,
+    input_bases: u64,
+    output_bases: u64,
+    bases_removed: u64,
+    trimmed_tail_count: u64,
+    bases_trimmed_polyg: u64,
+    trimmed_fastq_gz: String,
+    report_json: String,
+    raw_backend_report: String,
+    used_fallback: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct FastqRecord {
+    header: String,
+    sequence: String,
+    plus: String,
+    quality: String,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+struct TrimPolygDelta {
+    trimmed_tail_count: u64,
+    bases_trimmed_polyg: u64,
+}
 
 fn load_governed_trim_polyg_report(report_path: &Path) -> Result<TrimPolygReportV1> {
     let raw = std::fs::read_to_string(report_path)
@@ -42,6 +85,86 @@ fn load_governed_trim_polyg_report(report_path: &Path) -> Result<TrimPolygReport
 fn write_governed_trim_polyg_report(report_path: &Path, report: &TrimPolygReportV1) -> Result<()> {
     bijux_dna_infra::atomic_write_json(report_path, report)
         .with_context(|| format!("write governed trim-polyg report {}", report_path.display()))
+}
+
+fn derive_trim_polyg_delta_for_path_pair(
+    input_path: &Path,
+    output_path: &Path,
+) -> Result<TrimPolygDelta> {
+    let input_records = read_fastq_records(input_path)?;
+    let output_records = read_fastq_records(output_path)?;
+    derive_trim_polyg_delta(&input_records, &output_records).with_context(|| {
+        format!(
+            "derive trim-polyg delta from {} -> {}",
+            input_path.display(),
+            output_path.display()
+        )
+    })
+}
+
+fn derive_trim_polyg_delta(
+    input_records: &[FastqRecord],
+    output_records: &[FastqRecord],
+) -> Result<TrimPolygDelta> {
+    if input_records.len() != output_records.len() {
+        return Err(anyhow!(
+            "trim-polyg delta requires stable record cardinality, found {} input reads and {} output reads",
+            input_records.len(),
+            output_records.len()
+        ));
+    }
+
+    let mut delta = TrimPolygDelta::default();
+    for (index, (input, output)) in input_records.iter().zip(output_records.iter()).enumerate() {
+        if input.header != output.header {
+            return Err(anyhow!(
+                "trim-polyg delta requires stable record identity at row {}: input header `{}` != output header `{}`",
+                index,
+                input.header,
+                output.header
+            ));
+        }
+        if input.plus != output.plus {
+            return Err(anyhow!(
+                "trim-polyg delta requires stable FASTQ plus lines at row {} for `{}`",
+                index,
+                input.header
+            ));
+        }
+        if output.sequence.len() > input.sequence.len()
+            || output.quality.len() > input.quality.len()
+        {
+            return Err(anyhow!(
+                "trim-polyg output cannot be longer than input at row {} for `{}`",
+                index,
+                input.header
+            ));
+        }
+        if !input.sequence.starts_with(&output.sequence)
+            || !input.quality.starts_with(&output.quality)
+        {
+            return Err(anyhow!(
+                "trim-polyg output must preserve the input prefix at row {} for `{}`",
+                index,
+                input.header
+            ));
+        }
+
+        let trimmed_suffix = &input.sequence[output.sequence.len()..];
+        if !trimmed_suffix.is_empty() {
+            if !trimmed_suffix.bytes().all(|base| base == b'G') {
+                return Err(anyhow!(
+                    "trim-polyg output removed non-terminal-polyG sequence at row {} for `{}`",
+                    index,
+                    input.header
+                ));
+            }
+            delta.trimmed_tail_count += 1;
+            delta.bases_trimmed_polyg += trimmed_suffix.len() as u64;
+        }
+    }
+
+    Ok(delta)
 }
 
 fn resolve_requested_tools(raw: &[String]) -> Vec<String> {
@@ -61,6 +184,32 @@ fn admitted_stage_tools() -> Vec<String> {
     .into_iter()
     .map(|tool_id| tool_id.to_string())
     .collect()
+}
+
+/// Materialize the governed local-smoke `fastq.trim_polyg_tails` artifacts.
+///
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.trim_polyg_tails/metrics.json`
+/// under the active repository root, alongside the top-level `trimmed.fastq.gz`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_trim_polyg_tails_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases = bijux_dna_planner_fastq::stage_api::local_trim_polyg_tails_smoke_plans(&repo_root)?;
+    let [case] = cases.as_slice() else {
+        return Err(anyhow!(
+            "local-smoke fastq.trim_polyg_tails expects exactly one governed case, found {}",
+            cases.len()
+        ));
+    };
+
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.trim_polyg_tails");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+    let metrics = materialize_local_trim_polyg_tails_smoke_case(&repo_root, case, &output_root)?;
+    let metrics_path = output_root.join("metrics.json");
+    bijux_dna_infra::atomic_write_json(&metrics_path, &metrics)?;
+    Ok(metrics_path)
 }
 
 /// # Errors
@@ -212,6 +361,14 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
         let before_stats =
             combine_seqkit_metrics(&bench_inputs.input_stats, input_stats_r2.as_ref());
         let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
+        let mut trim_polyg_delta =
+            derive_trim_polyg_delta_for_path_pair(&bench_inputs.r1, &output_r1)?;
+        if let Some(input_r2) = args.r2.as_deref() {
+            let output_r2 = required_plan_output_path(&plan, "trimmed_reads_r2")?;
+            let mate_delta = derive_trim_polyg_delta_for_path_pair(input_r2, &output_r2)?;
+            trim_polyg_delta.trimmed_tail_count += mate_delta.trimmed_tail_count;
+            trim_polyg_delta.bases_trimmed_polyg += mate_delta.bases_trimmed_polyg;
+        }
         let (raw_report_path, raw_report_format) = raw_polyg_report_artifact(&tool, &out_dir)?;
         let backend_metrics = normalized_polyg_backend_metrics(&raw_report_path, raw_report_format)
             .context("normalize trim polyg backend report")?;
@@ -227,8 +384,8 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
             output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
         governed_report.mean_q_before = Some(before_stats.mean_q);
         governed_report.mean_q_after = Some(after_stats.mean_q);
-        governed_report.bases_trimmed_polyg =
-            Some(before_stats.bases.saturating_sub(after_stats.bases));
+        governed_report.trimmed_tail_count = Some(trim_polyg_delta.trimmed_tail_count);
+        governed_report.bases_trimmed_polyg = Some(trim_polyg_delta.bases_trimmed_polyg);
         governed_report.runtime_s = Some(execution.runtime_s);
         governed_report.memory_mb = Some(execution.memory_mb);
         governed_report.raw_backend_report = Some(raw_report_path.display().to_string());
@@ -273,6 +430,7 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
             threads: Some(governed_report.threads),
             trim_polyg: Some(governed_report.trim_polyg),
             min_polyg_run: Some(governed_report.min_polyg_run),
+            trimmed_tail_count: governed_report.trimmed_tail_count,
             bases_trimmed_polyg: governed_report.bases_trimmed_polyg,
             raw_backend_report_format: governed_report.raw_backend_report_format.clone(),
             polyx_bank_id: governed_report.polyx_bank_id.clone(),
@@ -345,6 +503,319 @@ fn u64_to_f64(value: u64) -> f64 {
     value.to_string().parse::<f64>().unwrap_or(0.0)
 }
 
+#[allow(clippy::too_many_lines)]
+fn materialize_local_trim_polyg_tails_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalTrimPolygTailsSmokeCasePlan,
+    output_root: &Path,
+) -> Result<LocalTrimPolygTailsSmokeMetrics> {
+    let effective_params =
+        serde_json::from_value::<TrimPolygTailsParams>(case.plan.effective_params.clone())
+            .context("decode trim polyG local-smoke effective params")?;
+    let input_r1 = repo_root.join(&case.r1);
+    let output_r1 =
+        resolve_output_path(repo_root, &required_plan_output_path(&case.plan, "trimmed_reads_r1")?);
+    let report_path =
+        resolve_output_path(repo_root, &required_plan_output_path(&case.plan, "report_json")?);
+    let raw_backend_report = resolve_output_path(
+        repo_root,
+        &optional_plan_output_path(&case.plan, "raw_backend_report_json")
+            .or_else(|| optional_plan_output_path(&case.plan, "raw_backend_report_txt"))
+            .ok_or_else(|| {
+                anyhow!(
+                    "trim_polyg_tails plan is missing governed raw backend report output for tool {}",
+                    case.plan.tool_id.as_str()
+                )
+            })?,
+    );
+
+    for path in [&output_r1, &report_path, &raw_backend_report] {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+
+    let input_records = read_fastq_records(&input_r1)?;
+    let mut trimmed_tail_count = 0_u64;
+    let mut bases_trimmed_polyg = 0_u64;
+    let trimmed_records = input_records
+        .iter()
+        .map(|record| {
+            let (trimmed, removed_bases, trimmed_tail) = trim_polyg_record_locally(
+                record,
+                effective_params.trim_polyg,
+                effective_params.min_polyg_run as usize,
+            );
+            trimmed_tail_count += u64::from(trimmed_tail);
+            bases_trimmed_polyg += removed_bases;
+            trimmed
+        })
+        .collect::<Vec<_>>();
+
+    write_fastq_records(&output_r1, &trimmed_records)?;
+
+    let top_level_trimmed = output_root.join("trimmed.fastq.gz");
+    write_fastq_records(&top_level_trimmed, &trimmed_records)?;
+
+    let input_reads = input_records.len() as u64;
+    let output_reads = trimmed_records.len() as u64;
+    let reads_retained = output_reads;
+    let reads_dropped = input_reads.saturating_sub(output_reads);
+    let input_bases = total_bases(&input_records);
+    let output_bases = total_bases(&trimmed_records);
+    let bases_removed = input_bases.saturating_sub(output_bases);
+    let raw_backend_report_format =
+        if case.plan.tool_id.as_str() == "fastp" { "fastp_json" } else { "bbduk_stats" };
+
+    let report = TrimPolygReportV1 {
+        schema_version: bijux_dna_domain_fastq::TRIM_POLYG_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_TRIM_POLYG_TAILS.as_str().to_string(),
+        stage_id: STAGE_TRIM_POLYG_TAILS.as_str().to_string(),
+        tool_id: case.plan.tool_id.as_str().to_string(),
+        paired_mode: effective_params.paired_mode,
+        threads: effective_params.threads,
+        trim_polyg: effective_params.trim_polyg,
+        min_polyg_run: effective_params.min_polyg_run,
+        input_r1: case.r1.display().to_string(),
+        input_r2: case.r2.as_ref().map(|path| path.display().to_string()),
+        output_r1: path_relative_to_repo(repo_root, &output_r1),
+        output_r2: None,
+        reads_in: Some(input_reads),
+        reads_out: Some(output_reads),
+        bases_in: Some(input_bases),
+        bases_out: Some(output_bases),
+        pairs_in: None,
+        pairs_out: None,
+        mean_q_before: mean_quality(&input_records),
+        mean_q_after: mean_quality(&trimmed_records),
+        trimmed_tail_count: Some(trimmed_tail_count),
+        bases_trimmed_polyg: Some(bases_trimmed_polyg),
+        polyx_bank_id: None,
+        polyx_bank_hash: None,
+        polyx_preset: None,
+        runtime_s: None,
+        memory_mb: None,
+        raw_backend_report: Some(path_relative_to_repo(repo_root, &raw_backend_report)),
+        raw_backend_report_format: Some(raw_backend_report_format.to_string()),
+        backend_metrics: Some(serde_json::json!({
+            "local_smoke": true,
+            "trimmed_tail_count": trimmed_tail_count,
+            "bases_trimmed_polyg": bases_trimmed_polyg,
+            "smoke_materialization": "repo_harness",
+        })),
+    };
+    write_governed_trim_polyg_report(&report_path, &report)?;
+    write_local_polyg_backend_report(
+        &raw_backend_report,
+        case.plan.tool_id.as_str(),
+        input_reads,
+        output_reads,
+        trimmed_tail_count,
+        bases_trimmed_polyg,
+    )?;
+
+    Ok(LocalTrimPolygTailsSmokeMetrics {
+        schema_version: LOCAL_TRIM_POLYG_TAILS_SMOKE_METRICS_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_TRIM_POLYG_TAILS.as_str().to_string(),
+        sample_id: case.sample_id.clone(),
+        tool_id: case.plan.tool_id.as_str().to_string(),
+        trim_polyg: effective_params.trim_polyg,
+        min_polyg_run: effective_params.min_polyg_run,
+        input_reads,
+        output_reads,
+        reads_retained,
+        reads_dropped,
+        input_bases,
+        output_bases,
+        bases_removed,
+        trimmed_tail_count,
+        bases_trimmed_polyg,
+        trimmed_fastq_gz: path_relative_to_repo(repo_root, &top_level_trimmed),
+        report_json: path_relative_to_repo(repo_root, &report_path),
+        raw_backend_report: path_relative_to_repo(repo_root, &raw_backend_report),
+        used_fallback: true,
+    })
+}
+
+fn resolve_output_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
+fn total_bases(records: &[FastqRecord]) -> u64 {
+    records.iter().map(|record| record.sequence.len() as u64).sum()
+}
+
+fn mean_quality(records: &[FastqRecord]) -> Option<f64> {
+    let total_bases = total_bases(records);
+    if total_bases == 0 {
+        return None;
+    }
+    let total_quality = records
+        .iter()
+        .flat_map(|record| record.quality.bytes())
+        .map(|value| u64::from(value.saturating_sub(33)))
+        .sum::<u64>();
+    Some(u64_to_f64(total_quality) / u64_to_f64(total_bases))
+}
+
+fn trim_polyg_record_locally(
+    record: &FastqRecord,
+    trim_polyg: bool,
+    min_polyg_run: usize,
+) -> (FastqRecord, u64, bool) {
+    if !trim_polyg {
+        return (record.clone(), 0, false);
+    }
+    let trailing_g_run =
+        record.sequence.as_bytes().iter().rev().take_while(|base| **base == b'G').count();
+    if trailing_g_run < min_polyg_run {
+        return (record.clone(), 0, false);
+    }
+    let retained_len = record.sequence.len().saturating_sub(trailing_g_run);
+    (
+        FastqRecord {
+            header: record.header.clone(),
+            sequence: record.sequence[..retained_len].to_string(),
+            plus: record.plus.clone(),
+            quality: record.quality[..retained_len].to_string(),
+        },
+        trailing_g_run as u64,
+        true,
+    )
+}
+
+fn read_fastq_records(path: &Path) -> Result<Vec<FastqRecord>> {
+    let reader: Box<dyn BufRead> = if path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
+    {
+        let file = std::fs::File::open(path)?;
+        let decoder = flate2::read::MultiGzDecoder::new(file);
+        Box::new(BufReader::new(decoder))
+    } else {
+        Box::new(BufReader::new(std::fs::File::open(path)?))
+    };
+
+    let mut lines = reader.lines();
+    let mut records = Vec::new();
+    while let Some(header) = lines.next() {
+        let header = header?;
+        let sequence =
+            lines.next().ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
+        let plus =
+            lines.next().ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
+        let quality =
+            lines.next().ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
+        records.push(FastqRecord { header, sequence, plus, quality });
+    }
+    Ok(records)
+}
+
+fn write_fastq_records(path: &Path, records: &[FastqRecord]) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+
+    if path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
+    {
+        let file = std::fs::File::create(path)?;
+        let mut encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
+        for record in records {
+            writeln!(encoder, "{}", record.header)?;
+            writeln!(encoder, "{}", record.sequence)?;
+            writeln!(encoder, "{}", record.plus)?;
+            writeln!(encoder, "{}", record.quality)?;
+        }
+        encoder.finish()?;
+    } else {
+        let file = std::fs::File::create(path)?;
+        let mut writer = std::io::BufWriter::new(file);
+        for record in records {
+            writeln!(writer, "{}", record.header)?;
+            writeln!(writer, "{}", record.sequence)?;
+            writeln!(writer, "{}", record.plus)?;
+            writeln!(writer, "{}", record.quality)?;
+        }
+        writer.flush()?;
+    }
+    Ok(())
+}
+
+fn write_local_polyg_backend_report(
+    path: &Path,
+    tool_id: &str,
+    input_reads: u64,
+    output_reads: u64,
+    trimmed_tail_count: u64,
+    bases_trimmed_polyg: u64,
+) -> Result<()> {
+    match tool_id {
+        "fastp" => bijux_dna_infra::write_bytes(
+            path,
+            serde_json::json!({
+                "filtering_result": {
+                    "passed_filter_reads": output_reads,
+                    "low_quality_reads": 0_u64,
+                    "too_many_N_reads": 0_u64,
+                    "too_short_reads": 0_u64,
+                },
+                "poly_g_trimming": {
+                    "input_reads": input_reads,
+                    "trimmed_reads": trimmed_tail_count,
+                    "trimmed_bases": bases_trimmed_polyg,
+                }
+            })
+            .to_string(),
+        )
+        .with_context(|| format!("write local trim polyG backend report {}", path.display())),
+        "bbduk" => bijux_dna_infra::write_bytes(path, format!("Reads Removed: {trimmed_tail_count}\n"))
+            .with_context(|| format!("write local trim polyG backend report {}", path.display())),
+        _ => Err(anyhow!(
+            "local-smoke fastq.trim_polyg_tails does not support backend report materialization for tool `{tool_id}`"
+        )),
+    }
+}
+
+fn required_plan_output_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    output_id: &str,
+) -> Result<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| artifact.path.clone())
+        .ok_or_else(|| {
+            anyhow!(
+                "trim_polyg_tails plan is missing governed output `{output_id}` for tool {}",
+                plan.tool_id.as_str()
+            )
+        })
+}
+
+fn optional_plan_output_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    output_id: &str,
+) -> Option<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| artifact.path.clone())
+}
+
 fn benchmark_query_context(
     polyx_context: Option<&serde_json::Value>,
 ) -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
@@ -395,9 +866,10 @@ fn normalized_polyg_backend_metrics(
 #[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
     use super::{
-        admitted_stage_tools, benchmark_query_context, load_governed_trim_polyg_report,
-        normalized_polyg_backend_metrics, raw_polyg_report_artifact, resolve_requested_tools,
-        write_governed_trim_polyg_report,
+        admitted_stage_tools, benchmark_query_context, derive_trim_polyg_delta,
+        load_governed_trim_polyg_report, normalized_polyg_backend_metrics,
+        raw_polyg_report_artifact, resolve_requested_tools, write_governed_trim_polyg_report,
+        FastqRecord,
     };
     use bijux_dna_domain_fastq::params::PairedMode;
     use bijux_dna_domain_fastq::{TrimPolygReportV1, TRIM_POLYG_REPORT_SCHEMA_VERSION};
@@ -474,6 +946,73 @@ mod tests {
     }
 
     #[test]
+    fn derive_trim_polyg_delta_counts_trimmed_records_and_removed_bases() {
+        let input = vec![
+            FastqRecord {
+                header: "@read1".to_string(),
+                sequence: "ACGTGGGG".to_string(),
+                plus: "+".to_string(),
+                quality: "IIIIIIII".to_string(),
+            },
+            FastqRecord {
+                header: "@read2".to_string(),
+                sequence: "TTCAA".to_string(),
+                plus: "+".to_string(),
+                quality: "IIIII".to_string(),
+            },
+            FastqRecord {
+                header: "@read3".to_string(),
+                sequence: "GGGACGTACGTGG".to_string(),
+                plus: "+".to_string(),
+                quality: "IIIIIIIIIIIII".to_string(),
+            },
+        ];
+        let output = vec![
+            FastqRecord {
+                header: "@read1".to_string(),
+                sequence: "ACGT".to_string(),
+                plus: "+".to_string(),
+                quality: "IIII".to_string(),
+            },
+            FastqRecord {
+                header: "@read2".to_string(),
+                sequence: "TTCAA".to_string(),
+                plus: "+".to_string(),
+                quality: "IIIII".to_string(),
+            },
+            FastqRecord {
+                header: "@read3".to_string(),
+                sequence: "GGGACGTACGT".to_string(),
+                plus: "+".to_string(),
+                quality: "IIIIIIIIIII".to_string(),
+            },
+        ];
+
+        let delta = derive_trim_polyg_delta(&input, &output).expect("derive delta");
+        assert_eq!(delta.trimmed_tail_count, 2);
+        assert_eq!(delta.bases_trimmed_polyg, 6);
+    }
+
+    #[test]
+    fn derive_trim_polyg_delta_rejects_non_polyg_truncation() {
+        let input = vec![FastqRecord {
+            header: "@read1".to_string(),
+            sequence: "ACGTACGT".to_string(),
+            plus: "+".to_string(),
+            quality: "IIIIIIII".to_string(),
+        }];
+        let output = vec![FastqRecord {
+            header: "@read1".to_string(),
+            sequence: "ACGTAC".to_string(),
+            plus: "+".to_string(),
+            quality: "IIIIII".to_string(),
+        }];
+
+        let error = derive_trim_polyg_delta(&input, &output).expect_err("reject non-polyG trim");
+        assert!(error.to_string().contains("non-terminal-polyG"));
+    }
+
+    #[test]
     fn governed_trim_polyg_report_round_trips_with_backend_metrics() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("trim_polyg_tails_report.json");
@@ -498,6 +1037,7 @@ mod tests {
             pairs_out: None,
             mean_q_before: Some(28.0),
             mean_q_after: Some(29.0),
+            trimmed_tail_count: Some(3),
             bases_trimmed_polyg: Some(90),
             polyx_bank_id: Some("polyx".to_string()),
             polyx_bank_hash: Some("sha256:polyx".to_string()),
@@ -517,6 +1057,7 @@ mod tests {
 
         assert_eq!(decoded.threads, 6);
         assert_eq!(decoded.min_polyg_run, 12);
+        assert_eq!(decoded.trimmed_tail_count, Some(3));
         assert_eq!(decoded.bases_trimmed_polyg, Some(90));
         assert_eq!(decoded.polyx_preset.as_deref(), Some("illumina_twocolor"));
         assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("fastp_json"));

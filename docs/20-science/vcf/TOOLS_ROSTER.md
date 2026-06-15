@@ -25,15 +25,15 @@ The VCF science layer needs a readable tool inventory that mirrors the stage man
 | vcf.filter | supported | bcftools | Deterministic filtering is still a single admitted normalization path. |
 | vcf.gl_propagation | supported | bcftools, angsd | GL/PL retention is governed across both the baseline and planned low-coverage tool families. |
 | vcf.stats | supported | bcftools | Required VCF summary metrics remain bound to the current production baseline. |
-| vcf.qc | planned | plink, plink2 | Cohort-level QC stays planned until the downstream VCF surface is promoted. |
-| vcf.pca | planned | plink2, eigensoft | PCA support stays comparative across the two admitted structure-analysis families. |
-| vcf.admixture | planned | plink, plink2 | Admixture-oriented staging remains planned and anchored to the current admitted matrix-tool surface. |
-| vcf.population_structure | planned | plink, plink2, eigensoft | Population-structure summaries admit both PLINK-family and EIGENSOFT-family tooling. |
-| vcf.phasing | planned | beagle, shapeit5, eagle | Phasing remains a planned multi-backend comparative surface. |
-| vcf.prepare_reference_panel | planned | bcftools | Reference-panel preparation stays deterministic even while downstream imputation remains planned. |
-| vcf.imputation | planned | beagle, glimpse, impute5, minimac4 | Imputation-family admission stays broad while promotion evidence is still incomplete. |
-| vcf.impute | planned | beagle, glimpse, impute5, minimac4 | Explicit imputation execution mirrors the admitted imputation family. |
-| vcf.postprocess | planned | bcftools | Post-imputation normalization remains deterministic and single-tool. |
-| vcf.ibd | planned | germline, ibdhap | IBD remains a comparative multi-backend planned surface. |
-| vcf.roh | planned | plink2 | ROH remains a planned but deterministic single-tool surface. |
-| vcf.demography | planned | ibdne | Demography currently stays coupled to the admitted IBDNe-style downstream summary path. |
+| vcf.qc | supported | bcftools, plink, plink2 | Cohort-level QC is governed on the admitted deterministic and cohort-analysis backends so missingness and frequency gates stay explicit before downstream inference. |
+| vcf.pca | supported | plink2, eigensoft | PCA support is governed across the admitted PLINK2 and EIGENSOFT structure-analysis families so sample-complete projections stay comparative. |
+| vcf.admixture | supported | plink, plink2 | Admixture reporting is governed on the admitted PLINK-family matrix-tool surface so normalized cluster fractions stay explicit and reproducible. |
+| vcf.population_structure | supported | plink, plink2, eigensoft | Population-structure summaries are governed on admitted structure-analysis tooling with explicit consumed PCA and admixture evidence. |
+| vcf.phasing | supported | beagle, shapeit5, eagle | Shapeit5 is the governed active phasing path while Beagle, Eagle, and retained alternatives stay explicit for comparative readiness. |
+| vcf.prepare_reference_panel | supported | bcftools | Reference-panel preparation stays deterministic while the governed Beagle family consumes panel outputs downstream. |
+| vcf.imputation_metrics | supported | beagle, glimpse, impute5, minimac4 | Imputation metrics stay explicitly multi-tool while the governed beagle path anchors benchmark-ready reporting. |
+| vcf.impute | supported | beagle, glimpse, impute5, minimac4 | Explicit imputation execution is governed through the Beagle baseline while retained alternatives stay comparative. |
+| vcf.postprocess | supported | bcftools | Post-imputation normalization remains deterministic and single-tool. |
+| vcf.ibd | planned | germline, ibdseq, ibdhap | IBD keeps an active normalized pairwise-segment contract, but the named external backends remain planned until runtime packaging is production-backed. |
+| vcf.roh | supported | plink2 | ROH stays intentionally single-tool because the governed PLINK2 path already emits normalized segment and per-sample evidence. |
+| vcf.demography | planned | ibdne | Demography keeps an active deterministic Ne contract on normalized IBD segments, but the named IBDNe backend remains planned until runtime packaging is production-backed. |

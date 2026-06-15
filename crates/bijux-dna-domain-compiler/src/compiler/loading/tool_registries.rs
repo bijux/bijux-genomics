@@ -7,6 +7,12 @@ pub(super) struct ToolRegistryOutputs {
     pub(super) production_tool_ids: BTreeSet<String>,
 }
 
+fn tool_supports_stage_domain(tools: &ToolMap, tool_id: &str, stage_domain: &str) -> bool {
+    tools.get(tool_id).is_some_and(|tool| {
+        tool.domain == stage_domain || tool.domains.iter().any(|domain| domain == stage_domain)
+    })
+}
+
 #[allow(clippy::uninlined_format_args)]
 pub(super) fn build_tool_registries_toml(
     tools: &ToolMap,
@@ -91,7 +97,7 @@ pub(super) fn build_tool_registries_toml(
             "production"
         };
 
-        let out = if is_experimental {
+        let out = if is_planned || is_experimental {
             &mut experimental_toml
         } else {
             production_tool_ids.insert(tool.id.clone());
@@ -143,7 +149,7 @@ pub(super) fn build_tool_registries_toml(
         let mut all = tools_set.iter().cloned().collect::<Vec<_>>();
         all.retain(|tool_id| {
             production_tool_ids.contains(tool_id)
-                && tools.get(tool_id).is_some_and(|tool| tool.domain == stage_domain)
+                && tool_supports_stage_domain(tools, tool_id, stage_domain)
         });
         all.sort();
         let mut primary = stage_defaults
@@ -151,7 +157,7 @@ pub(super) fn build_tool_registries_toml(
             .cloned()
             .filter(|tool_id| {
                 production_tool_ids.contains(tool_id)
-                    && tools.get(tool_id).is_some_and(|tool| tool.domain == stage_domain)
+                    && tool_supports_stage_domain(tools, tool_id, stage_domain)
             })
             .into_iter()
             .collect::<Vec<_>>();

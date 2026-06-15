@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::PlanPolicy;
@@ -27,6 +27,8 @@ use crate::{
 mod benchmark;
 mod graph_policy;
 mod layout_branching;
+mod local_readiness;
+mod local_smoke;
 mod quality_sampling;
 mod route_expansion;
 mod selection_planning;
@@ -55,6 +57,34 @@ use graph_policy::{
     validate_select_stage_nodes,
 };
 pub(crate) use layout_branching::apply_layout_branching;
+pub use local_readiness::{
+    local_deplete_host_plan, local_deplete_reference_contaminants_plan, local_deplete_rrna_plan,
+    local_index_reference_plan, local_screen_taxonomy_plan,
+};
+pub use local_smoke::{
+    local_cluster_otus_smoke_plans, local_correct_errors_smoke_plans,
+    local_detect_adapters_smoke_plans, local_detect_duplicates_premerge_smoke_plans,
+    local_estimate_library_complexity_prealign_smoke_plans, local_extract_umis_smoke_plans,
+    local_filter_low_complexity_smoke_plans, local_filter_reads_smoke_plans,
+    local_infer_asvs_smoke_plans, local_merge_pairs_smoke_plans,
+    local_normalize_abundance_smoke_plans, local_normalize_primers_smoke_plans,
+    local_profile_overrepresented_sequences_smoke_plans, local_profile_read_lengths_smoke_plans,
+    local_profile_reads_smoke_plans, local_remove_chimeras_smoke_plans,
+    local_remove_duplicates_smoke_plans, local_report_qc_smoke_plan,
+    local_trim_polyg_tails_smoke_plans, local_trim_reads_smoke_plans,
+    local_trim_terminal_damage_smoke_plans, local_validate_reads_smoke_plans,
+    LocalClusterOtusSmokeCasePlan, LocalCorrectErrorsSmokeCasePlan,
+    LocalDetectAdaptersSmokeCasePlan, LocalDetectDuplicatesPremergeSmokeCasePlan,
+    LocalEstimateLibraryComplexityPrealignSmokeCasePlan, LocalExtractUmisSmokeCasePlan,
+    LocalFilterLowComplexitySmokeCasePlan, LocalFilterReadsSmokeCasePlan,
+    LocalInferAsvsSmokeCasePlan, LocalMergePairsSmokeCasePlan,
+    LocalNormalizeAbundanceSmokeCasePlan, LocalNormalizePrimersSmokeCasePlan,
+    LocalProfileOverrepresentedSequencesSmokeCasePlan, LocalProfileReadLengthsSmokeCasePlan,
+    LocalProfileReadsSmokeCasePlan, LocalRemoveChimerasSmokeCasePlan,
+    LocalRemoveDuplicatesSmokeCasePlan, LocalTrimPolygTailsSmokeCasePlan,
+    LocalTrimReadsSmokeCasePlan, LocalTrimTerminalDamageSmokeCasePlan,
+    LocalValidateReadsSmokeCasePlan,
+};
 pub(crate) use quality_sampling::estimate_mean_q;
 pub use route_expansion::{expand_pipeline_stage_tool_routes, select_preprocess_toolsets};
 pub use route_expansion::{StageToolSelection, ToolsetSelection};
@@ -198,6 +228,72 @@ pub fn plan_fastq_stage_plans(config: &FastqPlanConfig) -> Result<Vec<StagePlanV
         },
     )?;
     Ok(plans)
+}
+
+/// # Errors
+/// Returns an error if the explicit-input stage binding cannot be composed into a single stage
+/// plan.
+#[allow(clippy::too_many_arguments)]
+pub fn plan_fastq_stage_binding_with_explicit_inputs(
+    binding: FastqStageBinding,
+    aux_images: &BTreeMap<String, ContainerImageRefV1>,
+    adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
+    enable_contaminant_removal: bool,
+    r1: &std::path::Path,
+    r2: Option<&std::path::Path>,
+    reference_fasta: Option<&std::path::Path>,
+    explicit_inputs: &[FastqStageExplicitInput],
+    out_dir: &Path,
+) -> Result<StagePlanV1> {
+    let synthetic_node_id = format!("{}.explicit_inputs", binding.stage_id);
+    let mut explicit_stage_inputs = crate::compose::StageArtifactInputPolicy::new();
+    explicit_stage_inputs.insert(
+        binding.stage_id.clone(),
+        explicit_inputs
+            .iter()
+            .map(|input| crate::compose::StageArtifactInputBinding {
+                from_stage_node_id: synthetic_node_id.clone(),
+                from_output_id: input.artifact.name.as_str().to_string(),
+                to_input_id: input.input_id.clone(),
+            })
+            .collect(),
+    );
+    let mut synthetic_stage_artifacts = crate::compose::SyntheticStageArtifactPolicy::new();
+    synthetic_stage_artifacts.insert(
+        synthetic_node_id,
+        explicit_inputs
+            .iter()
+            .map(|input| crate::compose::SyntheticStageArtifact {
+                artifact: input.artifact.clone(),
+                source_tool_id: input
+                    .source_tool_id
+                    .clone()
+                    .unwrap_or_else(|| "planner".to_string()),
+            })
+            .collect(),
+    );
+    let stage_id = binding.stage_id.clone();
+    let tool_id = binding.tool.tool_id.as_str().to_string();
+    let plans = crate::compose::compose_fastq_stage_bindings_with_dependencies(
+        &[binding],
+        aux_images,
+        adapter_bank,
+        polyx_bank,
+        contaminant_bank,
+        enable_contaminant_removal,
+        r1,
+        r2,
+        reference_fasta,
+        Some(&explicit_stage_inputs),
+        Some(&synthetic_stage_artifacts),
+        None,
+        |_, _, _| Ok(out_dir.to_path_buf()),
+    )?;
+    plans.into_iter().next().ok_or_else(|| {
+        anyhow!("explicit-input fastq planner produced no stage plan for {stage_id} / {tool_id}")
+    })
 }
 
 fn stage_benchmark_declared_bindings(stage_id: &StageId) -> Vec<bijux_dna_core::ids::ToolId> {
@@ -777,7 +873,7 @@ mod tests {
             Vec::new(),
         );
 
-        let error = stage_toolsets_for_pipeline_nodes(
+        let result = stage_toolsets_for_pipeline_nodes(
             &pipeline,
             &[FastqStageToolsetBinding {
                 stage_id: "fastq.validate_reads".to_string(),
@@ -786,8 +882,11 @@ mod tests {
                 reason: None,
                 params: None,
             }],
-        )
-        .expect_err("node/tool mismatch must fail");
+        );
+        let error = match result {
+            Ok(_) => panic!("node/tool mismatch must fail"),
+            Err(error) => error,
+        };
 
         assert!(error.to_string().contains("pipeline nodes/toolset length mismatch"));
     }
@@ -845,7 +944,7 @@ mod tests {
 
     #[test]
     fn implicit_pipeline_spec_from_toolsets_rejects_repeated_stage_ids() {
-        let error = implicit_pipeline_spec_from_toolsets(&[
+        let result = implicit_pipeline_spec_from_toolsets(&[
             FastqStageToolsetBinding {
                 stage_id: "fastq.trim_reads".to_string(),
                 stage_instance_id: Some("fastq.trim_reads.fastp_branch".to_string()),
@@ -860,8 +959,11 @@ mod tests {
                 reason: None,
                 params: None,
             },
-        ])
-        .expect_err("repeated stage ids must require an explicit graph");
+        ]);
+        let error = match result {
+            Ok(_) => panic!("repeated stage ids must require an explicit graph"),
+            Err(error) => error,
+        };
 
         assert!(error.to_string().contains("requires an explicit pipeline_spec"));
     }

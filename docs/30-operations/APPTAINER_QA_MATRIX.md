@@ -27,7 +27,7 @@ Derived from tool registries and container metadata fields.
 | Tool ID | Apptainer Def | Smoke Version | Smoke Help | Smoke Minimal | Minimal Exit | Docker Digest | Apptainer Digest | Minimal Rationale | QA Rule | Status |
 |---|---|---|---|---|---|---|---|---|---|---|
 | `adapterremoval` | `containers/apptainer/shared/adapterremoval.def` | `adapterremoval --version` | `adapterremoval --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `addeam` | `containers/apptainer/shared/addeam.def` | `addeam --version` | `addeam --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `addeam` | `containers/apptainer/shared/addeam.def` | `addeam --version` | `addeam --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `alientrimmer` | `containers/apptainer/shared/alientrimmer.def` | `alientrimmer --version` | `alientrimmer --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `angsd` | `containers/apptainer/shared/angsd.def` | `angsd 2>&1 | head -n 1` | `angsd -h` | `angsd -h` | `0` | `-` | `-` | `no-run-possible: planned wrapper image exposes help/version only until low-coverage GL fixtures and governed minimal runs are committed.` | `build+smoke required` | `planned` |
 | `atropos` | `containers/apptainer/shared/atropos.def` | `atropos --version` | `atropos trim --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
@@ -40,6 +40,7 @@ Derived from tool registries and container metadata fields.
 | `bcftools` | `containers/apptainer/shared/bcftools.def` | `bcftools --version` | `bcftools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `beagle` | `containers/apptainer/shared/beagle.def` | `beagle --version` | `beagle --help` | `beagle --help` | `0` | `-` | `-` | `no deterministic phasing fixture is committed yet; keep help/version smoke until a governed minimal run exists.` | `build+smoke required` | `experimental` |
 | `bedtools` | `containers/apptainer/shared/bedtools.def` | `bedtools --version` | `bedtools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
+| `bijux_dna` | `containers/apptainer/shared/bijux_dna.def` | `bijux-dna --version` | `bijux-dna --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `bowtie2` | `containers/apptainer/shared/bowtie2.def` | `bowtie2 --version` | `bowtie2 --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `bowtie2_build` | `containers/apptainer/shared/bowtie2_build.def` | `bowtie2-build --version` | `bowtie2-build --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `bracken` | `containers/apptainer/shared/bracken.def` | `bracken --version` | `bracken -h` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
@@ -49,7 +50,7 @@ Derived from tool registries and container metadata fields.
 | `contammix` | `containers/apptainer/shared/contammix.def` | `contammix --version` | `contammix --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `cutadapt` | `containers/apptainer/shared/cutadapt.def` | `cutadapt --version` | `cutadapt --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `dada2` | `containers/apptainer/shared/dada2.def` | `dada2 --version` | `dada2 --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `damageprofiler` | `containers/apptainer/shared/damageprofiler.def` | `damageprofiler --version` | `damageprofiler --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `damageprofiler` | `containers/apptainer/shared/damageprofiler.def` | `damageprofiler --version` | `damageprofiler --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `diamond` | `containers/apptainer/shared/diamond.def` | `diamond --version` | `diamond help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `dustmasker` | `containers/apptainer/shared/dustmasker.def` | `dustmasker --version` | `dustmasker --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
 | `eagle` | `containers/apptainer/shared/eagle.def` | `eagle --version` | `eagle --help` | `eagle --help` | `0` | `-` | `-` | `no-run-possible: planned wrapper image exposes help/version contract only.` | `build+smoke required` | `experimental` |
@@ -96,7 +97,7 @@ Derived from tool registries and container metadata fields.
 | `rxy` | `containers/apptainer/shared/rxy.def` | `rxy --version` | `rxy --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `samtools` | `containers/apptainer/shared/samtools.def` | `samtools --version` | `samtools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `schmutzi` | `containers/apptainer/shared/schmutzi.def` | `schmutzi --version` | `schmutzi --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `seqfu` | `containers/apptainer/shared/seqfu.def` | `seqfu --version` | `seqfu --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `seqfu` | `containers/apptainer/shared/seqfu.def` | `seqfu --version` | `seqfu --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `seqkit` | `containers/apptainer/shared/seqkit.def` | `seqkit --version` | `seqkit --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `seqkit_stats` | `containers/apptainer/shared/seqkit_stats.def` | `seqkit_stats --version` | `seqkit_stats --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `seqprep` | `containers/apptainer/shared/seqprep.def` | `seqprep --version` | `seqprep --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
@@ -113,4 +114,4 @@ Derived from tool registries and container metadata fields.
 | `umi_tools` | `containers/apptainer/shared/umi_tools.def` | `umi_tools --version` | `umi_tools --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `verifybamid2` | `containers/apptainer/shared/verifybamid2.def` | `verifybamid2 --version` | `verifybamid2 --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
 | `vsearch` | `containers/apptainer/shared/vsearch.def` | `vsearch --version` | `vsearch --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |
-| `yleaf` | `containers/apptainer/shared/yleaf.def` | `yleaf --version` | `yleaf --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `experimental` |
+| `yleaf` | `containers/apptainer/shared/yleaf.def` | `yleaf --version` | `yleaf --help` | `-` | `0` | `-` | `-` | `minimal command contract` | `build+smoke required` | `production` |

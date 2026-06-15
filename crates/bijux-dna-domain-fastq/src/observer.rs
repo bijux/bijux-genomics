@@ -14,10 +14,12 @@ pub use parse::tool_metrics::{
     parse_seqkit_tool_metrics,
 };
 pub use parse::{
-    parse_bbduk_reads_removed, parse_cluster_otus_report, parse_correct_errors_report,
-    parse_deduplicate_report, parse_deplete_host_report,
-    parse_deplete_reference_contaminants_report, parse_deplete_rrna_report,
-    parse_detect_adapters_report, parse_duplicate_classes_tsv, parse_extract_umis_report,
+    evaluate_fastq_raw_parser_failure_contracts, parse_bbduk_reads_removed,
+    parse_cluster_otus_report, parse_correct_errors_report, parse_deduplicate_report,
+    parse_deplete_host_report, parse_deplete_reference_contaminants_report,
+    parse_deplete_rrna_report, parse_detect_adapters_report,
+    parse_detect_duplicates_premerge_report, parse_duplicate_classes_tsv,
+    parse_estimate_library_complexity_prealign_report, parse_extract_umis_report,
     parse_fastqvalidator_count, parse_filter_low_complexity_report, parse_filter_reads_report,
     parse_index_reference_report, parse_infer_asvs_report, parse_length_histogram,
     parse_low_complexity_report, parse_merge_pairs_report, parse_normalize_abundance_report,
@@ -26,5 +28,6 @@ pub use parse::{
     parse_remove_duplicates_provenance, parse_remove_duplicates_report, parse_report_qc_report,
     parse_screen_summary_tsv, parse_screen_taxonomy_report, parse_seqkit_stats,
     parse_terminal_damage_report, parse_trim_polyg_report, parse_trim_reads_report,
-    parse_validated_reads_manifest, parse_validation_report,
+    parse_validated_reads_manifest, parse_validation_report, FastqRawParserFailureClass,
+    FastqRawParserFailureContractRow,
 };

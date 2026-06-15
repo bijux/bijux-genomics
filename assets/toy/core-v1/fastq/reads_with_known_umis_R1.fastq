@@ -1,0 +1,8 @@
+@umi-valid/1
+ACGTGGGG
++
+IIIIIIII
+@umi-invalid/1
+AXGTCCCC
++
+IIIIIIII

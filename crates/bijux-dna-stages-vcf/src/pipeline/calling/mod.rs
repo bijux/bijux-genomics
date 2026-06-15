@@ -71,24 +71,7 @@ fn run_bcftools_mpileup_call(
     let input_bam_s = input_bam.to_str().ok_or_else(|| anyhow!("non-utf8 input bam path"))?;
     let out_vcf_s = out_vcf.to_str().ok_or_else(|| anyhow!("non-utf8 output vcf path"))?;
     if include_gl_fields {
-        let mpileup_args = [
-            "mpileup",
-            "-a",
-            "FORMAT/PL,FORMAT/DP",
-            "-Ob",
-            "-f",
-            reference.as_str(),
-            "-q",
-            min_map_q.as_str(),
-            "-Q",
-            min_base_q.as_str(),
-            "-o",
-            mpileup_out,
-            input_bam_s,
-        ];
-        run_checked_command("bcftools", &mpileup_args)?;
-        let call_args = ["call", "-Aim", "-Oz", "-o", out_vcf_s, mpileup_out];
-        run_checked_command("bcftools", &call_args)?;
+        run_bcftools_mpileup_likelihood_vcf(input_bam, out_vcf, params)?;
     } else {
         let mpileup_args = [
             "mpileup",
@@ -109,6 +92,50 @@ fn run_bcftools_mpileup_call(
     }
     let tabix_args = ["-f", "-p", "vcf", out_vcf_s];
     run_checked_command("tabix", &tabix_args)?;
+    Ok(())
+}
+
+fn run_bcftools_mpileup_likelihood_vcf(
+    input_bam: &Path,
+    out_vcf: &Path,
+    params: &VcfCallParams,
+) -> Result<()> {
+    ensure_bam_prerequisites(input_bam, params)?;
+    let reference = resolve_reference_path(params)?;
+    let out_dir = out_vcf.parent().ok_or_else(|| anyhow!("output path has no parent"))?;
+    let mpileup_bcf = out_dir.join("mpileup.bcf");
+    let mpileup_vcf = out_dir.join("mpileup_gl.vcf");
+    let min_map_q = params.min_mapping_quality.to_string();
+    let min_base_q = params.min_base_quality.to_string();
+    let mpileup_out =
+        mpileup_bcf.to_str().ok_or_else(|| anyhow!("non-utf8 mpileup output path"))?;
+    let mpileup_vcf_out =
+        mpileup_vcf.to_str().ok_or_else(|| anyhow!("non-utf8 mpileup VCF output path"))?;
+    let input_bam_s = input_bam.to_str().ok_or_else(|| anyhow!("non-utf8 input bam path"))?;
+    let mpileup_args = [
+        "mpileup",
+        "-a",
+        "FORMAT/DP",
+        "-Ob",
+        "-f",
+        reference.as_str(),
+        "-q",
+        min_map_q.as_str(),
+        "-Q",
+        min_base_q.as_str(),
+        "-o",
+        mpileup_out,
+        input_bam_s,
+    ];
+    run_checked_command("bcftools", &mpileup_args)?;
+    let view_args = ["view", "-Ov", "-o", mpileup_vcf_out, mpileup_out];
+    run_checked_command("bcftools", &view_args)?;
+    let _ = write_vcf_with_best_effort_index(
+        out_vcf,
+        &std::fs::read_to_string(&mpileup_vcf)?,
+        "call_gl",
+    )?;
+    let _ = std::fs::remove_file(&mpileup_vcf);
     Ok(())
 }
 

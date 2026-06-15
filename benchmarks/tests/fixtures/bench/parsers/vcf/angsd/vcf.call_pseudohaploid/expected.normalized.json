@@ -1,0 +1,18 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.call_pseudohaploid",
+  "tool_id": "angsd",
+  "parser_id": "parse_angsd_call_pseudohaploid_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.call_pseudohaploid.v1",
+    "stage_id": "vcf.call_pseudohaploid",
+    "tool_id": "angsd",
+    "target_sites": 3,
+    "covered_sites": 3,
+    "called_sites": 2,
+    "missing_sites": 1,
+    "sampling_policy": "seeded_haploid_projection",
+    "random_seed": 42,
+    "sample_count": 1
+  }
+}

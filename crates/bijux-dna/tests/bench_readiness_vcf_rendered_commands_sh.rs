@@ -1,0 +1,53 @@
+#![allow(clippy::expect_used, clippy::too_many_lines)]
+
+use std::process::Command;
+
+#[path = "contracts/banks/bank_fixtures.rs"]
+mod support;
+
+#[test]
+fn bench_readiness_vcf_rendered_commands_write_bash_parseable_script() {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(["bench", "readiness", "render-vcf-commands"])
+        .output()
+        .expect("run cli");
+
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let script_path = repo_root.join("benchmarks/readiness/vcf/vcf-rendered-commands.sh");
+    assert!(script_path.is_file(), "VCF rendered command script must exist");
+
+    let script = std::fs::read_to_string(&script_path).expect("read VCF rendered command script");
+    assert!(script.starts_with("#!/usr/bin/env bash\nset -euo pipefail\n"));
+    assert!(
+        script.contains("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../../..\" && pwd)\"")
+    );
+    assert!(script.contains("# vcf.call / bcftools"));
+    assert!(script.contains("# vcf.qc / bcftools"));
+    assert!(script.contains("# vcf.stats / bcftools"));
+    assert!(script.contains("bcftools mpileup"));
+    assert!(script.contains(" | bcftools call "));
+    assert!(!script.to_ascii_lowercase().contains("todo"));
+    assert!(!script.to_ascii_lowercase().contains("placeholder"));
+    assert!(!script.to_ascii_lowercase().contains("echo execute"));
+
+    let syntax = Command::new("bash").arg("-n").arg(&script_path).output().expect("run bash -n");
+    assert!(syntax.status.success(), "bash -n failed: {}", String::from_utf8_lossy(&syntax.stderr));
+}

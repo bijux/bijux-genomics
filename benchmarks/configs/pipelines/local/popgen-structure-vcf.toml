@@ -1,0 +1,88 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for the local cohort-structure VCF DAG.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-06
+
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "popgen-structure-vcf"
+domain = "vcf"
+summary = "Cohort VCF DAG for governed QC, pruning and filtering, PCA, admixture, and population-structure summary with mandatory sample metadata and population labels."
+default_corpus_id = "vcf_production_regression"
+
+[[nodes]]
+node_id = "vcf.qc"
+stage_id = "vcf.qc"
+readiness_kind = "smoke"
+summary = "Run governed cohort QC on the input VCF and export the pruning and filtering handoff for downstream population-structure stages."
+depends_on = []
+external_inputs = ["corpus.target_cohort_vcf", "corpus.target_cohort_vcf_tbi"]
+upstream_inputs = []
+outputs = [
+  "qc_cohort_vcf",
+  "qc_cohort_vcf_tbi",
+  "qc_report",
+  "sample_qc_report_tsv",
+  "variant_qc_report_tsv",
+  "pruned_variants_tsv",
+]
+
+[[nodes]]
+node_id = "vcf.pca"
+stage_id = "vcf.pca"
+readiness_kind = "smoke"
+summary = "Run governed PCA from the QC-qualified pruned cohort VCF with mandatory sample metadata and population labels."
+depends_on = ["vcf.qc"]
+external_inputs = [
+  "sample_metadata_manifest_contract",
+  "population_metadata_manifest_contract",
+  "population_labels_contract",
+]
+upstream_inputs = [
+  "qc_cohort_vcf",
+  "qc_cohort_vcf_tbi",
+  "pruned_variants_tsv",
+  "qc_report",
+]
+outputs = ["pca_report", "pca_projection_tsv", "pca_metadata_join_tsv"]
+
+[[nodes]]
+node_id = "vcf.admixture"
+stage_id = "vcf.admixture"
+readiness_kind = "smoke"
+summary = "Run governed admixture from the QC-qualified pruned cohort VCF after PCA has completed, with mandatory sample metadata and population labels."
+depends_on = ["vcf.qc", "vcf.pca"]
+external_inputs = [
+  "sample_metadata_manifest_contract",
+  "population_metadata_manifest_contract",
+  "population_labels_contract",
+]
+upstream_inputs = [
+  "qc_cohort_vcf",
+  "qc_cohort_vcf_tbi",
+  "pruned_variants_tsv",
+  "pca_report",
+  "pca_projection_tsv",
+]
+outputs = ["admixture_report", "admixture_q_matrix_tsv", "admixture_metadata_join_tsv"]
+
+[[nodes]]
+node_id = "vcf.population_structure"
+stage_id = "vcf.population_structure"
+readiness_kind = "smoke"
+summary = "Compose the governed population-structure summary from QC, PCA, and admixture while consuming both sample-metadata join handoffs."
+depends_on = ["vcf.qc", "vcf.pca", "vcf.admixture"]
+external_inputs = [
+  "sample_metadata_manifest_contract",
+  "population_metadata_manifest_contract",
+  "population_labels_contract",
+]
+upstream_inputs = [
+  "qc_report",
+  "pca_report",
+  "admixture_report",
+  "pca_metadata_join_tsv",
+  "admixture_metadata_join_tsv",
+]
+outputs = ["population_structure_report", "population_structure_table_tsv"]

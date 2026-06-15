@@ -1,0 +1,70 @@
+# Container definition license: Apache-2.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# BIJUX_TEMPLATE: v1
+#
+# Tool ID: bijux_dna
+# Version policy: registry_locked
+# Upstream source: https://github.com/bijux/bijux-genomics
+# Build date policy: org.opencontainers.image.created set by release pipeline
+# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: RUNTIME_UID_SAFE
+#
+# VERSION_SOURCE: containers/versions/versions.toml
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
+    org.opencontainers.image.title bijux_dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses Apache-2.0
+    org.opencontainers.image.version 0.1.0
+    org.opencontainers.image.tool bijux_dna
+
+%files
+    .cargo /opt/bijux-src/.cargo
+    Cargo.toml /opt/bijux-src/Cargo.toml
+    Cargo.lock /opt/bijux-src/Cargo.lock
+    rust-toolchain.toml /opt/bijux-src/rust-toolchain.toml
+    rustfmt.toml /opt/bijux-src/rustfmt.toml
+    crates /opt/bijux-src/crates
+    configs /opt/bijux-src/configs
+    domain /opt/bijux-src/domain
+    benchmarks /opt/bijux-src/benchmarks
+
+%environment
+    export PATH=/opt/rust/bin:/usr/local/bin:/usr/bin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq
+    apt-get install -y --no-install-recommends build-essential ca-certificates curl pkg-config libssl-dev xz-utils
+    curl -fsSL -o /tmp/rust-1.88.0-aarch64-unknown-linux-gnu.tar.xz \
+        https://static.rust-lang.org/dist/rust-1.88.0-aarch64-unknown-linux-gnu.tar.xz
+    echo "d5decc46123eb888f809f2ee3b118d13586a37ffad38afaefe56aa7139481d34  /tmp/rust-1.88.0-aarch64-unknown-linux-gnu.tar.xz" | sha256sum -c -
+    tar -xJf /tmp/rust-1.88.0-aarch64-unknown-linux-gnu.tar.xz -C /tmp
+    /tmp/rust-1.88.0-aarch64-unknown-linux-gnu/install.sh --prefix=/opt/rust --without=rust-docs
+    export PATH=/opt/rust/bin:${PATH}
+    cd /opt/bijux-src
+    cargo build --locked --release -p bijux-dna
+    install -Dm0755 target/release/bijux-dna /usr/local/bin/bijux-dna
+    install -d /opt/bijux/configs /opt/bijux/domain /opt/bijux/benchmarks
+    cp -a configs/. /opt/bijux/configs/
+    cp -a domain/. /opt/bijux/domain/
+    cp -a benchmarks/. /opt/bijux/benchmarks/
+    rm -rf /var/lib/apt/lists/*
+    rm -rf /tmp/rust-1.88.0-aarch64-unknown-linux-gnu /tmp/rust-1.88.0-aarch64-unknown-linux-gnu.tar.xz
+    rm -rf /opt/bijux-src
+
+%runscript
+    exec bijux-dna "$@"
+
+%help
+    Bijux Apptainer image for the governed bijux-dna CLI.

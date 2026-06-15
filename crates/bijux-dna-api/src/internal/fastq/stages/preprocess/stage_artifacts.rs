@@ -6,6 +6,111 @@ mod standardized_metrics;
 
 use self::standardized_metrics::discover_screen_taxonomy_report_path;
 
+#[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss, clippy::cast_sign_loss)]
+fn derive_screen_taxonomy_read_counts(
+    report: &bijux_dna_domain_fastq::ScreenTaxonomyReportV1,
+) -> (Option<u64>, Option<u64>) {
+    let total_reads = report.reads_in.or(report.reads_out);
+    match (total_reads, report.unclassified_fraction, report.classified_fraction) {
+        (Some(total_reads), Some(unclassified_fraction), _) => {
+            let unclassified_reads = ((total_reads as f64) * unclassified_fraction)
+                .round()
+                .clamp(0.0, total_reads as f64) as u64;
+            let classified_reads = total_reads.saturating_sub(unclassified_reads);
+            (Some(classified_reads), Some(unclassified_reads))
+        }
+        (Some(total_reads), None, Some(classified_fraction)) => {
+            let classified_reads = ((total_reads as f64) * classified_fraction)
+                .round()
+                .clamp(0.0, total_reads as f64) as u64;
+            let unclassified_reads = total_reads.saturating_sub(classified_reads);
+            (Some(classified_reads), Some(unclassified_reads))
+        }
+        _ => (None, None),
+    }
+}
+
+fn insert_json_value<T: serde::Serialize>(
+    object: &mut serde_json::Map<String, serde_json::Value>,
+    key: &str,
+    value: T,
+) {
+    #[allow(clippy::expect_used)]
+    object.insert(
+        key.to_string(),
+        serde_json::to_value(value).expect("depletion summary fields must serialize"),
+    );
+}
+
+fn contaminant_depletion_summary(
+    report: &bijux_dna_domain_fastq::DepleteReferenceContaminantsReportV1,
+) -> serde_json::Value {
+    let mut object = serde_json::Map::new();
+    insert_json_value(&mut object, "reads_removed", report.reads_removed);
+    insert_json_value(&mut object, "bases_removed", report.bases_removed);
+    insert_json_value(&mut object, "output_r1", report.output_r1.clone());
+    insert_json_value(&mut object, "output_r2", report.output_r2.clone());
+    insert_json_value(&mut object, "removed_reads_r1", report.removed_reads_r1.clone());
+    insert_json_value(&mut object, "removed_reads_r2", report.removed_reads_r2.clone());
+    insert_json_value(&mut object, "report_json", report.report_json.clone());
+    insert_json_value(&mut object, "contaminant_reference", report.contaminant_reference.clone());
+    insert_json_value(
+        &mut object,
+        "reference_index_backend",
+        report.reference_index_backend.clone(),
+    );
+    insert_json_value(&mut object, "raw_backend_report", report.raw_backend_report.clone());
+    insert_json_value(
+        &mut object,
+        "raw_backend_report_format",
+        report.raw_backend_report_format.clone(),
+    );
+    serde_json::Value::Object(object)
+}
+
+fn rrna_depletion_summary(
+    report: &bijux_dna_domain_fastq::DepleteRrnaReportV1,
+) -> serde_json::Value {
+    let mut object = serde_json::Map::new();
+    insert_json_value(&mut object, "reads_removed", report.reads_removed);
+    insert_json_value(&mut object, "bases_removed", report.bases_removed);
+    insert_json_value(&mut object, "output_r1", report.output_r1.clone());
+    insert_json_value(&mut object, "output_r2", report.output_r2.clone());
+    insert_json_value(&mut object, "removed_reads_r1", report.removed_reads_r1.clone());
+    insert_json_value(&mut object, "removed_reads_r2", report.removed_reads_r2.clone());
+    insert_json_value(&mut object, "report_tsv", report.rrna_report_tsv.clone());
+    insert_json_value(&mut object, "report_json", report.rrna_report_json.clone());
+    insert_json_value(&mut object, "database_artifact_id", report.database_artifact_id.clone());
+    insert_json_value(&mut object, "screening_engine", report.screening_engine.clone());
+    serde_json::Value::Object(object)
+}
+
+fn host_depletion_summary(
+    report: &bijux_dna_domain_fastq::DepleteHostReportV1,
+) -> serde_json::Value {
+    let mut object = serde_json::Map::new();
+    insert_json_value(&mut object, "reads_removed", report.reads_removed);
+    insert_json_value(&mut object, "bases_removed", report.bases_removed);
+    insert_json_value(&mut object, "output_r1", report.output_r1.clone());
+    insert_json_value(&mut object, "output_r2", report.output_r2.clone());
+    insert_json_value(&mut object, "removed_host_r1", report.removed_host_r1.clone());
+    insert_json_value(&mut object, "removed_host_r2", report.removed_host_r2.clone());
+    insert_json_value(&mut object, "report_json", report.report_json.clone());
+    insert_json_value(&mut object, "reference_catalog_id", report.reference_catalog_id.clone());
+    insert_json_value(
+        &mut object,
+        "reference_index_backend",
+        report.reference_index_backend.clone(),
+    );
+    insert_json_value(&mut object, "raw_backend_report", report.raw_backend_report.clone());
+    insert_json_value(
+        &mut object,
+        "raw_backend_report_format",
+        report.raw_backend_report_format.clone(),
+    );
+    serde_json::Value::Object(object)
+}
+
 pub(super) fn emit_fastq_stage_extra_artifacts(
     stage_root: &std::path::Path,
     stage_id: &str,
@@ -31,6 +136,22 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "threads": governed.as_ref().map(|report| report.threads),
                 "index_format": governed.as_ref().map(|report| report.index_format.clone()),
+                "index_directory": governed.as_ref().and_then(|report| {
+                    report
+                        .backend_metrics
+                        .as_ref()
+                        .and_then(|metrics| metrics.get("index_directory"))
+                        .and_then(serde_json::Value::as_str)
+                        .map(std::string::ToString::to_string)
+                        .or_else(|| {
+                            std::path::Path::new(&report.reference_index)
+                                .parent()
+                                .map(|path| path.to_string_lossy().to_string())
+                        })
+                }),
+                "index_files": governed.as_ref().map(|report| report.emitted_files.clone()),
+                "elapsed_time_s": governed.as_ref().and_then(|report| report.runtime_s),
+                "index_size_bytes": governed.as_ref().map(|report| report.index_bytes),
                 "reference_index": governed.as_ref().map(|report| report.reference_index.clone()),
                 "index_prefix": governed.as_ref().and_then(|report| report.index_prefix.clone()),
                 "emitted_file_count": governed.as_ref().map(|report| report.emitted_files.len()),
@@ -53,10 +174,135 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "evidence_engine": governed.as_ref().map(|report| report.evidence_engine.clone()),
                 "evidence_scope": governed.as_ref().map(|report| report.evidence_scope.clone()),
                 "evidence_format": governed.as_ref().map(|report| report.evidence_format.clone()),
+                "adapter_report": governed.as_ref().map(|report| report.report_json.clone()),
                 "candidate_adapter_count": governed.as_ref().map(|report| report.candidate_adapter_count),
+                "detected_adapter_ids": governed.as_ref().map(|report| report.detected_adapter_ids.clone()),
+                "detection_confidence": governed.as_ref().and_then(|report| report.detection_confidence),
+                "detection_threshold": governed.as_ref().and_then(|report| report.detection_threshold),
                 "adapter_trimmed_fraction": governed.as_ref().and_then(|report| report.adapter_trimmed_fraction),
                 "adapter_evidence_dir": governed.as_ref().map(|report| report.adapter_evidence_dir.clone()),
                 "report_json": report_path,
+            }))
+        }
+        "fastq.detect_duplicates_premerge" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str())
+                        == Some("duplicate_signal_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("duplicate_signal_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_domain_fastq::observer::parse_detect_duplicates_premerge_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.detect_duplicates_premerge.extra_artifacts.v1",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "duplicate_detection_policy": governed.as_ref().map(|report| report.duplicate_detection_policy.clone()),
+                "measurement_scope": governed.as_ref().map(|report| report.measurement_scope.clone()),
+                "modifies_reads": governed.as_ref().map(|report| report.modifies_reads),
+                "advisory_only": governed.as_ref().map(|report| report.advisory_only),
+                "reads_in": governed.as_ref().map(|report| report.reads_in),
+                "duplicate_count": governed.as_ref().map(|report| report.duplicate_signal_reads),
+                "duplicate_fraction": governed.as_ref().map(|report| report.duplicate_signal_fraction),
+                "inspected_pair_count": governed.as_ref().and_then(|report| report.compared_read_pairs),
+                "report_json": report_path,
+            }))
+        }
+        "fastq.estimate_library_complexity_prealign" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str())
+                        == Some("library_complexity_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("library_complexity_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_domain_fastq::observer::parse_estimate_library_complexity_prealign_report(
+                    &raw,
+                )
+                .ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.estimate_library_complexity_prealign.extra_artifacts.v1",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "complexity_policy": governed.as_ref().map(|report| report.complexity_policy.clone()),
+                "estimate_method": governed.as_ref().map(|report| report.estimate_method.clone()),
+                "modifies_reads": governed.as_ref().map(|report| report.modifies_reads),
+                "advisory_only": governed.as_ref().map(|report| report.advisory_only),
+                "reads_in": governed.as_ref().map(|report| report.reads_in),
+                "estimated_complexity": governed.as_ref().and_then(|report| {
+                    if report.insufficient_data_reason.is_some() {
+                        None
+                    } else {
+                        Some(report.estimated_unique_fraction)
+                    }
+                }),
+                "estimated_unique_fraction": governed.as_ref().map(|report| report.estimated_unique_fraction),
+                "estimated_duplicate_fraction": governed.as_ref().map(|report| report.estimated_duplicate_fraction),
+                "insufficient_data_reason": governed.as_ref().and_then(|report| report.insufficient_data_reason.clone()),
+                "complexity_status": governed.as_ref().map(|report| {
+                    if report.insufficient_data_reason.is_some() {
+                        "insufficient_data"
+                    } else {
+                        "complexity_estimated"
+                    }
+                }),
+                "kmer_size": governed.as_ref().and_then(|report| report.kmer_size),
+                "report_json": report_path,
+            }))
+        }
+        "fastq.trim_reads" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str()) == Some("trim_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("trim_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_domain_fastq::observer::parse_trim_reads_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.trim_reads.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "min_length": governed.as_ref().map(|report| report.min_length),
+                "quality_cutoff": governed.as_ref().and_then(|report| report.quality_cutoff),
+                "adapter_policy": governed.as_ref().map(|report| report.adapter_policy.clone()),
+                "polyx_policy": governed.as_ref().and_then(|report| report.polyx_policy.clone()),
+                "n_policy": governed.as_ref().and_then(|report| report.n_policy.clone()),
+                "contaminant_policy": governed.as_ref().and_then(|report| report.contaminant_policy.clone()),
+                "adapter_bank_id": governed.as_ref().and_then(|report| report.adapter_bank_id.clone()),
+                "adapter_bank_hash": governed.as_ref().and_then(|report| report.adapter_bank_hash.clone()),
+                "adapter_preset": governed.as_ref().and_then(|report| report.adapter_preset.clone()),
+                "trimmed_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "trimmed_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
+                "report_json": report_path,
+                "reads_retained": governed.as_ref().and_then(|report| report.reads_out),
+                "reads_dropped": governed.as_ref().and_then(|report| {
+                    report.reads_in.zip(report.reads_out).map(|(reads_in, reads_out)| {
+                        reads_in.saturating_sub(reads_out)
+                    })
+                }),
+                "bases_removed": governed.as_ref().and_then(|report| {
+                    report.bases_in.zip(report.bases_out).map(|(bases_in, bases_out)| {
+                        bases_in.saturating_sub(bases_out)
+                    })
+                }),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
             }))
         }
         "fastq.filter_reads" => {
@@ -77,6 +323,8 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "threads": governed.as_ref().map(|report| report.threads),
+                "filtered_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "filtered_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
                 "max_n": governed.as_ref().and_then(|report| report.max_n),
                 "max_n_fraction": governed.as_ref().and_then(|report| report.max_n_fraction),
                 "max_n_count": governed.as_ref().and_then(|report| report.max_n_count),
@@ -85,6 +333,8 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "n_policy": governed.as_ref().and_then(|report| report.n_policy.clone()),
                 "polyx_policy": governed.as_ref().and_then(|report| report.polyx_policy.clone()),
                 "contaminant_db": governed.as_ref().and_then(|report| report.contaminant_db.clone()),
+                "reads_retained": governed.as_ref().map(|report| report.reads_out),
+                "reads_removed": governed.as_ref().map(|report| report.reads_dropped),
                 "reads_removed_by_n": governed.as_ref().map(|report| report.reads_removed_by_n),
                 "reads_removed_by_entropy": governed.as_ref().map(|report| report.reads_removed_by_entropy),
                 "reads_removed_low_complexity": governed.as_ref().map(|report| report.reads_removed_low_complexity),
@@ -121,6 +371,11 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "max_memory_gb": governed.as_ref().and_then(|report| report.max_memory_gb),
                 "trusted_kmer_artifact": governed.as_ref().and_then(|report| report.trusted_kmer_artifact.clone()),
                 "conservative_mode": governed.as_ref().map(|report| report.conservative_mode),
+                "corrected_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "corrected_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
+                "corrected_reads": governed.as_ref().and_then(|report| report.corrected_reads),
+                "changed_reads": governed.as_ref().and_then(|report| report.changed_reads),
+                "unchanged_reads": governed.as_ref().and_then(|report| report.unchanged_reads),
                 "correction_effect": governed.as_ref().and_then(|report| report.correction_effect.clone()),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
@@ -138,6 +393,8 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "threads": governed.as_ref().map(|report| report.threads),
+                "filtered_fastq_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "filtered_fastq_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
                 "entropy_threshold": governed.as_ref().and_then(|report| report.entropy_threshold),
                 "polyx_threshold": governed.as_ref().and_then(|report| report.polyx_threshold),
                 "reads_removed_low_complexity": governed.as_ref().map(|report| report.reads_removed_low_complexity),
@@ -190,6 +447,8 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "histogram_bins": governed.as_ref().map(|report| report.histogram_bins),
                 "histogram_entry_count": governed.as_ref().map(|report| report.histogram.len()),
+                "min_read_length": governed.as_ref().map(|report| report.min_read_length),
+                "median_read_length": governed.as_ref().map(|report| report.median_read_length),
                 "length_distribution_tsv": governed.as_ref().map(|report| report.length_distribution_tsv.clone()),
                 "length_distribution_json": governed.as_ref().map(|report| report.length_distribution_json.clone()),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
@@ -247,6 +506,7 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "threads": governed.as_ref().map(|report| report.threads),
                 "trim_polyg": governed.as_ref().map(|report| report.trim_polyg),
                 "min_polyg_run": governed.as_ref().map(|report| report.min_polyg_run),
+                "trimmed_tail_count": governed.as_ref().and_then(|report| report.trimmed_tail_count),
                 "bases_trimmed_polyg": governed.as_ref().and_then(|report| report.bases_trimmed_polyg),
                 "polyx_bank_id": governed.as_ref().and_then(|report| report.polyx_bank_id.clone()),
                 "polyx_bank_hash": governed.as_ref().and_then(|report| report.polyx_bank_hash.clone()),
@@ -268,6 +528,9 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
                 bijux_dna_domain_fastq::observer::parse_merge_pairs_report(&raw).ok()
             });
+            let pair_counts = governed
+                .as_ref()
+                .map(bijux_dna_domain_fastq::MergePairsReportV1::canonical_pair_counts);
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.merge_pairs.extra_artifacts.v2",
                 "stage": stage_id,
@@ -280,8 +543,12 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "unmerged_read_policy": governed.as_ref().map(|report| report.unmerged_read_policy.clone()),
                 "reads_r1": governed.as_ref().map(|report| report.reads_r1),
                 "reads_r2": governed.as_ref().map(|report| report.reads_r2),
+                "input_pair_count": pair_counts.as_ref().map(|counts| counts.input_pair_count),
                 "reads_merged": governed.as_ref().map(|report| report.reads_merged),
                 "reads_unmerged": governed.as_ref().map(|report| report.reads_unmerged),
+                "merged_pair_count": pair_counts.as_ref().map(|counts| counts.merged_pair_count),
+                "unmerged_pair_count": pair_counts.as_ref().map(|counts| counts.unmerged_pair_count),
+                "discarded_pair_count": pair_counts.as_ref().map(|counts| counts.discarded_pair_count),
                 "merge_rate": governed.as_ref().map(|report| report.merge_rate),
                 "merged_reads": governed.as_ref().map(|report| report.merged_reads.clone()),
                 "unmerged_reads_r1": governed.as_ref().and_then(|report| report.unmerged_reads_r1.clone()),
@@ -296,6 +563,9 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
                 bijux_dna_domain_fastq::observer::parse_extract_umis_report(&raw).ok()
             });
+            let umi_summary = governed
+                .as_ref()
+                .map(bijux_dna_domain_fastq::ExtractUmisReportV1::canonical_umi_summary);
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.extract_umis.extra_artifacts.v2",
                 "stage": stage_id,
@@ -303,7 +573,23 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "threads": governed.as_ref().map(|report| report.threads),
                 "umi_pattern": governed.as_ref().map(|report| report.umi_pattern.clone()),
+                "extraction_location": governed.as_ref().map(|report| report.extraction_location.clone()),
+                "read_name_transform": governed.as_ref().map(|report| report.read_name_transform.clone()),
+                "tag_header_format": umi_summary.as_ref().map(|summary| summary.tag_header_format.clone()),
+                "failed_extraction_policy": governed.as_ref().map(|report| report.failed_extraction_policy.clone()),
+                "downstream_propagation": governed.as_ref().map(|report| report.downstream_propagation.clone()),
+                "grouping_policy": governed.as_ref().map(|report| report.grouping_policy.clone()),
+                "downstream_dedup_policy": governed.as_ref().map(|report| report.downstream_dedup_policy.clone()),
+                "umi_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "umi_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
+                "reads_in": governed.as_ref().map(|report| report.reads_in),
+                "reads_out": governed.as_ref().map(|report| report.reads_out),
+                "pairs_in": governed.as_ref().and_then(|report| report.pairs_in),
+                "pairs_out": governed.as_ref().and_then(|report| report.pairs_out),
                 "reads_with_umi": governed.as_ref().map(|report| report.reads_with_umi),
+                "failed_extractions": governed.as_ref().and_then(|report| report.failed_extractions),
+                "extracted_umi_count": umi_summary.as_ref().map(|summary| summary.extracted_umi_count),
+                "invalid_umi_count": umi_summary.as_ref().map(|summary| summary.invalid_umi_count),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
                 "report_json": report_path,
@@ -318,14 +604,25 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.screen_taxonomy.extra_artifacts.v2",
                 "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "classifier": governed.as_ref().map(|report| report.classifier.clone()),
+                "taxonomy_database_id": governed.as_ref().map(|report| report.database_artifact_id.clone()),
                 "report_format": governed.as_ref().map(|report| report.report_format.clone()),
                 "database_catalog_id": governed.as_ref().map(|report| report.database_catalog_id.clone()),
                 "database_artifact_id": governed.as_ref().map(|report| report.database_artifact_id.clone()),
                 "database_digest": governed.as_ref().and_then(|report| report.database_digest.clone()),
+                "classified_reads": governed.as_ref().and_then(|report| {
+                    let (classified_reads, _) = derive_screen_taxonomy_read_counts(report);
+                    classified_reads
+                }),
+                "unclassified_reads": governed.as_ref().and_then(|report| {
+                    let (_, unclassified_reads) = derive_screen_taxonomy_read_counts(report);
+                    unclassified_reads
+                }),
                 "classified_fraction": governed.as_ref().and_then(|report| report.classified_fraction),
                 "unclassified_fraction": governed.as_ref().and_then(|report| report.unclassified_fraction),
                 "top_taxa": governed.as_ref().map(|report| report.top_taxa.clone()),
+                "report_json": report_path,
             }))
         }
         "fastq.report_qc" => {
@@ -398,6 +695,10 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "keep_order": governed.as_ref().map(|report| report.keep_order),
                 "reads_in": governed.as_ref().map(|report| report.reads_in),
                 "reads_out": governed.as_ref().map(|report| report.reads_out),
+                "input_reads": governed.as_ref().map(|report| report.reads_in),
+                "duplicate_reads": governed.as_ref().map(|report| report.duplicates_removed),
+                "unique_reads": governed.as_ref().map(|report| report.reads_out),
+                "output_reads": governed.as_ref().map(|report| report.reads_out),
                 "reads_in_r2": governed.as_ref().and_then(|report| report.reads_in_r2),
                 "reads_out_r2": governed.as_ref().and_then(|report| report.reads_out_r2),
                 "pairs_in": governed.as_ref().and_then(|report| report.pairs_in),
@@ -428,6 +729,7 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "reference_catalog_id": governed.as_ref().map(|report| report.reference_catalog_id.clone()),
                 "contaminant_reference": governed.as_ref().map(|report| report.contaminant_reference.clone()),
                 "reference_index_artifact_id": governed.as_ref().map(|report| report.reference_index_artifact_id.clone()),
+                "contaminant_index_artifact_id": governed.as_ref().map(|report| report.reference_index_artifact_id.clone()),
                 "reference_index_backend": governed.as_ref().map(|report| report.reference_index_backend.clone()),
                 "reference_build_id": governed.as_ref().and_then(|report| report.reference_build_id.clone()),
                 "reference_digest": governed.as_ref().and_then(|report| report.reference_digest.clone()),
@@ -435,9 +737,16 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "retained_read_role": governed.as_ref().map(|report| report.retained_read_role.clone()),
                 "rejected_read_role": governed.as_ref().map(|report| report.rejected_read_role.clone()),
                 "retain_unmapped_pairs": governed.as_ref().map(|report| report.retain_unmapped_pairs),
+                "contaminant_screened_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "contaminant_screened_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
+                "removed_contaminant_reads_r1": governed.as_ref().map(|report| report.removed_reads_r1.clone()),
+                "removed_contaminant_reads_r2": governed.as_ref().and_then(|report| report.removed_reads_r2.clone()),
                 "reads_removed": governed.as_ref().map(|report| report.reads_removed),
+                "contaminant_reads": governed.as_ref().map(|report| report.reads_removed),
                 "bases_removed": governed.as_ref().map(|report| report.bases_removed),
                 "contaminant_fraction_removed": governed.as_ref().map(|report| report.contaminant_fraction_removed),
+                "contaminant_hit_rate": governed.as_ref().map(|report| report.contaminant_fraction_removed),
+                "depletion_summary": governed.as_ref().map(contaminant_depletion_summary),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
                 "report_json": report_path,
@@ -463,9 +772,17 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "min_identity": governed.as_ref().and_then(|report| report.min_identity),
                 "retained_read_role": governed.as_ref().map(|report| report.retained_read_role.clone()),
                 "rejected_read_role": governed.as_ref().map(|report| report.rejected_read_role.clone()),
+                "rrna_filtered_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "rrna_filtered_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
+                "rrna_removed_reads_r1": governed.as_ref().map(|report| report.removed_reads_r1.clone()),
+                "rrna_removed_reads_r2": governed.as_ref().and_then(|report| report.removed_reads_r2.clone()),
+                "retained_reads": governed.as_ref().map(|report| report.reads_out),
                 "reads_removed": governed.as_ref().map(|report| report.reads_removed),
+                "removed_reads": governed.as_ref().map(|report| report.reads_removed),
                 "bases_removed": governed.as_ref().map(|report| report.bases_removed),
                 "rrna_fraction_removed": governed.as_ref().map(|report| report.rrna_fraction_removed),
+                "depletion_rate": governed.as_ref().map(|report| report.rrna_fraction_removed),
+                "depletion_summary": governed.as_ref().map(rrna_depletion_summary),
                 "rrna_report_tsv": governed.as_ref().map(|report| report.rrna_report_tsv.clone()),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
@@ -488,6 +805,7 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                     .map(|report| report.reference_scope.clone()),
                 "reference_catalog_id": governed.as_ref().map(|report| report.reference_catalog_id.clone()),
                 "reference_index_artifact_id": governed.as_ref().map(|report| report.reference_index_artifact_id.clone()),
+                "host_index_artifact_id": governed.as_ref().map(|report| report.reference_index_artifact_id.clone()),
                 "reference_index_backend": governed.as_ref().map(|report| report.reference_index_backend.clone()),
                 "reference_build_id": governed.as_ref().and_then(|report| report.reference_build_id.clone()),
                 "reference_digest": governed.as_ref().and_then(|report| report.reference_digest.clone()),
@@ -507,11 +825,18 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                     .as_ref()
                     .map(|report| report.report_format.clone()),
                 "retain_unmapped_pairs": governed.as_ref().map(|report| report.retain_unmapped_pairs),
+                "host_depleted_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "host_depleted_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
                 "reads_removed": governed.as_ref().map(|report| report.reads_removed),
+                "depleted_reads": governed.as_ref().map(|report| report.reads_removed),
                 "bases_removed": governed.as_ref().map(|report| report.bases_removed),
                 "host_fraction_removed": governed.as_ref().map(|report| report.host_fraction_removed),
+                "host_hit_rate": governed.as_ref().map(|report| report.host_fraction_removed),
                 "removed_host_r1": governed.as_ref().map(|report| report.removed_host_r1.clone()),
                 "removed_host_r2": governed.as_ref().and_then(|report| report.removed_host_r2.clone()),
+                "removed_host_reads_r1": governed.as_ref().map(|report| report.removed_host_r1.clone()),
+                "removed_host_reads_r2": governed.as_ref().and_then(|report| report.removed_host_r2.clone()),
+                "depletion_summary": governed.as_ref().map(host_depletion_summary),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
                 "report_json": report_path,
@@ -523,11 +848,28 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 bijux_dna_domain_fastq::observer::parse_normalize_primers_report(&raw).ok()
             });
             Some(serde_json::json!({
-                "schema_version": "bijux.fastq.normalize_primers.extra_artifacts.v2",
+                "schema_version": "bijux.fastq.normalize_primers.extra_artifacts.v3",
                 "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "primer_set_id": governed.as_ref().map(|report| report.primer_set_id.clone()),
                 "marker_id": governed.as_ref().and_then(|report| report.marker_id.clone()),
                 "orientation_policy": governed.as_ref().map(|report| report.orientation_policy.clone()),
+                "normalized_reads_r1": governed.as_ref().map(|report| report.output_r1.clone()),
+                "normalized_reads_r2": governed.as_ref().and_then(|report| report.output_r2.clone()),
+                "matched_primers": governed.as_ref().and_then(|report| report.primer_trimmed_reads),
+                "unmatched_reads": governed.as_ref().and_then(|report| {
+                    report
+                        .reads_in
+                        .zip(report.primer_trimmed_reads)
+                        .map(|(reads_in, matched_primers)| reads_in.saturating_sub(matched_primers))
+                }),
+                "trimmed_primer_bases": governed.as_ref().and_then(|report| {
+                    report
+                        .bases_in
+                        .zip(report.bases_out)
+                        .map(|(bases_in, bases_out)| bases_in.saturating_sub(bases_out))
+                }),
                 "primer_orientation_report": governed.as_ref().map(|report| report.primer_orientation_report.clone()),
                 "primer_stats_json": governed.as_ref().map(|report| report.primer_stats_json.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
@@ -553,6 +895,12 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "threads": governed.as_ref().map(|report| report.threads),
+                "reads_retained": governed.as_ref().and_then(|report| report.reads_out),
+                "bases_removed": governed.as_ref().and_then(|report| {
+                    report.bases_in.zip(report.bases_out).map(|(bases_in, bases_out)| {
+                        bases_in.saturating_sub(bases_out)
+                    })
+                }),
                 "damage_mode": governed.as_ref().map(|report| report.damage_mode),
                 "execution_policy": governed.as_ref().map(|report| report.execution_policy),
                 "trim_5p_bases": governed.as_ref().map(|report| report.trim_5p_bases),
@@ -585,13 +933,25 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 bijux_dna_domain_fastq::observer::parse_remove_chimeras_report(&raw).ok()
             });
             Some(serde_json::json!({
-                "schema_version": "bijux.fastq.remove_chimeras.extra_artifacts.v2",
+                "schema_version": "bijux.fastq.remove_chimeras.extra_artifacts.v3",
                 "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
                 "method": governed.as_ref().map(|report| report.method.clone()),
                 "detection_scope": governed.as_ref().map(|report| report.detection_scope.clone()),
+                "filtered_representative_sequences": governed.as_ref().map(|report| report.output_reads.clone()),
+                "chimera_metrics_json": governed.as_ref().map(|report| report.chimera_metrics_json.clone()),
+                "reads_in": governed.as_ref().and_then(|report| report.reads_in),
+                "reads_out": governed.as_ref().and_then(|report| report.reads_out),
+                "chimeras_removed": governed.as_ref().and_then(|report| report.chimeras_removed),
+                "chimera_count": governed.as_ref().and_then(|report| report.chimeras_removed),
+                "non_chimera_count": governed.as_ref().and_then(|report| report.reads_out),
+                "chimera_fraction": governed.as_ref().and_then(|report| report.chimera_fraction),
                 "used_fallback": governed.as_ref().map(|report| report.used_fallback),
                 "chimeras_fasta": governed.as_ref().and_then(|report| report.chimeras_fasta.clone()),
                 "uchime_report_tsv": governed.as_ref().and_then(|report| report.uchime_report_tsv.clone()),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
                 "report_json": report_path,
             }))
@@ -610,15 +970,21 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 bijux_dna_domain_fastq::observer::parse_cluster_otus_report(&raw).ok()
             });
             Some(serde_json::json!({
-                "schema_version": "bijux.fastq.cluster_otus.extra_artifacts.v2",
+                "schema_version": "bijux.fastq.cluster_otus.extra_artifacts.v3",
                 "stage": stage_id,
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "otu_identity": governed.as_ref().map(|report| report.otu_identity),
+                "clustering_threshold": governed.as_ref().map(|report| report.otu_identity),
                 "threads": governed.as_ref().map(|report| report.threads),
                 "otu_table": governed.as_ref().map(|report| report.otu_table.clone()),
+                "otu_table_tsv": governed.as_ref().map(|report| report.otu_table.clone()),
                 "otu_representatives": governed.as_ref().map(|report| report.otu_representatives.clone()),
+                "representative_sequences_fasta": governed.as_ref().map(|report| report.otu_representatives.clone()),
                 "taxonomy_ready_fasta": governed.as_ref().map(|report| report.taxonomy_ready_fasta.clone()),
                 "taxonomy_ready_fastq": governed.as_ref().map(|report| report.taxonomy_ready_fastq.clone()),
+                "otu_count": governed.as_ref().map(|report| report.otu_count),
+                "sample_count": governed.as_ref().map(|report| report.sample_count),
+                "representative_sequence_count": governed.as_ref().map(|report| report.representative_sequence_count),
                 "output_table_kind": governed.as_ref().map(|report| report.output_table_kind.clone()),
                 "used_fallback": governed.as_ref().map(|report| report.used_fallback),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
@@ -632,7 +998,7 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 bijux_dna_domain_fastq::observer::parse_infer_asvs_report(&raw).ok()
             });
             Some(serde_json::json!({
-                "schema_version": "bijux.fastq.infer_asvs.extra_artifacts.v2",
+                "schema_version": "bijux.fastq.infer_asvs.extra_artifacts.v3",
                 "stage": stage_id,
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode),
@@ -640,9 +1006,12 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "pooling_mode": governed.as_ref().map(|report| report.pooling_mode.clone()),
                 "chimera_policy": governed.as_ref().map(|report| report.chimera_policy.clone()),
                 "asv_table_tsv": governed.as_ref().map(|report| report.asv_table_tsv.clone()),
+                "representative_sequences_fasta": governed.as_ref().map(|report| report.asv_sequences_fasta.clone()),
                 "asv_sequences_fasta": governed.as_ref().map(|report| report.asv_sequences_fasta.clone()),
                 "taxonomy_ready_fasta": governed.as_ref().map(|report| report.taxonomy_ready_fasta.clone()),
                 "taxonomy_ready_fastq": governed.as_ref().map(|report| report.taxonomy_ready_fastq.clone()),
+                "asv_count": governed.as_ref().map(|report| report.asv_count),
+                "sample_count": governed.as_ref().map(|report| report.sample_count),
                 "representative_sequence_count": governed.as_ref().map(|report| report.representative_sequence_count),
                 "used_fallback": governed.as_ref().map(|report| report.used_fallback),
                 "report_json": report_path,
@@ -653,16 +1022,27 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
                 bijux_dna_domain_fastq::observer::parse_normalize_abundance_report(&raw).ok()
             });
+            let numeric_output_valid = governed.as_ref().map(|report| {
+                let expected_sum = report.scale_factor.unwrap_or(1.0);
+                report
+                    .per_sample_sums
+                    .iter()
+                    .all(|(_, sum)| sum.is_finite() && (sum - expected_sum).abs() <= 1.0e-6)
+            });
             Some(serde_json::json!({
-                "schema_version": "bijux.fastq.normalize_abundance.extra_artifacts.v2",
+                "schema_version": "bijux.fastq.normalize_abundance.extra_artifacts.v3",
                 "stage": stage_id,
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "method": governed.as_ref().map(|report| report.method.clone()),
+                "normalization_method": governed.as_ref().map(|report| report.method.clone()),
+                "normalized_abundance_tsv": governed.as_ref().map(|report| report.normalized_abundance_tsv.clone()),
                 "normalized_value_column": governed.as_ref().map(|report| report.normalized_value_column.clone()),
                 "compositional_rule": governed.as_ref().map(|report| report.compositional_rule.clone()),
                 "scale_factor": governed.as_ref().and_then(|report| report.scale_factor),
+                "sample_totals": governed.as_ref().map(|report| report.per_sample_sums.clone()),
                 "feature_count": governed.as_ref().map(|report| report.feature_count),
                 "per_sample_sum_count": governed.as_ref().map(|report| report.per_sample_sums.len()),
+                "numeric_output_valid": numeric_output_valid,
                 "report_json": report_path,
             }))
         }
@@ -685,11 +1065,56 @@ pub(super) fn write_stage_standardized_metrics(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unreadable_literal)]
 mod stage_artifact_tests {
     use anyhow::Result;
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{emit_fastq_stage_extra_artifacts, write_stage_standardized_metrics};
+
+    fn index_reference_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "index-reference-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 1.5,
+            memory_mb: 96.0,
+            outputs: vec![stage_root.join("index_reference_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "bowtie2-build".to_string(),
+        }
+    }
+
+    fn write_index_reference_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("index_reference_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.index_reference.report.v2",
+                "stage": "fastq.index_reference",
+                "stage_id": "fastq.index_reference",
+                "tool_id": "bowtie2_build",
+                "threads": 4,
+                "index_format": "bowtie2_build",
+                "reference_fasta": "reference.fa",
+                "reference_bytes": 4096,
+                "reference_index": "reference_index/bowtie2/reference",
+                "report_json": "index_reference_report.json",
+                "index_prefix": "reference",
+                "emitted_files": [
+                    {"relative_path": "bowtie2/reference.1.bt2", "bytes": 1024},
+                    {"relative_path": "bowtie2/reference.2.bt2", "bytes": 2048}
+                ],
+                "index_file_count": 2,
+                "index_bytes": 3072,
+                "runtime_s": 1.5,
+                "memory_mb": 96.0,
+                "exit_code": 0,
+                "backend_metrics": {"index_directory": "reference_index/bowtie2"}
+            }"#,
+        )?;
+        Ok(())
+    }
 
     fn host_execution(stage_root: &std::path::Path) -> StageResultV1 {
         StageResultV1 {
@@ -703,6 +1128,111 @@ mod stage_artifact_tests {
             stderr: String::new(),
             command: "bowtie2".to_string(),
         }
+    }
+
+    fn normalize_primers_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "normalize-primers-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 2.4,
+            memory_mb: 80.0,
+            outputs: vec![stage_root.join("normalize_primers_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "cutadapt".to_string(),
+        }
+    }
+
+    fn infer_asvs_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "infer-asvs-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 12.4,
+            memory_mb: 384.0,
+            outputs: vec![stage_root.join("infer_asvs_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "dada2".to_string(),
+        }
+    }
+
+    fn write_normalize_primers_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("normalize_primers_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.normalize_primers.report.v2",
+                "stage": "fastq.normalize_primers",
+                "stage_id": "fastq.normalize_primers",
+                "tool_id": "cutadapt",
+                "paired_mode": "paired_end",
+                "primer_set_id": "16S_universal_v1",
+                "marker_id": "16S",
+                "primer_fasta": "assets/reference/primers/16S_universal_v1.fasta",
+                "orientation_policy": "normalize_to_forward_primer",
+                "max_mismatch_rate": 0.1,
+                "min_overlap_bp": 10,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "normalized_R1.fastq.gz",
+                "output_r2": "normalized_R2.fastq.gz",
+                "reads_in": 200,
+                "reads_out": 200,
+                "bases_in": 1000,
+                "bases_out": 980,
+                "pairs_in": 100,
+                "pairs_out": 100,
+                "primer_trimmed_reads": 190,
+                "primer_trimmed_fraction": 0.95,
+                "orientation_forward_fraction": 0.93,
+                "primer_orientation_report": "primer_orientation.tsv",
+                "primer_stats_json": "primer_stats.json",
+                "raw_backend_report": "primer_stats.json",
+                "raw_backend_report_format": "cutadapt_json",
+                "runtime_s": 2.4,
+                "memory_mb": 80.0,
+                "used_fallback": false,
+                "backend_metrics": {}
+            }"#,
+        )?;
+        Ok(())
+    }
+
+    fn write_infer_asvs_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("infer_asvs_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.infer_asvs.report.v2",
+                "stage": "fastq.infer_asvs",
+                "stage_id": "fastq.infer_asvs",
+                "tool_id": "dada2",
+                "paired_mode": "single_end",
+                "denoising_method": "dada2",
+                "pooling_mode": "independent",
+                "chimera_policy": "remove_bimera_denovo",
+                "requires_r_runtime": true,
+                "output_table_kind": "asv_abundance_table",
+                "input_reads_r1": "trimmed_reads.fastq.gz",
+                "input_reads_r2": null,
+                "asv_table_tsv": "asv_table.tsv",
+                "asv_sequences_fasta": "representatives.fasta",
+                "taxonomy_ready_fasta": "taxonomy_ready.fasta",
+                "taxonomy_ready_fastq": "taxonomy_ready.fastq",
+                "report_json": "infer_asvs_report.json",
+                "asv_count": 18,
+                "sample_count": 4,
+                "representative_sequence_count": 18,
+                "used_fallback": false,
+                "raw_backend_report": "infer_asvs_report.json",
+                "raw_backend_report_format": "infer_asvs_governed_report_json",
+                "runtime_s": 12.4,
+                "memory_mb": 384.0,
+                "exit_code": 0,
+                "backend_metrics": {"nonchimera_reads": 1600}
+            }"#,
+        )?;
+        Ok(())
     }
 
     fn write_host_report(stage_root: &std::path::Path) -> Result<()> {
@@ -756,6 +1286,278 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn contaminant_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "contaminant-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 5.0,
+            memory_mb: 64.0,
+            outputs: vec![stage_root.join("contaminant_screen_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "bowtie2".to_string(),
+        }
+    }
+
+    fn write_contaminant_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("contaminant_screen_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.deplete_reference_contaminants.report.v2",
+                "stage": "fastq.deplete_reference_contaminants",
+                "stage_id": "fastq.deplete_reference_contaminants",
+                "tool_id": "bowtie2",
+                "paired_mode": "single_end",
+                "threads": 4,
+                "reference_catalog_id": "contaminant_reference",
+                "contaminant_reference": "phix_and_spikeins",
+                "reference_index_artifact_id": "reference_index",
+                "reference_index_backend": "bowtie2_build",
+                "reference_build_id": "2026.03",
+                "reference_digest": "sha256:contaminants",
+                "match_threshold": 0.95,
+                "retained_read_role": "contaminant_screened_reads",
+                "rejected_read_role": "removed_contaminant_reads",
+                "retain_unmapped_pairs": false,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "contaminant_screened.fastq.gz",
+                "output_r2": null,
+                "removed_reads_r1": "removed_contaminant.fastq.gz",
+                "removed_reads_r2": null,
+                "report_json": "contaminant_screen_report.json",
+                "reads_in": 100,
+                "reads_out": 72,
+                "reads_removed": 28,
+                "bases_in": 1000,
+                "bases_out": 700,
+                "bases_removed": 300,
+                "pairs_in": null,
+                "pairs_out": null,
+                "contaminant_fraction_removed": 0.28,
+                "runtime_s": 5.0,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "bowtie2.contaminant.metrics.txt",
+                "raw_backend_report_format": "bowtie2_met_file",
+                "backend_metrics": {"reads_removed": 28}
+            }"#,
+        )?;
+        Ok(())
+    }
+
+    fn screen_taxonomy_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "screen-taxonomy-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 8.0,
+            memory_mb: 256.0,
+            outputs: vec![stage_root.join("kraken2.classifications.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "kraken2".to_string(),
+        }
+    }
+
+    fn write_screen_taxonomy_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("kraken2.classifications.json"),
+            r#"{
+                "schema_version": "bijux.fastq.screen_taxonomy.report.v2",
+                "stage": "fastq.screen_taxonomy",
+                "stage_id": "fastq.screen_taxonomy",
+                "tool_id": "kraken2",
+                "paired_mode": "single_end",
+                "threads": 8,
+                "classifier": "kraken2",
+                "report_format": "kraken_report",
+                "assignment_format": "kraken_assignments",
+                "database_catalog_id": "taxonomy_reference",
+                "database_artifact_id": "taxonomy_db",
+                "database_build_id": "build-2026-03",
+                "database_digest": "sha256:taxonomy-db",
+                "database_namespace": "read_screening",
+                "database_scope": "read_screening",
+                "minimum_confidence": 0.05,
+                "emit_unclassified": true,
+                "interpretation_boundary": "screening_only",
+                "truth_conditions": [],
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "screen_report_tsv": "kraken2.report.tsv",
+                "classification_report_json": "kraken2.classifications.json",
+                "unclassified_reads_r1": "kraken2.unclassified_reads.fastq.gz",
+                "unclassified_reads_r2": null,
+                "reads_in": 100,
+                "reads_out": 100,
+                "bases_in": 1000,
+                "bases_out": 1000,
+                "pairs_in": 0,
+                "pairs_out": 0,
+                "contamination_rate": 0.23,
+                "classified_fraction": 0.77,
+                "unclassified_fraction": 0.23,
+                "summary_entries": [
+                    {"label": "unclassified", "percent": 23.0},
+                    {"label": "bacteria", "percent": 77.0}
+                ],
+                "top_taxa": [
+                    {"label": "bacteria", "percent": 77.0}
+                ],
+                "runtime_s": 8.0,
+                "memory_mb": 256.0
+            }"#,
+        )?;
+        Ok(())
+    }
+
+    fn detect_duplicates_premerge_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "detect-duplicates-premerge-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 1.4,
+            memory_mb: 12.0,
+            outputs: vec![stage_root.join("duplicate_signal_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "bijux-dna".to_string(),
+        }
+    }
+
+    fn write_detect_duplicates_premerge_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("duplicate_signal_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.detect_duplicates_premerge.report.v1",
+                "stage": "fastq.detect_duplicates_premerge",
+                "stage_id": "fastq.detect_duplicates_premerge",
+                "tool_id": "bijux",
+                "paired_mode": "paired_end",
+                "duplicate_detection_policy": "report_only",
+                "measurement_scope": "premerge_sequence_signature",
+                "modifies_reads": false,
+                "advisory_only": true,
+                "reads_in": 12,
+                "duplicate_signal_reads": 4,
+                "duplicate_signal_fraction": 0.3333333333333333,
+                "compared_read_pairs": 6
+            }"#,
+        )?;
+        Ok(())
+    }
+
+    fn estimate_library_complexity_prealign_execution(
+        stage_root: &std::path::Path,
+    ) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "estimate-library-complexity-prealign-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 0.8,
+            memory_mb: 8.0,
+            outputs: vec![stage_root.join("library_complexity_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "bijux-dna".to_string(),
+        }
+    }
+
+    fn write_estimate_library_complexity_prealign_report(
+        stage_root: &std::path::Path,
+    ) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("library_complexity_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.estimate_library_complexity_prealign.report.v1",
+                "stage": "fastq.estimate_library_complexity_prealign",
+                "stage_id": "fastq.estimate_library_complexity_prealign",
+                "tool_id": "bijux",
+                "paired_mode": "single_end",
+                "complexity_policy": "prealign_kmer",
+                "estimate_method": "kmer_redundancy",
+                "modifies_reads": false,
+                "advisory_only": true,
+                "reads_in": 0,
+                "estimated_unique_fraction": 0.0,
+                "estimated_duplicate_fraction": 0.0,
+                "insufficient_data_reason": "insufficient_reads_for_prealign_complexity_estimation",
+                "kmer_size": 31
+            }"#,
+        )?;
+        Ok(())
+    }
+
+    fn correct_errors_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "correct-errors-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 2.2,
+            memory_mb: 96.0,
+            outputs: vec![stage_root.join("correct_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "rcorrector".to_string(),
+        }
+    }
+
+    fn write_correct_errors_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("correct_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.correct_errors.report.v2",
+                "stage": "fastq.correct_errors",
+                "stage_id": "fastq.correct_errors",
+                "tool_id": "rcorrector",
+                "paired_mode": "paired_end",
+                "threads": 4,
+                "correction_engine": "rcorrector",
+                "quality_encoding": "phred33",
+                "kmer_size": null,
+                "musket_kmer_budget": null,
+                "genome_size": null,
+                "max_memory_gb": 16,
+                "trusted_kmer_artifact": null,
+                "conservative_mode": false,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "corrected_R1.fastq.gz",
+                "output_r2": "corrected_R2.fastq.gz",
+                "report_json": "correct_report.json",
+                "corrected_reads": 200,
+                "changed_reads": 18,
+                "unchanged_reads": 182,
+                "reads_in": 200,
+                "reads_out": 200,
+                "bases_in": 20000,
+                "bases_out": 19950,
+                "pairs_in": 100,
+                "pairs_out": 100,
+                "mean_q_before": 28.0,
+                "mean_q_after": 29.1,
+                "kmer_fix_rate": 0.05,
+                "correction_effect": {
+                    "outputs_changed": true,
+                    "reads_delta": 0,
+                    "bases_delta": -50,
+                    "mean_q_delta": 1.1
+                },
+                "runtime_s": 2.2,
+                "memory_mb": 96.0,
+                "exit_code": 0,
+                "raw_backend_report": "rcorrector.log",
+                "raw_backend_report_format": "rcorrector_log",
+                "backend_metrics": {
+                    "trusted_kmers_loaded": false
+                }
+            }"#,
+        )?;
+        Ok(())
+    }
+
     fn trim_terminal_damage_execution(stage_root: &std::path::Path) -> StageResultV1 {
         StageResultV1 {
             run_id: "trim-terminal-damage-fixture".to_string(),
@@ -792,12 +1594,12 @@ mod stage_artifact_tests {
                 "input_r2": null,
                 "output_r1": "trimmed.fastq.gz",
                 "output_r2": null,
-                "reads_in": null,
-                "reads_out": null,
-                "bases_in": null,
-                "bases_out": null,
-                "mean_q_before": null,
-                "mean_q_after": null,
+                "reads_in": 100,
+                "reads_out": 100,
+                "bases_in": 1000,
+                "bases_out": 700,
+                "mean_q_before": 27.5,
+                "mean_q_after": 28.0,
                 "ct_ga_asymmetry_pre": 0.42,
                 "ct_ga_asymmetry_post": 0.11,
                 "ct_ga_asymmetry_pre_r1": 0.42,
@@ -817,6 +1619,143 @@ mod stage_artifact_tests {
             }}"#,
                 tool_id = bijux_dna_core::id_catalog::TOOL_CUTADAPT
             ),
+        )?;
+        Ok(())
+    }
+
+    fn trim_reads_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "trim-reads-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 3.2,
+            memory_mb: 40.0,
+            outputs: vec![stage_root.join("trim_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "fastp".to_string(),
+        }
+    }
+
+    fn write_trim_reads_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("trim_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.trim_reads.report.v2",
+                "stage": "fastq.trim_reads",
+                "stage_id": "fastq.trim_reads",
+                "tool_id": "fastp",
+                "paired_mode": "paired_end",
+                "threads": 4,
+                "trimming_backend": "fastp",
+                "backend_mode": "enforced",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "trimmed_R1.fastq.gz",
+                "output_r2": "trimmed_R2.fastq.gz",
+                "min_length": 30,
+                "quality_cutoff": 20,
+                "adapter_policy": "bank",
+                "polyx_policy": "trim",
+                "n_policy": "retain",
+                "contaminant_policy": "none",
+                "adapter_bank_id": "illumina",
+                "adapter_bank_hash": "sha256:adapter",
+                "adapter_preset": "illumina-default",
+                "detected_adapter_source": "governed_pattern_scan",
+                "adapter_overrides": {
+                    "enable": ["AGATCGGAAGAGC"]
+                },
+                "prepared_adapter_bank": null,
+                "polyx_bank_id": "polyx",
+                "polyx_bank_hash": "sha256:polyx",
+                "polyx_preset": "illumina_twocolor",
+                "contaminant_bank_id": null,
+                "contaminant_bank_hash": null,
+                "contaminant_preset": null,
+                "reads_in": 100,
+                "reads_out": 92,
+                "bases_in": 1000,
+                "bases_out": 850,
+                "pairs_in": 50,
+                "pairs_out": 46,
+                "mean_q_before": 28.0,
+                "mean_q_after": 30.0,
+                "effective_trim_params": {
+                    "adapter_policy": "bank",
+                    "min_length": 30,
+                    "quality_cutoff": 20
+                },
+                "runtime_s": 3.2,
+                "memory_mb": 40.0,
+                "raw_backend_report": "trim.fastp.json",
+                "raw_backend_report_format": "fastp_json"
+            }"#,
+        )?;
+        Ok(())
+    }
+
+    fn filter_reads_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "filter-reads-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 1.6,
+            memory_mb: 64.0,
+            outputs: vec![stage_root.join("filter_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "fastp".to_string(),
+        }
+    }
+
+    fn write_filter_reads_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("filter_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.filter_reads.report.v3",
+                "stage": "fastq.filter_reads",
+                "stage_id": "fastq.filter_reads",
+                "tool_id": "fastp",
+                "paired_mode": "paired_end",
+                "threads": 8,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "filtered_R1.fastq.gz",
+                "output_r2": "filtered_R2.fastq.gz",
+                "report_json": "filter_report.json",
+                "max_n": 0,
+                "max_n_fraction": 0.05,
+                "max_n_count": 3,
+                "low_complexity_threshold": 20.0,
+                "entropy_threshold": 18.0,
+                "n_policy": "drop",
+                "polyx_policy": "trim",
+                "contaminant_db": "contaminants.fa",
+                "reads_in": 100,
+                "reads_out": 95,
+                "reads_dropped": 5,
+                "reads_removed_by_n": 2,
+                "reads_removed_by_entropy": 1,
+                "reads_removed_low_complexity": 1,
+                "reads_removed_by_kmer": 0,
+                "reads_removed_contaminant_kmer": 0,
+                "reads_removed_by_length": 1,
+                "bases_in": 1000,
+                "bases_out": 920,
+                "pairs_in": 50,
+                "pairs_out": 47,
+                "mean_q_before": 28.0,
+                "mean_q_after": 30.0,
+                "runtime_s": 1.6,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "fastp.filter.json",
+                "raw_backend_report_format": "fastp_json",
+                "backend_metrics": {
+                    "passed_filter_reads": 95
+                }
+            }"#,
         )?;
         Ok(())
     }
@@ -860,6 +1799,7 @@ mod stage_artifact_tests {
                 "pairs_out": null,
                 "mean_q_before": 28.0,
                 "mean_q_after": 29.4,
+                "trimmed_tail_count": 4,
                 "bases_trimmed_polyg": 90,
                 "polyx_bank_id": "polyx",
                 "polyx_bank_hash": "sha256:polyx",
@@ -875,6 +1815,59 @@ mod stage_artifact_tests {
             }}"#,
                 tool_id = bijux_dna_core::id_catalog::TOOL_FASTP
             ),
+        )?;
+        Ok(())
+    }
+
+    fn filter_low_complexity_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "filter-low-complexity-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 1.1,
+            memory_mb: 64.0,
+            outputs: vec![stage_root.join("low_complexity_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "bbduk".to_string(),
+        }
+    }
+
+    fn write_filter_low_complexity_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("low_complexity_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.filter_low_complexity.report.v2",
+                "stage": "fastq.filter_low_complexity",
+                "stage_id": "fastq.filter_low_complexity",
+                "tool_id": "bbduk",
+                "paired_mode": "single_end",
+                "threads": 8,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "filtered.fastq.gz",
+                "output_r2": null,
+                "report_json": "low_complexity_report.json",
+                "entropy_threshold": 0.5,
+                "polyx_threshold": 20,
+                "reads_in": 100,
+                "reads_out": 92,
+                "reads_removed_low_complexity": 8,
+                "bases_in": 1000,
+                "bases_out": 910,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q_before": 28.0,
+                "mean_q_after": 29.0,
+                "runtime_s": 1.1,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "bbduk.low_complexity.stats",
+                "raw_backend_report_format": "bbduk_stats",
+                "backend_metrics": {
+                    "reads_removed_reported": 8
+                }
+            }"#,
         )?;
         Ok(())
     }
@@ -980,6 +1973,155 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn remove_chimeras_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "remove-chimeras-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 1.7,
+            memory_mb: 32.0,
+            outputs: vec![stage_root.join("remove_chimeras_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "vsearch".to_string(),
+        }
+    }
+
+    fn write_remove_chimeras_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("remove_chimeras_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.remove_chimeras.report.v2",
+                "stage": "fastq.remove_chimeras",
+                "stage_id": "fastq.remove_chimeras",
+                "tool_id": "vsearch",
+                "paired_mode": "single_end",
+                "threads": 2,
+                "method": "vsearch_uchime_denovo",
+                "detection_scope": "denovo",
+                "chimera_removed_definition": "reads flagged as de_novo chimeras are excluded from downstream abundance tables",
+                "input_reads": "merged.fastq.gz",
+                "output_reads": "nonchimeras.fastq.gz",
+                "chimera_metrics_json": "chimera_metrics.json",
+                "chimeras_fasta": "chimeras.fasta",
+                "uchime_report_tsv": "uchime.tsv",
+                "reads_in": 100,
+                "reads_out": 92,
+                "chimeras_removed": 8,
+                "chimera_fraction": 0.08,
+                "used_fallback": false,
+                "raw_backend_report": "uchime.tsv",
+                "raw_backend_report_format": "vsearch_uchime_tsv",
+                "runtime_s": 1.7,
+                "memory_mb": 32.0,
+                "exit_code": 0,
+                "backend_metrics": {
+                    "parsed_records": 100,
+                    "flagged_records": 8
+                }
+            }"#,
+        )?;
+        Ok(())
+    }
+
+    fn cluster_otus_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "cluster-otus-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 3.4,
+            memory_mb: 96.0,
+            outputs: vec![stage_root.join("cluster_otus_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "vsearch".to_string(),
+        }
+    }
+
+    fn write_cluster_otus_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("cluster_otus_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.cluster_otus.report.v2",
+                "stage": "fastq.cluster_otus",
+                "stage_id": "fastq.cluster_otus",
+                "tool_id": "vsearch",
+                "otu_identity": 0.97,
+                "threads": 4,
+                "input_reads": "merged.fastq.gz",
+                "otu_table": "otu_abundance.tsv",
+                "otu_representatives": "otu_representatives.fasta",
+                "taxonomy_ready_fasta": "taxonomy_ready.fasta",
+                "taxonomy_ready_fastq": "taxonomy_ready.fastq",
+                "report_json": "cluster_otus_report.json",
+                "otu_count": 18,
+                "sample_count": 4,
+                "representative_sequence_count": 18,
+                "output_table_kind": "otu_abundance_table",
+                "used_fallback": false,
+                "runtime_s": 3.4,
+                "memory_mb": 96.0,
+                "exit_code": 0,
+                "raw_backend_report": "otu_clusters.uc",
+                "raw_backend_report_format": "vsearch_uc",
+                "backend_metrics": {
+                    "cluster_memberships": 18
+                }
+            }"#,
+        )?;
+        Ok(())
+    }
+
+    fn normalize_abundance_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "normalize-abundance-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 1.8,
+            memory_mb: 24.0,
+            outputs: vec![stage_root.join("normalize_abundance_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "seqkit".to_string(),
+        }
+    }
+
+    fn write_normalize_abundance_report(stage_root: &std::path::Path) -> Result<()> {
+        bijux_dna_infra::write_bytes(
+            stage_root.join("normalize_abundance_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.normalize_abundance.report.v2",
+                "stage": "fastq.normalize_abundance",
+                "stage_id": "fastq.normalize_abundance",
+                "tool_id": "seqkit",
+                "method": "counts_per_million",
+                "input_table": "otu_abundance.tsv",
+                "normalized_abundance_tsv": "abundance_normalized.tsv",
+                "expected_columns": ["sample_id", "feature_id", "abundance"],
+                "input_value_column": "abundance",
+                "normalized_value_column": "counts_per_million",
+                "compositional_rule": "per_sample_sum_to_one_million",
+                "scale_factor": 1000000.0,
+                "table_rows": 12,
+                "sample_count": 2,
+                "feature_count": 4,
+                "zero_fraction": 0.25,
+                "per_sample_sums": [["sample_a", 1000000.0], ["sample_b", 1000000.0]],
+                "runtime_s": 1.8,
+                "memory_mb": 24.0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": null,
+                "used_fallback": false,
+                "backend_metrics": {
+                    "metric_set": {
+                        "table_rows": 12
+                    }
+                }
+            }"#,
+        )?;
+        Ok(())
+    }
+
     #[test]
     fn host_extra_artifacts_prefer_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
@@ -994,8 +2136,137 @@ mod stage_artifact_tests {
             serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
         assert_eq!(extra["tool"], serde_json::json!("bowtie2"));
         assert_eq!(extra["reference_catalog_id"], serde_json::json!("host_reference"));
+        assert_eq!(extra["host_index_artifact_id"], serde_json::json!("reference_index"));
+        assert_eq!(extra["host_depleted_reads_r1"], serde_json::json!("host_depleted.fastq.gz"));
+        assert_eq!(extra["host_depleted_reads_r2"], serde_json::Value::Null);
         assert_eq!(extra["reads_removed"], serde_json::json!(30));
+        assert_eq!(extra["depleted_reads"], serde_json::json!(30));
         assert_eq!(extra["host_fraction_removed"], serde_json::json!(0.30));
+        assert_eq!(extra["host_hit_rate"], serde_json::json!(0.30));
+        assert_eq!(extra["removed_host_r1"], serde_json::json!("removed_host.fastq.gz"));
+        assert_eq!(extra["removed_host_reads_r1"], serde_json::json!("removed_host.fastq.gz"));
+        assert_eq!(
+            extra["depletion_summary"]["removed_host_r1"],
+            serde_json::json!("removed_host.fastq.gz")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn deplete_reference_contaminants_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_contaminant_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.deplete_reference_contaminants",
+            &contaminant_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("bowtie2"));
+        assert_eq!(extra["contaminant_reference"], serde_json::json!("phix_and_spikeins"));
+        assert_eq!(extra["contaminant_index_artifact_id"], serde_json::json!("reference_index"));
+        assert_eq!(
+            extra["contaminant_screened_reads_r1"],
+            serde_json::json!("contaminant_screened.fastq.gz")
+        );
+        assert_eq!(extra["contaminant_screened_reads_r2"], serde_json::Value::Null);
+        assert_eq!(
+            extra["removed_contaminant_reads_r1"],
+            serde_json::json!("removed_contaminant.fastq.gz")
+        );
+        assert_eq!(extra["reads_removed"], serde_json::json!(28));
+        assert_eq!(extra["contaminant_reads"], serde_json::json!(28));
+        assert_eq!(extra["contaminant_fraction_removed"], serde_json::json!(0.28));
+        assert_eq!(extra["contaminant_hit_rate"], serde_json::json!(0.28));
+        assert_eq!(
+            extra["depletion_summary"]["removed_reads_r1"],
+            serde_json::json!("removed_contaminant.fastq.gz")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn deplete_rrna_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        std::fs::write(
+            temp.path().join("rrna_report.json"),
+            serde_json::json!({
+                "schema_version": "bijux.fastq.deplete_rrna.report.v2",
+                "stage": "fastq.deplete_rrna",
+                "stage_id": "fastq.deplete_rrna",
+                "tool_id": "sortmerna",
+                "paired_mode": "single_end",
+                "threads": 4,
+                "rrna_db": "/refs/silva",
+                "database_artifact_id": "silva_nr99",
+                "database_build_id": "2026.03",
+                "database_digest": "sha256:silva",
+                "screening_engine": "sortmerna",
+                "report_format": "summary_tsv_and_json",
+                "emit_removed_reads": false,
+                "min_identity": 0.95,
+                "retained_read_role": "rrna_filtered_reads",
+                "rejected_read_role": "removed_rrna_reads",
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "rrna_filtered.fastq.gz",
+                "output_r2": null,
+                "removed_reads_r1": "removed_rrna.fastq.gz",
+                "removed_reads_r2": null,
+                "rrna_report_tsv": "rrna_report.tsv",
+                "rrna_report_json": "rrna_report.json",
+                "reads_in": 100,
+                "reads_out": 64,
+                "reads_removed": 36,
+                "bases_in": 1000,
+                "bases_out": 620,
+                "bases_removed": 380,
+                "pairs_in": null,
+                "pairs_out": null,
+                "rrna_fraction_removed": 0.36,
+                "runtime_s": 5.0,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "sortmerna.log",
+                "raw_backend_report_format": "sortmerna_log",
+                "backend_metrics": {"reads_removed": 36}
+            })
+            .to_string(),
+        )?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.deplete_rrna",
+            &StageResultV1 {
+                run_id: "deplete-rrna-fixture".to_string(),
+                exit_code: 0,
+                runtime_s: 5.0,
+                memory_mb: 64.0,
+                outputs: vec![temp.path().join("rrna_report.json")],
+                metrics_path: None,
+                stdout: String::new(),
+                stderr: String::new(),
+                command: "sortmerna".to_string(),
+            },
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("sortmerna"));
+        assert_eq!(extra["rrna_db"], serde_json::json!("/refs/silva"));
+        assert_eq!(extra["rrna_filtered_r1"], serde_json::json!("rrna_filtered.fastq.gz"));
+        assert_eq!(extra["rrna_filtered_r2"], serde_json::Value::Null);
+        assert_eq!(extra["rrna_removed_reads_r1"], serde_json::json!("removed_rrna.fastq.gz"));
+        assert_eq!(extra["retained_reads"], serde_json::json!(64));
+        assert_eq!(extra["reads_removed"], serde_json::json!(36));
+        assert_eq!(extra["removed_reads"], serde_json::json!(36));
+        assert_eq!(extra["depletion_rate"], serde_json::json!(0.36));
+        assert_eq!(
+            extra["depletion_summary"]["removed_reads_r1"],
+            serde_json::json!("removed_rrna.fastq.gz")
+        );
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("sortmerna.log"));
         Ok(())
     }
 
@@ -1015,11 +2286,235 @@ mod stage_artifact_tests {
         assert_eq!(extra["threads"], serde_json::json!(4));
         assert_eq!(extra["reads_r1"], serde_json::json!(100));
         assert_eq!(extra["reads_r2"], serde_json::json!(100));
+        assert_eq!(extra["input_pair_count"], serde_json::json!(100));
         assert_eq!(extra["reads_merged"], serde_json::json!(88));
         assert_eq!(extra["reads_unmerged"], serde_json::json!(12));
+        assert_eq!(extra["merged_pair_count"], serde_json::json!(88));
+        assert_eq!(extra["unmerged_pair_count"], serde_json::json!(12));
+        assert_eq!(extra["discarded_pair_count"], serde_json::json!(0));
         assert_eq!(extra["merge_rate"], serde_json::json!(0.88));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("pear.log"));
         assert_eq!(extra["raw_backend_report_format"], serde_json::json!("pear_log"));
+        Ok(())
+    }
+
+    #[test]
+    fn cluster_otus_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_cluster_otus_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.cluster_otus",
+            &cluster_otus_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("vsearch"));
+        assert_eq!(extra["clustering_threshold"], serde_json::json!(0.97));
+        assert_eq!(extra["threads"], serde_json::json!(4));
+        assert_eq!(extra["otu_table"], serde_json::json!("otu_abundance.tsv"));
+        assert_eq!(extra["otu_table_tsv"], serde_json::json!("otu_abundance.tsv"));
+        assert_eq!(extra["otu_representatives"], serde_json::json!("otu_representatives.fasta"));
+        assert_eq!(
+            extra["representative_sequences_fasta"],
+            serde_json::json!("otu_representatives.fasta")
+        );
+        assert_eq!(extra["otu_count"], serde_json::json!(18));
+        assert_eq!(extra["sample_count"], serde_json::json!(4));
+        assert_eq!(extra["representative_sequence_count"], serde_json::json!(18));
+        assert_eq!(extra["output_table_kind"], serde_json::json!("otu_abundance_table"));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("otu_clusters.uc"));
+        assert_eq!(extra["raw_backend_report_format"], serde_json::json!("vsearch_uc"));
+        Ok(())
+    }
+
+    #[test]
+    fn normalize_abundance_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_normalize_abundance_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.normalize_abundance",
+            &normalize_abundance_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("seqkit"));
+        assert_eq!(extra["method"], serde_json::json!("counts_per_million"));
+        assert_eq!(extra["normalization_method"], serde_json::json!("counts_per_million"));
+        assert_eq!(
+            extra["normalized_abundance_tsv"],
+            serde_json::json!("abundance_normalized.tsv")
+        );
+        assert_eq!(extra["compositional_rule"], serde_json::json!("per_sample_sum_to_one_million"));
+        assert_eq!(extra["scale_factor"], serde_json::json!(1_000_000.0));
+        assert_eq!(
+            extra["sample_totals"],
+            serde_json::json!([["sample_a", 1_000_000.0], ["sample_b", 1_000_000.0]])
+        );
+        assert_eq!(extra["feature_count"], serde_json::json!(4));
+        assert_eq!(extra["per_sample_sum_count"], serde_json::json!(2));
+        assert_eq!(extra["numeric_output_valid"], serde_json::json!(true));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("normalize_abundance_report.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn remove_chimeras_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_remove_chimeras_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.remove_chimeras",
+            &remove_chimeras_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("vsearch"));
+        assert_eq!(extra["paired_mode"], serde_json::json!("single_end"));
+        assert_eq!(extra["threads"], serde_json::json!(2));
+        assert_eq!(extra["method"], serde_json::json!("vsearch_uchime_denovo"));
+        assert_eq!(extra["detection_scope"], serde_json::json!("denovo"));
+        assert_eq!(
+            extra["filtered_representative_sequences"],
+            serde_json::json!("nonchimeras.fastq.gz")
+        );
+        assert_eq!(extra["chimera_metrics_json"], serde_json::json!("chimera_metrics.json"));
+        assert_eq!(extra["reads_in"], serde_json::json!(100));
+        assert_eq!(extra["reads_out"], serde_json::json!(92));
+        assert_eq!(extra["chimeras_removed"], serde_json::json!(8));
+        assert_eq!(extra["chimera_count"], serde_json::json!(8));
+        assert_eq!(extra["non_chimera_count"], serde_json::json!(92));
+        assert_eq!(extra["chimera_fraction"], serde_json::json!(0.08));
+        assert_eq!(extra["chimeras_fasta"], serde_json::json!("chimeras.fasta"));
+        assert_eq!(extra["uchime_report_tsv"], serde_json::json!("uchime.tsv"));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("uchime.tsv"));
+        assert_eq!(extra["raw_backend_report_format"], serde_json::json!("vsearch_uchime_tsv"));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("remove_chimeras_report.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn detect_duplicates_premerge_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_detect_duplicates_premerge_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.detect_duplicates_premerge",
+            &detect_duplicates_premerge_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("bijux"));
+        assert_eq!(extra["paired_mode"], serde_json::json!("paired_end"));
+        assert_eq!(extra["duplicate_detection_policy"], serde_json::json!("report_only"));
+        assert_eq!(extra["measurement_scope"], serde_json::json!("premerge_sequence_signature"));
+        assert_eq!(extra["reads_in"], serde_json::json!(12));
+        assert_eq!(extra["duplicate_count"], serde_json::json!(4));
+        assert_eq!(extra["duplicate_fraction"], serde_json::json!(0.333_333_333_333_333_3));
+        assert_eq!(extra["inspected_pair_count"], serde_json::json!(6));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("duplicate_signal_report.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn estimate_library_complexity_prealign_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_estimate_library_complexity_prealign_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.estimate_library_complexity_prealign",
+            &estimate_library_complexity_prealign_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("bijux"));
+        assert_eq!(extra["paired_mode"], serde_json::json!("single_end"));
+        assert_eq!(extra["complexity_policy"], serde_json::json!("prealign_kmer"));
+        assert_eq!(extra["estimate_method"], serde_json::json!("kmer_redundancy"));
+        assert_eq!(extra["reads_in"], serde_json::json!(0));
+        assert_eq!(extra["estimated_complexity"], serde_json::Value::Null);
+        assert_eq!(extra["estimated_duplicate_fraction"], serde_json::json!(0.0));
+        assert_eq!(
+            extra["insufficient_data_reason"],
+            serde_json::json!("insufficient_reads_for_prealign_complexity_estimation")
+        );
+        assert_eq!(extra["complexity_status"], serde_json::json!("insufficient_data"));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("library_complexity_report.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn correct_errors_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_correct_errors_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.correct_errors",
+            &correct_errors_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("rcorrector"));
+        assert_eq!(extra["threads"], serde_json::json!(4));
+        assert_eq!(extra["corrected_reads_r1"], serde_json::json!("corrected_R1.fastq.gz"));
+        assert_eq!(extra["corrected_reads_r2"], serde_json::json!("corrected_R2.fastq.gz"));
+        assert_eq!(extra["corrected_reads"], serde_json::json!(200));
+        assert_eq!(extra["changed_reads"], serde_json::json!(18));
+        assert_eq!(extra["unchanged_reads"], serde_json::json!(182));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("rcorrector.log"));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("correct_report.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn index_reference_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_index_reference_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.index_reference",
+            &index_reference_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("bowtie2_build"));
+        assert_eq!(extra["index_directory"], serde_json::json!("reference_index/bowtie2"));
+        assert_eq!(
+            extra["index_files"],
+            serde_json::json!([
+                {"relative_path": "bowtie2/reference.1.bt2", "bytes": 1024},
+                {"relative_path": "bowtie2/reference.2.bt2", "bytes": 2048}
+            ])
+        );
+        assert_eq!(extra["elapsed_time_s"], serde_json::json!(1.5));
+        assert_eq!(extra["index_size_bytes"], serde_json::json!(3072));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("index_reference_report.json"))
+        );
         Ok(())
     }
 
@@ -1038,8 +2533,197 @@ mod stage_artifact_tests {
             temp.path().join("stage.metrics.standardized.json"),
         )?)?;
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
+        assert_eq!(metrics["host_index_artifact_id"], serde_json::json!("reference_index"));
+        assert_eq!(metrics["host_depleted_reads_r1"], serde_json::json!("host_depleted.fastq.gz"));
         assert_eq!(metrics["reads_removed"], serde_json::json!(30));
+        assert_eq!(metrics["depleted_reads"], serde_json::json!(30));
         assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
+        assert_eq!(metrics["host_hit_rate"], serde_json::json!(0.30));
+        assert_eq!(
+            metrics["depletion_summary"]["removed_host_r1"],
+            serde_json::json!("removed_host.fastq.gz")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn index_reference_standardized_metrics_writer_uses_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_index_reference_report(temp.path())?;
+        write_stage_standardized_metrics(
+            temp.path(),
+            "fastq.index_reference",
+            temp.path(),
+            &index_reference_execution(temp.path()),
+        )?;
+
+        let metrics: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.metrics.standardized.json"),
+        )?)?;
+        assert_eq!(metrics["tool"], serde_json::json!("bowtie2_build"));
+        assert_eq!(metrics["index_directory"], serde_json::json!("reference_index/bowtie2"));
+        assert_eq!(
+            metrics["index_files"],
+            serde_json::json!([
+                {"relative_path": "bowtie2/reference.1.bt2", "bytes": 1024},
+                {"relative_path": "bowtie2/reference.2.bt2", "bytes": 2048}
+            ])
+        );
+        assert_eq!(metrics["elapsed_time_s"], serde_json::json!(1.5));
+        assert_eq!(metrics["index_size_bytes"], serde_json::json!(3072));
+        Ok(())
+    }
+
+    #[test]
+    fn screen_taxonomy_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_screen_taxonomy_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.screen_taxonomy",
+            &screen_taxonomy_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("kraken2"));
+        assert_eq!(extra["taxonomy_database_id"], serde_json::json!("taxonomy_db"));
+        assert_eq!(extra["classified_reads"], serde_json::json!(77));
+        assert_eq!(extra["unclassified_reads"], serde_json::json!(23));
+        assert_eq!(extra["top_taxa"][0]["label"], serde_json::json!("bacteria"));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("kraken2.classifications.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn contaminant_standardized_metrics_writer_uses_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_contaminant_report(temp.path())?;
+        write_stage_standardized_metrics(
+            temp.path(),
+            "fastq.deplete_reference_contaminants",
+            temp.path(),
+            &contaminant_execution(temp.path()),
+        )?;
+
+        let metrics: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.metrics.standardized.json"),
+        )?)?;
+        assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
+        assert_eq!(metrics["contaminant_index_artifact_id"], serde_json::json!("reference_index"));
+        assert_eq!(
+            metrics["contaminant_screened_reads_r1"],
+            serde_json::json!("contaminant_screened.fastq.gz")
+        );
+        assert_eq!(
+            metrics["removed_contaminant_reads_r1"],
+            serde_json::json!("removed_contaminant.fastq.gz")
+        );
+        assert_eq!(metrics["reads_removed"], serde_json::json!(28));
+        assert_eq!(metrics["contaminant_reads"], serde_json::json!(28));
+        assert_eq!(metrics["contaminant_fraction_removed"], serde_json::json!(0.28));
+        assert_eq!(metrics["contaminant_hit_rate"], serde_json::json!(0.28));
+        assert_eq!(
+            metrics["depletion_summary"]["removed_reads_r1"],
+            serde_json::json!("removed_contaminant.fastq.gz")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn screen_taxonomy_standardized_metrics_writer_uses_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_screen_taxonomy_report(temp.path())?;
+        write_stage_standardized_metrics(
+            temp.path(),
+            "fastq.screen_taxonomy",
+            temp.path(),
+            &screen_taxonomy_execution(temp.path()),
+        )?;
+
+        let metrics: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.metrics.standardized.json"),
+        )?)?;
+        assert_eq!(metrics["tool"], serde_json::json!("kraken2"));
+        assert_eq!(metrics["taxonomy_database_id"], serde_json::json!("taxonomy_db"));
+        assert_eq!(metrics["classified_reads"], serde_json::json!(77));
+        assert_eq!(metrics["unclassified_reads"], serde_json::json!(23));
+        assert_eq!(metrics["top_taxa"][0]["label"], serde_json::json!("bacteria"));
+        Ok(())
+    }
+
+    #[test]
+    fn detect_duplicates_premerge_standardized_metrics_writer_uses_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_detect_duplicates_premerge_report(temp.path())?;
+        write_stage_standardized_metrics(
+            temp.path(),
+            "fastq.detect_duplicates_premerge",
+            temp.path(),
+            &detect_duplicates_premerge_execution(temp.path()),
+        )?;
+
+        let metrics: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.metrics.standardized.json"),
+        )?)?;
+        assert_eq!(metrics["tool"], serde_json::json!("bijux"));
+        assert_eq!(metrics["reads_in"], serde_json::json!(12));
+        assert_eq!(metrics["duplicate_count"], serde_json::json!(4));
+        assert_eq!(metrics["duplicate_fraction"], serde_json::json!(0.333_333_333_333_333_3));
+        assert_eq!(metrics["inspected_pair_count"], serde_json::json!(6));
+        Ok(())
+    }
+
+    #[test]
+    fn estimate_library_complexity_prealign_standardized_metrics_writer_uses_governed_report(
+    ) -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_estimate_library_complexity_prealign_report(temp.path())?;
+        write_stage_standardized_metrics(
+            temp.path(),
+            "fastq.estimate_library_complexity_prealign",
+            temp.path(),
+            &estimate_library_complexity_prealign_execution(temp.path()),
+        )?;
+
+        let metrics: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.metrics.standardized.json"),
+        )?)?;
+        assert_eq!(metrics["tool"], serde_json::json!("bijux"));
+        assert_eq!(metrics["reads_in"], serde_json::json!(0));
+        assert_eq!(metrics["estimated_complexity"], serde_json::Value::Null);
+        assert_eq!(metrics["estimated_duplicate_fraction"], serde_json::json!(0.0));
+        assert_eq!(
+            metrics["insufficient_data_reason"],
+            serde_json::json!("insufficient_reads_for_prealign_complexity_estimation")
+        );
+        assert_eq!(metrics["complexity_status"], serde_json::json!("insufficient_data"));
+        Ok(())
+    }
+
+    #[test]
+    fn correct_errors_standardized_metrics_writer_uses_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_correct_errors_report(temp.path())?;
+        write_stage_standardized_metrics(
+            temp.path(),
+            "fastq.correct_errors",
+            temp.path(),
+            &correct_errors_execution(temp.path()),
+        )?;
+
+        let metrics: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.metrics.standardized.json"),
+        )?)?;
+        assert_eq!(metrics["tool"], serde_json::json!("rcorrector"));
+        assert_eq!(metrics["corrected_reads_r1"], serde_json::json!("corrected_R1.fastq.gz"));
+        assert_eq!(metrics["corrected_reads_r2"], serde_json::json!("corrected_R2.fastq.gz"));
+        assert_eq!(metrics["corrected_reads"], serde_json::json!(200));
+        assert_eq!(metrics["changed_reads"], serde_json::json!(18));
+        assert_eq!(metrics["unchanged_reads"], serde_json::json!(182));
         Ok(())
     }
 
@@ -1059,8 +2743,78 @@ mod stage_artifact_tests {
         assert_eq!(extra["threads"], serde_json::json!(4));
         assert_eq!(extra["trim_5p_bases"], serde_json::json!(2));
         assert_eq!(extra["trim_3p_bases"], serde_json::json!(1));
+        assert_eq!(extra["reads_retained"], serde_json::json!(100));
+        assert_eq!(extra["bases_removed"], serde_json::json!(300));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("cutadapt.raw.json"));
         assert_eq!(extra["used_fallback"], serde_json::json!(false));
+        Ok(())
+    }
+
+    #[test]
+    fn trim_reads_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_trim_reads_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.trim_reads",
+            &trim_reads_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("fastp"));
+        assert_eq!(extra["trimmed_reads_r1"], serde_json::json!("trimmed_R1.fastq.gz"));
+        assert_eq!(extra["trimmed_reads_r2"], serde_json::json!("trimmed_R2.fastq.gz"));
+        assert_eq!(extra["report_json"], serde_json::json!(temp.path().join("trim_report.json")));
+        assert_eq!(extra["reads_retained"], serde_json::json!(92));
+        assert_eq!(extra["reads_dropped"], serde_json::json!(8));
+        assert_eq!(extra["bases_removed"], serde_json::json!(150));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("trim.fastp.json"));
+        Ok(())
+    }
+
+    #[test]
+    fn filter_reads_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_filter_reads_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.filter_reads",
+            &filter_reads_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("fastp"));
+        assert_eq!(extra["filtered_reads_r1"], serde_json::json!("filtered_R1.fastq.gz"));
+        assert_eq!(extra["filtered_reads_r2"], serde_json::json!("filtered_R2.fastq.gz"));
+        assert_eq!(extra["report_json"], serde_json::json!(temp.path().join("filter_report.json")));
+        assert_eq!(extra["reads_retained"], serde_json::json!(95));
+        assert_eq!(extra["reads_removed"], serde_json::json!(5));
+        assert_eq!(extra["reads_removed_by_n"], serde_json::json!(2));
+        assert_eq!(extra["reads_removed_by_length"], serde_json::json!(1));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("fastp.filter.json"));
+        Ok(())
+    }
+
+    #[test]
+    fn filter_low_complexity_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_filter_low_complexity_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.filter_low_complexity",
+            &filter_low_complexity_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("bbduk"));
+        assert_eq!(extra["filtered_fastq_r1"], serde_json::json!("filtered.fastq.gz"));
+        assert_eq!(extra["filtered_fastq_r2"], serde_json::Value::Null);
+        assert_eq!(extra["reads_removed_low_complexity"], serde_json::json!(8));
+        assert_eq!(extra["polyx_threshold"], serde_json::json!(20));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("bbduk.low_complexity.stats"));
         Ok(())
     }
 
@@ -1079,6 +2833,8 @@ mod stage_artifact_tests {
         assert_eq!(extra["tool"], serde_json::json!(bijux_dna_core::id_catalog::TOOL_FASTP));
         assert_eq!(extra["threads"], serde_json::json!(6));
         assert_eq!(extra["trim_polyg"], serde_json::json!(true));
+        assert_eq!(extra["trimmed_tail_count"], serde_json::json!(4));
+        assert_eq!(extra["bases_trimmed_polyg"], serde_json::json!(90));
         assert_eq!(extra["polyx_bank_id"], serde_json::json!("polyx"));
         assert_eq!(extra["polyx_preset"], serde_json::json!("illumina_twocolor"));
         assert_eq!(
@@ -1088,6 +2844,68 @@ mod stage_artifact_tests {
         assert_eq!(
             extra["report_json"],
             serde_json::json!(temp.path().join("trim_polyg_tails_report.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn normalize_primers_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_normalize_primers_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.normalize_primers",
+            &normalize_primers_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("cutadapt"));
+        assert_eq!(extra["paired_mode"], serde_json::json!("paired_end"));
+        assert_eq!(extra["primer_set_id"], serde_json::json!("16S_universal_v1"));
+        assert_eq!(extra["normalized_reads_r1"], serde_json::json!("normalized_R1.fastq.gz"));
+        assert_eq!(extra["normalized_reads_r2"], serde_json::json!("normalized_R2.fastq.gz"));
+        assert_eq!(extra["matched_primers"], serde_json::json!(190));
+        assert_eq!(extra["unmatched_reads"], serde_json::json!(10));
+        assert_eq!(extra["trimmed_primer_bases"], serde_json::json!(20));
+        assert_eq!(extra["primer_orientation_report"], serde_json::json!("primer_orientation.tsv"));
+        assert_eq!(extra["primer_stats_json"], serde_json::json!("primer_stats.json"));
+        assert_eq!(extra["raw_backend_report_format"], serde_json::json!("cutadapt_json"));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("normalize_primers_report.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn infer_asvs_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_infer_asvs_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.infer_asvs",
+            &infer_asvs_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("dada2"));
+        assert_eq!(extra["denoising_method"], serde_json::json!("dada2"));
+        assert_eq!(extra["asv_table_tsv"], serde_json::json!("asv_table.tsv"));
+        assert_eq!(
+            extra["representative_sequences_fasta"],
+            serde_json::json!("representatives.fasta")
+        );
+        assert_eq!(extra["asv_sequences_fasta"], serde_json::json!("representatives.fasta"));
+        assert_eq!(extra["asv_count"], serde_json::json!(18));
+        assert_eq!(extra["sample_count"], serde_json::json!(4));
+        assert_eq!(extra["representative_sequence_count"], serde_json::json!(18));
+        assert_eq!(extra["taxonomy_ready_fasta"], serde_json::json!("taxonomy_ready.fasta"));
+        assert_eq!(extra["taxonomy_ready_fastq"], serde_json::json!("taxonomy_ready.fastq"));
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("infer_asvs_report.json"))
         );
         Ok(())
     }
@@ -1110,12 +2928,92 @@ mod stage_artifact_tests {
         assert_eq!(extra["keep_order"], serde_json::json!(false));
         assert_eq!(extra["reads_in"], serde_json::json!(200));
         assert_eq!(extra["reads_out"], serde_json::json!(172));
+        assert_eq!(extra["input_reads"], serde_json::json!(200));
+        assert_eq!(extra["duplicate_reads"], serde_json::json!(28));
+        assert_eq!(extra["unique_reads"], serde_json::json!(172));
+        assert_eq!(extra["output_reads"], serde_json::json!(172));
         assert_eq!(extra["pairs_in"], serde_json::json!(200));
         assert_eq!(extra["pairs_out"], serde_json::json!(172));
         assert_eq!(extra["duplicates_removed"], serde_json::json!(28));
         assert_eq!(extra["dedup_rate"], serde_json::json!(0.14));
         assert_eq!(extra["pair_count_match"], serde_json::json!(true));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("clumpify.log"));
+        Ok(())
+    }
+
+    #[test]
+    fn extract_umis_extra_artifacts_preserve_governed_umi_contract() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        bijux_dna_infra::write_bytes(
+            temp.path().join("umi_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.extract_umis.report.v2",
+                "stage": "fastq.extract_umis",
+                "stage_id": "fastq.extract_umis",
+                "tool_id": "umi_tools",
+                "paired_mode": "paired_end",
+                "threads": 2,
+                "umi_pattern": "NNNNNNNN",
+                "extraction_location": "read1_prefix",
+                "read_name_transform": "append_to_header",
+                "failed_extraction_policy": "refuse_stage",
+                "grouping_policy": "pair_aware",
+                "downstream_dedup_policy": "sequence_identity_recommended",
+                "downstream_propagation": "header_and_report",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "umi_reads_R1.fastq.gz",
+                "output_r2": "umi_reads_R2.fastq.gz",
+                "report_json": "umi_report.json",
+                "reads_in": 200,
+                "reads_out": 200,
+                "bases_in": 20000,
+                "bases_out": 20000,
+                "pairs_in": 100,
+                "pairs_out": 100,
+                "reads_with_umi": 196,
+                "failed_extractions": 4,
+                "mean_q_before": 30.0,
+                "mean_q_after": 30.0,
+                "runtime_s": 1.4,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "umi_tools.extract.log",
+                "raw_backend_report_format": "umi_tools_log",
+                "backend_metrics": {
+                    "reads_with_umi_fraction": 0.98
+                }
+            }"#,
+        )?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.extract_umis",
+            &StageResultV1 {
+                run_id: "extract-umis-fixture".to_string(),
+                exit_code: 0,
+                runtime_s: 1.4,
+                memory_mb: 64.0,
+                outputs: vec![temp.path().join("umi_report.json")],
+                metrics_path: None,
+                stdout: String::new(),
+                stderr: String::new(),
+                command: "umi_tools".to_string(),
+            },
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("umi_tools"));
+        assert_eq!(extra["umi_pattern"], serde_json::json!("NNNNNNNN"));
+        assert_eq!(extra["tag_header_format"], serde_json::json!("append_to_header"));
+        assert_eq!(extra["downstream_propagation"], serde_json::json!("header_and_report"));
+        assert_eq!(extra["umi_reads_r1"], serde_json::json!("umi_reads_R1.fastq.gz"));
+        assert_eq!(extra["umi_reads_r2"], serde_json::json!("umi_reads_R2.fastq.gz"));
+        assert_eq!(extra["reads_with_umi"], serde_json::json!(196));
+        assert_eq!(extra["failed_extractions"], serde_json::json!(4));
+        assert_eq!(extra["extracted_umi_count"], serde_json::json!(196));
+        assert_eq!(extra["invalid_umi_count"], serde_json::json!(4));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("umi_tools.extract.log"));
         Ok(())
     }
 

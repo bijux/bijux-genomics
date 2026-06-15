@@ -85,6 +85,7 @@ fn policy__contracts__contract_authority_policy__param_schema_ids_are_not_hardco
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_per_domain_policy() {
     let root = support::workspace_root();
     let domains = parse_toml(&root.join("configs/ci/registry/domains.toml"));

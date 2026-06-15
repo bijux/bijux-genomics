@@ -1,0 +1,76 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.damage-filter.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "damage_context_rule": {
+          "type": "string"
+        },
+        "damage_ratio_filtered_variants": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "input_variants": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "low_quality_filtered_variants": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "removed_variants": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "retained_variants": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.damage_filter.v1"
+        },
+        "stage_id": {
+          "const": "vcf.damage_filter"
+        },
+        "terminal_context_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "terminal_damage_filtered_variants": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "input_variants",
+        "removed_variants",
+        "retained_variants",
+        "low_quality_filtered_variants",
+        "damage_ratio_filtered_variants",
+        "terminal_damage_filtered_variants",
+        "damage_context_rule",
+        "terminal_context_count",
+        "sample_count"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_damage_filter_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.damage_filter`.",
+  "title": "VCF normalized benchmark metrics: vcf.damage_filter"
+}

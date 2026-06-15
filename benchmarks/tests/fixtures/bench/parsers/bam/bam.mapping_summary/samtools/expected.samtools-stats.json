@@ -1,0 +1,35 @@
+{
+  "schema_version": "bijux.fixture.bam_raw_parser.v1",
+  "stage_id": "bam.mapping_summary",
+  "tool_id": "samtools",
+  "parser_id": "parse_samtools_stats",
+  "normalized": {
+    "fragment_length": {
+      "mean": 48.57142857142857,
+      "median": 50.0,
+      "p10": 30.0,
+      "p90": 80.0,
+      "short_fraction": 0.2857142857142857
+    },
+    "mapq_summary": {
+      "mean": 38.57142857142857,
+      "median": 30.0,
+      "p10": 30.0,
+      "p90": 60.0,
+      "histogram": [
+        [
+          0,
+          5
+        ],
+        [
+          30,
+          15
+        ],
+        [
+          60,
+          15
+        ]
+      ]
+    }
+  }
+}

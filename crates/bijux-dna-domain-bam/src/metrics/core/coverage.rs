@@ -71,20 +71,31 @@ pub fn parse_mosdepth_summary(path: &std::path::Path) -> anyhow::Result<Coverage
     let raw = std::fs::read_to_string(path).context("read mosdepth summary")?;
     let mut mean = 0.0;
     let mut breadth_1x = 0.0;
-    for line in raw.lines() {
+    let mut found_summary_row = false;
+    for (line_no, line) in raw.lines().enumerate() {
         let parts: Vec<&str> = line.split_whitespace().collect();
         if parts.len() < 4 {
             continue;
         }
         if parts[0] == "total" || parts[0] == "genome" || parts[0] == "all" {
-            let length = parts[1].parse::<f64>().unwrap_or(0.0);
-            let bases_covered = parts[2].parse::<f64>().unwrap_or(0.0);
-            mean = parts[3].parse::<f64>().unwrap_or(0.0);
+            let length = parts[1]
+                .parse::<f64>()
+                .with_context(|| format!("parse mosdepth length on line {}", line_no + 1))?;
+            let bases_covered = parts[2]
+                .parse::<f64>()
+                .with_context(|| format!("parse mosdepth covered bases on line {}", line_no + 1))?;
+            mean = parts[3]
+                .parse::<f64>()
+                .with_context(|| format!("parse mosdepth mean depth on line {}", line_no + 1))?;
             if length > 0.0 {
                 breadth_1x = (bases_covered / length).clamp(0.0, 1.0);
             }
+            found_summary_row = true;
             break;
         }
+    }
+    if !found_summary_row {
+        anyhow::bail!("mosdepth summary missing total/genome/all coverage row");
     }
     Ok(CoverageMetricsV1 { mean, median: mean, breadth_1x, breadth_3x: 0.0, breadth_5x: 0.0 })
 }
@@ -107,15 +118,17 @@ pub fn parse_samtools_depth_with_uniformity(
     let mut breadth_3x = 0_u64;
     let mut breadth_5x = 0_u64;
     let mut sum_sq = 0_f64;
-    for line in raw.lines() {
+    for (line_no, line) in raw.lines().enumerate() {
         if line.trim().is_empty() {
             continue;
         }
         let parts: Vec<&str> = line.split_whitespace().collect();
         if parts.len() < 3 {
-            continue;
+            anyhow::bail!("samtools depth line {} has {} columns", line_no + 1, parts.len());
         }
-        let depth = parts[2].parse::<u64>().unwrap_or(0);
+        let depth = parts[2]
+            .parse::<u64>()
+            .with_context(|| format!("parse samtools depth on line {}", line_no + 1))?;
         total_positions += 1;
         total_depth += depth;
         sum_sq += u64_to_f64(depth).powi(2);
@@ -128,6 +141,9 @@ pub fn parse_samtools_depth_with_uniformity(
         if depth >= 5 {
             breadth_5x += 1;
         }
+    }
+    if total_positions == 0 {
+        anyhow::bail!("samtools depth report contains no coverage rows");
     }
     let mean = if total_positions == 0 {
         0.0

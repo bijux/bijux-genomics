@@ -678,11 +678,29 @@ struct ReleaseChangesConfig {
 
 #[derive(Debug, Deserialize)]
 struct ReleaseAreaStatus {
+    #[serde(flatten)]
+    workflow_assets: ReleaseWorkflowAssetStatus,
+    #[serde(flatten)]
+    runtime_assets: ReleaseRuntimeAssetStatus,
+    #[serde(flatten)]
+    interface_changes: ReleaseInterfaceStatus,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReleaseWorkflowAssetStatus {
     schemas: bool,
     defaults: bool,
     tools: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReleaseRuntimeAssetStatus {
     containers: bool,
     evidence_expectations: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReleaseInterfaceStatus {
     api: bool,
     errors: bool,
 }
@@ -894,13 +912,16 @@ fn generate_upgrade_guide_doc(workspace: &Workspace, out: &Path) -> Result<()> {
         format!("Source schema: `{}`", cfg.schema_version),
         String::new(),
         "## Area Status".to_string(),
-        format!("- Schemas changed: `{}`", cfg.area_status.schemas),
-        format!("- Defaults changed: `{}`", cfg.area_status.defaults),
-        format!("- Tools changed: `{}`", cfg.area_status.tools),
-        format!("- Containers changed: `{}`", cfg.area_status.containers),
-        format!("- Evidence expectations changed: `{}`", cfg.area_status.evidence_expectations),
-        format!("- API changed: `{}`", cfg.area_status.api),
-        format!("- Error registry changed: `{}`", cfg.area_status.errors),
+        format!("- Schemas changed: `{}`", cfg.area_status.workflow_assets.schemas),
+        format!("- Defaults changed: `{}`", cfg.area_status.workflow_assets.defaults),
+        format!("- Tools changed: `{}`", cfg.area_status.workflow_assets.tools),
+        format!("- Containers changed: `{}`", cfg.area_status.runtime_assets.containers),
+        format!(
+            "- Evidence expectations changed: `{}`",
+            cfg.area_status.runtime_assets.evidence_expectations
+        ),
+        format!("- API changed: `{}`", cfg.area_status.interface_changes.api),
+        format!("- Error registry changed: `{}`", cfg.area_status.interface_changes.errors),
         String::new(),
         "## Changes".to_string(),
     ]);

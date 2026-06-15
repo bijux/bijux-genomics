@@ -1,0 +1,17 @@
+# schema_version = 1
+# owner = bijux-dna
+# purpose = Governed local-smoke fixture bundle for fastq.report_qc.
+# authority = bijux-dna
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.fastq.local_report_qc.v1"
+tool_id = "multiqc"
+fixture_root = "assets/toy/core-v1/fastq/report_qc"
+report_template = "assets/toy/core-v1/fastq/report_qc/report_qc_report_template.json"
+manifest_template = "assets/toy/core-v1/fastq/report_qc/governed_qc_inputs_manifest.json"
+multiqc_report = "assets/toy/core-v1/fastq/report_qc/multiqc_report.html"
+multiqc_data_dir = "assets/toy/core-v1/fastq/report_qc/multiqc_data"
+aggregation_engine = "multiqc"
+aggregation_scope = "governed_qc_artifacts"
+output_dir = "runs/bench/local-smoke/fastq.report_qc"

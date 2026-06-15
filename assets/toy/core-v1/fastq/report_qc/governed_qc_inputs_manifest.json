@@ -1,0 +1,51 @@
+{
+  "schema_version": "bijux.fastq.report_qc.inputs.v1",
+  "qc_inputs": [
+    {
+      "name": "fastq.detect_adapters.tool.fastqc.report_json",
+      "path": "contributors/detect_adapters.report.json",
+      "role": "report_json",
+      "optional": false
+    },
+    {
+      "name": "fastq.profile_reads.tool.seqkit_stats.qc_json",
+      "path": "contributors/profile_reads.qc.json",
+      "role": "metrics_json",
+      "optional": false
+    },
+    {
+      "name": "fastq.validate_reads.tool.fastqvalidator.report_json",
+      "path": "contributors/validate_reads.report.json",
+      "role": "report_json",
+      "optional": false
+    }
+  ],
+  "contributors": [
+    {
+      "contributor_id": "fastq.detect_adapters.tool.fastqc",
+      "stage_id": "fastq.detect_adapters",
+      "tool_id": "fastqc",
+      "artifact_id": "report_json",
+      "artifact_role": "report_json",
+      "path": "contributors/detect_adapters.report.json"
+    },
+    {
+      "contributor_id": "fastq.profile_reads.tool.seqkit_stats",
+      "stage_id": "fastq.profile_reads",
+      "tool_id": "seqkit_stats",
+      "artifact_id": "qc_json",
+      "artifact_role": "metrics_json",
+      "path": "contributors/profile_reads.qc.json"
+    },
+    {
+      "contributor_id": "fastq.validate_reads.tool.fastqvalidator",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqvalidator",
+      "artifact_id": "report_json",
+      "artifact_role": "report_json",
+      "path": "contributors/validate_reads.report.json"
+    }
+  ],
+  "raw_fastqc_dir": null,
+  "lineage_hash": "fastq.detect_adapters.tool.fastqc:report_json:report_json=contributors/detect_adapters.report.json|fastq.profile_reads.tool.seqkit_stats:qc_json:metrics_json=contributors/profile_reads.qc.json|fastq.validate_reads.tool.fastqvalidator:report_json:report_json=contributors/validate_reads.report.json"
+}

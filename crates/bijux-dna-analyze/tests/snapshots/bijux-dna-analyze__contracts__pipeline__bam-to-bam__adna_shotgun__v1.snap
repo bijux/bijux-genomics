@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-analyze/tests/contracts/pipeline/pipeline_e2e.rs
-assertion_line: 197
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -18,7 +17,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     {
       "banks": {},
       "stage_id": "bam.contamination",
-      "tool_id": "authenticct"
+      "tool_id": "schmutzi"
     },
     {
       "banks": {},
@@ -28,7 +27,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     {
       "banks": {},
       "stage_id": "bam.damage",
-      "tool_id": "pydamage"
+      "tool_id": "mapdamage2"
     },
     {
       "banks": {},
@@ -59,6 +58,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "banks": {},
       "stage_id": "bam.mapq_filter",
       "tool_id": "samtools"
+    },
+    {
+      "banks": {},
+      "stage_id": "bam.overlap_correction",
+      "tool_id": "bamutil"
     },
     {
       "banks": {},
@@ -94,6 +98,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.mapping_summary:retention_report",
       "bam.mapq_filter:metrics_path",
       "bam.mapq_filter:retention_report",
+      "bam.overlap_correction:metrics_path",
+      "bam.overlap_correction:retention_report",
       "bam.sex:metrics_path",
       "bam.sex:retention_report",
       "bam.validate:metrics_path",
@@ -224,7 +230,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.contamination",
       "stage_id": "bam.contamination",
-      "tool_id": "authenticct",
+      "tool_id": "schmutzi",
       "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
@@ -244,7 +250,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.damage",
       "stage_id": "bam.damage",
-      "tool_id": "pydamage",
+      "tool_id": "mapdamage2",
       "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
@@ -312,6 +318,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
+      "span_id": "span-bam.overlap_correction",
+      "stage_id": "bam.overlap_correction",
+      "tool_id": "bamutil",
+      "tool_version": "99.99.99+fixture",
+      "trace_id": "trace-1"
+    },
+    {
+      "bank_hashes": {},
+      "image_digest": "sha256:img",
+      "params_hash": "params",
       "span_id": "span-bam.sex",
       "stage_id": "bam.sex",
       "tool_id": "rxy",
@@ -347,7 +363,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct"
+          "tool_id": "schmutzi"
         },
         {
           "bases": 800,
@@ -359,7 +375,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "mapdamage2"
         },
         {
           "bases": 800,
@@ -396,6 +412,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads": 80,
           "stage_id": "bam.mapq_filter",
           "tool_id": "samtools"
+        },
+        {
+          "bases": 800,
+          "reads": 80,
+          "stage_id": "bam.overlap_correction",
+          "tool_id": "bamutil"
         },
         {
           "bases": 800,
@@ -473,7 +495,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "results": [],
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct"
+          "tool_id": "schmutzi"
         },
         {
           "results": [],
@@ -483,7 +505,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "results": [],
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "mapdamage2"
         },
         {
           "results": [],
@@ -517,6 +539,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         {
           "results": [],
+          "stage_id": "bam.overlap_correction",
+          "tool_id": "bamutil"
+        },
+        {
+          "results": [],
           "stage_id": "bam.sex",
           "tool_id": "rxy"
         },
@@ -529,7 +556,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     "bam": {
       "schema_version": "bijux.report.section.bam.v1",
-      "stages": 12
+      "stages": 13
     },
     "bam_accounting": {
       "entries": [
@@ -562,7 +589,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct",
+          "tool_id": "schmutzi",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -607,7 +634,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -751,6 +778,28 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "complexity_vs_duplicates"
             ],
             "stage_id": "bam.mapq_filter",
+            "verdict": "fail"
+          }
+        },
+        {
+          "complexity_observed_reads": 0,
+          "coverage_mean": 0.0,
+          "duplicates_fraction": 0.0,
+          "reads_in": 100,
+          "reads_out": 80,
+          "stage_id": "bam.overlap_correction",
+          "tool_id": "bamutil",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.overlap_correction",
             "verdict": "fail"
           }
         },
@@ -1058,6 +1107,29 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "p90": 0.0,
             "short_fraction": 0.0
           },
+          "stage_id": "bam.overlap_correction"
+        },
+        {
+          "coverage": {
+            "breadth_1x": 0.0,
+            "breadth_3x": 0.0,
+            "breadth_5x": 0.0,
+            "mean": 0.0
+          },
+          "damage": {
+            "c_to_t_5p": 0.0,
+            "g_to_a_3p": 0.0
+          },
+          "dup_vs_complexity": {
+            "dup_fraction": 0.0,
+            "observed_reads": 0
+          },
+          "fragment_length": {
+            "mean": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "short_fraction": 0.0
+          },
           "stage_id": "bam.sex"
         },
         {
@@ -1130,7 +1202,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "authenticct",
+          "tool_id": "schmutzi",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1189,7 +1261,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1385,6 +1457,35 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "downstream_suitable": false,
           "dup_fraction": 0.0,
           "sex_class": "insufficient",
+          "stage_id": "bam.overlap_correction",
+          "suitability": {
+            "contamination": false,
+            "haplogroups": false,
+            "kinship": false,
+            "sex": false
+          },
+          "tool_id": "bamutil",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.overlap_correction",
+            "verdict": "fail"
+          }
+        },
+        {
+          "contamination": 0.0,
+          "coverage": 0.0,
+          "damage": 0.0,
+          "downstream_suitable": false,
+          "dup_fraction": 0.0,
+          "sex_class": "insufficient",
           "stage_id": "bam.sex",
           "suitability": {
             "contamination": false,
@@ -1463,7 +1564,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "banks": {},
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct"
+          "tool_id": "schmutzi"
         },
         {
           "banks": {},
@@ -1473,7 +1574,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "banks": {},
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "mapdamage2"
         },
         {
           "banks": {},
@@ -1504,6 +1605,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "banks": {},
           "stage_id": "bam.mapq_filter",
           "tool_id": "samtools"
+        },
+        {
+          "banks": {},
+          "stage_id": "bam.overlap_correction",
+          "tool_id": "bamutil"
         },
         {
           "banks": {},
@@ -1540,6 +1646,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "bam.mapping_summary:retention_report",
         "bam.mapq_filter:metrics_path",
         "bam.mapq_filter:retention_report",
+        "bam.overlap_correction:metrics_path",
+        "bam.overlap_correction:retention_report",
         "bam.sex:metrics_path",
         "bam.sex:retention_report",
         "bam.validate:metrics_path",
@@ -1602,7 +1710,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.contamination",
           "telemetry_decisions": [],
-          "tool_id": "authenticct",
+          "tool_id": "schmutzi",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -1634,7 +1742,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.damage",
           "telemetry_decisions": [],
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -1731,6 +1839,22 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "bam.mapq_filter",
           "telemetry_decisions": [],
           "tool_id": "samtools",
+          "tool_version": "99.99.99+fixture"
+        },
+        {
+          "adapter_validation": {},
+          "contaminant_action": false,
+          "input_hash": "input",
+          "missing_metrics": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
+          "params_hash": "params",
+          "quality_gate": {},
+          "stage_id": "bam.overlap_correction",
+          "telemetry_decisions": [],
+          "tool_id": "bamutil",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -1795,6 +1919,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "bam.mapping_summary:retention_report",
           "bam.mapq_filter:metrics_path",
           "bam.mapq_filter:retention_report",
+          "bam.overlap_correction:metrics_path",
+          "bam.overlap_correction:retention_report",
           "bam.sex:metrics_path",
           "bam.sex:retention_report",
           "bam.validate:metrics_path",
@@ -1824,7 +1950,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     "key_findings": [
       {
-        "count": 24,
+        "count": 26,
         "items": [
           "bam.authenticity:metrics_path",
           "bam.authenticity:retention_report",
@@ -1846,6 +1972,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "bam.mapping_summary:retention_report",
           "bam.mapq_filter:metrics_path",
           "bam.mapq_filter:retention_report",
+          "bam.overlap_correction:metrics_path",
+          "bam.overlap_correction:retention_report",
           "bam.sex:metrics_path",
           "bam.sex:retention_report",
           "bam.validate:metrics_path",
@@ -1897,7 +2025,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct",
+          "tool_id": "schmutzi",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -1911,7 +2039,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -1954,6 +2082,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "stage_id": "bam.mapq_filter",
           "tool_id": "samtools",
+          "tool_version": "99.99.99+fixture"
+        },
+        {
+          "effective_config_path": "",
+          "params_hash": "params",
+          "stage_id": "bam.overlap_correction",
+          "tool_id": "bamutil",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -1986,7 +2121,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct",
+          "tool_id": "schmutzi",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -2000,7 +2135,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -2043,6 +2178,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "stage_id": "bam.mapq_filter",
           "tool_id": "samtools",
+          "tool_version": "99.99.99+fixture"
+        },
+        {
+          "image_digest": "sha256:img",
+          "params_hash": "params",
+          "stage_id": "bam.overlap_correction",
+          "tool_id": "bamutil",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -2187,6 +2329,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
+          "bam.overlap_correction": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
           "bam.sex": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -2285,6 +2439,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "exclude_flags": [],
             "include_flags": [],
             "mapq_threshold": 30,
+            "min_length": 0,
+            "remove_duplicates": false
+          },
+          "bam.overlap_correction": {
+            "base_quality_threshold": 20,
+            "exclude_flags": [],
+            "include_flags": [],
+            "mapq_threshold": 0,
             "min_length": 0,
             "remove_duplicates": false
           },
@@ -2422,6 +2584,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
+          "bam.overlap_correction": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
           "bam.sex": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -2449,15 +2623,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         "tools": {
           "bam.authenticity": "authenticct",
-          "bam.contamination": "authenticct",
+          "bam.contamination": "schmutzi",
           "bam.coverage": "mosdepth",
-          "bam.damage": "pydamage",
+          "bam.damage": "mapdamage2",
           "bam.duplication_metrics": "samtools",
           "bam.endogenous_content": "samtools",
           "bam.filter": "samtools",
           "bam.length_filter": "samtools",
           "bam.mapping_summary": "samtools",
           "bam.mapq_filter": "samtools",
+          "bam.overlap_correction": "bamutil",
           "bam.sex": "rxy",
           "bam.validate": "samtools"
         }
@@ -2490,7 +2665,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.contamination",
           "tier_rationale": "unknown_tool",
-          "tool_id": "authenticct",
+          "tool_id": "schmutzi",
           "tool_tier": "experimental",
           "tool_version": "99.99.99+fixture"
         },
@@ -2518,7 +2693,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.damage",
           "tier_rationale": "unknown_tool",
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "tool_tier": "experimental",
           "tool_version": "99.99.99+fixture"
         },
@@ -2603,6 +2778,20 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "bam.mapq_filter",
           "tier_rationale": "unknown_tool",
           "tool_id": "samtools",
+          "tool_tier": "experimental",
+          "tool_version": "99.99.99+fixture"
+        },
+        {
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "scientific_preset": null,
+          "stage_id": "bam.overlap_correction",
+          "tier_rationale": "unknown_tool",
+          "tool_id": "bamutil",
           "tool_tier": "experimental",
           "tool_version": "99.99.99+fixture"
         },
@@ -2681,7 +2870,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "definitions": []
     },
     "run_provenance": {
-      "domain_snapshot_hash": "7f92f74f3d6b5fa90319ebb5b71976f79393927f",
+      "domain_snapshot_hash": "be6d94ad67ff37fdc5b8b5846464b201a05de675",
       "graph_hash": "unknown",
       "input_hashes": [],
       "manifest_signature_sha256": "unknown",
@@ -2714,7 +2903,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct",
+          "tool_id": "schmutzi",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -2742,7 +2931,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "mapdamage2",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -2827,6 +3016,20 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "resolved_tool_version": null,
           "stage_id": "bam.mapq_filter",
           "tool_id": "samtools",
+          "tool_version": "99.99.99+fixture"
+        },
+        {
+          "effective_params": {},
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "raw_params": {},
+          "resolved_tool_version": null,
+          "stage_id": "bam.overlap_correction",
+          "tool_id": "bamutil",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -2957,6 +3160,15 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "metrics_path",
             "retention_report"
           ],
+          "stage_id": "bam.overlap_correction",
+          "status": "incomplete"
+        },
+        {
+          "missing_metrics": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.sex",
           "status": "incomplete"
         },
@@ -2985,7 +3197,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct"
+          "tool_id": "schmutzi"
         },
         {
           "bucket": "high",
@@ -2999,7 +3211,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "mapdamage2"
         },
         {
           "bucket": "high",
@@ -3042,6 +3254,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "score": 1.0,
           "stage_id": "bam.mapq_filter",
           "tool_id": "samtools"
+        },
+        {
+          "bucket": "high",
+          "reasons": [],
+          "score": 1.0,
+          "stage_id": "bam.overlap_correction",
+          "tool_id": "bamutil"
         },
         {
           "bucket": "high",
@@ -3075,7 +3294,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct"
+          "tool_id": "schmutzi"
         },
         {
           "base_retention": 0.8,
@@ -3091,7 +3310,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "mapdamage2"
         },
         {
           "base_retention": 0.8,
@@ -3140,6 +3359,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "read_retention": 0.8,
           "stage_id": "bam.mapq_filter",
           "tool_id": "samtools"
+        },
+        {
+          "base_retention": 0.8,
+          "gc_delta": null,
+          "mean_q_delta": null,
+          "read_retention": 0.8,
+          "stage_id": "bam.overlap_correction",
+          "tool_id": "bamutil"
         },
         {
           "base_retention": 0.8,
@@ -3201,6 +3428,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         {
           "read_retention": 0.8,
+          "stage_id": "bam.overlap_correction"
+        },
+        {
+          "read_retention": 0.8,
           "stage_id": "bam.sex"
         },
         {
@@ -3243,7 +3474,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.contamination",
       "stage_report_path": "bam.contamination/stage_report.json",
-      "tool_id": "authenticct",
+      "tool_id": "schmutzi",
       "tool_invocation_path": "",
       "tool_version": "99.99.99+fixture"
     },
@@ -3275,7 +3506,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.damage",
       "stage_report_path": "bam.damage/stage_report.json",
-      "tool_id": "pydamage",
+      "tool_id": "mapdamage2",
       "tool_invocation_path": "",
       "tool_version": "99.99.99+fixture"
     },
@@ -3385,6 +3616,22 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
+      "stage_id": "bam.overlap_correction",
+      "stage_report_path": "bam.overlap_correction/stage_report.json",
+      "tool_id": "bamutil",
+      "tool_invocation_path": "",
+      "tool_version": "99.99.99+fixture"
+    },
+    {
+      "bank_report_path": null,
+      "effective_config_path": "",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "",
+      "params_hash": "params",
+      "retention_report_path": null,
+      "runtime_s": 1.0,
       "stage_id": "bam.sex",
       "stage_report_path": "bam.sex/stage_report.json",
       "tool_id": "rxy",
@@ -3422,6 +3669,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.length_filter/telemetry/events.jsonl",
       "bam.mapping_summary/telemetry/events.jsonl",
       "bam.mapq_filter/telemetry/events.jsonl",
+      "bam.overlap_correction/telemetry/events.jsonl",
       "bam.sex/telemetry/events.jsonl",
       "bam.validate/telemetry/events.jsonl"
     ],

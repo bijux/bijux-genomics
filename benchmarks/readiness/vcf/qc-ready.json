@@ -1,0 +1,662 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_qc_ready.v1",
+  "output_path": "benchmarks/readiness/vcf/qc-ready.json",
+  "retained_row_count": 3,
+  "active_row_count": 3,
+  "complete_row_count": 3,
+  "incomplete_row_count": 0,
+  "checked_surface_count": 8,
+  "required_metric_names": [
+    "sample_missingness",
+    "variant_missingness",
+    "maf_summary",
+    "heterozygosity",
+    "hwe_summary",
+    "excluded_samples",
+    "excluded_variants",
+    "sample_missingness_exclusion_threshold",
+    "variant_missingness_exclusion_threshold"
+  ],
+  "tool_status_counts": {
+    "experimental,planned": 1,
+    "experimental,production": 1,
+    "production": 1
+  },
+  "coverage_status_counts": {
+    "complete": 3
+  },
+  "violation_count": 0,
+  "ok": true,
+  "rows": [
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools",
+      "stage_id": "vcf.qc",
+      "tool_id": "bcftools",
+      "tool_status": "production",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "adapter_id": "vcf.adapter.quality_control",
+      "parser_id": "vcf.parser.qc_report",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.qc.v1",
+      "retained_scope_state": "active",
+      "retained_scope_detail": "active",
+      "retained_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "all_domain_active_row_present": true,
+      "all_domain_active_row_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_ready": true,
+      "command_source": "vcf_bcftools_adapter",
+      "command_step_count": 2,
+      "command_step_ids": [
+        "extract_genotypes",
+        "normalize_qc"
+      ],
+      "primary_executables": [
+        "sh",
+        "python3"
+      ],
+      "command_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
+      "command_argv_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl",
+      "output_ready": true,
+      "output_proof_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
+      "raw_outputs": [
+        "sample_missingness_report=benchmarks/readiness/adapters/bcftools/vcf.qc/raw.sample_missingness.tsv",
+        "variant_missingness_report=benchmarks/readiness/adapters/bcftools/vcf.qc/raw.variant_missingness.tsv",
+        "allele_frequency_report=benchmarks/readiness/adapters/bcftools/vcf.qc/raw.allele_frequency.tsv",
+        "heterozygosity_report=benchmarks/readiness/adapters/bcftools/vcf.qc/raw.heterozygosity.tsv",
+        "hardy_weinberg_report=benchmarks/readiness/adapters/bcftools/vcf.qc/raw.hwe.tsv",
+        "qc_thresholds=benchmarks/readiness/adapters/bcftools/vcf.qc/raw.thresholds.json"
+      ],
+      "normalized_metrics_outputs": [
+        "qc_report=benchmarks/readiness/adapters/bcftools/vcf.qc/qc_report.json"
+      ],
+      "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.qc/{sample_scope}/bcftools/stage-result.json",
+      "index_outputs": [],
+      "parser_ready": true,
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
+      "parser_fixture_parser_id": "parse_bcftools_qc_metrics",
+      "parser_fixture_schema_id": "bijux.vcf.qc.v1",
+      "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.qc",
+      "expected_result_ready": true,
+      "expected_result_proof_path": "benchmarks/readiness/vcf-expected-benchmark-results.tsv",
+      "expected_outputs": [
+        "qc_report"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "report_section_id": "quality_control",
+      "report_ready": true,
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
+      "summary_table_id": "quality_control_metrics",
+      "report_metric_columns": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "smoke_ready": true,
+      "smoke_command": "bijux-dna bench local run-vcf-qc-smoke --tool-id bcftools",
+      "smoke_output_root": "runs/bench/local-smoke/vcf.qc/bcftools",
+      "smoke_input_vcf_path": "runs/bench/local-smoke/vcf.qc/bcftools/artifacts/input/qc_input.vcf",
+      "smoke_qc_json_path": "runs/bench/local-smoke/vcf.qc/bcftools/qc.json",
+      "smoke_qc_summary_path": "runs/bench/local-smoke/vcf.qc/bcftools/qc_summary.json",
+      "smoke_qc_tables_path": "runs/bench/local-smoke/vcf.qc/bcftools/qc_tables.tsv",
+      "smoke_imputation_qc_path": "runs/bench/local-smoke/vcf.qc/bcftools/imputation_qc.tsv",
+      "smoke_warnings_path": "runs/bench/local-smoke/vcf.qc/bcftools/warnings.json",
+      "smoke_qc_histograms_path": "runs/bench/local-smoke/vcf.qc/bcftools/qc_histograms.json",
+      "smoke_metrics_path": "runs/bench/local-smoke/vcf.qc/bcftools/metrics.json",
+      "smoke_stage_result_manifest_path": "runs/bench/local-smoke/vcf.qc/bcftools/stage-result.json",
+      "smoke_sample_missingness": [
+        {
+          "sample_id": "qc_balanced",
+          "total_genotype_count": 4,
+          "missing_genotype_count": 1,
+          "missingness": 0.25
+        },
+        {
+          "sample_id": "qc_ref",
+          "total_genotype_count": 4,
+          "missing_genotype_count": 0,
+          "missingness": 0.0
+        },
+        {
+          "sample_id": "qc_sparse",
+          "total_genotype_count": 4,
+          "missing_genotype_count": 3,
+          "missingness": 0.75
+        }
+      ],
+      "smoke_variant_missingness": [
+        {
+          "variant_id": "chr1:10:A:G",
+          "contig": "chr1",
+          "position": 10,
+          "reference": "A",
+          "alternate": "G",
+          "total_sample_count": 3,
+          "missing_sample_count": 1,
+          "missingness": 0.3333333333333333
+        },
+        {
+          "variant_id": "chr1:20:C:T",
+          "contig": "chr1",
+          "position": 20,
+          "reference": "C",
+          "alternate": "T",
+          "total_sample_count": 3,
+          "missing_sample_count": 1,
+          "missingness": 0.3333333333333333
+        },
+        {
+          "variant_id": "chr1:30:G:A",
+          "contig": "chr1",
+          "position": 30,
+          "reference": "G",
+          "alternate": "A",
+          "total_sample_count": 3,
+          "missing_sample_count": 2,
+          "missingness": 0.6666666666666666
+        },
+        {
+          "variant_id": "chr1:40:T:G",
+          "contig": "chr1",
+          "position": 40,
+          "reference": "T",
+          "alternate": "G",
+          "total_sample_count": 3,
+          "missing_sample_count": 0,
+          "missingness": 0.0
+        }
+      ],
+      "smoke_maf_summary": {
+        "allele_frequency_mean": 0.2,
+        "maf_bin_counts": {
+          "0.05-0.1": 1,
+          "0.1-0.2": 1,
+          "0.2-0.5": 2
+        },
+        "observed_variant_count": 4
+      },
+      "smoke_heterozygosity": {
+        "heterozygous_call_count": 4,
+        "homozygous_alt_call_count": 2,
+        "het_hom_ratio": 2.0
+      },
+      "smoke_hwe_summary": {
+        "tested_variant_count": 3,
+        "pvalue_mean": 0.825656,
+        "status": "computed_modern"
+      },
+      "smoke_excluded_samples": [
+        {
+          "sample_id": "qc_sparse",
+          "total_genotype_count": 4,
+          "missing_genotype_count": 3,
+          "missingness": 0.75
+        }
+      ],
+      "smoke_excluded_variants": [
+        {
+          "variant_id": "chr1:30:G:A",
+          "contig": "chr1",
+          "position": 30,
+          "reference": "G",
+          "alternate": "A",
+          "total_sample_count": 3,
+          "missing_sample_count": 2,
+          "missingness": 0.6666666666666666
+        }
+      ],
+      "smoke_sample_missingness_exclusion_threshold": 0.5,
+      "smoke_variant_missingness_exclusion_threshold": 0.5,
+      "required_metric_names": [
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "missing_surfaces": [],
+      "coverage_status": "complete",
+      "reason": "active retained VCF QC caller `bcftools` keeps active scope, command, output, parser, expected-result, report, and normalized qc smoke proof for `vcf.qc`"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink",
+      "tool_status": "experimental,planned",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "adapter_id": "vcf.adapter.quality_control",
+      "parser_id": "vcf.parser.qc_report",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.qc.v1",
+      "retained_scope_state": "active",
+      "retained_scope_detail": "active",
+      "retained_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "all_domain_active_row_present": true,
+      "all_domain_active_row_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_ready": true,
+      "command_source": "vcf_plink_family_adapter",
+      "command_step_count": 1,
+      "command_step_ids": [
+        "qc"
+      ],
+      "primary_executables": [
+        "plink"
+      ],
+      "command_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
+      "command_argv_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl",
+      "output_ready": true,
+      "output_proof_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
+      "raw_outputs": [
+        "sample_missingness_imiss=benchmarks/readiness/adapters/plink/vcf.qc/qc.imiss",
+        "variant_missingness_lmiss=benchmarks/readiness/adapters/plink/vcf.qc/qc.lmiss",
+        "allele_frequency_frq=benchmarks/readiness/adapters/plink/vcf.qc/qc.frq",
+        "heterozygosity_het=benchmarks/readiness/adapters/plink/vcf.qc/qc.het",
+        "hardy_weinberg_hwe=benchmarks/readiness/adapters/plink/vcf.qc/qc.hwe",
+        "plink_log=benchmarks/readiness/adapters/plink/vcf.qc/qc.log"
+      ],
+      "normalized_metrics_outputs": [
+        "qc_report=benchmarks/readiness/adapters/plink/vcf.qc/qc_report.json"
+      ],
+      "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.qc/{sample_scope}/plink/stage-result.json",
+      "index_outputs": [],
+      "parser_ready": true,
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
+      "parser_fixture_parser_id": "parse_plink_qc_metrics",
+      "parser_fixture_schema_id": "bijux.vcf.qc.v1",
+      "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/plink/vcf.qc",
+      "expected_result_ready": true,
+      "expected_result_proof_path": "benchmarks/readiness/vcf-expected-benchmark-results.tsv",
+      "expected_outputs": [
+        "qc_report"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "report_section_id": "quality_control",
+      "report_ready": true,
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
+      "summary_table_id": "quality_control_metrics",
+      "report_metric_columns": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "smoke_ready": true,
+      "smoke_command": "bijux-dna bench local run-vcf-qc-smoke --tool-id plink",
+      "smoke_output_root": "runs/bench/local-smoke/vcf.qc/plink",
+      "smoke_input_vcf_path": "runs/bench/local-smoke/vcf.qc/plink/artifacts/input/qc_input.vcf",
+      "smoke_qc_json_path": "runs/bench/local-smoke/vcf.qc/plink/qc.json",
+      "smoke_qc_summary_path": "runs/bench/local-smoke/vcf.qc/plink/qc_summary.json",
+      "smoke_qc_tables_path": "runs/bench/local-smoke/vcf.qc/plink/qc_tables.tsv",
+      "smoke_imputation_qc_path": "runs/bench/local-smoke/vcf.qc/plink/imputation_qc.tsv",
+      "smoke_warnings_path": "runs/bench/local-smoke/vcf.qc/plink/warnings.json",
+      "smoke_qc_histograms_path": "runs/bench/local-smoke/vcf.qc/plink/qc_histograms.json",
+      "smoke_metrics_path": "runs/bench/local-smoke/vcf.qc/plink/metrics.json",
+      "smoke_stage_result_manifest_path": "runs/bench/local-smoke/vcf.qc/plink/stage-result.json",
+      "smoke_sample_missingness": [
+        {
+          "sample_id": "qc_balanced",
+          "total_genotype_count": 4,
+          "missing_genotype_count": 1,
+          "missingness": 0.25
+        },
+        {
+          "sample_id": "qc_ref",
+          "total_genotype_count": 4,
+          "missing_genotype_count": 0,
+          "missingness": 0.0
+        },
+        {
+          "sample_id": "qc_sparse",
+          "total_genotype_count": 4,
+          "missing_genotype_count": 3,
+          "missingness": 0.75
+        }
+      ],
+      "smoke_variant_missingness": [
+        {
+          "variant_id": "chr1:10:A:G",
+          "contig": "chr1",
+          "position": 10,
+          "reference": "A",
+          "alternate": "G",
+          "total_sample_count": 3,
+          "missing_sample_count": 1,
+          "missingness": 0.3333333333333333
+        },
+        {
+          "variant_id": "chr1:20:C:T",
+          "contig": "chr1",
+          "position": 20,
+          "reference": "C",
+          "alternate": "T",
+          "total_sample_count": 3,
+          "missing_sample_count": 1,
+          "missingness": 0.3333333333333333
+        },
+        {
+          "variant_id": "chr1:30:G:A",
+          "contig": "chr1",
+          "position": 30,
+          "reference": "G",
+          "alternate": "A",
+          "total_sample_count": 3,
+          "missing_sample_count": 2,
+          "missingness": 0.6666666666666666
+        },
+        {
+          "variant_id": "chr1:40:T:G",
+          "contig": "chr1",
+          "position": 40,
+          "reference": "T",
+          "alternate": "G",
+          "total_sample_count": 3,
+          "missing_sample_count": 0,
+          "missingness": 0.0
+        }
+      ],
+      "smoke_maf_summary": {
+        "allele_frequency_mean": 0.2,
+        "maf_bin_counts": {
+          "0.05-0.1": 1,
+          "0.1-0.2": 1,
+          "0.2-0.5": 2
+        },
+        "observed_variant_count": 4
+      },
+      "smoke_heterozygosity": {
+        "heterozygous_call_count": 4,
+        "homozygous_alt_call_count": 2,
+        "het_hom_ratio": 2.0
+      },
+      "smoke_hwe_summary": {
+        "tested_variant_count": 3,
+        "pvalue_mean": 0.825656,
+        "status": "computed_modern"
+      },
+      "smoke_excluded_samples": [
+        {
+          "sample_id": "qc_sparse",
+          "total_genotype_count": 4,
+          "missing_genotype_count": 3,
+          "missingness": 0.75
+        }
+      ],
+      "smoke_excluded_variants": [
+        {
+          "variant_id": "chr1:30:G:A",
+          "contig": "chr1",
+          "position": 30,
+          "reference": "G",
+          "alternate": "A",
+          "total_sample_count": 3,
+          "missing_sample_count": 2,
+          "missingness": 0.6666666666666666
+        }
+      ],
+      "smoke_sample_missingness_exclusion_threshold": 0.5,
+      "smoke_variant_missingness_exclusion_threshold": 0.5,
+      "required_metric_names": [
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "missing_surfaces": [],
+      "coverage_status": "complete",
+      "reason": "active retained VCF QC caller `plink` keeps active scope, command, output, parser, expected-result, report, and normalized qc smoke proof for `vcf.qc`"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "tool_status": "experimental,production",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "adapter_id": "vcf.adapter.quality_control",
+      "parser_id": "vcf.parser.qc_report",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.qc.v1",
+      "retained_scope_state": "active",
+      "retained_scope_detail": "active",
+      "retained_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "all_domain_active_row_present": true,
+      "all_domain_active_row_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_ready": true,
+      "command_source": "vcf_plink_family_adapter",
+      "command_step_count": 1,
+      "command_step_ids": [
+        "qc"
+      ],
+      "primary_executables": [
+        "plink2"
+      ],
+      "command_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
+      "command_argv_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl",
+      "output_ready": true,
+      "output_proof_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
+      "raw_outputs": [
+        "sample_missingness_smiss=benchmarks/readiness/adapters/plink2/vcf.qc/qc.smiss",
+        "variant_missingness_vmiss=benchmarks/readiness/adapters/plink2/vcf.qc/qc.vmiss",
+        "allele_frequency_afreq=benchmarks/readiness/adapters/plink2/vcf.qc/qc.afreq",
+        "heterozygosity_het=benchmarks/readiness/adapters/plink2/vcf.qc/qc.het",
+        "hardy_weinberg_hardy=benchmarks/readiness/adapters/plink2/vcf.qc/qc.hardy",
+        "plink2_log=benchmarks/readiness/adapters/plink2/vcf.qc/qc.log"
+      ],
+      "normalized_metrics_outputs": [
+        "qc_report=benchmarks/readiness/adapters/plink2/vcf.qc/qc_report.json"
+      ],
+      "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.qc/{sample_scope}/plink2/stage-result.json",
+      "index_outputs": [],
+      "parser_ready": true,
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
+      "parser_fixture_parser_id": "parse_plink2_qc_metrics",
+      "parser_fixture_schema_id": "bijux.vcf.qc.v1",
+      "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.qc",
+      "expected_result_ready": true,
+      "expected_result_proof_path": "benchmarks/readiness/vcf-expected-benchmark-results.tsv",
+      "expected_outputs": [
+        "qc_report"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "report_section_id": "quality_control",
+      "report_ready": true,
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
+      "summary_table_id": "quality_control_metrics",
+      "report_metric_columns": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "smoke_ready": true,
+      "smoke_command": "bijux-dna bench local run-vcf-qc-smoke --tool-id plink2",
+      "smoke_output_root": "runs/bench/local-smoke/vcf.qc/plink2",
+      "smoke_input_vcf_path": "runs/bench/local-smoke/vcf.qc/plink2/artifacts/input/qc_input.vcf",
+      "smoke_qc_json_path": "runs/bench/local-smoke/vcf.qc/plink2/qc.json",
+      "smoke_qc_summary_path": "runs/bench/local-smoke/vcf.qc/plink2/qc_summary.json",
+      "smoke_qc_tables_path": "runs/bench/local-smoke/vcf.qc/plink2/qc_tables.tsv",
+      "smoke_imputation_qc_path": "runs/bench/local-smoke/vcf.qc/plink2/imputation_qc.tsv",
+      "smoke_warnings_path": "runs/bench/local-smoke/vcf.qc/plink2/warnings.json",
+      "smoke_qc_histograms_path": "runs/bench/local-smoke/vcf.qc/plink2/qc_histograms.json",
+      "smoke_metrics_path": "runs/bench/local-smoke/vcf.qc/plink2/metrics.json",
+      "smoke_stage_result_manifest_path": "runs/bench/local-smoke/vcf.qc/plink2/stage-result.json",
+      "smoke_sample_missingness": [
+        {
+          "sample_id": "qc_balanced",
+          "total_genotype_count": 4,
+          "missing_genotype_count": 1,
+          "missingness": 0.25
+        },
+        {
+          "sample_id": "qc_ref",
+          "total_genotype_count": 4,
+          "missing_genotype_count": 0,
+          "missingness": 0.0
+        },
+        {
+          "sample_id": "qc_sparse",
+          "total_genotype_count": 4,
+          "missing_genotype_count": 3,
+          "missingness": 0.75
+        }
+      ],
+      "smoke_variant_missingness": [
+        {
+          "variant_id": "chr1:10:A:G",
+          "contig": "chr1",
+          "position": 10,
+          "reference": "A",
+          "alternate": "G",
+          "total_sample_count": 3,
+          "missing_sample_count": 1,
+          "missingness": 0.3333333333333333
+        },
+        {
+          "variant_id": "chr1:20:C:T",
+          "contig": "chr1",
+          "position": 20,
+          "reference": "C",
+          "alternate": "T",
+          "total_sample_count": 3,
+          "missing_sample_count": 1,
+          "missingness": 0.3333333333333333
+        },
+        {
+          "variant_id": "chr1:30:G:A",
+          "contig": "chr1",
+          "position": 30,
+          "reference": "G",
+          "alternate": "A",
+          "total_sample_count": 3,
+          "missing_sample_count": 2,
+          "missingness": 0.6666666666666666
+        },
+        {
+          "variant_id": "chr1:40:T:G",
+          "contig": "chr1",
+          "position": 40,
+          "reference": "T",
+          "alternate": "G",
+          "total_sample_count": 3,
+          "missing_sample_count": 0,
+          "missingness": 0.0
+        }
+      ],
+      "smoke_maf_summary": {
+        "allele_frequency_mean": 0.2,
+        "maf_bin_counts": {
+          "0.05-0.1": 1,
+          "0.1-0.2": 1,
+          "0.2-0.5": 2
+        },
+        "observed_variant_count": 4
+      },
+      "smoke_heterozygosity": {
+        "heterozygous_call_count": 4,
+        "homozygous_alt_call_count": 2,
+        "het_hom_ratio": 2.0
+      },
+      "smoke_hwe_summary": {
+        "tested_variant_count": 3,
+        "pvalue_mean": 0.825656,
+        "status": "computed_modern"
+      },
+      "smoke_excluded_samples": [
+        {
+          "sample_id": "qc_sparse",
+          "total_genotype_count": 4,
+          "missing_genotype_count": 3,
+          "missingness": 0.75
+        }
+      ],
+      "smoke_excluded_variants": [
+        {
+          "variant_id": "chr1:30:G:A",
+          "contig": "chr1",
+          "position": 30,
+          "reference": "G",
+          "alternate": "A",
+          "total_sample_count": 3,
+          "missing_sample_count": 2,
+          "missingness": 0.6666666666666666
+        }
+      ],
+      "smoke_sample_missingness_exclusion_threshold": 0.5,
+      "smoke_variant_missingness_exclusion_threshold": 0.5,
+      "required_metric_names": [
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "missing_surfaces": [],
+      "coverage_status": "complete",
+      "reason": "active retained VCF QC caller `plink2` keeps active scope, command, output, parser, expected-result, report, and normalized qc smoke proof for `vcf.qc`"
+    }
+  ],
+  "violations": []
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": "bijux.bench.local_vcf_sample_compatibility.v1",
+  "manifest_path": "benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml",
+  "output_path": "benchmarks/readiness/local-ready/vcf/sample-compatibility.json",
+  "corpus_id": "vcf-mini",
+  "source_variant_roles": [
+    "multisample",
+    "phased"
+  ],
+  "downstream_stage_ids": [
+    "vcf.population_structure",
+    "vcf.pca",
+    "vcf.admixture",
+    "vcf.roh",
+    "vcf.ibd"
+  ],
+  "vcf_samples": [
+    "sample_a",
+    "sample_b",
+    "sample_c",
+    "sample_d"
+  ],
+  "metadata_samples": [
+    "panel_ref_1",
+    "panel_ref_2",
+    "sample_a",
+    "sample_b",
+    "sample_c",
+    "sample_d"
+  ],
+  "missing_metadata": [],
+  "extra_metadata": [
+    "panel_ref_1",
+    "panel_ref_2"
+  ],
+  "population_labels": {
+    "sample_a": "Cohort Alpha",
+    "sample_b": "Cohort Alpha",
+    "sample_c": "Cohort Beta",
+    "sample_d": "Cohort Beta"
+  },
+  "sex_labels": {
+    "sample_a": "female",
+    "sample_b": "male",
+    "sample_c": "female",
+    "sample_d": "male"
+  },
+  "missing_population_labels": [],
+  "missing_sex_labels": [],
+  "status": "compatible"
+}

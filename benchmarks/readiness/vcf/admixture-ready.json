@@ -1,0 +1,165 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_admixture_ready.v1",
+  "output_path": "benchmarks/readiness/vcf/admixture-ready.json",
+  "retained_row_count": 1,
+  "active_row_count": 1,
+  "complete_row_count": 1,
+  "incomplete_row_count": 0,
+  "checked_surface_count": 8,
+  "required_metric_names": [
+    "selected_k",
+    "sample_count",
+    "population_count",
+    "status"
+  ],
+  "tool_status_counts": {
+    "experimental,production": 1
+  },
+  "coverage_status_counts": {
+    "complete": 1
+  },
+  "violation_count": 0,
+  "ok": true,
+  "rows": [
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2",
+      "stage_id": "vcf.admixture",
+      "tool_id": "plink2",
+      "tool_status": "experimental,production",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "adapter_id": "vcf.adapter.population_structure",
+      "parser_id": "vcf.parser.report_json",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.admixture.v1",
+      "retained_scope_state": "active",
+      "retained_scope_detail": "active",
+      "retained_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "all_domain_active_row_present": true,
+      "all_domain_active_row_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_ready": true,
+      "command_source": "vcf_plink_family_adapter",
+      "command_step_count": 1,
+      "command_step_ids": [
+        "admixture_proxy"
+      ],
+      "primary_executables": [
+        "plink2"
+      ],
+      "command_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
+      "command_argv_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl",
+      "output_ready": true,
+      "output_proof_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
+      "raw_outputs": [
+        "admixture_proxy_eigenvec=benchmarks/readiness/adapters/plink2/vcf.admixture/admixture.eigenvec",
+        "admixture_proxy_eigenval=benchmarks/readiness/adapters/plink2/vcf.admixture/admixture.eigenval",
+        "plink2_log=benchmarks/readiness/adapters/plink2/vcf.admixture/admixture.log"
+      ],
+      "normalized_metrics_outputs": [
+        "admixture_report=benchmarks/readiness/adapters/plink2/vcf.admixture/admixture_report.json"
+      ],
+      "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.admixture/{sample_scope}/plink2/stage-result.json",
+      "index_outputs": [],
+      "parser_ready": true,
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
+      "parser_fixture_parser_id": "parse_plink2_admixture_metrics",
+      "parser_fixture_schema_id": "bijux.vcf.admixture.v1",
+      "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.admixture",
+      "expected_result_ready": true,
+      "expected_result_proof_path": "benchmarks/readiness/vcf-expected-benchmark-results.tsv",
+      "expected_outputs": [
+        "admixture_report"
+      ],
+      "expected_metrics": [
+        "selected_k",
+        "sample_count",
+        "population_count",
+        "status"
+      ],
+      "report_section_id": "population_structure",
+      "report_ready": true,
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
+      "summary_table_id": "population_structure_metrics",
+      "report_metric_columns": [
+        "selected_k",
+        "sample_count",
+        "population_count",
+        "status"
+      ],
+      "smoke_ready": true,
+      "smoke_command": "bijux-dna bench local run-vcf-admixture-smoke --tool-id plink2",
+      "smoke_output_root": "runs/bench/local-smoke/vcf.admixture/plink2",
+      "smoke_input_vcf_path": "runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/admixture_input.vcf",
+      "smoke_sample_metadata_path": "runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/sample_metadata.tsv",
+      "smoke_population_metadata_path": "runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/population_metadata.tsv",
+      "smoke_population_labels_manifest_path": "runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/population_labels.json",
+      "smoke_admixture_tsv_path": "runs/bench/local-smoke/vcf.admixture/plink2/admixture.tsv",
+      "smoke_admixture_json_path": "runs/bench/local-smoke/vcf.admixture/plink2/admixture.json",
+      "smoke_source_q_matrix_path": "runs/bench/local-smoke/vcf.admixture/plink2/source_admixture_q_matrix.tsv",
+      "smoke_source_k_selection_path": "runs/bench/local-smoke/vcf.admixture/plink2/source_admixture_k_selection.json",
+      "smoke_source_logs_path": "runs/bench/local-smoke/vcf.admixture/plink2/source_logs.txt",
+      "smoke_stage_result_manifest_path": "runs/bench/local-smoke/vcf.admixture/plink2/stage-result.json",
+      "smoke_execution_mode": "fallback_proxy",
+      "smoke_tool_ok": false,
+      "smoke_selected_k": 2,
+      "smoke_status": "complete",
+      "smoke_sample_count": 4,
+      "smoke_population_count": 2,
+      "smoke_cluster_headers": [
+        "cluster_1",
+        "cluster_2"
+      ],
+      "smoke_rows": [
+        {
+          "sample_id": "sample_a",
+          "population_id": "cohort_alpha",
+          "population_label": "Cohort Alpha",
+          "sex": "female",
+          "K": 2,
+          "status": "complete",
+          "cluster_1": 1.0,
+          "cluster_2": 0.0
+        },
+        {
+          "sample_id": "sample_b",
+          "population_id": "cohort_alpha",
+          "population_label": "Cohort Alpha",
+          "sex": "male",
+          "K": 2,
+          "status": "complete",
+          "cluster_1": 1.0,
+          "cluster_2": 0.0
+        },
+        {
+          "sample_id": "sample_c",
+          "population_id": "cohort_beta",
+          "population_label": "Cohort Beta",
+          "sex": "female",
+          "K": 2,
+          "status": "complete",
+          "cluster_1": 0.0,
+          "cluster_2": 1.0
+        },
+        {
+          "sample_id": "sample_d",
+          "population_id": "cohort_beta",
+          "population_label": "Cohort Beta",
+          "sex": "male",
+          "K": 2,
+          "status": "complete",
+          "cluster_1": 0.0,
+          "cluster_2": 1.0
+        }
+      ],
+      "required_metric_names": [
+        "selected_k",
+        "sample_count",
+        "population_count",
+        "status"
+      ],
+      "missing_surfaces": [],
+      "coverage_status": "complete",
+      "reason": "`vcf.admixture` / `plink2` stays active with governed adapter, parser, report, and ancestry-sum smoke proof"
+    }
+  ],
+  "violations": []
+}

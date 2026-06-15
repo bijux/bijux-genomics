@@ -1,0 +1,76 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.qc.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "excluded_samples": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "excluded_variants": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "heterozygosity": {
+          "type": "object"
+        },
+        "maf_summary": {
+          "type": "object"
+        },
+        "sample_missingness": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "sample_missingness_exclusion_threshold": {
+          "type": "number"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.qc.v1"
+        },
+        "stage_id": {
+          "const": "vcf.qc"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "variant_missingness": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "variant_missingness_exclusion_threshold": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_qc_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.qc`.",
+  "title": "VCF normalized benchmark metrics: vcf.qc"
+}

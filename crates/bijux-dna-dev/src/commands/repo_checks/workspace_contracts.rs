@@ -590,6 +590,8 @@ pub(crate) fn check_root_layout(
     let allowlist = [
         "artifacts",
         "assets",
+        "benchmarks",
+        "bin",
         "configs",
         "containers",
         "crates",
@@ -598,6 +600,7 @@ pub(crate) fn check_root_layout(
         "examples",
         "makes",
         "science",
+        "tests",
     ];
     let mut offenders = Vec::new();
     for entry in std::fs::read_dir(&workspace.root)
@@ -608,7 +611,11 @@ pub(crate) fn check_root_layout(
             continue;
         }
         let name = entry.file_name().to_string_lossy().to_string();
-        if name.starts_with('.') || allowlist.contains(&name.as_str()) {
+        if name.starts_with('.')
+            || name.starts_with("target")
+            || name == "runs"
+            || allowlist.contains(&name.as_str())
+        {
             continue;
         }
         offenders.push(name);

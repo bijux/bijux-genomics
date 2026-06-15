@@ -1,0 +1,5 @@
+sample_id	feature_id	abundance
+sample_a	otu_001	10
+sample_a	otu_002	30
+sample_b	otu_001	5
+sample_b	otu_003	5

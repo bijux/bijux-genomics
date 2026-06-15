@@ -16,17 +16,17 @@ pub fn args(bam: &Path, out_path: &Path, _params: &ComplexityEffectiveParams) ->
 #[must_use]
 pub fn args_with_outputs(
     bam: &Path,
-    preseq_txt: &Path,
+    complexity_curve_tsv: &Path,
     complexity_json: &Path,
     summary_json: &Path,
     _params: &ComplexityEffectiveParams,
 ) -> Vec<String> {
     let command = format!(
-        "preseq lc_extrap -o {preseq} {bam} && \
-python - <<'PY' > {complexity}\nimport json\nprint(json.dumps({{\"source\": \"preseq\", \"report\": \"{preseq}\"}}, indent=2))\nPY && \
-python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\": \"bam.complexity\", \"preseq\": \"{preseq}\"}}, indent=2))\nPY",
+        "preseq lc_extrap -o {complexity_curve} {bam} && \
+python - <<'PY' > {complexity}\nimport json\nprint(json.dumps({{\"source\": \"preseq\", \"complexity_curve\": \"{complexity_curve}\"}}, indent=2))\nPY && \
+python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\": \"bam.complexity\", \"complexity_curve\": \"{complexity_curve}\"}}, indent=2))\nPY",
         bam = bam.display(),
-        preseq = preseq_txt.display(),
+        complexity_curve = complexity_curve_tsv.display(),
         complexity = complexity_json.display(),
         summary = summary_json.display()
     );

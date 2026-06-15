@@ -19,8 +19,18 @@ param_type_id = "bam.authenticity"
 schema_version = "bijux.bam.params.v1"
 
 [[entries]]
+stage_id = "bam.bias_mitigation"
+param_type_id = "bam.bias_mitigation"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
 stage_id = "bam.contamination"
 param_type_id = "bam.contamination"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.complexity"
+param_type_id = "bam.complexity"
 schema_version = "bijux.bam.params.v1"
 
 [[entries]]
@@ -44,8 +54,18 @@ param_type_id = "bam.endogenous_content"
 schema_version = "bijux.bam.params.v1"
 
 [[entries]]
+stage_id = "bam.genotyping"
+param_type_id = "bam.genotyping"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
 stage_id = "bam.filter"
 param_type_id = "bam.filter"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.haplogroups"
+param_type_id = "bam.haplogroups"
 schema_version = "bijux.bam.params.v1"
 
 [[entries]]
@@ -69,6 +89,11 @@ param_type_id = "bam.mapq_filter"
 schema_version = "bijux.bam.params.v1"
 
 [[entries]]
+stage_id = "bam.overlap_correction"
+param_type_id = "bam.overlap_correction"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
 stage_id = "bam.sex"
 param_type_id = "bam.sex"
 schema_version = "bijux.bam.params.v1"
@@ -84,9 +109,19 @@ param_type_id = "bam.qc_pre"
 schema_version = "bijux.bam.params.v1"
 
 [[entries]]
+stage_id = "bam.recalibration"
+param_type_id = "bam.recalibration"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
 stage_id = "fastq.deplete_reference_contaminants"
 param_type_id = "fastq.deplete_reference_contaminants"
 schema_version = "bijux.fastq.params.deplete_reference_contaminants.v1"
+
+[[entries]]
+stage_id = "fastq.detect_duplicates_premerge"
+param_type_id = "paramless"
+schema_version = "none"
 
 [[entries]]
 stage_id = "fastq.correct_errors"
@@ -97,6 +132,11 @@ schema_version = "bijux.fastq.params.correct.v1"
 stage_id = "fastq.detect_adapters"
 param_type_id = "fastq.detect_adapters"
 schema_version = "bijux.fastq.params.detect_adapters.v1"
+
+[[entries]]
+stage_id = "fastq.estimate_library_complexity_prealign"
+param_type_id = "fastq.estimate_library_complexity_prealign"
+schema_version = "bijux.fastq.params.estimate_library_complexity_prealign.v1"
 
 [[entries]]
 stage_id = "fastq.filter_reads"

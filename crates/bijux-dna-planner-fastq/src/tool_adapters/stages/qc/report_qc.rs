@@ -345,6 +345,7 @@ fn shell_quote_str(value: &str) -> String {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{
         aux_tool_ids_for_qc_inputs, governed_qc_inputs_manifest_payload,

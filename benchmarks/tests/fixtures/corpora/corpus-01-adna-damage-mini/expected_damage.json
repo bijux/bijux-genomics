@@ -1,0 +1,10 @@
+{
+  "schema_version": "bijux.bench.bam_damage_expectation.v1",
+  "fixture_id": "corpus-01-adna-damage-mini",
+  "sample_id": "adna_damage_non_udg",
+  "terminal_c_to_t_5p": 0.18,
+  "terminal_g_to_a_3p": 0.11,
+  "short_fragment_fraction": 1.0,
+  "damage_signal": "moderate",
+  "strict_profile_upgraded": false
+}

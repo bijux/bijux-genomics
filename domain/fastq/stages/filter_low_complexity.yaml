@@ -28,6 +28,10 @@ parameters:
     param_type: "int"
     default: "20"
 metrics:
+  - name: "filtered_fastq_r1"
+    meaning: "Canonical filtered FASTQ output for read one or single-end input."
+  - name: "filtered_fastq_r2"
+    meaning: "Canonical filtered FASTQ output for read two when paired-end input is provided."
   - name: "reads_in"
     meaning: "Number of input reads."
   - name: "reads_out"

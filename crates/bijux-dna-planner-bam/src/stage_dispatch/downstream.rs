@@ -43,6 +43,7 @@ pub fn plan(stage: BamStage, _request: &StagePlanRequest<'_>) -> Result<StagePla
                 crate::tool_adapters::stages_downstream::haplogroups::plan(
                     _request.tool,
                     bam,
+                    _request.bam_index,
                     _request.out_dir,
                     &params,
                 )

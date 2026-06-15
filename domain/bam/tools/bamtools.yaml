@@ -5,11 +5,101 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "2.5.2"
 install_kind: "container"
+container:
+  image: "bijuxdna/bamtools:2.5.2"
 license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/bioinformatics/article/27/12/1691/255399"
+outputs:
+  - name: "validation_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "flagstat"
+    data_type: "text"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+  - name: "filtered_bam"
+    data_type: "bam"
+    cardinality: "One"
+  - name: "filtered_bai"
+    data_type: "bai"
+    cardinality: "One"
+  - name: "flagstat_before"
+    data_type: "text"
+    cardinality: "One"
+  - name: "flagstat_after"
+    data_type: "text"
+    cardinality: "One"
+  - name: "idxstats_before"
+    data_type: "text"
+    cardinality: "One"
+  - name: "idxstats_after"
+    data_type: "text"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  optional_inputs:
+    - "bam_index"
+    - "reference_fasta"
+  expected_outputs:
+    - "validation_report"
+    - "flagstat"
+    - "stage_metrics"
+    - "filtered_bam"
+    - "filtered_bai"
+    - "flagstat_before"
+    - "flagstat_after"
+    - "idxstats_before"
+    - "idxstats_after"
+    - "summary"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.validate","bam.filter","bam.mapq_filter"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.filter:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "filtered_bam"
+      - "filtered_bai"
+      - "flagstat_before"
+      - "flagstat_after"
+      - "idxstats_before"
+      - "idxstats_after"
+      - "summary"
+      - "stage_metrics"
+    notes: "Bamtools filter coverage must preserve the governed BAM filter row through deterministic retained/removed read accounting and before-and-after audit artifacts."
+  bam.mapq_filter:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "filtered_bam"
+      - "filtered_bai"
+      - "flagstat_before"
+      - "flagstat_after"
+      - "idxstats_before"
+      - "idxstats_after"
+      - "summary"
+      - "stage_metrics"
+    notes: "Bamtools MAPQ-filter coverage must preserve the governed threshold, retained-read, removed-read, and filtered-BAM contract even when local comparison planning reuses the samtools MAPQ-gating implementation."
+  bam.validate:
+    required_inputs:
+      - "bam"
+    optional_inputs:
+      - "bam_index"
+      - "reference_fasta"
+    expected_artifacts:
+      - "validation_report"
+      - "flagstat"
+      - "stage_metrics"
+    notes: "Validation emits the governed validation summary, flagstat companion output, and benchmark-facing stage metrics while preserving optional BAM index and reference identity when present."
 expected_artifacts: ["bam_validation_report"]
 metrics_schema_id: "bijux.bam.validation.v1"
 metrics_schema: "bijux.bam.validation.v1"

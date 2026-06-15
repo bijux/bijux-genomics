@@ -14,13 +14,13 @@ pub(crate) fn stage_compat_tools(stage: VcfDomainStage) -> &'static [&'static st
         VcfDomainStage::GlPropagation => &["bcftools", "angsd"],
         VcfDomainStage::PrepareReferencePanel => &["bcftools"],
         VcfDomainStage::Phasing => &["beagle", "eagle", "shapeit5"],
-        VcfDomainStage::Imputation | VcfDomainStage::Impute => {
+        VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute => {
             &["glimpse", "impute5", "minimac4", "beagle"]
         }
         VcfDomainStage::Postprocess => &["bcftools"],
         VcfDomainStage::PopulationStructure | VcfDomainStage::Pca => &["plink2", "eigensoft"],
-        VcfDomainStage::Admixture => &["plink2"],
-        VcfDomainStage::Ibd => &["germline", "ibdhap"],
+        VcfDomainStage::Admixture => &["plink2", "plink"],
+        VcfDomainStage::Ibd => &["germline", "ibdseq", "ibdhap"],
         VcfDomainStage::Roh => &["plink2"],
         VcfDomainStage::Demography => &["ibdne"],
         VcfDomainStage::Qc => &["plink2", "plink"],
@@ -37,7 +37,7 @@ pub(crate) fn default_tool(stage: VcfDomainStage, coverage: CoverageRegime) -> &
             CoverageRegime::LowCovGl => "beagle",
             CoverageRegime::Pseudohaploid => "beagle",
         },
-        VcfDomainStage::Imputation | VcfDomainStage::Impute => match coverage {
+        VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute => match coverage {
             CoverageRegime::Diploid => "minimac4",
             CoverageRegime::LowCovGl => "glimpse",
             CoverageRegime::Pseudohaploid => "beagle",
@@ -62,6 +62,7 @@ pub(crate) fn image_for_tool(tool: &str) -> ContainerImageRefV1 {
         "plink2" => "quay.io/biocontainers/plink2:2.00a3.7--h5ef6573_0",
         "eigensoft" => "quay.io/biocontainers/eigensoft:7.2.1--h9ee0642_4",
         "germline" => "quay.io/biocontainers/germline:1.5.3--hdfd78af_0",
+        "ibdseq" => "quay.io/bijux/ibdseq:3.0-planned",
         "ibdhap" => "quay.io/biocontainers/ibdhap:1.0.0--h9ee0642_0",
         "ibdne" => "quay.io/biocontainers/ibdne:23.05.23.ae9f5b3--hdfd78af_0",
         _ => "quay.io/biocontainers/bcftools:1.20--h8b25389_0",

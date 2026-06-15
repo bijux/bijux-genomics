@@ -5,7 +5,7 @@
     "template": [
       "/bin/sh",
       "-c",
-      "preseq lc_extrap -o out/preseq.txt tests/fixtures/plan_inputs/default/sample.bam && python - <<'PY' > out/complexity.json\nimport json\nprint(json.dumps({\"source\": \"preseq\", \"report\": \"out/preseq.txt\"}, indent=2))\nPY && python - <<'PY' > out/complexity.summary.json\nimport json\nprint(json.dumps({\"stage\": \"bam.complexity\", \"preseq\": \"out/preseq.txt\"}, indent=2))\nPY"
+      "preseq lc_extrap -o out/complexity_curve.tsv tests/fixtures/plan_inputs/default/sample.bam && python - <<'PY' > out/complexity.json\nimport json\nprint(json.dumps({\"source\": \"preseq\", \"complexity_curve\": \"out/complexity_curve.tsv\"}, indent=2))\nPY && python - <<'PY' > out/complexity.summary.json\nimport json\nprint(json.dumps({\"stage\": \"bam.complexity\", \"complexity_curve\": \"out/complexity_curve.tsv\"}, indent=2))\nPY"
     ]
   },
   "effective_params": {
@@ -36,9 +36,9 @@
         "role": "report_json"
       },
       {
-        "name": "preseq",
+        "name": "complexity_curve",
         "optional": false,
-        "path": "out/preseq.txt",
+        "path": "out/complexity_curve.tsv",
         "role": "unknown"
       },
       {
@@ -68,7 +68,7 @@
   "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "e2944bad5ac012652771be12c62b7c9c18d96ab09ba6e566ce98e29ad018df9d",
+      "contract_hash": "0db0d871dd99ac2c93026494e2eb088f105318eafb103630737867638adb375d",
       "defaults_diff": {},
       "resource_plan": {
         "cpu_threads": 4,

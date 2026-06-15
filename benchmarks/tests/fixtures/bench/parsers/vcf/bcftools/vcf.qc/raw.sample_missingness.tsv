@@ -1,0 +1,4 @@
+sample_id	total_genotype_count	missing_genotype_count	missingness
+qc_balanced	4	1	0.25
+qc_ref	4	0	0.0
+qc_sparse	4	3	0.75

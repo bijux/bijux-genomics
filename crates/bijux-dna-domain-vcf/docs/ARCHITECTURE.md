@@ -18,6 +18,7 @@ src/
   coverage.rs             # domain coverage report
   lib.rs                  # public facade and catalogs
   metrics.rs              # schema-versioned VCF metrics
+  parsers/                # normalized parser contracts for retained raw VCF artifacts
   registry_emit.rs        # deterministic TOML string materialization
   stage_baseline.rs       # canonical call/filter/stats baseline
 ```
@@ -26,6 +27,8 @@ src/
 
 - `contracts/` owns validation and stage contract truth.
 - `params/` and `metrics.rs` own schema-versioned public payloads.
+- `parsers/` owns normalization of governed raw artifact banks into shared stage metrics payloads,
+  including retained `bcftools`, `angsd`, `plink`, `plink2`, and descent-family VCF surfaces.
 - `taxonomy/` owns downstream stage order and forbidden transitions.
 - `registry_emit.rs` may render strings only; filesystem writes stay outside this crate.
 - Runtime, runner, planner, stage execution, API, database, and environment behavior belong

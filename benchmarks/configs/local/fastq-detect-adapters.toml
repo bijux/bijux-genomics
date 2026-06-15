@@ -1,0 +1,19 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local-smoke inputs for fastq.detect_adapters.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.fastq.local_detect_adapters.v1"
+tool_id = "fastqc"
+threads = 4
+output_dir = "runs/bench/local-smoke/fastq.detect_adapters"
+
+[[cases]]
+sample_id = "adapter-hit-se"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_adapter_hit_R1.fastq.gz"
+
+[[cases]]
+sample_id = "adapter-clear-se"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz"

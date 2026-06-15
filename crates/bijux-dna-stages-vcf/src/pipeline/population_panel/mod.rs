@@ -96,6 +96,42 @@ fn parse_plink2_eigenval(path: &Path) -> Option<String> {
     Some(out)
 }
 
+fn parse_smartpca_eigenvec(path: &Path, components: usize) -> Option<String> {
+    let raw = std::fs::read_to_string(path).ok()?;
+    let mut out = String::from("sample");
+    for i in 1..=components {
+        out.push_str(&format!("\tPC{i}"));
+    }
+    out.push('\n');
+    for line in raw.lines() {
+        let cols = line.split_whitespace().collect::<Vec<_>>();
+        if cols.len() < components + 1 {
+            continue;
+        }
+        out.push_str(cols[0]);
+        for idx in 0..components {
+            out.push('\t');
+            out.push_str(cols.get(1 + idx).copied().unwrap_or("0.0"));
+        }
+        out.push('\n');
+    }
+    Some(out)
+}
+
+fn parse_smartpca_eigenval(path: &Path) -> Option<String> {
+    parse_plink2_eigenval(path)
+}
+
+fn parse_eigenvalues_tsv(raw: &str) -> Vec<f64> {
+    raw.lines()
+        .skip(1)
+        .filter_map(|line| {
+            let value = line.split('\t').nth(1)?.trim();
+            value.parse::<f64>().ok()
+        })
+        .collect()
+}
+
 /// # Errors
 /// Returns an error if PCA preprocessing requirements are not satisfied.
 pub fn run_pca_stage(
@@ -124,6 +160,11 @@ pub fn run_pca_stage(
             passing += 1;
         }
     }
+    let sample_population_labels = params
+        .sample_metadata_manifest
+        .as_ref()
+        .map(|manifest_path| parse_sample_population_labels(manifest_path, &samples))
+        .transpose()?;
     if passing == 0 {
         bail!("vcf.pca refusal: no variants pass preprocessing (LD/MAF/missingness)");
     }
@@ -185,13 +226,29 @@ pub fn run_pca_stage(
     };
     let plink_eigenvec = out_dir.join("plink_pca.eigenvec");
     let plink_eigenval = out_dir.join("plink_pca.eigenval");
+    let smartpca_eigenvec = out_dir.join("pca.smartpca.evec");
+    let smartpca_eigenval = out_dir.join("pca.smartpca.eval");
     let mut execution_mode = "fallback_proxy";
-    let vec_rows = if tool_ok && plink_eigenvec.exists() {
-        if let Some(parsed) = parse_plink2_eigenvec(&plink_eigenvec, params.components) {
-            execution_mode = "real_tool";
-            parsed
-        } else {
-            String::new()
+    let vec_rows = if tool_ok {
+        match toolchain.as_str() {
+            "eigensoft" | "smartpca" if smartpca_eigenvec.exists() => {
+                if let Some(parsed) = parse_smartpca_eigenvec(&smartpca_eigenvec, params.components)
+                {
+                    execution_mode = "real_tool";
+                    parsed
+                } else {
+                    String::new()
+                }
+            }
+            _ if plink_eigenvec.exists() => {
+                if let Some(parsed) = parse_plink2_eigenvec(&plink_eigenvec, params.components) {
+                    execution_mode = "real_tool";
+                    parsed
+                } else {
+                    String::new()
+                }
+            }
+            _ => String::new(),
         }
     } else {
         String::new()
@@ -214,8 +271,16 @@ pub fn run_pca_stage(
         vec_rows
     };
     atomic_write_bytes(&eigenvec_tsv, vec_rows.as_bytes())?;
-    let mut val_rows = if tool_ok && plink_eigenval.exists() {
-        parse_plink2_eigenval(&plink_eigenval).unwrap_or_default()
+    let mut val_rows = if tool_ok {
+        match toolchain.as_str() {
+            "eigensoft" | "smartpca" if smartpca_eigenval.exists() => {
+                parse_smartpca_eigenval(&smartpca_eigenval).unwrap_or_default()
+            }
+            _ if plink_eigenval.exists() => {
+                parse_plink2_eigenval(&plink_eigenval).unwrap_or_default()
+            }
+            _ => String::new(),
+        }
     } else {
         String::new()
     };
@@ -225,6 +290,7 @@ pub fn run_pca_stage(
             val_rows.push_str(&format!("PC{i}\t{:.6}\n", 1.0 / i as f64));
         }
     }
+    let eigenvalues = parse_eigenvalues_tsv(&val_rows);
     atomic_write_bytes(&eigenval_tsv, val_rows.as_bytes())?;
     atomic_write_json(
         &pca_manifest_json,
@@ -233,6 +299,20 @@ pub fn run_pca_stage(
             "toolchain": tool_id,
             "execution_mode": execution_mode,
             "components": params.components,
+            "sample_count": samples.len(),
+            "sample_ids": samples,
+            "eigenvalues": eigenvalues,
+            "sample_metadata_manifest": params.sample_metadata_manifest.as_ref(),
+            "sample_population_labels": sample_population_labels.as_ref().map(|labels| {
+                labels
+                    .iter()
+                    .filter(|(sample_id, _)| samples.iter().any(|sample| sample == *sample_id))
+                    .map(|(sample_id, population_id)| serde_json::json!({
+                        "sample_id": sample_id,
+                        "population_id": population_id,
+                    }))
+                    .collect::<Vec<_>>()
+            }),
             "ld_pruning_policy": ld_policy,
             "plot_references": {
                 "scree_plot": "plots/pca_scree.png",
@@ -272,6 +352,11 @@ pub fn run_population_structure_stage(
     params: &PopulationStructureStageParams,
 ) -> Result<PopulationStructureStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
+    if !params.run_admixture {
+        bail!(
+            "vcf.population_structure refusal: consumed admixture output is required for governed population-structure summaries"
+        );
+    }
     let raw = read_vcf_text(input_vcf)?;
     let mut samples = Vec::<String>::new();
     let ld_policy = require_ld_pruning_policy(
@@ -333,18 +418,35 @@ pub fn run_population_structure_stage(
             preprocessing: params.preprocessing.clone(),
         },
     )?;
-    let admixture = if params.run_admixture {
-        Some(run_admixture_stage(
-            input_vcf,
-            out_dir,
-            &params.admixture_params.clone().unwrap_or_else(|| AdmixtureStageParams {
-                sample_metadata_manifest: Some(metadata_manifest.clone()),
-                ..AdmixtureStageParams::default()
-            }),
-        )?)
-    } else {
-        None
-    };
+    let pca_manifest_raw = std::fs::read_to_string(&pca.pca_manifest_json)?;
+    let pca_manifest: serde_json::Value = serde_json::from_str(&pca_manifest_raw)?;
+    let admixture = run_admixture_stage(
+        input_vcf,
+        out_dir,
+        &params.admixture_params.clone().unwrap_or_else(|| AdmixtureStageParams {
+            sample_metadata_manifest: Some(metadata_manifest.clone()),
+            ..AdmixtureStageParams::default()
+        }),
+    )?;
+    let admixture_manifest = admixture.k_selection_json.as_path();
+    let admixture_manifest_raw = std::fs::read_to_string(admixture_manifest)?;
+    let admixture_manifest: serde_json::Value = serde_json::from_str(&admixture_manifest_raw)?;
+    for required in [&pca.eigenvec_tsv, &pca.eigenval_tsv, &pca.pca_manifest_json] {
+        if !required.exists() {
+            bail!(
+                "vcf.population_structure refusal: consumed PCA path is missing: {}",
+                required.display()
+            );
+        }
+    }
+    for required in [&admixture.q_matrix_tsv, &admixture.k_selection_json] {
+        if !required.exists() {
+            bail!(
+                "vcf.population_structure refusal: consumed admixture path is missing: {}",
+                required.display()
+            );
+        }
+    }
     atomic_write_bytes(
         &plink_input_tsv,
         format!("variant_id\n{}\n", passing.join("\n")).as_bytes(),
@@ -368,6 +470,8 @@ pub fn run_population_structure_stage(
                 "max_missingness": params.preprocessing.max_missingness,
             },
             "variants_passing": passing.len(),
+            "status": "complete",
+            "sample_ids": samples,
             "sample_labels": {
                 "manifest": metadata_manifest,
                 "total_samples": labels.len(),
@@ -377,6 +481,10 @@ pub fn run_population_structure_stage(
                         *acc.entry(pop.clone()).or_insert(0) += 1;
                         acc
                     }),
+                "rows": labels.iter().map(|(sample_id, population_id)| serde_json::json!({
+                    "sample_id": sample_id,
+                    "population_id": population_id,
+                })).collect::<Vec<_>>(),
             },
             "metrics": {
                 "sample_count": labels.len(),
@@ -391,12 +499,30 @@ pub fn run_population_structure_stage(
             "pca": {
                 "eigenvec_tsv": pca.eigenvec_tsv,
                 "eigenval_tsv": pca.eigenval_tsv,
-                "manifest_json": pca.pca_manifest_json
+                "manifest_json": pca.pca_manifest_json,
+                "execution_mode": pca_manifest.get("execution_mode").and_then(serde_json::Value::as_str),
+                "tool_ok": pca_manifest.get("tool_attempts")
+                    .and_then(|row| row.get("pca"))
+                    .and_then(|row| row.get("ok"))
+                    .and_then(serde_json::Value::as_bool),
+                "sample_count": pca_manifest.get("sample_count").and_then(serde_json::Value::as_u64)
             },
-            "admixture": admixture.as_ref().map(|out| serde_json::json!({
-                "q_matrix_tsv": out.q_matrix_tsv,
-                "k_selection_json": out.k_selection_json
-            })),
+            "admixture": {
+                "q_matrix_tsv": admixture.q_matrix_tsv,
+                "k_selection_json": admixture.k_selection_json,
+                "status": admixture_manifest
+                    .get("status")
+                    .and_then(serde_json::Value::as_str),
+                "execution_mode": admixture_manifest
+                    .get("execution_mode")
+                    .and_then(serde_json::Value::as_str),
+                "selected_k": admixture_manifest
+                    .get("selected_k")
+                    .and_then(serde_json::Value::as_u64),
+                "sample_count": admixture_manifest
+                    .get("sample_count")
+                    .and_then(serde_json::Value::as_u64)
+            },
             "outputs": {
                 "pruned_variants_tsv": pruned_variants_tsv,
                 "population_structure_json": population_structure_json
@@ -410,7 +536,7 @@ pub fn run_population_structure_stage(
             params.toolchain,
             params.smartpca,
             plink_prune_ok,
-            params.run_admixture
+            true
         )
         .as_bytes(),
     )?;
@@ -503,36 +629,98 @@ pub fn run_admixture_stage(
         .collect::<std::collections::BTreeSet<_>>()
         .into_iter()
         .collect::<Vec<_>>();
-    let clusters = population_order.iter().take(selected_k.max(1)).cloned().collect::<Vec<_>>();
+    let cluster_headers =
+        (1..=selected_k.max(1)).map(|index| format!("cluster_{index}")).collect::<Vec<_>>();
+    let cluster_population_labels = (0..selected_k.max(1))
+        .map(|index| {
+            population_order
+                .get(index)
+                .cloned()
+                .map(|population_id| {
+                    serde_json::json!({
+                        "column": format!("cluster_{}", index + 1),
+                        "population_id": population_id,
+                    })
+                })
+                .unwrap_or_else(|| {
+                    serde_json::json!({
+                        "column": format!("cluster_{}", index + 1),
+                        "population_id": serde_json::Value::Null,
+                    })
+                })
+        })
+        .collect::<Vec<_>>();
+    let insufficient_data_reason = if population_order.len() < selected_k {
+        Some("population_label_count_below_selected_k")
+    } else {
+        None
+    };
+    let status = if insufficient_data_reason.is_some() { "insufficient_data" } else { "complete" };
     let mut execution_mode = "fallback_proxy";
     let mut q_tsv = String::new();
     if tool == "admixture" && tool_ok {
         let q_path = out_dir.join(format!("admixture_plink.{}.Q", selected_k));
         if let Ok(q_raw) = std::fs::read_to_string(&q_path) {
             execution_mode = "real_tool";
-            q_tsv = format!(
-                "sample\t{}\n",
-                (1..=selected_k).map(|k| format!("Q{k}")).collect::<Vec<_>>().join("\t")
-            );
-            for (sample, row) in samples.iter().zip(q_raw.lines()) {
+            let q_rows = q_raw.lines().collect::<Vec<_>>();
+            if q_rows.len() != samples.len() {
+                bail!(
+                    "vcf.admixture refusal: q-matrix row count {} does not match sample count {}",
+                    q_rows.len(),
+                    samples.len()
+                );
+            }
+            q_tsv = format!("sample\t{}\n", cluster_headers.join("\t"));
+            for (sample, row) in samples.iter().zip(q_rows) {
+                let fractions = row
+                    .split_whitespace()
+                    .take(selected_k.max(1))
+                    .map(|value| {
+                        value.parse::<f64>().map_err(|_| {
+                            anyhow!(
+                                "vcf.admixture refusal: q-matrix value `{value}` for sample `{sample}` is not numeric"
+                            )
+                        })
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+                if fractions.len() != cluster_headers.len() {
+                    bail!(
+                        "vcf.admixture refusal: q-matrix column count {} does not match cluster count {} for sample `{sample}`",
+                        fractions.len(),
+                        cluster_headers.len()
+                    );
+                }
+                let total_fraction = fractions.iter().sum::<f64>();
+                if (total_fraction - 1.0).abs() > 1e-6 {
+                    bail!(
+                        "vcf.admixture refusal: cluster fractions for sample `{sample}` sum to {total_fraction:.6}, expected 1.0"
+                    );
+                }
                 q_tsv.push_str(sample);
-                for value in row.split_whitespace() {
-                    q_tsv.push('\t');
-                    q_tsv.push_str(value);
+                for value in fractions {
+                    q_tsv.push_str(&format!("\t{value:.6}"));
                 }
                 q_tsv.push('\n');
             }
         }
     }
     if q_tsv.is_empty() {
-        q_tsv = format!("sample\t{}\n", clusters.join("\t"));
+        q_tsv = format!("sample\t{}\n", cluster_headers.join("\t"));
         for sample in &samples {
             let label = labels.get(sample).ok_or_else(|| {
                 anyhow!("vcf.admixture refusal: missing label for sample `{sample}`")
             })?;
             q_tsv.push_str(sample);
-            for cluster in &clusters {
-                let score = if cluster == label { 1.0 } else { 0.0 };
+            for cluster in &cluster_population_labels {
+                let score = if cluster
+                    .get("population_id")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|population_id| population_id == label)
+                {
+                    1.0
+                } else {
+                    0.0
+                };
                 q_tsv.push_str(&format!("\t{score:.6}"));
             }
             q_tsv.push('\n');
@@ -547,13 +735,31 @@ pub fn run_admixture_stage(
             "execution_mode": execution_mode,
             "k_values": params.k_values,
             "selected_k": selected_k,
+            "status": status,
+            "insufficient_data_reason": insufficient_data_reason,
             "tool_ok": tool_ok,
+            "sample_count": samples.len(),
+            "sample_ids": samples,
+            "population_count": population_order.len(),
+            "population_ids": population_order,
+            "cluster_count": cluster_headers.len(),
+            "cluster_headers": cluster_headers,
+            "cluster_population_labels": cluster_population_labels,
             "sample_metadata_manifest": metadata_manifest,
+            "sample_population_labels": labels.iter().map(|(sample_id, population_id)| {
+                serde_json::json!({
+                    "sample_id": sample_id,
+                    "population_id": population_id,
+                })
+            }).collect::<Vec<_>>(),
         }),
     )?;
     atomic_write_bytes(
         &logs_txt,
-        format!("toolchain={tool}\nexecution_mode={execution_mode}\ntool_success={tool_ok}\nselected_k={selected_k}\n").as_bytes(),
+        format!(
+            "toolchain={tool}\nexecution_mode={execution_mode}\ntool_success={tool_ok}\nselected_k={selected_k}\nstatus={status}\n"
+        )
+        .as_bytes(),
     )?;
     Ok(AdmixtureStageOutputs { q_matrix_tsv, k_selection_json, logs_txt })
 }

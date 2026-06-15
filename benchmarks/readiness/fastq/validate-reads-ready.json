@@ -1,0 +1,481 @@
+{
+  "schema_version": "bijux.bench.readiness.fastq_validate_reads_ready.v1",
+  "output_path": "benchmarks/readiness/fastq/validate-reads-ready.json",
+  "active_row_count": 5,
+  "complete_row_count": 5,
+  "incomplete_row_count": 0,
+  "checked_surface_count": 8,
+  "expected_tool_ids": [
+    "fastq_scan",
+    "fastqc",
+    "fastqvalidator",
+    "fqtools",
+    "seqtk"
+  ],
+  "validation_status_field_id": "strict_pass",
+  "failure_reason_field_id": "failure_class",
+  "required_validation_report_fields": [
+    "validated_reads_r1",
+    "validated_reads_r2",
+    "validated_pairs",
+    "status_r1",
+    "status_r2",
+    "pair_sync_checked",
+    "pair_sync_pass",
+    "pair_count_match",
+    "failure_class",
+    "strict_pass"
+  ],
+  "required_validated_reads_manifest_fields": [
+    "paired_mode",
+    "validated_stream_ids",
+    "pair_sync_checked",
+    "pair_sync_pass",
+    "validated_pairs"
+  ],
+  "sample_case_count": 2,
+  "smoke_sample_ids": [
+    "toy-pe",
+    "toy-se"
+  ],
+  "smoke_layouts": [
+    "paired_end",
+    "single_end"
+  ],
+  "coverage_status_counts": {
+    "complete": 5
+  },
+  "violation_count": 0,
+  "ok": true,
+  "rows": [
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastq_scan",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastq_scan",
+      "corpus_id": "corpus-01-mini",
+      "sample_scope": "sample-set",
+      "support_status": "observer_specialized_benchmark",
+      "adapter_status": "runnable",
+      "parser_status": "comparable",
+      "corpus_status": "fixture:corpus-01-mini",
+      "report_section_id": "input_readiness",
+      "summary_table_id": "validation_intake",
+      "command_readiness_kind": "smoke",
+      "expected_outputs": [
+        "validation_report",
+        "validated_reads_manifest",
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "raw_output_artifact_ids": [
+        "validated_reads_manifest"
+      ],
+      "normalized_metrics_output_id": "validation_report",
+      "shared_metric_fields": [
+        "format_validation_pass_rate"
+      ],
+      "validation_report_fields": [
+        "validated_reads_r1",
+        "validated_reads_r2",
+        "validated_pairs",
+        "status_r1",
+        "status_r2",
+        "pair_sync_checked",
+        "pair_sync_pass",
+        "pair_count_match",
+        "failure_class",
+        "strict_pass"
+      ],
+      "validated_reads_manifest_fields": [
+        "paired_mode",
+        "validated_stream_ids",
+        "pair_sync_checked",
+        "pair_sync_pass",
+        "validated_pairs"
+      ],
+      "command_argv_output_path": "benchmarks/readiness/rendered-commands.argv.jsonl",
+      "output_contract_proof_path": "benchmarks/readiness/fastq-adapter-output-contract.tsv",
+      "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
+      "comparable_metrics_proof_path": "benchmarks/readiness/fastq-comparable-metrics.tsv",
+      "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
+      "smoke_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+      "smoke_sample_ids": [
+        "toy-pe",
+        "toy-se"
+      ],
+      "smoke_layouts": [
+        "paired_end",
+        "single_end"
+      ],
+      "smoke_read_count_totals": [
+        2,
+        4
+      ],
+      "smoke_validation_statuses": [
+        "pass"
+      ],
+      "smoke_failure_classes": [
+        "none"
+      ],
+      "command_ready": true,
+      "output_ready": true,
+      "parser_ready": true,
+      "comparable_metrics_ready": true,
+      "expected_result_ready": true,
+      "report_ready": true,
+      "smoke_parseable": true,
+      "sample_id_normalized": true,
+      "layout_normalized": true,
+      "read_count_normalized": true,
+      "validation_status_normalized": true,
+      "failure_reason_normalized": true,
+      "coverage_status": "complete",
+      "missing_surfaces": [],
+      "reason": "retained FASTQ validator `fastq_scan` keeps active scope, command, output, parser, expected-result, report, and normalized validation proof for `fastq.validate_reads`"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqc",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqc",
+      "corpus_id": "corpus-01-mini",
+      "sample_scope": "sample-set",
+      "support_status": "observer_specialized_benchmark",
+      "adapter_status": "runnable",
+      "parser_status": "comparable",
+      "corpus_status": "fixture:corpus-01-mini",
+      "report_section_id": "input_readiness",
+      "summary_table_id": "validation_intake",
+      "command_readiness_kind": "smoke",
+      "expected_outputs": [
+        "validation_report",
+        "validated_reads_manifest",
+        "adapter_report",
+        "adapter_evidence_dir",
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "raw_output_artifact_ids": [
+        "validated_reads_manifest"
+      ],
+      "normalized_metrics_output_id": "validation_report",
+      "shared_metric_fields": [
+        "format_validation_pass_rate"
+      ],
+      "validation_report_fields": [
+        "validated_reads_r1",
+        "validated_reads_r2",
+        "validated_pairs",
+        "status_r1",
+        "status_r2",
+        "pair_sync_checked",
+        "pair_sync_pass",
+        "pair_count_match",
+        "failure_class",
+        "strict_pass"
+      ],
+      "validated_reads_manifest_fields": [
+        "paired_mode",
+        "validated_stream_ids",
+        "pair_sync_checked",
+        "pair_sync_pass",
+        "validated_pairs"
+      ],
+      "command_argv_output_path": "benchmarks/readiness/rendered-commands.argv.jsonl",
+      "output_contract_proof_path": "benchmarks/readiness/fastq-adapter-output-contract.tsv",
+      "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
+      "comparable_metrics_proof_path": "benchmarks/readiness/fastq-comparable-metrics.tsv",
+      "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
+      "smoke_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+      "smoke_sample_ids": [
+        "toy-pe",
+        "toy-se"
+      ],
+      "smoke_layouts": [
+        "paired_end",
+        "single_end"
+      ],
+      "smoke_read_count_totals": [
+        2,
+        4
+      ],
+      "smoke_validation_statuses": [
+        "pass"
+      ],
+      "smoke_failure_classes": [
+        "none"
+      ],
+      "command_ready": true,
+      "output_ready": true,
+      "parser_ready": true,
+      "comparable_metrics_ready": true,
+      "expected_result_ready": true,
+      "report_ready": true,
+      "smoke_parseable": true,
+      "sample_id_normalized": true,
+      "layout_normalized": true,
+      "read_count_normalized": true,
+      "validation_status_normalized": true,
+      "failure_reason_normalized": true,
+      "coverage_status": "complete",
+      "missing_surfaces": [],
+      "reason": "retained FASTQ validator `fastqc` keeps active scope, command, output, parser, expected-result, report, and normalized validation proof for `fastq.validate_reads`"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqvalidator",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqvalidator",
+      "corpus_id": "corpus-01-mini",
+      "sample_scope": "sample-set",
+      "support_status": "observer_specialized_benchmark",
+      "adapter_status": "runnable",
+      "parser_status": "comparable",
+      "corpus_status": "fixture:corpus-01-mini",
+      "report_section_id": "input_readiness",
+      "summary_table_id": "validation_intake",
+      "command_readiness_kind": "smoke",
+      "expected_outputs": [
+        "validation_report",
+        "validated_reads_manifest"
+      ],
+      "raw_output_artifact_ids": [
+        "validated_reads_manifest"
+      ],
+      "normalized_metrics_output_id": "validation_report",
+      "shared_metric_fields": [
+        "format_validation_pass_rate"
+      ],
+      "validation_report_fields": [
+        "validated_reads_r1",
+        "validated_reads_r2",
+        "validated_pairs",
+        "status_r1",
+        "status_r2",
+        "pair_sync_checked",
+        "pair_sync_pass",
+        "pair_count_match",
+        "failure_class",
+        "strict_pass"
+      ],
+      "validated_reads_manifest_fields": [
+        "paired_mode",
+        "validated_stream_ids",
+        "pair_sync_checked",
+        "pair_sync_pass",
+        "validated_pairs"
+      ],
+      "command_argv_output_path": "benchmarks/readiness/rendered-commands.argv.jsonl",
+      "output_contract_proof_path": "benchmarks/readiness/fastq-adapter-output-contract.tsv",
+      "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
+      "comparable_metrics_proof_path": "benchmarks/readiness/fastq-comparable-metrics.tsv",
+      "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
+      "smoke_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+      "smoke_sample_ids": [
+        "toy-pe",
+        "toy-se"
+      ],
+      "smoke_layouts": [
+        "paired_end",
+        "single_end"
+      ],
+      "smoke_read_count_totals": [
+        2,
+        4
+      ],
+      "smoke_validation_statuses": [
+        "pass"
+      ],
+      "smoke_failure_classes": [
+        "none"
+      ],
+      "command_ready": true,
+      "output_ready": true,
+      "parser_ready": true,
+      "comparable_metrics_ready": true,
+      "expected_result_ready": true,
+      "report_ready": true,
+      "smoke_parseable": true,
+      "sample_id_normalized": true,
+      "layout_normalized": true,
+      "read_count_normalized": true,
+      "validation_status_normalized": true,
+      "failure_reason_normalized": true,
+      "coverage_status": "complete",
+      "missing_surfaces": [],
+      "reason": "retained FASTQ validator `fastqvalidator` keeps active scope, command, output, parser, expected-result, report, and normalized validation proof for `fastq.validate_reads`"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:fqtools",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fqtools",
+      "corpus_id": "corpus-01-mini",
+      "sample_scope": "sample-set",
+      "support_status": "observer_specialized_benchmark",
+      "adapter_status": "runnable",
+      "parser_status": "comparable",
+      "corpus_status": "fixture:corpus-01-mini",
+      "report_section_id": "input_readiness",
+      "summary_table_id": "validation_intake",
+      "command_readiness_kind": "smoke",
+      "expected_outputs": [
+        "validation_report",
+        "validated_reads_manifest"
+      ],
+      "raw_output_artifact_ids": [
+        "validated_reads_manifest"
+      ],
+      "normalized_metrics_output_id": "validation_report",
+      "shared_metric_fields": [
+        "format_validation_pass_rate"
+      ],
+      "validation_report_fields": [
+        "validated_reads_r1",
+        "validated_reads_r2",
+        "validated_pairs",
+        "status_r1",
+        "status_r2",
+        "pair_sync_checked",
+        "pair_sync_pass",
+        "pair_count_match",
+        "failure_class",
+        "strict_pass"
+      ],
+      "validated_reads_manifest_fields": [
+        "paired_mode",
+        "validated_stream_ids",
+        "pair_sync_checked",
+        "pair_sync_pass",
+        "validated_pairs"
+      ],
+      "command_argv_output_path": "benchmarks/readiness/rendered-commands.argv.jsonl",
+      "output_contract_proof_path": "benchmarks/readiness/fastq-adapter-output-contract.tsv",
+      "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
+      "comparable_metrics_proof_path": "benchmarks/readiness/fastq-comparable-metrics.tsv",
+      "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
+      "smoke_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+      "smoke_sample_ids": [
+        "toy-pe",
+        "toy-se"
+      ],
+      "smoke_layouts": [
+        "paired_end",
+        "single_end"
+      ],
+      "smoke_read_count_totals": [
+        2,
+        4
+      ],
+      "smoke_validation_statuses": [
+        "pass"
+      ],
+      "smoke_failure_classes": [
+        "none"
+      ],
+      "command_ready": true,
+      "output_ready": true,
+      "parser_ready": true,
+      "comparable_metrics_ready": true,
+      "expected_result_ready": true,
+      "report_ready": true,
+      "smoke_parseable": true,
+      "sample_id_normalized": true,
+      "layout_normalized": true,
+      "read_count_normalized": true,
+      "validation_status_normalized": true,
+      "failure_reason_normalized": true,
+      "coverage_status": "complete",
+      "missing_surfaces": [],
+      "reason": "retained FASTQ validator `fqtools` keeps active scope, command, output, parser, expected-result, report, and normalized validation proof for `fastq.validate_reads`"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:seqtk",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "seqtk",
+      "corpus_id": "corpus-01-mini",
+      "sample_scope": "sample-set",
+      "support_status": "observer_specialized_benchmark",
+      "adapter_status": "runnable",
+      "parser_status": "comparable",
+      "corpus_status": "fixture:corpus-01-mini",
+      "report_section_id": "input_readiness",
+      "summary_table_id": "validation_intake",
+      "command_readiness_kind": "smoke",
+      "expected_outputs": [
+        "validation_report",
+        "validated_reads_manifest"
+      ],
+      "raw_output_artifact_ids": [
+        "validated_reads_manifest"
+      ],
+      "normalized_metrics_output_id": "validation_report",
+      "shared_metric_fields": [
+        "format_validation_pass_rate"
+      ],
+      "validation_report_fields": [
+        "validated_reads_r1",
+        "validated_reads_r2",
+        "validated_pairs",
+        "status_r1",
+        "status_r2",
+        "pair_sync_checked",
+        "pair_sync_pass",
+        "pair_count_match",
+        "failure_class",
+        "strict_pass"
+      ],
+      "validated_reads_manifest_fields": [
+        "paired_mode",
+        "validated_stream_ids",
+        "pair_sync_checked",
+        "pair_sync_pass",
+        "validated_pairs"
+      ],
+      "command_argv_output_path": "benchmarks/readiness/rendered-commands.argv.jsonl",
+      "output_contract_proof_path": "benchmarks/readiness/fastq-adapter-output-contract.tsv",
+      "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
+      "comparable_metrics_proof_path": "benchmarks/readiness/fastq-comparable-metrics.tsv",
+      "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
+      "smoke_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+      "smoke_sample_ids": [
+        "toy-pe",
+        "toy-se"
+      ],
+      "smoke_layouts": [
+        "paired_end",
+        "single_end"
+      ],
+      "smoke_read_count_totals": [
+        2,
+        4
+      ],
+      "smoke_validation_statuses": [
+        "pass"
+      ],
+      "smoke_failure_classes": [
+        "none"
+      ],
+      "command_ready": true,
+      "output_ready": true,
+      "parser_ready": true,
+      "comparable_metrics_ready": true,
+      "expected_result_ready": true,
+      "report_ready": true,
+      "smoke_parseable": true,
+      "sample_id_normalized": true,
+      "layout_normalized": true,
+      "read_count_normalized": true,
+      "validation_status_normalized": true,
+      "failure_reason_normalized": true,
+      "coverage_status": "complete",
+      "missing_surfaces": [],
+      "reason": "retained FASTQ validator `seqtk` keeps active scope, command, output, parser, expected-result, report, and normalized validation proof for `fastq.validate_reads`"
+    }
+  ],
+  "violations": []
+}

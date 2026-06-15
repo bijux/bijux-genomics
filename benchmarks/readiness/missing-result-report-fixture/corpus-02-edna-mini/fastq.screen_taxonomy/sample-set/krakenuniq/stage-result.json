@@ -1,0 +1,41 @@
+{
+  "schema_version": "bijux.bench.stage_result.v2",
+  "stage_id": "fastq.screen_taxonomy",
+  "tool": {
+    "id": "krakenuniq"
+  },
+  "command": {
+    "rendered": "bijux-dna bench readiness missing-result-fixture --stage fastq.screen_taxonomy --tool krakenuniq"
+  },
+  "runtime": {
+    "mode": "fake_benchmark_result",
+    "status": "succeeded",
+    "started_at": "1970-01-01T00:00:00Z",
+    "finished_at": "1970-01-01T00:00:01Z",
+    "elapsed_seconds": 1.0,
+    "exit_code": 0
+  },
+  "resource_metrics": {
+    "source": "estimated",
+    "memory_mb": 512.0,
+    "cpu_threads": 1
+  },
+  "outputs": [
+    {
+      "artifact_id": "screen_report_tsv",
+      "declared_path": "outputs/screen_report_tsv.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/krakenuniq/outputs/screen_report_tsv.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "classification_report_json",
+      "declared_path": "outputs/classification_report_json.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/krakenuniq/outputs/classification_report_json.json",
+      "role": "normalized_metrics",
+      "optional": false,
+      "exists": true
+    }
+  ]
+}

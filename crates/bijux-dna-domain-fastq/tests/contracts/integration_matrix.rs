@@ -238,6 +238,16 @@ fn stage_tool_registration_queries_keep_planned_tools_visible_but_not_runnable()
     assert!(!bijux_dna_domain_fastq::admitted_execution_tools_for_stage(&trim_stage)
         .contains(&ToolId::from_static("seqpurge")));
 
+    let detect_duplicates_stage = StageId::from_static("fastq.detect_duplicates_premerge");
+    assert_eq!(
+        bijux_dna_domain_fastq::registered_tool_ids_for_stage(&detect_duplicates_stage),
+        vec![ToolId::from_static("bijux_dna")]
+    );
+    assert!(bijux_dna_domain_fastq::governed_tool_ids_for_stage(&detect_duplicates_stage)
+        .contains(&ToolId::from_static("bijux_dna")));
+    assert!(bijux_dna_domain_fastq::admitted_execution_tools_for_stage(&detect_duplicates_stage)
+        .contains(&ToolId::from_static("bijux_dna")));
+
     let declared_stage = StageId::from_static("fastq.build_contaminant_db");
     assert_eq!(
         bijux_dna_domain_fastq::registered_tool_ids_for_stage(&declared_stage),
@@ -245,6 +255,73 @@ fn stage_tool_registration_queries_keep_planned_tools_visible_but_not_runnable()
     );
     assert!(bijux_dna_domain_fastq::governed_tool_ids_for_stage(&declared_stage).is_empty());
     assert!(bijux_dna_domain_fastq::admitted_execution_tools_for_stage(&declared_stage).is_empty());
+}
+
+#[test]
+fn multi_tool_comparable_stages_publish_shared_sanity_metrics() {
+    let comparable_multi_tool_stages = bijux_dna_domain_fastq::comparable_benchmark_stage_ids()
+        .into_iter()
+        .filter(|stage_id| {
+            bijux_dna_domain_fastq::admitted_execution_tools_for_stage(stage_id).len() >= 2
+        })
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        comparable_multi_tool_stages
+            .iter()
+            .map(std::string::ToString::to_string)
+            .collect::<BTreeSet<_>>(),
+        BTreeSet::from([
+            "fastq.index_reference".to_string(),
+            "fastq.profile_overrepresented_sequences".to_string(),
+            "fastq.validate_reads".to_string(),
+        ]),
+        "the governed multi-tool FASTQ comparable slice must stay explicit"
+    );
+
+    for stage_id in &comparable_multi_tool_stages {
+        let metrics = bijux_dna_domain_fastq::stage_sanity_metrics_for_stage(stage_id);
+        assert!(
+            !metrics.is_empty(),
+            "multi-tool comparable stage `{stage_id}` must publish shared sanity metrics"
+        );
+    }
+
+    assert_eq!(
+        bijux_dna_domain_fastq::stage_sanity_metrics_for_stage(&StageId::from_static(
+            "fastq.index_reference",
+        )),
+        vec!["index_build_exit_code".to_string()]
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::stage_sanity_metrics_for_stage(&StageId::from_static(
+            "fastq.validate_reads",
+        )),
+        vec!["format_validation_pass_rate".to_string()]
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::stage_sanity_metrics_for_stage(&StageId::from_static(
+            "fastq.profile_overrepresented_sequences",
+        )),
+        vec![
+            "sequence_count".to_string(),
+            "flagged_sequences".to_string(),
+            "top_fraction".to_string(),
+        ]
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::stage_sanity_metrics_for_stage(&StageId::from_static(
+            "fastq.screen_taxonomy",
+        )),
+        vec![
+            "taxonomy_database_id".to_string(),
+            "classified_reads".to_string(),
+            "unclassified_reads".to_string(),
+            "classified_fraction".to_string(),
+            "unclassified_fraction".to_string(),
+            "top_taxa".to_string(),
+        ]
+    );
 }
 
 #[test]
@@ -287,6 +364,24 @@ fn stage_tool_governance_profile_centralizes_benchmark_contract_truth() {
     );
     assert_eq!(
         infer_profile.benchmark_contract_maturity(),
+        bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::None
+    );
+
+    let detect_duplicates_profile = governance_profile(
+        &StageId::from_static("fastq.detect_duplicates_premerge"),
+        &ToolId::from_static("bijux_dna"),
+    );
+    assert!(detect_duplicates_profile.default_tool);
+    assert!(detect_duplicates_profile.admitted_runtime_tool);
+    assert!(detect_duplicates_profile.is_plannable());
+    assert!(detect_duplicates_profile.is_runnable());
+    assert!(!detect_duplicates_profile.has_governed_benchmark_contract());
+    assert_eq!(
+        detect_duplicates_profile.normalization_maturity(),
+        bijux_dna_domain_fastq::StageToolNormalizationMaturity::GenericEnvelope
+    );
+    assert_eq!(
+        detect_duplicates_profile.benchmark_contract_maturity(),
         bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::None
     );
 
@@ -356,6 +451,18 @@ fn stage_tool_capability_contract_is_owned_by_domain() {
     assert!(detect_capability.benchmark_normalized);
     assert!(detect_capability.comparable);
 
+    let detect_duplicates_stage = StageId::from_static("fastq.detect_duplicates_premerge");
+    let bijux_dna = ToolId::from_static("bijux_dna");
+    let detect_duplicates_capability = capability_contract(
+        &detect_duplicates_stage,
+        &bijux_dna,
+        bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope,
+    );
+    assert!(detect_duplicates_capability.runnable);
+    assert!(detect_duplicates_capability.parse_normalized);
+    assert!(!detect_duplicates_capability.benchmark_normalized);
+    assert!(!detect_duplicates_capability.comparable);
+
     let infer_stage = StageId::from_static("fastq.infer_asvs");
     let dada2 = ToolId::from_static("dada2");
     let infer_capability = capability_contract(
@@ -383,6 +490,14 @@ fn stage_tool_capability_contract_is_owned_by_domain() {
             bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized,
         ),
         Some(bijux_dna_domain_fastq::BenchmarkReadinessLevel::GovernedBenchmarkCohort)
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::benchmark_readiness_for_stage_tool(
+            &detect_duplicates_stage,
+            &bijux_dna,
+            bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope,
+        ),
+        Some(bijux_dna_domain_fastq::BenchmarkReadinessLevel::GovernedExecution)
     );
 }
 

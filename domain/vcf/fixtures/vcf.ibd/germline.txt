@@ -2,8 +2,8 @@ tool=germline
 tool_version=pinned
 stage=vcf.ibd
 domain=vcf
-fixture_kind=parity
-command=germline
-args=-input cohort.bed -output ibd_segments
-expected_outputs=ibd_segments,metrics.json
+fixture_kind=governed_contract
+command=sh
+args=-lc "plink2 --vcf cohort.vcf.gz --double-id --allow-extra-chr --make-bed --out ibd_segments.cohort >/dev/null 2>&1 && germline -input ibd_segments.cohort -bits 128 -min_m 3 -err_hom 2 -err_het 1 -output ibd_segments > ibd_segments.log 2>&1"
+expected_outputs=ibd_segments,cohort_bed,cohort_bim,cohort_fam,logs_txt
 expected_stdout_patterns=germline,metrics_schema=bijux.vcf.ibd.v1

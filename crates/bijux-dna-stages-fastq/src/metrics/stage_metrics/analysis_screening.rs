@@ -105,17 +105,32 @@ pub(super) fn deplete_rrna_metrics(
         serde_json::json!({
             "reads_in": report.reads_in,
             "reads_out": report.reads_out,
+            "retained_reads": report.reads_out,
             "reads_removed": report.reads_removed,
+            "removed_reads": report.reads_removed,
             "bases_in": report.bases_in,
             "bases_out": report.bases_out,
             "bases_removed": report.bases_removed,
             "pairs_in": report.pairs_in,
             "pairs_out": report.pairs_out,
             "rrna_fraction_removed": report.rrna_fraction_removed,
+            "depletion_rate": report.rrna_fraction_removed,
             "database_artifact_id": report.database_artifact_id,
             "screening_engine": report.screening_engine,
             "report_format": report.report_format,
             "paired_mode": report.paired_mode,
+            "depletion_summary": {
+                "reads_removed": report.reads_removed,
+                "bases_removed": report.bases_removed,
+                "output_r1": report.output_r1,
+                "output_r2": report.output_r2,
+                "removed_reads_r1": report.removed_reads_r1,
+                "removed_reads_r2": report.removed_reads_r2,
+                "report_tsv": report.rrna_report_tsv,
+                "report_json": report.rrna_report_json,
+                "database_artifact_id": report.database_artifact_id,
+                "screening_engine": report.screening_engine,
+            },
         })
     } else {
         let stats = stats_for_paths(&[
@@ -135,13 +150,16 @@ pub(super) fn deplete_rrna_metrics(
         serde_json::json!({
             "reads_in": input.reads,
             "reads_out": output.reads,
+            "retained_reads": output.reads,
             "reads_removed": reads_removed,
+            "removed_reads": reads_removed,
             "bases_in": input.bases,
             "bases_out": output.bases,
             "bases_removed": bases_removed,
             "pairs_in": pairs_in,
             "pairs_out": pairs_out,
             "rrna_fraction_removed": rrna_fraction_removed,
+            "depletion_rate": rrna_fraction_removed,
         })
     })
 }
@@ -171,16 +189,31 @@ pub(super) fn deplete_reference_contaminants_metrics(
             "reads_in": report.reads_in,
             "reads_out": report.reads_out,
             "reads_removed": report.reads_removed,
+            "contaminant_reads": report.reads_removed,
             "bases_in": report.bases_in,
             "bases_out": report.bases_out,
             "bases_removed": report.bases_removed,
             "pairs_in": report.pairs_in,
             "pairs_out": report.pairs_out,
             "contaminant_fraction_removed": report.contaminant_fraction_removed,
+            "contaminant_hit_rate": report.contaminant_fraction_removed,
             "reference_catalog_id": report.reference_catalog_id,
             "reference_index_backend": report.reference_index_backend,
             "contaminant_reference": report.contaminant_reference,
             "paired_mode": report.paired_mode,
+            "depletion_summary": {
+                "reads_removed": report.reads_removed,
+                "bases_removed": report.bases_removed,
+                "output_r1": report.output_r1,
+                "output_r2": report.output_r2,
+                "removed_reads_r1": report.removed_reads_r1,
+                "removed_reads_r2": report.removed_reads_r2,
+                "report_json": report.report_json,
+                "contaminant_reference": report.contaminant_reference,
+                "reference_index_backend": report.reference_index_backend,
+                "raw_backend_report": report.raw_backend_report,
+                "raw_backend_report_format": report.raw_backend_report_format,
+            },
         })
     } else {
         let stats = stats_for_paths(&[
@@ -201,12 +234,14 @@ pub(super) fn deplete_reference_contaminants_metrics(
             "reads_in": input.reads,
             "reads_out": output.reads,
             "reads_removed": reads_removed,
+            "contaminant_reads": reads_removed,
             "bases_in": input.bases,
             "bases_out": output.bases,
             "bases_removed": bases_removed,
             "pairs_in": pairs_in,
             "pairs_out": pairs_out,
             "contaminant_fraction_removed": contaminant_fraction_removed,
+            "contaminant_hit_rate": contaminant_fraction_removed,
         })
     })
 }
@@ -236,18 +271,33 @@ pub(super) fn deplete_host_metrics(
             "reads_in": report.reads_in,
             "reads_out": report.reads_out,
             "reads_removed": report.reads_removed,
+            "depleted_reads": report.reads_removed,
             "bases_in": report.bases_in,
             "bases_out": report.bases_out,
             "bases_removed": report.bases_removed,
             "pairs_in": report.pairs_in,
             "pairs_out": report.pairs_out,
             "host_fraction_removed": report.host_fraction_removed,
+            "host_hit_rate": report.host_fraction_removed,
             "reference_scope": report.reference_scope,
             "reference_catalog_id": report.reference_catalog_id,
             "reference_index_artifact_id": report.reference_index_artifact_id,
             "reference_index_backend": report.reference_index_backend,
             "identity_threshold": report.identity_threshold,
             "paired_mode": report.paired_mode,
+            "depletion_summary": {
+                "reads_removed": report.reads_removed,
+                "bases_removed": report.bases_removed,
+                "output_r1": report.output_r1,
+                "output_r2": report.output_r2,
+                "removed_host_r1": report.removed_host_r1,
+                "removed_host_r2": report.removed_host_r2,
+                "report_json": report.report_json,
+                "reference_catalog_id": report.reference_catalog_id,
+                "reference_index_backend": report.reference_index_backend,
+                "raw_backend_report": report.raw_backend_report,
+                "raw_backend_report_format": report.raw_backend_report_format,
+            },
         })
     } else {
         let stats = stats_for_paths(&[
@@ -268,12 +318,14 @@ pub(super) fn deplete_host_metrics(
             "reads_in": input.reads,
             "reads_out": output.reads,
             "reads_removed": reads_removed,
+            "depleted_reads": reads_removed,
             "bases_in": input.bases,
             "bases_out": output.bases,
             "bases_removed": bases_removed,
             "pairs_in": pairs_in,
             "pairs_out": pairs_out,
             "host_fraction_removed": host_fraction_removed,
+            "host_hit_rate": host_fraction_removed,
         })
     })
 }

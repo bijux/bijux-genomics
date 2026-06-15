@@ -8,6 +8,8 @@ pub(crate) const STAGE_MODULES: &[&str] = &[
     "deplete_reference_contaminants",
     "deplete_rrna",
     "detect_adapters",
+    "detect_duplicates_premerge",
+    "estimate_library_complexity_prealign",
     "extract_umis",
     "filter_low_complexity",
     "filter_reads",
@@ -38,6 +40,8 @@ pub(crate) mod deplete_host;
 pub(crate) mod deplete_reference_contaminants;
 pub(crate) mod deplete_rrna;
 pub(crate) mod detect_adapters;
+pub(crate) mod detect_duplicates_premerge;
+pub(crate) mod estimate_library_complexity_prealign;
 pub(crate) mod extract_umis;
 pub(crate) mod filter_low_complexity;
 pub(crate) mod filter_reads;

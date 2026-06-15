@@ -75,12 +75,24 @@ pub fn stage_artifact_contract(stage: VcfDomainStage) -> StageArtifactContract {
                 "logs.txt",
             ],
         },
-        VcfDomainStage::Imputation | VcfDomainStage::Impute => StageArtifactContract {
+        VcfDomainStage::Impute => StageArtifactContract {
             stage,
             required_artifacts: &[
                 "imputation_qc.json",
                 "maf_bin_quality.tsv",
                 "overlap_stats.json",
+                "provenance.json",
+                "checksums.sha256",
+                "logs.txt",
+                "imputation_accept_decision.json",
+            ],
+        },
+        VcfDomainStage::ImputationMetrics => StageArtifactContract {
+            stage,
+            required_artifacts: &[
+                "imputation_metrics.json",
+                "imputation_manifest.json",
+                "orchestration_manifest.json",
                 "provenance.json",
                 "checksums.sha256",
                 "logs.txt",
@@ -152,7 +164,7 @@ pub fn stage_failure_modes(stage: VcfDomainStage) -> &'static [StageFailureMode]
                 triage_hint: "Align panel build and normalize contigs before phasing",
             },
         ],
-        VcfDomainStage::Imputation | VcfDomainStage::Impute => &[
+        VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute => &[
             StageFailureMode {
                 code: "panel_missing",
                 meaning: "No compatible reference panel was selected",

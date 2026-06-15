@@ -1,0 +1,156 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_schema_validation.v1",
+  "domain": "vcf",
+  "output_path": "benchmarks/readiness/vcf-schema-validation.json",
+  "shared_schema_path": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
+  "stage_dir": "benchmarks/schemas/vcf-normalized-metrics",
+  "passes_gate": true,
+  "shared_schema_matches": true,
+  "stage_count": 20,
+  "required_stage_count": 17,
+  "exact_stage_schema_file_count": 20,
+  "missing_stage_schema_files": [],
+  "unexpected_stage_schema_files": [],
+  "rows": [
+    {
+      "stage_id": "vcf.admixture",
+      "schema_version": "bijux.vcf.admixture.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/admixture.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.call",
+      "schema_version": "bijux.vcf.call.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/call.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.call_diploid",
+      "schema_version": "bijux.vcf.call_diploid.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/call-diploid.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.call_gl",
+      "schema_version": "bijux.vcf.call_gl.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/call-gl.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.call_pseudohaploid",
+      "schema_version": "bijux.vcf.call_pseudohaploid.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/call-pseudohaploid.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.damage_filter",
+      "schema_version": "bijux.vcf.damage_filter.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/damage-filter.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.demography",
+      "schema_version": "bijux.vcf.demography.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/demography.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.filter",
+      "schema_version": "bijux.vcf.filter.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/filter.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.gl_propagation",
+      "schema_version": "bijux.vcf.gl_propagation.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/gl-propagation.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.ibd",
+      "schema_version": "bijux.vcf.ibd.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/ibd.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.imputation_metrics",
+      "schema_version": "bijux.vcf.imputation_metrics.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/imputation-metrics.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.impute",
+      "schema_version": "bijux.vcf.impute.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/impute.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.pca",
+      "schema_version": "bijux.vcf.pca.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/pca.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.phasing",
+      "schema_version": "bijux.vcf.phasing.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/phasing.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.population_structure",
+      "schema_version": "bijux.vcf.population_structure.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/population-structure.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.postprocess",
+      "schema_version": "bijux.vcf.postprocess.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/postprocess.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.prepare_reference_panel",
+      "schema_version": "bijux.vcf.prepare_reference_panel.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/prepare-reference-panel.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.qc",
+      "schema_version": "bijux.vcf.qc.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/qc.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.roh",
+      "schema_version": "bijux.vcf.roh.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/roh.v1.json",
+      "file_present": true,
+      "exact_match": true
+    },
+    {
+      "stage_id": "vcf.stats",
+      "schema_version": "bijux.vcf.stats.v1",
+      "schema_file": "benchmarks/schemas/vcf-normalized-metrics/stats.v1.json",
+      "file_present": true,
+      "exact_match": true
+    }
+  ]
+}

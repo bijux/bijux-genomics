@@ -18,11 +18,20 @@ parameters:
   - name: "method"
     param_type: "string"
     default: "relative_abundance"
+    meaning: "Governed normalization method that benchmark rows surface through the `normalization_method` alias."
 metrics:
+  - name: "normalization_method"
+    meaning: "Canonical benchmark alias for the governed abundance-normalization method."
   - name: "table_rows"
     meaning: "Number of rows in the normalized abundance table"
   - name: "sample_count"
     meaning: "Number of samples in the normalized abundance table"
+  - name: "feature_count"
+    meaning: "Number of distinct features represented in the normalized abundance table."
+  - name: "sample_totals"
+    meaning: "Per-sample normalized abundance totals used to validate the compositional output contract."
+  - name: "numeric_output_valid"
+    meaning: "Whether every governed sample total matches the expected compositional target for the selected normalization method."
   - name: "zero_fraction"
     meaning: "Fraction of normalized cells equal to zero"
 description: "FASTQ-derived amplicon stage for normalizing feature-table abundance values."
@@ -44,6 +53,7 @@ invariants:
   - "stable_artifact_contract"
   - "amplicon_only_stage"
   - "per_sample_abundance_is_compositional"
+  - "normalization_method == method"
 allowed_missingness:
   - "none"
 compatible_tools:
@@ -54,5 +64,3 @@ assumptions:
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
-planned_out_of_scope:
-  - "seqfu"

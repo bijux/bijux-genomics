@@ -16,6 +16,7 @@ fn planner_bam_tree_matches_architecture_contract() {
             "api.rs",
             "execution_graph.rs",
             "lib.rs",
+            "local_readiness.rs",
             "params.rs",
             "profile_catalog.rs",
             "report_stage.rs",
@@ -30,7 +31,7 @@ fn planner_bam_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/selection")),
-        entries(["mod.rs", "registry.rs", "tool_selection.rs"]),
+        entries(["domain_tool_specs.rs", "mod.rs", "registry.rs", "tool_selection.rs"]),
         "selection must separate registry loading from tool choice logic"
     );
     assert_eq!(

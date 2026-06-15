@@ -42,6 +42,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "stage_id": "bam.sex",
   "tool_ids": [
     "rxy",
+    "yleaf",
     "angsd"
   ]
 }

@@ -1,23 +1,40 @@
 use std::collections::{BTreeSet, HashMap};
+use std::fmt::Write as _;
+use std::fs::File;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
 use bijux_dna_core::prelude::ArtifactId;
+use noodles_bam as bam;
+use noodles_sam::alignment::record::data::field::{Tag, Value};
+use noodles_sam::header::record::value::map::header::{sort_order::COORDINATE, tag::SORT_ORDER};
+use noodles_sam::header::record::value::map::read_group::tag as read_group_tag;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::metrics::{authenticity_score, BamMetricsV1, SexConfidenceClass};
-use crate::params::ReadGroupSpec;
+use crate::params::{BqsrMode, FilterEffectiveParams, ReadGroupSpec, RecalibrationSkipCriteria};
 
 pub const BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION: &str = "bijux.bam.artifact_inventory.v1";
 pub const BAM_SAMPLE_IDENTITY_SCHEMA_VERSION: &str = "bijux.bam.sample_identity.v1";
 pub const BAM_REFERENCE_PREFLIGHT_SCHEMA_VERSION: &str = "bijux.bam.reference_preflight.v1";
 pub const BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION: &str = "bijux.bam.alignment_provenance.v1";
 pub const BAM_VALIDATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.validate.v1";
+pub const BAM_QC_PRE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.qc_pre.v1";
 pub const BAM_MAPPING_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapping_summary.v1";
+pub const BAM_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.filter.v1";
 pub const BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapq_filter.v1";
+pub const BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.length_filter.v1";
+pub const BAM_MARKDUP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.markdup.v1";
+pub const BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.duplication_metrics.v1";
+pub const BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.complexity.v1";
 pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summary.v1";
+pub const BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.insert_size.v1";
+pub const BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.gc_bias.v1";
+pub const BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.bias_mitigation_summary.v1";
+pub const BAM_RECALIBRATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.recalibration.v1";
+pub const BAM_OVERLAP_CORRECTION_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.overlap_correction.v1";
 pub const BAM_DUPLICATE_POLICY_SCHEMA_VERSION: &str = "bijux.bam.duplicate_policy.v1";
 pub const BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION: &str = "bijux.bam.advisory_boundary.v1";
 pub const BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION: &str = "bijux.bam.workflow_template.v1";
@@ -35,9 +52,11 @@ pub const BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.damage_evidence.
 pub const BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION: &str = "bijux.bam.authenticity_advisory.v1";
 pub const BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.contamination_evidence.v1";
 pub const BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION: &str = "bijux.bam.endogenous_content.v1";
+pub const BAM_SEX_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.sex_summary.v1";
 pub const BAM_SEX_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.sex_evidence.v1";
 pub const BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION: &str = "bijux.bam.haplogroup_readiness.v1";
 pub const BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION: &str = "bijux.bam.kinship_prerequisites.v1";
+pub const BAM_KINSHIP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.kinship_summary.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -137,6 +156,32 @@ pub struct BamValidationSummaryV1 {
     pub refusal_codes: Vec<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BamTinyAlignmentInspectionV1 {
+    pub sort_order: Option<String>,
+    pub header_contigs: Vec<String>,
+    pub header_sample_ids: Vec<String>,
+    pub read_group_ids: Vec<String>,
+    pub mapped_record_contigs: Vec<String>,
+    pub record_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct BamQcPreSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_bam: PathBuf,
+    pub total_reads: u64,
+    pub mapped_reads: u64,
+    pub unmapped_reads: u64,
+    pub duplicate_flagged_reads: u64,
+    pub contig_summary: Vec<crate::metrics::IdxstatsContigV1>,
+    pub reference_mismatch: bool,
+    pub fragment_length: crate::metrics::FragmentLengthSummaryV1,
+    pub mapq: crate::metrics::MapqSummaryV1,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct BamMapqRegimeV1 {
@@ -168,6 +213,22 @@ pub struct BamMappingSummaryV1 {
     pub read_group_breakdown: Vec<BamReadGroupMappingCountV1>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamFilterSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_bam: PathBuf,
+    pub output_bam: PathBuf,
+    pub flagstat_before: BamFlagstatCountsV1,
+    pub flagstat_after: BamFlagstatCountsV1,
+    pub input_reads: u64,
+    pub kept_reads: u64,
+    pub removed_reads: u64,
+    #[serde(default)]
+    pub active_filters: Vec<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BamReadGroupMappingCountV1 {
@@ -187,10 +248,227 @@ pub struct BamMapqFilterSummaryV1 {
     pub output_bam: PathBuf,
     pub flagstat_before: BamFlagstatCountsV1,
     pub flagstat_after: BamFlagstatCountsV1,
+    pub input_reads: u64,
+    pub kept_reads: u64,
+    pub removed_reads: u64,
     #[serde(default)]
     pub mapped_reads_removed: Option<u64>,
     #[serde(default)]
     pub mapped_fraction_retained: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamLengthFilterSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub min_length_threshold: u32,
+    pub input_bam: PathBuf,
+    pub output_bam: PathBuf,
+    pub flagstat_before: BamFlagstatCountsV1,
+    pub flagstat_after: BamFlagstatCountsV1,
+    pub input_reads: u64,
+    pub kept_reads: u64,
+    pub removed_reads: u64,
+    #[serde(default)]
+    pub observed_min_length: Option<u32>,
+    #[serde(default)]
+    pub observed_max_length: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamMarkdupSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub duplicate_action: String,
+    #[serde(default)]
+    pub optical_duplicates: Option<String>,
+    #[serde(default)]
+    pub umi_policy: Option<String>,
+    pub input_bam: PathBuf,
+    pub output_bam: PathBuf,
+    pub flagstat_before: BamFlagstatCountsV1,
+    pub flagstat_after: BamFlagstatCountsV1,
+    pub input_reads: u64,
+    pub output_reads: u64,
+    pub removed_reads: u64,
+    #[serde(default)]
+    pub duplicate_reads_before: Option<u64>,
+    #[serde(default)]
+    pub duplicate_reads_after: Option<u64>,
+    #[serde(default)]
+    pub duplicate_count: Option<u64>,
+    #[serde(default)]
+    pub newly_marked_reads: Option<u64>,
+    #[serde(default)]
+    pub duplicate_reads_removed: Option<u64>,
+    #[serde(default)]
+    pub duplicate_fraction_before: Option<f64>,
+    #[serde(default)]
+    pub duplicate_fraction_after: Option<f64>,
+    #[serde(default)]
+    pub duplicate_fraction: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamDuplicationMetricsSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    pub input_bam: PathBuf,
+    pub examined_reads: u64,
+    pub duplicate_reads: u64,
+    #[serde(default)]
+    pub duplicate_count: Option<u64>,
+    pub duplicate_fraction: f64,
+    #[serde(default)]
+    pub estimated_library_size: Option<u64>,
+    #[serde(default)]
+    pub insufficient_library_size_reason: Option<String>,
+    #[serde(default)]
+    pub optical_duplicates: Option<String>,
+    #[serde(default)]
+    pub umi_policy: Option<String>,
+    #[serde(default)]
+    pub duplicate_action: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamComplexitySummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    pub input_bam: PathBuf,
+    pub observed_total_reads: u64,
+    pub observed_unique_reads: u64,
+    #[serde(default)]
+    pub projected_unique_reads: Vec<(u64, u64)>,
+    #[serde(default)]
+    pub estimated_unique_reads: Option<u64>,
+    #[serde(default)]
+    pub estimated_library_size: Option<u64>,
+    #[serde(default)]
+    pub saturation_estimate: Option<f64>,
+    pub min_reads: u64,
+    #[serde(default)]
+    pub insufficient_data_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamInsertSizeSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_bam: PathBuf,
+    pub report_present: bool,
+    pub histogram_present: bool,
+    #[serde(default)]
+    pub median_insert_size: Option<f64>,
+    #[serde(default)]
+    pub mean_insert_size: Option<f64>,
+    #[serde(default)]
+    pub standard_deviation: Option<f64>,
+    #[serde(default)]
+    pub median_absolute_deviation: Option<f64>,
+    #[serde(default)]
+    pub min_insert_size: Option<u64>,
+    #[serde(default)]
+    pub max_insert_size: Option<u64>,
+    pub read_pairs: u64,
+    #[serde(default)]
+    pub pair_orientation_fr_fraction: Option<f64>,
+    #[serde(default)]
+    pub insufficient_pairs_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamGcBiasBinSummaryV1 {
+    pub gc_bin: u8,
+    pub windows: u64,
+    pub read_starts: u64,
+    pub normalized_coverage: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamGcBiasSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_bam: PathBuf,
+    pub reference_fasta: PathBuf,
+    #[serde(default)]
+    pub window_size: Option<u32>,
+    pub report_present: bool,
+    pub plot_present: bool,
+    pub total_clusters: u64,
+    pub aligned_reads: u64,
+    pub windows: u64,
+    pub read_starts: u64,
+    pub at_dropout: f64,
+    pub gc_dropout: f64,
+    pub gc_bias_score: f64,
+    #[serde(default)]
+    pub insufficient_reference_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamBiasMitigationSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_bam: PathBuf,
+    #[serde(default)]
+    pub reference_fasta: Option<PathBuf>,
+    pub method: String,
+    pub metric_name: String,
+    pub gc_bias_correction: bool,
+    pub map_bias_correction: bool,
+    pub report_present: bool,
+    #[serde(default)]
+    pub mitigation_actions: Vec<String>,
+    #[serde(default)]
+    pub consumed_metrics: Vec<String>,
+    #[serde(default)]
+    pub pre_mitigation_metric: Option<f64>,
+    #[serde(default)]
+    pub post_mitigation_metric: Option<f64>,
+    #[serde(default)]
+    pub metric_delta: Option<f64>,
+    #[serde(default)]
+    pub mitigation_projection_basis: Option<String>,
+    #[serde(default)]
+    pub insufficient_metric_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamRecalibrationCoverageGateV1 {
+    pub min_mean_coverage: f64,
+    pub min_breadth_1x: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamRecalibrationSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_bam: PathBuf,
+    #[serde(default)]
+    pub reference_fasta: Option<PathBuf>,
+    pub known_sites: Vec<PathBuf>,
+    pub requested_mode: BqsrMode,
+    pub effective_mode: BqsrMode,
+    pub status: String,
+    pub reason: String,
+    pub coverage_gate: BamRecalibrationCoverageGateV1,
+    pub observed_mean_coverage: f64,
+    pub observed_breadth_1x: f64,
+    pub output_bam_present: bool,
+    pub recalibration_report_present: bool,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -335,6 +613,19 @@ pub struct BamCoverageSummaryV1 {
     pub regime: Option<BamCoverageRegimeV1>,
     #[serde(default)]
     pub depth_thresholds: Vec<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamCoverageRegionSummaryV1 {
+    pub region_id: String,
+    pub contig: String,
+    pub start: u64,
+    pub end: u64,
+    pub length: u64,
+    pub mean_depth: f64,
+    pub breadth_1x: f64,
+    pub covered_bases: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -484,13 +775,69 @@ pub struct BamContaminationEvidenceV1 {
 pub struct BamEndogenousContentEstimateV1 {
     pub schema_version: String,
     pub stage_id: String,
+    pub method: String,
+    pub mapped_reads: u64,
+    pub endogenous_reads: u64,
+    pub total_reads: u64,
+    pub endogenous_fraction: f64,
     #[serde(default)]
     pub prealignment_fraction: Option<f64>,
     pub postalignment_fraction: f64,
+    #[serde(default)]
+    pub host_reference_scope: Option<String>,
     pub prealignment_meaning: String,
     pub postalignment_meaning: String,
     #[serde(default)]
     pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamOverlapCorrectionSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    pub input_bam: PathBuf,
+    pub output_bam: PathBuf,
+    pub flagstat_before: BamFlagstatCountsV1,
+    pub flagstat_after: BamFlagstatCountsV1,
+    #[serde(default)]
+    pub pair_count: Option<u64>,
+    #[serde(default)]
+    pub corrected_pairs: Option<u64>,
+    #[serde(default)]
+    pub corrected_overlap_bases: Option<u64>,
+    #[serde(default)]
+    pub insufficiency_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamSexSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    pub input_bam: PathBuf,
+    pub reference_fasta: PathBuf,
+    #[serde(default)]
+    pub chromosome_system: Option<String>,
+    #[serde(default)]
+    pub minimum_y_sites: Option<u32>,
+    pub x_contig: String,
+    pub y_contig: String,
+    pub autosomal_contigs: Vec<String>,
+    pub x_coverage: f64,
+    pub y_coverage: f64,
+    pub autosomal_coverage: f64,
+    pub x_covered_sites: u64,
+    pub y_covered_sites: u64,
+    #[serde(default)]
+    pub x_to_y_ratio: Option<f64>,
+    pub call: SexConfidenceClass,
+    pub confidence: f64,
+    pub status: String,
+    #[serde(default)]
+    pub insufficiency_reason: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -508,6 +855,41 @@ pub struct BamSexInferenceEvidenceV1 {
     pub refusal_codes: Vec<String>,
     #[serde(default)]
     pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamKinshipPairResultV1 {
+    pub sample_a: String,
+    pub sample_b: String,
+    pub overlap_snps: u32,
+    pub matching_sites: u32,
+    pub mismatch_sites: u32,
+    pub concordance: f64,
+    pub kinship_coefficient: f64,
+    pub relationship_label: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamKinshipSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    pub input_bam: PathBuf,
+    pub reference_panel: String,
+    pub reference_build: String,
+    pub population_scope: String,
+    pub min_overlap_snps: u32,
+    pub requires_cohort_context: bool,
+    pub sample_count: u32,
+    pub observed_max_overlap_snps: u32,
+    pub pair_count: u32,
+    pub status: String,
+    #[serde(default)]
+    pub insufficiency_reason: Option<String>,
+    #[serde(default)]
+    pub pairwise_results: Vec<BamKinshipPairResultV1>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -673,6 +1055,7 @@ struct TinySamRecord {
     pos: u64,
     mapq: u8,
     cigar: String,
+    template_length: i64,
     seq: String,
     read_group_id: Option<String>,
 }
@@ -694,6 +1077,7 @@ struct TinySamDocument {
     reference_lengths: HashMap<String, u64>,
     read_groups: Vec<String>,
     read_group_samples: Vec<String>,
+    read_group_sample_map: HashMap<String, String>,
     records: Vec<TinySamRecord>,
 }
 
@@ -710,6 +1094,50 @@ fn parse_tag_value(field: &str, key: &str) -> Option<String> {
     } else {
         None
     }
+}
+
+fn parse_tiny_alignment(path: &Path) -> Result<TinySamDocument> {
+    match path.extension().and_then(std::ffi::OsStr::to_str) {
+        Some("bam") => parse_tiny_bam(path),
+        _ => parse_tiny_sam(path),
+    }
+}
+
+/// Inspect a tiny BAM/SAM fixture and expose the normalized alignment header footprint.
+///
+/// # Errors
+/// Returns an error when the alignment fixture cannot be parsed.
+pub fn inspect_tiny_alignment(path: &Path) -> Result<BamTinyAlignmentInspectionV1> {
+    let document = parse_tiny_alignment(path)?;
+    let mut header_contigs = document.references.clone();
+    header_contigs.sort();
+    header_contigs.dedup();
+
+    let mut header_sample_ids = document.read_group_samples.clone();
+    header_sample_ids.sort();
+    header_sample_ids.dedup();
+
+    let mut read_group_ids = document.read_groups.clone();
+    read_group_ids.sort();
+    read_group_ids.dedup();
+
+    let mut mapped_record_contigs = document
+        .records
+        .iter()
+        .filter(|record| record.is_mapped())
+        .map(|record| record.rname.clone())
+        .collect::<Vec<_>>();
+    mapped_record_contigs.sort();
+    mapped_record_contigs.dedup();
+
+    Ok(BamTinyAlignmentInspectionV1 {
+        sort_order: document.sort_order,
+        header_contigs,
+        header_sample_ids,
+        read_group_ids,
+        mapped_record_contigs,
+        record_count: document.records.len() as u64,
+    })
 }
 
 fn parse_tiny_sam(path: &Path) -> Result<TinySamDocument> {
@@ -748,12 +1176,23 @@ fn parse_tiny_sam(path: &Path) -> Result<TinySamDocument> {
                     }
                 }
                 Some("@RG") => {
+                    let mut read_group_id_value = None::<String>;
+                    let mut sample_id_value = None::<String>;
                     for field in &fields[1..] {
                         if let Some(read_group_id) = field.strip_prefix("ID:") {
-                            document.read_groups.push(read_group_id.to_string());
+                            let read_group_id = read_group_id.to_string();
+                            document.read_groups.push(read_group_id.clone());
+                            read_group_id_value = Some(read_group_id);
                         } else if let Some(sample_id) = field.strip_prefix("SM:") {
-                            document.read_group_samples.push(sample_id.to_string());
+                            let sample_id = sample_id.to_string();
+                            document.read_group_samples.push(sample_id.clone());
+                            sample_id_value = Some(sample_id);
                         }
+                    }
+                    if let (Some(read_group_id), Some(sample_id)) =
+                        (read_group_id_value, sample_id_value)
+                    {
+                        document.read_group_sample_map.insert(read_group_id, sample_id);
                     }
                 }
                 _ => {}
@@ -795,6 +1234,13 @@ fn parse_tiny_sam(path: &Path) -> Result<TinySamDocument> {
                 break;
             }
         }
+        let template_length = fields[8].parse::<i64>().map_err(|error| {
+            anyhow!(
+                "malformed SAM record at line {}: invalid template length {} ({error})",
+                line_index + 1,
+                fields[8]
+            )
+        })?;
         document.records.push(TinySamRecord {
             qname: fields[0].to_string(),
             flag,
@@ -802,10 +1248,91 @@ fn parse_tiny_sam(path: &Path) -> Result<TinySamDocument> {
             pos,
             mapq,
             cigar: fields[5].to_string(),
+            template_length,
             seq: fields[9].to_string(),
             read_group_id,
         });
     }
+    Ok(document)
+}
+
+fn parse_tiny_bam(path: &Path) -> Result<TinySamDocument> {
+    let mut document = TinySamDocument::default();
+    let mut reader = File::open(path).map(bam::io::Reader::new)?;
+    let header = reader.read_header()?;
+
+    document.sort_order = header
+        .header()
+        .and_then(|header_record| header_record.other_fields().get(&SORT_ORDER))
+        .map(|sort_order| String::from_utf8_lossy(sort_order.as_ref()).into_owned())
+        .or_else(|| Some(String::from_utf8_lossy(COORDINATE).into_owned()));
+
+    for (name, reference_sequence) in header.reference_sequences() {
+        let reference_name = String::from_utf8_lossy(name.as_ref()).into_owned();
+        document.references.push(reference_name.clone());
+        document.reference_lengths.insert(reference_name, reference_sequence.length().get() as u64);
+    }
+
+    for (read_group_id, read_group) in header.read_groups() {
+        let read_group_id = String::from_utf8_lossy(read_group_id.as_ref()).into_owned();
+        document.read_groups.push(read_group_id.clone());
+        if let Some(sample_id) = read_group.other_fields().get(&read_group_tag::SAMPLE) {
+            let sample_id = String::from_utf8_lossy(sample_id.as_ref()).into_owned();
+            document.read_group_samples.push(sample_id.clone());
+            document.read_group_sample_map.insert(read_group_id, sample_id);
+        }
+    }
+
+    for result in reader.records() {
+        let record = result?;
+        let rname = match record.reference_sequence_id().transpose()? {
+            Some(reference_sequence_id) => header
+                .reference_sequences()
+                .get_index(reference_sequence_id)
+                .map(|(name, _)| String::from_utf8_lossy(name.as_ref()).into_owned())
+                .ok_or_else(|| {
+                    anyhow!("BAM record reference_sequence_id `{reference_sequence_id}` missing from header")
+                })?,
+            None => "*".to_string(),
+        };
+        let read_group_id = record
+            .data()
+            .get(&Tag::READ_GROUP)
+            .transpose()?
+            .map(|value| match value {
+                Value::String(read_group) => {
+                    Ok(String::from_utf8_lossy(read_group.as_ref()).into_owned())
+                }
+                _ => Err(anyhow!("BAM READ_GROUP tag is not a string")),
+            })
+            .transpose()?;
+
+        document.records.push(TinySamRecord {
+            qname: record
+                .name()
+                .map(|name| String::from_utf8_lossy(name.as_ref()).into_owned())
+                .unwrap_or_default(),
+            flag: u16::from(record.flags()),
+            rname,
+            pos: record
+                .alignment_start()
+                .transpose()?
+                .map(|position| position.get() as u64)
+                .unwrap_or(0),
+            mapq: record.mapping_quality().map(u8::from).unwrap_or(0),
+            cigar: record.cigar().iter().collect::<std::io::Result<Vec<_>>>()?.into_iter().fold(
+                String::new(),
+                |mut cigar, op| {
+                    let _ = write!(cigar, "{}{}", op.len(), render_cigar_kind(op.kind()));
+                    cigar
+                },
+            ),
+            template_length: i64::from(record.template_length()),
+            seq: record.sequence().iter().map(char::from).collect::<String>(),
+            read_group_id,
+        });
+    }
+
     Ok(document)
 }
 
@@ -821,6 +1348,22 @@ fn parse_reference_contigs(reference_fasta: &Path) -> Result<BTreeSet<String>> {
         }
     }
     Ok(contigs)
+}
+
+fn render_cigar_kind(kind: noodles_sam::alignment::record::cigar::op::Kind) -> char {
+    use noodles_sam::alignment::record::cigar::op::Kind;
+
+    match kind {
+        Kind::Match => 'M',
+        Kind::Insertion => 'I',
+        Kind::Deletion => 'D',
+        Kind::Skip => 'N',
+        Kind::SoftClip => 'S',
+        Kind::HardClip => 'H',
+        Kind::Pad => 'P',
+        Kind::SequenceMatch => '=',
+        Kind::SequenceMismatch => 'X',
+    }
 }
 
 fn flagstat_from_records(records: &[TinySamRecord]) -> BamFlagstatCountsV1 {
@@ -868,7 +1411,7 @@ pub fn execute_bam_validation(
     }
 
     let document = if refusal_codes.is_empty() {
-        match parse_tiny_sam(input_bam) {
+        match parse_tiny_alignment(input_bam) {
             Ok(parsed) => {
                 flagstat = flagstat_from_records(&parsed.records);
                 Some(parsed)
@@ -1138,6 +1681,7 @@ fn alignment_record_with_flags(
         pos: hit.map(|result| result.position).unwrap_or(0),
         mapq: hit.map(|result| result.mapq).unwrap_or(0),
         cigar: hit.map(|result| result.cigar.clone()).unwrap_or_else(|| "*".to_string()),
+        template_length: 0,
         seq: "*".to_string(),
         read_group_id: Some(read_group_id.to_string()),
     }
@@ -1164,13 +1708,14 @@ fn write_tiny_sam_document(
     payload.push('\n');
     for record in records {
         payload.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t*\t0\t0\t{}\t*\tRG:Z:{}\n",
+            "{}\t{}\t{}\t{}\t{}\t{}\t*\t0\t{}\t{}\t*\tRG:Z:{}\n",
             record.qname,
             record.flag,
             record.rname,
             record.pos,
             record.mapq,
             record.cigar,
+            record.template_length,
             record.seq,
             record.read_group_id.as_deref().unwrap_or(&read_group.id)
         ));
@@ -1196,13 +1741,14 @@ fn write_tiny_sam_from_document(
     }
     for record in &document.records {
         payload.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t*\t0\t0\t{}\t*\tRG:Z:{}\n",
+            "{}\t{}\t{}\t{}\t{}\t{}\t*\t0\t{}\t{}\t*\tRG:Z:{}\n",
             record.qname,
             record.flag,
             record.rname,
             record.pos,
             record.mapq,
             record.cigar,
+            record.template_length,
             record.seq,
             record.read_group_id.as_deref().unwrap_or("unknown"),
         ));
@@ -1863,6 +2409,7 @@ pub fn apply_duplicate_policy_tiny_bam(
         reference_lengths: input.reference_lengths.clone(),
         read_groups: input.read_groups.clone(),
         read_group_samples: input.read_group_samples.clone(),
+        read_group_sample_map: input.read_group_sample_map.clone(),
         records: output_records.clone(),
     };
     write_tiny_sam_from_document(
@@ -1924,6 +2471,262 @@ pub fn apply_duplicate_policy_tiny_bam(
     Ok((policy, comparison))
 }
 
+/// Build a typed markdup summary from before/after duplicate-marking counts.
+#[must_use]
+pub fn summarize_bam_markdup(
+    stage_id: &str,
+    input_bam: &Path,
+    output_bam: &Path,
+    duplicate_action: &str,
+    optical_duplicates: Option<&str>,
+    umi_policy: Option<&str>,
+    flagstat_before: BamFlagstatCountsV1,
+    flagstat_after: BamFlagstatCountsV1,
+) -> BamMarkdupSummaryV1 {
+    let input_reads = flagstat_before.total_reads.unwrap_or(0);
+    let output_reads = flagstat_after.total_reads.unwrap_or(0);
+    let removed_reads = input_reads.saturating_sub(output_reads);
+    let duplicate_reads_before = flagstat_before.duplicate_reads;
+    let duplicate_reads_after = flagstat_after.duplicate_reads;
+    let duplicate_fraction_before = match (duplicate_reads_before, flagstat_before.total_reads) {
+        (Some(duplicates), Some(total_reads)) if total_reads > 0 => {
+            Some(duplicates as f64 / total_reads as f64)
+        }
+        _ => None,
+    };
+    let duplicate_fraction_after = match (duplicate_reads_after, flagstat_after.total_reads) {
+        (Some(duplicates), Some(total_reads)) if total_reads > 0 => {
+            Some(duplicates as f64 / total_reads as f64)
+        }
+        _ => None,
+    };
+    let newly_marked_reads = if duplicate_action == "mark" {
+        match (duplicate_reads_before, duplicate_reads_after) {
+            (Some(before), Some(after)) if after >= before => Some(after - before),
+            _ => None,
+        }
+    } else {
+        None
+    };
+    let duplicate_reads_removed = if duplicate_action == "remove" {
+        match (flagstat_before.total_reads, flagstat_after.total_reads) {
+            (Some(before), Some(after)) if before >= after => Some(before - after),
+            _ => None,
+        }
+    } else {
+        None
+    };
+
+    BamMarkdupSummaryV1 {
+        schema_version: BAM_MARKDUP_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        duplicate_action: duplicate_action.to_string(),
+        optical_duplicates: optical_duplicates.map(ToOwned::to_owned),
+        umi_policy: umi_policy.map(ToOwned::to_owned),
+        input_bam: input_bam.to_path_buf(),
+        output_bam: output_bam.to_path_buf(),
+        flagstat_before,
+        flagstat_after,
+        input_reads,
+        output_reads,
+        removed_reads,
+        duplicate_reads_before,
+        duplicate_reads_after,
+        duplicate_count: duplicate_reads_after,
+        newly_marked_reads,
+        duplicate_reads_removed,
+        duplicate_fraction_before,
+        duplicate_fraction_after,
+        duplicate_fraction: duplicate_fraction_after,
+    }
+}
+
+/// Build a typed duplication-metrics summary from observed duplicate burden counts.
+#[must_use]
+pub fn summarize_bam_duplication_metrics(
+    stage_id: &str,
+    method: &str,
+    input_bam: &Path,
+    examined_reads: u64,
+    duplicate_reads: u64,
+    estimated_library_size: Option<u64>,
+    insufficient_library_size_reason: Option<&str>,
+    optical_duplicates: Option<&str>,
+    umi_policy: Option<&str>,
+    duplicate_action: Option<&str>,
+) -> BamDuplicationMetricsSummaryV1 {
+    let duplicate_fraction =
+        if examined_reads == 0 { 0.0 } else { duplicate_reads as f64 / examined_reads as f64 };
+    BamDuplicationMetricsSummaryV1 {
+        schema_version: BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        method: method.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        examined_reads,
+        duplicate_reads,
+        duplicate_count: Some(duplicate_reads),
+        duplicate_fraction,
+        estimated_library_size,
+        insufficient_library_size_reason: insufficient_library_size_reason.map(ToOwned::to_owned),
+        optical_duplicates: optical_duplicates.map(ToOwned::to_owned),
+        umi_policy: umi_policy.map(ToOwned::to_owned),
+        duplicate_action: duplicate_action.map(ToOwned::to_owned),
+    }
+}
+
+/// Observe duplicate burden on a tiny BAM/SAM fixture without mutating alignment records.
+///
+/// # Errors
+/// Returns an error if input parsing fails.
+pub fn summarize_tiny_bam_duplication_metrics(
+    input_bam: &Path,
+    method: &str,
+    optical_duplicates: Option<&str>,
+    umi_policy: Option<&str>,
+    duplicate_action: Option<&str>,
+) -> Result<(BamDuplicationMetricsSummaryV1, Vec<(u64, u64)>)> {
+    let input = parse_tiny_sam(input_bam)?;
+    let mut observed = HashMap::<String, u64>::new();
+    for record in input.records.iter().filter(|record| record.is_mapped()) {
+        let key = format!("{}:{}:{}:{}", record.rname, record.pos, record.cigar, record.seq);
+        *observed.entry(key).or_insert(0) += 1;
+    }
+
+    let examined_reads = observed.values().copied().sum::<u64>();
+    let duplicate_reads =
+        observed.values().map(|family_size| family_size.saturating_sub(1)).sum::<u64>();
+    let mut family_histogram = HashMap::<u64, u64>::new();
+    for family_size in observed.values().copied() {
+        *family_histogram.entry(family_size).or_insert(0) += 1;
+    }
+    let mut family_histogram = family_histogram.into_iter().collect::<Vec<_>>();
+    family_histogram.sort_by_key(|(family_size, _)| *family_size);
+
+    let summary = summarize_bam_duplication_metrics(
+        "bam.duplication_metrics",
+        method,
+        input_bam,
+        examined_reads,
+        duplicate_reads,
+        None,
+        Some("tiny_smoke_duplicate_observation_is_insufficient_for_library_size_estimate"),
+        optical_duplicates,
+        umi_policy,
+        duplicate_action,
+    );
+    Ok((summary, family_histogram))
+}
+
+/// Build a typed complexity summary from observed and projected unique-read counts.
+#[must_use]
+pub fn summarize_bam_complexity(
+    stage_id: &str,
+    method: &str,
+    input_bam: &Path,
+    observed_total_reads: u64,
+    complexity: &crate::metrics::ComplexityMetricsV1,
+    min_reads: u64,
+    insufficient_data_reason: Option<&str>,
+) -> BamComplexitySummaryV1 {
+    let estimated_unique_reads = if insufficient_data_reason.is_none() {
+        complexity
+            .projected_reads
+            .last()
+            .map(|(_, projected_unique_reads)| *projected_unique_reads)
+            .or(Some(complexity.observed_reads))
+    } else {
+        None
+    };
+    let saturation_estimate = if insufficient_data_reason.is_none() {
+        saturation_estimate_from_curve(&complexity.projected_reads)
+            .or(Some(complexity.saturation_estimate))
+    } else {
+        None
+    };
+    BamComplexitySummaryV1 {
+        schema_version: BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        method: method.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        observed_total_reads,
+        observed_unique_reads: complexity.observed_reads,
+        projected_unique_reads: complexity.projected_reads.clone(),
+        estimated_unique_reads,
+        estimated_library_size: estimated_unique_reads,
+        saturation_estimate,
+        min_reads,
+        insufficient_data_reason: insufficient_data_reason.map(ToOwned::to_owned),
+    }
+}
+
+/// Observe BAM library complexity on a tiny BAM/SAM fixture with deterministic extrapolation.
+///
+/// # Errors
+/// Returns an error if input parsing fails.
+pub fn summarize_tiny_bam_complexity(
+    input_bam: &Path,
+    method: &str,
+    min_reads: u64,
+    projection_points: &[u64],
+) -> Result<BamComplexitySummaryV1> {
+    let input = parse_tiny_sam(input_bam)?;
+    let mut observed = HashMap::<String, u64>::new();
+    for record in input.records.iter().filter(|record| record.is_mapped()) {
+        let key = format!("{}:{}:{}:{}", record.rname, record.pos, record.cigar, record.seq);
+        *observed.entry(key).or_insert(0) += 1;
+    }
+
+    let observed_total_reads = observed.values().copied().sum::<u64>();
+    let observed_unique_reads = observed.len() as u64;
+    let mut projected_unique_reads = vec![(observed_total_reads, observed_unique_reads)];
+    let insufficient_data_reason = if observed_unique_reads < min_reads {
+        Some("insufficient_observed_unique_reads_for_complexity_extrapolation")
+    } else {
+        let unique_fraction = if observed_total_reads > 0 {
+            u64_to_f64(observed_unique_reads) / u64_to_f64(observed_total_reads)
+        } else {
+            0.0
+        };
+        for point in projection_points.iter().copied().filter(|point| *point > observed_total_reads)
+        {
+            let projected_increment =
+                nonnegative_f64_to_u64(u64_to_f64(point - observed_total_reads) * unique_fraction);
+            projected_unique_reads.push((point, observed_unique_reads + projected_increment));
+        }
+        None
+    };
+    let saturation_estimate =
+        saturation_estimate_from_curve(&projected_unique_reads).unwrap_or(0.0);
+    let complexity = crate::metrics::ComplexityMetricsV1 {
+        observed_reads: observed_unique_reads,
+        projected_reads: projected_unique_reads,
+        saturation_estimate,
+    };
+    Ok(summarize_bam_complexity(
+        "bam.complexity",
+        method,
+        input_bam,
+        observed_total_reads,
+        &complexity,
+        min_reads,
+        insufficient_data_reason,
+    ))
+}
+
+fn saturation_estimate_from_curve(projected_unique_reads: &[(u64, u64)]) -> Option<f64> {
+    if projected_unique_reads.len() < 2 {
+        return None;
+    }
+    let (x0, y0) = projected_unique_reads.first().copied()?;
+    let (x1, y1) = projected_unique_reads.last().copied()?;
+    if x1 > x0 && y1 > 0 {
+        let gain = (y1.saturating_sub(y0)) as f64 / (x1 - x0) as f64;
+        Some((1.0 - gain).clamp(0.0, 1.0))
+    } else {
+        Some(0.0)
+    }
+}
+
 /// Filter tiny BAM/SAM fixtures by MAPQ and emit retained/removed evidence.
 ///
 /// # Errors
@@ -1947,6 +2750,7 @@ pub fn filter_tiny_bam_by_mapq(
         reference_lengths: input.reference_lengths.clone(),
         read_groups: input.read_groups.clone(),
         read_group_samples: input.read_group_samples.clone(),
+        read_group_sample_map: input.read_group_sample_map.clone(),
         records: filtered_records.clone(),
     };
     write_tiny_sam_from_document(
@@ -1955,6 +2759,9 @@ pub fn filter_tiny_bam_by_mapq(
         input.sort_order.as_deref().unwrap_or("unsorted"),
     )?;
     let after = flagstat_from_records(&filtered_records);
+    let input_reads = input.records.len() as u64;
+    let kept_reads = filtered_records.len() as u64;
+    let removed_reads = input_reads.saturating_sub(kept_reads);
     let mapped_reads_removed = match (before.mapped_reads, after.mapped_reads) {
         (Some(before_mapped), Some(after_mapped)) if before_mapped >= after_mapped => {
             Some(before_mapped - after_mapped)
@@ -1975,8 +2782,284 @@ pub fn filter_tiny_bam_by_mapq(
         output_bam: output_bam.to_path_buf(),
         flagstat_before: before,
         flagstat_after: after,
+        input_reads,
+        kept_reads,
+        removed_reads,
         mapped_reads_removed,
         mapped_fraction_retained,
+    })
+}
+
+/// Summarize insert-size observations for a tiny BAM/SAM fixture.
+///
+/// # Errors
+/// Returns an error if the input cannot be parsed.
+pub fn summarize_tiny_bam_insert_size(input_bam: &Path) -> Result<BamInsertSizeSummaryV1> {
+    let document = parse_tiny_sam(input_bam)?;
+    let metrics = tiny_insert_size_metrics(&document.records);
+    Ok(build_insert_size_summary("bam.insert_size", input_bam, true, true, Some(&metrics)))
+}
+
+/// Summarize GC-bias observations for a tiny BAM/SAM fixture and reference FASTA.
+///
+/// # Errors
+/// Returns an error if the input alignment or reference cannot be parsed.
+pub fn summarize_tiny_bam_gc_bias(
+    input_bam: &Path,
+    reference_fasta: &Path,
+    window_size: u32,
+) -> Result<(BamGcBiasSummaryV1, Vec<BamGcBiasBinSummaryV1>)> {
+    if window_size == 0 {
+        return Err(anyhow!("bam.gc_bias requires window_size greater than zero"));
+    }
+
+    let document = parse_tiny_sam(input_bam)?;
+    let references = parse_tiny_reference_fasta(reference_fasta)?;
+    let (rows, insufficient_reference_reason) =
+        tiny_gc_bias_rows(&document.records, &references, window_size);
+    let total_windows = rows.iter().map(|row| row.windows).sum::<u64>();
+    let read_starts = rows.iter().map(|row| row.read_starts).sum::<u64>();
+    let mapped_reads = document.records.iter().filter(|record| record.is_mapped()).count() as u64;
+    let at_dropout = dropout_pct(average_normalized_coverage(
+        rows.iter().filter(|row| row.gc_bin < 50).collect::<Vec<_>>().as_slice(),
+    ));
+    let gc_dropout = dropout_pct(average_normalized_coverage(
+        rows.iter().filter(|row| row.gc_bin > 50).collect::<Vec<_>>().as_slice(),
+    ));
+    let summary = BamGcBiasSummaryV1 {
+        schema_version: BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.gc_bias".to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_fasta: reference_fasta.to_path_buf(),
+        window_size: Some(window_size),
+        report_present: true,
+        plot_present: true,
+        total_clusters: document.records.len() as u64,
+        aligned_reads: mapped_reads,
+        windows: total_windows,
+        read_starts,
+        at_dropout,
+        gc_dropout,
+        gc_bias_score: normalize_dropout_pct(at_dropout.max(gc_dropout)),
+        insufficient_reference_reason,
+    };
+    Ok((summary, rows))
+}
+
+/// Summarize projected bias mitigation for a tiny BAM/SAM fixture and reference FASTA.
+///
+/// # Errors
+/// Returns an error if the input alignment or reference cannot be parsed.
+pub fn summarize_tiny_bam_bias_mitigation(
+    input_bam: &Path,
+    reference_fasta: &Path,
+    method: &str,
+    window_size: u32,
+    gc_bias_correction: bool,
+    map_bias_correction: bool,
+) -> Result<BamBiasMitigationSummaryV1> {
+    let (gc_bias_summary, _) = summarize_tiny_bam_gc_bias(input_bam, reference_fasta, window_size)?;
+    let pre_mitigation_metric = Some(gc_bias_summary.gc_bias_score);
+    let post_mitigation_metric = pre_mitigation_metric
+        .map(|metric| project_bias_metric(metric, gc_bias_correction, map_bias_correction));
+    Ok(summarize_bam_bias_mitigation(
+        "bam.bias_mitigation",
+        input_bam,
+        Some(reference_fasta),
+        method,
+        gc_bias_correction,
+        map_bias_correction,
+        true,
+        "gc_bias_score",
+        pre_mitigation_metric,
+        post_mitigation_metric,
+        Some("policy_projection".to_string()),
+        gc_bias_summary.insufficient_reference_reason,
+    ))
+}
+
+/// Summarize recalibration readiness and effective run-or-skip status for a tiny BAM/SAM fixture.
+///
+/// # Errors
+/// Returns an error if the input alignment cannot be parsed.
+pub fn summarize_tiny_bam_recalibration(
+    input_bam: &Path,
+    reference_fasta: Option<&Path>,
+    known_sites: &[PathBuf],
+    requested_mode: BqsrMode,
+    effective_mode: BqsrMode,
+    skip_criteria: &RecalibrationSkipCriteria,
+    output_bam_present: bool,
+    recalibration_report_present: bool,
+) -> Result<BamRecalibrationSummaryV1> {
+    let coverage = summarize_tiny_bam_coverage(input_bam, &[1])?;
+    let observed_mean_coverage = coverage.mean_depth.unwrap_or(0.0);
+    let observed_breadth_1x = coverage.regime.as_ref().map_or(0.0, |regime| regime.breadth_1x);
+    let coverage_below_gate = observed_mean_coverage < skip_criteria.min_mean_coverage
+        || observed_breadth_1x < skip_criteria.min_breadth_1x;
+    let (status, reason) = match effective_mode {
+        BqsrMode::Skip if coverage_below_gate => ("skipped", "coverage_below_gate"),
+        BqsrMode::Skip => ("skipped", "requested_skip_mode"),
+        BqsrMode::EmitOnly => ("emitted_only", "emit_only_requested"),
+        BqsrMode::Standard if output_bam_present && recalibration_report_present => {
+            ("ran", "standard_mode_requested")
+        }
+        BqsrMode::Standard => ("ready_to_run", "coverage_gate_passed"),
+    };
+
+    Ok(BamRecalibrationSummaryV1 {
+        schema_version: BAM_RECALIBRATION_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.recalibration".to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_fasta: reference_fasta.map(Path::to_path_buf),
+        known_sites: known_sites.to_vec(),
+        requested_mode,
+        effective_mode,
+        status: status.to_string(),
+        reason: reason.to_string(),
+        coverage_gate: BamRecalibrationCoverageGateV1 {
+            min_mean_coverage: skip_criteria.min_mean_coverage,
+            min_breadth_1x: skip_criteria.min_breadth_1x,
+        },
+        observed_mean_coverage,
+        observed_breadth_1x,
+        output_bam_present,
+        recalibration_report_present,
+    })
+}
+
+/// Filter tiny BAM/SAM fixtures by minimum read length and emit retained length bounds.
+///
+/// # Errors
+/// Returns an error if input parsing fails or output writing fails.
+pub fn filter_tiny_bam_by_length(
+    input_bam: &Path,
+    output_bam: &Path,
+    min_length_threshold: u32,
+) -> Result<BamLengthFilterSummaryV1> {
+    let params = FilterEffectiveParams {
+        mapq_threshold: 0,
+        include_flags: Vec::new(),
+        exclude_flags: Vec::new(),
+        min_length: min_length_threshold,
+        remove_duplicates: false,
+        base_quality_threshold: 20,
+    };
+    let summary = filter_tiny_bam(input_bam, output_bam, &params)?;
+    let output = parse_tiny_sam(output_bam)?;
+    let observed_lengths = output
+        .records
+        .iter()
+        .map(|record| u32::try_from(record.seq.len()).unwrap_or(u32::MAX))
+        .collect::<Vec<_>>();
+    let observed_min_length = observed_lengths.iter().min().copied();
+    let observed_max_length = observed_lengths.iter().max().copied();
+
+    Ok(BamLengthFilterSummaryV1 {
+        schema_version: BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.length_filter".to_string(),
+        min_length_threshold,
+        input_bam: input_bam.to_path_buf(),
+        output_bam: output_bam.to_path_buf(),
+        flagstat_before: summary.flagstat_before,
+        flagstat_after: summary.flagstat_after,
+        input_reads: summary.input_reads,
+        kept_reads: summary.kept_reads,
+        removed_reads: summary.removed_reads,
+        observed_min_length,
+        observed_max_length,
+    })
+}
+
+/// Filter tiny BAM/SAM fixtures with the general BAM filter semantics used by `bam.filter`.
+///
+/// # Errors
+/// Returns an error if input parsing fails or output writing fails.
+pub fn filter_tiny_bam(
+    input_bam: &Path,
+    output_bam: &Path,
+    params: &FilterEffectiveParams,
+) -> Result<BamFilterSummaryV1> {
+    let input = parse_tiny_sam(input_bam)?;
+    let include_mask = params.include_flags.iter().fold(0_u16, |mask, flag| mask | flag);
+    let mut exclude_flags = params.exclude_flags.clone();
+    if params.remove_duplicates && !exclude_flags.contains(&0x400_u16) {
+        exclude_flags.push(0x400_u16);
+    }
+    let exclude_mask = exclude_flags.iter().fold(0_u16, |mask, flag| mask | flag);
+
+    let filtered_records = input
+        .records
+        .iter()
+        .filter(|record| {
+            if include_mask != 0 && (record.flag & include_mask) != include_mask {
+                return false;
+            }
+            if exclude_mask != 0 && (record.flag & exclude_mask) != 0 {
+                return false;
+            }
+            if params.mapq_threshold > 0 && record.mapq < params.mapq_threshold {
+                return false;
+            }
+            if params.min_length > 0
+                && u32::try_from(record.seq.len()).unwrap_or(u32::MAX) < params.min_length
+            {
+                return false;
+            }
+            true
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+
+    let output = TinySamDocument {
+        sort_order: input.sort_order.clone(),
+        references: input.references.clone(),
+        reference_lengths: input.reference_lengths.clone(),
+        read_groups: input.read_groups.clone(),
+        read_group_samples: input.read_group_samples.clone(),
+        read_group_sample_map: input.read_group_sample_map.clone(),
+        records: filtered_records.clone(),
+    };
+    write_tiny_sam_from_document(
+        output_bam,
+        &output,
+        input.sort_order.as_deref().unwrap_or("unsorted"),
+    )?;
+
+    let flagstat_before = flagstat_from_records(&input.records);
+    let flagstat_after = flagstat_from_records(&filtered_records);
+    let input_reads = flagstat_before.total_reads.unwrap_or(input.records.len() as u64);
+    let kept_reads = flagstat_after.total_reads.unwrap_or(filtered_records.len() as u64);
+    let removed_reads = input_reads.saturating_sub(kept_reads);
+
+    let mut active_filters = Vec::new();
+    if params.mapq_threshold > 0 {
+        active_filters.push("mapq_threshold".to_string());
+    }
+    if include_mask != 0 {
+        active_filters.push("include_flags".to_string());
+    }
+    if !params.exclude_flags.is_empty() {
+        active_filters.push("exclude_flags".to_string());
+    }
+    if params.min_length > 0 {
+        active_filters.push("min_length".to_string());
+    }
+    if params.remove_duplicates {
+        active_filters.push("remove_duplicates".to_string());
+    }
+
+    Ok(BamFilterSummaryV1 {
+        schema_version: BAM_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.filter".to_string(),
+        input_bam: input_bam.to_path_buf(),
+        output_bam: output_bam.to_path_buf(),
+        flagstat_before,
+        flagstat_after,
+        input_reads,
+        kept_reads,
+        removed_reads,
+        active_filters,
     })
 }
 
@@ -2041,6 +3124,456 @@ pub fn summarize_tiny_bam_mapping(input_bam: &Path) -> Result<BamMappingSummaryV
     })
 }
 
+#[must_use]
+pub fn summarize_bam_insert_size(
+    stage_id: &str,
+    input_bam: &Path,
+    report_present: bool,
+    histogram_present: bool,
+    metrics: Option<&crate::metrics::InsertSizeMetricsV1>,
+) -> BamInsertSizeSummaryV1 {
+    build_insert_size_summary(stage_id, input_bam, report_present, histogram_present, metrics)
+}
+
+#[must_use]
+pub fn summarize_bam_gc_bias(
+    stage_id: &str,
+    input_bam: &Path,
+    reference_fasta: &Path,
+    window_size: Option<u32>,
+    report_present: bool,
+    plot_present: bool,
+    metrics: Option<&crate::metrics::GcBiasMetricsV1>,
+    insufficient_reference_reason: Option<String>,
+) -> BamGcBiasSummaryV1 {
+    BamGcBiasSummaryV1 {
+        schema_version: BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_fasta: reference_fasta.to_path_buf(),
+        window_size,
+        report_present,
+        plot_present,
+        total_clusters: metrics.map_or(0, |metrics| metrics.total_clusters),
+        aligned_reads: metrics.map_or(0, |metrics| metrics.aligned_reads),
+        windows: metrics.map_or(0, |metrics| metrics.windows),
+        read_starts: metrics.map_or(0, |metrics| metrics.read_starts),
+        at_dropout: metrics.map_or(0.0, |metrics| metrics.at_dropout),
+        gc_dropout: metrics.map_or(0.0, |metrics| metrics.gc_dropout),
+        gc_bias_score: metrics.map_or(0.0, |metrics| metrics.gc_bias_score),
+        insufficient_reference_reason,
+    }
+}
+
+#[must_use]
+pub fn summarize_bam_bias_mitigation(
+    stage_id: &str,
+    input_bam: &Path,
+    reference_fasta: Option<&Path>,
+    method: &str,
+    gc_bias_correction: bool,
+    map_bias_correction: bool,
+    report_present: bool,
+    metric_name: &str,
+    pre_mitigation_metric: Option<f64>,
+    post_mitigation_metric: Option<f64>,
+    mitigation_projection_basis: Option<String>,
+    insufficient_metric_reason: Option<String>,
+) -> BamBiasMitigationSummaryV1 {
+    let mitigation_actions = bias_mitigation_actions(gc_bias_correction, map_bias_correction);
+    let consumed_metrics =
+        if pre_mitigation_metric.is_some() { vec![metric_name.to_string()] } else { Vec::new() };
+    let metric_delta = pre_mitigation_metric
+        .zip(post_mitigation_metric)
+        .map(|(pre_metric, post_metric)| round_metric(pre_metric - post_metric));
+    BamBiasMitigationSummaryV1 {
+        schema_version: BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_fasta: reference_fasta.map(Path::to_path_buf),
+        method: method.to_string(),
+        metric_name: metric_name.to_string(),
+        gc_bias_correction,
+        map_bias_correction,
+        report_present,
+        mitigation_actions,
+        consumed_metrics,
+        pre_mitigation_metric,
+        post_mitigation_metric,
+        metric_delta,
+        mitigation_projection_basis,
+        insufficient_metric_reason,
+    }
+}
+
+fn bias_mitigation_actions(gc_bias_correction: bool, map_bias_correction: bool) -> Vec<String> {
+    let mut actions = Vec::new();
+    if gc_bias_correction {
+        actions.push("gc_bias_correction".to_string());
+    }
+    if map_bias_correction {
+        actions.push("map_bias_correction".to_string());
+    }
+    actions
+}
+
+fn project_bias_metric(metric: f64, gc_bias_correction: bool, map_bias_correction: bool) -> f64 {
+    let mut projected = metric;
+    if gc_bias_correction {
+        projected *= 0.5;
+    }
+    if map_bias_correction {
+        projected *= 0.8;
+    }
+    round_metric(projected)
+}
+
+fn round_metric(metric: f64) -> f64 {
+    (metric * 1_000_000.0).round() / 1_000_000.0
+}
+
+/// Summarize pre-QC core BAM metrics for a tiny BAM/SAM fixture.
+///
+/// # Errors
+/// Returns an error if the input cannot be parsed.
+pub fn summarize_tiny_bam_qc_pre(input_bam: &Path) -> Result<BamQcPreSummaryV1> {
+    let document = parse_tiny_sam(input_bam)?;
+    let flagstat = flagstat_from_records(&document.records);
+    let idxstats = idxstats_from_tiny_document(&document);
+
+    let mut read_length_histogram = HashMap::<u32, u64>::new();
+    let mut mapq_histogram = HashMap::<u8, u64>::new();
+    for record in document.records.iter().filter(|record| record.is_mapped()) {
+        let read_length = u32::try_from(record.seq.len()).unwrap_or(u32::MAX);
+        *read_length_histogram.entry(read_length).or_insert(0) += 1;
+        *mapq_histogram.entry(record.mapq).or_insert(0) += 1;
+    }
+    let mut read_length_histogram = read_length_histogram.into_iter().collect::<Vec<_>>();
+    read_length_histogram.sort_by_key(|(length, _)| *length);
+    let mut mapq_histogram = mapq_histogram.into_iter().collect::<Vec<_>>();
+    mapq_histogram.sort_by_key(|(mapq, _)| *mapq);
+
+    Ok(BamQcPreSummaryV1 {
+        schema_version: BAM_QC_PRE_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.qc_pre".to_string(),
+        input_bam: input_bam.to_path_buf(),
+        total_reads: flagstat.total_reads.unwrap_or(0),
+        mapped_reads: flagstat.mapped_reads.unwrap_or(0),
+        unmapped_reads: flagstat
+            .total_reads
+            .unwrap_or(0)
+            .saturating_sub(flagstat.mapped_reads.unwrap_or(0)),
+        duplicate_flagged_reads: flagstat.duplicate_reads.unwrap_or(0),
+        contig_summary: idxstats.contigs.clone(),
+        reference_mismatch: idxstats.reference_mismatch,
+        fragment_length: crate::metrics::pre::alignment::summarize_length_hist(
+            &read_length_histogram,
+        ),
+        mapq: crate::metrics::pre::alignment::summarize_mapq_hist(&mapq_histogram),
+    })
+}
+
+/// Build typed `bam.damage` evidence for a tiny BAM fixture from terminal-damage metrics.
+///
+/// # Errors
+/// Returns an error if the tiny BAM fixture cannot be summarized into pre-QC metrics.
+pub fn summarize_tiny_bam_damage_evidence(
+    input_bam: &Path,
+    damage: &crate::metrics::DamageMetricsV1,
+    strict_profile: bool,
+) -> Result<BamDamageEvidenceV1> {
+    let qc_pre = summarize_tiny_bam_qc_pre(input_bam)?;
+    let mut metrics = crate::metrics::BamMetricsV1::empty();
+    metrics.fragment_length = qc_pre.fragment_length;
+    metrics.mapq = qc_pre.mapq;
+    metrics.damage = damage.clone();
+    Ok(execute_ancient_damage_evidence(&metrics, strict_profile))
+}
+
+/// Build typed `bam.authenticity` advisory evidence for a tiny BAM fixture from damage metrics.
+///
+/// # Errors
+/// Returns an error if the tiny BAM fixture cannot be summarized into pre-QC metrics.
+pub fn summarize_tiny_bam_authenticity_advisory(
+    input_bam: &Path,
+    damage: &crate::metrics::DamageMetricsV1,
+) -> Result<BamAuthenticityAdvisoryV1> {
+    let qc_pre = summarize_tiny_bam_qc_pre(input_bam)?;
+    let mut metrics = crate::metrics::BamMetricsV1::empty();
+    metrics.fragment_length = qc_pre.fragment_length;
+    metrics.mapq = qc_pre.mapq;
+    metrics.damage = damage.clone();
+    Ok(execute_pmd_authenticity_advisory(&metrics))
+}
+
+fn idxstats_from_tiny_document(document: &TinySamDocument) -> crate::metrics::IdxstatsSummaryV1 {
+    let mut contigs = document
+        .references
+        .iter()
+        .map(|reference| crate::metrics::IdxstatsContigV1 {
+            contig: reference.clone(),
+            length: document.reference_lengths.get(reference).copied().unwrap_or(0),
+            mapped: 0,
+            unmapped: 0,
+        })
+        .collect::<Vec<_>>();
+    let mut contig_index = HashMap::<String, usize>::new();
+    for (index, contig) in contigs.iter().enumerate() {
+        contig_index.insert(contig.contig.clone(), index);
+    }
+
+    let mut total_unmapped = 0_u64;
+    let mut reference_mismatch = false;
+    for record in &document.records {
+        if record.is_mapped() {
+            if let Some(index) = contig_index.get(&record.rname).copied() {
+                contigs[index].mapped = contigs[index].mapped.saturating_add(1);
+            } else {
+                reference_mismatch = true;
+            }
+        } else {
+            total_unmapped = total_unmapped.saturating_add(1);
+        }
+    }
+
+    crate::metrics::IdxstatsSummaryV1 {
+        contigs,
+        total_mapped: document.records.iter().filter(|record| record.is_mapped()).count() as u64,
+        total_unmapped,
+        reference_mismatch,
+    }
+}
+
+fn build_insert_size_summary(
+    stage_id: &str,
+    input_bam: &Path,
+    report_present: bool,
+    histogram_present: bool,
+    metrics: Option<&crate::metrics::InsertSizeMetricsV1>,
+) -> BamInsertSizeSummaryV1 {
+    let insufficient_pairs_reason = metrics.and_then(|metrics| {
+        if metrics.read_pairs == 0 {
+            Some("no_proper_pairs_with_observed_insert_size".to_string())
+        } else {
+            None
+        }
+    });
+    let populated_metrics = metrics.filter(|metrics| metrics.read_pairs > 0);
+
+    BamInsertSizeSummaryV1 {
+        schema_version: BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        report_present,
+        histogram_present,
+        median_insert_size: populated_metrics.map(|metrics| metrics.median_insert_size),
+        mean_insert_size: populated_metrics.map(|metrics| metrics.mean_insert_size),
+        standard_deviation: populated_metrics.map(|metrics| metrics.standard_deviation),
+        median_absolute_deviation: populated_metrics
+            .map(|metrics| metrics.median_absolute_deviation),
+        min_insert_size: populated_metrics.map(|metrics| metrics.min_insert_size),
+        max_insert_size: populated_metrics.map(|metrics| metrics.max_insert_size),
+        read_pairs: metrics.map_or(0, |metrics| metrics.read_pairs),
+        pair_orientation_fr_fraction: populated_metrics
+            .map(|metrics| metrics.pair_orientation_fr_fraction),
+        insufficient_pairs_reason,
+    }
+}
+
+fn tiny_gc_bias_rows(
+    records: &[TinySamRecord],
+    references: &[TinyReferenceContig],
+    window_size: u32,
+) -> (Vec<BamGcBiasBinSummaryV1>, Option<String>) {
+    let mut windows_by_gc_bin = HashMap::<u8, u64>::new();
+    let mut read_starts_by_gc_bin = HashMap::<u8, u64>::new();
+    let mut gc_bin_by_window = HashMap::<(String, usize), u8>::new();
+    let window_size = window_size as usize;
+
+    for reference in references {
+        let full_windows = reference.sequence.len() / window_size;
+        for window_index in 0..full_windows {
+            let start = window_index * window_size;
+            let end = start + window_size;
+            let gc_bin = gc_bin_for_sequence(&reference.sequence[start..end]);
+            *windows_by_gc_bin.entry(gc_bin).or_insert(0) += 1;
+            gc_bin_by_window.insert((reference.name.clone(), window_index), gc_bin);
+        }
+    }
+
+    if gc_bin_by_window.is_empty() {
+        return (Vec::new(), Some("reference_gc_windows_unavailable".to_string()));
+    }
+
+    for record in records.iter().filter(|record| record.is_mapped() && record.pos > 0) {
+        let window_index = (record.pos as usize - 1) / window_size;
+        if let Some(gc_bin) = gc_bin_by_window.get(&(record.rname.clone(), window_index)).copied() {
+            *read_starts_by_gc_bin.entry(gc_bin).or_insert(0) += 1;
+        }
+    }
+
+    let total_windows = windows_by_gc_bin.values().sum::<u64>();
+    let total_read_starts = read_starts_by_gc_bin.values().sum::<u64>();
+    let mean_read_starts_per_window =
+        if total_windows > 0 { total_read_starts as f64 / total_windows as f64 } else { 0.0 };
+
+    let mut rows = windows_by_gc_bin
+        .into_iter()
+        .map(|(gc_bin, windows)| {
+            let read_starts = read_starts_by_gc_bin.get(&gc_bin).copied().unwrap_or(0);
+            let per_window_read_starts =
+                if windows > 0 { read_starts as f64 / windows as f64 } else { 0.0 };
+            let normalized_coverage = if mean_read_starts_per_window > 0.0 {
+                per_window_read_starts / mean_read_starts_per_window
+            } else {
+                0.0
+            };
+            BamGcBiasBinSummaryV1 { gc_bin, windows, read_starts, normalized_coverage }
+        })
+        .collect::<Vec<_>>();
+    rows.sort_by_key(|row| row.gc_bin);
+    (rows, None)
+}
+
+fn gc_bin_for_sequence(sequence: &str) -> u8 {
+    let gc_bases =
+        sequence.bytes().filter(|base| matches!(base.to_ascii_uppercase(), b'G' | b'C')).count();
+    let gc_fraction = if sequence.is_empty() {
+        0.0
+    } else {
+        usize_to_f64(gc_bases) / usize_to_f64(sequence.len())
+    };
+    percent_to_u8(gc_fraction)
+}
+
+fn average_normalized_coverage(rows: &[&BamGcBiasBinSummaryV1]) -> Option<f64> {
+    if rows.is_empty() {
+        None
+    } else {
+        Some(rows.iter().map(|row| row.normalized_coverage).sum::<f64>() / usize_to_f64(rows.len()))
+    }
+}
+
+fn dropout_pct(normalized_coverage: Option<f64>) -> f64 {
+    match normalized_coverage {
+        Some(value) if value < 1.0 => (1.0 - value) * 100.0,
+        _ => 0.0,
+    }
+}
+
+fn normalize_dropout_pct(value: f64) -> f64 {
+    if value > 1.0 {
+        value / 100.0
+    } else {
+        value
+    }
+}
+
+fn tiny_insert_size_metrics(records: &[TinySamRecord]) -> crate::metrics::InsertSizeMetricsV1 {
+    let insert_sizes = records
+        .iter()
+        .filter(|record| {
+            (record.flag & 0x1) != 0
+                && (record.flag & 0x2) != 0
+                && (record.flag & 0x4) == 0
+                && (record.flag & 0x8) == 0
+                && (record.flag & 0x40) != 0
+                && record.template_length > 0
+        })
+        .map(|record| u64::try_from(record.template_length).unwrap_or(0))
+        .filter(|insert_size| *insert_size > 0)
+        .collect::<Vec<_>>();
+    if insert_sizes.is_empty() {
+        return crate::metrics::InsertSizeMetricsV1::empty();
+    }
+
+    let mut sorted_insert_sizes = insert_sizes.clone();
+    sorted_insert_sizes.sort_unstable();
+    let read_pairs = sorted_insert_sizes.len() as u64;
+    let mean_insert_size =
+        insert_sizes.iter().map(|value| *value as f64).sum::<f64>() / read_pairs as f64;
+    let median_insert_size =
+        median_f64(&sorted_insert_sizes.iter().map(|value| *value as f64).collect::<Vec<_>>());
+    let deviations = sorted_insert_sizes
+        .iter()
+        .map(|value| (*value as f64 - median_insert_size).abs())
+        .collect::<Vec<_>>();
+    let standard_deviation = (insert_sizes
+        .iter()
+        .map(|value| {
+            let centered = *value as f64 - mean_insert_size;
+            centered * centered
+        })
+        .sum::<f64>()
+        / read_pairs as f64)
+        .sqrt();
+    let fr_pairs = records
+        .iter()
+        .filter(|record| {
+            (record.flag & 0x1) != 0
+                && (record.flag & 0x2) != 0
+                && (record.flag & 0x4) == 0
+                && (record.flag & 0x8) == 0
+                && (record.flag & 0x40) != 0
+                && record.template_length > 0
+                && (record.flag & 0x10) == 0
+                && (record.flag & 0x20) != 0
+        })
+        .count() as u64;
+
+    crate::metrics::InsertSizeMetricsV1 {
+        median_insert_size,
+        mean_insert_size,
+        standard_deviation,
+        median_absolute_deviation: median_f64(&deviations),
+        min_insert_size: *sorted_insert_sizes.first().unwrap_or(&0),
+        max_insert_size: *sorted_insert_sizes.last().unwrap_or(&0),
+        read_pairs,
+        pair_orientation_fr_fraction: u64_to_f64(fr_pairs) / u64_to_f64(read_pairs),
+    }
+}
+
+fn median_f64(values: &[f64]) -> f64 {
+    if values.is_empty() {
+        return 0.0;
+    }
+
+    let mut sorted = values.to_vec();
+    sorted.sort_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal));
+    let middle = sorted.len() / 2;
+    if sorted.len() % 2 == 0 {
+        f64::midpoint(sorted[middle - 1], sorted[middle])
+    } else {
+        sorted[middle]
+    }
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+fn usize_to_f64(value: usize) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+fn nonnegative_f64_to_u64(value: f64) -> u64 {
+    if !value.is_finite() || value <= 0.0 {
+        0
+    } else {
+        value.round().to_string().parse::<u64>().unwrap_or(u64::MAX)
+    }
+}
+
+fn percent_to_u8(fraction: f64) -> u8 {
+    if !fraction.is_finite() || fraction <= 0.0 {
+        0
+    } else if fraction >= 1.0 {
+        100
+    } else {
+        (fraction * 100.0).round().to_string().parse::<u8>().unwrap_or(100)
+    }
+}
+
 /// Summarize tiny BAM/SAM coverage and classify coverage regime from depth/breadth signals.
 ///
 /// # Errors
@@ -2049,7 +3582,106 @@ pub fn summarize_tiny_bam_coverage(
     input_bam: &Path,
     depth_thresholds: &[u32],
 ) -> Result<BamCoverageSummaryV1> {
+    summarize_tiny_bam_coverage_regions(input_bam, None, depth_thresholds)
+        .map(|(summary, _)| summary)
+}
+
+/// Summarize tiny BAM/SAM coverage over optional BED regions with per-region depth observations.
+///
+/// # Errors
+/// Returns an error if input parsing fails or the BED regions file is malformed.
+pub fn summarize_tiny_bam_coverage_regions(
+    input_bam: &Path,
+    regions_path: Option<&Path>,
+    depth_thresholds: &[u32],
+) -> Result<(BamCoverageSummaryV1, Vec<BamCoverageRegionSummaryV1>)> {
     let document = parse_tiny_sam(input_bam)?;
+    let coverage_vectors = tiny_coverage_vectors(&document);
+    let regions = regions_path
+        .map(parse_tiny_bed_regions)
+        .transpose()?
+        .unwrap_or_else(|| default_tiny_coverage_regions(&document, &coverage_vectors));
+    if regions.is_empty() {
+        return Err(anyhow!("bam.coverage region summary requires at least one region"));
+    }
+
+    let mut region_summaries = Vec::with_capacity(regions.len());
+    let mut total_positions = 0_u64;
+    let mut total_covered_bases = 0_u64;
+    let mut total_depth_sum = 0_u64;
+
+    for region in regions {
+        let Some(depths) = coverage_vectors.get(&region.contig) else {
+            return Err(anyhow!(
+                "bam.coverage region `{}` references unknown contig `{}`",
+                region.region_id,
+                region.contig
+            ));
+        };
+        if region.end as usize > depths.len() {
+            return Err(anyhow!(
+                "bam.coverage region `{}` extends beyond contig `{}` length {}",
+                region.region_id,
+                region.contig,
+                depths.len()
+            ));
+        }
+
+        let start = region.start.saturating_sub(1) as usize;
+        let end = region.end as usize;
+        let window = &depths[start..end];
+        let length = window.len() as u64;
+        let covered_bases = window.iter().filter(|depth| **depth >= 1).count() as u64;
+        let depth_sum = window.iter().map(|depth| u64::from(*depth)).sum::<u64>();
+        let mean_depth = if length > 0 { depth_sum as f64 / length as f64 } else { 0.0 };
+        let breadth_1x = if length > 0 { covered_bases as f64 / length as f64 } else { 0.0 };
+
+        total_positions += length;
+        total_covered_bases += covered_bases;
+        total_depth_sum += depth_sum;
+        region_summaries.push(BamCoverageRegionSummaryV1 {
+            region_id: region.region_id,
+            contig: region.contig,
+            start: region.start,
+            end: region.end,
+            length,
+            mean_depth,
+            breadth_1x,
+            covered_bases,
+        });
+    }
+
+    let mean_depth =
+        if total_positions > 0 { total_depth_sum as f64 / total_positions as f64 } else { 0.0 };
+    let breadth_1x =
+        if total_positions > 0 { total_covered_bases as f64 / total_positions as f64 } else { 0.0 };
+    let regime = classify_bam_coverage_regime(mean_depth, breadth_1x);
+
+    Ok((
+        BamCoverageSummaryV1 {
+            schema_version: BAM_COVERAGE_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.coverage".to_string(),
+            has_mosdepth_summary: false,
+            has_samtools_depth: true,
+            mean_depth: Some(mean_depth),
+            coverage_regime: Some(regime.regime_id.clone()),
+            coverage_family: Some(regime.enforced_label.clone()),
+            regime: Some(regime),
+            depth_thresholds: depth_thresholds.to_vec(),
+        },
+        region_summaries,
+    ))
+}
+
+#[derive(Debug, Clone)]
+struct TinyCoverageRegion {
+    region_id: String,
+    contig: String,
+    start: u64,
+    end: u64,
+}
+
+fn tiny_coverage_vectors(document: &TinySamDocument) -> HashMap<String, Vec<u32>> {
     let mut inferred_lengths = HashMap::<String, u64>::new();
     for record in document.records.iter().filter(|record| record.is_mapped()) {
         let end = record.pos + u64::max(record.seq.len() as u64, 1) - 1;
@@ -2077,36 +3709,74 @@ pub fn summarize_tiny_bam_coverage(
         }
     }
 
-    let mut total_positions = 0_u64;
-    let mut covered_positions = 0_u64;
-    let mut depth_sum = 0_u64;
-    for depths in coverage_vectors.values() {
-        total_positions += depths.len() as u64;
-        for depth in depths {
-            depth_sum += *depth as u64;
-            if *depth >= 1 {
-                covered_positions += 1;
-            }
+    coverage_vectors
+}
+
+fn default_tiny_coverage_regions(
+    document: &TinySamDocument,
+    coverage_vectors: &HashMap<String, Vec<u32>>,
+) -> Vec<TinyCoverageRegion> {
+    document
+        .references
+        .iter()
+        .filter_map(|reference| {
+            coverage_vectors.get(reference).map(|depths| TinyCoverageRegion {
+                region_id: reference.clone(),
+                contig: reference.clone(),
+                start: 1,
+                end: depths.len() as u64,
+            })
+        })
+        .collect()
+}
+
+fn parse_tiny_bed_regions(path: &Path) -> Result<Vec<TinyCoverageRegion>> {
+    let raw = std::fs::read_to_string(path)?;
+    let mut regions = Vec::new();
+    for (index, line) in raw.lines().enumerate() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
         }
+        let fields = trimmed.split('\t').collect::<Vec<_>>();
+        if fields.len() < 3 {
+            return Err(anyhow!(
+                "bam.coverage BED line {} must declare contig, start, and end",
+                index + 1
+            ));
+        }
+        let contig = fields[0].trim();
+        if contig.is_empty() {
+            return Err(anyhow!("bam.coverage BED line {} has empty contig", index + 1));
+        }
+        let start_zero_based = fields[1].parse::<u64>().map_err(|error| {
+            anyhow!("bam.coverage BED line {} has invalid start: {error}", index + 1)
+        })?;
+        let end_exclusive = fields[2].parse::<u64>().map_err(|error| {
+            anyhow!("bam.coverage BED line {} has invalid end: {error}", index + 1)
+        })?;
+        if end_exclusive <= start_zero_based {
+            return Err(anyhow!(
+                "bam.coverage BED line {} must keep end greater than start",
+                index + 1
+            ));
+        }
+        let start = start_zero_based + 1;
+        let end = end_exclusive;
+        let region_id = fields.get(3).map_or_else(
+            || format!("{contig}:{start}-{end}"),
+            |name| {
+                let trimmed = name.trim();
+                if trimmed.is_empty() {
+                    format!("{contig}:{start}-{end}")
+                } else {
+                    trimmed.to_string()
+                }
+            },
+        );
+        regions.push(TinyCoverageRegion { region_id, contig: contig.to_string(), start, end });
     }
-
-    let mean_depth =
-        if total_positions > 0 { depth_sum as f64 / total_positions as f64 } else { 0.0 };
-    let breadth_1x =
-        if total_positions > 0 { covered_positions as f64 / total_positions as f64 } else { 0.0 };
-    let regime = classify_bam_coverage_regime(mean_depth, breadth_1x);
-
-    Ok(BamCoverageSummaryV1 {
-        schema_version: BAM_COVERAGE_SUMMARY_SCHEMA_VERSION.to_string(),
-        stage_id: "bam.coverage".to_string(),
-        has_mosdepth_summary: false,
-        has_samtools_depth: true,
-        mean_depth: Some(mean_depth),
-        coverage_regime: Some(regime.regime_id.clone()),
-        coverage_family: Some(regime.enforced_label.clone()),
-        regime: Some(regime),
-        depth_thresholds: depth_thresholds.to_vec(),
-    })
+    Ok(regions)
 }
 
 #[must_use]
@@ -2452,11 +4122,399 @@ pub fn estimate_endogenous_content(
     metrics: &BamMetricsV1,
     prealignment_fraction: Option<f64>,
 ) -> BamEndogenousContentEstimateV1 {
-    let postalignment_fraction = if metrics.alignment.total > 0 {
-        metrics.alignment.mapped as f64 / metrics.alignment.total as f64
+    build_endogenous_content_estimate(
+        "bam.endogenous_content",
+        "mapped_fraction_from_alignment_counts",
+        metrics.alignment.total,
+        metrics.alignment.mapped,
+        prealignment_fraction,
+        None,
+    )
+}
+
+/// Build a typed endogenous-content report from explicit mapped/total read counts.
+#[must_use]
+pub fn summarize_bam_endogenous_content(
+    stage_id: &str,
+    method: &str,
+    total_reads: u64,
+    mapped_reads: u64,
+    prealignment_fraction: Option<f64>,
+    host_reference_scope: Option<&str>,
+) -> BamEndogenousContentEstimateV1 {
+    build_endogenous_content_estimate(
+        stage_id,
+        method,
+        total_reads,
+        mapped_reads,
+        prealignment_fraction,
+        host_reference_scope,
+    )
+}
+
+/// Summarize endogenous content directly from a tiny SAM/BAM fixture.
+///
+/// # Errors
+/// Returns an error if the tiny fixture cannot be parsed.
+pub fn summarize_tiny_bam_endogenous_content(
+    input_bam: &Path,
+    method: &str,
+    host_reference_scope: &str,
+    prealignment_fraction: Option<f64>,
+) -> Result<BamEndogenousContentEstimateV1> {
+    let mapping = summarize_tiny_bam_mapping(input_bam)?;
+    Ok(summarize_bam_endogenous_content(
+        "bam.endogenous_content",
+        method,
+        mapping.flagstat.total_reads.unwrap_or(0),
+        mapping.flagstat.mapped_reads.unwrap_or(0),
+        prealignment_fraction,
+        Some(host_reference_scope),
+    ))
+}
+
+/// Summarize sex-inference coverage signals from a tiny SAM/BAM fixture plus reference context.
+///
+/// # Errors
+/// Returns an error if the tiny fixture or reference FASTA cannot be parsed.
+pub fn summarize_tiny_bam_sex(
+    input_bam: &Path,
+    reference_fasta: &Path,
+    method: &str,
+    chromosome_system: Option<&str>,
+    minimum_y_sites: Option<u32>,
+) -> Result<BamSexSummaryV1> {
+    let document = parse_tiny_sam(input_bam)?;
+    let references = parse_tiny_reference_fasta(reference_fasta)?;
+    let reference_lengths = references
+        .iter()
+        .map(|reference| (reference.name.clone(), usize::max(reference.sequence.len(), 1)))
+        .collect::<HashMap<_, _>>();
+    let contig_order = if document.references.is_empty() {
+        references.iter().map(|reference| reference.name.clone()).collect::<Vec<_>>()
     } else {
-        0.0
+        document.references.clone()
     };
+    let coverage_vectors = tiny_coverage_vectors(&document);
+    let x_contig = find_named_contig(&contig_order, &reference_lengths, &["chrX", "X"]);
+    let y_contig = find_named_contig(&contig_order, &reference_lengths, &["chrY", "Y"]);
+    let autosomal_contigs = contig_order
+        .iter()
+        .filter(|contig| {
+            Some(contig.as_str()) != x_contig.as_deref()
+                && Some(contig.as_str()) != y_contig.as_deref()
+                && !is_mitochondrial_contig(contig)
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+
+    let x_contig_name = x_contig.clone().unwrap_or_else(|| "unknown_x".to_string());
+    let y_contig_name = y_contig.clone().unwrap_or_else(|| "unknown_y".to_string());
+    let x_depths =
+        coverage_vector_for_contig(&coverage_vectors, &reference_lengths, x_contig_name.as_str());
+    let y_depths =
+        coverage_vector_for_contig(&coverage_vectors, &reference_lengths, y_contig_name.as_str());
+    let autosomal_depths = autosomal_contigs
+        .iter()
+        .flat_map(|contig| {
+            coverage_vector_for_contig(&coverage_vectors, &reference_lengths, contig)
+        })
+        .collect::<Vec<_>>();
+
+    let x_coverage = mean_coverage(&x_depths);
+    let y_coverage = mean_coverage(&y_depths);
+    let autosomal_coverage = mean_coverage(&autosomal_depths);
+    let x_covered_sites = covered_sites(&x_depths);
+    let y_covered_sites = covered_sites(&y_depths);
+    let required_y_sites = u64::from(minimum_y_sites.unwrap_or(1));
+    let insufficiency_reason =
+        if x_contig.is_none() || y_contig.is_none() || autosomal_contigs.is_empty() {
+            Some("insufficient_chromosomes".to_string())
+        } else if autosomal_coverage <= 0.0 {
+            Some("insufficient_coverage".to_string())
+        } else if y_covered_sites < required_y_sites {
+            Some("insufficient_y_sites".to_string())
+        } else {
+            None
+        };
+    let x_to_y_ratio = if y_coverage > 0.0 { Some(x_coverage / y_coverage) } else { None };
+    let (call, confidence) = if insufficiency_reason.is_some() {
+        (SexConfidenceClass::Insufficient, 0.0)
+    } else {
+        let x_normalized = x_coverage / autosomal_coverage;
+        let y_normalized = y_coverage / autosomal_coverage;
+        if y_normalized >= 0.25 && x_normalized <= 0.75 {
+            (SexConfidenceClass::Male, 0.9)
+        } else if y_normalized <= 0.05 && x_normalized >= 0.75 {
+            (SexConfidenceClass::Female, 0.9)
+        } else {
+            (SexConfidenceClass::Ambiguous, 0.5)
+        }
+    };
+
+    Ok(BamSexSummaryV1 {
+        schema_version: BAM_SEX_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.sex".to_string(),
+        method: method.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_fasta: reference_fasta.to_path_buf(),
+        chromosome_system: chromosome_system.map(ToOwned::to_owned),
+        minimum_y_sites,
+        x_contig: x_contig_name,
+        y_contig: y_contig_name,
+        autosomal_contigs,
+        x_coverage,
+        y_coverage,
+        autosomal_coverage,
+        x_covered_sites,
+        y_covered_sites,
+        x_to_y_ratio,
+        call,
+        confidence,
+        status: insufficiency_reason.clone().unwrap_or_else(|| "ok".to_string()),
+        insufficiency_reason,
+    })
+}
+
+/// Summarize pairwise kinship signals from a tiny SAM/BAM fixture with governed panel context.
+///
+/// # Errors
+/// Returns an error if the tiny fixture cannot be parsed.
+pub fn summarize_tiny_bam_kinship(
+    input_bam: &Path,
+    method: &str,
+    reference_panel: &str,
+    reference_build: &str,
+    population_scope: &str,
+    min_overlap_snps: u32,
+    requires_cohort_context: bool,
+) -> Result<BamKinshipSummaryV1> {
+    let document = parse_tiny_sam(input_bam)?;
+    let sample_site_calls = tiny_kinship_site_calls(&document);
+    let mut sample_ids = sample_site_calls.keys().cloned().collect::<Vec<_>>();
+    sample_ids.sort();
+    sample_ids.dedup();
+
+    let mut observed_max_overlap_snps = 0_u32;
+    let mut pairwise_results = Vec::new();
+    for (left_index, sample_a) in sample_ids.iter().enumerate() {
+        for sample_b in sample_ids.iter().skip(left_index + 1) {
+            let Some(calls_a) = sample_site_calls.get(sample_a) else {
+                continue;
+            };
+            let Some(calls_b) = sample_site_calls.get(sample_b) else {
+                continue;
+            };
+            let (overlap_snps, result) = build_tiny_kinship_pair_result(
+                sample_a,
+                sample_b,
+                calls_a,
+                calls_b,
+                min_overlap_snps,
+            );
+            observed_max_overlap_snps = observed_max_overlap_snps.max(overlap_snps);
+            if let Some(result) = result {
+                pairwise_results.push(result);
+            }
+        }
+    }
+
+    let insufficiency_reason = if pairwise_results.is_empty() {
+        if sample_ids.len() < 2 {
+            Some("insufficient_pair_manifest".to_string())
+        } else if observed_max_overlap_snps < min_overlap_snps {
+            Some("insufficient_overlap_snps".to_string())
+        } else {
+            Some("no_pairwise_results".to_string())
+        }
+    } else {
+        None
+    };
+
+    Ok(BamKinshipSummaryV1 {
+        schema_version: BAM_KINSHIP_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.kinship".to_string(),
+        method: method.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_panel: reference_panel.to_string(),
+        reference_build: reference_build.to_string(),
+        population_scope: population_scope.to_string(),
+        min_overlap_snps,
+        requires_cohort_context,
+        sample_count: sample_ids.len() as u32,
+        observed_max_overlap_snps,
+        pair_count: pairwise_results.len() as u32,
+        status: if pairwise_results.is_empty() {
+            "insufficient".to_string()
+        } else {
+            "ok".to_string()
+        },
+        insufficiency_reason,
+        pairwise_results,
+    })
+}
+
+fn tiny_kinship_site_calls(
+    document: &TinySamDocument,
+) -> HashMap<String, HashMap<(String, u64), Option<char>>> {
+    let mut calls = HashMap::<String, HashMap<(String, u64), Option<char>>>::new();
+    for record in document
+        .records
+        .iter()
+        .filter(|record| record.is_mapped() && record.pos > 0 && record.seq != "*")
+    {
+        let sample_id = kinship_sample_id_for_record(document, record);
+        let sample_calls = calls.entry(sample_id).or_default();
+        for (offset, base) in record.seq.chars().enumerate() {
+            let normalized = normalize_called_base(base);
+            let site = (record.rname.clone(), record.pos + offset as u64);
+            match sample_calls.get(&site).copied().flatten() {
+                Some(existing) if existing != normalized => {
+                    sample_calls.insert(site, None);
+                }
+                Some(_) => {}
+                None => {
+                    sample_calls.insert(site, Some(normalized));
+                }
+            }
+        }
+    }
+    calls
+}
+
+fn kinship_sample_id_for_record(document: &TinySamDocument, record: &TinySamRecord) -> String {
+    record
+        .read_group_id
+        .as_ref()
+        .and_then(|read_group_id| document.read_group_sample_map.get(read_group_id))
+        .cloned()
+        .or_else(|| document.read_group_samples.first().cloned())
+        .unwrap_or_else(|| "unknown".to_string())
+}
+
+fn normalize_called_base(base: char) -> char {
+    match base.to_ascii_uppercase() {
+        'A' | 'C' | 'G' | 'T' => base.to_ascii_uppercase(),
+        _ => 'N',
+    }
+}
+
+fn build_tiny_kinship_pair_result(
+    sample_a: &str,
+    sample_b: &str,
+    calls_a: &HashMap<(String, u64), Option<char>>,
+    calls_b: &HashMap<(String, u64), Option<char>>,
+    min_overlap_snps: u32,
+) -> (u32, Option<BamKinshipPairResultV1>) {
+    let mut overlap_snps = 0_u32;
+    let mut matching_sites = 0_u32;
+    for (site, base_a) in calls_a {
+        let Some(base_a) = *base_a else {
+            continue;
+        };
+        if base_a == 'N' {
+            continue;
+        }
+        let Some(Some(base_b)) = calls_b.get(site).copied() else {
+            continue;
+        };
+        if base_b == 'N' {
+            continue;
+        }
+        overlap_snps = overlap_snps.saturating_add(1);
+        if base_a == base_b {
+            matching_sites = matching_sites.saturating_add(1);
+        }
+    }
+
+    if overlap_snps < min_overlap_snps {
+        return (overlap_snps, None);
+    }
+
+    let mismatch_sites = overlap_snps.saturating_sub(matching_sites);
+    let concordance = round_metric(matching_sites as f64 / overlap_snps as f64);
+    let kinship_coefficient = round_metric(concordance / 2.0);
+    let relationship_label = classify_tiny_kinship_relationship(kinship_coefficient).to_string();
+
+    (
+        overlap_snps,
+        Some(BamKinshipPairResultV1 {
+            sample_a: sample_a.to_string(),
+            sample_b: sample_b.to_string(),
+            overlap_snps,
+            matching_sites,
+            mismatch_sites,
+            concordance,
+            kinship_coefficient,
+            relationship_label,
+        }),
+    )
+}
+
+fn classify_tiny_kinship_relationship(kinship_coefficient: f64) -> &'static str {
+    if kinship_coefficient >= 0.45 {
+        "duplicate_or_monozygotic"
+    } else if kinship_coefficient >= 0.177 {
+        "first_degree"
+    } else if kinship_coefficient >= 0.0884 {
+        "second_degree"
+    } else {
+        "unrelated"
+    }
+}
+
+fn find_named_contig(
+    contig_order: &[String],
+    reference_lengths: &HashMap<String, usize>,
+    aliases: &[&str],
+) -> Option<String> {
+    for alias in aliases {
+        if contig_order.iter().any(|contig| contig == alias)
+            || reference_lengths.contains_key(*alias)
+        {
+            return Some((*alias).to_string());
+        }
+    }
+    None
+}
+
+fn coverage_vector_for_contig(
+    coverage_vectors: &HashMap<String, Vec<u32>>,
+    reference_lengths: &HashMap<String, usize>,
+    contig: &str,
+) -> Vec<u32> {
+    coverage_vectors.get(contig).cloned().unwrap_or_else(|| {
+        let length = reference_lengths.get(contig).copied().unwrap_or(1);
+        vec![0; usize::max(length, 1)]
+    })
+}
+
+fn mean_coverage(depths: &[u32]) -> f64 {
+    if depths.is_empty() {
+        0.0
+    } else {
+        depths.iter().map(|depth| f64::from(*depth)).sum::<f64>() / depths.len() as f64
+    }
+}
+
+fn covered_sites(depths: &[u32]) -> u64 {
+    depths.iter().filter(|depth| **depth > 0).count() as u64
+}
+
+fn is_mitochondrial_contig(contig: &str) -> bool {
+    matches!(contig, "M" | "MT" | "chrM" | "chrMT")
+}
+
+fn build_endogenous_content_estimate(
+    stage_id: &str,
+    method: &str,
+    total_reads: u64,
+    mapped_reads: u64,
+    prealignment_fraction: Option<f64>,
+    host_reference_scope: Option<&str>,
+) -> BamEndogenousContentEstimateV1 {
+    let postalignment_fraction =
+        if total_reads > 0 { mapped_reads as f64 / total_reads as f64 } else { 0.0 };
     let mut caveats = vec![
         "postalignment endogenous fraction reflects reference-dependent mapping behavior"
             .to_string(),
@@ -2478,15 +4536,236 @@ pub fn estimate_endogenous_content(
     }
     BamEndogenousContentEstimateV1 {
         schema_version: BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION.to_string(),
-        stage_id: "bam.endogenous_content".to_string(),
+        stage_id: stage_id.to_string(),
+        method: method.to_string(),
+        mapped_reads,
+        endogenous_reads: mapped_reads,
+        total_reads,
+        endogenous_fraction: postalignment_fraction,
         prealignment_fraction,
         postalignment_fraction,
+        host_reference_scope: host_reference_scope.map(ToOwned::to_owned),
         prealignment_meaning:
             "fraction estimated before alignment from depletion/screening signals".to_string(),
         postalignment_meaning: "fraction of aligned reads relative to total reads after alignment"
             .to_string(),
         caveats,
     }
+}
+
+/// Summarize overlap-correction outputs with explicit paired-read sufficiency.
+#[must_use]
+pub fn summarize_bam_overlap_correction(
+    stage_id: &str,
+    method: &str,
+    input_bam: &Path,
+    output_bam: &Path,
+    flagstat_before: BamFlagstatCountsV1,
+    flagstat_after: BamFlagstatCountsV1,
+    pair_count: Option<u64>,
+    corrected_pairs: Option<u64>,
+    corrected_overlap_bases: Option<u64>,
+    insufficiency_reason: Option<&str>,
+) -> BamOverlapCorrectionSummaryV1 {
+    BamOverlapCorrectionSummaryV1 {
+        schema_version: BAM_OVERLAP_CORRECTION_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        method: method.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        output_bam: output_bam.to_path_buf(),
+        flagstat_before,
+        flagstat_after,
+        pair_count,
+        corrected_pairs,
+        corrected_overlap_bases,
+        insufficiency_reason: insufficiency_reason.map(ToOwned::to_owned),
+    }
+}
+
+/// Apply deterministic overlap correction to a tiny SAM/BAM fixture and summarize the result.
+///
+/// # Errors
+/// Returns an error if the input cannot be parsed or the corrected output cannot be written.
+pub fn correct_tiny_bam_overlaps(
+    input_bam: &Path,
+    output_bam: &Path,
+    method: &str,
+) -> Result<BamOverlapCorrectionSummaryV1> {
+    let input = parse_tiny_sam(input_bam)?;
+    let mut corrected_records = input.records.clone();
+
+    for pair in candidate_overlap_pairs(&input.records) {
+        if pair.overlap_bases == 0 {
+            continue;
+        }
+        trim_overlap_record(&mut corrected_records[pair.right_index], pair.overlap_bases);
+    }
+
+    let output = TinySamDocument {
+        sort_order: input.sort_order.clone(),
+        references: input.references.clone(),
+        reference_lengths: input.reference_lengths.clone(),
+        read_groups: input.read_groups.clone(),
+        read_group_samples: input.read_group_samples.clone(),
+        read_group_sample_map: input.read_group_sample_map.clone(),
+        records: corrected_records.clone(),
+    };
+    write_tiny_sam_from_document(
+        output_bam,
+        &output,
+        input.sort_order.as_deref().unwrap_or("unsorted"),
+    )?;
+
+    let metrics = overlap_correction_metrics(&input.records, &corrected_records);
+    let insufficiency_reason =
+        if metrics.pair_count == 0 { Some("paired_read_pairs_required") } else { None };
+
+    Ok(summarize_bam_overlap_correction(
+        "bam.overlap_correction",
+        method,
+        input_bam,
+        output_bam,
+        flagstat_from_records(&input.records),
+        flagstat_from_records(&corrected_records),
+        Some(metrics.pair_count),
+        Some(metrics.corrected_pairs),
+        Some(metrics.corrected_overlap_bases),
+        insufficiency_reason,
+    ))
+}
+
+/// Summarize an existing tiny overlap-correction output bundle by comparing input/output pairs.
+///
+/// # Errors
+/// Returns an error if either tiny alignment fixture cannot be parsed.
+pub fn summarize_tiny_bam_overlap_correction_outputs(
+    input_bam: &Path,
+    output_bam: &Path,
+    method: &str,
+) -> Result<BamOverlapCorrectionSummaryV1> {
+    let input = parse_tiny_sam(input_bam)?;
+    let output = parse_tiny_sam(output_bam)?;
+    let metrics = overlap_correction_metrics(&input.records, &output.records);
+    let insufficiency_reason =
+        if metrics.pair_count == 0 { Some("paired_read_pairs_required") } else { None };
+    Ok(summarize_bam_overlap_correction(
+        "bam.overlap_correction",
+        method,
+        input_bam,
+        output_bam,
+        flagstat_from_records(&input.records),
+        flagstat_from_records(&output.records),
+        Some(metrics.pair_count),
+        Some(metrics.corrected_pairs),
+        Some(metrics.corrected_overlap_bases),
+        insufficiency_reason,
+    ))
+}
+
+#[derive(Debug, Clone, Copy)]
+struct TinyOverlapPair {
+    left_index: usize,
+    right_index: usize,
+    overlap_bases: u64,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct OverlapCorrectionMetrics {
+    pair_count: u64,
+    corrected_pairs: u64,
+    corrected_overlap_bases: u64,
+}
+
+fn candidate_overlap_pairs(records: &[TinySamRecord]) -> Vec<TinyOverlapPair> {
+    let mut pairs = Vec::<TinyOverlapPair>::new();
+    let mut grouped = HashMap::<String, Vec<usize>>::new();
+    for (index, record) in records.iter().enumerate() {
+        grouped.entry(record.qname.clone()).or_default().push(index);
+    }
+
+    for indexes in grouped.values() {
+        if indexes.len() != 2 {
+            continue;
+        }
+        let left = indexes[0];
+        let right = indexes[1];
+        let left_record = &records[left];
+        let right_record = &records[right];
+        if !tiny_overlap_pair_is_candidate(left_record, right_record) {
+            continue;
+        }
+        let (left_index, right_index) =
+            if left_record.pos <= right_record.pos { (left, right) } else { (right, left) };
+        let left_end = record_alignment_end(&records[left_index]);
+        let right_start = records[right_index].pos;
+        let overlap_bases = if right_start <= left_end {
+            left_end.saturating_sub(right_start).saturating_add(1)
+        } else {
+            0
+        };
+        pairs.push(TinyOverlapPair { left_index, right_index, overlap_bases });
+    }
+
+    pairs.sort_by_key(|pair| {
+        (
+            records[pair.left_index].rname.as_str(),
+            records[pair.left_index].pos,
+            records[pair.left_index].qname.as_str(),
+        )
+    });
+    pairs
+}
+
+fn tiny_overlap_pair_is_candidate(left: &TinySamRecord, right: &TinySamRecord) -> bool {
+    (left.flag & 0x1) != 0
+        && (right.flag & 0x1) != 0
+        && (left.flag & 0x2) != 0
+        && (right.flag & 0x2) != 0
+        && (left.flag & 0x4) == 0
+        && (right.flag & 0x4) == 0
+        && (left.flag & 0x8) == 0
+        && (right.flag & 0x8) == 0
+        && left.rname == right.rname
+}
+
+fn record_alignment_end(record: &TinySamRecord) -> u64 {
+    record.pos + u64::max(record.seq.len() as u64, 1) - 1
+}
+
+fn trim_overlap_record(record: &mut TinySamRecord, overlap_bases: u64) {
+    if overlap_bases == 0 {
+        return;
+    }
+    let current_len = u64::max(record.seq.len() as u64, 1);
+    let new_len = current_len.saturating_sub(overlap_bases).max(1);
+    let keep_len = usize::try_from(new_len).unwrap_or(1);
+    record.seq.truncate(keep_len);
+    record.cigar = format!("{keep_len}M");
+}
+
+fn overlap_correction_metrics(
+    input_records: &[TinySamRecord],
+    output_records: &[TinySamRecord],
+) -> OverlapCorrectionMetrics {
+    let input_pairs = candidate_overlap_pairs(input_records);
+    let mut pair_count = 0_u64;
+    let mut corrected_pairs = 0_u64;
+    let mut corrected_overlap_bases = 0_u64;
+
+    for pair in &input_pairs {
+        pair_count += 1;
+        let input_total_bases = input_records[pair.left_index].seq.len() as i64
+            + input_records[pair.right_index].seq.len() as i64;
+        let output_total_bases = output_records[pair.left_index].seq.len() as i64
+            + output_records[pair.right_index].seq.len() as i64;
+        let delta = input_total_bases.saturating_sub(output_total_bases);
+        if delta > 0 {
+            corrected_pairs += 1;
+            corrected_overlap_bases += u64::try_from(delta).unwrap_or(0);
+        }
+    }
+
+    OverlapCorrectionMetrics { pair_count, corrected_pairs, corrected_overlap_bases }
 }
 
 /// Evaluate sex-inference evidence with PAR-aware and coverage/ploidy guardrails.
@@ -3028,6 +5307,9 @@ mod tests {
                 duplicate_reads: Some(8),
                 mapped_fraction: Some(0.875),
             },
+            input_reads: 100,
+            kept_reads: 80,
+            removed_reads: 20,
             mapped_reads_removed: Some(20),
             mapped_fraction_retained: Some(70.0 / 90.0),
         };
@@ -3035,6 +5317,219 @@ mod tests {
         let json = serde_json::to_value(&payload).expect("serialize mapq filter summary");
         let roundtrip: BamMapqFilterSummaryV1 =
             serde_json::from_value(json).expect("roundtrip mapq filter summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
+    fn bam_length_filter_summary_round_trips() {
+        let payload = BamLengthFilterSummaryV1 {
+            schema_version: BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.length_filter".to_string(),
+            min_length_threshold: 8,
+            input_bam: PathBuf::from("input.bam"),
+            output_bam: PathBuf::from("filtered.bam"),
+            flagstat_before: BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(3),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(0.75),
+            },
+            flagstat_after: BamFlagstatCountsV1 {
+                total_reads: Some(3),
+                mapped_reads: Some(2),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(2.0 / 3.0),
+            },
+            input_reads: 4,
+            kept_reads: 3,
+            removed_reads: 1,
+            observed_min_length: Some(8),
+            observed_max_length: Some(12),
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize length filter summary");
+        let roundtrip: BamLengthFilterSummaryV1 =
+            serde_json::from_value(json).expect("roundtrip length filter summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
+    fn bam_markdup_summary_round_trips() {
+        let payload = BamMarkdupSummaryV1 {
+            schema_version: BAM_MARKDUP_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.markdup".to_string(),
+            duplicate_action: "mark".to_string(),
+            optical_duplicates: Some("mark_only".to_string()),
+            umi_policy: Some("ignore".to_string()),
+            input_bam: PathBuf::from("input.bam"),
+            output_bam: PathBuf::from("marked.bam"),
+            flagstat_before: BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(3),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(0.75),
+            },
+            flagstat_after: BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(3),
+                duplicate_reads: Some(1),
+                mapped_fraction: Some(0.75),
+            },
+            input_reads: 4,
+            output_reads: 4,
+            removed_reads: 0,
+            duplicate_reads_before: Some(0),
+            duplicate_reads_after: Some(1),
+            duplicate_count: Some(1),
+            newly_marked_reads: Some(1),
+            duplicate_reads_removed: None,
+            duplicate_fraction_before: Some(0.0),
+            duplicate_fraction_after: Some(0.25),
+            duplicate_fraction: Some(0.25),
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize markdup summary");
+        let roundtrip: BamMarkdupSummaryV1 =
+            serde_json::from_value(json).expect("roundtrip markdup summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
+    fn bam_duplication_metrics_summary_round_trips() {
+        let payload = BamDuplicationMetricsSummaryV1 {
+            schema_version: BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.duplication_metrics".to_string(),
+            method: "samtools".to_string(),
+            input_bam: PathBuf::from("input.bam"),
+            examined_reads: 3,
+            duplicate_reads: 1,
+            duplicate_count: Some(1),
+            duplicate_fraction: 1.0 / 3.0,
+            estimated_library_size: None,
+            insufficient_library_size_reason: Some(
+                "tiny_smoke_duplicate_observation_is_insufficient_for_library_size_estimate"
+                    .to_string(),
+            ),
+            optical_duplicates: Some("mark_only".to_string()),
+            umi_policy: Some("ignore".to_string()),
+            duplicate_action: Some("mark".to_string()),
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize duplication metrics summary");
+        let roundtrip: BamDuplicationMetricsSummaryV1 =
+            serde_json::from_value(json).expect("roundtrip duplication metrics summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
+    fn bam_complexity_summary_round_trips() {
+        let payload = BamComplexitySummaryV1 {
+            schema_version: BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.complexity".to_string(),
+            method: "preseq".to_string(),
+            input_bam: PathBuf::from("input.bam"),
+            observed_total_reads: 3,
+            observed_unique_reads: 2,
+            projected_unique_reads: vec![(3, 2)],
+            estimated_unique_reads: None,
+            estimated_library_size: None,
+            saturation_estimate: None,
+            min_reads: 3,
+            insufficient_data_reason: Some(
+                "insufficient_observed_unique_reads_for_complexity_extrapolation".to_string(),
+            ),
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize complexity summary");
+        let roundtrip: BamComplexitySummaryV1 =
+            serde_json::from_value(json).expect("roundtrip complexity summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
+    fn bam_insert_size_summary_round_trips() {
+        let payload = BamInsertSizeSummaryV1 {
+            schema_version: BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.insert_size".to_string(),
+            input_bam: PathBuf::from("input.bam"),
+            report_present: true,
+            histogram_present: true,
+            median_insert_size: Some(20.0),
+            mean_insert_size: Some(21.666_666_666_666_668),
+            standard_deviation: Some(6.236_095_644_623_236),
+            median_absolute_deviation: Some(5.0),
+            min_insert_size: Some(15),
+            max_insert_size: Some(30),
+            read_pairs: 3,
+            pair_orientation_fr_fraction: Some(1.0),
+            insufficient_pairs_reason: None,
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize insert size summary");
+        let roundtrip: BamInsertSizeSummaryV1 =
+            serde_json::from_value(json).expect("roundtrip insert size summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
+    fn bam_gc_bias_summary_round_trips() {
+        let payload = BamGcBiasSummaryV1 {
+            schema_version: BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.gc_bias".to_string(),
+            input_bam: PathBuf::from("input.bam"),
+            reference_fasta: PathBuf::from("reference.fasta"),
+            window_size: Some(10),
+            report_present: true,
+            plot_present: true,
+            total_clusters: 4,
+            aligned_reads: 4,
+            windows: 3,
+            read_starts: 4,
+            at_dropout: 25.0,
+            gc_dropout: 25.0,
+            gc_bias_score: 0.25,
+            insufficient_reference_reason: None,
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize gc-bias summary");
+        let roundtrip: BamGcBiasSummaryV1 =
+            serde_json::from_value(json).expect("roundtrip gc-bias summary");
+        assert_eq!(roundtrip, payload);
+    }
+
+    #[test]
+    fn bam_filter_summary_round_trips() {
+        let payload = BamFilterSummaryV1 {
+            schema_version: BAM_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.filter".to_string(),
+            input_bam: PathBuf::from("input.bam"),
+            output_bam: PathBuf::from("filtered.bam"),
+            flagstat_before: BamFlagstatCountsV1 {
+                total_reads: Some(5),
+                mapped_reads: Some(4),
+                duplicate_reads: Some(1),
+                mapped_fraction: Some(0.8),
+            },
+            flagstat_after: BamFlagstatCountsV1 {
+                total_reads: Some(1),
+                mapped_reads: Some(1),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(1.0),
+            },
+            input_reads: 5,
+            kept_reads: 1,
+            removed_reads: 4,
+            active_filters: vec![
+                "mapq_threshold".to_string(),
+                "exclude_flags".to_string(),
+                "min_length".to_string(),
+                "remove_duplicates".to_string(),
+            ],
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize filter summary");
+        let roundtrip: BamFilterSummaryV1 =
+            serde_json::from_value(json).expect("roundtrip filter summary");
         assert_eq!(roundtrip, payload);
     }
 
@@ -3168,6 +5663,11 @@ mod tests {
         metrics.alignment.mapped = 62;
 
         let estimate = estimate_endogenous_content(&metrics, Some(0.20));
+        assert_eq!(estimate.method, "mapped_fraction_from_alignment_counts");
+        assert_eq!(estimate.mapped_reads, 62);
+        assert_eq!(estimate.endogenous_reads, 62);
+        assert_eq!(estimate.total_reads, 100);
+        assert!((estimate.endogenous_fraction - 0.62).abs() < 1e-6);
         assert_eq!(estimate.prealignment_fraction, Some(0.20));
         assert!((estimate.postalignment_fraction - 0.62).abs() < 1e-6);
         assert!(estimate
@@ -3176,6 +5676,117 @@ mod tests {
             .any(|item| item.contains("prealignment and postalignment estimates diverge")));
         assert!(estimate.prealignment_meaning.contains("before alignment"));
         assert!(estimate.postalignment_meaning.contains("after alignment"));
+    }
+
+    #[test]
+    fn bam_endogenous_content_estimate_round_trips() {
+        let report = summarize_bam_endogenous_content(
+            "bam.endogenous_content",
+            "mapped_fraction_from_flagstat",
+            5,
+            3,
+            Some(0.58),
+            Some("human_host"),
+        );
+        let json = serde_json::to_value(&report).expect("serialize endogenous content");
+        let round_trip: BamEndogenousContentEstimateV1 =
+            serde_json::from_value(json).expect("deserialize endogenous content");
+        assert_eq!(round_trip, report);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_endogenous_content_reports_mapped_fraction_and_method() {
+        let input = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| panic!("workspace root"))
+            .join(
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam",
+            );
+        let summary = summarize_tiny_bam_endogenous_content(
+            &input,
+            "mapped_fraction_from_flagstat",
+            "human_host",
+            Some(0.60),
+        )
+        .expect("summarize endogenous content");
+        assert_eq!(summary.method, "mapped_fraction_from_flagstat");
+        assert_eq!(summary.mapped_reads, 3);
+        assert_eq!(summary.endogenous_reads, 3);
+        assert_eq!(summary.total_reads, 5);
+        assert!((summary.endogenous_fraction - 0.6).abs() < 1e-9);
+        assert_eq!(summary.prealignment_fraction, Some(0.60));
+        assert_eq!(summary.host_reference_scope.as_deref(), Some("human_host"));
+    }
+
+    #[test]
+    fn bam_overlap_correction_summary_round_trips() {
+        let summary = summarize_bam_overlap_correction(
+            "bam.overlap_correction",
+            "bamutil",
+            Path::new("input.bam"),
+            Path::new("overlap.corrected.bam"),
+            BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(4),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(1.0),
+            },
+            BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(4),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(1.0),
+            },
+            Some(2),
+            Some(1),
+            Some(7),
+            None,
+        );
+        let json = serde_json::to_value(&summary).expect("serialize overlap correction summary");
+        let round_trip: BamOverlapCorrectionSummaryV1 =
+            serde_json::from_value(json).expect("deserialize overlap correction summary");
+        assert_eq!(round_trip, summary);
+    }
+
+    #[test]
+    fn correct_tiny_bam_overlaps_reports_pair_count_and_trimmed_bases() {
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("unix epoch")
+            .as_nanos();
+        let temp = std::env::temp_dir().join(format!("bijux-overlap-correction-{unique}"));
+        std::fs::create_dir_all(&temp).expect("create temp dir");
+        let input = temp.join("input.sam");
+        let output = temp.join("overlap.corrected.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:100\n\
+@RG\tID:rg1\tSM:sampleA\n\
+pair_overlap\t99\tchr1\t10\t60\t12M\t=\t15\t17\tACGTACGTACGT\tFFFFFFFFFFFF\tRG:Z:rg1\n\
+pair_overlap\t147\tchr1\t15\t60\t12M\t=\t10\t-17\tTTTTCCCCAAAA\tFFFFFFFFFFFF\tRG:Z:rg1\n\
+pair_spaced\t99\tchr1\t40\t60\t10M\t=\t55\t25\tGGGGAAAACC\tFFFFFFFFFF\tRG:Z:rg1\n\
+pair_spaced\t147\tchr1\t55\t60\t10M\t=\t40\t-25\tCCCCAAAAGG\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write overlap input");
+
+        let summary =
+            correct_tiny_bam_overlaps(&input, &output, "bamutil").expect("correct overlaps");
+        assert_eq!(summary.method, "bamutil");
+        assert_eq!(summary.pair_count, Some(2));
+        assert_eq!(summary.corrected_pairs, Some(1));
+        assert_eq!(summary.corrected_overlap_bases, Some(7));
+        assert_eq!(summary.insufficiency_reason, None);
+
+        let written = summarize_tiny_bam_overlap_correction_outputs(&input, &output, "bamutil")
+            .expect("summarize overlap output");
+        assert_eq!(written.pair_count, Some(2));
+        assert_eq!(written.corrected_pairs, Some(1));
+        assert_eq!(written.corrected_overlap_bases, Some(7));
+        assert_eq!(written.insufficiency_reason, None);
+
+        std::fs::remove_dir_all(&temp).expect("remove temp dir");
     }
 
     #[test]
@@ -3291,6 +5902,76 @@ r001\t99\tchr1\n",
         .expect("write malformed SAM fixture");
 
         let summary = execute_bam_validation(&sam, None, None).expect("validate malformed");
+        assert!(!summary.validation_report_present);
+        assert!(summary.refusal_codes.contains(&"malformed_alignment_record".to_string()));
+    }
+
+    fn workspace_root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| panic!("workspace root"))
+            .to_path_buf()
+    }
+
+    #[test]
+    fn execute_bam_validation_accepts_governed_binary_bam_fixture() {
+        let repo_root = workspace_root();
+        let bam = repo_root.join("assets/toy/core-v1/bam/validation_pass.bam");
+        let bai = repo_root.join("assets/toy/core-v1/bam/validation_pass.bam.bai");
+        let reference = repo_root.join("assets/toy/core-v1/bam/validation_reference.fasta");
+
+        let summary = execute_bam_validation(&bam, Some(&bai), Some(&reference))
+            .expect("validate BAM fixture");
+        assert!(summary.validation_report_present);
+        assert!(summary.refusal_codes.is_empty());
+        assert_eq!(summary.flagstat.total_reads, Some(2));
+        assert_eq!(summary.flagstat.mapped_reads, Some(2));
+    }
+
+    #[test]
+    fn inspect_tiny_alignment_accepts_governed_binary_bam_fixture() {
+        let repo_root = workspace_root();
+        let bam = repo_root.join("assets/toy/core-v1/bam/validation_pass.bam");
+
+        let inspection = inspect_tiny_alignment(&bam).expect("inspect BAM fixture");
+        assert_eq!(inspection.sort_order.as_deref(), Some("coordinate"));
+        assert_eq!(inspection.header_contigs, vec!["chr1".to_string()]);
+        assert_eq!(inspection.header_sample_ids, vec!["core-v1-pass".to_string()]);
+        assert_eq!(inspection.read_group_ids.len(), 1);
+        assert_eq!(inspection.mapped_record_contigs, vec!["chr1".to_string()]);
+        assert_eq!(inspection.record_count, 2);
+    }
+
+    #[test]
+    fn inspect_tiny_alignment_accepts_text_sam_fixture() {
+        let temp = unique_temp_dir("inspect-tiny-alignment-sam");
+        let sam = temp.join("fixture.sam");
+        std::fs::write(
+            &sam,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chranc\tLN:64\n\
+@RG\tID:rg-adna\tSM:adna_like_damage\n\
+read1\t99\tchranc\t5\t42\t8M\t=\t13\t8\tCCTTCCAA\tFFFFFFFF\tRG:Z:rg-adna\n\
+read1\t147\tchranc\t13\t42\t8M\t=\t5\t-8\tTTCCAAGG\tFFFFFFFF\tRG:Z:rg-adna\n",
+        )
+        .expect("write SAM fixture");
+
+        let inspection = inspect_tiny_alignment(&sam).expect("inspect SAM fixture");
+        assert_eq!(inspection.sort_order.as_deref(), Some("coordinate"));
+        assert_eq!(inspection.header_contigs, vec!["chranc".to_string()]);
+        assert_eq!(inspection.header_sample_ids, vec!["adna_like_damage".to_string()]);
+        assert_eq!(inspection.read_group_ids, vec!["rg-adna".to_string()]);
+        assert_eq!(inspection.mapped_record_contigs, vec!["chranc".to_string()]);
+        assert_eq!(inspection.record_count, 2);
+    }
+
+    #[test]
+    fn execute_bam_validation_refuses_governed_malformed_bam_fixture() {
+        let repo_root = workspace_root();
+        let bam = repo_root.join("assets/toy/core-v1/bam/validation_malformed.bam");
+
+        let summary = execute_bam_validation(&bam, None, None).expect("validate malformed BAM");
         assert!(!summary.validation_report_present);
         assert!(summary.refusal_codes.contains(&"malformed_alignment_record".to_string()));
     }
@@ -3540,6 +6221,377 @@ r03\t0\tchr1\t7\t40\t6M\t*\t0\t0\tTTTTTT\tFFFFFF\tRG:Z:rg1\n",
     }
 
     #[test]
+    fn summarize_bam_markdup_tracks_marked_and_removed_counts() {
+        let marked = summarize_bam_markdup(
+            "bam.markdup",
+            Path::new("input.bam"),
+            Path::new("marked.bam"),
+            "mark",
+            Some("mark_only"),
+            Some("ignore"),
+            BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(3),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(0.75),
+            },
+            BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(3),
+                duplicate_reads: Some(1),
+                mapped_fraction: Some(0.75),
+            },
+        );
+        assert_eq!(marked.duplicate_reads_before, Some(0));
+        assert_eq!(marked.duplicate_reads_after, Some(1));
+        assert_eq!(marked.duplicate_count, Some(1));
+        assert_eq!(marked.newly_marked_reads, Some(1));
+        assert_eq!(marked.duplicate_reads_removed, None);
+        assert_eq!(marked.duplicate_fraction, Some(0.25));
+
+        let removed = summarize_bam_markdup(
+            "bam.markdup",
+            Path::new("input.bam"),
+            Path::new("deduped.bam"),
+            "remove",
+            Some("mark_only"),
+            Some("ignore"),
+            BamFlagstatCountsV1 {
+                total_reads: Some(4),
+                mapped_reads: Some(3),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(0.75),
+            },
+            BamFlagstatCountsV1 {
+                total_reads: Some(3),
+                mapped_reads: Some(2),
+                duplicate_reads: Some(0),
+                mapped_fraction: Some(2.0 / 3.0),
+            },
+        );
+        assert_eq!(removed.removed_reads, 1);
+        assert_eq!(removed.newly_marked_reads, None);
+        assert_eq!(removed.duplicate_reads_removed, Some(1));
+    }
+
+    #[test]
+    fn summarize_tiny_bam_duplication_metrics_reports_duplicate_burden() {
+        let temp = unique_temp_dir("bam-duplication-metrics");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:50\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t1\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t1\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchr1\t7\t40\t6M\t*\t0\t0\tTTTTTT\tFFFFFF\tRG:Z:rg1\n\
+r04\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write duplication metrics fixture");
+
+        let (summary, histogram) = summarize_tiny_bam_duplication_metrics(
+            &input,
+            "samtools",
+            Some("mark_only"),
+            Some("ignore"),
+            Some("mark"),
+        )
+        .expect("summarize duplication metrics");
+        assert_eq!(summary.method, "samtools");
+        assert_eq!(summary.examined_reads, 3);
+        assert_eq!(summary.duplicate_reads, 1);
+        assert_eq!(summary.duplicate_count, Some(1));
+        assert!((summary.duplicate_fraction - (1.0 / 3.0)).abs() <= 1e-9);
+        assert_eq!(summary.estimated_library_size, None);
+        assert_eq!(
+            summary.insufficient_library_size_reason.as_deref(),
+            Some("tiny_smoke_duplicate_observation_is_insufficient_for_library_size_estimate")
+        );
+        assert_eq!(histogram, vec![(1, 1), (2, 1)]);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_complexity_reports_insufficient_unique_read_support() {
+        let temp = unique_temp_dir("bam-complexity");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:50\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t1\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t1\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchr1\t7\t40\t6M\t*\t0\t0\tTTTTTT\tFFFFFF\tRG:Z:rg1\n\
+r04\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write complexity fixture");
+
+        let summary = summarize_tiny_bam_complexity(&input, "preseq", 3, &[6, 12])
+            .expect("summarize complexity");
+        assert_eq!(summary.method, "preseq");
+        assert_eq!(summary.observed_total_reads, 3);
+        assert_eq!(summary.observed_unique_reads, 2);
+        assert_eq!(summary.projected_unique_reads, vec![(3, 2)]);
+        assert_eq!(summary.estimated_unique_reads, None);
+        assert_eq!(summary.estimated_library_size, None);
+        assert_eq!(summary.saturation_estimate, None);
+        assert_eq!(summary.min_reads, 3);
+        assert_eq!(
+            summary.insufficient_data_reason.as_deref(),
+            Some("insufficient_observed_unique_reads_for_complexity_extrapolation")
+        );
+    }
+
+    #[test]
+    fn summarize_tiny_bam_complexity_reports_projection_estimates() {
+        let temp = unique_temp_dir("bam-complexity-projection");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:100\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t5\t60\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t5\t60\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchr1\t18\t60\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\n\
+r04\t0\tchr1\t18\t60\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\n\
+r05\t0\tchr1\t34\t60\t8M\t*\t0\t0\tGATTACAG\tFFFFFFFF\tRG:Z:rg1\n\
+r06\t0\tchr1\t48\t60\t8M\t*\t0\t0\tCCGTAAGT\tFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write complexity projection fixture");
+
+        let summary = summarize_tiny_bam_complexity(&input, "preseq", 3, &[12, 18])
+            .expect("summarize complexity");
+        assert_eq!(summary.method, "preseq");
+        assert_eq!(summary.observed_total_reads, 6);
+        assert_eq!(summary.observed_unique_reads, 4);
+        assert_eq!(summary.projected_unique_reads, vec![(6, 4), (12, 8), (18, 12)]);
+        assert_eq!(summary.estimated_unique_reads, Some(12));
+        assert_eq!(summary.estimated_library_size, Some(12));
+        assert_eq!(summary.saturation_estimate, Some(0.333_333_333_333_333_37));
+        assert_eq!(summary.min_reads, 3);
+        assert_eq!(summary.insufficient_data_reason, None);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_insert_size_reports_paired_fragment_distribution() {
+        let temp = unique_temp_dir("bam-insert-size");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:200\n\
+@RG\tID:rg1\tSM:sampleA\n\
+pair001\t99\tchr1\t10\t60\t6M\t=\t24\t20\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+pair001\t147\tchr1\t24\t60\t6M\t=\t10\t-20\tTGCATG\tFFFFFF\tRG:Z:rg1\n\
+pair002\t99\tchr1\t40\t60\t6M\t=\t49\t15\tGATTAC\tFFFFFF\tRG:Z:rg1\n\
+pair002\t147\tchr1\t49\t60\t6M\t=\t40\t-15\tCTAATG\tFFFFFF\tRG:Z:rg1\n\
+pair003\t99\tchr1\t70\t60\t6M\t=\t94\t30\tCCCCGG\tFFFFFF\tRG:Z:rg1\n\
+pair003\t147\tchr1\t94\t60\t6M\t=\t70\t-30\tCCGGGG\tFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write insert size fixture");
+
+        let summary = summarize_tiny_bam_insert_size(&input).expect("summarize insert size");
+        assert_eq!(summary.stage_id, "bam.insert_size");
+        assert!(summary.report_present);
+        assert!(summary.histogram_present);
+        assert_eq!(summary.read_pairs, 3);
+        assert_eq!(summary.median_insert_size, Some(20.0));
+        assert_eq!(summary.mean_insert_size, Some(21.666_666_666_666_668));
+        assert_eq!(summary.min_insert_size, Some(15));
+        assert_eq!(summary.max_insert_size, Some(30));
+        assert_eq!(summary.pair_orientation_fr_fraction, Some(1.0));
+        assert_eq!(summary.insufficient_pairs_reason, None);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_gc_bias_reports_windowed_gc_bins() {
+        let temp = unique_temp_dir("bam-gc-bias");
+        let input = temp.join("input.sam");
+        let reference = temp.join("reference.fasta");
+        std::fs::write(&reference, ">chrgc\nAAAAATTTTTACGTACGTACCCCCCGGGGG\n")
+            .expect("write gc-bias reference");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chrgc\tLN:30\n\
+@RG\tID:rg1\tSM:sampleA\n\
+gc00_001\t0\tchrgc\t1\t60\t10M\t*\t0\t0\tAAAAATTTTT\tFFFFFFFFFF\tRG:Z:rg1\n\
+gc50_001\t0\tchrgc\t11\t60\t10M\t*\t0\t0\tACGTACGTAC\tFFFFFFFFFF\tRG:Z:rg1\n\
+gc50_002\t0\tchrgc\t13\t60\t10M\t*\t0\t0\tGTACGTACCC\tFFFFFFFFFF\tRG:Z:rg1\n\
+gc100_001\t0\tchrgc\t21\t60\t10M\t*\t0\t0\tCCCCCGGGGG\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write gc-bias fixture");
+
+        let (summary, rows) =
+            summarize_tiny_bam_gc_bias(&input, &reference, 10).expect("summarize gc-bias");
+        assert_eq!(summary.stage_id, "bam.gc_bias");
+        assert_eq!(summary.window_size, Some(10));
+        assert_eq!(summary.total_clusters, 4);
+        assert_eq!(summary.aligned_reads, 4);
+        assert_eq!(summary.windows, 3);
+        assert_eq!(summary.read_starts, 4);
+        assert!((summary.at_dropout - 25.0).abs() <= f64::EPSILON);
+        assert!((summary.gc_dropout - 25.0).abs() <= f64::EPSILON);
+        assert!((summary.gc_bias_score - 0.25).abs() <= f64::EPSILON);
+        assert_eq!(summary.insufficient_reference_reason, None);
+        assert_eq!(
+            rows,
+            vec![
+                BamGcBiasBinSummaryV1 {
+                    gc_bin: 0,
+                    windows: 1,
+                    read_starts: 1,
+                    normalized_coverage: 0.75,
+                },
+                BamGcBiasBinSummaryV1 {
+                    gc_bin: 50,
+                    windows: 1,
+                    read_starts: 2,
+                    normalized_coverage: 1.5,
+                },
+                BamGcBiasBinSummaryV1 {
+                    gc_bin: 100,
+                    windows: 1,
+                    read_starts: 1,
+                    normalized_coverage: 0.75,
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn summarize_tiny_bam_bias_mitigation_projects_gc_bias_reduction() {
+        let temp = unique_temp_dir("bam-bias-mitigation");
+        let input = temp.join("input.sam");
+        let reference = temp.join("reference.fasta");
+        std::fs::write(&reference, ">chrbias\nAAAAATTTTTACGTACGTACCCCCCGGGGG\n")
+            .expect("write bias-mitigation reference");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chrbias\tLN:30\n\
+@RG\tID:rg1\tSM:sampleA\n\
+bias00_001\t0\tchrbias\t1\t60\t10M\t*\t0\t0\tAAAAATTTTT\tFFFFFFFFFF\tRG:Z:rg1\n\
+bias50_001\t0\tchrbias\t11\t60\t10M\t*\t0\t0\tACGTACGTAC\tFFFFFFFFFF\tRG:Z:rg1\n\
+bias50_002\t0\tchrbias\t13\t60\t10M\t*\t0\t0\tGTACGTACCC\tFFFFFFFFFF\tRG:Z:rg1\n\
+bias100_001\t0\tchrbias\t21\t60\t10M\t*\t0\t0\tCCCCCGGGGG\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write bias-mitigation fixture");
+
+        let summary =
+            summarize_tiny_bam_bias_mitigation(&input, &reference, "mapdamage2", 10, true, false)
+                .expect("summarize bias mitigation");
+        assert_eq!(summary.schema_version, BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "bam.bias_mitigation");
+        assert_eq!(summary.reference_fasta, Some(reference));
+        assert_eq!(summary.method, "mapdamage2");
+        assert_eq!(summary.metric_name, "gc_bias_score");
+        assert!(summary.gc_bias_correction);
+        assert!(!summary.map_bias_correction);
+        assert!(summary.report_present);
+        assert_eq!(summary.mitigation_actions, vec!["gc_bias_correction"]);
+        assert_eq!(summary.consumed_metrics, vec!["gc_bias_score"]);
+        assert_eq!(summary.pre_mitigation_metric, Some(0.25));
+        assert_eq!(summary.post_mitigation_metric, Some(0.125));
+        assert_eq!(summary.metric_delta, Some(0.125));
+        assert_eq!(summary.mitigation_projection_basis.as_deref(), Some("policy_projection"));
+        assert_eq!(summary.insufficient_metric_reason, None);
+    }
+
+    #[test]
+    fn bam_bias_mitigation_summary_round_trips() {
+        let summary = BamBiasMitigationSummaryV1 {
+            schema_version: BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.bias_mitigation".to_string(),
+            input_bam: PathBuf::from("input.bam"),
+            reference_fasta: Some(PathBuf::from("reference.fasta")),
+            method: "mapdamage2".to_string(),
+            metric_name: "gc_bias_score".to_string(),
+            gc_bias_correction: true,
+            map_bias_correction: false,
+            report_present: true,
+            mitigation_actions: vec!["gc_bias_correction".to_string()],
+            consumed_metrics: vec!["gc_bias_score".to_string()],
+            pre_mitigation_metric: Some(0.25),
+            post_mitigation_metric: Some(0.125),
+            metric_delta: Some(0.125),
+            mitigation_projection_basis: Some("policy_projection".to_string()),
+            insufficient_metric_reason: None,
+        };
+        let json = serde_json::to_value(&summary).expect("serialize bias-mitigation summary");
+        let restored: BamBiasMitigationSummaryV1 =
+            serde_json::from_value(json).expect("deserialize bias-mitigation summary");
+        assert_eq!(restored, summary);
+    }
+
+    #[test]
+    fn bam_recalibration_summary_round_trips() {
+        let summary = BamRecalibrationSummaryV1 {
+            schema_version: BAM_RECALIBRATION_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.recalibration".to_string(),
+            input_bam: PathBuf::from("input.sam"),
+            reference_fasta: Some(PathBuf::from("reference.fasta")),
+            known_sites: vec![PathBuf::from("known_sites.vcf")],
+            requested_mode: BqsrMode::Standard,
+            effective_mode: BqsrMode::Skip,
+            status: "skipped".to_string(),
+            reason: "coverage_below_gate".to_string(),
+            coverage_gate: BamRecalibrationCoverageGateV1 {
+                min_mean_coverage: 0.1,
+                min_breadth_1x: 0.05,
+            },
+            observed_mean_coverage: 0.024,
+            observed_breadth_1x: 0.024,
+            output_bam_present: true,
+            recalibration_report_present: true,
+        };
+        let json = serde_json::to_value(&summary).expect("serialize recalibration summary");
+        let restored: BamRecalibrationSummaryV1 =
+            serde_json::from_value(json).expect("deserialize recalibration summary");
+        assert_eq!(restored, summary);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_recalibration_reports_coverage_gate_skip() {
+        let temp = unique_temp_dir("bam-recalibration-summary");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:1000\n\
+skip1\t0\tchr1\t1\t60\t12M\t*\t0\t0\tACGTTGCAACGT\tFFFFFFFFFFFF\n\
+skip2\t0\tchr1\t50\t60\t12M\t*\t0\t0\tTGCATGCATGCA\tFFFFFFFFFFFF\n",
+        )
+        .expect("write recalibration fixture");
+
+        let summary = summarize_tiny_bam_recalibration(
+            &input,
+            Some(Path::new("reference.fasta")),
+            &[PathBuf::from("known_sites.vcf")],
+            BqsrMode::Standard,
+            BqsrMode::Skip,
+            &RecalibrationSkipCriteria { min_mean_coverage: 0.1, min_breadth_1x: 0.05 },
+            true,
+            true,
+        )
+        .expect("summarize recalibration");
+        assert_eq!(summary.stage_id, "bam.recalibration");
+        assert_eq!(summary.requested_mode, BqsrMode::Standard);
+        assert_eq!(summary.effective_mode, BqsrMode::Skip);
+        assert_eq!(summary.status, "skipped");
+        assert_eq!(summary.reason, "coverage_below_gate");
+        assert!((summary.observed_mean_coverage - 0.024).abs() <= 1e-9);
+        assert!((summary.observed_breadth_1x - 0.024).abs() <= 1e-9);
+        assert!((summary.coverage_gate.min_mean_coverage - 0.1).abs() <= f64::EPSILON);
+        assert!((summary.coverage_gate.min_breadth_1x - 0.05).abs() <= f64::EPSILON);
+        assert_eq!(summary.known_sites, vec![PathBuf::from("known_sites.vcf")]);
+        assert!(summary.output_bam_present);
+        assert!(summary.recalibration_report_present);
+    }
+
+    #[test]
     fn filter_tiny_bam_by_mapq_tracks_retained_and_removed_reads() {
         let temp = unique_temp_dir("bam-mapq-filter");
         let input = temp.join("input.sam");
@@ -3557,6 +6609,9 @@ r03\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
 
         let summary = filter_tiny_bam_by_mapq(&input, &output, 30).expect("filter MAPQ");
         assert_eq!(summary.mapq_threshold, 30);
+        assert_eq!(summary.input_reads, 3);
+        assert_eq!(summary.kept_reads, 2);
+        assert_eq!(summary.removed_reads, 1);
         assert_eq!(summary.flagstat_before.mapped_reads, Some(2));
         assert_eq!(summary.flagstat_after.mapped_reads, Some(1));
         assert_eq!(summary.mapped_reads_removed, Some(1));
@@ -3564,6 +6619,85 @@ r03\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
 
         let filtered = parse_tiny_sam(&output).expect("parse filtered output");
         assert_eq!(filtered.records.len(), 2);
+    }
+
+    #[test]
+    fn filter_tiny_bam_tracks_active_filters_and_removed_reads() {
+        let temp = unique_temp_dir("bam-filter");
+        let input = temp.join("input.sam");
+        let output = temp.join("filtered.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:100\n\
+@RG\tID:rg1\tSM:sampleA\n\
+good001\t0\tchr1\t1\t60\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tRG:Z:rg1\n\
+lowq001\t0\tchr1\t10\t10\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\n\
+short001\t0\tchr1\t20\t60\t6M\t*\t0\t0\tGATTAC\tFFFFFF\tRG:Z:rg1\n\
+dup001\t1024\tchr1\t30\t60\t8M\t*\t0\t0\tCCCCGGGG\tFFFFFFFF\tRG:Z:rg1\n\
+unmap001\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNNNN\tFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write filter fixture");
+
+        let summary = filter_tiny_bam(
+            &input,
+            &output,
+            &FilterEffectiveParams {
+                mapq_threshold: 20,
+                include_flags: Vec::new(),
+                exclude_flags: vec![4],
+                min_length: 8,
+                remove_duplicates: true,
+                base_quality_threshold: 20,
+            },
+        )
+        .expect("filter BAM");
+        assert_eq!(summary.input_reads, 5);
+        assert_eq!(summary.kept_reads, 1);
+        assert_eq!(summary.removed_reads, 4);
+        assert_eq!(
+            summary.active_filters,
+            vec![
+                "mapq_threshold".to_string(),
+                "exclude_flags".to_string(),
+                "min_length".to_string(),
+                "remove_duplicates".to_string(),
+            ]
+        );
+
+        let filtered = parse_tiny_sam(&output).expect("parse filtered output");
+        assert_eq!(filtered.records.len(), 1);
+        assert_eq!(filtered.records[0].qname, "good001");
+    }
+
+    #[test]
+    fn filter_tiny_bam_by_length_tracks_retained_length_bounds() {
+        let temp = unique_temp_dir("bam-length-filter");
+        let input = temp.join("input.sam");
+        let output = temp.join("filtered.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:100\n\
+@RG\tID:rg1\tSM:sampleA\n\
+len12\t0\tchr1\t1\t60\t12M\t*\t0\t0\tACGTACGTACGT\tFFFFFFFFFFFF\tRG:Z:rg1\n\
+len8\t0\tchr1\t20\t60\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\n\
+len5\t0\tchr1\t35\t60\t5M\t*\t0\t0\tGATTA\tFFFFF\tRG:Z:rg1\n\
+unmapped10\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNNNNNN\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write length filter fixture");
+
+        let summary = filter_tiny_bam_by_length(&input, &output, 8).expect("filter by length");
+        assert_eq!(summary.min_length_threshold, 8);
+        assert_eq!(summary.input_reads, 4);
+        assert_eq!(summary.kept_reads, 3);
+        assert_eq!(summary.removed_reads, 1);
+        assert_eq!(summary.observed_min_length, Some(8));
+        assert_eq!(summary.observed_max_length, Some(12));
+
+        let filtered = parse_tiny_sam(&output).expect("parse filtered output");
+        assert_eq!(filtered.records.len(), 3);
+        assert!(!filtered.records.iter().any(|record| record.qname == "len5"));
     }
 
     #[test]
@@ -3598,6 +6732,218 @@ r03\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg2\n",
     }
 
     #[test]
+    fn summarize_tiny_bam_qc_pre_reports_core_counts_and_contigs() {
+        let temp = unique_temp_dir("bam-qc-pre-summary");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:100\n\
+@SQ\tSN:chr2\tLN:80\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t5\t60\t8M\t*\t0\t0\tACGTACGT\tFFFFFFFF\tRG:Z:rg1\n\
+r02\t1024\tchr1\t20\t25\t8M\t*\t0\t0\tTGCATGCA\tFFFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchr2\t10\t10\t8M\t*\t0\t0\tCCGGAATT\tFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write qc_pre fixture");
+
+        let summary = summarize_tiny_bam_qc_pre(&input).expect("summarize qc_pre");
+        assert_eq!(summary.total_reads, 3);
+        assert_eq!(summary.mapped_reads, 3);
+        assert_eq!(summary.unmapped_reads, 0);
+        assert_eq!(summary.duplicate_flagged_reads, 1);
+        assert_eq!(summary.contig_summary.len(), 2);
+        assert_eq!(summary.contig_summary[0].contig, "chr1");
+        assert_eq!(summary.contig_summary[0].mapped, 2);
+        assert_eq!(summary.contig_summary[1].contig, "chr2");
+        assert_eq!(summary.contig_summary[1].mapped, 1);
+        assert!(!summary.reference_mismatch);
+        assert!((summary.fragment_length.mean - 8.0).abs() <= f64::EPSILON);
+        assert_eq!(summary.mapq.histogram, vec![(10, 1), (25, 1), (60, 1)]);
+    }
+
+    #[test]
+    fn bam_sex_summary_round_trips() {
+        let summary = BamSexSummaryV1 {
+            schema_version: BAM_SEX_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.sex".to_string(),
+            method: "rxy".to_string(),
+            input_bam: PathBuf::from("input.sam"),
+            reference_fasta: PathBuf::from("reference.fasta"),
+            chromosome_system: Some("xy".to_string()),
+            minimum_y_sites: Some(5),
+            x_contig: "chrX".to_string(),
+            y_contig: "chrY".to_string(),
+            autosomal_contigs: vec!["chr1".to_string()],
+            x_coverage: 0.5,
+            y_coverage: 0.5,
+            autosomal_coverage: 1.0,
+            x_covered_sites: 10,
+            y_covered_sites: 10,
+            x_to_y_ratio: Some(1.0),
+            call: SexConfidenceClass::Male,
+            confidence: 0.9,
+            status: "ok".to_string(),
+            insufficiency_reason: None,
+        };
+        let encoded = serde_json::to_string(&summary).expect("serialize sex summary");
+        let decoded: BamSexSummaryV1 =
+            serde_json::from_str(&encoded).expect("deserialize sex summary");
+        assert_eq!(decoded, summary);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_sex_reports_xy_autosome_male_call() {
+        let temp = unique_temp_dir("bam-sex-summary");
+        let input = temp.join("input.sam");
+        let reference = temp.join("reference.fasta");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:20\n\
+@SQ\tSN:chrX\tLN:20\n\
+@SQ\tSN:chrY\tLN:20\n\
+@RG\tID:rg1\tSM:sampleA\n\
+auto1\t0\tchr1\t1\t60\t10M\t*\t0\t0\tACGTACGTAC\tFFFFFFFFFF\tRG:Z:rg1\n\
+auto2\t0\tchr1\t11\t60\t10M\t*\t0\t0\tGTACGTACGT\tFFFFFFFFFF\tRG:Z:rg1\n\
+x1\t0\tchrX\t1\t60\t10M\t*\t0\t0\tTTTTCCCCAA\tFFFFFFFFFF\tRG:Z:rg1\n\
+y1\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write sex fixture");
+        std::fs::write(
+            &reference,
+            ">chr1\nACGTACGTACGTACGTACGT\n>chrX\nTTTTCCCCAAAAGGGGTTTT\n>chrY\nGGGGAAAATTTTCCCCGGGG\n",
+        )
+        .expect("write reference fixture");
+
+        let summary = summarize_tiny_bam_sex(&input, &reference, "rxy", Some("xy"), Some(5))
+            .expect("summarize sex");
+        assert_eq!(summary.stage_id, "bam.sex");
+        assert_eq!(summary.method, "rxy");
+        assert_eq!(summary.x_contig, "chrX");
+        assert_eq!(summary.y_contig, "chrY");
+        assert_eq!(summary.autosomal_contigs, vec!["chr1"]);
+        assert!((summary.x_coverage - 0.5).abs() <= 1e-9);
+        assert!((summary.y_coverage - 0.5).abs() <= 1e-9);
+        assert!((summary.autosomal_coverage - 1.0).abs() <= 1e-9);
+        assert_eq!(summary.x_covered_sites, 10);
+        assert_eq!(summary.y_covered_sites, 10);
+        assert_eq!(summary.x_to_y_ratio, Some(1.0));
+        assert_eq!(summary.call, SexConfidenceClass::Male);
+        assert!((summary.confidence - 0.9).abs() <= 1e-9);
+        assert_eq!(summary.status, "ok");
+        assert_eq!(summary.insufficiency_reason, None);
+    }
+
+    #[test]
+    fn bam_kinship_summary_round_trips() {
+        let summary = BamKinshipSummaryV1 {
+            schema_version: BAM_KINSHIP_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.kinship".to_string(),
+            method: "king".to_string(),
+            input_bam: PathBuf::from("input.sam"),
+            reference_panel: "human_like_relatedness_panel".to_string(),
+            reference_build: "grch38".to_string(),
+            population_scope: "human_diploid_panel".to_string(),
+            min_overlap_snps: 6,
+            requires_cohort_context: true,
+            sample_count: 2,
+            observed_max_overlap_snps: 6,
+            pair_count: 1,
+            status: "ok".to_string(),
+            insufficiency_reason: None,
+            pairwise_results: vec![BamKinshipPairResultV1 {
+                sample_a: "sample_a".to_string(),
+                sample_b: "sample_b".to_string(),
+                overlap_snps: 6,
+                matching_sites: 5,
+                mismatch_sites: 1,
+                concordance: 0.833_333,
+                kinship_coefficient: 0.416_667,
+                relationship_label: "first_degree".to_string(),
+            }],
+        };
+        let encoded = serde_json::to_string(&summary).expect("serialize kinship summary");
+        let decoded: BamKinshipSummaryV1 =
+            serde_json::from_str(&encoded).expect("deserialize kinship summary");
+        assert_eq!(decoded, summary);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_kinship_reports_valid_pairs_and_overlap_refusal() {
+        let temp = unique_temp_dir("bam-kinship-summary");
+        let insufficient_input = temp.join("insufficient.sam");
+        let valid_input = temp.join("valid.sam");
+        std::fs::write(
+            &insufficient_input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:20\n\
+@RG\tID:rg_a\tSM:sample_a\n\
+@RG\tID:rg_b\tSM:sample_b\n\
+pair_a\t0\tchr1\t1\t60\t4M\t*\t0\t0\tACGT\tFFFF\tRG:Z:rg_a\n\
+pair_b\t0\tchr1\t1\t60\t4M\t*\t0\t0\tACGA\tFFFF\tRG:Z:rg_b\n",
+        )
+        .expect("write insufficient kinship fixture");
+        std::fs::write(
+            &valid_input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:20\n\
+@RG\tID:rg_a\tSM:sample_a\n\
+@RG\tID:rg_b\tSM:sample_b\n\
+pair_a\t0\tchr1\t1\t60\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg_a\n\
+pair_b\t0\tchr1\t1\t60\t6M\t*\t0\t0\tACGTTC\tFFFFFF\tRG:Z:rg_b\n",
+        )
+        .expect("write valid kinship fixture");
+
+        let insufficient = summarize_tiny_bam_kinship(
+            &insufficient_input,
+            "king",
+            "human_like_relatedness_panel",
+            "grch38",
+            "human_diploid_panel",
+            5,
+            true,
+        )
+        .expect("summarize insufficient kinship");
+        assert_eq!(insufficient.stage_id, "bam.kinship");
+        assert_eq!(insufficient.method, "king");
+        assert_eq!(insufficient.sample_count, 2);
+        assert_eq!(insufficient.observed_max_overlap_snps, 4);
+        assert_eq!(insufficient.pair_count, 0);
+        assert_eq!(insufficient.status, "insufficient");
+        assert_eq!(insufficient.insufficiency_reason.as_deref(), Some("insufficient_overlap_snps"));
+        assert!(insufficient.pairwise_results.is_empty());
+
+        let valid = summarize_tiny_bam_kinship(
+            &valid_input,
+            "king",
+            "human_like_relatedness_panel",
+            "grch38",
+            "human_diploid_panel",
+            6,
+            true,
+        )
+        .expect("summarize valid kinship");
+        assert_eq!(valid.stage_id, "bam.kinship");
+        assert_eq!(valid.method, "king");
+        assert_eq!(valid.sample_count, 2);
+        assert_eq!(valid.observed_max_overlap_snps, 6);
+        assert_eq!(valid.pair_count, 1);
+        assert_eq!(valid.status, "ok");
+        assert_eq!(valid.insufficiency_reason, None);
+        assert_eq!(valid.pairwise_results.len(), 1);
+        let pair = &valid.pairwise_results[0];
+        assert_eq!(pair.sample_a, "sample_a");
+        assert_eq!(pair.sample_b, "sample_b");
+        assert_eq!(pair.overlap_snps, 6);
+        assert_eq!(pair.matching_sites, 5);
+        assert_eq!(pair.mismatch_sites, 1);
+        assert!((pair.concordance - 0.833_333).abs() <= 1e-9);
+        assert!((pair.kinship_coefficient - 0.416_667).abs() <= 1e-9);
+        assert_eq!(pair.relationship_label, "first_degree");
+    }
+
+    #[test]
     fn summarize_tiny_bam_coverage_classifies_regime_from_depth_and_breadth() {
         let temp = unique_temp_dir("bam-coverage-summary");
         let input = temp.join("input.sam");
@@ -3619,6 +6965,130 @@ r02\t0\tchr1\t11\t45\t10M\t*\t0\t0\tTTTTGGGGCC\tFFFFFFFFFF\tRG:Z:rg1\n",
         let regime = summary.regime.expect("coverage regime");
         assert_eq!(regime.regime_class, BamCoverageRegimeClassV1::LowPass);
         assert!((regime.breadth_1x - 1.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_damage_evidence_reports_terminal_signal_and_short_fragments() {
+        let temp = unique_temp_dir("bam-damage-evidence");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chranc\tLN:120\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchranc\t5\t60\t20M\t*\t0\t0\tTCTTTCTTTCTTTCTTTCTT\tFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchranc\t19\t60\t24M\t*\t0\t0\tCTTTCCAAACTTTCCAAACTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchranc\t47\t60\t28M\t*\t0\t0\tTTCCCAAAGGGTTTCCCAAAGGGTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write damage fixture");
+
+        let evidence = summarize_tiny_bam_damage_evidence(
+            &input,
+            &crate::metrics::DamageMetricsV1 {
+                c_to_t_5p: 0.18,
+                g_to_a_3p: 0.11,
+                pmd_score_histogram: Vec::new(),
+            },
+            false,
+        )
+        .expect("summarize damage evidence");
+        assert_eq!(evidence.stage_id, "bam.damage");
+        assert_eq!(evidence.damage_signal, "moderate");
+        assert!((evidence.terminal_c_to_t_5p - 0.18).abs() <= f64::EPSILON);
+        assert!((evidence.terminal_g_to_a_3p - 0.11).abs() <= f64::EPSILON);
+        assert!((evidence.short_fragment_fraction - 1.0).abs() <= f64::EPSILON);
+        assert!(!evidence.strict_profile_upgraded);
+        assert!(evidence.advisory_boundary.advisory_only);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_authenticity_advisory_reports_composed_signal() {
+        let temp = unique_temp_dir("bam-authenticity-advisory");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chranc\tLN:120\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchranc\t5\t25\t20M\t*\t0\t0\tTCTTTCTTTCTTTCTTTCTT\tFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchranc\t29\t25\t24M\t*\t0\t0\tCTTTCCAAACTTTCCAAACTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchranc\t57\t25\t28M\t*\t0\t0\tTTCCCAAAGGGTTTCCCAAAGGGTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r04\t0\tchranc\t89\t25\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write authenticity fixture");
+
+        let advisory = summarize_tiny_bam_authenticity_advisory(
+            &input,
+            &crate::metrics::DamageMetricsV1 {
+                c_to_t_5p: 0.18,
+                g_to_a_3p: 0.11,
+                pmd_score_histogram: Vec::new(),
+            },
+        )
+        .expect("summarize authenticity advisory");
+        assert_eq!(advisory.schema_version, BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION);
+        assert_eq!(advisory.stage_id, "bam.authenticity");
+        assert!((advisory.score - 0.866_666_666_666_666_7).abs() <= 1e-12);
+        assert!((advisory.confidence - 0.946_666_666_666_666_8).abs() <= 1e-12);
+        assert!(advisory.pmd_like_signal_present);
+        assert!(advisory.advisory_boundary.advisory_only);
+        assert_eq!(advisory.advisory_boundary.stage_id, "bam.authenticity");
+    }
+
+    #[test]
+    fn summarize_tiny_bam_coverage_regions_reports_region_level_depth_and_breadth() {
+        let temp = unique_temp_dir("bam-coverage-regions");
+        let input = temp.join("input.sam");
+        let regions = temp.join("regions.bed");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:12\n\
+@SQ\tSN:chr2\tLN:8\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t1\t45\t4M\t*\t0\t0\tACGT\tFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t3\t45\t4M\t*\t0\t0\tTTAA\tFFFF\tRG:Z:rg1\n\
+r03\t0\tchr2\t2\t45\t3M\t*\t0\t0\tGGA\tFFF\tRG:Z:rg1\n",
+        )
+        .expect("write coverage fixture");
+        std::fs::write(&regions, "chr1\t0\t6\tchr1_window\nchr2\t1\t5\tchr2_window\n")
+            .expect("write coverage regions");
+
+        let (summary, rows) = summarize_tiny_bam_coverage_regions(&input, Some(&regions), &[1, 5])
+            .expect("summarize coverage regions");
+        assert_eq!(summary.stage_id, "bam.coverage");
+        assert_eq!(summary.depth_thresholds, vec![1, 5]);
+        assert_eq!(summary.coverage_regime.as_deref(), Some("low_pass"));
+        assert_eq!(rows.len(), 2);
+        assert_eq!(
+            rows,
+            vec![
+                BamCoverageRegionSummaryV1 {
+                    region_id: "chr1_window".to_string(),
+                    contig: "chr1".to_string(),
+                    start: 1,
+                    end: 6,
+                    length: 6,
+                    mean_depth: 4.0 / 3.0,
+                    breadth_1x: 1.0,
+                    covered_bases: 6,
+                },
+                BamCoverageRegionSummaryV1 {
+                    region_id: "chr2_window".to_string(),
+                    contig: "chr2".to_string(),
+                    start: 2,
+                    end: 5,
+                    length: 4,
+                    mean_depth: 0.75,
+                    breadth_1x: 0.75,
+                    covered_bases: 3,
+                },
+            ]
+        );
+        assert!((summary.mean_depth.expect("mean depth") - 1.1).abs() <= 1e-9);
+        let regime = summary.regime.expect("coverage regime");
+        assert!((regime.breadth_1x - 0.9).abs() <= 1e-9);
     }
 
     #[test]

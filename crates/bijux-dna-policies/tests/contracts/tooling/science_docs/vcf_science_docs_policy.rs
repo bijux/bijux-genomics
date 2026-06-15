@@ -455,7 +455,7 @@ fn policy__contracts__vcf_science_docs_policy__tools_roster_matches_planned_down
             "vcf.population_structure",
             "vcf.phasing",
             "vcf.prepare_reference_panel",
-            "vcf.imputation",
+            "vcf.imputation_metrics",
             "vcf.impute",
             "vcf.postprocess",
             "vcf.ibd",
@@ -538,7 +538,7 @@ fn policy__contracts__vcf_science_docs_policy__imputation_scope_doc_covers_imput
     let expected = BTreeSet::from([
         "vcf.prepare_reference_panel".to_string(),
         "vcf.phasing".to_string(),
-        "vcf.imputation".to_string(),
+        "vcf.imputation_metrics".to_string(),
         "vcf.impute".to_string(),
         "vcf.postprocess".to_string(),
         "vcf.qc".to_string(),
@@ -555,7 +555,7 @@ fn policy__contracts__vcf_science_docs_policy__imputation_methods_doc_covers_exe
     let expected = BTreeSet::from([
         "vcf.prepare_reference_panel".to_string(),
         "vcf.phasing".to_string(),
-        "vcf.imputation".to_string(),
+        "vcf.imputation_metrics".to_string(),
         "vcf.impute".to_string(),
         "vcf.postprocess".to_string(),
     ]);
@@ -572,7 +572,7 @@ fn policy__contracts__vcf_science_docs_policy__reference_governance_doc_covers_p
     let expected = BTreeSet::from([
         "vcf.prepare_reference_panel".to_string(),
         "vcf.phasing".to_string(),
-        "vcf.imputation".to_string(),
+        "vcf.imputation_metrics".to_string(),
         "vcf.impute".to_string(),
         "vcf.postprocess".to_string(),
         "vcf.qc".to_string(),

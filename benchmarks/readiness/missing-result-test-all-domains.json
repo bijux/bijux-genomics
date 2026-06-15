@@ -1,0 +1,4335 @@
+{
+  "schema_version": "bijux.bench.readiness.all_domain_missing_result_test.v1",
+  "output_path": "benchmarks/readiness/missing-result-test-all-domains.json",
+  "fake_result_root": "runs/bench/readiness-probes/all-domains/missing-result-test",
+  "expected_row_count": 138,
+  "present_result_row_count": 135,
+  "missing_result_row_count": 3,
+  "passes_behavior_test": true,
+  "removed_result_ids": [
+    "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
+    "bam:corpus-01-bam-mini:bam.coverage:sample-set:samtools",
+    "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools"
+  ],
+  "removed_manifest_paths": [
+    "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-02-edna-mini/fastq.screen_taxonomy/database_artifact_id+taxonomy_database_root/kraken2/stage-result.json",
+    "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.coverage/corpus_only/samtools/stage-result.json",
+    "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.stats/vcf_cohort/bcftools/stage-result.json"
+  ],
+  "domain_counts": {
+    "bam": 49,
+    "fastq": 69,
+    "vcf": 20
+  },
+  "rows": [
+    {
+      "result_id": "bam:corpus-01-mini:bam.align:sample-set:bowtie2",
+      "domain": "bam",
+      "stage_id": "bam.align",
+      "tool_id": "bowtie2",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-mini/bam.align/corpus_only/bowtie2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-mini/bam.align/corpus_only/bowtie2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "align_bam",
+        "align_bai",
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics",
+        "align_metrics"
+      ],
+      "observed_output_artifact_ids": [
+        "align_bam",
+        "align_bai",
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics",
+        "align_metrics"
+      ],
+      "expected_metrics": [
+        "align_metrics",
+        "alignment_rate",
+        "mapped_reads"
+      ],
+      "report_section": "alignment_intake",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-mini:bam.align:sample-set:bowtie2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-mini:bam.align:sample-set:bwa",
+      "domain": "bam",
+      "stage_id": "bam.align",
+      "tool_id": "bwa",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-mini/bam.align/corpus_only/bwa/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-mini/bam.align/corpus_only/bwa/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "align_bam",
+        "align_bai",
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics",
+        "align_metrics"
+      ],
+      "observed_output_artifact_ids": [
+        "align_bam",
+        "align_bai",
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics",
+        "align_metrics"
+      ],
+      "expected_metrics": [
+        "align_metrics",
+        "alignment_rate",
+        "mapped_reads"
+      ],
+      "report_section": "alignment_intake",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-mini:bam.align:sample-set:bwa` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:authenticct",
+      "domain": "bam",
+      "stage_id": "bam.authenticity",
+      "tool_id": "authenticct",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.authenticity/corpus_only/authenticct/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.authenticity/corpus_only/authenticct/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "authenticity_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "authenticity_report"
+      ],
+      "expected_metrics": [
+        "authenticity_report",
+        "confidence",
+        "consumed_metric_ids",
+        "missing_metric_ids",
+        "pmd_like_signal_present",
+        "score"
+      ],
+      "report_section": "ancient_signal",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:authenticct` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:damageprofiler",
+      "domain": "bam",
+      "stage_id": "bam.authenticity",
+      "tool_id": "damageprofiler",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.authenticity/corpus_only/damageprofiler/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.authenticity/corpus_only/damageprofiler/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot",
+        "authenticity_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot",
+        "authenticity_report"
+      ],
+      "expected_metrics": [
+        "authenticity_report",
+        "confidence",
+        "consumed_metric_ids",
+        "missing_metric_ids",
+        "pmd_like_signal_present",
+        "score"
+      ],
+      "report_section": "ancient_signal",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:damageprofiler` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:pmdtools",
+      "domain": "bam",
+      "stage_id": "bam.authenticity",
+      "tool_id": "pmdtools",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.authenticity/corpus_only/pmdtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.authenticity/corpus_only/pmdtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "pmd_scores",
+        "damage_profile",
+        "authenticity_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "pmd_scores",
+        "damage_profile",
+        "authenticity_report"
+      ],
+      "expected_metrics": [
+        "authenticity_report",
+        "confidence",
+        "consumed_metric_ids",
+        "missing_metric_ids",
+        "pmd_like_signal_present",
+        "score"
+      ],
+      "report_section": "ancient_signal",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:pmdtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.bias_mitigation:sample-set:mapdamage2",
+      "domain": "bam",
+      "stage_id": "bam.bias_mitigation",
+      "tool_id": "mapdamage2",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.bias_mitigation/corpus_only/mapdamage2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.bias_mitigation/corpus_only/mapdamage2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot",
+        "bias_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot",
+        "bias_report"
+      ],
+      "expected_metrics": [
+        "bias_report"
+      ],
+      "report_section": "downstream_readiness",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.bias_mitigation:sample-set:mapdamage2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.complexity:sample-set:preseq",
+      "domain": "bam",
+      "stage_id": "bam.complexity",
+      "tool_id": "preseq",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.complexity/corpus_only/preseq/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.complexity/corpus_only/preseq/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "complexity_report",
+        "complexity_curve",
+        "stage_metrics",
+        "summary"
+      ],
+      "observed_output_artifact_ids": [
+        "complexity_report",
+        "complexity_curve",
+        "stage_metrics",
+        "summary"
+      ],
+      "expected_metrics": [
+        "summary"
+      ],
+      "report_section": "library_complexity",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.complexity:sample-set:preseq` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:contammix",
+      "domain": "bam",
+      "stage_id": "bam.contamination",
+      "tool_id": "contammix",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "asset_profile_id": "reference_fasta+reference_panel",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.contamination/reference_fasta+reference_panel/contammix/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.contamination/reference_fasta+reference_panel/contammix/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "contamination_estimate",
+        "contammix_report",
+        "contamination_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "contamination_estimate",
+        "contammix_report",
+        "contamination_report"
+      ],
+      "expected_metrics": [
+        "ci_high",
+        "ci_low",
+        "contamination_report",
+        "estimate",
+        "prerequisites_passed",
+        "scope"
+      ],
+      "report_section": "ancient_signal",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:contammix` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:schmutzi",
+      "domain": "bam",
+      "stage_id": "bam.contamination",
+      "tool_id": "schmutzi",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "asset_profile_id": "reference_fasta+reference_panel",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.contamination/reference_fasta+reference_panel/schmutzi/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.contamination/reference_fasta+reference_panel/schmutzi/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "contamination_estimate",
+        "mt_consensus",
+        "contamination_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "contamination_estimate",
+        "mt_consensus",
+        "contamination_report"
+      ],
+      "expected_metrics": [
+        "ci_high",
+        "ci_low",
+        "contamination_report",
+        "estimate",
+        "prerequisites_passed",
+        "scope"
+      ],
+      "report_section": "ancient_signal",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:schmutzi` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:verifybamid2",
+      "domain": "bam",
+      "stage_id": "bam.contamination",
+      "tool_id": "verifybamid2",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "asset_profile_id": "reference_fasta+reference_panel",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.contamination/reference_fasta+reference_panel/verifybamid2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.contamination/reference_fasta+reference_panel/verifybamid2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "contamination_estimate",
+        "contamination_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "contamination_estimate",
+        "contamination_report"
+      ],
+      "expected_metrics": [
+        "ci_high",
+        "ci_low",
+        "contamination_report",
+        "estimate",
+        "prerequisites_passed",
+        "scope"
+      ],
+      "report_section": "ancient_signal",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:verifybamid2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.coverage:sample-set:bedtools",
+      "domain": "bam",
+      "stage_id": "bam.coverage",
+      "tool_id": "bedtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.coverage/corpus_only/bedtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.coverage/corpus_only/bedtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "coverage_depth",
+        "stage_metrics",
+        "coverage_summary"
+      ],
+      "observed_output_artifact_ids": [
+        "coverage_depth",
+        "stage_metrics",
+        "coverage_summary"
+      ],
+      "expected_metrics": [
+        "breadth_1x",
+        "coverage_summary",
+        "covered_bases",
+        "mean_depth",
+        "observed_region_count",
+        "region_ids"
+      ],
+      "report_section": "coverage_quality",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.coverage:sample-set:bedtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.coverage:sample-set:mosdepth",
+      "domain": "bam",
+      "stage_id": "bam.coverage",
+      "tool_id": "mosdepth",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.coverage/corpus_only/mosdepth/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.coverage/corpus_only/mosdepth/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "coverage_depth",
+        "stage_metrics",
+        "coverage_summary"
+      ],
+      "observed_output_artifact_ids": [
+        "coverage_depth",
+        "stage_metrics",
+        "coverage_summary"
+      ],
+      "expected_metrics": [
+        "breadth_1x",
+        "coverage_summary",
+        "covered_bases",
+        "mean_depth",
+        "observed_region_count",
+        "region_ids"
+      ],
+      "report_section": "coverage_quality",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.coverage:sample-set:mosdepth` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.coverage:sample-set:samtools",
+      "domain": "bam",
+      "stage_id": "bam.coverage",
+      "tool_id": "samtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.coverage/corpus_only/samtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.coverage/corpus_only/samtools/stage-result.json",
+      "result_status": "missing_result",
+      "expected_output_artifact_ids": [
+        "coverage_depth",
+        "stage_metrics",
+        "coverage_summary"
+      ],
+      "observed_output_artifact_ids": [],
+      "expected_metrics": [
+        "breadth_1x",
+        "coverage_summary",
+        "covered_bases",
+        "mean_depth",
+        "observed_region_count",
+        "region_ids"
+      ],
+      "report_section": "coverage_quality",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.coverage:sample-set:samtools` remains visible even though its fake-run manifest is missing"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:addeam",
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "addeam",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/addeam/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/addeam/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_clusters",
+        "damage_report"
+      ],
+      "observed_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_clusters",
+        "damage_report"
+      ],
+      "expected_metrics": [
+        "damage_report",
+        "damage_signal",
+        "memory_mb",
+        "runtime_s",
+        "terminal_c_to_t_5p",
+        "terminal_g_to_a_3p"
+      ],
+      "report_section": "ancient_signal",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:addeam` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:damageprofiler",
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "damageprofiler",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/damageprofiler/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/damageprofiler/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot",
+        "damage_report"
+      ],
+      "observed_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot",
+        "damage_report"
+      ],
+      "expected_metrics": [
+        "damage_report",
+        "damage_signal",
+        "memory_mb",
+        "runtime_s",
+        "terminal_c_to_t_5p",
+        "terminal_g_to_a_3p"
+      ],
+      "report_section": "ancient_signal",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:damageprofiler` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:mapdamage2",
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "mapdamage2",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/mapdamage2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/mapdamage2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot",
+        "damage_report"
+      ],
+      "observed_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot",
+        "damage_report"
+      ],
+      "expected_metrics": [
+        "damage_report",
+        "damage_signal",
+        "memory_mb",
+        "runtime_s",
+        "terminal_c_to_t_5p",
+        "terminal_g_to_a_3p"
+      ],
+      "report_section": "ancient_signal",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:mapdamage2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "ngsbriggs",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/ngsbriggs/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/ngsbriggs/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_parameters",
+        "damage_report"
+      ],
+      "observed_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_parameters",
+        "damage_report"
+      ],
+      "expected_metrics": [
+        "damage_report",
+        "damage_signal",
+        "memory_mb",
+        "runtime_s",
+        "terminal_c_to_t_5p",
+        "terminal_g_to_a_3p"
+      ],
+      "report_section": "ancient_signal",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "pmdtools",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/pmdtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/pmdtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "pmd_scores",
+        "damage_profile",
+        "damage_report"
+      ],
+      "observed_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "pmd_scores",
+        "damage_profile",
+        "damage_report"
+      ],
+      "expected_metrics": [
+        "damage_report",
+        "damage_signal",
+        "memory_mb",
+        "runtime_s",
+        "terminal_c_to_t_5p",
+        "terminal_g_to_a_3p"
+      ],
+      "report_section": "ancient_signal",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pydamage",
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "pydamage",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/pydamage/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/pydamage/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_report"
+      ],
+      "observed_output_artifact_ids": [
+        "terminal_position_metrics",
+        "parser_output",
+        "stage_metrics",
+        "damage_profile",
+        "damage_report"
+      ],
+      "expected_metrics": [
+        "damage_report",
+        "damage_signal",
+        "memory_mb",
+        "runtime_s",
+        "terminal_c_to_t_5p",
+        "terminal_g_to_a_3p"
+      ],
+      "report_section": "ancient_signal",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pydamage` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.duplication_metrics:sample-set:picard",
+      "domain": "bam",
+      "stage_id": "bam.duplication_metrics",
+      "tool_id": "picard",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.duplication_metrics/corpus_only/picard/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.duplication_metrics/corpus_only/picard/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "duplication_histogram",
+        "summary",
+        "stage_metrics",
+        "duplication_report"
+      ],
+      "observed_output_artifact_ids": [
+        "duplication_histogram",
+        "summary",
+        "stage_metrics",
+        "duplication_report"
+      ],
+      "expected_metrics": [
+        "duplicate_count",
+        "duplicate_fraction",
+        "duplication_report",
+        "estimated_library_size"
+      ],
+      "report_section": "library_complexity",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.duplication_metrics:sample-set:picard` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.duplication_metrics:sample-set:samtools",
+      "domain": "bam",
+      "stage_id": "bam.duplication_metrics",
+      "tool_id": "samtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.duplication_metrics/corpus_only/samtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.duplication_metrics/corpus_only/samtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "duplication_histogram",
+        "summary",
+        "stage_metrics",
+        "duplication_report"
+      ],
+      "observed_output_artifact_ids": [
+        "duplication_histogram",
+        "summary",
+        "stage_metrics",
+        "duplication_report"
+      ],
+      "expected_metrics": [
+        "duplicate_count",
+        "duplicate_fraction",
+        "duplication_report",
+        "estimated_library_size"
+      ],
+      "report_section": "library_complexity",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.duplication_metrics:sample-set:samtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.endogenous_content:sample-set:samtools",
+      "domain": "bam",
+      "stage_id": "bam.endogenous_content",
+      "tool_id": "samtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.endogenous_content/corpus_only/samtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.endogenous_content/corpus_only/samtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "endogenous_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "endogenous_report"
+      ],
+      "expected_metrics": [
+        "endogenous_report"
+      ],
+      "report_section": "coverage_quality",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.endogenous_content:sample-set:samtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.filter:sample-set:bamtools",
+      "domain": "bam",
+      "stage_id": "bam.filter",
+      "tool_id": "bamtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.filter/corpus_only/bamtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.filter/corpus_only/bamtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "expected_metrics": [
+        "active_filters",
+        "input_reads",
+        "kept_reads",
+        "removed_reads",
+        "summary"
+      ],
+      "report_section": "alignment_refinement",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.filter:sample-set:bamtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.filter:sample-set:bedtools",
+      "domain": "bam",
+      "stage_id": "bam.filter",
+      "tool_id": "bedtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.filter/corpus_only/bedtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.filter/corpus_only/bedtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "expected_metrics": [
+        "active_filters",
+        "input_reads",
+        "kept_reads",
+        "removed_reads",
+        "summary"
+      ],
+      "report_section": "alignment_refinement",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.filter:sample-set:bedtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.filter:sample-set:samtools",
+      "domain": "bam",
+      "stage_id": "bam.filter",
+      "tool_id": "samtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.filter/corpus_only/samtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.filter/corpus_only/samtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "expected_metrics": [
+        "active_filters",
+        "input_reads",
+        "kept_reads",
+        "removed_reads",
+        "summary"
+      ],
+      "report_section": "alignment_refinement",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.filter:sample-set:samtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.gc_bias:sample-set:picard",
+      "domain": "bam",
+      "stage_id": "bam.gc_bias",
+      "tool_id": "picard",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.gc_bias/corpus_only/picard/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.gc_bias/corpus_only/picard/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "gc_bias_plot",
+        "summary",
+        "stage_metrics",
+        "gc_bias_report"
+      ],
+      "observed_output_artifact_ids": [
+        "gc_bias_plot",
+        "summary",
+        "stage_metrics",
+        "gc_bias_report"
+      ],
+      "expected_metrics": [
+        "gc_bias_report"
+      ],
+      "report_section": "coverage_quality",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.gc_bias:sample-set:picard` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd",
+      "domain": "bam",
+      "stage_id": "bam.genotyping",
+      "tool_id": "angsd",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "asset_profile_id": "reference_fasta+regions+sites_vcf",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-genotyping-mini/bam.genotyping/reference_fasta+regions+sites_vcf/angsd/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-genotyping-mini/bam.genotyping/reference_fasta+regions+sites_vcf/angsd/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics",
+        "genotyping_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics",
+        "genotyping_report"
+      ],
+      "expected_metrics": [
+        "genotyping_report"
+      ],
+      "report_section": "downstream_readiness",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-bam-mini:bam.haplogroups:sample-set:yleaf",
+      "domain": "bam",
+      "stage_id": "bam.haplogroups",
+      "tool_id": "yleaf",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "asset_profile_id": "reference_fasta+reference_panel",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.haplogroups/reference_fasta+reference_panel/yleaf/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.haplogroups/reference_fasta+reference_panel/yleaf/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "haplogroup_report",
+        "haplogroups"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "haplogroup_report",
+        "haplogroups"
+      ],
+      "expected_metrics": [
+        "haplogroups"
+      ],
+      "report_section": "sample_identity",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-bam-mini:bam.haplogroups:sample-set:yleaf` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.insert_size:sample-set:picard",
+      "domain": "bam",
+      "stage_id": "bam.insert_size",
+      "tool_id": "picard",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.insert_size/corpus_only/picard/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.insert_size/corpus_only/picard/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "insert_size_histogram",
+        "summary",
+        "stage_metrics",
+        "insert_size_report"
+      ],
+      "observed_output_artifact_ids": [
+        "insert_size_histogram",
+        "summary",
+        "stage_metrics",
+        "insert_size_report"
+      ],
+      "expected_metrics": [
+        "insert_size_report"
+      ],
+      "report_section": "coverage_quality",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.insert_size:sample-set:picard` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
+      "domain": "bam",
+      "stage_id": "bam.kinship",
+      "tool_id": "angsd",
+      "corpus_id": "corpus-01-kinship-mini",
+      "asset_profile_id": "reference_fasta+reference_panel",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-kinship-mini/bam.kinship/reference_fasta+reference_panel/angsd/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-kinship-mini/bam.kinship/reference_fasta+reference_panel/angsd/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics",
+        "kinship_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics",
+        "kinship_report"
+      ],
+      "expected_metrics": [
+        "kinship_report",
+        "observed_max_overlap_snps",
+        "pair_count",
+        "pairwise_results",
+        "status"
+      ],
+      "report_section": "sample_identity",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
+      "domain": "bam",
+      "stage_id": "bam.kinship",
+      "tool_id": "king",
+      "corpus_id": "corpus-01-kinship-mini",
+      "asset_profile_id": "reference_fasta+reference_panel",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-kinship-mini/bam.kinship/reference_fasta+reference_panel/king/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-kinship-mini/bam.kinship/reference_fasta+reference_panel/king/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "kinship_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "kinship_report"
+      ],
+      "expected_metrics": [
+        "kinship_report",
+        "observed_max_overlap_snps",
+        "pair_count",
+        "pairwise_results",
+        "status"
+      ],
+      "report_section": "sample_identity",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-kinship-mini:bam.kinship:sample-set:king` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.length_filter:sample-set:picard",
+      "domain": "bam",
+      "stage_id": "bam.length_filter",
+      "tool_id": "picard",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.length_filter/corpus_only/picard/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.length_filter/corpus_only/picard/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "expected_metrics": [
+        "filtered_bam",
+        "kept_reads",
+        "min_length_threshold",
+        "removed_reads",
+        "summary"
+      ],
+      "report_section": "alignment_refinement",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.length_filter:sample-set:picard` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.length_filter:sample-set:samtools",
+      "domain": "bam",
+      "stage_id": "bam.length_filter",
+      "tool_id": "samtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.length_filter/corpus_only/samtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.length_filter/corpus_only/samtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "expected_metrics": [
+        "filtered_bam",
+        "kept_reads",
+        "min_length_threshold",
+        "removed_reads",
+        "summary"
+      ],
+      "report_section": "alignment_refinement",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.length_filter:sample-set:samtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:picard",
+      "domain": "bam",
+      "stage_id": "bam.mapping_summary",
+      "tool_id": "picard",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.mapping_summary/corpus_only/picard/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.mapping_summary/corpus_only/picard/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics",
+        "summary"
+      ],
+      "observed_output_artifact_ids": [
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics",
+        "summary"
+      ],
+      "expected_metrics": [
+        "mapped_reads",
+        "mapping_fraction",
+        "secondary_reads",
+        "summary",
+        "supplementary_reads",
+        "unmapped_reads"
+      ],
+      "report_section": "alignment_intake",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:picard` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:samtools",
+      "domain": "bam",
+      "stage_id": "bam.mapping_summary",
+      "tool_id": "samtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.mapping_summary/corpus_only/samtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.mapping_summary/corpus_only/samtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics",
+        "summary"
+      ],
+      "observed_output_artifact_ids": [
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics",
+        "summary"
+      ],
+      "expected_metrics": [
+        "mapped_reads",
+        "mapping_fraction",
+        "secondary_reads",
+        "summary",
+        "supplementary_reads",
+        "unmapped_reads"
+      ],
+      "report_section": "alignment_intake",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:samtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.mapq_filter:sample-set:bamtools",
+      "domain": "bam",
+      "stage_id": "bam.mapq_filter",
+      "tool_id": "bamtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.mapq_filter/corpus_only/bamtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.mapq_filter/corpus_only/bamtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "expected_metrics": [
+        "filtered_bam",
+        "kept_reads",
+        "mapq_threshold",
+        "removed_reads",
+        "summary"
+      ],
+      "report_section": "alignment_refinement",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.mapq_filter:sample-set:bamtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.mapq_filter:sample-set:samtools",
+      "domain": "bam",
+      "stage_id": "bam.mapq_filter",
+      "tool_id": "samtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.mapq_filter/corpus_only/samtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.mapq_filter/corpus_only/samtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "expected_metrics": [
+        "filtered_bam",
+        "kept_reads",
+        "mapq_threshold",
+        "removed_reads",
+        "summary"
+      ],
+      "report_section": "alignment_refinement",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.mapq_filter:sample-set:samtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.markdup:sample-set:picard",
+      "domain": "bam",
+      "stage_id": "bam.markdup",
+      "tool_id": "picard",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.markdup/corpus_only/picard/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.markdup/corpus_only/picard/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "markdup_bam",
+        "markdup_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "observed_output_artifact_ids": [
+        "markdup_bam",
+        "markdup_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "expected_metrics": [
+        "duplicate_count",
+        "duplicate_fraction",
+        "duplicate_metrics",
+        "marked_bam",
+        "summary"
+      ],
+      "report_section": "library_complexity",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.markdup:sample-set:picard` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.markdup:sample-set:samtools",
+      "domain": "bam",
+      "stage_id": "bam.markdup",
+      "tool_id": "samtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.markdup/corpus_only/samtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.markdup/corpus_only/samtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "markdup_bam",
+        "markdup_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "observed_output_artifact_ids": [
+        "markdup_bam",
+        "markdup_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "expected_metrics": [
+        "duplicate_count",
+        "duplicate_fraction",
+        "duplicate_metrics",
+        "marked_bam",
+        "summary"
+      ],
+      "report_section": "library_complexity",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.markdup:sample-set:samtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.overlap_correction:sample-set:bamutil",
+      "domain": "bam",
+      "stage_id": "bam.overlap_correction",
+      "tool_id": "bamutil",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.overlap_correction/corpus_only/bamutil/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.overlap_correction/corpus_only/bamutil/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "overlap_corrected_bam",
+        "overlap_corrected_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "observed_output_artifact_ids": [
+        "overlap_corrected_bam",
+        "overlap_corrected_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+        "summary"
+      ],
+      "expected_metrics": [
+        "summary"
+      ],
+      "report_section": "alignment_refinement",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.overlap_correction:sample-set:bamutil` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.qc_pre:sample-set:multiqc",
+      "domain": "bam",
+      "stage_id": "bam.qc_pre",
+      "tool_id": "multiqc",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.qc_pre/corpus_only/multiqc/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.qc_pre/corpus_only/multiqc/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "report_json",
+        "multiqc_report",
+        "multiqc_data",
+        "governed_qc_inputs_manifest",
+        "stage_metrics"
+      ],
+      "observed_output_artifact_ids": [
+        "report_json",
+        "multiqc_report",
+        "multiqc_data",
+        "governed_qc_inputs_manifest",
+        "stage_metrics"
+      ],
+      "expected_metrics": [
+        "contig_summary",
+        "duplicate_flagged_reads",
+        "mapped_reads",
+        "stage_metrics",
+        "total_reads",
+        "unmapped_reads"
+      ],
+      "report_section": "alignment_intake",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.qc_pre:sample-set:multiqc` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.qc_pre:sample-set:samtools",
+      "domain": "bam",
+      "stage_id": "bam.qc_pre",
+      "tool_id": "samtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.qc_pre/corpus_only/samtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.qc_pre/corpus_only/samtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics"
+      ],
+      "observed_output_artifact_ids": [
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics"
+      ],
+      "expected_metrics": [
+        "contig_summary",
+        "duplicate_flagged_reads",
+        "mapped_reads",
+        "stage_metrics",
+        "total_reads",
+        "unmapped_reads"
+      ],
+      "report_section": "alignment_intake",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.qc_pre:sample-set:samtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.recalibration:sample-set:gatk",
+      "domain": "bam",
+      "stage_id": "bam.recalibration",
+      "tool_id": "gatk",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "known_sites+reference_fasta",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.recalibration/known_sites+reference_fasta/gatk/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.recalibration/known_sites+reference_fasta/gatk/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "recal_bam",
+        "recal_bai",
+        "summary",
+        "stage_metrics",
+        "recal_report"
+      ],
+      "observed_output_artifact_ids": [
+        "recal_bam",
+        "recal_bai",
+        "summary",
+        "stage_metrics",
+        "recal_report"
+      ],
+      "expected_metrics": [
+        "recal_report"
+      ],
+      "report_section": "downstream_readiness",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.recalibration:sample-set:gatk` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "angsd",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "asset_profile_id": "reference_fasta",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.sex/reference_fasta/angsd/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.sex/reference_fasta/angsd/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics",
+        "sex_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics",
+        "sex_report"
+      ],
+      "expected_metrics": [
+        "autosomal_coverage",
+        "call",
+        "confidence",
+        "sex_report",
+        "status",
+        "x_coverage",
+        "y_coverage"
+      ],
+      "report_section": "sample_identity",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:rxy",
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "rxy",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "asset_profile_id": "reference_fasta",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.sex/reference_fasta/rxy/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.sex/reference_fasta/rxy/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "sex_estimate",
+        "sex_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "sex_estimate",
+        "sex_report"
+      ],
+      "expected_metrics": [
+        "autosomal_coverage",
+        "call",
+        "confidence",
+        "sex_report",
+        "status",
+        "x_coverage",
+        "y_coverage"
+      ],
+      "report_section": "sample_identity",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-bam-mini:bam.sex:sample-set:rxy` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:yleaf",
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "yleaf",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "asset_profile_id": "reference_fasta",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.sex/reference_fasta/yleaf/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.sex/reference_fasta/yleaf/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "haplogroup_report",
+        "sex_report"
+      ],
+      "observed_output_artifact_ids": [
+        "summary",
+        "stage_metrics",
+        "haplogroup_report",
+        "sex_report"
+      ],
+      "expected_metrics": [
+        "autosomal_coverage",
+        "call",
+        "confidence",
+        "sex_report",
+        "status",
+        "x_coverage",
+        "y_coverage"
+      ],
+      "report_section": "sample_identity",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-adna-bam-mini:bam.sex:sample-set:yleaf` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.validate:sample-set:bamtools",
+      "domain": "bam",
+      "stage_id": "bam.validate",
+      "tool_id": "bamtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.validate/corpus_only/bamtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.validate/corpus_only/bamtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "flagstat",
+        "stage_metrics",
+        "validation_report"
+      ],
+      "observed_output_artifact_ids": [
+        "flagstat",
+        "stage_metrics",
+        "validation_report"
+      ],
+      "expected_metrics": [
+        "input_bam_identity",
+        "validation_errors",
+        "validation_report",
+        "validation_status",
+        "validation_warnings"
+      ],
+      "report_section": "alignment_intake",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.validate:sample-set:bamtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.validate:sample-set:bedtools",
+      "domain": "bam",
+      "stage_id": "bam.validate",
+      "tool_id": "bedtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.validate/corpus_only/bedtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.validate/corpus_only/bedtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "flagstat",
+        "stage_metrics",
+        "validation_report"
+      ],
+      "observed_output_artifact_ids": [
+        "flagstat",
+        "stage_metrics",
+        "validation_report"
+      ],
+      "expected_metrics": [
+        "input_bam_identity",
+        "validation_errors",
+        "validation_report",
+        "validation_status",
+        "validation_warnings"
+      ],
+      "report_section": "alignment_intake",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.validate:sample-set:bedtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.validate:sample-set:samtools",
+      "domain": "bam",
+      "stage_id": "bam.validate",
+      "tool_id": "samtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.validate/corpus_only/samtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.validate/corpus_only/samtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "flagstat",
+        "stage_metrics",
+        "validation_report"
+      ],
+      "observed_output_artifact_ids": [
+        "flagstat",
+        "stage_metrics",
+        "validation_report"
+      ],
+      "expected_metrics": [
+        "input_bam_identity",
+        "validation_errors",
+        "validation_report",
+        "validation_status",
+        "validation_warnings"
+      ],
+      "report_section": "alignment_intake",
+      "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.validate:sample-set:samtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-03-amplicon-mini:fastq.cluster_otus:sample-set:vsearch",
+      "domain": "fastq",
+      "stage_id": "fastq.cluster_otus",
+      "tool_id": "vsearch",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-03-amplicon-mini/fastq.cluster_otus/corpus_only/vsearch/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-03-amplicon-mini/fastq.cluster_otus/corpus_only/vsearch/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "otu_table",
+        "otu_representatives",
+        "taxonomy_ready_fasta",
+        "taxonomy_ready_fastq",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "otu_table",
+        "otu_representatives",
+        "taxonomy_ready_fasta",
+        "taxonomy_ready_fastq",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "otu_count",
+        "report_json",
+        "representative_count"
+      ],
+      "report_section": "amplicon_interpretation",
+      "reason": "expected all-domain benchmark result `fastq:corpus-03-amplicon-mini:fastq.cluster_otus:sample-set:vsearch` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.correct_errors:sample-set:bayeshammer",
+      "domain": "fastq",
+      "stage_id": "fastq.correct_errors",
+      "tool_id": "bayeshammer",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.correct_errors/corpus_only/bayeshammer/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.correct_errors/corpus_only/bayeshammer/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "corrected_reads_r1",
+        "corrected_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "corrected_reads_r1",
+        "corrected_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "error_corrected_fraction",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.correct_errors:sample-set:bayeshammer` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.correct_errors:sample-set:lighter",
+      "domain": "fastq",
+      "stage_id": "fastq.correct_errors",
+      "tool_id": "lighter",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.correct_errors/corpus_only/lighter/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.correct_errors/corpus_only/lighter/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "corrected_reads_r1",
+        "corrected_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "corrected_reads_r1",
+        "corrected_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "error_corrected_fraction",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.correct_errors:sample-set:lighter` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.correct_errors:sample-set:musket",
+      "domain": "fastq",
+      "stage_id": "fastq.correct_errors",
+      "tool_id": "musket",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.correct_errors/corpus_only/musket/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.correct_errors/corpus_only/musket/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "corrected_reads_r1",
+        "corrected_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "corrected_reads_r1",
+        "corrected_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "error_corrected_fraction",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.correct_errors:sample-set:musket` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.correct_errors:sample-set:rcorrector",
+      "domain": "fastq",
+      "stage_id": "fastq.correct_errors",
+      "tool_id": "rcorrector",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.correct_errors/corpus_only/rcorrector/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.correct_errors/corpus_only/rcorrector/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "corrected_reads_r1",
+        "corrected_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "corrected_reads_r1",
+        "corrected_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "error_corrected_fraction",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.correct_errors:sample-set:rcorrector` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.deplete_host:sample-set:bowtie2",
+      "domain": "fastq",
+      "stage_id": "fastq.deplete_host",
+      "tool_id": "bowtie2",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "reference_catalog_id+reference_index_artifact_id",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.deplete_host/reference_catalog_id+reference_index_artifact_id/bowtie2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.deplete_host/reference_catalog_id+reference_index_artifact_id/bowtie2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "host_depleted_reads_r1",
+        "host_depleted_reads_r2",
+        "removed_host_reads_r1",
+        "removed_host_reads_r2",
+        "host_depletion_report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "host_depleted_reads_r1",
+        "host_depleted_reads_r2",
+        "removed_host_reads_r1",
+        "removed_host_reads_r2",
+        "host_depletion_report_json"
+      ],
+      "expected_metrics": [
+        "contamination_rate",
+        "host_depletion_report_json"
+      ],
+      "report_section": "contamination_screening",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.deplete_host:sample-set:bowtie2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.deplete_reference_contaminants:sample-set:bowtie2",
+      "domain": "fastq",
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "tool_id": "bowtie2",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "reference_catalog_id+reference_index_artifact_id",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.deplete_reference_contaminants/reference_catalog_id+reference_index_artifact_id/bowtie2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.deplete_reference_contaminants/reference_catalog_id+reference_index_artifact_id/bowtie2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "contaminant_screened_reads_r1",
+        "contaminant_screened_reads_r2",
+        "contaminant_screen_report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "contaminant_screened_reads_r1",
+        "contaminant_screened_reads_r2",
+        "contaminant_screen_report_json"
+      ],
+      "expected_metrics": [
+        "contaminant_screen_report_json",
+        "reads_removed_contaminant_kmer"
+      ],
+      "report_section": "contamination_screening",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.deplete_reference_contaminants:sample-set:bowtie2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.deplete_rrna:sample-set:sortmerna",
+      "domain": "fastq",
+      "stage_id": "fastq.deplete_rrna",
+      "tool_id": "sortmerna",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "database_artifact_id+rrna_reference",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.deplete_rrna/database_artifact_id+rrna_reference/sortmerna/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.deplete_rrna/database_artifact_id+rrna_reference/sortmerna/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "rrna_filtered_reads_r1",
+        "rrna_filtered_reads_r2",
+        "rrna_removed_reads_r1",
+        "rrna_removed_reads_r2",
+        "rrna_report_tsv",
+        "rrna_report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "rrna_filtered_reads_r1",
+        "rrna_filtered_reads_r2",
+        "rrna_removed_reads_r1",
+        "rrna_removed_reads_r2",
+        "rrna_report_tsv",
+        "rrna_report_json"
+      ],
+      "expected_metrics": [
+        "rrna_removed_fraction",
+        "rrna_report_json"
+      ],
+      "report_section": "contamination_screening",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.deplete_rrna:sample-set:sortmerna` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.detect_adapters:sample-set:fastqc",
+      "domain": "fastq",
+      "stage_id": "fastq.detect_adapters",
+      "tool_id": "fastqc",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.detect_adapters/corpus_only/fastqc/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.detect_adapters/corpus_only/fastqc/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "adapter_report",
+        "adapter_evidence_dir",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "adapter_report",
+        "adapter_evidence_dir",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "adapter_detection_rate",
+        "report_json"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.detect_adapters:sample-set:fastqc` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna",
+      "domain": "fastq",
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "tool_id": "bijux_dna",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.detect_duplicates_premerge/corpus_only/bijux_dna/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.detect_duplicates_premerge/corpus_only/bijux_dna/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "duplicate_signal_report"
+      ],
+      "observed_output_artifact_ids": [
+        "duplicate_signal_report"
+      ],
+      "expected_metrics": [
+        "duplicate_count",
+        "duplicate_fraction",
+        "duplicate_signal_report"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna",
+      "domain": "fastq",
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "tool_id": "bijux_dna",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.estimate_library_complexity_prealign/corpus_only/bijux_dna/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "library_complexity_report"
+      ],
+      "observed_output_artifact_ids": [
+        "library_complexity_report"
+      ],
+      "expected_metrics": [
+        "estimated_complexity",
+        "estimated_duplicate_fraction",
+        "library_complexity_report"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools",
+      "domain": "fastq",
+      "stage_id": "fastq.extract_umis",
+      "tool_id": "umi_tools",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.extract_umis/corpus_only/umi_tools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.extract_umis/corpus_only/umi_tools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "umi_reads_r1",
+        "umi_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "umi_reads_r1",
+        "umi_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "report_json",
+        "umi_dedup_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:bbduk",
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "bbduk",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/bbduk/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/bbduk/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_fastq_r1",
+        "filtered_fastq_r2",
+        "filter_report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_fastq_r1",
+        "filtered_fastq_r2",
+        "filter_report_json"
+      ],
+      "expected_metrics": [
+        "filter_report_json",
+        "reads_removed_low_complexity"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:bbduk` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:prinseq",
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "prinseq",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/prinseq/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/prinseq/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_fastq_r1",
+        "filtered_fastq_r2",
+        "filter_report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_fastq_r1",
+        "filtered_fastq_r2",
+        "filter_report_json"
+      ],
+      "expected_metrics": [
+        "filter_report_json",
+        "reads_removed_low_complexity"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:prinseq` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.filter_reads:sample-set:bbduk",
+      "domain": "fastq",
+      "stage_id": "fastq.filter_reads",
+      "tool_id": "bbduk",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_reads/corpus_only/bbduk/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_reads/corpus_only/bbduk/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_reads_r1",
+        "filtered_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_reads_r1",
+        "filtered_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "reads_filtered_fraction",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.filter_reads:sample-set:bbduk` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.filter_reads:sample-set:fastp",
+      "domain": "fastq",
+      "stage_id": "fastq.filter_reads",
+      "tool_id": "fastp",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_reads/corpus_only/fastp/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_reads/corpus_only/fastp/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_reads_r1",
+        "filtered_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_reads_r1",
+        "filtered_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "reads_filtered_fraction",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.filter_reads:sample-set:fastp` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.filter_reads:sample-set:prinseq",
+      "domain": "fastq",
+      "stage_id": "fastq.filter_reads",
+      "tool_id": "prinseq",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_reads/corpus_only/prinseq/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_reads/corpus_only/prinseq/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_reads_r1",
+        "filtered_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_reads_r1",
+        "filtered_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "reads_filtered_fraction",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.filter_reads:sample-set:prinseq` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.filter_reads:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.filter_reads",
+      "tool_id": "seqkit",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_reads/corpus_only/seqkit/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_reads/corpus_only/seqkit/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_reads_r1",
+        "filtered_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_reads_r1",
+        "filtered_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "reads_filtered_fraction",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.filter_reads:sample-set:seqkit` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "bowtie2_build",
+      "corpus_id": "reference-index-assets",
+      "asset_profile_id": "reference_fasta+reference_index_output",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/bowtie2_build/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "reference_index",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "reference_index",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "index_build_exit_code",
+        "report_json"
+      ],
+      "report_section": "reference_preparation",
+      "reason": "expected all-domain benchmark result `fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:star",
+      "domain": "fastq",
+      "stage_id": "fastq.index_reference",
+      "tool_id": "star",
+      "corpus_id": "reference-index-assets",
+      "asset_profile_id": "reference_fasta+reference_index_output",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/reference-index-assets/fastq.index_reference/reference_fasta+reference_index_output/star/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "reference_index",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "reference_index",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "index_build_exit_code",
+        "report_json"
+      ],
+      "report_section": "reference_preparation",
+      "reason": "expected all-domain benchmark result `fastq:reference-index-assets:fastq.index_reference:asset-set:star` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-03-amplicon-mini:fastq.infer_asvs:sample-set:dada2",
+      "domain": "fastq",
+      "stage_id": "fastq.infer_asvs",
+      "tool_id": "dada2",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-03-amplicon-mini/fastq.infer_asvs/corpus_only/dada2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-03-amplicon-mini/fastq.infer_asvs/corpus_only/dada2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "asv_table_tsv",
+        "asv_sequences_fasta",
+        "taxonomy_ready_fasta",
+        "taxonomy_ready_fastq",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "asv_table_tsv",
+        "asv_sequences_fasta",
+        "taxonomy_ready_fasta",
+        "taxonomy_ready_fastq",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "asv_count",
+        "report_json",
+        "sample_count"
+      ],
+      "report_section": "amplicon_interpretation",
+      "reason": "expected all-domain benchmark result `fastq:corpus-03-amplicon-mini:fastq.infer_asvs:sample-set:dada2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.merge_pairs:sample-set:adapterremoval",
+      "domain": "fastq",
+      "stage_id": "fastq.merge_pairs",
+      "tool_id": "adapterremoval",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.merge_pairs/corpus_only/adapterremoval/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.merge_pairs/corpus_only/adapterremoval/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "merged_reads",
+        "unmerged_reads_r1",
+        "unmerged_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "merged_reads",
+        "unmerged_reads_r1",
+        "unmerged_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "merge_rate",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.merge_pairs:sample-set:adapterremoval` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.merge_pairs:sample-set:bbmerge",
+      "domain": "fastq",
+      "stage_id": "fastq.merge_pairs",
+      "tool_id": "bbmerge",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.merge_pairs/corpus_only/bbmerge/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.merge_pairs/corpus_only/bbmerge/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "merged_reads",
+        "unmerged_reads_r1",
+        "unmerged_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "merged_reads",
+        "unmerged_reads_r1",
+        "unmerged_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "merge_rate",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.merge_pairs:sample-set:bbmerge` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.merge_pairs:sample-set:flash2",
+      "domain": "fastq",
+      "stage_id": "fastq.merge_pairs",
+      "tool_id": "flash2",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.merge_pairs/corpus_only/flash2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.merge_pairs/corpus_only/flash2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "merged_reads",
+        "unmerged_reads_r1",
+        "unmerged_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "merged_reads",
+        "unmerged_reads_r1",
+        "unmerged_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "merge_rate",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.merge_pairs:sample-set:flash2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.merge_pairs:sample-set:leehom",
+      "domain": "fastq",
+      "stage_id": "fastq.merge_pairs",
+      "tool_id": "leehom",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.merge_pairs/corpus_only/leehom/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.merge_pairs/corpus_only/leehom/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "merged_reads",
+        "unmerged_reads_r1",
+        "unmerged_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "merged_reads",
+        "unmerged_reads_r1",
+        "unmerged_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "merge_rate",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.merge_pairs:sample-set:leehom` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.merge_pairs:sample-set:pear",
+      "domain": "fastq",
+      "stage_id": "fastq.merge_pairs",
+      "tool_id": "pear",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.merge_pairs/corpus_only/pear/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.merge_pairs/corpus_only/pear/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "merged_reads",
+        "unmerged_reads_r1",
+        "unmerged_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "merged_reads",
+        "unmerged_reads_r1",
+        "unmerged_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "merge_rate",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.merge_pairs:sample-set:pear` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.merge_pairs:sample-set:vsearch",
+      "domain": "fastq",
+      "stage_id": "fastq.merge_pairs",
+      "tool_id": "vsearch",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.merge_pairs/corpus_only/vsearch/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.merge_pairs/corpus_only/vsearch/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "merged_reads",
+        "unmerged_reads_r1",
+        "unmerged_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "merged_reads",
+        "unmerged_reads_r1",
+        "unmerged_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "merge_rate",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.merge_pairs:sample-set:vsearch` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-03-amplicon-mini:fastq.normalize_abundance:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.normalize_abundance",
+      "tool_id": "seqkit",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-03-amplicon-mini/fastq.normalize_abundance/corpus_only/seqkit/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-03-amplicon-mini/fastq.normalize_abundance/corpus_only/seqkit/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "normalized_abundance_tsv",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "normalized_abundance_tsv",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "report_json",
+        "table_rows",
+        "zero_fraction"
+      ],
+      "report_section": "amplicon_interpretation",
+      "reason": "expected all-domain benchmark result `fastq:corpus-03-amplicon-mini:fastq.normalize_abundance:sample-set:seqkit` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-03-amplicon-mini:fastq.normalize_primers:sample-set:cutadapt",
+      "domain": "fastq",
+      "stage_id": "fastq.normalize_primers",
+      "tool_id": "cutadapt",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-03-amplicon-mini/fastq.normalize_primers/corpus_only/cutadapt/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-03-amplicon-mini/fastq.normalize_primers/corpus_only/cutadapt/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "normalized_reads_r1",
+        "normalized_reads_r2",
+        "primer_orientation_report",
+        "primer_stats_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "normalized_reads_r1",
+        "normalized_reads_r2",
+        "primer_orientation_report",
+        "primer_stats_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "orientation_forward_fraction",
+        "primer_trimmed_fraction",
+        "report_json"
+      ],
+      "report_section": "amplicon_interpretation",
+      "reason": "expected all-domain benchmark result `fastq:corpus-03-amplicon-mini:fastq.normalize_primers:sample-set:cutadapt` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastq_scan",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastq_scan/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "flagged_sequences",
+        "report_json",
+        "sequence_count",
+        "top_fraction"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "fastqc",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/fastqc/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "flagged_sequences",
+        "report_json",
+        "sequence_count",
+        "top_fraction"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "tool_id": "seqkit",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_overrepresented_sequences/corpus_only/seqkit/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "flagged_sequences",
+        "report_json",
+        "sequence_count",
+        "top_fraction"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_read_lengths",
+      "tool_id": "fastp",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/fastp/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/fastp/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "length_distribution_tsv",
+        "length_distribution_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "length_distribution_tsv",
+        "length_distribution_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "mean_read_length",
+        "report_json"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:prinseq",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_read_lengths",
+      "tool_id": "prinseq",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/prinseq/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/prinseq/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "length_distribution_tsv",
+        "length_distribution_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "length_distribution_tsv",
+        "length_distribution_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "mean_read_length",
+        "report_json"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:prinseq` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqfu",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_read_lengths",
+      "tool_id": "seqfu",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/seqfu/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/seqfu/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "length_distribution_tsv",
+        "length_distribution_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "length_distribution_tsv",
+        "length_distribution_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "mean_read_length",
+        "report_json"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqfu` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit_stats",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_read_lengths",
+      "tool_id": "seqkit_stats",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/seqkit_stats/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/seqkit_stats/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "length_distribution_tsv",
+        "length_distribution_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "length_distribution_tsv",
+        "length_distribution_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "mean_read_length",
+        "report_json"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit_stats` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqfu",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_reads",
+      "tool_id": "seqfu",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_reads/corpus_only/seqfu/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_reads/corpus_only/seqfu/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "qc_tsv",
+        "qc_json"
+      ],
+      "observed_output_artifact_ids": [
+        "qc_tsv",
+        "qc_json"
+      ],
+      "expected_metrics": [
+        "q30_fraction",
+        "qc_json",
+        "read_count"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqfu` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_reads",
+      "tool_id": "seqkit",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_reads/corpus_only/seqkit/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_reads/corpus_only/seqkit/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "qc_tsv",
+        "qc_json"
+      ],
+      "observed_output_artifact_ids": [
+        "qc_tsv",
+        "qc_json"
+      ],
+      "expected_metrics": [
+        "q30_fraction",
+        "qc_json",
+        "read_count"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqkit` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqkit_stats",
+      "domain": "fastq",
+      "stage_id": "fastq.profile_reads",
+      "tool_id": "seqkit_stats",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_reads/corpus_only/seqkit_stats/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_reads/corpus_only/seqkit_stats/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "qc_tsv",
+        "qc_plots_dir",
+        "qc_json"
+      ],
+      "observed_output_artifact_ids": [
+        "qc_tsv",
+        "qc_plots_dir",
+        "qc_json"
+      ],
+      "expected_metrics": [
+        "q30_fraction",
+        "qc_json",
+        "read_count"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqkit_stats` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-03-amplicon-mini:fastq.remove_chimeras:sample-set:vsearch",
+      "domain": "fastq",
+      "stage_id": "fastq.remove_chimeras",
+      "tool_id": "vsearch",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-03-amplicon-mini/fastq.remove_chimeras/corpus_only/vsearch/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-03-amplicon-mini/fastq.remove_chimeras/corpus_only/vsearch/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "chimera_filtered_reads",
+        "chimera_metrics_json",
+        "chimeras_fasta",
+        "uchime_report_tsv",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "chimera_filtered_reads",
+        "chimera_metrics_json",
+        "chimeras_fasta",
+        "uchime_report_tsv",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "chimera_fraction",
+        "chimeras_removed",
+        "report_json"
+      ],
+      "report_section": "amplicon_interpretation",
+      "reason": "expected all-domain benchmark result `fastq:corpus-03-amplicon-mini:fastq.remove_chimeras:sample-set:vsearch` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:clumpify",
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "clumpify",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/clumpify/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/clumpify/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "dedup_reads_r1",
+        "dedup_reads_r2",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "dedup_reads_r1",
+        "dedup_reads_r2",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "dedup_rate",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:clumpify` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "fastuniq",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/fastuniq/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/fastuniq/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "dedup_reads_r1",
+        "dedup_reads_r2",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "dedup_reads_r1",
+        "dedup_reads_r2",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "dedup_rate",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:centrifuge",
+      "domain": "fastq",
+      "stage_id": "fastq.screen_taxonomy",
+      "tool_id": "centrifuge",
+      "corpus_id": "corpus-02-edna-mini",
+      "asset_profile_id": "database_artifact_id+taxonomy_database_root",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-02-edna-mini/fastq.screen_taxonomy/database_artifact_id+taxonomy_database_root/centrifuge/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-02-edna-mini/fastq.screen_taxonomy/database_artifact_id+taxonomy_database_root/centrifuge/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "screen_report_tsv",
+        "classification_report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "screen_report_tsv",
+        "classification_report_json"
+      ],
+      "expected_metrics": [
+        "classification_report_json",
+        "classified_fraction",
+        "classified_reads",
+        "taxonomy_database_id",
+        "top_taxa",
+        "unclassified_fraction",
+        "unclassified_reads"
+      ],
+      "report_section": "contamination_screening",
+      "reason": "expected all-domain benchmark result `fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:centrifuge` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kaiju",
+      "domain": "fastq",
+      "stage_id": "fastq.screen_taxonomy",
+      "tool_id": "kaiju",
+      "corpus_id": "corpus-02-edna-mini",
+      "asset_profile_id": "database_artifact_id+taxonomy_database_root",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-02-edna-mini/fastq.screen_taxonomy/database_artifact_id+taxonomy_database_root/kaiju/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-02-edna-mini/fastq.screen_taxonomy/database_artifact_id+taxonomy_database_root/kaiju/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "screen_report_tsv",
+        "classification_report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "screen_report_tsv",
+        "classification_report_json"
+      ],
+      "expected_metrics": [
+        "classification_report_json",
+        "classified_fraction",
+        "classified_reads",
+        "taxonomy_database_id",
+        "top_taxa",
+        "unclassified_fraction",
+        "unclassified_reads"
+      ],
+      "report_section": "contamination_screening",
+      "reason": "expected all-domain benchmark result `fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kaiju` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
+      "domain": "fastq",
+      "stage_id": "fastq.screen_taxonomy",
+      "tool_id": "kraken2",
+      "corpus_id": "corpus-02-edna-mini",
+      "asset_profile_id": "database_artifact_id+taxonomy_database_root",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-02-edna-mini/fastq.screen_taxonomy/database_artifact_id+taxonomy_database_root/kraken2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-02-edna-mini/fastq.screen_taxonomy/database_artifact_id+taxonomy_database_root/kraken2/stage-result.json",
+      "result_status": "missing_result",
+      "expected_output_artifact_ids": [
+        "screen_report_tsv",
+        "unclassified_reads_r1",
+        "unclassified_reads_r2",
+        "classification_report_json"
+      ],
+      "observed_output_artifact_ids": [],
+      "expected_metrics": [
+        "classification_report_json",
+        "classified_fraction",
+        "classified_reads",
+        "taxonomy_database_id",
+        "top_taxa",
+        "unclassified_fraction",
+        "unclassified_reads"
+      ],
+      "report_section": "contamination_screening",
+      "reason": "expected all-domain benchmark result `fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2` remains visible even though its fake-run manifest is missing"
+    },
+    {
+      "result_id": "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:krakenuniq",
+      "domain": "fastq",
+      "stage_id": "fastq.screen_taxonomy",
+      "tool_id": "krakenuniq",
+      "corpus_id": "corpus-02-edna-mini",
+      "asset_profile_id": "database_artifact_id+taxonomy_database_root",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-02-edna-mini/fastq.screen_taxonomy/database_artifact_id+taxonomy_database_root/krakenuniq/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-02-edna-mini/fastq.screen_taxonomy/database_artifact_id+taxonomy_database_root/krakenuniq/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "screen_report_tsv",
+        "classification_report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "screen_report_tsv",
+        "classification_report_json"
+      ],
+      "expected_metrics": [
+        "classification_report_json",
+        "classified_fraction",
+        "classified_reads",
+        "taxonomy_database_id",
+        "top_taxa",
+        "unclassified_fraction",
+        "unclassified_reads"
+      ],
+      "report_section": "contamination_screening",
+      "reason": "expected all-domain benchmark result `fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:krakenuniq` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_polyg_tails:sample-set:bbduk",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_polyg_tails",
+      "tool_id": "bbduk",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_polyg_tails/corpus_only/bbduk/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_polyg_tails/corpus_only/bbduk/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_polyg_tails:sample-set:bbduk` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_polyg_tails:sample-set:fastp",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_polyg_tails",
+      "tool_id": "fastp",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_polyg_tails/corpus_only/fastp/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_polyg_tails/corpus_only/fastp/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_polyg_tails:sample-set:fastp` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:adapterremoval",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "adapterremoval",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/adapterremoval/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/adapterremoval/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "post_trim_read_length_mean",
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:adapterremoval` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:alientrimmer",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "alientrimmer",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/alientrimmer/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/alientrimmer/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "post_trim_read_length_mean",
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:alientrimmer` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:atropos",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "atropos",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/atropos/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/atropos/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "post_trim_read_length_mean",
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:atropos` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:bbduk",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "bbduk",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/bbduk/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/bbduk/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_txt",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "post_trim_read_length_mean",
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:bbduk` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:cutadapt",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "cutadapt",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/cutadapt/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/cutadapt/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "post_trim_read_length_mean",
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:cutadapt` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:fastp",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "fastp",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/fastp/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/fastp/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "post_trim_read_length_mean",
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:fastp` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:fastx_clipper",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "fastx_clipper",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/fastx_clipper/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/fastx_clipper/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "post_trim_read_length_mean",
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:fastx_clipper` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:leehom",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "leehom",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/leehom/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/leehom/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "post_trim_read_length_mean",
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:leehom` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:prinseq",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "prinseq",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/prinseq/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/prinseq/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "post_trim_read_length_mean",
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:prinseq` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "seqkit",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/seqkit/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/seqkit/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "post_trim_read_length_mean",
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:seqkit` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:skewer",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "skewer",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/skewer/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/skewer/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "post_trim_read_length_mean",
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:skewer` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:trim_galore",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "trim_galore",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/trim_galore/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/trim_galore/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "post_trim_read_length_mean",
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:trim_galore` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:trimmomatic",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "trimmomatic",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/trimmomatic/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/trimmomatic/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "post_trim_read_length_mean",
+        "report_json",
+        "trimmed_read_fraction"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:trimmomatic` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:adapterremoval",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_terminal_damage",
+      "tool_id": "adapterremoval",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_terminal_damage/corpus_only/adapterremoval/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_terminal_damage/corpus_only/adapterremoval/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "reads_in",
+        "reads_out",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:adapterremoval` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:cutadapt",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_terminal_damage",
+      "tool_id": "cutadapt",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_terminal_damage/corpus_only/cutadapt/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_terminal_damage/corpus_only/cutadapt/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_json",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_json",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "reads_in",
+        "reads_out",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:cutadapt` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_terminal_damage",
+      "tool_id": "seqkit",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_terminal_damage/corpus_only/seqkit/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_terminal_damage/corpus_only/seqkit/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "reads_in",
+        "reads_out",
+        "report_json"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastq_scan",
+      "domain": "fastq",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastq_scan",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.validate_reads/corpus_only/fastq_scan/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.validate_reads/corpus_only/fastq_scan/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "validated_reads_manifest",
+        "validation_report"
+      ],
+      "observed_output_artifact_ids": [
+        "validated_reads_manifest",
+        "validation_report"
+      ],
+      "expected_metrics": [
+        "format_validation_pass_rate",
+        "validation_report"
+      ],
+      "report_section": "input_readiness",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastq_scan` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqc",
+      "domain": "fastq",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqc",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.validate_reads/corpus_only/fastqc/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.validate_reads/corpus_only/fastqc/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "validated_reads_manifest",
+        "validation_report"
+      ],
+      "observed_output_artifact_ids": [
+        "validated_reads_manifest",
+        "validation_report"
+      ],
+      "expected_metrics": [
+        "format_validation_pass_rate",
+        "validation_report"
+      ],
+      "report_section": "input_readiness",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqc` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqvalidator",
+      "domain": "fastq",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqvalidator",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.validate_reads/corpus_only/fastqvalidator/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.validate_reads/corpus_only/fastqvalidator/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "validated_reads_manifest",
+        "validation_report"
+      ],
+      "observed_output_artifact_ids": [
+        "validated_reads_manifest",
+        "validation_report"
+      ],
+      "expected_metrics": [
+        "format_validation_pass_rate",
+        "validation_report"
+      ],
+      "report_section": "input_readiness",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqvalidator` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:fqtools",
+      "domain": "fastq",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fqtools",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.validate_reads/corpus_only/fqtools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.validate_reads/corpus_only/fqtools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "validated_reads_manifest",
+        "validation_report"
+      ],
+      "observed_output_artifact_ids": [
+        "validated_reads_manifest",
+        "validation_report"
+      ],
+      "expected_metrics": [
+        "format_validation_pass_rate",
+        "validation_report"
+      ],
+      "report_section": "input_readiness",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.validate_reads:sample-set:fqtools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:seqtk",
+      "domain": "fastq",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "seqtk",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.validate_reads/corpus_only/seqtk/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.validate_reads/corpus_only/seqtk/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "validated_reads_manifest",
+        "validation_report"
+      ],
+      "observed_output_artifact_ids": [
+        "validated_reads_manifest",
+        "validation_report"
+      ],
+      "expected_metrics": [
+        "format_validation_pass_rate",
+        "validation_report"
+      ],
+      "report_section": "input_readiness",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.validate_reads:sample-set:seqtk` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.admixture",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.admixture/vcf_cohort/plink2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.admixture/vcf_cohort/plink2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "admixture_proxy_eigenvec",
+        "admixture_proxy_eigenval",
+        "plink2_log",
+        "admixture_report"
+      ],
+      "observed_output_artifact_ids": [
+        "admixture_proxy_eigenvec",
+        "admixture_proxy_eigenval",
+        "plink2_log",
+        "admixture_report"
+      ],
+      "expected_metrics": [
+        "selected_k",
+        "sample_count",
+        "population_count",
+        "status"
+      ],
+      "report_section": "population_structure",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.call",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "called_vcf",
+        "called_vcf_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "called_vcf",
+        "called_vcf_tbi"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "snp_count",
+        "indel_count",
+        "sample_count"
+      ],
+      "report_section": "variant_calling",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.call_diploid:bam_bundle:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.call_diploid",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.call_diploid/bam_bundle/bcftools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.call_diploid/bam_bundle/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "diploid_vcf",
+        "diploid_vcf_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "diploid_vcf",
+        "diploid_vcf_tbi"
+      ],
+      "expected_metrics": [
+        "ploidy",
+        "called_genotypes",
+        "heterozygous_count",
+        "homozygous_ref_count",
+        "homozygous_alt_count",
+        "missing_count",
+        "sample_count"
+      ],
+      "report_section": "variant_calling",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.call_diploid:bam_bundle:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.call_gl:bam_bundle:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.call_gl",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.call_gl/bam_bundle/bcftools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.call_gl/bam_bundle/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "gl_sites_vcf",
+        "gl_sites_vcf_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "gl_sites_vcf",
+        "gl_sites_vcf_tbi"
+      ],
+      "expected_metrics": [
+        "likelihood_field",
+        "sites_with_likelihoods",
+        "samples_with_likelihoods",
+        "missing_likelihoods",
+        "sample_count"
+      ],
+      "report_section": "variant_calling",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.call_gl:bam_bundle:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.call_pseudohaploid:bam_bundle:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.call_pseudohaploid",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.call_pseudohaploid/bam_bundle/bcftools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.call_pseudohaploid/bam_bundle/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "pseudohaploid_vcf",
+        "pseudohaploid_vcf_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "pseudohaploid_vcf",
+        "pseudohaploid_vcf_tbi"
+      ],
+      "expected_metrics": [
+        "target_sites",
+        "covered_sites",
+        "called_sites",
+        "missing_sites",
+        "sampling_policy",
+        "random_seed",
+        "sample_count"
+      ],
+      "report_section": "variant_calling",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.call_pseudohaploid:bam_bundle:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.damage_filter:vcf_single_sample:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.damage_filter",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.damage_filter/vcf_single_sample/bcftools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.damage_filter/vcf_single_sample/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "damage_filtered_vcf",
+        "damage_filtered_vcf_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "damage_filtered_vcf",
+        "damage_filtered_vcf_tbi"
+      ],
+      "expected_metrics": [
+        "input_variants",
+        "removed_variants",
+        "retained_variants",
+        "low_quality_filtered_variants",
+        "damage_ratio_filtered_variants",
+        "terminal_damage_filtered_variants",
+        "damage_context_rule",
+        "terminal_context_count",
+        "sample_count"
+      ],
+      "report_section": "damage_aware_filtering",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.damage_filter:vcf_single_sample:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.filter",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.filter/vcf_single_sample/bcftools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.filter/vcf_single_sample/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_vcf",
+        "filtered_vcf_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_vcf",
+        "filtered_vcf_tbi"
+      ],
+      "expected_metrics": [
+        "input_variants",
+        "pass_variants",
+        "failed_variants",
+        "filter_ids",
+        "depth_threshold",
+        "quality_threshold",
+        "missingness_threshold",
+        "sample_count"
+      ],
+      "report_section": "quality_control",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.gl_propagation:vcf_single_sample:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.gl_propagation",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.gl_propagation/vcf_single_sample/bcftools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.gl_propagation/vcf_single_sample/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "gl_propagated_vcf",
+        "gl_propagated_vcf_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "gl_propagated_vcf",
+        "gl_propagated_vcf_tbi"
+      ],
+      "expected_metrics": [
+        "input_likelihood_fields",
+        "output_likelihood_fields",
+        "lost_fields",
+        "site_count_before",
+        "site_count_after",
+        "sample_count"
+      ],
+      "report_section": "likelihood_postprocess",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.gl_propagation:vcf_single_sample:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
+      "domain": "vcf",
+      "stage_id": "vcf.imputation_metrics",
+      "tool_id": "beagle",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "imputed_vcf",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_metrics_json",
+        "orchestration_manifest_json",
+        "imputed_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "imputed_vcf",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_metrics_json",
+        "orchestration_manifest_json",
+        "imputed_tbi"
+      ],
+      "expected_metrics": [
+        "status",
+        "concordance",
+        "mean_info_score",
+        "r2_available",
+        "dosage_r2",
+        "low_confidence_sites",
+        "masked_truth_sites",
+        "missing_quality_fields"
+      ],
+      "report_section": "imputation",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.impute:vcf_cohort_with_panel:beagle",
+      "domain": "vcf",
+      "stage_id": "vcf.impute",
+      "tool_id": "beagle",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.impute/vcf_cohort_with_panel/beagle/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.impute/vcf_cohort_with_panel/beagle/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "imputed_vcf",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_qc_tsv",
+        "maf_bin_quality_tsv",
+        "info_hist_json",
+        "warnings_json",
+        "overlap_stats_json",
+        "panel_mismatch_diagnostics_json",
+        "imputed_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "imputed_vcf",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_qc_tsv",
+        "maf_bin_quality_tsv",
+        "info_hist_json",
+        "warnings_json",
+        "overlap_stats_json",
+        "panel_mismatch_diagnostics_json",
+        "imputed_tbi"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "missing_before",
+        "missing_after",
+        "imputed_genotypes",
+        "low_confidence_count",
+        "masked_truth_site_count",
+        "masked_truth_match_count",
+        "unresolved_count",
+        "not_imputable_reasons",
+        "sample_count",
+        "sample_ids"
+      ],
+      "report_section": "imputation",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.impute:vcf_cohort_with_panel:beagle` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft",
+      "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "tool_id": "eigensoft",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "convertf_par",
+        "smartpca_par",
+        "eigensoft_geno",
+        "eigensoft_snp",
+        "eigensoft_ind",
+        "smartpca_eigenvec",
+        "smartpca_eigenval",
+        "smartpca_log",
+        "pca_report"
+      ],
+      "observed_output_artifact_ids": [
+        "convertf_par",
+        "smartpca_par",
+        "eigensoft_geno",
+        "eigensoft_snp",
+        "eigensoft_ind",
+        "smartpca_eigenvec",
+        "smartpca_eigenval",
+        "smartpca_log",
+        "pca_report"
+      ],
+      "expected_metrics": [
+        "sample_count",
+        "variant_count",
+        "excluded_samples",
+        "unexpected_samples",
+        "eigenvalues"
+      ],
+      "report_section": "population_structure",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.pca",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/plink2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/plink2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "pca_eigenvec",
+        "pca_eigenval",
+        "plink2_log",
+        "pca_report"
+      ],
+      "observed_output_artifact_ids": [
+        "pca_eigenvec",
+        "pca_eigenval",
+        "plink2_log",
+        "pca_report"
+      ],
+      "expected_metrics": [
+        "sample_count",
+        "variant_count",
+        "excluded_samples",
+        "unexpected_samples",
+        "eigenvalues"
+      ],
+      "report_section": "population_structure",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5",
+      "domain": "vcf",
+      "stage_id": "vcf.phasing",
+      "tool_id": "shapeit5",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort_with_panel",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.phasing/vcf_cohort_with_panel/shapeit5/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.phasing/vcf_cohort_with_panel/shapeit5/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "phased_vcf",
+        "phase_block_stats",
+        "switch_error_proxy",
+        "phasing_log",
+        "phased_vcf_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "phased_vcf",
+        "phase_block_stats",
+        "switch_error_proxy",
+        "phasing_log",
+        "phased_vcf_tbi"
+      ],
+      "expected_metrics": [
+        "switch_error_proxy",
+        "phase_block_n50"
+      ],
+      "report_section": "phasing",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.population_structure",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "ld_prune_in",
+        "ld_prune_out",
+        "population_pca_eigenvec",
+        "population_pca_eigenval",
+        "prune_log",
+        "pca_log",
+        "population_structure_report"
+      ],
+      "observed_output_artifact_ids": [
+        "ld_prune_in",
+        "ld_prune_out",
+        "population_pca_eigenvec",
+        "population_pca_eigenval",
+        "prune_log",
+        "pca_log",
+        "population_structure_report"
+      ],
+      "expected_metrics": [
+        "sample_count",
+        "pair_count",
+        "within_population_pair_count",
+        "cross_population_pair_count"
+      ],
+      "report_section": "population_structure",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.postprocess",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.postprocess/vcf_single_sample/bcftools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.postprocess/vcf_single_sample/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "postprocess_vcf",
+        "postprocess_vcf_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "postprocess_vcf",
+        "postprocess_vcf_tbi"
+      ],
+      "expected_metrics": [
+        "readable_vcf",
+        "tabix_present",
+        "contigs_consistent_with_species_context",
+        "left_align_applied",
+        "multiallelic_records_split",
+        "indels_normalized",
+        "variant_ids_normalized",
+        "invalid_records_removed",
+        "filter_standardized_to_pass"
+      ],
+      "report_section": "normalization",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.prepare_reference_panel",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_reference_panel",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "prepared_panel",
+        "chunks_json",
+        "prepared_panel_tbi"
+      ],
+      "observed_output_artifact_ids": [
+        "prepared_panel",
+        "chunks_json",
+        "prepared_panel_tbi"
+      ],
+      "expected_metrics": [
+        "input_variants",
+        "output_variants",
+        "sample_count",
+        "sample_ids",
+        "sample_consistent",
+        "duplicate_sites_removed",
+        "normalization_status",
+        "parseable"
+      ],
+      "report_section": "reference_panel_preparation",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "sample_missingness_report",
+        "variant_missingness_report",
+        "allele_frequency_report",
+        "heterozygosity_report",
+        "hardy_weinberg_report",
+        "qc_thresholds",
+        "qc_report"
+      ],
+      "observed_output_artifact_ids": [
+        "sample_missingness_report",
+        "variant_missingness_report",
+        "allele_frequency_report",
+        "heterozygosity_report",
+        "hardy_weinberg_report",
+        "qc_thresholds",
+        "qc_report"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "report_section": "quality_control",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "sample_missingness_imiss",
+        "variant_missingness_lmiss",
+        "allele_frequency_frq",
+        "heterozygosity_het",
+        "hardy_weinberg_hwe",
+        "plink_log",
+        "qc_report"
+      ],
+      "observed_output_artifact_ids": [
+        "sample_missingness_imiss",
+        "variant_missingness_lmiss",
+        "allele_frequency_frq",
+        "heterozygosity_het",
+        "hardy_weinberg_hwe",
+        "plink_log",
+        "qc_report"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "report_section": "quality_control",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "sample_missingness_smiss",
+        "variant_missingness_vmiss",
+        "allele_frequency_afreq",
+        "heterozygosity_het",
+        "hardy_weinberg_hardy",
+        "plink2_log",
+        "qc_report"
+      ],
+      "observed_output_artifact_ids": [
+        "sample_missingness_smiss",
+        "variant_missingness_vmiss",
+        "allele_frequency_afreq",
+        "heterozygosity_het",
+        "hardy_weinberg_hardy",
+        "plink2_log",
+        "qc_report"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "maf_summary",
+        "heterozygosity",
+        "hwe_summary",
+        "excluded_samples",
+        "excluded_variants",
+        "sample_missingness_exclusion_threshold",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "report_section": "quality_control",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
+      "domain": "vcf",
+      "stage_id": "vcf.stats",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.stats/vcf_cohort/bcftools/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.stats/vcf_cohort/bcftools/stage-result.json",
+      "result_status": "missing_result",
+      "expected_output_artifact_ids": [
+        "bcftools_stats_txt",
+        "stats_json"
+      ],
+      "observed_output_artifact_ids": [],
+      "expected_metrics": [
+        "variant_count",
+        "snp_count",
+        "indel_count",
+        "transition_count",
+        "transversion_count",
+        "ti_tv",
+        "sample_count"
+      ],
+      "report_section": "quality_control",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools` remains visible even though its fake-run manifest is missing"
+    }
+  ]
+}

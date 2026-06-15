@@ -5,7 +5,12 @@ pub use crate::qc_contract::{
     governed_qc_output_ids_for_stage, governed_qc_producer_stage_ids,
 };
 pub use crate::selection::args;
-pub use crate::selection::{allowed_tools_for_stage, default_tool_for_stage};
+pub use crate::selection::{
+    allowed_tools_for_stage, default_tool_for_stage, load_fastq_domain_tool_contract_metadata,
+    load_fastq_domain_tool_execution_spec, load_fastq_domain_tool_stage_output_contract,
+    FastqDomainToolContractMetadata, FastqDomainToolStageOutputContract,
+    FastqDomainToolSupportLevel,
+};
 pub use crate::tool_adapters::fastq;
 pub use crate::tool_adapters::fastq::StageInfo;
 pub use crate::STAGE_REPORT_AGGREGATE;
@@ -139,6 +144,250 @@ pub fn filter_tools_for_input_layout(
     bijux_dna_domain_fastq::filter_tools_for_input_layout(stage_id, tool_ids, paired_end)
 }
 
+/// Build the governed local-smoke case plans for `fastq.correct_errors`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_correct_errors_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalCorrectErrorsSmokeCasePlan>> {
+    crate::planner::local_correct_errors_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.extract_umis`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_extract_umis_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalExtractUmisSmokeCasePlan>> {
+    crate::planner::local_extract_umis_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for
+/// `fastq.estimate_library_complexity_prealign`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_estimate_library_complexity_prealign_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalEstimateLibraryComplexityPrealignSmokeCasePlan>> {
+    crate::planner::local_estimate_library_complexity_prealign_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.profile_reads`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_profile_reads_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalProfileReadsSmokeCasePlan>> {
+    crate::planner::local_profile_reads_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke plan for `fastq.report_qc`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture bundle cannot be
+/// resolved into governed QC inputs, or the stage plan cannot be built.
+pub fn local_report_qc_smoke_plan(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
+    crate::planner::local_report_qc_smoke_plan(repo_root)
+}
+
+/// Build the governed local-smoke case plans for
+/// `fastq.profile_overrepresented_sequences`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_profile_overrepresented_sequences_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalProfileOverrepresentedSequencesSmokeCasePlan>> {
+    crate::planner::local_profile_overrepresented_sequences_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.filter_reads`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_filter_reads_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalFilterReadsSmokeCasePlan>> {
+    crate::planner::local_filter_reads_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.filter_low_complexity`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_filter_low_complexity_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalFilterLowComplexitySmokeCasePlan>> {
+    crate::planner::local_filter_low_complexity_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.infer_asvs`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_infer_asvs_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalInferAsvsSmokeCasePlan>> {
+    crate::planner::local_infer_asvs_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.cluster_otus`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_cluster_otus_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalClusterOtusSmokeCasePlan>> {
+    crate::planner::local_cluster_otus_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.normalize_abundance`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_normalize_abundance_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalNormalizeAbundanceSmokeCasePlan>> {
+    crate::planner::local_normalize_abundance_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.merge_pairs`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_merge_pairs_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalMergePairsSmokeCasePlan>> {
+    crate::planner::local_merge_pairs_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.remove_duplicates`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_remove_duplicates_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalRemoveDuplicatesSmokeCasePlan>> {
+    crate::planner::local_remove_duplicates_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.remove_chimeras`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_remove_chimeras_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalRemoveChimerasSmokeCasePlan>> {
+    crate::planner::local_remove_chimeras_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.normalize_primers`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_normalize_primers_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalNormalizePrimersSmokeCasePlan>> {
+    crate::planner::local_normalize_primers_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.trim_terminal_damage`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_trim_terminal_damage_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalTrimTerminalDamageSmokeCasePlan>> {
+    crate::planner::local_trim_terminal_damage_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.trim_polyg_tails`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_trim_polyg_tails_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalTrimPolygTailsSmokeCasePlan>> {
+    crate::planner::local_trim_polyg_tails_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke case plans for `fastq.trim_reads`.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or stage plans cannot be built for the governed smoke cases.
+pub fn local_trim_reads_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalTrimReadsSmokeCasePlan>> {
+    crate::planner::local_trim_reads_smoke_plans(repo_root)
+}
+
+/// Build the governed local-ready dry-run plan for `fastq.deplete_rrna`.
+///
+/// # Errors
+/// Returns an error if the governed local-ready config is invalid, the configured input or rRNA
+/// reference is missing, or the stage plan cannot be built.
+pub fn local_deplete_rrna_plan(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
+    crate::planner::local_deplete_rrna_plan(repo_root)
+}
+
+/// Build the governed local-ready dry-run plan for `fastq.deplete_host`.
+///
+/// # Errors
+/// Returns an error if the governed local-ready config is invalid, the configured input or host
+/// reference index prefix is missing, or the stage plan cannot be built.
+pub fn local_deplete_host_plan(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
+    crate::planner::local_deplete_host_plan(repo_root)
+}
+
+/// Build the governed local-ready dry-run plan for `fastq.deplete_reference_contaminants`.
+///
+/// # Errors
+/// Returns an error if the governed local-ready config is invalid, the configured input or
+/// contaminant reference index prefix is missing, or the stage plan cannot be built.
+pub fn local_deplete_reference_contaminants_plan(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
+    crate::planner::local_deplete_reference_contaminants_plan(repo_root)
+}
+
+/// Build the governed local-ready dry-run plan for `fastq.screen_taxonomy`.
+///
+/// # Errors
+/// Returns an error if the governed local-ready config is invalid, the configured input or
+/// taxonomy database root is missing, or the stage plan cannot be built.
+pub fn local_screen_taxonomy_plan(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
+    crate::planner::local_screen_taxonomy_plan(repo_root)
+}
+
 #[must_use]
 pub fn stage_tool_capability(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolCapability> {
     let (runtime_interpretation, runtime_normalization) =
@@ -226,6 +475,7 @@ pub fn benchmark_profiles_for_stage(stage_id: &StageId) -> Vec<StageToolBenchmar
     stage_tool_bindings_for_stage(stage_id)
         .into_iter()
         .filter_map(|binding| benchmark_profile_for_stage_tool(&binding.stage_id, &binding.tool_id))
+        .filter(|profile| profile.readiness != BenchmarkReadinessLevel::PlannedContract)
         .collect()
 }
 
@@ -315,6 +565,63 @@ pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<
             .map(|capability| capability.tool_id)
             .collect(),
     }
+}
+
+/// Build the governed local-ready `fastq.index_reference` plan from repository-owned config.
+///
+/// # Errors
+/// Returns an error if the local-ready config, local runtime profile, governed FASTQ tool YAML,
+/// or reference FASTA inputs cannot be resolved into a deterministic `StagePlanV1`.
+pub fn local_index_reference_plan(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
+    crate::planner::local_index_reference_plan(repo_root)
+}
+
+/// Build the governed local-smoke `fastq.validate_reads` plans from repository-owned config.
+///
+/// # Errors
+/// Returns an error if the local-smoke config, governed FASTQ tool YAML, or local FASTQ fixtures
+/// cannot be resolved into deterministic `StagePlanV1` values.
+pub fn local_validate_reads_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::planner::LocalValidateReadsSmokeCasePlan>> {
+    crate::planner::local_validate_reads_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke `fastq.detect_adapters` plans from repository-owned config.
+///
+/// # Errors
+/// Returns an error if the local-smoke config, governed FASTQ tool YAML, or local FASTQ fixtures
+/// cannot be resolved into deterministic `StagePlanV1` values.
+pub fn local_detect_adapters_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::planner::LocalDetectAdaptersSmokeCasePlan>> {
+    crate::planner::local_detect_adapters_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke `fastq.detect_duplicates_premerge` plans from
+/// repository-owned config.
+///
+/// # Errors
+/// Returns an error if the local-smoke config, governed FASTQ tool YAML, or local FASTQ fixtures
+/// cannot be resolved into deterministic `StagePlanV1` values.
+pub fn local_detect_duplicates_premerge_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::planner::LocalDetectDuplicatesPremergeSmokeCasePlan>> {
+    crate::planner::local_detect_duplicates_premerge_smoke_plans(repo_root)
+}
+
+/// Build the governed local-smoke `fastq.profile_read_lengths` plans from repository-owned
+/// config.
+///
+/// # Errors
+/// Returns an error if the local-smoke config, governed FASTQ tool YAML, or local FASTQ fixtures
+/// cannot be resolved into deterministic `StagePlanV1` values.
+pub fn local_profile_read_lengths_smoke_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::planner::LocalProfileReadLengthsSmokeCasePlan>> {
+    crate::planner::local_profile_read_lengths_smoke_plans(repo_root)
 }
 
 #[must_use]

@@ -1,4 +1,5 @@
 #[test]
+#[allow(clippy::too_many_lines)]
 fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
     let crates = collect_workspace_crates();
     let known: BTreeSet<String> = crates.keys().cloned().collect();

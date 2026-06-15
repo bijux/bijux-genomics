@@ -1,0 +1,10 @@
+schema_version = "bijux.bench.fastq.local_trim_polyg_tails.v1"
+tool_id = "fastp"
+threads = 1
+trim_polyg = true
+min_polyg_run = 6
+output_dir = "runs/bench/local-smoke/fastq.trim_polyg_tails"
+
+[[cases]]
+sample_id = "polyg-hit-se"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_polyg_trim_signals_R1.fastq.gz"

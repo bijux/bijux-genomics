@@ -5,6 +5,7 @@ pub mod contracts;
 pub mod coverage;
 pub mod metrics;
 pub mod params;
+pub mod parsers;
 pub mod registry_emit;
 pub mod run;
 pub mod stage_baseline;
@@ -28,7 +29,17 @@ pub use artifacts::{
     VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION, VCF_STATS_WORKFLOW_SCHEMA_VERSION,
     VCF_VALIDATION_SUMMARY_SCHEMA_VERSION,
 };
+pub use contracts::{
+    comparable_metric_stage_ids, find_vcf_parser_fixture_inventory_row,
+    stage_comparable_metric_specs, vcf_parser_fixture_inventory, VcfComparableMetricDirection,
+    VcfComparableMetricSpec, VcfParserFixtureInventoryRow,
+};
 pub use metrics::{VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1};
+pub use parsers::{
+    parse_angsd_stage_metrics, parse_bcftools_stage_metrics, parse_eigensoft_stage_metrics,
+    parse_imputation_stage_metrics, parse_phasing_stage_metrics, parse_plink2_stage_metrics,
+    parse_plink_stage_metrics, parse_segment_stage_metrics,
+};
 pub use registry_emit::{param_registry_toml, required_tools_toml};
 pub use run::{
     required_vcf_bench_corpus_scenarios, vcf_bench_corpus_datasets, vcf_bench_corpus_manifest,
@@ -56,7 +67,7 @@ pub const VCF_STAGE_ID_CATALOG: &[&str] = &[
     "vcf.filter",
     "vcf.gl_propagation",
     "vcf.ibd",
-    "vcf.imputation",
+    "vcf.imputation_metrics",
     "vcf.impute",
     "vcf.pca",
     "vcf.phasing",

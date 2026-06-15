@@ -1,0 +1,184 @@
+schema_version = "bijux.bench.vcf.local_stage_matrix.v1"
+
+[[rows]]
+stage_id = "vcf.prepare_reference_panel"
+tool_id = "bcftools"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_reference_panel"
+adapter_id = "vcf.adapter.reference_panel"
+parser_id = "vcf.parser.vcf_output"
+expected_outputs = [
+    "prepared_panel",
+    "chunks_json",
+]
+
+[[rows]]
+stage_id = "vcf.call"
+tool_id = "bcftools"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "bam_bundle"
+adapter_id = "vcf.adapter.calling"
+parser_id = "vcf.parser.call_summary"
+expected_outputs = ["called_vcf"]
+
+[[rows]]
+stage_id = "vcf.call_gl"
+tool_id = "bcftools"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "bam_bundle"
+adapter_id = "vcf.adapter.calling"
+parser_id = "vcf.parser.call_summary"
+expected_outputs = ["gl_sites_vcf"]
+
+[[rows]]
+stage_id = "vcf.call_diploid"
+tool_id = "bcftools"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "bam_bundle"
+adapter_id = "vcf.adapter.calling"
+parser_id = "vcf.parser.call_summary"
+expected_outputs = ["diploid_vcf"]
+
+[[rows]]
+stage_id = "vcf.call_pseudohaploid"
+tool_id = "bcftools"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "bam_bundle"
+adapter_id = "vcf.adapter.calling"
+parser_id = "vcf.parser.call_summary"
+expected_outputs = ["pseudohaploid_vcf"]
+
+[[rows]]
+stage_id = "vcf.damage_filter"
+tool_id = "bcftools"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_single_sample"
+adapter_id = "vcf.adapter.transform"
+parser_id = "vcf.parser.vcf_output"
+expected_outputs = ["damage_filtered_vcf"]
+
+[[rows]]
+stage_id = "vcf.filter"
+tool_id = "bcftools"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_single_sample"
+adapter_id = "vcf.adapter.transform"
+parser_id = "vcf.parser.vcf_output"
+expected_outputs = ["filtered_vcf"]
+
+[[rows]]
+stage_id = "vcf.gl_propagation"
+tool_id = "bcftools"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_single_sample"
+adapter_id = "vcf.adapter.transform"
+parser_id = "vcf.parser.vcf_output"
+expected_outputs = ["gl_propagated_vcf"]
+
+[[rows]]
+stage_id = "vcf.qc"
+tool_id = "plink2"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_cohort"
+adapter_id = "vcf.adapter.quality_control"
+parser_id = "vcf.parser.qc_report"
+expected_outputs = ["qc_report"]
+
+[[rows]]
+stage_id = "vcf.phasing"
+tool_id = "shapeit5"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_cohort_with_panel"
+adapter_id = "vcf.adapter.panel_workflow"
+parser_id = "vcf.parser.vcf_output"
+expected_outputs = ["phased_vcf"]
+
+[[rows]]
+stage_id = "vcf.imputation_metrics"
+tool_id = "beagle"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_cohort_with_panel"
+adapter_id = "vcf.adapter.panel_workflow"
+parser_id = "vcf.parser.report_json"
+expected_outputs = ["imputation_metrics_json"]
+
+[[rows]]
+stage_id = "vcf.impute"
+tool_id = "beagle"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_cohort_with_panel"
+adapter_id = "vcf.adapter.panel_workflow"
+parser_id = "vcf.parser.vcf_output"
+expected_outputs = ["imputed_vcf"]
+
+[[rows]]
+stage_id = "vcf.postprocess"
+tool_id = "bcftools"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_single_sample"
+adapter_id = "vcf.adapter.transform"
+parser_id = "vcf.parser.vcf_output"
+expected_outputs = ["postprocess_vcf"]
+
+[[rows]]
+stage_id = "vcf.population_structure"
+tool_id = "plink2"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_cohort"
+adapter_id = "vcf.adapter.population_structure"
+parser_id = "vcf.parser.report_json"
+expected_outputs = ["population_structure_report"]
+
+[[rows]]
+stage_id = "vcf.pca"
+tool_id = "plink2"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_cohort"
+adapter_id = "vcf.adapter.population_structure"
+parser_id = "vcf.parser.report_json"
+expected_outputs = ["pca_report"]
+
+[[rows]]
+stage_id = "vcf.admixture"
+tool_id = "plink2"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_cohort"
+adapter_id = "vcf.adapter.population_structure"
+parser_id = "vcf.parser.report_json"
+expected_outputs = ["admixture_report"]
+
+[[rows]]
+stage_id = "vcf.roh"
+tool_id = "plink2"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_cohort"
+adapter_id = "vcf.adapter.roh"
+parser_id = "vcf.parser.report_json"
+expected_outputs = ["roh_report"]
+
+[[rows]]
+stage_id = "vcf.ibd"
+tool_id = "germline"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_cohort"
+adapter_id = "vcf.adapter.ibd"
+parser_id = "vcf.parser.report_json"
+expected_outputs = ["ibd_segments"]
+
+[[rows]]
+stage_id = "vcf.demography"
+tool_id = "ibdne"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "json_ibd_segments"
+adapter_id = "vcf.adapter.demography"
+parser_id = "vcf.parser.report_json"
+expected_outputs = ["demography_report"]
+
+[[rows]]
+stage_id = "vcf.stats"
+tool_id = "bcftools"
+corpus_id = "vcf_production_regression"
+asset_profile_id = "vcf_cohort"
+adapter_id = "vcf.adapter.quality_control"
+parser_id = "vcf.parser.stats_report"
+expected_outputs = ["stats_json"]

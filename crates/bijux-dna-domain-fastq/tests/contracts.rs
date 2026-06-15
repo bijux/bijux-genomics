@@ -1,6 +1,8 @@
 // Auto-generated test aggregator for contracts
 #[path = "contracts/bank_registry.rs"]
 mod mod_contracts_bank_registry_rs;
+#[path = "contracts/benchmark_corpus_assignment.rs"]
+mod mod_contracts_benchmark_corpus_assignment_rs;
 #[path = "contracts/comparison_contract.rs"]
 mod mod_contracts_comparison_contract_rs;
 #[path = "contracts/contract_docs.rs"]

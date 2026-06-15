@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use std::collections::BTreeMap;
 use std::path::Path;
 
@@ -285,6 +287,7 @@ fn essential_qc_workflow_routes_validation_trim_and_profile_artifacts_into_repor
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 #[test]
 fn graph_report_qc_inherits_branch_qc_lineage_from_upstream_nodes() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-report-qc-branch-lineage")?;

@@ -1,0 +1,4 @@
+sample_id	observed_homozygous_count	nonmissing_variant_count	heterozygous_call_count	inbreeding_coefficient
+qc_balanced	2	4	2	0.0
+qc_ref	2	4	2	0.0
+qc_sparse	1	1	0	0.0

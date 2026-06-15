@@ -1,0 +1,7 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chr1	LN:100
+@SQ	SN:chr2	LN:80
+@RG	ID:rg-qc-pre-human-like	SM:human_like_duplicate_flagged_multicontig
+r001	0	chr1	5	60	8M	*	0	0	ACGTACGT	FFFFFFFF	RG:Z:rg-qc-pre-human-like
+r002	1024	chr1	20	25	8M	*	0	0	TGCATGCA	FFFFFFFF	RG:Z:rg-qc-pre-human-like
+r003	0	chr2	10	10	8M	*	0	0	CCGGAATT	FFFFFFFF	RG:Z:rg-qc-pre-human-like

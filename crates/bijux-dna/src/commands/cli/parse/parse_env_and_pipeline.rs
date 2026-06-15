@@ -105,7 +105,7 @@ pub enum ConfigCommand {
     },
     #[command(name = "write-campaign-profiles")]
     WriteCampaignProfiles {
-        #[arg(long, default_value = "configs/hpc/campaign")]
+        #[arg(long, default_value = "benchmarks/configs/hpc/campaign")]
         out_dir: PathBuf,
     },
     #[command(name = "preparation-graph")]
@@ -759,6 +759,21 @@ pub enum PipelinesCommand {
     #[command(name = "validate-profile")]
     ValidateProfile {
         id: String,
+    },
+    #[command(about = "Validate a governed local pipeline DAG by pipeline id.")]
+    Validate {
+        #[arg(long, required_unless_present = "all", conflicts_with = "all")]
+        id: Option<String>,
+        #[arg(long, default_value_t = false, conflicts_with = "id")]
+        all: bool,
+        #[arg(long)]
+        benchmark_root: Option<PathBuf>,
+        #[arg(long, default_value_t = false)]
+        strict: bool,
+        #[arg(long)]
+        output: Option<PathBuf>,
+        #[arg(long, default_value_t = false)]
+        json: bool,
     },
     #[command(about = "Diff two pipeline profiles (tools, params, invariants).")]
     #[command(name = "profile-diff")]

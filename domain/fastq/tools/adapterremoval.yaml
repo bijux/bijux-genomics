@@ -34,6 +34,9 @@ outputs:
   - name: "report_json"
     data_type: "json"
     cardinality: "One"
+  - name: "raw_backend_report_json"
+    data_type: "json"
+    cardinality: "One"
   - name: "raw_backend_report_txt"
     data_type: "text"
     cardinality: "One"
@@ -55,6 +58,7 @@ execution_contract:
     - "unmerged_reads_r1"
     - "unmerged_reads_r2"
     - "report_json"
+    - "raw_backend_report_json"
     - "raw_backend_report_txt"
   forbidden_outputs: []
   forbid_unexpected_outputs: true

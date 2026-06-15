@@ -62,7 +62,7 @@
   "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "95cb458e4000cd81885d34c6d5a6a22231cc192abd4c79075d124bc86846cb43",
+      "contract_hash": "f86569fadc171377ac659ba6c66b0d2042c0925e8fefcebfd64c2f4d19b7d30e",
       "defaults_diff": {},
       "resource_plan": {
         "cpu_threads": 4,

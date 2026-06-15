@@ -1,0 +1,1 @@
+{"artifact_id":"filtered_fastq_r2","stage_id":"fastq.filter_low_complexity","tool_id":"prinseq"}

@@ -1,0 +1,53 @@
+{
+  "schema_version": "bijux.bench.readiness.stage_tool_alias_check.v1",
+  "output_path": "benchmarks/readiness/all-domains/stage-tool-alias-check.json",
+  "migration_validation_stage_alias_count": 7,
+  "tool_alias_cluster_count": 0,
+  "candidate_row_count": 146,
+  "active_row_count": 136,
+  "expected_result_row_count": 136,
+  "rendered_command_row_count": 136,
+  "surface_violation_counts": {},
+  "alias_kind_violation_counts": {},
+  "violation_count": 0,
+  "ok": true,
+  "migration_validation_stage_aliases": [
+    {
+      "alias_stage_id": "validate_pre",
+      "canonical_stage_id": "fastq.validate_reads",
+      "accepted_scope": "migration_validation_only"
+    },
+    {
+      "alias_stage_id": "trim",
+      "canonical_stage_id": "fastq.trim_reads",
+      "accepted_scope": "migration_validation_only"
+    },
+    {
+      "alias_stage_id": "filter",
+      "canonical_stage_id": "fastq.filter_reads",
+      "accepted_scope": "migration_validation_only"
+    },
+    {
+      "alias_stage_id": "stats",
+      "canonical_stage_id": "fastq.profile_reads",
+      "accepted_scope": "migration_validation_only"
+    },
+    {
+      "alias_stage_id": "report_qc",
+      "canonical_stage_id": "fastq.report_qc",
+      "accepted_scope": "migration_validation_only"
+    },
+    {
+      "alias_stage_id": "qc_post",
+      "canonical_stage_id": "fastq.report_qc",
+      "accepted_scope": "migration_validation_only"
+    },
+    {
+      "alias_stage_id": "fastq.qc_post",
+      "canonical_stage_id": "fastq.report_qc",
+      "accepted_scope": "migration_validation_only"
+    }
+  ],
+  "tool_alias_clusters": [],
+  "violations": []
+}

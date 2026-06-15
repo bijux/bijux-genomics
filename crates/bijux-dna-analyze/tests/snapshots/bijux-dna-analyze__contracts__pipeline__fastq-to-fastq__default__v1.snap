@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-analyze/tests/contracts/pipeline/pipeline_e2e.rs
-assertion_line: 163
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -1904,7 +1903,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "definitions": []
     },
     "run_provenance": {
-      "domain_snapshot_hash": "7f92f74f3d6b5fa90319ebb5b71976f79393927f",
+      "domain_snapshot_hash": "be6d94ad67ff37fdc5b8b5846464b201a05de675",
       "graph_hash": "unknown",
       "input_hashes": [],
       "manifest_signature_sha256": "unknown",

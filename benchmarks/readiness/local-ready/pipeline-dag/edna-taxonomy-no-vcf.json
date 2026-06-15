@@ -1,0 +1,169 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/edna-taxonomy-no-vcf.toml",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/edna-taxonomy-no-vcf.json",
+  "pipeline_id": "edna-taxonomy-no-vcf",
+  "domain": "fastq",
+  "default_corpus_id": "corpus-02-edna-mini",
+  "summary": "eDNA taxonomy-only FASTQ DAG for corpus-02 validation, adapter-aware trimming, filtering, taxonomy screening, and taxonomy-local reporting without BAM or VCF germline branches.",
+  "node_count": 6,
+  "edge_count": 10,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "fastq.validate_reads",
+    "fastq.detect_adapters",
+    "fastq.trim_reads",
+    "fastq.filter_reads",
+    "fastq.screen_taxonomy",
+    "fastq.report_qc"
+  ],
+  "validation_profiles": [
+    {
+      "profile_id": "edna_taxonomy_no_vcf",
+      "check_count": 8,
+      "checks": [
+        "default corpus anchored to corpus-02-edna-mini for governed edna taxonomy inputs",
+        "pipeline remains fastq-only and rejects bam or vcf germline stages",
+        "fastq.validate_reads keeps the governed raw-fastq corpus handoff explicit",
+        "fastq.screen_taxonomy stays fixture-backed by corpus-02-edna-mini",
+        "fastq.screen_taxonomy remains downstream of filtered reads",
+        "fastq.screen_taxonomy keeps taxonomy database and expected-truth contracts explicit",
+        "fastq.screen_taxonomy keeps classification, unclassified, and summary outputs explicit",
+        "fastq.report_qc consumes taxonomy summary without mixing bam or vcf germline outputs"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 0,
+      "external_input_count": 1,
+      "upstream_input_count": 0,
+      "output_count": 2,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.raw_fastq_reads"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "validated_reads",
+        "validation_report"
+      ]
+    },
+    {
+      "node_id": "fastq.detect_adapters",
+      "stage_id": "fastq.detect_adapters",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 1,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validated_reads"
+      ],
+      "outputs": [
+        "adapter_report"
+      ]
+    },
+    {
+      "node_id": "fastq.trim_reads",
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 2,
+      "depends_on": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validated_reads",
+        "adapter_report"
+      ],
+      "outputs": [
+        "trimmed_reads",
+        "trim_metrics"
+      ]
+    },
+    {
+      "node_id": "fastq.filter_reads",
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 1,
+      "output_count": 2,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "trimmed_reads"
+      ],
+      "outputs": [
+        "filtered_reads",
+        "filter_metrics"
+      ]
+    },
+    {
+      "node_id": "fastq.screen_taxonomy",
+      "stage_id": "fastq.screen_taxonomy",
+      "readiness_kind": "dry_or_smoke",
+      "dependency_count": 1,
+      "external_input_count": 2,
+      "upstream_input_count": 1,
+      "output_count": 3,
+      "depends_on": [
+        "fastq.filter_reads"
+      ],
+      "external_inputs": [
+        "taxonomy_database.root",
+        "taxonomy_expected_truth_table"
+      ],
+      "upstream_inputs": [
+        "filtered_reads"
+      ],
+      "outputs": [
+        "taxonomy_classification",
+        "unclassified_reads",
+        "taxonomy_summary"
+      ]
+    },
+    {
+      "node_id": "fastq.report_qc",
+      "stage_id": "fastq.report_qc",
+      "readiness_kind": "smoke",
+      "dependency_count": 5,
+      "external_input_count": 0,
+      "upstream_input_count": 5,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.screen_taxonomy"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validation_report",
+        "adapter_report",
+        "trim_metrics",
+        "filter_metrics",
+        "taxonomy_summary"
+      ],
+      "outputs": [
+        "qc_bundle"
+      ]
+    }
+  ]
+}

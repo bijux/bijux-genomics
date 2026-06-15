@@ -7,6 +7,20 @@ default_version: "workspace"
 install_kind: "workspace_binary"
 license: "project"
 citation: "software:https://github.com/bijux/bijux-genomics"
+outputs:
+  - name: "duplicate_signal_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "library_complexity_report"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "reads"
+  expected_outputs:
+    - "duplicate_signal_report"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 planned_stage_ids:
   - "fastq.build_contaminant_db"
   - "fastq.build_rrna_db"
@@ -16,9 +30,7 @@ planned_stage_ids:
   - "fastq.concatenate_lanes"
   - "fastq.deinterleave_reads"
   - "fastq.demultiplex_reads"
-  - "fastq.detect_duplicates_premerge"
   - "fastq.detect_instrument_artifacts"
-  - "fastq.estimate_library_complexity_prealign"
   - "fastq.interleave_reads"
   - "fastq.materialize_qc_manifest"
   - "fastq.normalize_read_names"
@@ -28,7 +40,9 @@ planned_stage_ids:
   - "fastq.repair_pairs"
   - "fastq.subsample_reads"
   - "fastq.verify_assets"
-stage_ids: []
+stage_ids:
+  - "fastq.detect_duplicates_premerge"
+  - "fastq.estimate_library_complexity_prealign"
 stage_contracts:
   fastq.build_contaminant_db:
     required_inputs: ["contaminant_sources"]
@@ -65,7 +79,7 @@ stage_contracts:
   fastq.detect_duplicates_premerge:
     required_inputs: ["reads"]
     expected_artifacts: ["duplicate_signal_report"]
-    notes: "Planned internal contract harness for report-only premerge duplicate-signal closure."
+    notes: "Governed internal contract harness for report-only premerge duplicate-signal closure."
   fastq.detect_instrument_artifacts:
     required_inputs: ["reads"]
     expected_artifacts: ["instrument_artifact_report"]
@@ -73,7 +87,9 @@ stage_contracts:
   fastq.estimate_library_complexity_prealign:
     required_inputs: ["reads"]
     expected_artifacts: ["library_complexity_report"]
-    notes: "Planned internal contract harness for prealignment complexity-estimate closure."
+    execution_contract:
+      expected_outputs: ["library_complexity_report"]
+    notes: "Governed internal contract harness for report-only prealignment complexity-estimate closure."
   fastq.interleave_reads:
     required_inputs: ["reads_r1", "reads_r2"]
     expected_artifacts: ["interleaved_reads", "layout_report"]
@@ -110,7 +126,7 @@ stage_contracts:
     required_inputs: ["asset_locks"]
     expected_artifacts: ["asset_verification_report"]
     notes: "Planned internal contract harness for asset verification closure."
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
 expected_artifacts:
   - "adapter_bank"
@@ -150,7 +166,7 @@ comparability:
   comparable_with: []
   non_comparable_with: []
 comparability_notes: "Contract harness fixtures are not comparable with scientific backend tools."
-notes: "Internal non-container contract harness for planned FASTQ manifest, layout, asset, and observability stages."
+notes: "Internal non-container contract harness for governed premerge duplicate-signaling plus planned FASTQ manifest, layout, asset, and observability stages."
 capabilities:
   - "manifest"
   - "asset"

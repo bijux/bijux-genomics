@@ -4,7 +4,7 @@ pub mod haplogroups {
     use std::path::Path;
 
     use bijux_dna_core::prelude::{
-        ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
     };
     use bijux_dna_domain_bam::params::HaplogroupEffectiveParams;
     use bijux_dna_stage_contract::{StageIO, StagePlanV1};
@@ -17,6 +17,7 @@ pub mod haplogroups {
     pub fn plan(
         tool: &ToolExecutionSpecV1,
         bam: &Path,
+        bam_index: Option<&Path>,
         out_dir: &Path,
         params: &HaplogroupEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
@@ -24,6 +25,28 @@ pub mod haplogroups {
             bijux_dna_domain_bam::BamStage::Haplogroups,
             out_dir,
         );
+        let report = out_dir.join("haplogroups.json");
+        let summary = out_dir.join("haplogroups.summary.json");
+        let command = crate::tool_adapters::tools::downstream::haplogroups::args_with_outputs(
+            tool.tool_id.as_str(),
+            bam,
+            bam_index,
+            &report,
+            &summary,
+            params,
+        );
+        let mut inputs = vec![bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("bam"),
+            bam.to_path_buf(),
+            ArtifactRole::Bam,
+        )];
+        if let Some(bam_index) = bam_index {
+            inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("bam_bai"),
+                bam_index.to_path_buf(),
+                ArtifactRole::Index,
+            ));
+        }
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_instance_id: None,
@@ -31,21 +54,13 @@ pub mod haplogroups {
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
-            command: bijux_dna_core::prelude::CommandSpecV1 {
-                template: tool.command.template.to_vec(),
-            },
+            command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
-            io: StageIO {
-                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
-                    ArtifactId::from_static("bam"),
-                    bam.to_path_buf(),
-                    ArtifactRole::Bam,
-                )],
-                outputs,
-            },
+            io: StageIO { inputs, outputs },
             out_dir: out_dir.to_path_buf(),
             params: serde_json::json!({
                 "bam": bam,
+                "bai": bam_index,
                 "reference_panel": params.reference_panel,
                 "reference_build": params.reference_build,
                 "min_coverage": params.min_coverage,
@@ -82,6 +97,14 @@ pub mod genotyping {
     pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::Genotyping.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+    #[derive(Debug, Clone, Copy, Default)]
+    pub struct GenotypingPlanContext<'a> {
+        pub bam_index: Option<&'a Path>,
+        pub reference: Option<&'a Path>,
+        pub sites: Option<&'a Path>,
+        pub regions: Option<&'a Path>,
+    }
+
     /// # Errors
     /// Returns an error if required outputs are missing from the plan.
     pub fn plan(
@@ -90,17 +113,39 @@ pub mod genotyping {
         out_dir: &Path,
         params: &GenotypingEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
+        plan_with_context(tool, bam, GenotypingPlanContext::default(), out_dir, params)
+    }
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan_with_context(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        context: GenotypingPlanContext<'_>,
+        out_dir: &Path,
+        params: &GenotypingEffectiveParams,
+    ) -> anyhow::Result<StagePlanV1> {
         let mut outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::Genotyping,
             out_dir,
         );
+        let bcf = out_dir.join("genotyping.bcf");
         let vcf_gz = out_dir.join("genotyping.vcf.gz");
         let tbi = out_dir.join("genotyping.vcf.gz.tbi");
         let gl_json = out_dir.join("genotyping.gl.json");
+        let emit_bcf_contract =
+            context.reference.is_some() || context.sites.is_some() || context.regions.is_some();
+        if emit_bcf_contract {
+            outputs.push(bijux_dna_stage_contract::ArtifactRef::optional(
+                ArtifactId::from_static("genotyping_bcf"),
+                bcf.clone(),
+                ArtifactRole::Variant,
+            ));
+        }
         outputs.push(bijux_dna_stage_contract::ArtifactRef::optional(
             ArtifactId::from_static("genotyping_vcf"),
             vcf_gz.clone(),
-            ArtifactRole::ReportJson,
+            ArtifactRole::Variant,
         ));
         outputs.push(bijux_dna_stage_contract::ArtifactRef::optional(
             ArtifactId::from_static("genotyping_vcf_tbi"),
@@ -114,6 +159,39 @@ pub mod genotyping {
         ));
         let report = out_dir.join("genotyping.json");
         let summary = out_dir.join("genotyping.summary.json");
+        let mut inputs = vec![bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("bam"),
+            bam.to_path_buf(),
+            ArtifactRole::Bam,
+        )];
+        if let Some(bam_index) = context.bam_index {
+            inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("bam_bai"),
+                bam_index.to_path_buf(),
+                ArtifactRole::Index,
+            ));
+        }
+        if let Some(reference) = context.reference {
+            inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("reference"),
+                reference.to_path_buf(),
+                ArtifactRole::Reference,
+            ));
+        }
+        if let Some(sites) = context.sites {
+            inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("sites"),
+                sites.to_path_buf(),
+                ArtifactRole::Variant,
+            ));
+        }
+        if let Some(regions) = context.regions {
+            inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("regions"),
+                regions.to_path_buf(),
+                ArtifactRole::Reference,
+            ));
+        }
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_instance_id: None,
@@ -125,9 +203,16 @@ pub mod genotyping {
                 template: crate::tool_adapters::tools::genotyping::args_with_outputs(
                     tool.tool_id.as_str(),
                     bam,
+                    crate::tool_adapters::tools::genotyping::GenotypingPlanningContext {
+                        bam_index: context.bam_index,
+                        reference: context.reference,
+                        sites: context.sites,
+                        regions: context.regions,
+                    },
                     crate::tool_adapters::tools::genotyping::GenotypingOutputs {
                         report: &report,
                         summary: &summary,
+                        bcf: emit_bcf_contract.then_some(bcf.as_path()),
                         vcf_gz: &vcf_gz,
                         tbi: &tbi,
                         gl_json: &gl_json,
@@ -136,21 +221,19 @@ pub mod genotyping {
                 ),
             },
             resources: tool.resources.clone(),
-            io: StageIO {
-                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
-                    ArtifactId::from_static("bam"),
-                    bam.to_path_buf(),
-                    ArtifactRole::Bam,
-                )],
-                outputs,
-            },
+            io: StageIO { inputs, outputs },
             out_dir: out_dir.to_path_buf(),
             params: serde_json::json!({
                 "bam": bam,
+                "bai": context.bam_index,
+                "reference": context.reference,
+                "sites": context.sites,
+                "regions": context.regions,
                 "caller": params.caller,
                 "min_posterior": params.min_posterior,
                 "min_call_rate": params.min_call_rate,
                 "producer_contract": {
+                    "bcf": emit_bcf_contract.then_some(&bcf),
                     "vcf": vcf_gz,
                     "tbi": tbi,
                     "gl": gl_json,

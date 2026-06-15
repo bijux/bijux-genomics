@@ -415,7 +415,7 @@ fn scenario_artifact_dedup_lineage() -> Result<(Vec<String>, serde_json::Value)>
         json!({"artifact_id":"run_b.aligned_bam","sha256":"sha_bam_01","producer":"run_b:bam.align_reads","consumers":["run_b:vcf.call_variants","run_b:bam.coverage"]}),
         json!({"artifact_id":"run_a.qc_manifest","sha256":"sha_qc_01","producer":"run_a:fastq.materialize_qc_manifest","consumers":["run_a:report.final"]}),
         json!({"artifact_id":"run_b.qc_manifest","sha256":"sha_qc_01","producer":"run_b:fastq.materialize_qc_manifest","consumers":["run_b:report.final"]}),
-        json!({"artifact_id":"run_c.phased_vcf","sha256":"sha_vcf_77","producer":"run_c:vcf.phasing","consumers":["run_c:vcf.imputation"]}),
+        json!({"artifact_id":"run_c.phased_vcf","sha256":"sha_vcf_77","producer":"run_c:vcf.phasing","consumers":["run_c:vcf.imputation_metrics"]}),
     ];
 
     let mut groups = std::collections::BTreeMap::<String, Vec<serde_json::Value>>::new();

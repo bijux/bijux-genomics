@@ -21,7 +21,7 @@ pub const VCF_STAGE_ORDER_DOWNSTREAM: &[VcfDomainStage] = &[
     VcfDomainStage::GlPropagation,
     VcfDomainStage::Qc,
     VcfDomainStage::Phasing,
-    VcfDomainStage::Imputation,
+    VcfDomainStage::ImputationMetrics,
     VcfDomainStage::Impute,
     VcfDomainStage::Postprocess,
     VcfDomainStage::PopulationStructure,
@@ -34,7 +34,7 @@ pub const VCF_STAGE_ORDER_DOWNSTREAM: &[VcfDomainStage] = &[
 ];
 
 pub const VCF_FORBIDDEN_TRANSITIONS: &[(VcfDomainStage, VcfDomainStage)] = &[
-    (VcfDomainStage::Imputation, VcfDomainStage::Call),
+    (VcfDomainStage::ImputationMetrics, VcfDomainStage::Call),
     (VcfDomainStage::Impute, VcfDomainStage::Call),
     (VcfDomainStage::Postprocess, VcfDomainStage::Call),
     (VcfDomainStage::Demography, VcfDomainStage::Ibd),
@@ -46,7 +46,7 @@ pub const VCF_STAGE_TAXONOMY: &[VcfStageTaxonomyRecord] = &[
     VcfStageTaxonomyRecord {
         stage: VcfDomainStage::Admixture,
         kind: VcfStageKind::PopulationStructure,
-        status: DomainSupportStatus::Planned,
+        status: DomainSupportStatus::Supported,
         coverage_regimes: &[CoverageRegime::Diploid, CoverageRegime::LowCovGl],
     },
     VcfStageTaxonomyRecord {
@@ -112,51 +112,51 @@ pub const VCF_STAGE_TAXONOMY: &[VcfStageTaxonomyRecord] = &[
         coverage_regimes: &[CoverageRegime::Diploid],
     },
     VcfStageTaxonomyRecord {
-        stage: VcfDomainStage::Imputation,
+        stage: VcfDomainStage::ImputationMetrics,
         kind: VcfStageKind::Imputation,
-        status: DomainSupportStatus::Planned,
+        status: DomainSupportStatus::Supported,
         coverage_regimes: &[CoverageRegime::Diploid, CoverageRegime::LowCovGl],
     },
     VcfStageTaxonomyRecord {
         stage: VcfDomainStage::Impute,
         kind: VcfStageKind::Imputation,
-        status: DomainSupportStatus::Planned,
+        status: DomainSupportStatus::Supported,
         coverage_regimes: &[CoverageRegime::Diploid, CoverageRegime::LowCovGl],
     },
     VcfStageTaxonomyRecord {
         stage: VcfDomainStage::Pca,
         kind: VcfStageKind::PopulationStructure,
-        status: DomainSupportStatus::Planned,
+        status: DomainSupportStatus::Supported,
         coverage_regimes: &[CoverageRegime::Diploid, CoverageRegime::LowCovGl],
     },
     VcfStageTaxonomyRecord {
         stage: VcfDomainStage::Phasing,
         kind: VcfStageKind::Phasing,
-        status: DomainSupportStatus::Planned,
+        status: DomainSupportStatus::Supported,
         coverage_regimes: &[CoverageRegime::Diploid, CoverageRegime::LowCovGl],
     },
     VcfStageTaxonomyRecord {
         stage: VcfDomainStage::PopulationStructure,
         kind: VcfStageKind::PopulationStructure,
-        status: DomainSupportStatus::Planned,
+        status: DomainSupportStatus::Supported,
         coverage_regimes: &[CoverageRegime::Diploid, CoverageRegime::LowCovGl],
     },
     VcfStageTaxonomyRecord {
         stage: VcfDomainStage::Postprocess,
         kind: VcfStageKind::Postprocess,
-        status: DomainSupportStatus::Planned,
+        status: DomainSupportStatus::Supported,
         coverage_regimes: &[CoverageRegime::Diploid, CoverageRegime::LowCovGl],
     },
     VcfStageTaxonomyRecord {
         stage: VcfDomainStage::PrepareReferencePanel,
         kind: VcfStageKind::Postprocess,
-        status: DomainSupportStatus::Planned,
+        status: DomainSupportStatus::Supported,
         coverage_regimes: &[CoverageRegime::Diploid, CoverageRegime::LowCovGl],
     },
     VcfStageTaxonomyRecord {
         stage: VcfDomainStage::Qc,
         kind: VcfStageKind::Qc,
-        status: DomainSupportStatus::Planned,
+        status: DomainSupportStatus::Supported,
         coverage_regimes: &[
             CoverageRegime::LowCovGl,
             CoverageRegime::Diploid,

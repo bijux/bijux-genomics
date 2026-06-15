@@ -1,6 +1,6 @@
 extends: "_schema.yaml"
 stage_id: "bam.bias_mitigation"
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "bam"
 inputs:
@@ -10,6 +10,21 @@ inputs:
 outputs:
   - name: "bias_mitigation_report_json"
     data_type: "json"
+    cardinality: "One"
+  - name: "bias_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+  - name: "damage_profile"
+    data_type: "json"
+    cardinality: "One"
+  - name: "damage_plot"
+    data_type: "png"
     cardinality: "One"
 parameters: []
 metrics:
@@ -30,10 +45,10 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
-  - samtools
+  - mapdamage2
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "default stage assumptions captured"
+  - "admitted bias-mitigation tools must preserve the governed bias report, summary JSON, and benchmark-facing stage metrics"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"

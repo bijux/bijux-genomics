@@ -10,6 +10,8 @@ pub(super) struct DomainIndexContract {
     pub stage_tool_integration: BTreeMap<String, BTreeMap<String, ToolIntegrationLevel>>,
     #[serde(default)]
     pub reference_index_compatibility: BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    pub stage_sanity_metrics: BTreeMap<String, Vec<String>>,
     pub benchmark_scenarios: BTreeMap<String, BenchmarkScenarioRecord>,
 }
 

@@ -2,6 +2,7 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn infra_tree_matches_architecture_contract() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
 

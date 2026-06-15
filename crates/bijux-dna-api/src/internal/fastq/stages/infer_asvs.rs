@@ -37,6 +37,26 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.infer_asvs";
+const LOCAL_INFER_ASVS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.infer_asvs.local_smoke.report.v1";
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct LocalInferAsvsSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    sample_id: String,
+    planned_tool_id: String,
+    report_tool_id: String,
+    asv_count: u64,
+    sample_count: u64,
+    representative_sequence_count: u64,
+    asv_table_tsv: String,
+    representatives_fasta: String,
+    case_report_json: String,
+    taxonomy_ready_fasta: String,
+    taxonomy_ready_fastq: String,
+    raw_backend_report: String,
+}
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct InferAsvsTableMetrics {
@@ -508,4 +528,139 @@ fn validate_infer_asvs_nonempty_artifact(path: &Path) -> Result<()> {
         return Err(anyhow!("infer_asvs artifact is empty: {}", path.display()));
     }
     Ok(())
+}
+
+/// Materialize the governed local-smoke `fastq.infer_asvs` artifact bundle.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_infer_asvs_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases = bijux_dna_planner_fastq::stage_api::local_infer_asvs_smoke_plans(&repo_root)?;
+    let [case] = cases.as_slice() else {
+        return Err(anyhow!("governed fastq.infer_asvs local smoke must resolve exactly one case"));
+    };
+
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.infer_asvs");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+    let summary = materialize_local_infer_asvs_smoke_case(&repo_root, case, &output_root)?;
+    let report_path = output_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(output_root.join("asv_table.tsv"))
+}
+
+fn materialize_local_infer_asvs_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalInferAsvsSmokeCasePlan,
+    output_root: &Path,
+) -> Result<LocalInferAsvsSmokeReport> {
+    let effective_params =
+        serde_json::from_value::<AsvInferenceEffectiveParams>(case.plan.effective_params.clone())
+            .map_err(|error| anyhow!("decode infer-asvs local-smoke effective params: {error}"))?;
+
+    let input_reads = repo_root.join(&case.reads);
+    let outputs = resolve_infer_asvs_outputs(&case.plan)?;
+    let case_asv_table = resolve_smoke_output_path(repo_root, &outputs.asv_table_tsv);
+    let case_asv_sequences = resolve_smoke_output_path(repo_root, &outputs.asv_sequences_fasta);
+    let case_taxonomy_fasta =
+        resolve_smoke_output_path(repo_root, &outputs.taxonomy_reference_fasta);
+    let case_taxonomy_reads_fastq =
+        resolve_smoke_output_path(repo_root, &outputs.taxonomy_reads_fastq);
+    let case_report_json = resolve_smoke_output_path(repo_root, &outputs.report_json);
+
+    for path in [
+        &case_asv_table,
+        &case_asv_sequences,
+        &case_taxonomy_fasta,
+        &case_taxonomy_reads_fastq,
+        &case_report_json,
+    ] {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+
+    let runtime_report = bijux_dna_domain_fastq::stages::contract::infer_asvs(
+        &input_reads,
+        None,
+        &effective_params,
+        &case_asv_table,
+        &case_asv_sequences,
+        &case_taxonomy_fasta,
+        &case_taxonomy_reads_fastq,
+        &case_report_json,
+    )?;
+    let table_metrics = read_infer_asvs_table_metrics(&case_asv_table)?;
+    let representative_sequence_count = count_fasta_records(&case_asv_sequences)?;
+
+    let mut report = canonical_infer_asvs_report(InferAsvsReportInputs {
+        tool_id: "bijux",
+        input_r1: &input_reads,
+        input_r2: None,
+        asv_table_tsv: &case_asv_table,
+        asv_sequences_fasta: &case_asv_sequences,
+        taxonomy_reference_fasta: &case_taxonomy_fasta,
+        taxonomy_reads_fastq: &case_taxonomy_reads_fastq,
+        report_json: &case_report_json,
+        effective_params: &effective_params,
+        table_metrics,
+        representative_sequence_count,
+        runtime_s: None,
+        memory_mb: None,
+        exit_code: Some(0),
+        used_fallback: false,
+        backend_metrics: runtime_report.backend_metrics.clone(),
+    });
+    report.input_reads_r1 = case.reads.display().to_string();
+    report.asv_table_tsv = path_relative_to_repo(repo_root, &case_asv_table);
+    report.asv_sequences_fasta = path_relative_to_repo(repo_root, &case_asv_sequences);
+    report.taxonomy_ready_fasta = path_relative_to_repo(repo_root, &case_taxonomy_fasta);
+    report.taxonomy_ready_fastq = path_relative_to_repo(repo_root, &case_taxonomy_reads_fastq);
+    report.report_json = path_relative_to_repo(repo_root, &case_report_json);
+    report.raw_backend_report = Some(path_relative_to_repo(repo_root, &case_report_json));
+    bijux_dna_infra::atomic_write_json(&case_report_json, &report)?;
+
+    let top_level_asv_table = output_root.join("asv_table.tsv");
+    copy_smoke_artifact(&case_asv_table, &top_level_asv_table)?;
+    let top_level_representatives = output_root.join("representatives.fasta");
+    copy_smoke_artifact(&case_asv_sequences, &top_level_representatives)?;
+
+    Ok(LocalInferAsvsSmokeReport {
+        schema_version: LOCAL_INFER_ASVS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        sample_id: case.sample_id.clone(),
+        planned_tool_id: case.plan.tool_id.as_str().to_string(),
+        report_tool_id: report.tool_id,
+        asv_count: report.asv_count,
+        sample_count: report.sample_count,
+        representative_sequence_count: report.representative_sequence_count,
+        asv_table_tsv: path_relative_to_repo(repo_root, &top_level_asv_table),
+        representatives_fasta: path_relative_to_repo(repo_root, &top_level_representatives),
+        case_report_json: path_relative_to_repo(repo_root, &case_report_json),
+        taxonomy_ready_fasta: path_relative_to_repo(repo_root, &case_taxonomy_fasta),
+        taxonomy_ready_fastq: path_relative_to_repo(repo_root, &case_taxonomy_reads_fastq),
+        raw_backend_report: path_relative_to_repo(repo_root, &case_report_json),
+    })
+}
+
+fn resolve_smoke_output_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
+fn copy_smoke_artifact(source: &Path, destination: &Path) -> Result<()> {
+    if let Some(parent) = destination.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    std::fs::copy(source, destination).map(|_| ()).with_context(|| {
+        format!("copy local infer-asvs artifact {} -> {}", source.display(), destination.display())
+    })
 }

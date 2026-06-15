@@ -31,6 +31,24 @@ fn policy__contracts__vcf_support_gate_policy__supported_vcf_stages_require_smok
 }
 
 #[test]
+fn policy__contracts__vcf_support_gate_policy__stage_schema_tracks_stage_id() {
+    let path = repo_root().join("configs/ci/stages/stages_vcf.toml");
+    let raw = fs::read_to_string(path).expect("read stages_vcf.toml");
+    let doc: toml::Value = raw.parse().expect("parse stages_vcf.toml");
+    let stages = doc.get("stages").and_then(toml::Value::as_array).cloned().unwrap_or_default();
+
+    for stage in stages {
+        let id = stage.get("id").and_then(toml::Value::as_str).unwrap_or_default();
+        let schema = stage.get("metrics_schema").and_then(toml::Value::as_str).unwrap_or_default();
+        assert_eq!(
+            schema,
+            format!("bijux.{id}.v1"),
+            "VCF stage {id} must keep a stage-specific metrics schema in stages_vcf.toml"
+        );
+    }
+}
+
+#[test]
 fn policy__contracts__vcf_support_gate_policy__production_vcf_tools_must_be_pinned() {
     let path = repo_root().join("configs/ci/registry/tool_registry_vcf.toml");
     let raw = fs::read_to_string(path).expect("read tool_registry_vcf.toml");

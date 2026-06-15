@@ -1,0 +1,109 @@
+#![allow(clippy::expect_used)]
+
+use std::process::Command;
+
+#[path = "contracts/banks/bank_fixtures.rs"]
+mod support;
+
+fn run_cli_json(args: &[&str]) -> serde_json::Value {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(args)
+        .output()
+        .expect("run cli");
+
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+}
+
+#[test]
+fn fixtures_build_vcf_mini_reports_regenerated_contract_counts() {
+    let payload = run_cli_json(&["fixtures", "build", "--corpus", "vcf-mini", "--json"]);
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.vcf_fixture_build.v1")
+    );
+    assert_eq!(payload.get("corpus_id").and_then(serde_json::Value::as_str), Some("vcf-mini"));
+    assert_eq!(
+        payload.get("output_root").and_then(serde_json::Value::as_str),
+        Some("artifacts/fixtures/vcf-mini-regeneration")
+    );
+    assert_eq!(
+        payload.get("manifest_path").and_then(serde_json::Value::as_str),
+        Some("artifacts/fixtures/vcf-mini-regeneration/manifest.toml")
+    );
+    assert_eq!(
+        payload.get("report_path").and_then(serde_json::Value::as_str),
+        Some("artifacts/fixtures/vcf-mini-regeneration/manifest.json")
+    );
+    assert_eq!(
+        payload.get("source_manifest_path").and_then(serde_json::Value::as_str),
+        Some("benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml")
+    );
+    assert_eq!(
+        payload.get("checksums_path").and_then(serde_json::Value::as_str),
+        Some("artifacts/fixtures/vcf-mini-regeneration/CHECKSUMS.sha256")
+    );
+    assert_eq!(
+        payload.get("generated_fixture_file_count").and_then(serde_json::Value::as_u64),
+        Some(21)
+    );
+    assert_eq!(
+        payload.get("governed_counts_match").and_then(serde_json::Value::as_bool),
+        Some(true)
+    );
+
+    let generated_fixture_counts =
+        payload.get("generated_fixture_counts").expect("generated_fixture_counts");
+    assert_eq!(
+        generated_fixture_counts.get("sample_count").and_then(serde_json::Value::as_u64),
+        Some(6)
+    );
+    assert_eq!(
+        generated_fixture_counts.get("population_count").and_then(serde_json::Value::as_u64),
+        Some(4)
+    );
+    assert_eq!(
+        generated_fixture_counts.get("target_interval_count").and_then(serde_json::Value::as_u64),
+        Some(4)
+    );
+
+    let generated_truth_counts =
+        payload.get("generated_truth_counts").expect("generated_truth_counts");
+    assert_eq!(
+        generated_truth_counts.get("truth_file_count").and_then(serde_json::Value::as_u64),
+        Some(8)
+    );
+    assert_eq!(
+        generated_truth_counts.get("cohort_sample_count").and_then(serde_json::Value::as_u64),
+        Some(4)
+    );
+    assert_eq!(
+        generated_truth_counts.get("pair_count").and_then(serde_json::Value::as_u64),
+        Some(6)
+    );
+
+    let fixture_validation = payload.get("fixture_validation").expect("fixture_validation");
+    assert_eq!(
+        fixture_validation.get("manifest_path").and_then(serde_json::Value::as_str),
+        Some("artifacts/fixtures/vcf-mini-regeneration/manifest.toml")
+    );
+}

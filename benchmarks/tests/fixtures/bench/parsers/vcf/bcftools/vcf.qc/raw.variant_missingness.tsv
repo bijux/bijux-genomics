@@ -1,0 +1,5 @@
+variant_id	contig	position	reference	alternate	total_sample_count	missing_sample_count	missingness
+chr1:10:A:G	chr1	10	A	G	3	1	0.3333333333333333
+chr1:20:C:T	chr1	20	C	T	3	1	0.3333333333333333
+chr1:30:G:A	chr1	30	G	A	3	2	0.6666666666666666
+chr1:40:T:G	chr1	40	T	G	3	0	0.0

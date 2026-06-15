@@ -41,7 +41,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "schema_version": "bijux.stage_contract.v1",
   "stage_id": "bam.genotyping",
   "tool_ids": [
-    "angsd",
-    "bcftools"
+    "angsd"
   ]
 }

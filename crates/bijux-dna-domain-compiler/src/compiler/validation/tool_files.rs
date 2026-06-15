@@ -10,6 +10,9 @@ pub(super) struct ToolValidationState<'a> {
     pub(super) capabilities: &'a mut BTreeMap<String, BTreeSet<String>>,
     pub(super) statuses: &'a mut BTreeMap<String, String>,
     pub(super) metrics_schemas: &'a mut BTreeMap<String, String>,
+    pub(super) domain_capabilities: &'a mut BTreeMap<String, BTreeMap<String, BTreeSet<String>>>,
+    pub(super) domain_statuses: &'a mut BTreeMap<String, BTreeMap<String, String>>,
+    pub(super) domain_metrics_schemas: &'a mut BTreeMap<String, BTreeMap<String, String>>,
 }
 
 pub(super) fn validate_tool_files(
@@ -73,6 +76,11 @@ pub(super) fn validate_tool_files(
         if !tool.capabilities.is_empty() {
             state
                 .capabilities
+                .insert(tool.tool_id.clone(), tool.capabilities.iter().cloned().collect());
+            state
+                .domain_capabilities
+                .entry(dom.to_string())
+                .or_default()
                 .insert(tool.tool_id.clone(), tool.capabilities.iter().cloned().collect());
         }
         if dom != "vcf" && tool.status == "supported" {
@@ -164,6 +172,16 @@ pub(super) fn validate_tool_files(
         }
         state.statuses.insert(tool.tool_id.clone(), tool.status.clone());
         state.metrics_schemas.insert(tool.tool_id.clone(), tool.metrics_schema_id.clone());
+        state
+            .domain_statuses
+            .entry(dom.to_string())
+            .or_default()
+            .insert(tool.tool_id.clone(), tool.status.clone());
+        state
+            .domain_metrics_schemas
+            .entry(dom.to_string())
+            .or_default()
+            .insert(tool.tool_id.clone(), tool.metrics_schema_id.clone());
     }
     Ok(())
 }

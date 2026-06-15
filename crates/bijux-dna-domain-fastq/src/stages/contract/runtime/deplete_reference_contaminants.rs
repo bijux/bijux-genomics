@@ -27,6 +27,8 @@ pub fn deplete_reference_contaminants(
     params: &ReferenceContaminantEffectiveParams,
     output_r1: &Path,
     output_r2: Option<&Path>,
+    removed_reads_r1: &Path,
+    removed_reads_r2: Option<&Path>,
     report_json: &Path,
     raw_backend_report: Option<&Path>,
 ) -> Result<DepleteReferenceContaminantsReportV1> {
@@ -41,9 +43,9 @@ pub fn deplete_reference_contaminants(
             right.len()
         ));
     }
-    if paired && output_r2.is_none() {
+    if paired && (output_r2.is_none() || removed_reads_r2.is_none()) {
         return Err(anyhow!(
-            "fastq.deplete_reference_contaminants requires output_r2 for paired input"
+            "fastq.deplete_reference_contaminants requires output_r2 and removed_reads_r2 for paired input"
         ));
     }
 
@@ -53,12 +55,14 @@ pub fn deplete_reference_contaminants(
 
     let mut retained_left = Vec::<FastqRecord>::new();
     let mut retained_right = Vec::<FastqRecord>::new();
-    let mut removed_reads = 0_u64;
+    let mut removed_left = Vec::<FastqRecord>::new();
+    let mut removed_right = Vec::<FastqRecord>::new();
 
     if paired {
         for (l, r) in left.iter().cloned().zip(right.iter().cloned()) {
             if contaminant_like(&l) || contaminant_like(&r) {
-                removed_reads += 2;
+                removed_left.push(l);
+                removed_right.push(r);
             } else {
                 retained_left.push(l);
                 retained_right.push(r);
@@ -67,7 +71,7 @@ pub fn deplete_reference_contaminants(
     } else {
         for l in left.iter().cloned() {
             if contaminant_like(&l) {
-                removed_reads += 1;
+                removed_left.push(l);
             } else {
                 retained_left.push(l);
             }
@@ -78,12 +82,17 @@ pub fn deplete_reference_contaminants(
     if paired {
         write_fastq_records(output_r2.expect("validated above"), &retained_right)?;
     }
+    write_fastq_records(removed_reads_r1, &removed_left)?;
+    if paired {
+        write_fastq_records(removed_reads_r2.expect("validated above"), &removed_right)?;
+    }
 
     let reads_out = if paired {
         (retained_left.len() + retained_right.len()) as u64
     } else {
         retained_left.len() as u64
     };
+    let removed_read_count = reads_in.saturating_sub(reads_out);
     let bases_out = retained_left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
         + retained_right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
 
@@ -108,10 +117,12 @@ pub fn deplete_reference_contaminants(
         input_r2: r2.map(|path| path.display().to_string()),
         output_r1: output_r1.display().to_string(),
         output_r2: output_r2.map(|path| path.display().to_string()),
+        removed_reads_r1: removed_reads_r1.display().to_string(),
+        removed_reads_r2: removed_reads_r2.map(|path| path.display().to_string()),
         report_json: report_json.display().to_string(),
         reads_in,
         reads_out,
-        reads_removed: removed_reads,
+        reads_removed: removed_read_count,
         bases_in,
         bases_out,
         bases_removed: bases_in.saturating_sub(bases_out),
@@ -120,7 +131,7 @@ pub fn deplete_reference_contaminants(
         contaminant_fraction_removed: if reads_in == 0 {
             0.0
         } else {
-            removed_reads as f64 / reads_in as f64
+            removed_read_count as f64 / reads_in as f64
         },
         runtime_s: None,
         memory_mb: None,
@@ -128,7 +139,7 @@ pub fn deplete_reference_contaminants(
         raw_backend_report: raw_backend_report.map(|path| path.display().to_string()),
         raw_backend_report_format: raw_backend_report.map(|_| "bowtie2_met_file".to_string()),
         backend_metrics: Some(serde_json::json!({
-            "removed_contaminant_reads": removed_reads,
+            "removed_contaminant_reads": removed_read_count,
         })),
     })
 }
@@ -179,11 +190,17 @@ mod tests {
             &params,
             &temp.path().join("retained.fastq"),
             None,
+            &temp.path().join("removed.fastq"),
+            None,
             &temp.path().join("report.json"),
             None,
         )?;
 
         assert_eq!(report.reads_removed, 1);
+        assert_eq!(
+            report.removed_reads_r1,
+            temp.path().join("removed.fastq").display().to_string()
+        );
         assert_eq!(report.reads_out, 1);
         Ok(())
     }

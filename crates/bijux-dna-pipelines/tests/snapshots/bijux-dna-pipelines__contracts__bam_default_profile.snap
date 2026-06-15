@@ -172,7 +172,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     "tools": {
       "bam.coverage": "mosdepth",
-      "bam.damage": "pydamage",
+      "bam.damage": "mapdamage2",
       "bam.filter": "samtools",
       "bam.mapping_summary": "samtools",
       "bam.qc_pre": "samtools",

@@ -1,0 +1,13 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_matrix_registry_consistency.v1",
+  "domain": "vcf",
+  "output_path": "benchmarks/readiness/vcf-matrix-registry-consistency.json",
+  "passes_gate": true,
+  "stage_count": 20,
+  "matrix_row_count": 23,
+  "registry_pair_count": 44,
+  "benchmark_ready_registry_pair_count": 17,
+  "unregistered_matrix_pair_count": 0,
+  "missing_benchmark_ready_registry_pair_count": 0,
+  "rows": []
+}

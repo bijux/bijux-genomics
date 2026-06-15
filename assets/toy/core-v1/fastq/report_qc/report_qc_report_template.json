@@ -1,0 +1,71 @@
+{
+  "schema_version": "bijux.fastq.report_qc.report.v2",
+  "stage": "fastq.report_qc",
+  "stage_id": "fastq.report_qc",
+  "tool_id": "multiqc",
+  "paired_mode": "single_end",
+  "aggregation_engine": "multiqc",
+  "aggregation_scope": "governed_qc_artifacts",
+  "reads_in": 8,
+  "reads_out": 8,
+  "bases_in": 96,
+  "bases_out": 96,
+  "pairs_in": null,
+  "pairs_out": null,
+  "mean_q": 31.4,
+  "contamination_rate": 0.0,
+  "adapter_content_max": 0.125,
+  "adapter_content_mean": 0.041667,
+  "duplication_rate": 0.0,
+  "n_rate": 0.0,
+  "kmer_warning_count": 0,
+  "overrepresented_sequence_count": 0,
+  "multiqc_sample_count": 3,
+  "multiqc_module_count": 4,
+  "raw_fastqc_dir": null,
+  "trimmed_fastqc_dir": null,
+  "multiqc_report": "multiqc_report.html",
+  "multiqc_data": "multiqc_data",
+  "governed_qc_input_count": 3,
+  "governed_qc_contributor_stage_ids": [
+    "fastq.detect_adapters",
+    "fastq.profile_reads",
+    "fastq.validate_reads"
+  ],
+  "governed_qc_contributor_tool_ids": [
+    "fastqc",
+    "fastqvalidator",
+    "seqkit_stats"
+  ],
+  "governed_qc_contributors": [
+    {
+      "contributor_id": "fastq.detect_adapters.tool.fastqc",
+      "stage_id": "fastq.detect_adapters",
+      "tool_id": "fastqc",
+      "artifact_id": "report_json",
+      "artifact_role": "report_json",
+      "path": "contributors/detect_adapters.report.json"
+    },
+    {
+      "contributor_id": "fastq.profile_reads.tool.seqkit_stats",
+      "stage_id": "fastq.profile_reads",
+      "tool_id": "seqkit_stats",
+      "artifact_id": "qc_json",
+      "artifact_role": "metrics_json",
+      "path": "contributors/profile_reads.qc.json"
+    },
+    {
+      "contributor_id": "fastq.validate_reads.tool.fastqvalidator",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqvalidator",
+      "artifact_id": "report_json",
+      "artifact_role": "report_json",
+      "path": "contributors/validate_reads.report.json"
+    }
+  ],
+  "governed_qc_lineage_hash": "fastq.detect_adapters.tool.fastqc:report_json:report_json=contributors/detect_adapters.report.json|fastq.profile_reads.tool.seqkit_stats:qc_json:metrics_json=contributors/profile_reads.qc.json|fastq.validate_reads.tool.fastqvalidator:report_json:report_json=contributors/validate_reads.report.json",
+  "governed_qc_inputs_manifest": "governed_qc_inputs_manifest.json",
+  "runtime_s": null,
+  "memory_mb": null,
+  "exit_code": null
+}

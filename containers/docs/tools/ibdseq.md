@@ -13,7 +13,7 @@ Purpose: generated per-tool container contract summary.
 
 - Version: `3.0`
 - License: `GPL-3.0`
-- Runtime support: `apptainer`
+- Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 
 ## Known Limitations

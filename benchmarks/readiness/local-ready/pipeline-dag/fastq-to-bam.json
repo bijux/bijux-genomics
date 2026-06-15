@@ -1,0 +1,161 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/fastq-to-bam.toml",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/fastq-to-bam.json",
+  "pipeline_id": "fastq-to-bam",
+  "domain": "cross",
+  "default_corpus_id": "corpus-01-mini",
+  "summary": "Cross-domain FASTQ-to-BAM DAG for governed preprocessing path outputs, BAM alignment, and downstream BAM QC handoffs.",
+  "node_count": 6,
+  "edge_count": 7,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "fastq.validate_reads",
+    "fastq.detect_adapters",
+    "fastq.trim_reads",
+    "bam.align",
+    "bam.qc_pre",
+    "bam.mapping_summary"
+  ],
+  "validation_profiles": [],
+  "nodes": [
+    {
+      "node_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 0,
+      "external_input_count": 1,
+      "upstream_input_count": 0,
+      "output_count": 3,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.raw_fastq_reads"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "validated_reads_r1_path",
+        "validated_reads_r2_path",
+        "validation_report"
+      ]
+    },
+    {
+      "node_id": "fastq.detect_adapters",
+      "stage_id": "fastq.detect_adapters",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validated_reads_r1_path",
+        "validated_reads_r2_path"
+      ],
+      "outputs": [
+        "adapter_report"
+      ]
+    },
+    {
+      "node_id": "fastq.trim_reads",
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 3,
+      "depends_on": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validated_reads_r1_path",
+        "validated_reads_r2_path",
+        "adapter_report"
+      ],
+      "outputs": [
+        "trimmed_reads_r1_path",
+        "trimmed_reads_r2_path",
+        "trim_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.align",
+      "stage_id": "bam.align",
+      "readiness_kind": "dry_or_smoke",
+      "dependency_count": 1,
+      "external_input_count": 3,
+      "upstream_input_count": 2,
+      "output_count": 3,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "external_inputs": [
+        "alignment_reference_fasta_contract",
+        "alignment_reference_index_contract",
+        "alignment_read_group_contract"
+      ],
+      "upstream_inputs": [
+        "trimmed_reads_r1_path",
+        "trimmed_reads_r2_path"
+      ],
+      "outputs": [
+        "align_bam",
+        "align_bai",
+        "align_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.qc_pre",
+      "stage_id": "bam.qc_pre",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 4,
+      "depends_on": [
+        "bam.align"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "align_bam",
+        "align_bai",
+        "align_metrics"
+      ],
+      "outputs": [
+        "qc_pre_flagstat",
+        "qc_pre_idxstats",
+        "qc_pre_stats",
+        "qc_pre_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.mapping_summary",
+      "stage_id": "bam.mapping_summary",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 0,
+      "upstream_input_count": 4,
+      "output_count": 2,
+      "depends_on": [
+        "bam.align",
+        "bam.qc_pre"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "align_bam",
+        "qc_pre_flagstat",
+        "qc_pre_idxstats",
+        "qc_pre_stats"
+      ],
+      "outputs": [
+        "mapping_summary_report_json",
+        "mapping_summary_stage_metrics"
+      ]
+    }
+  ]
+}

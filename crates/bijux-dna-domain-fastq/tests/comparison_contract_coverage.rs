@@ -28,6 +28,8 @@ fn deplete_rrna_exposes_stage_family_comparison_contract() {
             "rrna_report_tsv",
             "rrna_filtered_reads_r1",
             "rrna_filtered_reads_r2",
+            "rrna_removed_reads_r1",
+            "rrna_removed_reads_r2",
         ]
     );
 }
@@ -64,6 +66,8 @@ fn deplete_reference_contaminants_exposes_stage_family_comparison_contract() {
             "contaminant_screen_report_json",
             "contaminant_screened_reads_r1",
             "contaminant_screened_reads_r2",
+            "removed_contaminant_reads_r1",
+            "removed_contaminant_reads_r2",
         ]
     );
 }

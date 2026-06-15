@@ -105,6 +105,101 @@
     }
 
     #[test]
+    fn qc_stage_persists_named_missingness_and_exclusion_rows() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("qc_missingness_input.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n\
+##contig=<ID=chr1,length=1000>\n\
+##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Read depth\">\n\
+##INFO=<ID=INFO,Number=1,Type=Float,Description=\"Imputation info\">\n\
+##INFO=<ID=R2,Number=1,Type=Float,Description=\"Imputation R2\">\n\
+##INFO=<ID=AF,Number=1,Type=Float,Description=\"Allele frequency\">\n\
+##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n\
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tqc_ref\tqc_sparse\tqc_balanced\n\
+chr1\t10\t.\tA\tG\t60\tPASS\tDP=20;INFO=0.95;R2=0.90;AF=0.10\tGT\t0/1\t./.\t0/0\n\
+chr1\t20\t.\tC\tT\t62\tPASS\tDP=18;INFO=0.90;R2=0.88;AF=0.25\tGT\t1/1\t./.\t0/1\n\
+chr1\t30\t.\tG\tA\t59\tLOWQUAL\tDP=16;INFO=0.82;R2=0.80;AF=0.05\tGT\t0/0\t./.\t./.\n\
+chr1\t40\t.\tT\tC\t65\tPASS\tDP=22;INFO=0.93;R2=0.91;AF=0.40\tGT\t0/1\t1/1\t0/1\n",
+        )
+        .unwrap_or_else(|err| panic!("write QC fixture: {err}"));
+        let out = run_qc_stage(
+            &input,
+            dir.path(),
+            &QcStageParams {
+                sample_name: "qc_cohort".to_string(),
+                is_ancient_dna: false,
+                allow_hwe_for_ancient: false,
+                production_profile: false,
+                pre_filter_vcf: None,
+            },
+        )
+        .unwrap_or_else(|err| panic!("run qc stage for exclusion evidence: {err}"));
+
+        let summary_raw = std::fs::read_to_string(&out.qc_summary_json)
+            .unwrap_or_else(|err| panic!("read qc_summary.json: {err}"));
+        let summary: serde_json::Value = serde_json::from_str(&summary_raw)
+            .unwrap_or_else(|err| panic!("parse qc_summary json: {err}"));
+
+        let sample_rows = summary
+            .get("sample_missingness")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| panic!("sample_missingness rows missing"));
+        assert!(sample_rows.iter().any(|row| {
+            row.get("sample_id").and_then(serde_json::Value::as_str) == Some("qc_sparse")
+                && row.get("missingness").and_then(serde_json::Value::as_f64) == Some(0.75)
+        }));
+        assert!(sample_rows.iter().any(|row| {
+            row.get("sample_id").and_then(serde_json::Value::as_str) == Some("qc_balanced")
+                && row.get("missingness").and_then(serde_json::Value::as_f64) == Some(0.25)
+        }));
+
+        let variant_rows = summary
+            .get("variant_missingness")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| panic!("variant_missingness rows missing"));
+        assert!(variant_rows.iter().any(|row| {
+            row.get("variant_id").and_then(serde_json::Value::as_str)
+                == Some("chr1:30:G:A")
+                && row.get("missingness").and_then(serde_json::Value::as_f64)
+                    == Some(2.0 / 3.0)
+        }));
+
+        let excluded_samples = summary
+            .get("excluded_samples")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| panic!("excluded_samples missing"));
+        assert_eq!(excluded_samples.len(), 1);
+        assert_eq!(
+            excluded_samples[0].get("sample_id").and_then(serde_json::Value::as_str),
+            Some("qc_sparse")
+        );
+        assert_eq!(
+            summary
+                .get("sample_missingness_exclusion_threshold")
+                .and_then(serde_json::Value::as_f64),
+            Some(0.5)
+        );
+
+        let excluded_variants = summary
+            .get("excluded_variants")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| panic!("excluded_variants missing"));
+        assert_eq!(excluded_variants.len(), 1);
+        assert_eq!(
+            excluded_variants[0].get("variant_id").and_then(serde_json::Value::as_str),
+            Some("chr1:30:G:A")
+        );
+        assert_eq!(
+            summary
+                .get("variant_missingness_exclusion_threshold")
+                .and_then(serde_json::Value::as_f64),
+            Some(0.5)
+        );
+    }
+
+    #[test]
     fn stats_stage_emits_bcftools_stats_and_json() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
@@ -122,6 +217,39 @@
         assert_eq!(out.metrics.sample_count, 1);
         assert_eq!(out.metrics.missingness_post, Some(0.0));
         assert_eq!(out.metrics.annotation_coverage, Some(1.0));
+    }
+
+    #[test]
+    fn stats_stage_enriches_ti_tv_from_plain_vcf() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("stats_input.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n\
+##contig=<ID=chr1,length=24>\n\
+##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Read depth\">\n\
+##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n\
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\ts2\n\
+chr1\t3\t.\tA\tG\t60\tPASS\tDP=12\tGT\t0/1\t0/0\n\
+chr1\t5\t.\tC\tT\t62\tPASS\tDP=14\tGT\t1/1\t0/1\n\
+chr1\t7\t.\tA\tT\t64\tPASS\tDP=16\tGT\t0/1\t1/1\n\
+chr1\t9\t.\tAT\tA\t58\tPASS\tDP=18\tGT\t0/1\t0/0\n",
+        )
+        .unwrap_or_else(|err| panic!("write input fixture: {err}"));
+        let out = run_stats_stage_real(
+            &input,
+            dir.path(),
+            &bijux_dna_domain_vcf::params::VcfStatsParams {
+                sample_name: "cohort_stats".to_string(),
+                ..bijux_dna_domain_vcf::params::VcfStatsParams::default()
+            },
+        )
+        .unwrap_or_else(|err| panic!("run stats stage for ti/tv fallback: {err}"));
+        assert_eq!(out.metrics.sample_count, 2);
+        assert_eq!(out.metrics.variants_total, 4);
+        assert_eq!(out.metrics.snps, 3);
+        assert_eq!(out.metrics.indels, 1);
+        assert_eq!(out.metrics.ti_tv, Some(2.0));
     }
 
     #[test]

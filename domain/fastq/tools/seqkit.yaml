@@ -19,11 +19,32 @@ command_template:
   - "{{filtered_reads_r1}}"
   - "{{reads_r1}}"
 outputs:
+  - name: "trimmed_reads_r1"
+    data_type: "fastq"
+    cardinality: "One"
+  - name: "trimmed_reads_r2"
+    data_type: "fastq"
+    cardinality: "One"
   - name: "filtered_reads_r1"
     data_type: "fastq"
     cardinality: "One"
   - name: "filtered_reads_r2"
     data_type: "fastq"
+    cardinality: "One"
+  - name: "normalized_abundance_tsv"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "overrepresented_sequences_tsv"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "overrepresented_sequences_json"
+    data_type: "json"
+    cardinality: "One"
+  - name: "qc_json"
+    data_type: "json"
+    cardinality: "One"
+  - name: "qc_tsv"
+    data_type: "tsv"
     cardinality: "One"
   - name: "report_json"
     data_type: "json"
@@ -40,8 +61,15 @@ execution_contract:
   optional_inputs:
     - "reads_r2"
   expected_outputs:
+    - "trimmed_reads_r1"
+    - "trimmed_reads_r2"
     - "filtered_reads_r1"
     - "filtered_reads_r2"
+    - "normalized_abundance_tsv"
+    - "overrepresented_sequences_tsv"
+    - "overrepresented_sequences_json"
+    - "qc_json"
+    - "qc_tsv"
     - "report_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
@@ -59,7 +87,6 @@ stage_ids:
   - "fastq.normalize_abundance"
   - "fastq.trim_terminal_damage"
   - "fastq.profile_overrepresented_sequences"
-planned_stage_ids:
   - "fastq.profile_reads"
 stage_contracts:
   fastq.trim_reads:
@@ -106,10 +133,12 @@ stage_contracts:
   fastq.profile_reads:
     required_inputs:
       - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
       - "qc_json"
       - "qc_tsv"
-    notes: "planned seqkit read profiling emits governed qc_json and qc_tsv artifacts without mutating reads."
+    notes: "seqkit read profiling retains the backend stats invocation while publishing the governed qc_json and qc_tsv profile artifacts without mutating reads."
 expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"

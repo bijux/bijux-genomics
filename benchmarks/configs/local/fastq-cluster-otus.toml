@@ -1,0 +1,9 @@
+schema_version = "bijux.bench.fastq.local_cluster_otus.v1"
+tool_id = "vsearch"
+threads = 1
+otu_identity = 0.97
+output_dir = "runs/bench/local-smoke/fastq.cluster_otus"
+
+[[cases]]
+sample_id = "corpus-03-otu-cluster-se"
+reads = "assets/toy/corpus-03-amplicon-mini/fastq/merged_amplicon_reads.fastq"

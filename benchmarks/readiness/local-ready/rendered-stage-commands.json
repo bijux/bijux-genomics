@@ -1,0 +1,3300 @@
+{
+  "schema_version": "bijux.bench.local_stage_commands.v3",
+  "script_output_path": "benchmarks/readiness/local-ready/rendered-stage-commands.sh",
+  "manifest_output_path": "benchmarks/readiness/local-ready/rendered-stage-commands.json",
+  "argv_output_path": "benchmarks/readiness/local-ready/rendered-stage-commands.argv.jsonl",
+  "command_count": 51,
+  "commands": [
+    {
+      "stage_id": "fastq.index_reference",
+      "readiness_kind": "dry_run",
+      "tool_id": "bowtie2_build",
+      "inputs": [
+        {
+          "artifact_id": "reference_fasta",
+          "path": "assets/reference/contaminants/references/phix174.fasta",
+          "role": "reference",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "reference_index",
+          "path": "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "benchmarks/readiness/local-ready/fastq.index_reference/index_reference_report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.index_reference"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.index_reference"
+    },
+    {
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "tool_id": "fastqvalidator",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "assets/toy/core-v1/fastq/reads_1.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "assets/toy/core-v1/fastq/reads_2.fastq",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "validated_reads_manifest",
+          "path": "runs/bench/local-smoke/fastq.validate_reads/toy-pe/fastqvalidator/validated_reads_manifest.json",
+          "role": "stage_report",
+          "optional": false
+        },
+        {
+          "artifact_id": "validated_reads_manifest",
+          "path": "runs/bench/local-smoke/fastq.validate_reads/toy-se/fastqvalidator/validated_reads_manifest.json",
+          "role": "stage_report",
+          "optional": false
+        },
+        {
+          "artifact_id": "validation_report",
+          "path": "runs/bench/local-smoke/fastq.validate_reads/toy-pe/fastqvalidator/validation.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "validation_report",
+          "path": "runs/bench/local-smoke/fastq.validate_reads/toy-se/fastqvalidator/validation.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.validate_reads"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.validate_reads"
+    },
+    {
+      "stage_id": "fastq.profile_read_lengths",
+      "readiness_kind": "smoke",
+      "tool_id": "seqkit_stats",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "assets/toy/core-v1/fastq/reads_1.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "assets/toy/core-v1/fastq/reads_2.fastq",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "length_distribution_json",
+          "path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "length_distribution_json",
+          "path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "length_distribution_tsv",
+          "path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/length_distribution.tsv",
+          "role": "summary_tsv",
+          "optional": false
+        },
+        {
+          "artifact_id": "length_distribution_tsv",
+          "path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/length_distribution.tsv",
+          "role": "summary_tsv",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit_stats/profile_read_lengths_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 2048,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.profile_read_lengths"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.profile_read_lengths"
+    },
+    {
+      "stage_id": "fastq.detect_adapters",
+      "readiness_kind": "smoke",
+      "tool_id": "fastqc",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_adapter_hit_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "adapter_evidence_dir",
+          "path": "runs/bench/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc/fastqc",
+          "role": "stage_report",
+          "optional": true
+        },
+        {
+          "artifact_id": "adapter_evidence_dir",
+          "path": "runs/bench/local-smoke/fastq.detect_adapters/adapter-hit-se/fastqc/fastqc",
+          "role": "stage_report",
+          "optional": true
+        },
+        {
+          "artifact_id": "adapter_report",
+          "path": "runs/bench/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc/adapter_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "adapter_report",
+          "path": "runs/bench/local-smoke/fastq.detect_adapters/adapter-hit-se/fastqc/adapter_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc/adapter_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.detect_adapters/adapter-hit-se/fastqc/adapter_report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.detect_adapters"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.detect_adapters"
+    },
+    {
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "readiness_kind": "smoke",
+      "tool_id": "bijux_dna",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "duplicate_signal_report",
+          "path": "runs/bench/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_distinct_pairs/bijux_dna/duplicate_signal_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "duplicate_signal_report",
+          "path": "runs/bench/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_duplicate_signals/bijux_dna/duplicate_signal_report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.detect_duplicates_premerge"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.detect_duplicates_premerge"
+    },
+    {
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "readiness_kind": "smoke",
+      "tool_id": "bijux_dna",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "library_complexity_report",
+          "path": "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_distinct_pairs/bijux_dna/library_complexity_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "library_complexity_report",
+          "path": "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_duplicate_signals/bijux_dna/library_complexity_report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.estimate_library_complexity_prealign"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.estimate_library_complexity_prealign"
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "readiness_kind": "smoke",
+      "tool_id": "cutadapt",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "raw_backend_report_json",
+          "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.raw.json",
+          "role": "report_json",
+          "optional": true
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "trimmed_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
+          "role": "trimmed_reads",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.trim_terminal_damage"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.trim_terminal_damage"
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
+      "readiness_kind": "smoke",
+      "tool_id": "cutadapt",
+      "inputs": [
+        {
+          "artifact_id": "primer_fasta",
+          "path": "assets/reference/primers/16S_universal_v1.fasta",
+          "role": "reference",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r1",
+          "path": "assets/toy/core-v1/fastq/reads_with_primers.fastq",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "normalized_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_normalized.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "primer_orientation_report",
+          "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_orientation.tsv",
+          "role": "summary_tsv",
+          "optional": false
+        },
+        {
+          "artifact_id": "primer_stats_json",
+          "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_stats.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/normalize_primers_report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.normalize_primers"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.normalize_primers"
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "readiness_kind": "smoke",
+      "tool_id": "fastp",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_polyg_trim_signals_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "raw_backend_report_json",
+          "path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.fastp.json",
+          "role": "report_json",
+          "optional": true
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "trimmed_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/polyg.fastp.fastq.gz",
+          "role": "trimmed_reads",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.trim_polyg_tails"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.trim_polyg_tails"
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "tool_id": "fastp",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "assets/toy/core-v1/fastq/reads_with_trim_signals.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r1",
+          "path": "assets/toy/core-v1/fastq/reads_with_trim_signals_R1.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "assets/toy/core-v1/fastq/reads_with_trim_signals_R2.fastq",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "raw_backend_report_json",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.fastp.json",
+          "role": "report_json",
+          "optional": true
+        },
+        {
+          "artifact_id": "raw_backend_report_json",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.fastp.json",
+          "role": "report_json",
+          "optional": true
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "trimmed_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
+          "role": "trimmed_reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "trimmed_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
+          "role": "trimmed_reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "trimmed_reads_r2",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
+          "role": "trimmed_reads",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.trim_reads"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.trim_reads"
+    },
+    {
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "tool_id": "fastp",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "filtered_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/fastp.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/filter_report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.filter_reads"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.filter_reads"
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "readiness_kind": "smoke",
+      "tool_id": "seqkit_stats",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "assets/toy/core-v1/fastq/reads_1.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "assets/toy/core-v1/fastq/reads_2.fastq",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "qc_json",
+          "path": "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/qc.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "qc_json",
+          "path": "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/qc.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "qc_plots_dir",
+          "path": "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/plots",
+          "role": "index",
+          "optional": true
+        },
+        {
+          "artifact_id": "qc_plots_dir",
+          "path": "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/plots",
+          "role": "index",
+          "optional": true
+        },
+        {
+          "artifact_id": "qc_tsv",
+          "path": "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/qc.tsv",
+          "role": "summary_tsv",
+          "optional": false
+        },
+        {
+          "artifact_id": "qc_tsv",
+          "path": "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/qc.tsv",
+          "role": "summary_tsv",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 2048,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.profile_reads"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.profile_reads"
+    },
+    {
+      "stage_id": "fastq.deplete_rrna",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "sortmerna",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "assets/toy/core-v1/fastq/reads_1.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "rrna_reference",
+          "path": "assets/reference/rrna/references/sortmerna_common_rrna_reference.fasta",
+          "role": "reference",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "rrna_filtered_reads_r1",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "rrna_removed_reads_r1",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "rrna_report_json",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "rrna_report_tsv",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.tsv",
+          "role": "summary_tsv",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.deplete_rrna"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.deplete_rrna"
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "readiness_kind": "smoke",
+      "tool_id": "pear",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_merge_overlap_R2.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "merged_reads",
+          "path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.assembled.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "raw_backend_report_txt",
+          "path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.log",
+          "role": "log",
+          "optional": true
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/merge_report.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "unmerged_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.unassembled.forward.fastq",
+          "role": "reads",
+          "optional": true
+        },
+        {
+          "artifact_id": "unmerged_reads_r2",
+          "path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.unassembled.reverse.fastq",
+          "role": "reads",
+          "optional": true
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.merge_pairs"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.merge_pairs"
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "readiness_kind": "smoke",
+      "tool_id": "clumpify",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "dedup_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "dedup_reads_r2",
+          "path": "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R2.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "duplicate_classes_tsv",
+          "path": "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_classes.tsv",
+          "role": "summary_tsv",
+          "optional": false
+        },
+        {
+          "artifact_id": "duplicate_provenance_json",
+          "path": "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_provenance.json",
+          "role": "summary_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/deduplicate_report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.remove_duplicates"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.remove_duplicates"
+    },
+    {
+      "stage_id": "fastq.filter_low_complexity",
+      "readiness_kind": "smoke",
+      "tool_id": "bbduk",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "filter_report_json",
+          "path": "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/low_complexity_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "filtered_fastq_r1",
+          "path": "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.filter_low_complexity"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.filter_low_complexity"
+    },
+    {
+      "stage_id": "fastq.deplete_host",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "bowtie2",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "assets/toy/core-v1/fastq/reads_1.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference_index",
+          "path": "assets/reference/host/references/toy_host_reference",
+          "role": "index",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "host_depleted_reads_r1",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "host_depletion_report_json",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_host/host_depletion_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "removed_host_reads_r1",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.deplete_host"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.deplete_host"
+    },
+    {
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "bowtie2",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "assets/toy/core-v1/fastq/reads_1.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference_index",
+          "path": "assets/reference/contaminants/references/toy_contaminant_reference",
+          "role": "index",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "contaminant_screen_report_json",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screen_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "contaminant_screened_reads_r1",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.deplete_reference_contaminants"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.deplete_reference_contaminants"
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "rcorrector",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "assets/toy/core-v1/fastq/reads_1.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "assets/toy/core-v1/fastq/reads_2.fastq",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "corrected_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "corrected_reads_r2",
+          "path": "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r2.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/correct_report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.correct_errors"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.correct_errors"
+    },
+    {
+      "stage_id": "fastq.extract_umis",
+      "readiness_kind": "smoke",
+      "tool_id": "umi_tools",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_umi_prefix_signals_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_umi_prefix_signals_R2.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "umi_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_tagged_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "umi_reads_r2",
+          "path": "runs/bench/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_tagged_R2.fastq.gz",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 4096,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.extract_umis"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.extract_umis"
+    },
+    {
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "readiness_kind": "smoke",
+      "tool_id": "seqkit",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "assets/toy/core-v1/fastq/reads_with_overrepresented_sequences.fastq",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "overrepresented_sequences_json",
+          "path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit/overrepresented_sequences.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "overrepresented_sequences_tsv",
+          "path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit/overrepresented_sequences.tsv",
+          "role": "summary_tsv",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit/overrepresented_report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 4096,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.profile_overrepresented_sequences"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.profile_overrepresented_sequences"
+    },
+    {
+      "stage_id": "fastq.report_qc",
+      "readiness_kind": "smoke",
+      "tool_id": "multiqc",
+      "inputs": [
+        {
+          "artifact_id": "fastq.detect_adapters.tool.fastqc.report_json",
+          "path": "assets/toy/core-v1/fastq/report_qc/contributors/detect_adapters.report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "fastq.profile_reads.tool.seqkit_stats.qc_json",
+          "path": "assets/toy/core-v1/fastq/report_qc/contributors/profile_reads.qc.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "fastq.validate_reads.tool.fastqvalidator.report_json",
+          "path": "assets/toy/core-v1/fastq/report_qc/contributors/validate_reads.report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "governed_qc_inputs_manifest",
+          "path": "runs/bench/local-smoke/fastq.report_qc/governed_qc_inputs_manifest.json",
+          "role": "summary_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "multiqc_data",
+          "path": "runs/bench/local-smoke/fastq.report_qc/multiqc_data",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "multiqc_report",
+          "path": "runs/bench/local-smoke/fastq.report_qc/multiqc_report.html",
+          "role": "report_html",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.report_qc/report_qc_report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 4096,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.report_qc"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.report_qc"
+    },
+    {
+      "stage_id": "fastq.remove_chimeras",
+      "readiness_kind": "smoke",
+      "tool_id": "vsearch",
+      "inputs": [
+        {
+          "artifact_id": "reads",
+          "path": "assets/toy/corpus-03-amplicon-mini/fastq/merged_amplicon_reads.fastq",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "chimera_filtered_reads",
+          "path": "runs/bench/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/nonchimeras.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "chimera_metrics_json",
+          "path": "runs/bench/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/chimera_metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "chimeras_fasta",
+          "path": "runs/bench/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/chimeras.fasta",
+          "role": "reads",
+          "optional": true
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/remove_chimeras_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "uchime_report_tsv",
+          "path": "runs/bench/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/uchime.tsv",
+          "role": "summary_tsv",
+          "optional": true
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.remove_chimeras"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.remove_chimeras"
+    },
+    {
+      "stage_id": "fastq.infer_asvs",
+      "readiness_kind": "smoke",
+      "tool_id": "dada2",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "assets/toy/corpus-03-amplicon-mini/fastq/merged_amplicon_reads.fastq",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "asv_sequences_fasta",
+          "path": "runs/bench/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/asv_sequences.fasta",
+          "role": "reference",
+          "optional": false
+        },
+        {
+          "artifact_id": "asv_table_tsv",
+          "path": "runs/bench/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/asv_abundance.tsv",
+          "role": "summary_tsv",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/infer_asvs_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "taxonomy_ready_fasta",
+          "path": "runs/bench/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/taxonomy_ready.fasta",
+          "role": "reference",
+          "optional": false
+        },
+        {
+          "artifact_id": "taxonomy_ready_fastq",
+          "path": "runs/bench/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/taxonomy_ready.fastq",
+          "role": "reference",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 16384,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.infer_asvs"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.infer_asvs"
+    },
+    {
+      "stage_id": "fastq.cluster_otus",
+      "readiness_kind": "smoke",
+      "tool_id": "vsearch",
+      "inputs": [
+        {
+          "artifact_id": "reads",
+          "path": "assets/toy/corpus-03-amplicon-mini/fastq/merged_amplicon_reads.fastq",
+          "role": "reads",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "otu_representatives",
+          "path": "runs/bench/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/otu_representatives.fasta",
+          "role": "reference",
+          "optional": false
+        },
+        {
+          "artifact_id": "otu_table",
+          "path": "runs/bench/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/otu_abundance.tsv",
+          "role": "summary_tsv",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/cluster_otus_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "taxonomy_ready_fasta",
+          "path": "runs/bench/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fasta",
+          "role": "reference",
+          "optional": false
+        },
+        {
+          "artifact_id": "taxonomy_ready_fastq",
+          "path": "runs/bench/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fastq",
+          "role": "reference",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.cluster_otus"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.cluster_otus"
+    },
+    {
+      "stage_id": "fastq.normalize_abundance",
+      "readiness_kind": "smoke",
+      "tool_id": "seqkit",
+      "inputs": [
+        {
+          "artifact_id": "abundance_table",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv",
+          "role": "summary_tsv",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "normalized_abundance_tsv",
+          "path": "runs/bench/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit/abundance_normalized.tsv",
+          "role": "summary_tsv",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit/normalize_abundance_report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 1,
+      "memory_mb": 4096,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.normalize_abundance"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.normalize_abundance"
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "kraken2",
+      "inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "path": "assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "taxonomy_database_root",
+          "path": "assets/reference/taxonomy/references/mock_community_taxonomy",
+          "role": "reference",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "classification_report_json",
+          "path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "screen_report_tsv",
+          "path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv",
+          "role": "summary_tsv",
+          "optional": false
+        },
+        {
+          "artifact_id": "unclassified_reads_r1",
+          "path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq",
+          "role": "reads",
+          "optional": true
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 16384,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "fastq.screen_taxonomy"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id fastq.screen_taxonomy"
+    },
+    {
+      "stage_id": "bam.align",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "bowtie2",
+      "inputs": [
+        {
+          "artifact_id": "fastq_r1",
+          "path": "assets/toy/core-v1/fastq/reads_1.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "fastq_r2",
+          "path": "assets/toy/core-v1/fastq/reads_2.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference",
+          "path": "assets/reference/host/references/toy_host_reference.fasta",
+          "role": "reference",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference_dict",
+          "path": "assets/reference/host/references/toy_host_reference.dict",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference_fai",
+          "path": "assets/reference/host/references/toy_host_reference.fasta.fai",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference_index",
+          "path": "assets/reference/host/references/toy_host_reference",
+          "role": "index",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "align_bai",
+          "path": "benchmarks/readiness/local-ready/bam.align/align.bam.bai",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "align_bam",
+          "path": "benchmarks/readiness/local-ready/bam.align/align.bam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "align_metrics",
+          "path": "benchmarks/readiness/local-ready/bam.align/align.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "flagstat",
+          "path": "benchmarks/readiness/local-ready/bam.align/flagstat.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "idxstats",
+          "path": "benchmarks/readiness/local-ready/bam.align/idxstats.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "benchmarks/readiness/local-ready/bam.align/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stats",
+          "path": "benchmarks/readiness/local-ready/bam.align/samtools_stats.txt",
+          "role": "unknown",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.align"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.align"
+    },
+    {
+      "stage_id": "bam.authenticity",
+      "readiness_kind": "smoke",
+      "tool_id": "authenticct",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "authenticity_report",
+          "path": "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.authenticity"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.authenticity"
+    },
+    {
+      "stage_id": "bam.bias_mitigation",
+      "readiness_kind": "smoke",
+      "tool_id": "mapdamage2",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
+          "role": "reference",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "bias_report",
+          "path": "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.bias_mitigation"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.bias_mitigation"
+    },
+    {
+      "stage_id": "bam.complexity",
+      "readiness_kind": "smoke",
+      "tool_id": "preseq",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_complexity_projection.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "complexity_curve",
+          "path": "runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity_curve.tsv",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "complexity_report",
+          "path": "runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.complexity"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.complexity"
+    },
+    {
+      "stage_id": "bam.contamination",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "verifybamid2",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "bam_bai",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam.bai",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+          "role": "reference",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference_panel",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat",
+          "role": "reference",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "contamination_report",
+          "path": "benchmarks/readiness/local-ready/bam.contamination/contamination.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "benchmarks/readiness/local-ready/bam.contamination/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.contamination"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.contamination"
+    },
+    {
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_target_window_coverage.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "coverage_depth",
+          "path": "runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.depth.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "coverage_summary",
+          "path": "runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.mosdepth.summary.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.coverage"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.coverage"
+    },
+    {
+      "stage_id": "bam.damage",
+      "readiness_kind": "smoke",
+      "tool_id": "ngsbriggs",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "damage_report",
+          "path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "parser_output",
+          "path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "terminal_position_metrics",
+          "path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.damage"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.damage"
+    },
+    {
+      "stage_id": "bam.duplication_metrics",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "duplication_histogram",
+          "path": "runs/bench/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/duplication.histogram.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "duplication_report",
+          "path": "runs/bench/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/duplication.metrics.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/duplication.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.duplication_metrics"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.duplication_metrics"
+    },
+    {
+      "stage_id": "bam.endogenous_content",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "endogenous_report",
+          "path": "runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.content.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.endogenous_content"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.endogenous_content"
+    },
+    {
+      "stage_id": "bam.filter",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "samtools",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "filtered_bai",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filtered.bam.bai",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "filtered_bam",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filtered.bam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "flagstat_after",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/flagstat.after.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "flagstat_before",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/flagstat.before.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "idxstats_after",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/idxstats.after.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "idxstats_before",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/idxstats.before.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filter.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.filter"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.filter"
+    },
+    {
+      "stage_id": "bam.gc_bias",
+      "readiness_kind": "smoke",
+      "tool_id": "picard",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
+          "role": "reference",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "gc_bias_plot",
+          "path": "runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.plot.pdf",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "gc_bias_report",
+          "path": "runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.metrics.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.gc_bias"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.gc_bias"
+    },
+    {
+      "stage_id": "bam.genotyping",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "angsd",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "bam_bai",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+          "role": "reference",
+          "optional": false
+        },
+        {
+          "artifact_id": "regions",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt",
+          "role": "reference",
+          "optional": false
+        },
+        {
+          "artifact_id": "sites",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+          "role": "variant",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "genotyping_bcf",
+          "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf",
+          "role": "variant",
+          "optional": true
+        },
+        {
+          "artifact_id": "genotyping_gl",
+          "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.gl.json",
+          "role": "report_json",
+          "optional": true
+        },
+        {
+          "artifact_id": "genotyping_report",
+          "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "genotyping_vcf",
+          "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz",
+          "role": "variant",
+          "optional": true
+        },
+        {
+          "artifact_id": "genotyping_vcf_tbi",
+          "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz.tbi",
+          "role": "index",
+          "optional": true
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "benchmarks/readiness/local-ready/bam.genotyping/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.genotyping"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.genotyping"
+    },
+    {
+      "stage_id": "bam.haplogroups",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "yleaf",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "bam_bai",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+          "role": "reference",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference_panel",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
+          "role": "reference",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "haplogroups",
+          "path": "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.json",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "benchmarks/readiness/local-ready/bam.haplogroups/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 8192,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.haplogroups"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.haplogroups"
+    },
+    {
+      "stage_id": "bam.insert_size",
+      "readiness_kind": "smoke",
+      "tool_id": "picard",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "insert_size_histogram",
+          "path": "runs/bench/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/insert_size.histogram.pdf",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "insert_size_report",
+          "path": "runs/bench/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/insert_size.metrics.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/insert_size.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.insert_size"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.insert_size"
+    },
+    {
+      "stage_id": "bam.kinship",
+      "readiness_kind": "smoke",
+      "tool_id": "king",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "kinship_report",
+          "path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "kinship_report",
+          "path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.summary.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.kinship"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.kinship"
+    },
+    {
+      "stage_id": "bam.length_filter",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_length_threshold_ladder.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "filtered_bai",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/filtered.bam.bai",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "filtered_bam",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/filtered.bam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "flagstat_after",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/flagstat.after.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "flagstat_before",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/flagstat.before.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "idxstats_after",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/idxstats.after.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "idxstats_before",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/idxstats.before.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/length_filter.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.length_filter"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.length_filter"
+    },
+    {
+      "stage_id": "bam.mapping_summary",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "flagstat",
+          "path": "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/flagstat.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "idxstats",
+          "path": "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/idxstats.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stats",
+          "path": "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/samtools_stats.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/mapping.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.mapping_summary"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.mapping_summary"
+    },
+    {
+      "stage_id": "bam.mapq_filter",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "filtered_bai",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/filtered.bam.bai",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "filtered_bam",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/filtered.bam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "flagstat_after",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/flagstat.after.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "flagstat_before",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/flagstat.before.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "idxstats_after",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/idxstats.after.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "idxstats_before",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/idxstats.before.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/mapq_filter.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.mapq_filter"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.mapq_filter"
+    },
+    {
+      "stage_id": "bam.markdup",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "flagstat_after",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/flagstat.after.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "flagstat_before",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/flagstat.before.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "idxstats_after",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/idxstats.after.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "idxstats_before",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/idxstats.before.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "markdup_bai",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.bam.bai",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "markdup_bam",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.bam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.markdup"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.markdup"
+    },
+    {
+      "stage_id": "bam.overlap_correction",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "bamutil",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_paired_overlap_control.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "flagstat_after",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/flagstat.after.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "flagstat_before",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/flagstat.before.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "idxstats_after",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/idxstats.after.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "idxstats_before",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/idxstats.before.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "overlap_corrected_bai",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/overlap.corrected.bam.bai",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "overlap_corrected_bam",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/overlap.corrected.bam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/overlap_correction.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.overlap_correction"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.overlap_correction"
+    },
+    {
+      "stage_id": "bam.qc_pre",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_flagged_multicontig.sam",
+          "role": "bam",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "flagstat",
+          "path": "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/flagstat.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "idxstats",
+          "path": "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/idxstats.txt",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stats",
+          "path": "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/samtools_stats.txt",
+          "role": "unknown",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.qc_pre"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.qc_pre"
+    },
+    {
+      "stage_id": "bam.recalibration",
+      "readiness_kind": "smoke",
+      "tool_id": "gatk",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+          "role": "reference",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "recal_bai",
+          "path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.bam.bai",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "recal_bam",
+          "path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.bam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "recal_report",
+          "path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.report.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.recalibration"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.recalibration"
+    },
+    {
+      "stage_id": "bam.sex",
+      "readiness_kind": "smoke",
+      "tool_id": "rxy",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_xy_autosome_coverage.sam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+          "role": "reference",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "sex_report",
+          "path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "summary",
+          "path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.summary.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 2,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.sex"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.sex"
+    },
+    {
+      "stage_id": "bam.validate",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "inputs": [
+        {
+          "artifact_id": "bam",
+          "path": "assets/toy/core-v1/bam/validation_malformed.bam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "bam",
+          "path": "assets/toy/core-v1/bam/validation_pass.bam",
+          "role": "bam",
+          "optional": false
+        },
+        {
+          "artifact_id": "bam_bai",
+          "path": "assets/toy/core-v1/bam/validation_pass.bam.bai",
+          "role": "index",
+          "optional": false
+        },
+        {
+          "artifact_id": "reference",
+          "path": "assets/toy/core-v1/bam/validation_reference.fasta",
+          "role": "reference",
+          "optional": false
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_id": "flagstat",
+          "path": "runs/bench/local-smoke/bam.validate/core-v1-coordinate-pass/samtools/flagstat.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "flagstat",
+          "path": "runs/bench/local-smoke/bam.validate/core-v1-malformed-refusal/samtools/flagstat.txt",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.validate/core-v1-coordinate-pass/samtools/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "path": "runs/bench/local-smoke/bam.validate/core-v1-malformed-refusal/samtools/stage.metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "validation_report",
+          "path": "runs/bench/local-smoke/bam.validate/core-v1-coordinate-pass/samtools/validation.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "validation_report",
+          "path": "runs/bench/local-smoke/bam.validate/core-v1-malformed-refusal/samtools/validation.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ],
+      "threads": 4,
+      "memory_mb": 1024,
+      "argv": [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--features",
+        "bam_downstream",
+        "--",
+        "bench",
+        "local",
+        "materialize-stage",
+        "--stage-id",
+        "bam.validate"
+      ],
+      "command": "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.validate"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-schema_version: "bijux.stage.v1"
+extends: "_schema.yaml"
 stage_id: "bam.validate"
 status: "supported"
 scope: "pre_hpc_pre_vcf"
@@ -7,34 +7,54 @@ inputs:
   - name: "bam"
     data_type: "bam"
     cardinality: "One"
+  - name: "bam_index"
+    data_type: "bai"
+    cardinality: "One"
+  - name: "reference_fasta"
+    data_type: "fasta"
+    cardinality: "One"
 outputs:
-  - name: "report_json"
+  - name: "validation_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "flagstat"
+    data_type: "text"
+    cardinality: "One"
+  - name: "stage_metrics"
     data_type: "json"
     cardinality: "One"
 parameters: []
 metrics:
-  - name: "runtime_s"
-    meaning: "Wall-clock runtime in seconds"
-  - name: "memory_mb"
-    meaning: "Peak memory usage in MB"
-description: "Stub BAM validation stage."
-required_inputs: []
-required_outputs: []
-tool_capability_requirements: []
+  - name: "validation_status"
+    meaning: "Governed validation outcome for the input BAM"
+  - name: "validation_errors"
+    meaning: "Deterministic refusal codes emitted when validation fails"
+  - name: "validation_warnings"
+    meaning: "Non-fatal validation findings reserved for future warning-grade checks"
+  - name: "input_bam_identity"
+    meaning: "Governed input BAM identity payload preserved for cross-tool validation comparison"
+description: "BAM validation contract for governed benchmark diagnostics and identity tracking."
+required_inputs:
+  - bam
+required_outputs:
+  - validation_report
+  - flagstat
+  - stage_metrics
+tool_capability_requirements:
+  - bam_input
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
 allowed_missingness:
   - "none"
-  - "stable_artifact_contract"
-  - "deterministic_output_order"
 compatible_tools:
   - samtools
   - bedtools
   - bamtools
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "default stage assumptions captured"
+  - "bam_index and reference_fasta are optional inputs that enrich validation identity when present"
+  - "governed fixtures currently emit refusal codes as errors and no warning-grade findings"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"

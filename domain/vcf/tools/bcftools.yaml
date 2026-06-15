@@ -8,13 +8,14 @@ stage_ids:
   - "vcf.damage_filter"
   - "vcf.gl_propagation"
   - "vcf.filter"
+  - "vcf.qc"
   - "vcf.stats"
 planned_stage_ids:
   - "vcf.admixture"
-  - "vcf.imputation"
+  - "vcf.imputation_metrics"
   - "vcf.pca"
-  - "vcf.phasing"
-  - "vcf.qc"
+  - "vcf.postprocess"
+  - "vcf.prepare_reference_panel"
 role: "analysis"
 authoritative: true
 strict_capable: true

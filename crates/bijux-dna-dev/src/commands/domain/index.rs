@@ -30,6 +30,12 @@ struct ExecutionSupportEntry {
     admitted_tools: Vec<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct VcfDefaultEntry {
+    default_tool: String,
+    rationale: String,
+}
+
 pub(super) fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<String> {
     let dom_dir = workspace.path(&format!("domain/{dom}"));
     let index_path = dom_dir.join("index.yaml");
@@ -137,6 +143,19 @@ pub(super) fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<St
             "stage_output_size_estimates_mb",
             render_stage_output_size_estimates_block(&dom_dir, &existing)?,
             Some("stage_resource_hints"),
+        )?;
+    } else if dom == "vcf" {
+        replace_or_insert_block(
+            &mut body_lines,
+            "active_defaults",
+            render_vcf_active_defaults_block(&dom_dir, &governed_stage_ids)?,
+            Some("reference_index_compatibility"),
+        )?;
+        replace_or_insert_block(
+            &mut body_lines,
+            "active_default_rationale",
+            render_vcf_active_default_rationale_block(&dom_dir, &governed_stage_ids)?,
+            Some("active_defaults"),
         )?;
     }
 
@@ -246,6 +265,76 @@ fn render_active_defaults_block(dom_dir: &Path) -> Result<Vec<String>> {
             .collect());
     }
     Ok(Vec::new())
+}
+
+fn render_vcf_active_defaults_block(
+    dom_dir: &Path,
+    governed_stage_ids: &BTreeSet<String>,
+) -> Result<Vec<String>> {
+    Ok(parse_vcf_default_settings_entries(dom_dir, governed_stage_ids)?
+        .into_iter()
+        .map(|(stage_id, entry)| format!("  {stage_id}: \"{}\"", entry.default_tool))
+        .collect())
+}
+
+fn render_vcf_active_default_rationale_block(
+    dom_dir: &Path,
+    governed_stage_ids: &BTreeSet<String>,
+) -> Result<Vec<String>> {
+    Ok(parse_vcf_default_settings_entries(dom_dir, governed_stage_ids)?
+        .into_iter()
+        .map(|(stage_id, entry)| format!("  {stage_id}: \"{}\"", entry.rationale.replace('"', "'")))
+        .collect())
+}
+
+fn parse_vcf_default_settings_entries(
+    dom_dir: &Path,
+    governed_stage_ids: &BTreeSet<String>,
+) -> Result<BTreeMap<String, VcfDefaultEntry>> {
+    let settings_path = dom_dir.join("docs").join("DEFAULT_SETTINGS.md");
+    let text = read_utf8(&settings_path)?;
+    let line_re = regex(
+        r"^- `(?P<stage_id>[^`]+)` default: `(?P<tool_id>[^`]+)`(?: \([^)]+\))?\. rationale: (?P<rationale>.+)$",
+    )?;
+    let mut entries = BTreeMap::new();
+
+    for line in text.lines() {
+        let Some(captures) = line_re.captures(line.trim()) else {
+            continue;
+        };
+        let Some(stage_id) =
+            captures.name("stage_id").map(|value| value.as_str().trim().to_string())
+        else {
+            continue;
+        };
+        if !governed_stage_ids.contains(&stage_id) {
+            continue;
+        }
+        let tool_id =
+            captures.name("tool_id").map(|value| value.as_str().trim().to_string()).ok_or_else(
+                || anyhow!("{}: missing tool id for {}", settings_path.display(), stage_id),
+            )?;
+        let rationale =
+            captures.name("rationale").map(|value| value.as_str().trim().to_string()).ok_or_else(
+                || anyhow!("{}: missing rationale for {}", settings_path.display(), stage_id),
+            )?;
+        entries.insert(stage_id, VcfDefaultEntry { default_tool: tool_id, rationale });
+    }
+
+    let missing = governed_stage_ids
+        .iter()
+        .filter(|stage_id| !entries.contains_key(*stage_id))
+        .cloned()
+        .collect::<Vec<_>>();
+    if !missing.is_empty() {
+        bail!(
+            "{}: missing active default entries for supported VCF stages: {}",
+            settings_path.display(),
+            missing.join(", ")
+        );
+    }
+
+    Ok(entries)
 }
 
 fn render_pipeline_compositions_block(dom: &str) -> Vec<String> {
@@ -718,4 +807,47 @@ pub(super) fn generate_index(
         stdout.push('\n');
     }
     Ok(DomainCommandOutcome::success(stdout))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_vcf_default_settings_entries_filters_to_supported_vcf_stages() {
+        let temp = tempfile::tempdir().unwrap_or_else(|error| panic!("create tempdir: {error}"));
+        let dom_dir = temp.path().join("vcf");
+        std::fs::create_dir_all(dom_dir.join("docs"))
+            .unwrap_or_else(|error| panic!("create docs dir: {error}"));
+        std::fs::write(
+            dom_dir.join("docs/DEFAULT_SETTINGS.md"),
+            "## Blessed Defaults And Rationale\n\
+- `vcf.phasing` default: `shapeit5`. rationale: phasing stays on the governed dedicated backend.\n\
+- `vcf.imputation_metrics` default: `beagle`. rationale: imputation metrics stay anchored to the governed panel-aware backend.\n\
+- `vcf.pca` default: `plink2` (planned). rationale: planned population structure tooling remains comparative.\n",
+        )
+        .unwrap_or_else(|error| panic!("write settings doc: {error}"));
+
+        let supported =
+            BTreeSet::from(["vcf.phasing".to_string(), "vcf.imputation_metrics".to_string()]);
+        let entries = parse_vcf_default_settings_entries(&dom_dir, &supported)
+            .unwrap_or_else(|error| panic!("parse VCF defaults: {error}"));
+
+        assert_eq!(
+            entries.get("vcf.phasing"),
+            Some(&VcfDefaultEntry {
+                default_tool: "shapeit5".to_string(),
+                rationale: "phasing stays on the governed dedicated backend.".to_string(),
+            })
+        );
+        assert_eq!(
+            entries.get("vcf.imputation_metrics"),
+            Some(&VcfDefaultEntry {
+                default_tool: "beagle".to_string(),
+                rationale: "imputation metrics stay anchored to the governed panel-aware backend."
+                    .to_string(),
+            })
+        );
+        assert!(!entries.contains_key("vcf.pca"));
+    }
 }

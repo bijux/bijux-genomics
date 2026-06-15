@@ -38,6 +38,12 @@
         "role": "report_json"
       },
       {
+        "name": "coverage_depth",
+        "optional": false,
+        "path": "out/coverage.depth.txt",
+        "role": "unknown"
+      },
+      {
         "name": "stage_metrics",
         "optional": false,
         "path": "out/stage.metrics.json",
@@ -60,7 +66,7 @@
   "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "ef1d25b13f1adfd2a5752610aad3ce626bd5e5936b28da60140af049649cbc67",
+      "contract_hash": "d5c3144cb9e609c49698ab5042d5a942a61d5e24ee14abeeac331a716ae34fc0",
       "defaults_diff": {},
       "resource_plan": {
         "cpu_threads": 2,

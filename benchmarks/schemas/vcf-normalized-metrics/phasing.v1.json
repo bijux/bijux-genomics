@@ -1,0 +1,64 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.phasing.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "input_genotypes": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "phase_set_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "phased_genotypes": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sample_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.phasing.v1"
+        },
+        "stage_id": {
+          "const": "vcf.phasing"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "unphased_genotypes": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "input_genotypes",
+        "phased_genotypes",
+        "unphased_genotypes",
+        "phase_set_count",
+        "sample_count",
+        "sample_ids"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_phasing_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.phasing`.",
+  "title": "VCF normalized benchmark metrics: vcf.phasing"
+}

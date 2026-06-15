@@ -1,0 +1,12 @@
+@keep-pass
+ACGTACGT
++
+FFFFFFFF
+@drop-too-many-n
+ACGTNNGT
++
+FFFFFFFF
+@drop-low-complexity
+AAAAAAAA
++
+FFFFFFFF

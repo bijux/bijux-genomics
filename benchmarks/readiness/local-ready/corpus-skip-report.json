@@ -1,0 +1,3148 @@
+{
+  "schema_version": "bijux.bench.local_corpus_skip_report.v1",
+  "matrix_path": "benchmarks/configs/local/corpus-stage-compatibility.toml",
+  "output_path": "benchmarks/readiness/local-ready/corpus-skip-report.json",
+  "fixture_count": 8,
+  "stage_count": 51,
+  "skip_count": 343,
+  "asset_backed_stage_count": 1,
+  "planner_only_stage_count": 1,
+  "fixtures": [
+    {
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01"
+    },
+    {
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping"
+    },
+    {
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship"
+    },
+    {
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02"
+    },
+    {
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03"
+    }
+  ],
+  "skips": [
+    {
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_read_lengths",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_read_lengths",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_read_lengths",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_read_lengths",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_read_lengths",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_read_lengths",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_read_lengths",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_adapters",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_adapters",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_adapters",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_adapters",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_adapters",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_adapters",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_adapters",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_rrna",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_rrna",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_rrna",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_rrna",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_rrna",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_rrna",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_rrna",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_low_complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_low_complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_low_complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_low_complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_low_complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_low_complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.filter_low_complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_host",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_host",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_host",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_host",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_host",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_host",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_host",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.extract_umis",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.extract_umis",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.extract_umis",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.extract_umis",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.extract_umis",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.extract_umis",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.extract_umis",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "fastq.remove_chimeras",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.remove_chimeras",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.remove_chimeras",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.remove_chimeras",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.remove_chimeras",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.remove_chimeras",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.remove_chimeras",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.infer_asvs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.infer_asvs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.infer_asvs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.infer_asvs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.infer_asvs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.infer_asvs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.infer_asvs",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.cluster_otus",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.cluster_otus",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.cluster_otus",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.cluster_otus",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.cluster_otus",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.cluster_otus",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.cluster_otus",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.normalize_abundance",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.normalize_abundance",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.normalize_abundance",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.normalize_abundance",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.normalize_abundance",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.normalize_abundance",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.normalize_abundance",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-03-amplicon-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-03-amplicon-mini",
+      "replacement_corpus_family_id": "corpus-03"
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-02-edna-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-02-edna-mini",
+      "replacement_corpus_family_id": "corpus-02"
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-02-edna-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-02-edna-mini",
+      "replacement_corpus_family_id": "corpus-02"
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-02-edna-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-02-edna-mini",
+      "replacement_corpus_family_id": "corpus-02"
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-02-edna-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-02-edna-mini",
+      "replacement_corpus_family_id": "corpus-02"
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-02-edna-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-02-edna-mini",
+      "replacement_corpus_family_id": "corpus-02"
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-02-edna-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-02-edna-mini",
+      "replacement_corpus_family_id": "corpus-02"
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-02-edna-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-02-edna-mini",
+      "replacement_corpus_family_id": "corpus-02"
+    },
+    {
+      "stage_id": "bam.align",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "bam.align",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "bam.align",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "bam.align",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "bam.align",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "bam.align",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "bam.align",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-mini",
+      "replacement_corpus_family_id": "corpus-01"
+    },
+    {
+      "stage_id": "bam.authenticity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.authenticity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.authenticity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.authenticity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.authenticity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.authenticity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.authenticity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.bias_mitigation",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.bias_mitigation",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.bias_mitigation",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.bias_mitigation",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.bias_mitigation",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.bias_mitigation",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.bias_mitigation",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.complexity",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.contamination",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.contamination",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.contamination",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.contamination",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.contamination",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.contamination",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.contamination",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.damage",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-adna-damage-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-damage-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.duplication_metrics",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.duplication_metrics",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.duplication_metrics",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.duplication_metrics",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.duplication_metrics",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.duplication_metrics",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.duplication_metrics",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.endogenous_content",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.endogenous_content",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.endogenous_content",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.endogenous_content",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.endogenous_content",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.endogenous_content",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.endogenous_content",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.filter",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.filter",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.filter",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.filter",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.filter",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.filter",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.filter",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.gc_bias",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.gc_bias",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.gc_bias",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.gc_bias",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.gc_bias",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.gc_bias",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.gc_bias",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.genotyping",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-genotyping-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-genotyping-mini",
+      "replacement_corpus_family_id": "corpus-01-genotyping"
+    },
+    {
+      "stage_id": "bam.genotyping",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-genotyping-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-genotyping-mini",
+      "replacement_corpus_family_id": "corpus-01-genotyping"
+    },
+    {
+      "stage_id": "bam.genotyping",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-genotyping-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-genotyping-mini",
+      "replacement_corpus_family_id": "corpus-01-genotyping"
+    },
+    {
+      "stage_id": "bam.genotyping",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-genotyping-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-genotyping-mini",
+      "replacement_corpus_family_id": "corpus-01-genotyping"
+    },
+    {
+      "stage_id": "bam.genotyping",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-genotyping-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-genotyping-mini",
+      "replacement_corpus_family_id": "corpus-01-genotyping"
+    },
+    {
+      "stage_id": "bam.genotyping",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-genotyping-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-genotyping-mini",
+      "replacement_corpus_family_id": "corpus-01-genotyping"
+    },
+    {
+      "stage_id": "bam.genotyping",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-genotyping-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-genotyping-mini",
+      "replacement_corpus_family_id": "corpus-01-genotyping"
+    },
+    {
+      "stage_id": "bam.haplogroups",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.haplogroups",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.haplogroups",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.haplogroups",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.haplogroups",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.haplogroups",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.haplogroups",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.insert_size",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.insert_size",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.insert_size",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.insert_size",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.insert_size",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.insert_size",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.insert_size",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.kinship",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-kinship-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-kinship-mini",
+      "replacement_corpus_family_id": "corpus-01-kinship"
+    },
+    {
+      "stage_id": "bam.kinship",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-kinship-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-kinship-mini",
+      "replacement_corpus_family_id": "corpus-01-kinship"
+    },
+    {
+      "stage_id": "bam.kinship",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-kinship-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-kinship-mini",
+      "replacement_corpus_family_id": "corpus-01-kinship"
+    },
+    {
+      "stage_id": "bam.kinship",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-kinship-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-kinship-mini",
+      "replacement_corpus_family_id": "corpus-01-kinship"
+    },
+    {
+      "stage_id": "bam.kinship",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-kinship-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-kinship-mini",
+      "replacement_corpus_family_id": "corpus-01-kinship"
+    },
+    {
+      "stage_id": "bam.kinship",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-kinship-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-kinship-mini",
+      "replacement_corpus_family_id": "corpus-01-kinship"
+    },
+    {
+      "stage_id": "bam.kinship",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-kinship-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-kinship-mini",
+      "replacement_corpus_family_id": "corpus-01-kinship"
+    },
+    {
+      "stage_id": "bam.length_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.length_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.length_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.length_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.length_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.length_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.length_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapping_summary",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapping_summary",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapping_summary",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapping_summary",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapping_summary",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapping_summary",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapping_summary",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapq_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapq_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapq_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapq_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapq_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapq_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.mapq_filter",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.markdup",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.markdup",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.markdup",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.markdup",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.markdup",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.markdup",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.markdup",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.overlap_correction",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.overlap_correction",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.overlap_correction",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.overlap_correction",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.overlap_correction",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.overlap_correction",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.overlap_correction",
+      "readiness_kind": "dry_or_smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.qc_pre",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.qc_pre",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.qc_pre",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.qc_pre",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.qc_pre",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.qc_pre",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.qc_pre",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.recalibration",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.recalibration",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.recalibration",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.recalibration",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.recalibration",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.recalibration",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.recalibration",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.sex",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.sex",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-bam-mini",
+      "corpus_family_id": "corpus-01-bam",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.sex",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.sex",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.sex",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.sex",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.sex",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-adna-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-adna-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-adna-bam"
+    },
+    {
+      "stage_id": "bam.validate",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-mini",
+      "corpus_family_id": "corpus-01",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.validate",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-damage-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-damage-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.validate",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-adna-bam-mini",
+      "corpus_family_id": "corpus-01-adna-bam",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-adna-bam-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.validate",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-genotyping-mini",
+      "corpus_family_id": "corpus-01-genotyping",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-genotyping-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.validate",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-01-kinship-mini",
+      "corpus_family_id": "corpus-01-kinship",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-01-kinship-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.validate",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-02-edna-mini",
+      "corpus_family_id": "corpus-02",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-02-edna-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    },
+    {
+      "stage_id": "bam.validate",
+      "readiness_kind": "smoke",
+      "corpus_id": "corpus-03-amplicon-mini",
+      "corpus_family_id": "corpus-03",
+      "reason": "stage is governed against `corpus-01-bam-mini`; `corpus-03-amplicon-mini` does not own the required local compatibility contract",
+      "replacement_corpus_id": "corpus-01-bam-mini",
+      "replacement_corpus_family_id": "corpus-01-bam"
+    }
+  ],
+  "asset_backed_stages": [
+    {
+      "stage_id": "fastq.index_reference",
+      "readiness_kind": "dry_run",
+      "benchmark_scope_id": "reference-index-assets",
+      "reason": "This stage benchmarks governed reference-index preparation against owned reference assets rather than a read corpus."
+    }
+  ],
+  "planner_only_stages": [
+    {
+      "stage_id": "fastq.report_qc",
+      "readiness_kind": "smoke",
+      "reason": "The governed MultiQC bundle used for local QC reporting is not yet owned by any corpus fixture manifest."
+    }
+  ]
+}

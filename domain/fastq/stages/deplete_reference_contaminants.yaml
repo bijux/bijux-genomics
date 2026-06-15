@@ -20,6 +20,12 @@ outputs:
   - name: "contaminant_screened_reads_r2"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "removed_contaminant_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "removed_contaminant_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
   - name: "contaminant_screen_report_json"
     data_type: "json"
     cardinality: "One"
@@ -35,6 +41,8 @@ metrics:
     meaning: "Number of input reads."
   - name: "reads_out"
     meaning: "Reads retained after contaminant depletion."
+  - name: "contaminant_reads"
+    meaning: "Canonical benchmark alias for reads removed during contaminant depletion."
   - name: "bases_in"
     meaning: "Number of input bases."
   - name: "bases_out"
@@ -45,6 +53,8 @@ metrics:
     meaning: "Number of retained read pairs after contaminant depletion."
   - name: "contaminant_fraction_removed"
     meaning: "Fraction of reads removed during reference contaminant depletion."
+  - name: "contaminant_hit_rate"
+    meaning: "Canonical benchmark alias for fraction of reads removed as reference contaminants."
   - name: "depletion_summary"
     meaning: "Structured governed depletion summary for contaminant depletion."
 description: "FASTQ stage for contaminant/decoy screen distinct from taxonomy classification."
@@ -70,12 +80,14 @@ invariants:
 allowed_missingness:
   - "reads_r2"
   - "contaminant_screened_reads_r2"
+  - "removed_contaminant_reads_r2"
 compatible_tools:
   - bowtie2
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "contaminant decoy reference is explicitly versioned and separate from taxonomy DB."
   - "single-end input omits reads_r2 and contaminant_screened_reads_r2; paired-end input preserves mate synchronization during contaminant depletion."
+  - "removed_contaminant_reads_* artifacts carry the reads rejected by contaminant depletion while preserving mate synchronization."
   - "contaminant_screen_report_json is the canonical governed depletion report; backend-native alignment metrics remain traceable from that report."
 bank_hooks:
   - "contaminant_db_bank"

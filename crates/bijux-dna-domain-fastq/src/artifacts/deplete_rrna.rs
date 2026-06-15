@@ -31,6 +31,8 @@ pub struct DepleteRrnaReportV1 {
     pub input_r2: Option<String>,
     pub output_r1: String,
     pub output_r2: Option<String>,
+    pub removed_reads_r1: String,
+    pub removed_reads_r2: Option<String>,
     pub rrna_report_tsv: String,
     pub rrna_report_json: String,
     pub reads_in: u64,
@@ -81,6 +83,8 @@ mod tests {
             input_r2: Some("reads_R2.fastq.gz".to_string()),
             output_r1: "rrna_filtered_R1.fastq.gz".to_string(),
             output_r2: Some("rrna_filtered_R2.fastq.gz".to_string()),
+            removed_reads_r1: "removed_rrna_R1.fastq.gz".to_string(),
+            removed_reads_r2: Some("removed_rrna_R2.fastq.gz".to_string()),
             rrna_report_tsv: "rrna_report.tsv".to_string(),
             rrna_report_json: "rrna_report.json".to_string(),
             reads_in: 200,
@@ -109,6 +113,7 @@ mod tests {
         assert_eq!(decoded.tool_id, "sortmerna");
         assert_eq!(decoded.database_artifact_id, "silva_nr99");
         assert_eq!(decoded.database_digest.as_deref(), Some("sha256:silva"));
+        assert_eq!(decoded.removed_reads_r1, "removed_rrna_R1.fastq.gz");
         assert_eq!(decoded.reads_removed, 50);
     }
 }

@@ -8,20 +8,36 @@ inputs:
     data_type: "bam"
     cardinality: "One"
 outputs:
-  - name: "endogenous_content_report_json"
+  - name: "endogenous_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
     data_type: "json"
     cardinality: "One"
 parameters: []
 metrics:
+  - name: "total_reads"
+    meaning: "Observed total read count preserved in the governed BAM endogenous-content benchmark row"
+  - name: "mapped_reads"
+    meaning: "Observed mapped read count preserved in the governed BAM endogenous-content benchmark row"
+  - name: "endogenous_reads"
+    meaning: "Estimated endogenous read count preserved in the governed BAM endogenous-content benchmark row"
+  - name: "endogenous_fraction"
+    meaning: "Estimated endogenous fraction preserved in the governed BAM endogenous-content benchmark row"
   - name: "runtime_s"
     meaning: "Wall-clock runtime in seconds"
   - name: "memory_mb"
     meaning: "Peak memory usage in MB"
-description: "BAM endogenous content estimation stage contract."
+description: "BAM endogenous-content stage contract with governed report JSON, summary JSON, stage metrics, and benchmark-facing mapped and endogenous read counts."
 required_inputs:
   - bam
 required_outputs:
-  - endogenous_content_report_json
+  - endogenous_report
+  - summary
+  - stage_metrics
 tool_capability_requirements:
   - bam_input
   - reference_indexing
@@ -35,6 +51,7 @@ compatible_tools:
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "endogenous ratio computed from stable mapping summary counts and host-contig rules"
+  - "admitted endogenous-content tools must preserve governed total-read, mapped-read, endogenous-read, and endogenous-fraction semantics"
 bank_hooks:
   - "reference_bank"
 metrics_schema: "bijux.stage.metrics.v1"

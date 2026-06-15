@@ -82,6 +82,7 @@ pub fn plan_contaminant_screen_with_options(
 ///
 /// # Errors
 /// Returns an error if the tool is unsupported.
+#[allow(clippy::too_many_lines)]
 pub fn plan_contaminant_screen_with_index_backend(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
@@ -96,6 +97,8 @@ pub fn plan_contaminant_screen_with_index_backend(
     let artifact_paths = contaminant_depletion_artifact_paths(out_dir, r2.is_some());
     let output_r1 = artifact_paths.retained_r1;
     let output_r2 = artifact_paths.retained_r2;
+    let removed_reads_r1 = artifact_paths.rejected_r1;
+    let removed_reads_r2 = artifact_paths.rejected_r2;
     let report = artifact_paths.report_json;
     let raw_backend_report = artifact_paths.raw_backend_report;
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
@@ -141,6 +144,18 @@ pub fn plan_contaminant_screen_with_index_backend(
         ));
     }
     outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("removed_contaminant_reads_r1"),
+        removed_reads_r1.clone(),
+        ArtifactRole::Reads,
+    ));
+    if let Some(removed_reads_r2) = &removed_reads_r2 {
+        outputs.push(ArtifactRef::optional(
+            ArtifactId::from_static("removed_contaminant_reads_r2"),
+            removed_reads_r2.clone(),
+            ArtifactRole::Reads,
+        ));
+    }
+    outputs.push(ArtifactRef::required(
         ArtifactId::from_static("contaminant_screen_report_json"),
         report.clone(),
         ArtifactRole::ReportJson,
@@ -179,6 +194,8 @@ pub fn plan_contaminant_screen_with_index_backend(
             "threads": effective_threads,
             "output_r1": output_r1,
             "output_r2": output_r2,
+            "removed_reads_r1": removed_reads_r1,
+            "removed_reads_r2": removed_reads_r2,
             "report_json": report,
             "raw_backend_report": raw_backend_report,
             "raw_backend_report_format": "bowtie2_met_file",
@@ -221,6 +238,8 @@ fn contaminant_screen_command(
                     r2.display().to_string(),
                     "--un-conc-gz".to_string(),
                     out_dir.join("contaminant_screened_R%.fastq.gz").display().to_string(),
+                    "--al-conc-gz".to_string(),
+                    out_dir.join("removed_contaminant_R%.fastq.gz").display().to_string(),
                 ]);
             } else {
                 command.extend([
@@ -228,6 +247,8 @@ fn contaminant_screen_command(
                     r1.display().to_string(),
                     "--un-gz".to_string(),
                     out_dir.join("contaminant_screened.fastq.gz").display().to_string(),
+                    "--al-gz".to_string(),
+                    out_dir.join("removed_contaminant.fastq.gz").display().to_string(),
                 ]);
             }
             command.extend(["--met-file".to_string(), raw_backend_report.display().to_string()]);
@@ -289,6 +310,8 @@ mod tests {
         )?;
 
         assert_eq!(plan.params["report_json"], "out/contaminant_screen_report.json");
+        assert_eq!(plan.params["removed_reads_r1"], "out/removed_contaminant_R1.fastq.gz");
+        assert_eq!(plan.params["removed_reads_r2"], "out/removed_contaminant_R2.fastq.gz");
         assert_eq!(plan.params["raw_backend_report"], "out/bowtie2.contaminant.metrics.txt");
         assert_eq!(plan.effective_params["threads"], 6);
         assert!(plan
@@ -296,6 +319,11 @@ mod tests {
             .template
             .iter()
             .any(|part| part == "out/bowtie2.contaminant.metrics.txt"));
+        assert!(plan
+            .command
+            .template
+            .iter()
+            .any(|part| part == "out/removed_contaminant_R%.fastq.gz"));
         Ok(())
     }
 }

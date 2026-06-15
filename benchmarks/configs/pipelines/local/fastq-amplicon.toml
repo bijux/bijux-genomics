@@ -1,0 +1,96 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for the local FASTQ amplicon DAG.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.local_pipeline_dag.v1"
+pipeline_id = "fastq-amplicon"
+domain = "fastq"
+summary = "Amplicon FASTQ DAG for corpus-03 validation, primer normalization, ASV inference, chimera removal, OTU clustering, abundance normalization, and QC collation."
+default_corpus_id = "corpus-03-amplicon-mini"
+
+[[nodes]]
+node_id = "fastq.validate_reads"
+stage_id = "fastq.validate_reads"
+readiness_kind = "smoke"
+summary = "Validate governed corpus-03 amplicon FASTQ inputs before primer-aware preprocessing."
+depends_on = []
+external_inputs = ["corpus.raw_amplicon_fastq_reads"]
+upstream_inputs = []
+outputs = ["validated_amplicon_reads", "validation_report"]
+
+[[nodes]]
+node_id = "fastq.normalize_primers"
+stage_id = "fastq.normalize_primers"
+readiness_kind = "smoke"
+summary = "Normalize corpus-03 reads against the governed primer metadata before denoising and clustering."
+depends_on = ["fastq.validate_reads"]
+external_inputs = ["amplicon_primer_contract"]
+upstream_inputs = ["validated_amplicon_reads"]
+outputs = ["normalized_amplicon_reads", "primer_normalization_metrics"]
+
+[[nodes]]
+node_id = "fastq.infer_asvs"
+stage_id = "fastq.infer_asvs"
+readiness_kind = "smoke"
+summary = "Infer ASVs from the normalized amplicon reads."
+depends_on = ["fastq.normalize_primers"]
+external_inputs = []
+upstream_inputs = ["normalized_amplicon_reads"]
+outputs = ["asv_table", "asv_representatives", "asv_metrics"]
+
+[[nodes]]
+node_id = "fastq.remove_chimeras"
+stage_id = "fastq.remove_chimeras"
+readiness_kind = "smoke"
+summary = "Remove chimeric representatives from the inferred ASV set using the governed chimera controls."
+depends_on = ["fastq.infer_asvs"]
+external_inputs = ["chimera_control_contract"]
+upstream_inputs = ["asv_representatives"]
+outputs = ["non_chimeric_representatives", "chimera_report"]
+
+[[nodes]]
+node_id = "fastq.cluster_otus"
+stage_id = "fastq.cluster_otus"
+readiness_kind = "smoke"
+summary = "Cluster OTUs from normalized reads using the non-chimeric representative sequences."
+depends_on = ["fastq.normalize_primers", "fastq.remove_chimeras"]
+external_inputs = []
+upstream_inputs = ["normalized_amplicon_reads", "non_chimeric_representatives"]
+outputs = ["otu_table", "otu_representatives"]
+
+[[nodes]]
+node_id = "fastq.normalize_abundance"
+stage_id = "fastq.normalize_abundance"
+readiness_kind = "smoke"
+summary = "Normalize abundance from the clustered OTU table for governed corpus-03 comparisons."
+depends_on = ["fastq.cluster_otus"]
+external_inputs = []
+upstream_inputs = ["otu_table"]
+outputs = ["normalized_abundance_table"]
+
+[[nodes]]
+node_id = "fastq.report_qc"
+stage_id = "fastq.report_qc"
+readiness_kind = "smoke"
+summary = "Collate validation, primer, ASV, chimera, OTU, and abundance metrics for the corpus-03 amplicon path."
+depends_on = [
+  "fastq.validate_reads",
+  "fastq.normalize_primers",
+  "fastq.infer_asvs",
+  "fastq.remove_chimeras",
+  "fastq.cluster_otus",
+  "fastq.normalize_abundance",
+]
+external_inputs = []
+upstream_inputs = [
+  "validation_report",
+  "primer_normalization_metrics",
+  "asv_metrics",
+  "chimera_report",
+  "otu_table",
+  "normalized_abundance_table",
+]
+outputs = ["qc_bundle"]

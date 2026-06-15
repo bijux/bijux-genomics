@@ -1,0 +1,149 @@
+#![allow(clippy::expect_used, clippy::too_many_lines)]
+
+use std::process::Command;
+
+#[path = "contracts/banks/bank_fixtures.rs"]
+mod support;
+
+fn run_cli(args: &[&str]) -> std::process::Output {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(args)
+        .output()
+        .expect("run cli")
+}
+
+fn run_cli_json(args: &[&str]) -> serde_json::Value {
+    let output = run_cli(args);
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+}
+
+#[test]
+fn bench_readiness_missing_benchmark_pairs_reports_governed_gaps() {
+    let payload = run_cli_json(&["bench", "readiness", "render-missing-benchmark-pairs", "--json"]);
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.readiness.missing_benchmark_pairs.v1")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("benchmarks/readiness/missing-benchmark-pairs.tsv")
+    );
+    assert_eq!(payload.get("missing_pair_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+
+    let domain_counts = payload
+        .get("domain_counts")
+        .and_then(serde_json::Value::as_object)
+        .expect("domain_counts object");
+    assert!(domain_counts.is_empty(), "the current missing benchmark-pair slice must be empty");
+
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert!(rows.is_empty(), "the governed missing-pair slice must now be empty");
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+        }),
+        "bam.align must stay out of the missing benchmark-pair report once the admitted aligner set is fully covered"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
+        }),
+        "bam.damage must stay out of the missing benchmark-pair report once all declared tool rows are covered"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.authenticity")
+        }),
+        "bam.authenticity must stay out of the missing benchmark-pair report once damageprofiler is no longer a gap"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.haplogroups")
+        }),
+        "bam.haplogroups must stay out of the missing benchmark-pair report in the current governed matrix"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.overlap_correction")
+        }),
+        "bam.overlap_correction must stay out of the missing benchmark-pair report once samtools is no longer admitted for that stage"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.endogenous_content")
+        }),
+        "bam.endogenous_content must stay out of the missing benchmark-pair report once its admitted samtools row is covered"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.filter")
+        }),
+        "bam.filter must stay out of the missing benchmark-pair report once all admitted tools are covered"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.mapq_filter")
+        }),
+        "bam.mapq_filter must stay out of the missing benchmark-pair report once all admitted tools are covered"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.length_filter")
+        }),
+        "bam.length_filter must stay out of the missing benchmark-pair report once all admitted tools are covered"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.duplication_metrics")
+        }),
+        "bam.duplication_metrics must stay out of the missing benchmark-pair report once all admitted tools are covered"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.insert_size")
+        }),
+        "bam.insert_size must stay out of the missing benchmark-pair report once its admitted picard row is covered"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.gc_bias")
+        }),
+        "bam.gc_bias must stay out of the missing benchmark-pair report once its admitted picard row is covered"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.complexity")
+        }),
+        "bam.complexity must stay out of the missing benchmark-pair report while its planned preseq row already exists in the benchmark matrix"
+    );
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.markdup")
+        }),
+        "bam.markdup must stay out of the missing benchmark-pair report once all admitted tools are covered"
+    );
+}

@@ -1,0 +1,16 @@
+schema_version = "bijux.bench.fastq.local_normalize_primers.v1"
+tool_id = "cutadapt"
+threads = 1
+primer_set_id = "16S_universal_v1"
+marker_id = "16S"
+primer_fasta = "assets/reference/primers/16S_universal_v1.fasta"
+orientation_policy = "normalize_to_forward_primer"
+max_mismatch_rate = 0.10
+min_overlap_bp = 6
+strict_5p_anchor = true
+allow_iupac_codes = true
+output_dir = "runs/bench/local-smoke/fastq.normalize_primers"
+
+[[cases]]
+sample_id = "amplicon-16s-se"
+r1 = "assets/toy/core-v1/fastq/reads_with_primers.fastq"

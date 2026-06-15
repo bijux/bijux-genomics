@@ -1,0 +1,130 @@
+{
+  "schema_version": "bijux.bench.readiness.essential_pipelines_ready.v1",
+  "output_path": "benchmarks/readiness/ESSENTIAL_PIPELINES_READY.json",
+  "checked_goal_count": 16,
+  "passed_goal_count": 16,
+  "failed_goal_count": 0,
+  "failing_goal_ids": [],
+  "pipeline_count": 10,
+  "dag_node_count": 93,
+  "corpus_asset_row_count": 93,
+  "rendered_command_row_count": 93,
+  "fake_run_node_count": 93,
+  "fake_run_output_count": 267,
+  "report_map_row_count": 267,
+  "ok": true,
+  "checks": [
+    {
+      "goal_id": 261,
+      "surface": "pipeline core-germline-fastq-bam-vcf",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json",
+      "ok": true,
+      "detail": "validated `core-germline-fastq-bam-vcf` with 12 nodes and 15 edges"
+    },
+    {
+      "goal_id": 262,
+      "surface": "pipeline adna-pseudohaploid-fastq-bam-vcf",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json",
+      "ok": true,
+      "detail": "validated `adna-pseudohaploid-fastq-bam-vcf` with 15 nodes and 24 edges"
+    },
+    {
+      "goal_id": 263,
+      "surface": "pipeline adna-gl-fastq-bam-vcf",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/adna-gl-fastq-bam-vcf.json",
+      "ok": true,
+      "detail": "validated `adna-gl-fastq-bam-vcf` with 15 nodes and 23 edges"
+    },
+    {
+      "goal_id": 264,
+      "surface": "pipeline diploid-small-fastq-bam-vcf",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/diploid-small-fastq-bam-vcf.json",
+      "ok": true,
+      "detail": "validated `diploid-small-fastq-bam-vcf` with 16 nodes and 24 edges"
+    },
+    {
+      "goal_id": 265,
+      "surface": "pipeline reference-panel-imputation",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/reference-panel-imputation.json",
+      "ok": true,
+      "detail": "validated `reference-panel-imputation` with 5 nodes and 7 edges"
+    },
+    {
+      "goal_id": 266,
+      "surface": "pipeline popgen-structure-vcf",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/popgen-structure-vcf.json",
+      "ok": true,
+      "detail": "validated `popgen-structure-vcf` with 4 nodes and 6 edges"
+    },
+    {
+      "goal_id": 267,
+      "surface": "pipeline relatedness-segments-vcf",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/relatedness-segments-vcf.json",
+      "ok": true,
+      "detail": "validated `relatedness-segments-vcf` with 4 nodes and 3 edges"
+    },
+    {
+      "goal_id": 268,
+      "surface": "pipeline bam-genotyping-to-vcf-downstream",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json",
+      "ok": true,
+      "detail": "validated `bam-genotyping-to-vcf-downstream` with 9 nodes and 11 edges"
+    },
+    {
+      "goal_id": 269,
+      "surface": "pipeline edna-taxonomy-no-vcf",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/edna-taxonomy-no-vcf.json",
+      "ok": true,
+      "detail": "validated `edna-taxonomy-no-vcf` with 6 nodes and 10 edges"
+    },
+    {
+      "goal_id": 270,
+      "surface": "pipeline amplicon-asv-otu-no-vcf",
+      "output_path": "benchmarks/readiness/local-ready/pipeline-dag/amplicon-asv-otu-no-vcf.json",
+      "ok": true,
+      "detail": "validated `amplicon-asv-otu-no-vcf` with 7 nodes and 12 edges"
+    },
+    {
+      "goal_id": 271,
+      "surface": "essential pipeline corpus/assets",
+      "output_path": "benchmarks/readiness/essential-pipeline-corpus-assets.tsv",
+      "ok": true,
+      "detail": "validated 93 governed corpus/assets bindings across the essential 10-pipeline set"
+    },
+    {
+      "goal_id": 272,
+      "surface": "essential pipeline commands",
+      "output_path": "benchmarks/readiness/essential-pipelines-rendered-commands.sh",
+      "ok": true,
+      "detail": "validated executable command rendering for all 93 essential pipeline nodes"
+    },
+    {
+      "goal_id": 273,
+      "surface": "essential pipeline fake-runner",
+      "output_path": "runs/bench/local-fake-runs/pipelines/essential",
+      "ok": true,
+      "detail": "validated fake-run materialization for all essential pipeline nodes and outputs"
+    },
+    {
+      "goal_id": 274,
+      "surface": "essential pipeline partial resume",
+      "output_path": "benchmarks/readiness/essential-pipeline-partial-resume.json",
+      "ok": true,
+      "detail": "validated partial-resume behavior with one invalid manifest and two reruns"
+    },
+    {
+      "goal_id": 275,
+      "surface": "essential pipeline failure isolation",
+      "output_path": "benchmarks/readiness/essential-pipeline-failure-isolation.json",
+      "ok": true,
+      "detail": "validated isolated failure propagation with one failed node and one blocked descendant"
+    },
+    {
+      "goal_id": 276,
+      "surface": "essential pipeline report map",
+      "output_path": "benchmarks/readiness/essential-pipeline-report-map.tsv",
+      "ok": true,
+      "detail": "validated report mapping for all 267 declared essential pipeline outputs"
+    }
+  ]
+}

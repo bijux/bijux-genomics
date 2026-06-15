@@ -1,4 +1,5 @@
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_boundary_contract_matches_docs() {
     let crates = collect_workspace_crates();
     let known: BTreeSet<String> = crates.keys().cloned().collect();
@@ -21,6 +22,7 @@ fn policy__boundaries__workspace__workspace_boundary_contract_matches_docs() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__stage_spec_and_registry_defs_scoped() {
     let crates = collect_workspace_crates();
     let root = workspace_root();
@@ -61,6 +63,7 @@ fn policy__boundaries__workspace__stage_spec_and_registry_defs_scoped() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_has_no_target_dirs() {
     let root = workspace_root();
     let mut offenders = Vec::new();
@@ -80,6 +83,7 @@ fn policy__boundaries__workspace__workspace_has_no_target_dirs() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__crate_root_contents_allowlist() {
     let allowed = BTreeSet::from([
         "Cargo.toml",
@@ -118,6 +122,7 @@ fn policy__boundaries__workspace__crate_root_contents_allowlist() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__fixtures_policy_enforced() {
     let root = workspace_root();
     let mut offenders = Vec::new();
@@ -145,6 +150,7 @@ fn policy__boundaries__workspace__fixtures_policy_enforced() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_no_cross_layer_imports() {
     let crates = collect_workspace_crates();
     let root = workspace_root();
@@ -190,6 +196,7 @@ fn policy__boundaries__workspace__workspace_no_cross_layer_imports() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn slow__policy__boundaries__workspace__retention_reports_require_context() {
     let root = workspace_root();
     let mut offenders = Vec::new();
@@ -223,6 +230,7 @@ fn slow__policy__boundaries__workspace__retention_reports_require_context() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__params_hash_only_defined_in_core() {
     let root = workspace_root();
     let mut offenders = Vec::new();
@@ -255,6 +263,7 @@ fn policy__boundaries__workspace__params_hash_only_defined_in_core() {
 }
 
 #[test]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_single_orchestration_surface() {
     let root = workspace_root();
     let mut offenders = Vec::new();

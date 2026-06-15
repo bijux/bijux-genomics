@@ -38,6 +38,22 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.profile_read_lengths";
+const LOCAL_PROFILE_READ_LENGTHS_SMOKE_SUMMARY_HEADER: &str =
+    "sample_id\tmin_len\tmax_len\tmean_len\tmedian_len\tread_count\tlayout\treport_json\tlength_distribution_tsv\tlength_distribution_json\n";
+
+#[derive(Debug, Clone)]
+struct LocalProfileReadLengthsSmokeCaseSummary {
+    sample_id: String,
+    min_len: u64,
+    max_len: u64,
+    mean_len: f64,
+    median_len: f64,
+    read_count: u64,
+    layout: PairedMode,
+    report_json: String,
+    length_distribution_tsv: String,
+    length_distribution_json: String,
+}
 
 /// Benchmark FASTQ read-length profiling tools under governed contracts.
 ///
@@ -215,6 +231,28 @@ struct ReadLengthsRecordInputs<'a> {
     execution: &'a ReadLengthsToolExecution,
 }
 
+/// Materialize the governed local-smoke `fastq.profile_read_lengths` artifacts and summary TSV.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, governed smoke plans are invalid,
+/// or the smoke artifacts cannot be written.
+pub fn write_local_profile_read_lengths_smoke_summary() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases =
+        bijux_dna_planner_fastq::stage_api::local_profile_read_lengths_smoke_plans(&repo_root)?;
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.profile_read_lengths");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+
+    let summaries = cases
+        .iter()
+        .map(|case| materialize_local_profile_read_lengths_smoke_case(&repo_root, case))
+        .collect::<Result<Vec<_>>>()?;
+
+    let summary_path = output_root.join("read_lengths.tsv");
+    write_local_profile_read_lengths_smoke_tsv(&summary_path, &summaries)?;
+    Ok(summary_path)
+}
+
 fn select_read_lengths_benchmark_tools(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
 ) -> Result<Vec<String>> {
@@ -361,11 +399,139 @@ fn persist_read_lengths_record(
     insert_record(record)
 }
 
+fn materialize_local_profile_read_lengths_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalProfileReadLengthsSmokeCasePlan,
+) -> Result<LocalProfileReadLengthsSmokeCaseSummary> {
+    let case_out_dir = resolve_plan_dir(repo_root, &case.plan.out_dir);
+    bijux_dna_infra::ensure_dir(&case_out_dir)?;
+
+    let r1 = repo_root.join(&case.r1);
+    let r2 = case.r2.as_ref().map(|path| repo_root.join(path));
+    let lengths = observe_read_lengths_inputs(&r1, r2.as_deref())?;
+    validate_read_lengths_observation(&lengths)?;
+    let artifacts =
+        resolve_local_read_lengths_artifacts(repo_root, &case.plan, case.histogram_bins)?;
+    if !artifacts.length_tsv.exists() || !artifacts.length_json.exists() {
+        write_length_outputs(
+            &artifacts.length_tsv,
+            &artifacts.length_json,
+            &lengths,
+            case.histogram_bins,
+        )?;
+    }
+    let observation = ReadLengthsObservation { lengths, artifacts };
+    let histogram = project_read_lengths_histogram(&observation);
+    let metrics = metrics_from_lengths(&observation.lengths)?;
+    let metric_set = metric_set(metrics.clone());
+    let report = render_read_lengths_report(
+        case.plan.tool_id.as_str(),
+        if case.r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+        case.plan.resources.threads,
+        case.r1.display().to_string(),
+        case.r2.as_ref().map(|path| path.display().to_string()),
+        &observation.artifacts,
+        &metrics,
+        histogram,
+        None,
+    );
+
+    validate_read_lengths_report_identity(case.plan.tool_id.as_str(), &report)?;
+    validate_read_lengths_report_metrics(&report, &metrics)?;
+    write_read_lengths_report(&observation.artifacts.report_json, &report)?;
+    write_read_lengths_metrics(&case_out_dir, &metric_set)?;
+    validate_read_lengths_written_artifacts(&observation.artifacts, &case_out_dir)?;
+
+    Ok(LocalProfileReadLengthsSmokeCaseSummary {
+        sample_id: case.sample_id.clone(),
+        min_len: metrics.min_read_length,
+        max_len: metrics.max_read_length,
+        mean_len: metrics.mean_read_length,
+        median_len: metrics.median_read_length,
+        read_count: metrics.read_count,
+        layout: if case.r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+        report_json: path_relative_to_repo(repo_root, &observation.artifacts.report_json),
+        length_distribution_tsv: path_relative_to_repo(
+            repo_root,
+            &observation.artifacts.length_tsv,
+        ),
+        length_distribution_json: path_relative_to_repo(
+            repo_root,
+            &observation.artifacts.length_json,
+        ),
+    })
+}
+
+fn write_local_profile_read_lengths_smoke_tsv(
+    summary_path: &Path,
+    summaries: &[LocalProfileReadLengthsSmokeCaseSummary],
+) -> Result<()> {
+    let mut body = String::from(LOCAL_PROFILE_READ_LENGTHS_SMOKE_SUMMARY_HEADER);
+    for summary in summaries {
+        body.push_str(&summary.sample_id);
+        body.push('\t');
+        body.push_str(&summary.min_len.to_string());
+        body.push('\t');
+        body.push_str(&summary.max_len.to_string());
+        body.push('\t');
+        body.push_str(&summary.mean_len.to_string());
+        body.push('\t');
+        body.push_str(&summary.median_len.to_string());
+        body.push('\t');
+        body.push_str(&summary.read_count.to_string());
+        body.push('\t');
+        body.push_str(match summary.layout {
+            PairedMode::SingleEnd => "single_end",
+            PairedMode::PairedEnd => "paired_end",
+            PairedMode::Unknown => "unknown",
+        });
+        body.push('\t');
+        body.push_str(&summary.report_json);
+        body.push('\t');
+        body.push_str(&summary.length_distribution_tsv);
+        body.push('\t');
+        body.push_str(&summary.length_distribution_json);
+        body.push('\n');
+    }
+    bijux_dna_infra::atomic_write_bytes(summary_path, body.as_bytes())
+        .context("write local read-length smoke summary")
+}
+
+fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {
+    if out_dir.is_absolute() {
+        out_dir.to_path_buf()
+    } else {
+        repo_root.join(out_dir)
+    }
+}
+
+fn resolve_local_read_lengths_artifacts(
+    repo_root: &Path,
+    plan: &StagePlanV1,
+    histogram_bins: u32,
+) -> Result<ReadLengthsArtifacts> {
+    let report_json = resolve_plan_dir(repo_root, required_output_path(plan, "report_json")?);
+    let length_tsv =
+        resolve_plan_dir(repo_root, required_output_path(plan, "length_distribution_tsv")?);
+    let length_json =
+        resolve_plan_dir(repo_root, required_output_path(plan, "length_distribution_json")?);
+    validate_read_lengths_artifact_paths(&report_json, &length_tsv, &length_json)?;
+    Ok(ReadLengthsArtifacts { report_json, length_tsv, length_json, histogram_bins })
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
 fn observe_read_lengths(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
 ) -> Result<Vec<usize>> {
-    let mut lengths = read_fastq_lengths(&args.r1)?;
-    if let Some(r2) = args.r2.as_deref() {
+    observe_read_lengths_inputs(&args.r1, args.r2.as_deref())
+}
+
+fn observe_read_lengths_inputs(r1: &Path, r2: Option<&Path>) -> Result<Vec<usize>> {
+    let mut lengths = read_fastq_lengths(r1)?;
+    if let Some(r2) = r2 {
         lengths.extend(read_fastq_lengths(r2)?);
     }
     Ok(lengths)
@@ -376,11 +542,22 @@ fn prepare_read_lengths_artifacts(
     plan: &StagePlanV1,
     lengths: &[usize],
 ) -> Result<ReadLengthsArtifacts> {
+    prepare_read_lengths_artifacts_from_plan(
+        plan,
+        args.histogram_bins.unwrap_or(100).max(1),
+        lengths,
+    )
+}
+
+fn prepare_read_lengths_artifacts_from_plan(
+    plan: &StagePlanV1,
+    histogram_bins: u32,
+    lengths: &[usize],
+) -> Result<ReadLengthsArtifacts> {
     let report_json = required_output_path(plan, "report_json")?.to_path_buf();
     let length_tsv = required_output_path(plan, "length_distribution_tsv")?.to_path_buf();
     let length_json = required_output_path(plan, "length_distribution_json")?.to_path_buf();
     validate_read_lengths_artifact_paths(&report_json, &length_tsv, &length_json)?;
-    let histogram_bins = args.histogram_bins.unwrap_or(100).max(1);
     if !length_tsv.exists() || !length_json.exists() {
         write_length_outputs(&length_tsv, &length_json, lengths, histogram_bins)?;
     }
@@ -462,32 +639,55 @@ fn build_read_lengths_metric_set(
 }
 
 fn build_read_lengths_report(inputs: ReadLengthsReportInputs<'_>) -> ProfileReadLengthsReportV1 {
+    render_read_lengths_report(
+        inputs.tool,
+        if inputs.args.r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+        inputs.threads,
+        inputs.args.r1.display().to_string(),
+        inputs.args.r2.as_ref().map(|path| path.display().to_string()),
+        inputs.artifacts,
+        inputs.metrics,
+        inputs.histogram,
+        Some(inputs.execution_metrics),
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn render_read_lengths_report(
+    tool: &str,
+    paired_mode: PairedMode,
+    threads: u32,
+    input_r1: String,
+    input_r2: Option<String>,
+    artifacts: &ReadLengthsArtifacts,
+    metrics: &FastqReadLengthMetrics,
+    histogram: Vec<ProfileReadLengthBinV1>,
+    execution_metrics: Option<ExecutionMetrics>,
+) -> ProfileReadLengthsReportV1 {
     ProfileReadLengthsReportV1 {
         schema_version: PROFILE_READ_LENGTHS_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_ID.to_string(),
         stage_id: STAGE_ID.to_string(),
-        tool_id: inputs.tool.to_string(),
-        paired_mode: if inputs.args.r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
-        threads: inputs.threads,
-        histogram_bins: inputs.artifacts.histogram_bins,
-        input_r1: inputs.args.r1.display().to_string(),
-        input_r2: inputs.args.r2.as_ref().map(|path| path.display().to_string()),
-        length_distribution_tsv: inputs.artifacts.length_tsv.display().to_string(),
-        length_distribution_json: inputs.artifacts.length_json.display().to_string(),
-        report_json: inputs.artifacts.report_json.display().to_string(),
-        read_count: inputs.metrics.read_count,
-        mean_read_length: inputs.metrics.mean_read_length,
-        max_read_length: inputs.metrics.max_read_length,
-        distinct_lengths: inputs.metrics.distinct_lengths,
-        histogram: inputs.histogram,
-        runtime_s: Some(inputs.execution_metrics.runtime_s),
-        memory_mb: Some(inputs.execution_metrics.memory_mb),
-        exit_code: Some(inputs.execution_metrics.exit_code),
-        raw_backend_report: Some(inputs.artifacts.length_tsv.display().to_string()),
+        tool_id: tool.to_string(),
+        paired_mode,
+        threads,
+        histogram_bins: artifacts.histogram_bins,
+        input_r1,
+        input_r2,
+        length_distribution_tsv: artifacts.length_tsv.display().to_string(),
+        length_distribution_json: artifacts.length_json.display().to_string(),
+        report_json: artifacts.report_json.display().to_string(),
+        read_count: metrics.read_count,
+        min_read_length: metrics.min_read_length,
+        mean_read_length: metrics.mean_read_length,
+        median_read_length: metrics.median_read_length,
+        max_read_length: metrics.max_read_length,
+        distinct_lengths: metrics.distinct_lengths,
+        histogram,
+        runtime_s: execution_metrics.map(|metrics| metrics.runtime_s),
+        memory_mb: execution_metrics.map(|metrics| metrics.memory_mb),
+        exit_code: execution_metrics.map(|metrics| metrics.exit_code),
+        raw_backend_report: Some(artifacts.length_tsv.display().to_string()),
         raw_backend_report_format: Some("seqkit_fx2tab_tsv".to_string()),
     }
 }
@@ -514,7 +714,7 @@ fn write_read_lengths_artifacts(
     report: &ProfileReadLengthsReportV1,
     metric_set: &MetricSet<FastqReadLengthMetrics>,
 ) -> Result<()> {
-    validate_read_lengths_report_identity(tool_plan, report)?;
+    validate_read_lengths_report_identity(tool_plan.tool.as_str(), report)?;
     validate_read_lengths_report_metrics(report, &metric_set.metrics)?;
     write_read_lengths_report(&observation.artifacts.report_json, report)?;
     write_read_lengths_metrics(&tool_plan.out_dir, metric_set)?;
@@ -522,7 +722,7 @@ fn write_read_lengths_artifacts(
 }
 
 fn validate_read_lengths_report_identity(
-    tool_plan: &ReadLengthsToolPlan,
+    expected_tool_id: &str,
     report: &ProfileReadLengthsReportV1,
 ) -> Result<()> {
     if report.schema_version != PROFILE_READ_LENGTHS_REPORT_SCHEMA_VERSION {
@@ -539,10 +739,10 @@ fn validate_read_lengths_report_identity(
             report.stage_id
         ));
     }
-    if report.tool_id != tool_plan.tool {
+    if report.tool_id != expected_tool_id {
         return Err(anyhow!(
             "profile_read_lengths report tool mismatch: expected {}, observed {}",
-            tool_plan.tool,
+            expected_tool_id,
             report.tool_id
         ));
     }
@@ -558,6 +758,20 @@ fn validate_read_lengths_report_metrics(
             "profile_read_lengths report read count mismatch: expected {}, observed {}",
             metrics.read_count,
             report.read_count
+        ));
+    }
+    if report.min_read_length != metrics.min_read_length {
+        return Err(anyhow!(
+            "profile_read_lengths report min length mismatch: expected {}, observed {}",
+            metrics.min_read_length,
+            report.min_read_length
+        ));
+    }
+    if (report.median_read_length - metrics.median_read_length).abs() > f64::EPSILON {
+        return Err(anyhow!(
+            "profile_read_lengths report median length mismatch: expected {}, observed {}",
+            metrics.median_read_length,
+            report.median_read_length
         ));
     }
     if report.max_read_length != metrics.max_read_length {
@@ -724,16 +938,32 @@ fn rebin_lengths(lengths: &[usize], histogram_bins: u32) -> BTreeMap<usize, u64>
 fn metrics_from_lengths(lengths: &[usize]) -> Result<FastqReadLengthMetrics> {
     let read_count = usize_to_u64(lengths.len());
     let total: usize = lengths.iter().sum();
+    let min_read_length = usize_to_u64(lengths.iter().copied().min().unwrap_or(0));
     let max_read_length = usize_to_u64(lengths.iter().copied().max().unwrap_or(0));
     let distinct_lengths = usize_to_u64(lengths.iter().copied().collect::<BTreeSet<_>>().len());
     let metrics = FastqReadLengthMetrics {
         read_count,
+        min_read_length,
         mean_read_length: usize_to_f64(total) / u64_to_f64(read_count),
+        median_read_length: median_read_length(lengths),
         max_read_length,
         distinct_lengths,
     };
     metrics.validate()?;
     Ok(metrics)
+}
+
+fn median_read_length(lengths: &[usize]) -> f64 {
+    if lengths.is_empty() {
+        return 0.0;
+    }
+    let mut ordered = lengths.to_vec();
+    ordered.sort_unstable();
+    let midpoint = ordered.len() / 2;
+    if ordered.len() % 2 == 1 {
+        return usize_to_f64(ordered[midpoint]);
+    }
+    f64::midpoint(usize_to_f64(ordered[midpoint - 1]), usize_to_f64(ordered[midpoint]))
 }
 
 fn u64_to_f64(value: u64) -> f64 {

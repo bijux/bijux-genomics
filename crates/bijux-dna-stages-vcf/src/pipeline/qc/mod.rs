@@ -18,6 +18,33 @@ pub struct QcStageOutputs {
     pub qc_histograms_json: PathBuf,
 }
 
+#[derive(Debug, Clone, Serialize)]
+struct QcSampleMissingnessRow {
+    sample_id: String,
+    total_genotype_count: u64,
+    missing_genotype_count: u64,
+    missingness: f64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct QcVariantMissingnessRow {
+    variant_id: String,
+    contig: String,
+    position: u64,
+    reference: String,
+    alternate: String,
+    total_sample_count: u64,
+    missing_sample_count: u64,
+    missingness: f64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct QcHweSummary {
+    tested_variant_count: u64,
+    pvalue_mean: Option<f64>,
+    status: String,
+}
+
 fn maf_bin_label(maf: f64) -> &'static str {
     if maf < 0.01 {
         "0-0.01"
@@ -69,6 +96,11 @@ fn is_transversion(reference: &str, alt: &str) -> bool {
     !is_transition(reference, alt)
 }
 
+fn round_f64(value: f64, scale: u32) -> f64 {
+    let factor = 10_f64.powi(i32::try_from(scale).unwrap_or(0));
+    (value * factor).round() / factor
+}
+
 /// # Errors
 /// Returns an error if QC metrics cannot be computed or fail production thresholds.
 pub fn run_qc_stage(
@@ -100,7 +132,14 @@ pub fn run_qc_stage(
     let mut rsq_by_maf_bin_sum = std::collections::BTreeMap::<String, f64>::new();
     let mut rsq_by_maf_bin_count = std::collections::BTreeMap::<String, u64>::new();
     let mut post_variant_keys = std::collections::BTreeSet::<String>::new();
+    let mut sample_ids = Vec::<String>::new();
+    let mut variant_missingness_rows = Vec::<QcVariantMissingnessRow>::new();
     for line in raw.lines() {
+        if line.starts_with("#CHROM\t") {
+            sample_ids =
+                line.split('\t').skip(9).map(std::string::ToString::to_string).collect::<Vec<_>>();
+            continue;
+        }
         let Some(fields) = parse_record_fields(line) else {
             continue;
         };
@@ -152,12 +191,15 @@ pub fn run_qc_stage(
             if let Some(gt_idx) = keys.iter().position(|k| *k == "GT") {
                 let mut site_missing = 0_u64;
                 let mut site_total = 0_u64;
-                for sample in &fields[9..] {
+                for (sample_index, sample) in fields[9..].iter().enumerate() {
                     let vals = sample.split(':').collect::<Vec<_>>();
                     if let Some(gt) = vals.get(gt_idx) {
                         site_total += 1;
-                        let name = format!("sample{}", site_total);
-                        let entry = per_sample.entry(name).or_insert((0, 0));
+                        let sample_id = sample_ids
+                            .get(sample_index)
+                            .cloned()
+                            .unwrap_or_else(|| format!("sample{}", sample_index + 1));
+                        let entry = per_sample.entry(sample_id).or_insert((0, 0));
                         entry.0 += 1;
                         if gt.contains('.') {
                             missing += 1;
@@ -174,7 +216,23 @@ pub fn run_qc_stage(
                     }
                 }
                 if site_total > 0 {
-                    site_missingness.push(site_missing as f64 / site_total as f64);
+                    let missingness = site_missing as f64 / site_total as f64;
+                    site_missingness.push(missingness);
+                    let variant_id = if !fields[2].trim().is_empty() && fields[2] != "." {
+                        fields[2].to_string()
+                    } else {
+                        format!("{}:{}:{}:{}", fields[0], fields[1], fields[3], fields[4])
+                    };
+                    variant_missingness_rows.push(QcVariantMissingnessRow {
+                        variant_id,
+                        contig: fields[0].to_string(),
+                        position: fields[1].parse::<u64>().unwrap_or(0),
+                        reference: fields[3].to_string(),
+                        alternate: fields[4].to_string(),
+                        total_sample_count: site_total,
+                        missing_sample_count: site_missing,
+                        missingness,
+                    });
                 }
             }
             if !params.is_ancient_dna || params.allow_hwe_for_ancient {
@@ -258,12 +316,26 @@ pub fn run_qc_stage(
     let hwe_p_mean = if hwe_p_values.is_empty() {
         None
     } else {
-        Some(hwe_p_values.iter().sum::<f64>() / hwe_p_values.len() as f64)
+        Some(round_f64(hwe_p_values.iter().sum::<f64>() / hwe_p_values.len() as f64, 6))
+    };
+    let hwe_status = if params.is_ancient_dna && !params.allow_hwe_for_ancient {
+        "skipped_ancient_default"
+    } else {
+        "computed_modern"
+    };
+    let hwe_summary = QcHweSummary {
+        tested_variant_count: u64::try_from(hwe_p_values.len()).unwrap_or(0),
+        pvalue_mean: hwe_p_mean,
+        status: hwe_status.to_string(),
     };
     let ti_tv = if tv_count == 0 { None } else { Some(ti_count as f64 / tv_count as f64) };
     let het_hom_ratio =
         if hom_alt_total == 0 { None } else { Some(het_total as f64 / hom_alt_total as f64) };
     let thresholds = load_imputation_qc_thresholds();
+    let sample_missingness_exclusion_threshold =
+        *thresholds.get("vcf_qc_sample_missingness_exclude").unwrap_or(&0.50);
+    let variant_missingness_exclusion_threshold =
+        *thresholds.get("vcf_qc_variant_missingness_exclude").unwrap_or(&0.50);
     if params.production_profile {
         if missingness_post > *thresholds.get("vcf_qc_missingness_post_fail").unwrap_or(&0.15) {
             bail!("vcf.qc production gate failed: missingness_post above fail threshold");
@@ -301,14 +373,7 @@ pub fn run_qc_stage(
     if let Some(hwe) = hwe_p_mean {
         table.push_str(&format!("hwe_pvalue_mean\t{hwe:.6}\n"));
     }
-    table.push_str(&format!(
-        "hwe_status\t{}\n",
-        if params.is_ancient_dna && !params.allow_hwe_for_ancient {
-            "skipped_ancient_default"
-        } else {
-            "computed_modern"
-        }
-    ));
+    table.push_str(&format!("hwe_status\t{}\n", hwe_status));
     atomic_write_bytes(&qc_tables_tsv, table.as_bytes())?;
     atomic_write_bytes(&imputation_qc_tsv, table.as_bytes())?;
     let warnings_json = out_dir.join("warnings.json");
@@ -343,29 +408,48 @@ pub fn run_qc_stage(
     };
     let mut sample_missingness = per_sample
         .iter()
-        .map(|(sample, (total, miss))| {
-            let frac = if *total == 0 { 0.0 } else { *miss as f64 / *total as f64 };
-            (sample.clone(), frac)
+        .map(|(sample_id, (total, miss))| {
+            let missingness = if *total == 0 { 0.0 } else { *miss as f64 / *total as f64 };
+            QcSampleMissingnessRow {
+                sample_id: sample_id.clone(),
+                total_genotype_count: *total,
+                missing_genotype_count: *miss,
+                missingness,
+            }
         })
         .collect::<Vec<_>>();
-    sample_missingness.sort_by(|a, b| a.0.cmp(&b.0));
+    sample_missingness.sort_by(|a, b| a.sample_id.cmp(&b.sample_id));
     let mean_sample_missing = if sample_missingness.is_empty() {
         0.0
     } else {
-        sample_missingness.iter().map(|(_, v)| *v).sum::<f64>() / sample_missingness.len() as f64
+        sample_missingness.iter().map(|row| row.missingness).sum::<f64>()
+            / sample_missingness.len() as f64
     };
     let var_sample_missing = if sample_missingness.len() < 2 {
         0.0
     } else {
-        sample_missingness.iter().map(|(_, v)| (v - mean_sample_missing).powi(2)).sum::<f64>()
+        sample_missingness
+            .iter()
+            .map(|row| (row.missingness - mean_sample_missing).powi(2))
+            .sum::<f64>()
             / sample_missingness.len() as f64
     };
     let std_sample_missing = var_sample_missing.sqrt();
     let outlier_cutoff = mean_sample_missing + (3.0 * std_sample_missing);
+    let excluded_samples = sample_missingness
+        .iter()
+        .filter(|row| row.missingness > sample_missingness_exclusion_threshold)
+        .cloned()
+        .collect::<Vec<_>>();
+    let excluded_variants = variant_missingness_rows
+        .iter()
+        .filter(|row| row.missingness > variant_missingness_exclusion_threshold)
+        .cloned()
+        .collect::<Vec<_>>();
     let per_sample_outliers = sample_missingness
         .iter()
-        .filter(|(_, miss)| *miss > outlier_cutoff && std_sample_missing > 0.0)
-        .map(|(sample, miss)| serde_json::json!({"sample": sample, "missingness": miss}))
+        .filter(|row| row.missingness > outlier_cutoff && std_sample_missing > 0.0)
+        .map(|row| serde_json::json!({"sample": row.sample_id, "missingness": row.missingness}))
         .collect::<Vec<_>>();
     atomic_write_json(
         &warnings_json,
@@ -378,6 +462,10 @@ pub fn run_qc_stage(
             },
             "per_sample_outliers": per_sample_outliers,
             "overlap_diagnostics": overlap_diagnostics.clone(),
+            "excluded_samples": excluded_samples.clone(),
+            "excluded_variants": excluded_variants.clone(),
+            "sample_missingness_exclusion_threshold": sample_missingness_exclusion_threshold,
+            "variant_missingness_exclusion_threshold": variant_missingness_exclusion_threshold,
         }),
     )?;
     let rsq_by_maf_bin = maf_bins
@@ -431,7 +519,24 @@ pub fn run_qc_stage(
             "hwe_pvalue_mean": hwe_p_mean,
             "ti_tv": ti_tv,
             "het_hom_ratio": het_hom_ratio,
-            "hwe_status": if params.is_ancient_dna && !params.allow_hwe_for_ancient { "skipped_ancient_default" } else { "computed_modern" }
+            "hwe_status": hwe_status,
+            "hwe_summary": hwe_summary,
+            "sample_missingness": sample_missingness.clone(),
+            "variant_missingness": variant_missingness_rows.clone(),
+            "maf_summary": {
+                "allele_frequency_mean": af_mean,
+                "maf_bin_counts": maf_bins.clone(),
+                "observed_variant_count": variants,
+            },
+            "heterozygosity": {
+                "heterozygous_call_count": het_total,
+                "homozygous_alt_call_count": hom_alt_total,
+                "het_hom_ratio": het_hom_ratio,
+            },
+            "excluded_samples": excluded_samples.clone(),
+            "excluded_variants": excluded_variants.clone(),
+            "sample_missingness_exclusion_threshold": sample_missingness_exclusion_threshold,
+            "variant_missingness_exclusion_threshold": variant_missingness_exclusion_threshold,
         }),
     )?;
     Ok(QcStageOutputs {
@@ -525,6 +630,8 @@ fn enrich_stats_metrics_from_vcf(input_vcf: &Path, metrics: &mut VcfStatsMetrics
     let mut missing = 0_u64;
     let mut het_total = 0_u64;
     let mut hom_alt_total = 0_u64;
+    let mut ti_count = 0_u64;
+    let mut tv_count = 0_u64;
 
     for line in raw.lines() {
         if line.starts_with("#CHROM\t") {
@@ -534,6 +641,13 @@ fn enrich_stats_metrics_from_vcf(input_vcf: &Path, metrics: &mut VcfStatsMetrics
         let Some(fields) = parse_record_fields(line) else {
             continue;
         };
+        if fields[3].len() == 1 && fields[4].len() == 1 {
+            if is_transition(fields[3], fields[4]) {
+                ti_count += 1;
+            } else {
+                tv_count += 1;
+            }
+        }
         if fields[7] != "." && !fields[7].trim().is_empty() {
             annotated_records += 1;
         }
@@ -570,6 +684,9 @@ fn enrich_stats_metrics_from_vcf(input_vcf: &Path, metrics: &mut VcfStatsMetrics
     if metrics.variants_total > 0 {
         metrics.annotation_coverage =
             Some(annotated_records as f64 / metrics.variants_total as f64);
+    }
+    if metrics.ti_tv.is_none() && tv_count > 0 {
+        metrics.ti_tv = Some(ti_count as f64 / tv_count as f64);
     }
     Ok(())
 }

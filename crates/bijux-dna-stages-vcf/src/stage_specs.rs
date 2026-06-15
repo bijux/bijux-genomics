@@ -70,7 +70,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.qc",
-            status: "planned",
+            status: "supported",
             default_tool_id: "plink2",
             metrics_schema: "bijux.vcf.qc.v1",
             smoke_supported: true,
@@ -79,16 +79,16 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.pca",
-            status: "planned",
+            status: "supported",
             default_tool_id: "plink2",
-            metrics_schema: "bijux.vcf.population_structure.v1",
+            metrics_schema: "bijux.vcf.pca.v1",
             smoke_supported: true,
             parser_supported: true,
             experimental: true,
         },
         VcfStageSpec {
             stage_id: "vcf.population_structure",
-            status: "planned",
+            status: "supported",
             default_tool_id: "plink2",
             metrics_schema: "bijux.vcf.population_structure.v1",
             smoke_supported: true,
@@ -97,9 +97,9 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.admixture",
-            status: "planned",
+            status: "supported",
             default_tool_id: "plink2",
-            metrics_schema: "bijux.vcf.population_structure.v1",
+            metrics_schema: "bijux.vcf.admixture.v1",
             smoke_supported: true,
             parser_supported: true,
             experimental: true,
@@ -123,17 +123,17 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
             experimental: true,
         },
         VcfStageSpec {
-            stage_id: "vcf.imputation",
-            status: "planned",
+            stage_id: "vcf.imputation_metrics",
+            status: "supported",
             default_tool_id: "beagle",
-            metrics_schema: "bijux.vcf.imputation.v1",
+            metrics_schema: "bijux.vcf.imputation_metrics.v1",
             smoke_supported: true,
             parser_supported: true,
             experimental: true,
         },
         VcfStageSpec {
             stage_id: "vcf.impute",
-            status: "planned",
+            status: "supported",
             default_tool_id: "beagle",
             metrics_schema: "bijux.vcf.impute.v1",
             smoke_supported: true,
@@ -142,7 +142,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.phasing",
-            status: "planned",
+            status: "supported",
             default_tool_id: "shapeit5",
             metrics_schema: "bijux.vcf.phasing.v1",
             smoke_supported: true,
@@ -151,7 +151,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.postprocess",
-            status: "planned",
+            status: "supported",
             default_tool_id: "bcftools",
             metrics_schema: "bijux.vcf.postprocess.v1",
             smoke_supported: true,
@@ -160,7 +160,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.prepare_reference_panel",
-            status: "planned",
+            status: "supported",
             default_tool_id: "bcftools",
             metrics_schema: "bijux.vcf.prepare_reference_panel.v1",
             smoke_supported: true,
@@ -203,6 +203,85 @@ pub fn vcf_domain_stage_default_tool_id(stage: VcfDomainStage) -> Option<&'stati
         .iter()
         .find(|spec| spec.stage_id == stage.as_str())
         .map(|spec| spec.default_tool_id)
+}
+
+#[must_use]
+pub fn vcf_domain_stage_adapter_id(stage: VcfDomainStage) -> Option<&'static str> {
+    Some(match stage {
+        VcfDomainStage::PrepareReferencePanel => "vcf.adapter.reference_panel",
+        VcfDomainStage::Call
+        | VcfDomainStage::CallDiploid
+        | VcfDomainStage::CallGl
+        | VcfDomainStage::CallPseudohaploid => "vcf.adapter.calling",
+        VcfDomainStage::DamageFilter
+        | VcfDomainStage::Filter
+        | VcfDomainStage::GlPropagation
+        | VcfDomainStage::Postprocess => "vcf.adapter.transform",
+        VcfDomainStage::Phasing | VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute => {
+            "vcf.adapter.panel_workflow"
+        }
+        VcfDomainStage::Qc | VcfDomainStage::Stats => "vcf.adapter.quality_control",
+        VcfDomainStage::PopulationStructure | VcfDomainStage::Pca | VcfDomainStage::Admixture => {
+            "vcf.adapter.population_structure"
+        }
+        VcfDomainStage::Roh => "vcf.adapter.roh",
+        VcfDomainStage::Ibd => "vcf.adapter.ibd",
+        VcfDomainStage::Demography => "vcf.adapter.demography",
+    })
+}
+
+#[must_use]
+pub fn vcf_domain_stage_parser_id(stage: VcfDomainStage) -> Option<&'static str> {
+    Some(match stage {
+        VcfDomainStage::Call
+        | VcfDomainStage::CallDiploid
+        | VcfDomainStage::CallGl
+        | VcfDomainStage::CallPseudohaploid => "vcf.parser.call_summary",
+        VcfDomainStage::DamageFilter
+        | VcfDomainStage::Filter
+        | VcfDomainStage::GlPropagation
+        | VcfDomainStage::Phasing
+        | VcfDomainStage::Impute
+        | VcfDomainStage::Postprocess
+        | VcfDomainStage::PrepareReferencePanel => "vcf.parser.vcf_output",
+        VcfDomainStage::ImputationMetrics => "vcf.parser.report_json",
+        VcfDomainStage::Qc => "vcf.parser.qc_report",
+        VcfDomainStage::Stats => "vcf.parser.stats_report",
+        VcfDomainStage::PopulationStructure
+        | VcfDomainStage::Pca
+        | VcfDomainStage::Admixture
+        | VcfDomainStage::Roh
+        | VcfDomainStage::Ibd
+        | VcfDomainStage::Demography => "vcf.parser.report_json",
+    })
+}
+
+#[must_use]
+pub fn vcf_domain_stage_expected_output_ids(
+    stage: VcfDomainStage,
+) -> Option<&'static [&'static str]> {
+    Some(match stage {
+        VcfDomainStage::PrepareReferencePanel => &["prepared_panel", "chunks_json"],
+        VcfDomainStage::Call => &["called_vcf"],
+        VcfDomainStage::CallDiploid => &["diploid_vcf"],
+        VcfDomainStage::CallGl => &["gl_sites_vcf"],
+        VcfDomainStage::CallPseudohaploid => &["pseudohaploid_vcf"],
+        VcfDomainStage::DamageFilter => &["damage_filtered_vcf"],
+        VcfDomainStage::Filter => &["filtered_vcf"],
+        VcfDomainStage::GlPropagation => &["gl_propagated_vcf"],
+        VcfDomainStage::Qc => &["qc_report"],
+        VcfDomainStage::Phasing => &["phased_vcf"],
+        VcfDomainStage::ImputationMetrics => &["imputation_metrics_json"],
+        VcfDomainStage::Impute => &["imputed_vcf"],
+        VcfDomainStage::Postprocess => &["postprocess_vcf"],
+        VcfDomainStage::PopulationStructure => &["population_structure_report"],
+        VcfDomainStage::Pca => &["pca_report"],
+        VcfDomainStage::Admixture => &["admixture_report"],
+        VcfDomainStage::Roh => &["roh_report"],
+        VcfDomainStage::Ibd => &["ibd_segments"],
+        VcfDomainStage::Demography => &["demography_report"],
+        VcfDomainStage::Stats => &["stats_json"],
+    })
 }
 
 #[must_use]

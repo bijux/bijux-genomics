@@ -32,6 +32,8 @@ pub struct CorrectErrorsReportV1 {
     pub output_r2: Option<String>,
     pub report_json: String,
     pub corrected_reads: Option<u64>,
+    pub changed_reads: Option<u64>,
+    pub unchanged_reads: Option<u64>,
     pub reads_in: Option<u64>,
     pub reads_out: Option<u64>,
     pub bases_in: Option<u64>,
@@ -80,6 +82,8 @@ mod tests {
             output_r2: None,
             report_json: "correct_report.json".to_string(),
             corrected_reads: Some(100),
+            changed_reads: Some(12),
+            unchanged_reads: Some(88),
             reads_in: Some(100),
             reads_out: Some(100),
             bases_in: Some(1_000),
@@ -112,5 +116,7 @@ mod tests {
         assert_eq!(decoded.kmer_size, Some(31));
         assert_eq!(decoded.musket_kmer_budget, None);
         assert_eq!(decoded.corrected_reads, Some(100));
+        assert_eq!(decoded.changed_reads, Some(12));
+        assert_eq!(decoded.unchanged_reads, Some(88));
     }
 }

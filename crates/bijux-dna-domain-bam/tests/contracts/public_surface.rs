@@ -2,7 +2,8 @@ use std::fs;
 use std::path::PathBuf;
 
 use bijux_dna_domain_bam::{
-    BamStage, BAM_METRICS_CATALOG, BAM_PARAMS_CATALOG, BAM_STAGE_ID_CATALOG,
+    BamStage, BAM_LOCAL_BENCH_STAGE_ID_CATALOG, BAM_METRICS_CATALOG, BAM_PARAMS_CATALOG,
+    BAM_STAGE_ID_CATALOG,
 };
 
 #[test]
@@ -37,12 +38,17 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
     for name in &pub_mods {
         assert!(allowed_mods.contains(&name.as_str()), "unexpected public module: {name}");
     }
+    let allowed_substrings = [
+        "artifacts",
+        "benchmark_corpus_assignment",
+        "comparison_contract",
+        "invariants",
+        "stage_specs",
+        "types",
+    ];
     for line in &pub_use_lines {
         assert!(
-            line.contains("artifacts")
-                || line.contains("stage_specs")
-                || line.contains("types")
-                || line.contains("invariants"),
+            allowed_substrings.iter().any(|token| line.contains(token)),
             "unexpected public re-export: {line}"
         );
     }
@@ -69,6 +75,9 @@ fn public_api_doc_names_exported_surface() -> anyhow::Result<()> {
     }
 
     for symbol in [
+        "benchmark_corpus_assignment_for_stage_tool",
+        "governed_benchmark_stage_tool_bindings",
+        "BenchmarkCorpusFamily",
         "contract_for_stage",
         "required_audit_artifacts",
         "stage_contract_hash",
@@ -77,6 +86,7 @@ fn public_api_doc_names_exported_surface() -> anyhow::Result<()> {
         "stage_spec",
         "stage_specs",
         "BAM_STAGE_ID_CATALOG",
+        "BAM_LOCAL_BENCH_STAGE_ID_CATALOG",
         "BAM_PARAMS_CATALOG",
         "BAM_METRICS_CATALOG",
     ] {
@@ -106,6 +116,14 @@ fn stage_id_catalog_matches_stage_enum() {
     let mut expected: Vec<&str> = BamStage::all().iter().map(|stage| stage.as_str()).collect();
     expected.sort_unstable();
     assert_eq!(BAM_STAGE_ID_CATALOG, expected.as_slice());
+}
+
+#[test]
+fn local_benchmark_stage_catalog_matches_full_stage_catalog() {
+    assert_eq!(
+        BAM_LOCAL_BENCH_STAGE_ID_CATALOG, BAM_STAGE_ID_CATALOG,
+        "BAM local benchmark stage catalog must cover every implemented BAM stage",
+    );
 }
 
 #[test]

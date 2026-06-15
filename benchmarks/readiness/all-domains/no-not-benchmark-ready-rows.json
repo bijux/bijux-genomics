@@ -1,0 +1,32 @@
+{
+  "schema_version": "bijux.bench.readiness.all_domain_no_not_benchmark_ready_rows.v1",
+  "output_path": "benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json",
+  "executable_active_row_count": 139,
+  "executable_active_stage_count": 68,
+  "executable_active_tool_count": 71,
+  "active_row_count": 138,
+  "active_stage_count": 67,
+  "active_tool_count": 71,
+  "removed_row_count": 1,
+  "removed_stage_count": 1,
+  "removed_tool_count": 1,
+  "removed_status_counts": {
+    "not_benchmark_ready": 1
+  },
+  "violation_count": 0,
+  "ok": true,
+  "removed_rows": [
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.report_qc",
+      "tool_id": "multiqc",
+      "corpus_id": "not_assigned",
+      "asset_profile_id": "corpus_only",
+      "adapter_id": "fastq.adapter.report_qc",
+      "parser_id": "fastq.parser.report_qc",
+      "schema_id": "fastq_report_qc_v1",
+      "status": "not_benchmark_ready"
+    }
+  ],
+  "violations": []
+}

@@ -20,7 +20,7 @@ LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c422
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -qq && \
-    apt-get install -y --no-install-recommends ca-certificates seqkit && \
+    apt-get install -y --no-install-recommends ca-certificates=20240203 seqkit=2.3.1+ds-2ubuntu0.3 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN cat > /usr/local/bin/seqkit_stats <<'EOS'

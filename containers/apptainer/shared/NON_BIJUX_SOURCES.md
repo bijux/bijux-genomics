@@ -9,7 +9,7 @@ Classification contract:
 
 | tool_id | apptainer_def | why_non_bijux | upstream_source | upstream_license | upstream_checksum | patching_rules |
 |---|---|---|---|---|---|---|
-| `beagle` | `containers/apptainer/shared/beagle.def` | upstream recipe retained to minimize divergence from vendor build process | https://faculty.washington.edu/browning/beagle/beagle.html | `GPL-3.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
+| `beagle` | `containers/apptainer/shared/beagle.def` | upstream recipe retained to minimize divergence from vendor build process | https://faculty.washington.edu/browning/beagle/beagle.html | `GPL-3.0` | `sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f` | only compatibility/packaging patches; no algorithmic behavior changes |
 | `bcftools` | `containers/apptainer/shared/bcftools.def` | upstream recipe retained to minimize divergence from vendor build process | https://github.com/samtools/bcftools | `MIT` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
 | `eigensoft` | `containers/apptainer/shared/eigensoft.def` | upstream recipe retained to minimize divergence from vendor build process | https://github.com/DReichLab/EIG | `GPL-2.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
 | `germline` | `containers/apptainer/shared/germline.def` | upstream recipe retained to minimize divergence from vendor build process | https://www.cs.columbia.edu/~gusev/germline/ | `GPL-3.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |

@@ -1,0 +1,18 @@
+{
+  "schema_version": "bijux.fixture.vcf_raw_parser.v1",
+  "stage_id": "vcf.call_diploid",
+  "tool_id": "bcftools",
+  "parser_id": "parse_bcftools_call_diploid_metrics",
+  "normalized": {
+    "schema_version": "bijux.vcf.call_diploid.v1",
+    "stage_id": "vcf.call_diploid",
+    "tool_id": "bcftools",
+    "ploidy": "diploid",
+    "called_genotypes": 3,
+    "heterozygous_count": 1,
+    "homozygous_ref_count": 1,
+    "homozygous_alt_count": 1,
+    "missing_count": 0,
+    "sample_count": 1
+  }
+}

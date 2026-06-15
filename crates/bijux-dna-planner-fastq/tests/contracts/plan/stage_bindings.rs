@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
@@ -1758,6 +1760,7 @@ fn planner_uses_typed_reference_contaminant_params_from_stage_binding() -> anyho
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 #[test]
 fn planner_preserves_explicit_pipeline_graph_edges() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-explicit-pipeline-graph")?;
@@ -1971,6 +1974,7 @@ fn planner_routes_explicit_reads_bindings_into_rejoin_stage() -> anyhow::Result<
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 #[test]
 fn planner_injects_select_step_and_rejoins_downstream_reads() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-select-rejoin")?;

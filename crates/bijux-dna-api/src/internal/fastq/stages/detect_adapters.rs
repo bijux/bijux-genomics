@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::{
@@ -27,10 +27,13 @@ use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::{
     params::{
-        detect_adapters::{AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode},
+        detect_adapters::{
+            AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode,
+            DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
+        },
         PairedMode,
     },
-    DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION,
+    DetectAdaptersReportV1,
 };
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
@@ -42,6 +45,80 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
+use serde::{Deserialize, Serialize};
+
+const LOCAL_DETECT_ADAPTERS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.detect_adapters.local_smoke.report.v2";
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+enum LocalDetectAdaptersSmokeStatus {
+    AdapterDetected,
+    BelowThreshold,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct LocalDetectAdaptersSmokeCaseReport {
+    sample_id: String,
+    layout: PairedMode,
+    input_r1: String,
+    input_r2: Option<String>,
+    adapter_status: LocalDetectAdaptersSmokeStatus,
+    adapter_report: String,
+    candidate_adapter_count: u64,
+    detected_adapter_ids: Vec<String>,
+    detection_confidence: Option<f64>,
+    detection_threshold: Option<f64>,
+    adapter_trimmed_fraction: Option<f64>,
+    recommended_adapter_preset: Option<String>,
+    adapter_evidence_dir: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct LocalDetectAdaptersSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    case_count: u64,
+    detected_case_count: u64,
+    below_threshold_case_count: u64,
+    cases: Vec<LocalDetectAdaptersSmokeCaseReport>,
+}
+
+/// Materialize the governed local-smoke `fastq.detect_adapters` report bundle.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, governed smoke plans are invalid,
+/// or the smoke artifacts cannot be written.
+pub fn write_local_detect_adapters_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases = bijux_dna_planner_fastq::stage_api::local_detect_adapters_smoke_plans(&repo_root)?;
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.detect_adapters");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+
+    let case_reports = cases
+        .iter()
+        .map(|case| materialize_local_detect_adapters_smoke_case(&repo_root, case))
+        .collect::<Result<Vec<_>>>()?;
+
+    let summary = LocalDetectAdaptersSmokeReport {
+        schema_version: LOCAL_DETECT_ADAPTERS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_DETECT_ADAPTERS.as_str().to_string(),
+        case_count: case_reports.len() as u64,
+        detected_case_count: case_reports
+            .iter()
+            .filter(|case| case.adapter_status == LocalDetectAdaptersSmokeStatus::AdapterDetected)
+            .count() as u64,
+        below_threshold_case_count: case_reports
+            .iter()
+            .filter(|case| case.adapter_status == LocalDetectAdaptersSmokeStatus::BelowThreshold)
+            .count() as u64,
+        cases: case_reports,
+    };
+
+    let report_path = output_root.join("adapters.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(report_path)
+}
 
 /// # Errors
 /// Returns an error if planning, execution, report parsing, or persistence fails.
@@ -112,6 +189,92 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
     })
 }
 
+fn materialize_local_detect_adapters_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalDetectAdaptersSmokeCasePlan,
+) -> Result<LocalDetectAdaptersSmokeCaseReport> {
+    let case_out_dir = resolve_plan_dir(repo_root, &case.plan.out_dir);
+    let report_json = case_out_dir.join("adapter_report.json");
+    let adapter_evidence_dir = case_out_dir.join("fastqc");
+    let raw_backend_report = adapter_evidence_dir.join("normalized_adapter_evidence.json");
+    bijux_dna_infra::ensure_dir(&adapter_evidence_dir)?;
+
+    let effective_params = DetectAdaptersEffectiveParams {
+        schema_version: DETECT_ADAPTERS_SCHEMA_VERSION.to_string(),
+        paired_mode: if case.r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+        threads: case.plan.resources.threads,
+        sample_reads: None,
+        inspection_mode: AdapterInspectionMode::EvidenceOnly,
+        report_only: true,
+        evidence_engine: case.plan.tool_id.as_str().to_string(),
+        evidence_scope: AdapterEvidenceScope::FullInput,
+        evidence_format: AdapterEvidenceFormat::FastqcSummary,
+        evidence_artifact_id: "report_json".to_string(),
+    };
+
+    let r1 = repo_root.join(&case.r1);
+    let r2 = case.r2.as_ref().map(|path| repo_root.join(path));
+    let report = bijux_dna_domain_fastq::stages::detect_adapters(
+        &r1,
+        r2.as_deref(),
+        &effective_params,
+        &report_json,
+        &adapter_evidence_dir,
+        Some(&raw_backend_report),
+    )?;
+    bijux_dna_infra::atomic_write_json(&report_json, &report)?;
+    write_local_detect_adapters_evidence(&raw_backend_report, &report)?;
+
+    Ok(LocalDetectAdaptersSmokeCaseReport {
+        sample_id: case.sample_id.clone(),
+        layout: if case.r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+        input_r1: case.r1.display().to_string(),
+        input_r2: case.r2.as_ref().map(|path| path.display().to_string()),
+        adapter_status: if report.candidate_adapter_count > 0 {
+            LocalDetectAdaptersSmokeStatus::AdapterDetected
+        } else {
+            LocalDetectAdaptersSmokeStatus::BelowThreshold
+        },
+        adapter_report: path_relative_to_repo(repo_root, &report_json),
+        candidate_adapter_count: report.candidate_adapter_count,
+        detected_adapter_ids: report.detected_adapter_ids.clone(),
+        detection_confidence: report.detection_confidence,
+        detection_threshold: report.detection_threshold,
+        adapter_trimmed_fraction: report.adapter_trimmed_fraction,
+        recommended_adapter_preset: report.recommended_adapter_preset.clone(),
+        adapter_evidence_dir: path_relative_to_repo(repo_root, &adapter_evidence_dir),
+    })
+}
+
+fn write_local_detect_adapters_evidence(
+    evidence_path: &Path,
+    report: &DetectAdaptersReportV1,
+) -> Result<()> {
+    let evidence = serde_json::json!({
+        "schema_version": "bijux.fastq.detect_adapters.evidence.v2",
+        "candidate_adapter_count": report.candidate_adapter_count,
+        "detected_adapter_ids": report.detected_adapter_ids,
+        "detection_confidence": report.detection_confidence,
+        "detection_threshold": report.detection_threshold,
+        "adapter_trimmed_fraction": report.adapter_trimmed_fraction,
+        "recommended_adapter_preset": report.recommended_adapter_preset,
+        "detected_adapter_source": report.detected_adapter_source,
+    });
+    Ok(bijux_dna_infra::atomic_write_json(evidence_path, &evidence)?)
+}
+
+fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {
+    if out_dir.is_absolute() {
+        out_dir.to_path_buf()
+    } else {
+        repo_root.join(out_dir)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
 fn select_detect_adapters_benchmark_tools(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDetectAdaptersArgs,
 ) -> Result<Vec<String>> {
@@ -156,11 +319,6 @@ struct DetectAdaptersToolPlan {
 
 struct DetectAdaptersToolExecution {
     result: StageResultV1,
-}
-
-struct DetectAdapterEvidenceSummary {
-    candidate_adapter_count: u64,
-    adapter_trimmed_fraction: Option<f64>,
 }
 
 struct DetectAdaptersCacheIdentity {
@@ -358,7 +516,11 @@ fn build_detect_adapters_metric_set(
         bases_in: report.bases_in,
         bases_out: report.bases_out,
         mean_q: report.mean_q,
+        adapter_report: Some(report.report_json.clone()),
         candidate_adapter_count: report.candidate_adapter_count,
+        detected_adapter_ids: report.detected_adapter_ids.clone(),
+        detection_confidence: report.detection_confidence,
+        detection_threshold: report.detection_threshold,
         adapter_trimmed_fraction: report.adapter_trimmed_fraction,
     };
     let metric_set = metric_set(metrics.clone());
@@ -409,110 +571,172 @@ fn build_detect_report(
     out_dir: &std::path::Path,
     execution: &StageResultV1,
 ) -> Result<DetectAdaptersReportV1> {
-    let adapter_evidence = detect_adapter_summary(out_dir)?;
-    let reads_in = bench_inputs.input_stats.reads + input_stats_r2.map_or(0, |stats| stats.reads);
-    let bases_in = bench_inputs.input_stats.bases + input_stats_r2.map_or(0, |stats| stats.bases);
-    let mean_q = if bases_in == 0 {
-        0.0
-    } else {
-        ((bench_inputs.input_stats.mean_q * u64_to_f64(bench_inputs.input_stats.bases))
-            + input_stats_r2.map_or(0.0, |stats| stats.mean_q * u64_to_f64(stats.bases)))
-            / u64_to_f64(bases_in)
-    };
-    let pairs_in = input_stats_r2.map(|stats| bench_inputs.input_stats.reads.min(stats.reads));
-    let pairs_out = pairs_in;
-    Ok(DetectAdaptersReportV1 {
-        schema_version: DETECT_ADAPTERS_REPORT_SCHEMA_VERSION.to_string(),
-        stage: STAGE_DETECT_ADAPTERS.as_str().to_string(),
-        stage_id: STAGE_DETECT_ADAPTERS.as_str().to_string(),
-        tool_id: tool.to_string(),
+    let report_json = out_dir.join("adapter_report.json");
+    let adapter_evidence_dir = out_dir.join("fastqc");
+    let raw_backend_report = out_dir.join("fastqc").join("fastqc_data.txt");
+    let effective_params = DetectAdaptersEffectiveParams {
+        schema_version: DETECT_ADAPTERS_SCHEMA_VERSION.to_string(),
         paired_mode: if input_stats_r2.is_some() {
             PairedMode::PairedEnd
         } else {
             PairedMode::SingleEnd
         },
         threads: tool_spec.resources.threads,
+        sample_reads: None,
         inspection_mode: AdapterInspectionMode::EvidenceOnly,
         report_only: true,
         evidence_engine: tool.to_string(),
         evidence_scope: AdapterEvidenceScope::FullInput,
         evidence_format: AdapterEvidenceFormat::FastqcSummary,
         evidence_artifact_id: "report_json".to_string(),
-        detected_adapter_source: "fastqc_summary".to_string(),
-        input_r1: bench_inputs.r1.display().to_string(),
-        input_r2: input_r2_path.map(|path| path.display().to_string()),
-        report_json: out_dir.join("adapter_report.json").display().to_string(),
-        adapter_evidence_dir: out_dir.join("fastqc").display().to_string(),
-        recommended_adapter_bank_id: None,
-        recommended_adapter_bank_hash: None,
-        recommended_adapter_preset: None,
-        reads_in,
-        reads_out: reads_in,
-        bases_in,
-        bases_out: bases_in,
-        pairs_in,
-        pairs_out,
-        mean_q,
-        candidate_adapter_count: adapter_evidence.candidate_adapter_count,
-        adapter_trimmed_fraction: adapter_evidence.adapter_trimmed_fraction,
-        adapter_content_max: None,
-        adapter_content_mean: None,
-        duplication_rate: None,
-        n_rate: None,
-        kmer_warning_count: None,
-        overrepresented_sequence_count: None,
-        runtime_s: Some(execution.runtime_s),
-        memory_mb: Some(execution.memory_mb),
-        exit_code: Some(execution.exit_code),
-        raw_backend_report: None,
-        raw_backend_report_format: None,
-    })
+    };
+    let mut report = bijux_dna_domain_fastq::stages::detect_adapters(
+        &bench_inputs.r1,
+        input_r2_path,
+        &effective_params,
+        &report_json,
+        &adapter_evidence_dir,
+        raw_backend_report.exists().then_some(raw_backend_report.as_path()),
+    )?;
+    report.runtime_s = Some(execution.runtime_s);
+    report.memory_mb = Some(execution.memory_mb);
+    report.exit_code = Some(execution.exit_code);
+    Ok(report)
 }
 
-fn detect_adapter_summary(out_dir: &std::path::Path) -> Result<DetectAdapterEvidenceSummary> {
-    let fastp_json = out_dir.join("fastp.json");
-    if fastp_json.exists() {
-        let raw = std::fs::read_to_string(&fastp_json)
-            .with_context(|| format!("read {}", fastp_json.display()))?;
-        let parsed: serde_json::Value = serde_json::from_str(&raw)
-            .with_context(|| format!("parse {}", fastp_json.display()))?;
-        let adapter_trimmed_reads =
-            required_fastp_u64(&parsed, "/adapter_cutting/adapter_trimmed_reads", &fastp_json)?;
-        let total_reads =
-            required_fastp_u64(&parsed, "/summary/before_filtering/total_reads", &fastp_json)?;
-        if adapter_trimmed_reads > total_reads {
-            return Err(anyhow!(
-                "fastp adapter_trimmed_reads exceeds total_reads in {}",
-                fastp_json.display()
-            ));
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use super::{build_detect_adapters_metric_set, build_detect_report, TrimBenchInputs};
+    use bijux_dna_core::prelude::measure::SeqkitMetrics;
+    use bijux_dna_core::prelude::{
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+    };
+    use bijux_dna_domain_fastq::{
+        DetectAdaptersReportV1, PairedMode, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION,
+    };
+    use bijux_dna_environment::api::RuntimeKind;
+    use bijux_dna_runner::step_runner::StageResultV1;
+
+    fn dummy_tool(tool_id: &'static str, threads: u32) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static(tool_id),
+            tool_version: "1.0.0".to_string(),
+            image: ContainerImageRefV1 { image: format!("{tool_id}:latest"), digest: None },
+            command: CommandSpecV1 { template: vec![tool_id.to_string()] },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads,
+            },
         }
-        let fraction = if total_reads > 0 {
-            Some(u64_to_f64(adapter_trimmed_reads) / u64_to_f64(total_reads))
-        } else {
-            None
-        };
-        let count = u64::from(adapter_trimmed_reads > 0);
-        return Ok(DetectAdapterEvidenceSummary {
-            candidate_adapter_count: count,
-            adapter_trimmed_fraction: fraction,
-        });
     }
-    Ok(DetectAdapterEvidenceSummary {
-        candidate_adapter_count: u64::from(out_dir.join("fastqc").exists()),
-        adapter_trimmed_fraction: None,
-    })
-}
 
-fn required_fastp_u64(
-    parsed: &serde_json::Value,
-    pointer: &str,
-    path: &std::path::Path,
-) -> Result<u64> {
-    parsed.pointer(pointer).and_then(serde_json::Value::as_u64).ok_or_else(|| {
-        anyhow!("fastp report missing unsigned integer `{pointer}` in {}", path.display())
-    })
-}
+    #[test]
+    fn build_detect_adapters_metric_set_retains_adapter_contract_fields() {
+        let report = DetectAdaptersReportV1 {
+            schema_version: DETECT_ADAPTERS_REPORT_SCHEMA_VERSION.to_string(),
+            stage: "fastq.detect_adapters".to_string(),
+            stage_id: "fastq.detect_adapters".to_string(),
+            tool_id: "fastqc".to_string(),
+            paired_mode: PairedMode::SingleEnd,
+            threads: 4,
+            inspection_mode: bijux_dna_domain_fastq::params::detect_adapters::AdapterInspectionMode::EvidenceOnly,
+            report_only: true,
+            evidence_engine: "fastqc".to_string(),
+            evidence_scope: bijux_dna_domain_fastq::params::detect_adapters::AdapterEvidenceScope::FullInput,
+            evidence_format: bijux_dna_domain_fastq::params::detect_adapters::AdapterEvidenceFormat::FastqcSummary,
+            evidence_artifact_id: "report_json".to_string(),
+            detected_adapter_source: "normalized_fastqc_evidence".to_string(),
+            detected_adapter_ids: vec!["truseq_universal".to_string()],
+            detection_confidence: Some(0.25),
+            detection_threshold: Some(0.01),
+            input_r1: "reads.fastq.gz".to_string(),
+            input_r2: None,
+            report_json: "out/adapter_report.json".to_string(),
+            adapter_evidence_dir: "out/fastqc".to_string(),
+            recommended_adapter_bank_id: Some("bijux-dna-fastq-adapter-bank".to_string()),
+            recommended_adapter_bank_hash: Some("sha256:test".to_string()),
+            recommended_adapter_preset: Some("illumina-default".to_string()),
+            reads_in: 100,
+            reads_out: 100,
+            bases_in: 10_000,
+            bases_out: 10_000,
+            pairs_in: None,
+            pairs_out: None,
+            mean_q: 31.0,
+            candidate_adapter_count: 1,
+            adapter_trimmed_fraction: Some(0.25),
+            adapter_content_max: Some(0.25),
+            adapter_content_mean: Some(0.10),
+            duplication_rate: Some(0.0),
+            n_rate: Some(0.0),
+            kmer_warning_count: Some(0),
+            overrepresented_sequence_count: Some(0),
+            runtime_s: Some(2.0),
+            memory_mb: Some(64.0),
+            exit_code: Some(0),
+            raw_backend_report: Some("out/fastqc/fastqc_data.txt".to_string()),
+            raw_backend_report_format: Some("fastqc_normalized".to_string()),
+        };
 
-fn u64_to_f64(value: u64) -> f64 {
-    value.to_string().parse::<f64>().unwrap_or(0.0)
+        let metric_set =
+            build_detect_adapters_metric_set(&report).expect("metric set should validate");
+        assert_eq!(metric_set.metrics.adapter_report.as_deref(), Some("out/adapter_report.json"));
+        assert_eq!(metric_set.metrics.detected_adapter_ids, vec!["truseq_universal".to_string()]);
+        assert_eq!(metric_set.metrics.detection_confidence, Some(0.25));
+        assert_eq!(metric_set.metrics.detection_threshold, Some(0.01));
+    }
+
+    #[test]
+    fn build_detect_report_uses_governed_adapter_identity_fields() {
+        let temp = bijux_dna_infra::temp_dir("bijux-api-detect-adapters").expect("temp dir");
+        let r1 = temp.path().join("reads.fastq");
+        std::fs::write(
+            &r1,
+            "@r1\nACGTAGATCGGAAGAGCTTT\n+\nIIIIIIIIIIIIIIIIIIII\n@r2\nACGTACGT\n+\nIIIIIIII\n",
+        )
+        .expect("write fastq");
+
+        let out_dir = temp.path().join("out");
+        std::fs::create_dir_all(out_dir.join("fastqc")).expect("create fastqc dir");
+        std::fs::write(out_dir.join("fastqc/fastqc_data.txt"), "adapter content")
+            .expect("write raw report");
+
+        let bench_inputs = TrimBenchInputs {
+            runner: RuntimeKind::Docker,
+            r1: r1.clone(),
+            input_hash: "hash".to_string(),
+            input_stats: SeqkitMetrics { reads: 2, bases: 28, mean_q: 31.0, gc_percent: 0.5 },
+            bench_dir: temp.path().join("bench"),
+            tools_root: temp.path().join("tools"),
+        };
+        let report = build_detect_report(
+            &bench_inputs,
+            None,
+            None,
+            "fastqc",
+            &dummy_tool("fastqc", 4),
+            &out_dir,
+            &StageResultV1 {
+                run_id: "run-1".to_string(),
+                exit_code: 0,
+                runtime_s: 3.5,
+                memory_mb: 72.0,
+                outputs: vec![out_dir.join("adapter_report.json")],
+                metrics_path: None,
+                stdout: String::new(),
+                stderr: String::new(),
+                command: "fastqc".to_string(),
+            },
+        )
+        .expect("build report");
+
+        assert_eq!(report.report_json, out_dir.join("adapter_report.json").display().to_string());
+        assert_eq!(report.detected_adapter_ids, vec!["truseq_universal".to_string()]);
+        assert_eq!(report.detection_confidence, Some(0.5));
+        assert_eq!(report.detection_threshold, Some(0.5));
+        assert_eq!(report.raw_backend_report_format.as_deref(), Some("fastqc_normalized"));
+    }
 }

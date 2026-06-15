@@ -32,7 +32,12 @@ mod tests {
             comparison_input_artifact_ids_for_stage(&StageId::from_static("fastq.screen_taxonomy"));
         assert_eq!(
             artifact_ids,
-            vec!["classification_report_json".to_string(), "screen_report_tsv".to_string(),]
+            vec![
+                "classification_report_json".to_string(),
+                "screen_report_tsv".to_string(),
+                "unclassified_reads_r1".to_string(),
+                "unclassified_reads_r2".to_string(),
+            ]
         );
     }
 

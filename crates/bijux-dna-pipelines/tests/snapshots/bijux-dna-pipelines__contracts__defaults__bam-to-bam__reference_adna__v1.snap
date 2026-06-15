@@ -126,6 +126,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
+    "bam.overlap_correction": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
     "bam.sex": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -224,6 +236,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "exclude_flags": [],
       "include_flags": [],
       "mapq_threshold": 30,
+      "min_length": 0,
+      "remove_duplicates": false
+    },
+    "bam.overlap_correction": {
+      "base_quality_threshold": 20,
+      "exclude_flags": [],
+      "include_flags": [],
+      "mapq_threshold": 0,
       "min_length": 0,
       "remove_duplicates": false
     },
@@ -361,6 +381,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
+    "bam.overlap_correction": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
     "bam.sex": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -388,15 +420,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "tools": {
     "bam.authenticity": "authenticct",
-    "bam.contamination": "authenticct",
+    "bam.contamination": "schmutzi",
     "bam.coverage": "mosdepth",
-    "bam.damage": "pydamage",
+    "bam.damage": "mapdamage2",
     "bam.duplication_metrics": "samtools",
     "bam.endogenous_content": "samtools",
     "bam.filter": "samtools",
     "bam.length_filter": "samtools",
     "bam.mapping_summary": "samtools",
     "bam.mapq_filter": "samtools",
+    "bam.overlap_correction": "bamutil",
     "bam.sex": "rxy",
     "bam.validate": "samtools"
   }

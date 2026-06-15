@@ -1,0 +1,1 @@
+{"artifact_id":"trimmed_reads_r2","stage_id":"fastq.normalize_primers","tool_id":"cutadapt"}

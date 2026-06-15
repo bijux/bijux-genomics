@@ -1,0 +1,36 @@
+stage_id	metric_id	metric_name	unit	direction	required	tools_covered
+vcf.admixture	population_count	population count	populations	exact_match_preferred	true	plink,plink2
+vcf.admixture	sample_count	sample count	samples	exact_match_preferred	true	plink,plink2
+vcf.admixture	selected_k	selected cluster count	clusters	exact_match_preferred	true	plink,plink2
+vcf.call_gl	missing_likelihoods	missing likelihoods	sites	lower_is_better	true	angsd,bcftools
+vcf.call_gl	sites_with_likelihoods	sites with likelihoods	sites	higher_is_better	true	angsd,bcftools
+vcf.call_pseudohaploid	called_sites	called sites	sites	higher_is_better	true	angsd,bcftools
+vcf.call_pseudohaploid	missing_sites	missing sites	sites	lower_is_better	true	angsd,bcftools
+vcf.damage_filter	removed_variants	removed variants	variants	exact_match_preferred	true	angsd,bcftools
+vcf.damage_filter	retained_variants	retained variants	variants	exact_match_preferred	true	angsd,bcftools
+vcf.damage_filter	terminal_damage_filtered_variants	terminal damage filtered variants	variants	exact_match_preferred	true	angsd,bcftools
+vcf.gl_propagation	sample_count	sample count	samples	exact_match_preferred	true	angsd,bcftools
+vcf.gl_propagation	site_count_after	site count after propagation	sites	exact_match_preferred	true	angsd,bcftools
+vcf.gl_propagation	site_count_before	site count before propagation	sites	exact_match_preferred	true	angsd,bcftools
+vcf.ibd	pair_count	pair count	pairs	exact_match_preferred	true	germline,ibdhap,ibdseq
+vcf.imputation_metrics	concordance	concordance	fraction	higher_is_better	true	beagle,glimpse,impute5,minimac4
+vcf.imputation_metrics	dosage_r2	dosage r-squared	score	higher_is_better	false	beagle,glimpse,impute5,minimac4
+vcf.imputation_metrics	low_confidence_sites	low-confidence sites	sites	lower_is_better	true	beagle,glimpse,impute5,minimac4
+vcf.imputation_metrics	masked_truth_sites	masked-truth sites	sites	exact_match_preferred	true	beagle,glimpse,impute5,minimac4
+vcf.imputation_metrics	mean_info_score	mean info score	score	higher_is_better	true	beagle,glimpse,impute5,minimac4
+vcf.impute	imputed_genotypes	imputed genotypes	genotypes	higher_is_better	true	beagle,glimpse,impute5,minimac4
+vcf.impute	low_confidence_count	low-confidence sites	sites	lower_is_better	true	beagle,glimpse,impute5,minimac4
+vcf.impute	masked_truth_match_count	masked-truth matches	sites	higher_is_better	true	beagle,glimpse,impute5,minimac4
+vcf.impute	missing_after	missing genotypes after imputation	genotypes	lower_is_better	true	beagle,glimpse,impute5,minimac4
+vcf.impute	missing_before	missing genotypes before imputation	genotypes	lower_is_better	true	beagle,glimpse,impute5,minimac4
+vcf.impute	unresolved_count	unresolved sites	sites	lower_is_better	true	beagle,glimpse,impute5,minimac4
+vcf.pca	sample_count	sample count	samples	exact_match_preferred	true	eigensoft,plink2
+vcf.pca	variant_count	variant count	variants	exact_match_preferred	true	eigensoft,plink2
+vcf.phasing	phase_block_n50	phase block n50	bases	higher_is_better	true	beagle,eagle,shapeit5
+vcf.phasing	switch_error_proxy	switch error proxy	fraction	lower_is_better	true	beagle,eagle,shapeit5
+vcf.population_structure	pair_count	pair count	pairs	exact_match_preferred	true	eigensoft,plink2
+vcf.population_structure	sample_count	sample count	samples	exact_match_preferred	true	eigensoft,plink2
+vcf.qc	concordance	concordance	fraction	higher_is_better	true	bcftools,plink,plink2
+vcf.qc	imputation_info_mean	mean imputation info	score	higher_is_better	true	bcftools,plink,plink2
+vcf.qc	missingness_post	post-qc missingness	fraction	lower_is_better	true	bcftools,plink,plink2
+vcf.qc	rsq_mean	mean r-squared	score	higher_is_better	true	bcftools,plink,plink2

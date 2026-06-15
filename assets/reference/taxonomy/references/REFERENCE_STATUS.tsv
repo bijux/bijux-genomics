@@ -1,0 +1,2 @@
+reference_id	path	reference_scope	format	status	notes
+mock_community_taxonomy	assets/reference/taxonomy/references/mock_community_taxonomy	local_ready_taxonomy_screening	directory_bundle	governed	Tiny governed taxonomy bundle for local-ready `fastq.screen_taxonomy` planning on corpus-02-style mock-community reads. The bundle proves database-root resolution for the admitted Kraken2 contract and is not a runnable production taxonomy database.

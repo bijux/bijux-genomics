@@ -1,0 +1,3 @@
+reference_id	path	reference_scope	format	status	notes
+toy_host_reference	assets/reference/host/references/toy_host_reference	local_ready_host_depletion_and_bam_align	fasta_dict_fai_and_bowtie2_index_bundle	governed	Tiny governed lambda-phage reference bundle for local-ready host depletion and BAM align planning. The bundle includes FASTA, FASTA index, sequence dictionary, and Bowtie2 index files to prove real reference path resolution without claiming production readiness.
+toy_human_contamination_panel	assets/reference/host/references/toy_human_contamination_panel.dat	local_ready_bam_contamination	verifybamid2_svd_resource	governed	Tiny governed population-AF resource path for local contamination planning with explicit panel resolution and no production-readiness claim.

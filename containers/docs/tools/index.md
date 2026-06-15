@@ -21,6 +21,7 @@
 - [bcftools](bcftools.md)
 - [beagle](beagle.md)
 - [bedtools](bedtools.md)
+- [bijux_dna](bijux_dna.md)
 - [bowtie2](bowtie2.md)
 - [bowtie2_build](bowtie2_build.md)
 - [bracken](bracken.md)

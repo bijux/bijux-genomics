@@ -26,6 +26,28 @@ fn vcf_stage_default_rationale(index: &DomainIndex, stage: &DomainStage) -> Stri
     index.active_default_rationale.get(&stage.stage_id).cloned().unwrap_or_default()
 }
 
+fn vcf_metrics_schema(stage: &DomainStage) -> String {
+    format!("bijux.{}.v1", stage.stage_id)
+}
+
+fn vcf_registry_stage_ids(index: &DomainIndex, tool: &DomainToolLoose) -> Vec<String> {
+    let mut stage_ids = tool.stage_ids.clone();
+    stage_ids.extend(
+        tool.planned_stage_ids
+            .iter()
+            .filter(|stage_id| {
+                index
+                    .active_defaults
+                    .get(stage_id.as_str())
+                    .is_some_and(|default_tool| default_tool == &tool.tool_id)
+            })
+            .cloned(),
+    );
+    stage_ids.sort();
+    stage_ids.dedup();
+    stage_ids
+}
+
 fn vcf_apptainer_def(tool: &DomainToolLoose) -> String {
     let shared = format!("containers/apptainer/shared/{}.def", tool.tool_id);
     if Path::new(&shared).exists() {
@@ -81,19 +103,13 @@ pub(super) fn write_vcf_generated_views(
             stage.compatible_tools.clone()
         };
         let output_kinds = vcf_output_kinds(&stage);
-        let metrics_schema = if stage.stage_id == "vcf.stats" {
-            "bijux.vcf.stats.v1"
-        } else if stage.stage_id == "vcf.filter" {
-            "bijux.vcf.filter.v1"
-        } else {
-            "bijux.vcf.call.v1"
-        };
+        let metrics_schema = vcf_metrics_schema(&stage);
         let _ = writeln!(stages_vcf_toml, "[[stages]]");
         let _ = writeln!(stages_vcf_toml, "id = \"{}\"", stage.stage_id);
         let _ = writeln!(stages_vcf_toml, "status = \"{}\"", stage.status);
         let _ = writeln!(stages_vcf_toml, "output_kinds = {}", toml_array(&output_kinds));
         let _ = writeln!(stages_vcf_toml, "experimental = true");
-        let _ = writeln!(stages_vcf_toml, "metrics_schema = \"{metrics_schema}\"");
+        let _ = writeln!(stages_vcf_toml, "metrics_schema = \"{}\"", metrics_schema);
         let _ = writeln!(stages_vcf_toml, "smoke_required = true");
         let _ = writeln!(stages_vcf_toml, "tools = {}", toml_array(&tools));
         stages_vcf_toml.push('\n');
@@ -137,7 +153,7 @@ pub(super) fn write_vcf_generated_views(
         if tool.scope != "post_vcf" || tool.status == "out_of_scope" {
             continue;
         }
-        let stage_ids = tool.declared_stage_ids().cloned().collect::<Vec<_>>();
+        let stage_ids = vcf_registry_stage_ids(&vcf_index, &tool);
         let _ = writeln!(tools_vcf_toml, "[[tools]]");
         let _ = writeln!(tools_vcf_toml, "id = \"{}\"", tool.tool_id);
         let _ = writeln!(tools_vcf_toml, "tool_id = \"{}\"", tool.tool_id);
@@ -203,4 +219,66 @@ pub(super) fn write_vcf_generated_views(
     println!("generated: {}", tool_registry_vcf_path.display());
     println!("generated: {}", stages_vcf_path.display());
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn vcf_registry_stage_ids_exclude_planned_stage_claims() {
+        let index = DomainIndex {
+            active_defaults: BTreeMap::from([
+                ("vcf.impute".to_string(), "beagle".to_string()),
+                ("vcf.prepare_reference_panel".to_string(), "bcftools".to_string()),
+                ("vcf.phasing".to_string(), "shapeit5".to_string()),
+            ]),
+            ..DomainIndex::default()
+        };
+        let tool = DomainToolLoose {
+            tool_id: "beagle".to_string(),
+            stage_ids: vec!["vcf.imputation_metrics".to_string(), "vcf.impute".to_string()],
+            planned_stage_ids: vec![
+                "vcf.phasing".to_string(),
+                "vcf.prepare_reference_panel".to_string(),
+            ],
+            ..DomainToolLoose::default()
+        };
+
+        assert_eq!(
+            vcf_registry_stage_ids(&index, &tool),
+            vec!["vcf.imputation_metrics".to_string(), "vcf.impute".to_string()]
+        );
+    }
+
+    #[test]
+    fn vcf_registry_stage_ids_promote_default_planned_claims() {
+        let index = DomainIndex {
+            active_defaults: BTreeMap::from([
+                ("vcf.prepare_reference_panel".to_string(), "bcftools".to_string()),
+                ("vcf.postprocess".to_string(), "bcftools".to_string()),
+            ]),
+            ..DomainIndex::default()
+        };
+        let tool = DomainToolLoose {
+            tool_id: "bcftools".to_string(),
+            stage_ids: vec!["vcf.call".to_string()],
+            planned_stage_ids: vec![
+                "vcf.prepare_reference_panel".to_string(),
+                "vcf.postprocess".to_string(),
+                "vcf.imputation_metrics".to_string(),
+            ],
+            ..DomainToolLoose::default()
+        };
+
+        assert_eq!(
+            vcf_registry_stage_ids(&index, &tool),
+            vec![
+                "vcf.call".to_string(),
+                "vcf.postprocess".to_string(),
+                "vcf.prepare_reference_panel".to_string(),
+            ]
+        );
+    }
 }

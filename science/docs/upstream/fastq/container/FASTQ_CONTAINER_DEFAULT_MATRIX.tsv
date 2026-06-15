@@ -1,8 +1,9 @@
 stage_id	stage_status	execution_status	default_tool	registry_status	container_ref	dockerfile	apptainer_def	domain_container_image	domain_container_digest
-fastq.index_reference	supported	closed	bowtie2_build	production	bijuxdna/bowtie2_build:2.5.4	containers/docker/arm64/Dockerfile.bowtie2_build	containers/apptainer/shared/bowtie2_build.def	bijuxdna/bowtie2_build	
+fastq.index_reference	supported	closed	bowtie2_build	production	bijuxdna/bowtie2_build:2.5.4	containers/docker/arm64/Dockerfile.bowtie2_build	containers/apptainer/shared/bowtie2_build.def	bijuxdna/bowtie2_build
 fastq.validate_reads	supported	closed	fastqvalidator	production	bijuxdna/fastqvalidator@sha256:3e01ccfed0313ffb63e8b9a8c4044a47249906d0b7b32c68caccf81f0a532edc	containers/docker/arm64/Dockerfile.fastqvalidator	containers/apptainer/shared/fastqvalidator.def	bijuxdna/fastqvalidator	sha256:3e01ccfed0313ffb63e8b9a8c4044a47249906d0b7b32c68caccf81f0a532edc
 fastq.profile_read_lengths	supported	closed	seqkit_stats	production	bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991	containers/docker/arm64/Dockerfile.seqkit_stats	containers/apptainer/shared/seqkit_stats.def	bijuxdna/seqkit	sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991
 fastq.detect_adapters	supported	closed	fastqc	production	bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789	containers/docker/arm64/Dockerfile.fastqc	containers/apptainer/shared/fastqc.def	bijuxdna/fastqc	sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789
+fastq.detect_duplicates_premerge	supported	closed	bijux_dna	production	bijuxdna/bijux_dna:workspace	containers/docker/arm64/Dockerfile.bijux_dna	containers/apptainer/shared/bijux_dna.def
 fastq.trim_terminal_damage	supported	closed	cutadapt	production	bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba	containers/docker/arm64/Dockerfile.cutadapt	containers/apptainer/shared/cutadapt.def	bijuxdna/cutadapt	sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba
 fastq.normalize_primers	supported	closed	cutadapt	production	bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba	containers/docker/arm64/Dockerfile.cutadapt	containers/apptainer/shared/cutadapt.def	bijuxdna/cutadapt	sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba
 fastq.trim_polyg_tails	supported	closed	fastp	production	bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10	containers/docker/arm64/Dockerfile.fastp	containers/apptainer/shared/fastp.def	bijuxdna/fastp	sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10
@@ -13,8 +14,8 @@ fastq.deplete_rrna	supported	closed	sortmerna	production	bijuxdna/sortmerna@sha2
 fastq.merge_pairs	supported	closed	pear	production	bijuxdna/pear@sha256:4e00e9ffabc5ed46115efab5b6bae946913f1713bb314fd4acb7c379c37efae6	containers/docker/arm64/Dockerfile.pear	containers/apptainer/shared/pear.def	bijuxdna/pear	sha256:4e00e9ffabc5ed46115efab5b6bae946913f1713bb314fd4acb7c379c37efae6
 fastq.remove_duplicates	supported	closed	clumpify	production	bijuxdna/clumpify@sha256:fa8159777183edae8355363ba8cc5e8f8f069bee09cb6f2fb70a7ca4220a5c81	containers/docker/arm64/Dockerfile.clumpify	containers/apptainer/shared/clumpify.def	bijuxdna/clumpify	sha256:fa8159777183edae8355363ba8cc5e8f8f069bee09cb6f2fb70a7ca4220a5c81
 fastq.filter_low_complexity	supported	closed	bbduk	production	bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4	containers/docker/arm64/Dockerfile.bbduk	containers/apptainer/shared/bbduk.def	bijuxdna/bbduk	sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4
-fastq.deplete_host	supported	closed	bowtie2	production	bijuxdna/bowtie2:2.5.4	containers/docker/arm64/Dockerfile.bowtie2	containers/apptainer/shared/bowtie2.def	bijuxdna/bowtie2	
-fastq.deplete_reference_contaminants	supported	closed	bowtie2	production	bijuxdna/bowtie2:2.5.4	containers/docker/arm64/Dockerfile.bowtie2	containers/apptainer/shared/bowtie2.def	bijuxdna/bowtie2	
+fastq.deplete_host	supported	closed	bowtie2	production	bijuxdna/bowtie2:2.5.4	containers/docker/arm64/Dockerfile.bowtie2	containers/apptainer/shared/bowtie2.def	bijuxdna/bowtie2
+fastq.deplete_reference_contaminants	supported	closed	bowtie2	production	bijuxdna/bowtie2:2.5.4	containers/docker/arm64/Dockerfile.bowtie2	containers/apptainer/shared/bowtie2.def	bijuxdna/bowtie2
 fastq.correct_errors	supported	closed	rcorrector	production	bijuxdna/rcorrector@sha256:cfec0e32dc980f61681376e78961785c8f74804bd90ebabccb98f825e5fdb454	containers/docker/arm64/Dockerfile.rcorrector	containers/apptainer/shared/rcorrector.def	bijuxdna/rcorrector	sha256:cfec0e32dc980f61681376e78961785c8f74804bd90ebabccb98f825e5fdb454
 fastq.extract_umis	supported	closed	umi_tools	production	bijuxdna/umi_tools@sha256:b2913af8c02c1eeea5de7a4b5c120f65e2003b90479c8873f0ec37689d36296c	containers/docker/arm64/Dockerfile.umi_tools	containers/apptainer/shared/umi_tools.def	bijuxdna/umi_tools	sha256:b2913af8c02c1eeea5de7a4b5c120f65e2003b90479c8873f0ec37689d36296c
 fastq.profile_overrepresented_sequences	supported	closed	fastqc	production	bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789	containers/docker/arm64/Dockerfile.fastqc	containers/apptainer/shared/fastqc.def	bijuxdna/fastqc	sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789
@@ -24,23 +25,22 @@ fastq.cluster_otus	supported	closed	vsearch	production	bijuxdna/vsearch@sha256:c
 fastq.normalize_abundance	supported	closed	seqkit	production	bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991	containers/docker/arm64/Dockerfile.seqkit	containers/apptainer/shared/seqkit.def	bijuxdna/seqkit	sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991
 fastq.screen_taxonomy	supported	closed	kraken2	production	bijuxdna/kraken2@sha256:e493061d26aeea71812ed8b587a0e65f67617b192e225d8d53eba896dfe7cb35	containers/docker/arm64/Dockerfile.kraken2	containers/apptainer/shared/kraken2.def	bijuxdna/kraken2	sha256:e493061d26aeea71812ed8b587a0e65f67617b192e225d8d53eba896dfe7cb35
 fastq.report_qc	supported	closed	multiqc	production	bijuxdna/multiqc@sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec	containers/docker/arm64/Dockerfile.multiqc	containers/apptainer/shared/multiqc.def	bijuxdna/multiqc	sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec
-fastq.build_contaminant_db	planned	declared_only							
-fastq.build_rrna_db	planned	declared_only							
-fastq.build_taxonomy_db	planned	declared_only							
-fastq.capture_provenance_snapshot	planned	declared_only							
-fastq.classify_layout	planned	declared_only							
-fastq.concatenate_lanes	planned	declared_only							
-fastq.deinterleave_reads	planned	declared_only							
-fastq.demultiplex_reads	planned	declared_only							
-fastq.detect_duplicates_premerge	planned	declared_only							
-fastq.detect_instrument_artifacts	planned	declared_only							
-fastq.estimate_library_complexity_prealign	planned	declared_only							
-fastq.interleave_reads	planned	declared_only							
-fastq.materialize_qc_manifest	planned	declared_only							
-fastq.normalize_read_names	planned	declared_only							
-fastq.prepare_adapter_bank	planned	declared_only							
-fastq.prepare_host_reference_bundle	planned	declared_only							
-fastq.prepare_primer_bank	planned	declared_only							
-fastq.repair_pairs	planned	declared_only							
-fastq.subsample_reads	planned	declared_only							
-fastq.verify_assets	planned	declared_only							
+fastq.build_contaminant_db	planned	declared_only
+fastq.build_rrna_db	planned	declared_only
+fastq.build_taxonomy_db	planned	declared_only
+fastq.capture_provenance_snapshot	planned	declared_only
+fastq.classify_layout	planned	declared_only
+fastq.concatenate_lanes	planned	declared_only
+fastq.deinterleave_reads	planned	declared_only
+fastq.demultiplex_reads	planned	declared_only
+fastq.detect_instrument_artifacts	planned	declared_only
+fastq.estimate_library_complexity_prealign	supported	closed	bijux_dna	production	bijuxdna/bijux_dna:workspace	containers/docker/arm64/Dockerfile.bijux_dna	containers/apptainer/shared/bijux_dna.def
+fastq.interleave_reads	planned	declared_only
+fastq.materialize_qc_manifest	planned	declared_only
+fastq.normalize_read_names	planned	declared_only
+fastq.prepare_adapter_bank	planned	declared_only
+fastq.prepare_host_reference_bundle	planned	declared_only
+fastq.prepare_primer_bank	planned	declared_only
+fastq.repair_pairs	planned	declared_only
+fastq.subsample_reads	planned	declared_only
+fastq.verify_assets	planned	declared_only

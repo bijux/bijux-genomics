@@ -369,28 +369,40 @@ pub(super) fn validate_index_matrix_and_pipelines(
     }
 
     for (tool_id, status) in tool_catalogs.statuses {
-        if !index.tool_ids.contains(tool_id) || status != "supported" {
+        let Some((tool_domain, bare_tool_id)) = tool_id.split_once("::") else {
+            continue;
+        };
+        if tool_domain != dom
+            || !index.tool_ids.contains(&bare_tool_id.to_string())
+            || status != "supported"
+        {
             continue;
         }
-        let has_stage =
-            index.stage_tool_compatibility.values().any(|tools| tools.contains(tool_id));
+        let has_stage = index
+            .stage_tool_compatibility
+            .values()
+            .any(|tools| tools.contains(&bare_tool_id.to_string()));
         if !has_stage {
             bail!(
                 "{} supported tool {} is not mapped to any stage in compatibility matrix",
                 index_path.display(),
-                tool_id
+                bare_tool_id
             );
         }
-        if !supported_tool_fixture_seen.contains(tool_id) {
+        if !supported_tool_fixture_seen.contains(bare_tool_id) {
             bail!(
                 "{} supported tool {} has no fixture-backed stage coverage",
                 index_path.display(),
-                tool_id
+                bare_tool_id
             );
         }
         if tool_catalogs.metrics_schemas.get(tool_id).is_none_or(|schema| schema.trim().is_empty())
         {
-            bail!("{} supported tool {} missing metrics_schema_id", index_path.display(), tool_id);
+            bail!(
+                "{} supported tool {} missing metrics_schema_id",
+                index_path.display(),
+                bare_tool_id
+            );
         }
     }
 

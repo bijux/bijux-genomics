@@ -1,0 +1,140 @@
+# schema_version = 1
+# owner = platform
+# purpose = Lunarc cross-domain dry-run profile for prepared FASTQ-to-BAM-to-VCF horse benchmarking
+# authority = platform
+# stability = stable
+# last_updated = 2026-06-07
+schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "adna-equus-caballus-fastq-bam-vcf-local-ready"
+domain = "cross"
+description = "Lunarc local dry-run profile for prepared FASTQ-to-BAM-to-VCF horse benchmarking"
+
+[layout]
+corpora_root = "/mnt/shared/bijux/corpora"
+databases_root = "/mnt/shared/bijux/databases"
+images_root = "/mnt/shared/bijux/images"
+scratch_root = "/mnt/shared/bijux/scratch"
+logs_root = "/mnt/shared/bijux/logs"
+encrypted_results_root = "/mnt/shared/bijux/results"
+encrypted_code_root = "/mnt/shared/bijux/code"
+appraiser_imports_root = "/mnt/shared/bijux/appraiser-imports"
+baselines_root = "/mnt/shared/bijux/baselines"
+
+[slurm]
+site_profile = "lunarc"
+default_resource_template = "fastq_small"
+retry_attempts = 2
+retry_backoff_seconds = 30
+retry_on_exit_codes = [137, 143]
+
+[resources]
+default = "fastq_small"
+
+[resources.templates.fastq_small]
+cpus = 8
+mem_gb = 24
+walltime = "01:00:00"
+scratch_gb = 32
+
+[resources.templates.bam_align]
+cpus = 16
+mem_gb = 64
+walltime = "04:00:00"
+scratch_gb = 128
+
+[resources.templates.bam_qc]
+cpus = 8
+mem_gb = 24
+walltime = "01:00:00"
+scratch_gb = 48
+
+[resources.templates.vcf_call]
+cpus = 8
+mem_gb = 32
+walltime = "02:00:00"
+scratch_gb = 64
+
+[resources.templates.vcf_qc]
+cpus = 8
+mem_gb = 24
+walltime = "01:00:00"
+scratch_gb = 48
+
+[resources.stage_defaults]
+fastq = "fastq_small"
+bam = "bam_qc"
+vcf = "vcf_qc"
+
+[security]
+encryption_backend = "mock-envelope-v1"
+encryption_recipients = ["bio-team"]
+encrypt_operator_outputs = false
+env_file = "configs/hpc/.env"
+
+[[jobs]]
+name = "fastq_validate_adna_equus_caballus_0001"
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "adna_equus_caballus_0001"
+
+[[jobs]]
+name = "fastq_trim_adna_equus_caballus_0001"
+stage = "fastq.trim_reads"
+tool = "fastp"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_validate_adna_equus_caballus_0001"]
+
+[[jobs]]
+name = "bam_align_adna_equus_caballus_0001"
+stage = "bam.align"
+tool = "bwa"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_trim_adna_equus_caballus_0001"]
+resource_template = "bam_align"
+
+[[jobs]]
+name = "bam_qc_pre_adna_equus_caballus_0001"
+stage = "bam.qc_pre"
+tool = "samtools"
+sample = "adna_equus_caballus_0001"
+depends_on = ["bam_align_adna_equus_caballus_0001"]
+resource_template = "bam_qc"
+
+[[jobs]]
+name = "bam_recalibration_adna_equus_caballus_0001"
+stage = "bam.recalibration"
+tool = "gatk"
+sample = "adna_equus_caballus_0001"
+depends_on = ["bam_qc_pre_adna_equus_caballus_0001"]
+resource_template = "bam_qc"
+
+[[jobs]]
+name = "vcf_call_adna_equus_caballus_0001"
+stage = "vcf.call"
+tool = "bcftools"
+sample = "adna_equus_caballus_0001"
+depends_on = ["bam_recalibration_adna_equus_caballus_0001"]
+resource_template = "vcf_call"
+
+[[jobs]]
+name = "vcf_filter_adna_equus_caballus_0001"
+stage = "vcf.filter"
+tool = "bcftools"
+sample = "adna_equus_caballus_0001"
+depends_on = ["vcf_call_adna_equus_caballus_0001"]
+
+[[jobs]]
+name = "vcf_stats_adna_equus_caballus_0001"
+stage = "vcf.stats"
+tool = "bcftools"
+sample = "adna_equus_caballus_0001"
+depends_on = ["vcf_filter_adna_equus_caballus_0001"]
+
+[[jobs]]
+name = "vcf_qc_adna_equus_caballus_0001"
+stage = "vcf.qc"
+tool = "plink2"
+sample = "adna_equus_caballus_0001"
+depends_on = ["vcf_filter_adna_equus_caballus_0001"]

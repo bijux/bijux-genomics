@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use bijux_dna_stages_fastq::observer::parse_seqkit_stats;
 
 #[test]

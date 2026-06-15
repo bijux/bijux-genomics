@@ -79,12 +79,13 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
         ],
         BamStage::Complexity => &[
             AuditArtifact { name: "complexity_report", filename: "complexity.json" },
-            AuditArtifact { name: "preseq", filename: "preseq.txt" },
+            AuditArtifact { name: "complexity_curve", filename: "complexity_curve.tsv" },
             AuditArtifact { name: "summary", filename: "complexity.summary.json" },
             AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Coverage => &[
             AuditArtifact { name: "coverage_summary", filename: "coverage.mosdepth.summary.txt" },
+            AuditArtifact { name: "coverage_depth", filename: "coverage.depth.txt" },
             AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::InsertSize => &[
@@ -111,8 +112,12 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
             AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Damage => &[
-            AuditArtifact { name: "damage_pydamage", filename: "damage.pydamage.json" },
-            AuditArtifact { name: "damage_mapdamage2", filename: "damage.mapdamage2.txt" },
+            AuditArtifact { name: "damage_report", filename: "damage.summary.json" },
+            AuditArtifact {
+                name: "terminal_position_metrics",
+                filename: "damage.unified_metrics.json",
+            },
+            AuditArtifact { name: "parser_output", filename: "damage.parser_output.json" },
             AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Authenticity => &[
@@ -332,7 +337,12 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
             stage,
             required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
-                required_outputs: &["complexity_report", "preseq", "summary", "stage_metrics"],
+                required_outputs: &[
+                    "complexity_report",
+                    "complexity_curve",
+                    "summary",
+                    "stage_metrics",
+                ],
                 required_audit: required_audit_artifacts(stage),
             },
             default_params: BamEffectiveParams::Complexity(ComplexityEffectiveParams {
@@ -344,7 +354,7 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
             stage,
             required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
-                required_outputs: &["coverage_summary", "stage_metrics"],
+                required_outputs: &["coverage_summary", "coverage_depth", "stage_metrics"],
                 required_audit: required_audit_artifacts(stage),
             },
             default_params: BamEffectiveParams::Coverage(CoverageEffectiveParams {
@@ -386,7 +396,7 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
         },
         BamStage::EndogenousContent => BamStageSpec {
             stage,
-            required_inputs: &["bam", "idxstats"],
+            required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
                 required_outputs: &["endogenous_report", "summary", "stage_metrics"],
                 required_audit: required_audit_artifacts(stage),

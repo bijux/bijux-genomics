@@ -666,4 +666,54 @@ mod tests {
         assert!(norm_report.table_rows > 0);
         Ok(())
     }
+
+    #[test]
+    fn remove_chimeras_flags_governed_chimera_motif() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-remove-chimeras")?;
+        let reads = temp.path().join("merged_amplicons.fastq");
+        write_fastq(
+            &reads,
+            &[
+                ("amplicon_consensus_1", "ACGTTGCAACGTTGCA", "IIIIIIIIIIIIIIII"),
+                ("amplicon_chimera_1", "AAACCTACGGGTTTGACTACCC", "JJJJJJJJJJJJJJJJJJJJJJ"),
+                ("amplicon_consensus_2", "TTGCAACGTTTGCAAC", "HHHHHHHHHHHHHHHH"),
+            ],
+        )?;
+
+        let report = remove_chimeras(
+            &reads,
+            &temp.path().join("nonchimeras.fastq.gz"),
+            &ChimeraDetectionEffectiveParams {
+                method: "vsearch_uchime_denovo".to_string(),
+                detection_scope: "denovo".to_string(),
+                input_layout: "single_stream".to_string(),
+                threads: 1,
+                report_artifact: "report_json".to_string(),
+                metrics_artifact: "chimera_metrics_json".to_string(),
+                chimera_sequence_artifact: "chimeras_fasta".to_string(),
+                raw_backend_report_artifact: "uchime_report_tsv".to_string(),
+                raw_backend_report_format: "vsearch_uchime_tsv".to_string(),
+                chimera_removed_definition:
+                    "reads flagged as de_novo chimeras are excluded from downstream abundance tables"
+                        .to_string(),
+                fallback_behavior: "copy_input_reads_and_mark_report".to_string(),
+            },
+            &temp.path().join("chimera_metrics.json"),
+            Some(&temp.path().join("chimeras.fasta")),
+            Some(&temp.path().join("uchime.tsv")),
+            Some(&temp.path().join("raw_backend_report.txt")),
+        )?;
+
+        assert_eq!(report.tool_id, "bijux");
+        assert_eq!(report.reads_in, Some(3));
+        assert_eq!(report.reads_out, Some(2));
+        assert_eq!(report.chimeras_removed, Some(1));
+        assert_eq!(report.chimera_fraction, Some(1.0 / 3.0));
+
+        let chimera_fasta = std::fs::read_to_string(temp.path().join("chimeras.fasta"))?;
+        assert!(chimera_fasta.contains("AAACCTACGGGTTTGACTACCC"));
+        let uchime = std::fs::read_to_string(temp.path().join("uchime.tsv"))?;
+        assert!(uchime.contains("amplicon_chimera_1\tyes"));
+        Ok(())
+    }
 }

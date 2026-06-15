@@ -1,0 +1,110 @@
+{
+  "stage_id": "fastq.deplete_reference_contaminants",
+  "stage_instance_id": "fastq.deplete_reference_contaminants.tool.bowtie2",
+  "stage_version": 1,
+  "tool_id": "bowtie2",
+  "tool_version": "2.5.4",
+  "image": {
+    "image": "bijuxdna/bowtie2",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "bowtie2",
+      "-x",
+      "assets/reference/contaminants/references/toy_contaminant_reference",
+      "--threads",
+      "4",
+      "-S",
+      "/dev/null",
+      "-U",
+      "assets/toy/core-v1/fastq/reads_1.fastq",
+      "--un-gz",
+      "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened.fastq.gz",
+      "--al-gz",
+      "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant.fastq.gz",
+      "--met-file",
+      "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/bowtie2.contaminant.metrics.txt"
+    ]
+  },
+  "resources": {
+    "runtime": "local",
+    "mem_gb": 8,
+    "tmp_gb": 8,
+    "threads": 4
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "assets/toy/core-v1/fastq/reads_1.fastq",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "reference_index",
+        "path": "assets/reference/contaminants/references/toy_contaminant_reference",
+        "role": "index",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "contaminant_screened_reads_r1",
+        "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "removed_contaminant_reads_r1",
+        "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "contaminant_screen_report_json",
+        "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screen_report.json",
+        "role": "report_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants",
+  "params": {
+    "decoy_mode": "phix_and_spikeins",
+    "input_r1": "assets/toy/core-v1/fastq/reads_1.fastq",
+    "input_r2": null,
+    "output_r1": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened.fastq.gz",
+    "output_r2": null,
+    "raw_backend_report": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/bowtie2.contaminant.metrics.txt",
+    "raw_backend_report_format": "bowtie2_met_file",
+    "reference_index": "assets/reference/contaminants/references/toy_contaminant_reference",
+    "reference_index_backend": "bowtie2_build",
+    "removed_reads_r1": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant.fastq.gz",
+    "removed_reads_r2": null,
+    "report_json": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screen_report.json",
+    "threads": 4,
+    "tool": "bowtie2"
+  },
+  "effective_params": {
+    "contaminant_reference": "phix_and_spikeins",
+    "index_artifact": "reference_index",
+    "paired_mode": "single_end",
+    "reference_build_id": null,
+    "reference_catalog_id": "contaminant_reference",
+    "reference_digest": null,
+    "reference_index_backend": "bowtie2_build",
+    "retain_unmapped_pairs": false,
+    "schema_version": "bijux.fastq.params.deplete_reference_contaminants.v1",
+    "threads": 4
+  },
+  "operating_mode": "enforced",
+  "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}

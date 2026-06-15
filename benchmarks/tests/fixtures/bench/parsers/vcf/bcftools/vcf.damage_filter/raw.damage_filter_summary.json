@@ -1,0 +1,17 @@
+{
+  "prefilter": {
+    "records_total": 4,
+    "read_position_signal": {
+      "ct_five_prime_high": 1,
+      "ga_three_prime_high": 0
+    }
+  },
+  "masking_strategy": {
+    "mode": "remove"
+  },
+  "thresholds": {
+    "max_damage_ratio": 0.35,
+    "terminal_damage_threshold": 0.5,
+    "pmd_min": 3.0
+  }
+}

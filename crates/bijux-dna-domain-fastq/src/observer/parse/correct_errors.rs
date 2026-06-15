@@ -65,6 +65,8 @@ fn parse_legacy_correct_errors_report(report_json: &str) -> Result<CorrectErrors
         output_r2: legacy.output_r2,
         report_json: "correct_report.json".to_string(),
         corrected_reads: legacy.corrected_reads.or(legacy.reads_out),
+        changed_reads: None,
+        unchanged_reads: None,
         reads_in: legacy.reads_in,
         reads_out: legacy.reads_out,
         bases_in: legacy.bases_in,

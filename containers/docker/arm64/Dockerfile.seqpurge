@@ -23,7 +23,7 @@ ARG VERSION_SEQPURGE=0.1.0
 ENV VERSION_SEQPURGE=${VERSION_SEQPURGE}
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends seqkit && \
+    apt-get install -y --no-install-recommends seqkit=2.3.1+ds-2ubuntu0.3 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN printf '#!/bin/sh\n' > /usr/local/bin/seqpurge && \

@@ -820,6 +820,8 @@ fn write_correction_report_script(
         output_r2: output_r2.map(|path| path.display().to_string()),
         report_json: report_json.display().to_string(),
         corrected_reads: None,
+        changed_reads: None,
+        unchanged_reads: None,
         reads_in: None,
         reads_out: None,
         bases_in: None,
@@ -883,6 +885,7 @@ fn normalize_tools_with_allowlist(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
     use bijux_dna_core::ids::ToolId;

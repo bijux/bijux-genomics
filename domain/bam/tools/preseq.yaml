@@ -5,11 +5,46 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "3.2.0"
 install_kind: "container"
+container:
+  image: "bijuxdna/preseq"
 license: "GPL-3.0"
 citation: "paper:https://www.nature.com/articles/nmeth.2375"
+outputs:
+  - name: "complexity_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "complexity_curve"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "complexity_report"
+    - "complexity_curve"
+    - "summary"
+    - "stage_metrics"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.complexity"]
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.complexity:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "complexity_report"
+      - "complexity_curve"
+      - "summary"
+      - "stage_metrics"
+    notes: "Preseq preserves the governed BAM complexity benchmark row through a deterministic complexity curve, summary payload, stage-metrics aliases, and a fixture-backed extrapolation contract."
 expected_artifacts: ["complexity_curve"]
 metrics_schema_id: "bijux.bam.complexity.v1"
 metrics_schema: "bijux.bam.complexity.v1"

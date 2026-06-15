@@ -31,6 +31,28 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.cluster_otus";
+const LOCAL_CLUSTER_OTUS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.cluster_otus.local_smoke.report.v1";
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct LocalClusterOtusSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    sample_id: String,
+    planned_tool_id: String,
+    report_tool_id: String,
+    clustering_threshold: f64,
+    otu_count: u64,
+    sample_count: u64,
+    representative_sequence_count: u64,
+    otu_table_tsv: String,
+    representative_sequences_fasta: String,
+    otu_representatives_fasta: String,
+    case_report_json: String,
+    taxonomy_ready_fasta: String,
+    taxonomy_ready_fastq: String,
+    raw_backend_report: String,
+}
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ClusterOtusTableMetrics {
@@ -482,4 +504,225 @@ fn output_path(
         .find(|artifact| artifact.name.as_str() == output_id)
         .map(|artifact| artifact.path.clone())
         .ok_or_else(|| anyhow!("cluster_otus plan missing {output_id} output"))
+}
+
+/// Materialize the governed local-smoke `fastq.cluster_otus` artifact bundle.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_cluster_otus_smoke_report() -> Result<std::path::PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases = bijux_dna_planner_fastq::stage_api::local_cluster_otus_smoke_plans(&repo_root)?;
+    let [case] = cases.as_slice() else {
+        return Err(anyhow!(
+            "governed fastq.cluster_otus local smoke must resolve exactly one case"
+        ));
+    };
+
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.cluster_otus");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+    let summary = materialize_local_cluster_otus_smoke_case(&repo_root, case, &output_root)?;
+    let report_path = output_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(output_root.join("otu_table.tsv"))
+}
+
+fn materialize_local_cluster_otus_smoke_case(
+    repo_root: &std::path::Path,
+    case: &bijux_dna_planner_fastq::LocalClusterOtusSmokeCasePlan,
+    output_root: &std::path::Path,
+) -> Result<LocalClusterOtusSmokeReport> {
+    let effective_params =
+        serde_json::from_value::<OtuClusteringEffectiveParams>(case.plan.effective_params.clone())
+            .map_err(|error| {
+                anyhow!("decode cluster-otus local-smoke effective params: {error}")
+            })?;
+
+    let input_reads = repo_root.join(&case.reads);
+    let outputs = resolve_cluster_otus_outputs(&case.plan)?;
+    let case_otu_table = resolve_smoke_output_path(repo_root, &outputs.otu_table);
+    let case_otu_representatives =
+        resolve_smoke_output_path(repo_root, &outputs.otu_representatives);
+    let case_taxonomy_fasta =
+        resolve_smoke_output_path(repo_root, &outputs.taxonomy_reference_fasta);
+    let case_taxonomy_reads_fastq =
+        resolve_smoke_output_path(repo_root, &outputs.taxonomy_reads_fastq);
+    let case_report_json = resolve_smoke_output_path(repo_root, &outputs.report_json);
+    let case_raw_backend_report =
+        resolve_smoke_output_path(repo_root, &case.plan.out_dir.join("otu_clusters.uc"));
+
+    for path in [
+        &case_otu_table,
+        &case_otu_representatives,
+        &case_taxonomy_fasta,
+        &case_taxonomy_reads_fastq,
+        &case_report_json,
+        &case_raw_backend_report,
+    ] {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+
+    bijux_dna_domain_fastq::stages::contract::cluster_otus(
+        &input_reads,
+        &effective_params,
+        &case_otu_table,
+        &case_otu_representatives,
+        &case_taxonomy_fasta,
+        &case_taxonomy_reads_fastq,
+        &case_report_json,
+    )?;
+    let table_metrics = read_cluster_otus_table_metrics(&case_otu_table)?;
+    let representative_sequence_count =
+        count_cluster_otus_representatives(&case_otu_representatives)?;
+    write_smoke_cluster_otus_uc_report(&case_otu_representatives, &case_raw_backend_report)?;
+
+    let mut report = canonical_cluster_otus_report(ClusterOtusReportInputs {
+        tool_id: "bijux",
+        input_reads: &input_reads,
+        otu_table: &case_otu_table,
+        otu_representatives: &case_otu_representatives,
+        taxonomy_reference_fasta: &case_taxonomy_fasta,
+        taxonomy_reads_fastq: &case_taxonomy_reads_fastq,
+        report_json: &case_report_json,
+        effective_params: &effective_params,
+        table_metrics,
+        representative_sequence_count,
+        runtime_s: None,
+        memory_mb: None,
+        exit_code: Some(0),
+        used_fallback: false,
+        raw_backend_report: Some(case_raw_backend_report.as_path()),
+        backend_metrics: Some(serde_json::json!({
+            "cluster_memberships": table_metrics.otu_count,
+        })),
+    });
+    report.input_reads = case.reads.display().to_string();
+    report.otu_table = path_relative_to_repo(repo_root, &case_otu_table);
+    report.otu_representatives = path_relative_to_repo(repo_root, &case_otu_representatives);
+    report.taxonomy_ready_fasta = path_relative_to_repo(repo_root, &case_taxonomy_fasta);
+    report.taxonomy_ready_fastq = path_relative_to_repo(repo_root, &case_taxonomy_reads_fastq);
+    report.report_json = path_relative_to_repo(repo_root, &case_report_json);
+    report.raw_backend_report = Some(path_relative_to_repo(repo_root, &case_raw_backend_report));
+    bijux_dna_infra::atomic_write_json(&case_report_json, &report)?;
+
+    let top_level_representatives = output_root.join("otu_representatives.fasta");
+    copy_smoke_artifact(&case_otu_representatives, &top_level_representatives)?;
+    let top_level_otu_table = output_root.join("otu_table.tsv");
+    write_top_level_cluster_otus_table(
+        repo_root,
+        &case_otu_table,
+        &top_level_otu_table,
+        &top_level_representatives,
+    )?;
+
+    Ok(LocalClusterOtusSmokeReport {
+        schema_version: LOCAL_CLUSTER_OTUS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        sample_id: case.sample_id.clone(),
+        planned_tool_id: case.plan.tool_id.as_str().to_string(),
+        report_tool_id: report.tool_id,
+        clustering_threshold: report.otu_identity,
+        otu_count: report.otu_count,
+        sample_count: report.sample_count,
+        representative_sequence_count: report.representative_sequence_count,
+        otu_table_tsv: path_relative_to_repo(repo_root, &top_level_otu_table),
+        representative_sequences_fasta: path_relative_to_repo(
+            repo_root,
+            &top_level_representatives,
+        ),
+        otu_representatives_fasta: path_relative_to_repo(repo_root, &top_level_representatives),
+        case_report_json: path_relative_to_repo(repo_root, &case_report_json),
+        taxonomy_ready_fasta: path_relative_to_repo(repo_root, &case_taxonomy_fasta),
+        taxonomy_ready_fastq: path_relative_to_repo(repo_root, &case_taxonomy_reads_fastq),
+        raw_backend_report: path_relative_to_repo(repo_root, &case_raw_backend_report),
+    })
+}
+
+fn write_top_level_cluster_otus_table(
+    repo_root: &std::path::Path,
+    case_otu_table: &std::path::Path,
+    top_level_otu_table: &std::path::Path,
+    top_level_representatives: &std::path::Path,
+) -> Result<()> {
+    use std::fmt::Write as _;
+
+    let representative_path = path_relative_to_repo(repo_root, top_level_representatives);
+    let raw = std::fs::read_to_string(case_otu_table)
+        .with_context(|| format!("read {}", case_otu_table.display()))?;
+    let mut rendered =
+        String::from("sample_id\totu_id\tabundance\trepresentative_id\trepresentative_fasta\n");
+    for line in raw.lines().skip(1).filter(|line| !line.trim().is_empty()) {
+        let fields = line.split('\t').collect::<Vec<_>>();
+        if fields.len() < 3 {
+            return Err(anyhow!(
+                "cluster_otus local-smoke case table row must contain sample_id, otu_id, and abundance"
+            ));
+        }
+        let _ = writeln!(
+            rendered,
+            "{}\t{}\t{}\t{}\t{}",
+            fields[0], fields[1], fields[2], fields[1], representative_path
+        );
+    }
+    std::fs::write(top_level_otu_table, rendered)
+        .with_context(|| format!("write {}", top_level_otu_table.display()))?;
+    Ok(())
+}
+
+fn write_smoke_cluster_otus_uc_report(
+    representatives_fasta: &std::path::Path,
+    raw_backend_report: &std::path::Path,
+) -> Result<()> {
+    use std::fmt::Write as _;
+
+    let raw = std::fs::read_to_string(representatives_fasta)
+        .with_context(|| format!("read {}", representatives_fasta.display()))?;
+    let mut report = String::new();
+    let mut current_id = None::<String>;
+    for line in raw.lines() {
+        if let Some(id) = line.strip_prefix('>') {
+            current_id = Some(id.trim().to_string());
+            continue;
+        }
+        if line.trim().is_empty() {
+            continue;
+        }
+        if let Some(id) = current_id.take() {
+            let _ = writeln!(report, "S\t0\t{}\t*\t*\t*\t*\t*\t{}\t*", line.len(), id);
+        }
+    }
+    std::fs::write(raw_backend_report, report)
+        .with_context(|| format!("write {}", raw_backend_report.display()))?;
+    Ok(())
+}
+
+fn resolve_smoke_output_path(
+    repo_root: &std::path::Path,
+    path: &std::path::Path,
+) -> std::path::PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &std::path::Path, path: &std::path::Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
+fn copy_smoke_artifact(source: &std::path::Path, destination: &std::path::Path) -> Result<()> {
+    if let Some(parent) = destination.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    std::fs::copy(source, destination).map(|_| ()).with_context(|| {
+        format!(
+            "copy local cluster-otus artifact {} -> {}",
+            source.display(),
+            destination.display()
+        )
+    })
 }

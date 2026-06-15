@@ -398,17 +398,19 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "bam.markdup" => vec!["samtools", "picard"],
         "bam.insert_size" | "bam.gc_bias" => vec!["picard"],
         "bam.recalibration" => vec!["gatk"],
-        "bam.coverage" => vec!["mosdepth", "samtools"],
+        "bam.coverage" => vec!["mosdepth", "samtools", "bedtools"],
         "bam.overlap_correction" => vec!["bamutil"],
-        "bam.damage" => vec!["mapdamage2", "damageprofiler", "pmdtools", "pydamage"],
+        "bam.damage" => {
+            vec!["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
+        }
         "bam.complexity" => vec!["preseq"],
         "bam.authenticity" => vec!["authenticct", "pmdtools"],
         "bam.haplogroups" => vec!["yleaf"],
         "bam.kinship" => vec!["king"],
         "bam.contamination" => vec!["schmutzi", "contammix", "verifybamid2"],
-        "bam.sex" => vec!["rxy", "angsd"],
+        "bam.sex" => vec!["rxy", "yleaf", "angsd"],
         "bam.bias_mitigation" => vec!["mapdamage2"],
-        "bam.genotyping" => vec!["angsd", "bcftools"],
+        "bam.genotyping" => vec!["angsd"],
         _ => Vec::new(),
     }
 }
@@ -451,6 +453,19 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
         },
         "tool_ids": tool_ids_for_stage(stage_id),
     }))
+}
+
+#[must_use]
+pub fn stage_output_ids_in_manifest_order(stage_id: &str) -> Option<Vec<String>> {
+    let stage = BamStage::try_from(stage_id).ok()?;
+    let spec = stage_spec(stage);
+    Some(
+        spec.artifact_policy
+            .required_outputs
+            .iter()
+            .map(|output_id| (*output_id).to_string())
+            .collect(),
+    )
 }
 
 /// # Errors

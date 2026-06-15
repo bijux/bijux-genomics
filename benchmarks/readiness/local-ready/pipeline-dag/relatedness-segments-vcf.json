@@ -1,0 +1,132 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/relatedness-segments-vcf.toml",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/relatedness-segments-vcf.json",
+  "pipeline_id": "relatedness-segments-vcf",
+  "domain": "vcf",
+  "default_corpus_id": "vcf_production_regression",
+  "summary": "Cohort VCF DAG for governed QC, kinship and IBD, ROH, and demography with explicit localization of insufficient-data branches.",
+  "node_count": 4,
+  "edge_count": 3,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "vcf.qc",
+    "vcf.ibd",
+    "vcf.roh",
+    "vcf.demography"
+  ],
+  "validation_profiles": [
+    {
+      "profile_id": "relatedness_segments_vcf",
+      "check_count": 8,
+      "checks": [
+        "default corpus anchored to vcf_production_regression for governed cohort-vcf relatedness inputs",
+        "vcf.qc, vcf.ibd, and vcf.roh stay bound to the vcf_cohort asset profile",
+        "vcf.demography stays bound to the json_ibd_segments asset profile",
+        "vcf.qc exports the qc-qualified cohort and pruning handoffs for downstream segment analysis",
+        "vcf.ibd stays downstream of qc with explicit insufficiency evidence",
+        "vcf.roh stays downstream of qc without depending on ibd outputs",
+        "vcf.demography stays downstream only of ibd with explicit insufficiency propagation",
+        "ibd insufficiency remains local to demography and does not block roh or qc outputs"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "vcf.qc",
+      "stage_id": "vcf.qc",
+      "readiness_kind": "smoke",
+      "dependency_count": 0,
+      "external_input_count": 2,
+      "upstream_input_count": 0,
+      "output_count": 6,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.target_cohort_vcf",
+        "corpus.target_cohort_vcf_tbi"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "qc_cohort_vcf",
+        "qc_cohort_vcf_tbi",
+        "qc_report",
+        "sample_qc_report_tsv",
+        "variant_qc_report_tsv",
+        "pruned_variants_tsv"
+      ]
+    },
+    {
+      "node_id": "vcf.ibd",
+      "stage_id": "vcf.ibd",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 4,
+      "output_count": 4,
+      "depends_on": [
+        "vcf.qc"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "qc_cohort_vcf",
+        "qc_cohort_vcf_tbi",
+        "pruned_variants_tsv",
+        "qc_report"
+      ],
+      "outputs": [
+        "ibd_segments",
+        "ibd_report",
+        "ibd_pairwise_table_tsv",
+        "ibd_insufficient_data_json"
+      ]
+    },
+    {
+      "node_id": "vcf.roh",
+      "stage_id": "vcf.roh",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 4,
+      "output_count": 3,
+      "depends_on": [
+        "vcf.qc"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "qc_cohort_vcf",
+        "qc_cohort_vcf_tbi",
+        "pruned_variants_tsv",
+        "qc_report"
+      ],
+      "outputs": [
+        "roh_report",
+        "roh_segments_tsv",
+        "roh_summary_json"
+      ]
+    },
+    {
+      "node_id": "vcf.demography",
+      "stage_id": "vcf.demography",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 3,
+      "depends_on": [
+        "vcf.ibd"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "ibd_segments",
+        "ibd_report",
+        "ibd_insufficient_data_json"
+      ],
+      "outputs": [
+        "demography_report",
+        "demography_insufficient_data_json",
+        "demography_trajectory_tsv"
+      ]
+    }
+  ]
+}

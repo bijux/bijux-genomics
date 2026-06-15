@@ -12,4 +12,7 @@ pub use repo_root::resolve_repo_root;
 pub use repository::RunRepository;
 pub(crate) use run_artifacts::load_observations;
 pub use run_metadata::RunMetadata;
-pub use workspace_paths::{bench_bundles_dir, bench_corpora_dir, bench_data_dir, bench_suites_dir};
+pub use workspace_paths::{
+    bench_bam_local_stage_matrix_path, bench_bundles_dir, bench_corpora_dir, bench_data_dir,
+    bench_fastq_local_stage_matrix_path, bench_local_config_dir, bench_suites_dir,
+};

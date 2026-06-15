@@ -59,5 +59,8 @@ pub fn parse_samtools_idxstats(path: &Path) -> Result<IdxstatsSummaryV1> {
         summary.total_unmapped = summary.total_unmapped.saturating_add(unmapped);
         summary.contigs.push(IdxstatsContigV1 { contig, length, mapped, unmapped });
     }
+    if summary.contigs.is_empty() {
+        anyhow::bail!("samtools idxstats report contains no contig rows");
+    }
     Ok(summary)
 }

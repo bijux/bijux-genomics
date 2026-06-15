@@ -1,6 +1,6 @@
 extends: "_schema.yaml"
 stage_id: "bam.complexity"
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "bam"
 inputs:
@@ -8,20 +8,32 @@ inputs:
     data_type: "bam"
     cardinality: "One"
 outputs:
-  - name: "complexity_report_json"
+  - name: "complexity_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "complexity_curve"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
     data_type: "json"
     cardinality: "One"
 parameters: []
 metrics:
-  - name: "runtime_s"
-    meaning: "Wall-clock runtime in seconds"
-  - name: "memory_mb"
-    meaning: "Peak memory usage in MB"
-description: "BAM complexity stage contract."
+  - name: "estimated_library_size"
+    meaning: "Projected unique-read yield preserved as the governed BAM complexity benchmark estimate when extrapolation is supported"
+  - name: "saturation_estimate"
+    meaning: "Observed library saturation estimate preserved in the governed BAM complexity benchmark row when extrapolation is supported"
+description: "BAM library-complexity contract for governed complexity-curve reporting, projected library-size estimation, and saturation benchmarking."
 required_inputs:
   - bam
 required_outputs:
-  - complexity_report_json
+  - complexity_report
+  - complexity_curve
+  - summary
+  - stage_metrics
 tool_capability_requirements:
   - bam_input
 invariants:
@@ -33,7 +45,8 @@ compatible_tools:
   - preseq
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
-  - "default stage assumptions captured"
+  - "complexity extrapolation requires sufficient observed unique-read support before estimated_library_size and saturation_estimate can be emitted"
+  - "the governed complexity_curve artifact is the benchmark-facing tabular curve even when the underlying backend is preseq"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"

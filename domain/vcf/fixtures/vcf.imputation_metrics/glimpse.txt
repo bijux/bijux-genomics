@@ -1,0 +1,10 @@
+tool=glimpse
+shipping=external
+tool_version=pinned
+stage=vcf.imputation_metrics
+domain=vcf
+fixture_kind=planned
+command=sh
+args=-lc "GLIMPSE_phase --input input.vcf --reference panel.vcf.gz --map map.tsv.gz --input-region 1:1-1000000 --output-region 1:1-1000000 --threads 8 --seed 42 --output imputed.vcf.gz > logs.txt 2>&1 && bcftools index -t imputed.vcf.gz"
+expected_outputs=imputation_metrics_json,imputation_metrics_tsv,imputation_summary_json,imputation_qc_json,imputation_accept_json,imputation_manifest_json,orchestration_manifest_json,logs_txt
+expected_stdout_patterns=glimpse

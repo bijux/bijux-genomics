@@ -5,11 +5,59 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
+container:
+  image: "bijuxdna/yleaf"
 license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/mbe/article/35/5/1291/4922696"
+outputs:
+  - name: "sex_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "haplogroups"
+    data_type: "json"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+  - name: "haplogroup_report"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+  expected_outputs:
+    - "sex_report"
+    - "haplogroups"
+    - "summary"
+    - "stage_metrics"
+    - "haplogroup_report"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids: ["bam.sex","bam.haplogroups"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
+stage_contracts:
+  bam.sex:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "sex_report"
+      - "summary"
+      - "stage_metrics"
+      - "haplogroup_report"
+    notes: "Yleaf retains a governed sex-sidecar surface only as a compatibility companion to the primary haplogroup call artifacts."
+  bam.haplogroups:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "haplogroups"
+      - "summary"
+      - "stage_metrics"
+      - "haplogroup_report"
+    notes: "Yleaf haplogroup coverage preserves the governed haplogroup report surface together with the native haplogroup backend artifact."
 expected_artifacts: ["haplogroup_report"]
 metrics_schema_id: "bijux.bam.sex.v1"
 metrics_schema: "bijux.bam.sex.v1"

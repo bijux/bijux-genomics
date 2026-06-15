@@ -122,9 +122,7 @@ pub fn compare_damage_metrics(
 pub fn parse_pydamage_json(path: &std::path::Path) -> anyhow::Result<DamageMetricsV1> {
     let raw = std::fs::read_to_string(path).context("read pydamage json")?;
     let value: serde_json::Value = serde_json::from_str(&raw)?;
-    let c_to_t = value.get("ct_5p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
-    let g_to_a = value.get("ga_3p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
-    Ok(DamageMetricsV1 { c_to_t_5p: c_to_t, g_to_a_3p: g_to_a, pmd_score_histogram: Vec::new() })
+    Ok(parse_damage_metrics_json_value(&value))
 }
 
 /// # Errors
@@ -132,9 +130,31 @@ pub fn parse_pydamage_json(path: &std::path::Path) -> anyhow::Result<DamageMetri
 pub fn parse_damageprofiler_json(path: &std::path::Path) -> anyhow::Result<DamageMetricsV1> {
     let raw = std::fs::read_to_string(path).context("read damageprofiler json")?;
     let value: serde_json::Value = serde_json::from_str(&raw)?;
-    let c_to_t = value.get("c_to_t_5p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
-    let g_to_a = value.get("g_to_a_3p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
-    Ok(DamageMetricsV1 { c_to_t_5p: c_to_t, g_to_a_3p: g_to_a, pmd_score_histogram: Vec::new() })
+    Ok(parse_damage_metrics_json_value(&value))
+}
+
+/// # Errors
+/// Returns an error if the `AdDeam` JSON cannot be read or parsed.
+pub fn parse_addeam_json(path: &std::path::Path) -> anyhow::Result<DamageMetricsV1> {
+    let raw = std::fs::read_to_string(path).context("read addeam json")?;
+    let value: serde_json::Value = serde_json::from_str(&raw)?;
+    Ok(parse_damage_metrics_json_value(&value))
+}
+
+/// # Errors
+/// Returns an error if the `ngsBriggs` JSON cannot be read or parsed.
+pub fn parse_ngsbriggs_json(path: &std::path::Path) -> anyhow::Result<DamageMetricsV1> {
+    let raw = std::fs::read_to_string(path).context("read ngsbriggs json")?;
+    let value: serde_json::Value = serde_json::from_str(&raw)?;
+    Ok(parse_damage_metrics_json_value(&value))
+}
+
+/// # Errors
+/// Returns an error if the `PMDtools` JSON cannot be read or parsed.
+pub fn parse_pmdtools_json(path: &std::path::Path) -> anyhow::Result<DamageMetricsV1> {
+    let raw = std::fs::read_to_string(path).context("read pmdtools json")?;
+    let value: serde_json::Value = serde_json::from_str(&raw)?;
+    Ok(parse_damage_metrics_json_value(&value))
 }
 
 /// # Errors
@@ -145,24 +165,63 @@ pub fn parse_mapdamage2_misincorporation(
     let raw = std::fs::read_to_string(path).context("read mapdamage2 misincorporation")?;
     let mut c_to_t = None;
     let mut g_to_a = None;
-    for line in raw.lines() {
+    for (line_no, line) in raw.lines().enumerate() {
         let trimmed = line.trim();
         if trimmed.is_empty() || trimmed.starts_with('#') || trimmed.starts_with("pos") {
             continue;
         }
         let parts: Vec<&str> = trimmed.split_whitespace().collect();
         if parts.len() < 3 {
-            continue;
+            anyhow::bail!(
+                "mapdamage2 misincorporation line {} has {} columns",
+                line_no + 1,
+                parts.len()
+            );
         }
-        let c_to_t_val = parts[1].parse::<f64>().unwrap_or(0.0);
-        let g_to_a_val = parts[2].parse::<f64>().unwrap_or(0.0);
+        let c_to_t_val = parts[1]
+            .parse::<f64>()
+            .with_context(|| format!("parse mapdamage2 c_to_t on line {}", line_no + 1))?;
+        let g_to_a_val = parts[2]
+            .parse::<f64>()
+            .with_context(|| format!("parse mapdamage2 g_to_a on line {}", line_no + 1))?;
         c_to_t = Some(c_to_t_val);
         g_to_a = Some(g_to_a_val);
         break;
     }
-    Ok(DamageMetricsV1 {
-        c_to_t_5p: c_to_t.unwrap_or(0.0),
-        g_to_a_3p: g_to_a.unwrap_or(0.0),
-        pmd_score_histogram: Vec::new(),
-    })
+    let c_to_t =
+        c_to_t.ok_or_else(|| anyhow::anyhow!("mapdamage2 report contains no data rows"))?;
+    let g_to_a =
+        g_to_a.ok_or_else(|| anyhow::anyhow!("mapdamage2 report contains no data rows"))?;
+    Ok(DamageMetricsV1 { c_to_t_5p: c_to_t, g_to_a_3p: g_to_a, pmd_score_histogram: Vec::new() })
+}
+
+fn parse_damage_metrics_json_value(value: &serde_json::Value) -> DamageMetricsV1 {
+    let c_to_t = value
+        .get("ct_5p")
+        .or_else(|| value.get("c_to_t_5p"))
+        .or_else(|| value.get("five_prime_c_to_t"))
+        .and_then(serde_json::Value::as_f64)
+        .unwrap_or(0.0);
+    let g_to_a = value
+        .get("ga_3p")
+        .or_else(|| value.get("g_to_a_3p"))
+        .or_else(|| value.get("three_prime_g_to_a"))
+        .and_then(serde_json::Value::as_f64)
+        .unwrap_or(0.0);
+    let pmd_score_histogram = value
+        .get("pmd_score_histogram")
+        .and_then(serde_json::Value::as_array)
+        .map(|values| {
+            values
+                .iter()
+                .filter_map(|entry| {
+                    let pair = entry.as_array()?;
+                    let score = pair.first()?.as_u64()?;
+                    let count = pair.get(1)?.as_u64()?;
+                    Some((score as u8, count))
+                })
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    DamageMetricsV1 { c_to_t_5p: c_to_t, g_to_a_3p: g_to_a, pmd_score_histogram }
 }

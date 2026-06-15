@@ -78,8 +78,16 @@ fn execution_support_separates_closed_and_declared_only_stage_sets() {
         "governed FASTQ ASV inference must appear in the closed execution set once its runtime contract closes",
     );
     assert!(
+        closed.contains("fastq.detect_duplicates_premerge"),
+        "fixture-backed FASTQ duplicate signaling must appear in the closed execution set once its governed runtime closes",
+    );
+    assert!(
         !declared_only.contains("fastq.infer_asvs"),
         "closed ASV inference must leave the declared-only execution set",
+    );
+    assert!(
+        !declared_only.contains("fastq.detect_duplicates_premerge"),
+        "closed duplicate signaling must leave the declared-only execution set",
     );
 }
 

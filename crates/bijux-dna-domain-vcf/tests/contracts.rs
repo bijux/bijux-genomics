@@ -1,3 +1,6 @@
+#[path = "contracts/parsers.rs"]
+mod parsers;
+
 mod contracts {
     use std::collections::BTreeMap;
     use std::path::PathBuf;
@@ -5,19 +8,20 @@ mod contracts {
     use bijux_dna_domain_vcf::{
         build_vcf_scientific_drift_report,
         contracts::{
-            refuse_unsupported_regime_transition, stage_artifact_class_contract,
-            stage_artifact_contract, stage_failure_modes, stage_io_contract,
-            stage_metrics_contract, validate_entry_vcf_invariants, validate_panel_map_invariants,
+            comparable_metric_stage_ids, refuse_unsupported_regime_transition,
+            stage_artifact_class_contract, stage_artifact_contract, stage_comparable_metric_specs,
+            stage_failure_modes, stage_io_contract, stage_metrics_contract,
+            validate_entry_vcf_invariants, validate_panel_map_invariants,
             validate_reference_panel_governance, validate_species_context, validate_vcf_invariants,
             vcf_calling_mode_contracts, vcf_cohort_analysis_boundary_contracts,
             vcf_likelihood_workflow_contracts, vcf_panel_boundary_contracts,
-            vcf_phasing_imputation_boundary_contracts, vcf_population_guardrail_contracts,
-            ContigSpec, DamageAwareGenotypeLogicContract, DefaultPanelSelectionPolicy,
-            EntryVcfInvariantState, PanelMapInvariantState, PanelSelectionContext,
-            PanelSelectionPolicy, ReferencePanelGovernance, SpeciesContext, VcfArtifactClass,
-            VcfInvariantState, DAMAGE_AWARE_GENOTYPE_LOGIC, OUTPUT_GUARANTEE,
-            VCF_COHORT_VALIDATION_CONTRACT, VCF_DAMAGE_FILTER_CONTRACT,
-            VCF_FILTER_EVIDENCE_CONTRACT, VCF_NORMALIZATION_CONTRACT,
+            vcf_parser_fixture_inventory, vcf_phasing_imputation_boundary_contracts,
+            vcf_population_guardrail_contracts, ContigSpec, DamageAwareGenotypeLogicContract,
+            DefaultPanelSelectionPolicy, EntryVcfInvariantState, PanelMapInvariantState,
+            PanelSelectionContext, PanelSelectionPolicy, ReferencePanelGovernance, SpeciesContext,
+            VcfArtifactClass, VcfComparableMetricDirection, VcfInvariantState,
+            DAMAGE_AWARE_GENOTYPE_LOGIC, OUTPUT_GUARANTEE, VCF_COHORT_VALIDATION_CONTRACT,
+            VCF_DAMAGE_FILTER_CONTRACT, VCF_FILTER_EVIDENCE_CONTRACT, VCF_NORMALIZATION_CONTRACT,
             VCF_NORMALIZATION_POLICY_MATRIX_CONTRACT, VCF_PRODUCTION_CORPUS_CONTRACT,
             VCF_REFERENCE_CONTEXT_CONTRACT, VCF_REPORT_COVERAGE_CONTRACT,
             VCF_SCIENTIFIC_DRIFT_CONTRACT, VCF_STATS_REPORT_CONTRACT, VCF_VALIDATION_CONTRACT,
@@ -73,7 +77,7 @@ mod contracts {
                 "vcf.filter",
                 "vcf.gl_propagation",
                 "vcf.ibd",
-                "vcf.imputation",
+                "vcf.imputation_metrics",
                 "vcf.impute",
                 "vcf.pca",
                 "vcf.phasing",
@@ -95,8 +99,11 @@ mod contracts {
         assert!(
             validate_downstream_transition(VcfDomainStage::Filter, VcfDomainStage::Filter).is_err()
         );
-        assert!(validate_downstream_transition(VcfDomainStage::Imputation, VcfDomainStage::Call)
-            .is_err());
+        assert!(validate_downstream_transition(
+            VcfDomainStage::ImputationMetrics,
+            VcfDomainStage::Call,
+        )
+        .is_err());
         assert_eq!(
             VCF_STAGE_ORDER_DOWNSTREAM.first().map(|s| s.as_str()),
             Some("vcf.prepare_reference_panel")
@@ -105,29 +112,460 @@ mod contracts {
 
     #[test]
     fn vcf_stage_contracts_expose_io_metrics_and_failure_modes() {
-        let Some(io) = stage_io_contract(VcfDomainStage::Imputation) else {
+        let Some(io) = stage_io_contract(VcfDomainStage::ImputationMetrics) else {
             panic!("missing stage IO contract for imputation");
         };
         assert!(io.required_inputs.contains(&"vcf"));
         assert!(io.required_indices.contains(&"vcf.tbi"));
+        assert_eq!(io.required_outputs, vec!["imputation_metrics_json"]);
 
-        let metrics = stage_metrics_contract(VcfDomainStage::Imputation);
-        assert_eq!(metrics.metrics_schema_id, "bijux.vcf.imputation.v1");
-        assert!(metrics.required_metrics.contains(&"rsq_mean"));
+        let metrics = stage_metrics_contract(VcfDomainStage::ImputationMetrics);
+        assert_eq!(metrics.metrics_schema_id, "bijux.vcf.imputation_metrics.v1");
+        assert!(metrics.required_metrics.contains(&"mean_info_score"));
+        assert!(metrics.required_metrics.contains(&"masked_truth_sites"));
 
         let failure_modes = stage_failure_modes(VcfDomainStage::Phasing);
         assert!(failure_modes.iter().any(|m| m.code == "insufficient_markers"));
     }
 
     #[test]
+    fn authored_imputation_metrics_catalog_matches_governed_contract_ids() {
+        let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../");
+        let stage_raw =
+            std::fs::read_to_string(repo_root.join("domain/vcf/stages/imputation_metrics.yaml"))
+                .unwrap_or_else(|err| panic!("read imputation_metrics stage yaml: {err}"));
+        let artifacts_raw = std::fs::read_to_string(repo_root.join("domain/vcf/artifacts.yaml"))
+            .unwrap_or_else(|err| panic!("read VCF artifact vocabulary: {err}"));
+        let metrics_raw = std::fs::read_to_string(repo_root.join("domain/vcf/metrics.yaml"))
+            .unwrap_or_else(|err| panic!("read VCF metric vocabulary: {err}"));
+
+        assert!(stage_raw.contains("- name: \"imputation_metrics_json\""));
+        assert!(stage_raw.contains("required_outputs: [\"imputation_metrics_json\"]"));
+        assert!(!stage_raw.contains("imputation_out"));
+        assert!(!stage_raw.contains("imputation_status"));
+
+        for metric_id in [
+            "status",
+            "mean_info_score",
+            "r2_available",
+            "low_confidence_sites",
+            "masked_truth_sites",
+            "missing_quality_fields",
+        ] {
+            assert!(
+                stage_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        assert!(artifacts_raw.contains("- id: imputation_metrics_json"));
+        assert!(!artifacts_raw.contains("imputation_out"));
+        assert!(!metrics_raw.contains("- id: imputation_status"));
+    }
+
+    #[allow(clippy::too_many_lines)]
+    #[test]
+    fn authored_supported_report_and_segment_stage_catalogs_match_governed_contract_ids() {
+        let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../");
+        let qc_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/qc.yaml"))
+            .unwrap_or_else(|err| panic!("read qc stage yaml: {err}"));
+        let pca_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/pca.yaml"))
+            .unwrap_or_else(|err| panic!("read pca stage yaml: {err}"));
+        let admixture_raw =
+            std::fs::read_to_string(repo_root.join("domain/vcf/stages/admixture.yaml"))
+                .unwrap_or_else(|err| panic!("read admixture stage yaml: {err}"));
+        let population_structure_raw =
+            std::fs::read_to_string(repo_root.join("domain/vcf/stages/population_structure.yaml"))
+                .unwrap_or_else(|err| panic!("read population_structure stage yaml: {err}"));
+        let ibd_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/ibd.yaml"))
+            .unwrap_or_else(|err| panic!("read ibd stage yaml: {err}"));
+        let roh_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/roh.yaml"))
+            .unwrap_or_else(|err| panic!("read roh stage yaml: {err}"));
+        let demography_raw =
+            std::fs::read_to_string(repo_root.join("domain/vcf/stages/demography.yaml"))
+                .unwrap_or_else(|err| panic!("read demography stage yaml: {err}"));
+        let stats_raw = std::fs::read_to_string(repo_root.join("domain/vcf/stages/stats.yaml"))
+            .unwrap_or_else(|err| panic!("read stats stage yaml: {err}"));
+        let artifacts_raw = std::fs::read_to_string(repo_root.join("domain/vcf/artifacts.yaml"))
+            .unwrap_or_else(|err| panic!("read VCF artifact vocabulary: {err}"));
+        let metrics_raw = std::fs::read_to_string(repo_root.join("domain/vcf/metrics.yaml"))
+            .unwrap_or_else(|err| panic!("read VCF metric vocabulary: {err}"));
+
+        assert!(qc_raw.contains("status: \"supported\""));
+        assert!(qc_raw.contains("- name: \"qc_report\""));
+        assert!(qc_raw.contains("required_outputs: [\"qc_report\"]"));
+        assert!(!qc_raw.contains("- name: \"qc_out\""));
+        assert!(!qc_raw.contains("required_outputs: [\"qc_out\"]"));
+
+        for metric_id in [
+            "variant_count",
+            "sample_missingness",
+            "variant_missingness",
+            "maf_summary",
+            "heterozygosity",
+            "hwe_summary",
+            "excluded_samples",
+            "excluded_variants",
+            "sample_missingness_exclusion_threshold",
+            "variant_missingness_exclusion_threshold",
+        ] {
+            assert!(
+                qc_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored qc stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        assert!(pca_raw.contains("- name: \"pca_report\""));
+        assert!(pca_raw.contains("required_outputs: [\"pca_report\"]"));
+        assert!(!pca_raw.contains("- name: \"pca_out\""));
+        assert!(!pca_raw.contains("required_outputs: [\"pca_out\"]"));
+        for metric_id in [
+            "sample_count",
+            "variant_count",
+            "excluded_samples",
+            "unexpected_samples",
+            "eigenvalues",
+        ] {
+            assert!(
+                pca_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored pca stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        assert!(admixture_raw.contains("status: \"planned\""));
+        assert!(admixture_raw.contains("- name: \"admixture_report\""));
+        assert!(admixture_raw.contains("required_outputs: [\"admixture_report\"]"));
+        assert!(!admixture_raw.contains("- name: \"admixture_out\""));
+        assert!(!admixture_raw.contains("required_outputs: [\"admixture_out\"]"));
+        for metric_id in ["selected_k", "sample_count", "population_count", "status"] {
+            assert!(
+                admixture_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored admixture stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        assert!(population_structure_raw.contains("status: \"supported\""));
+        assert!(population_structure_raw.contains("- name: \"population_structure_report\""));
+        assert!(population_structure_raw
+            .contains("required_outputs: [\"population_structure_report\"]"));
+        for metric_id in [
+            "sample_count",
+            "pair_count",
+            "within_population_pair_count",
+            "cross_population_pair_count",
+        ] {
+            assert!(
+                population_structure_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored population_structure stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        assert!(ibd_raw.contains("status: \"planned\""));
+        assert!(ibd_raw.contains("- name: \"ibd_segments\""));
+        assert!(ibd_raw.contains("required_outputs: [\"ibd_segments\"]"));
+        for metric_id in
+            ["pair_count", "rows", "status", "insufficient_reason", "insufficient_overlap_probe"]
+        {
+            assert!(
+                ibd_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored ibd stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        assert!(roh_raw.contains("status: \"planned\""));
+        assert!(roh_raw.contains("- name: \"roh_report\""));
+        assert!(roh_raw.contains("required_outputs: [\"roh_report\"]"));
+        assert!(roh_raw.contains("planned_out_of_scope: []"));
+        for metric_id in [
+            "sample_count",
+            "segment_count",
+            "total_length",
+            "segments",
+            "per_sample_summary",
+            "status",
+        ] {
+            assert!(
+                roh_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored roh stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        assert!(demography_raw.contains("status: \"planned\""));
+        assert!(demography_raw.contains("- name: \"demography_report\""));
+        assert!(demography_raw.contains("required_inputs: [\"ibd_segments\"]"));
+        assert!(demography_raw.contains("required_outputs: [\"demography_report\"]"));
+        assert!(demography_raw.contains("data_type: \"tsv\""));
+        assert!(demography_raw.contains("planned_out_of_scope: []"));
+        for metric_id in [
+            "method",
+            "inference_status",
+            "status",
+            "insufficient_reason",
+            "time_bins",
+            "ne_estimates",
+            "insufficient_data_probe",
+        ] {
+            assert!(
+                demography_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored demography stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        for metric_id in [
+            "variant_count",
+            "snp_count",
+            "indel_count",
+            "transition_count",
+            "transversion_count",
+            "ti_tv",
+            "sample_count",
+        ] {
+            assert!(
+                stats_raw.contains(&format!("  - name: \"{metric_id}\"")),
+                "authored stats stage yaml is missing `{metric_id}`"
+            );
+            assert!(
+                metrics_raw.contains(&format!("- id: {metric_id}")),
+                "VCF metric vocabulary is missing `{metric_id}`"
+            );
+        }
+
+        for artifact_id in
+            ["qc_report", "pca_report", "admixture_report", "population_structure_report"]
+        {
+            assert!(
+                artifacts_raw.contains(&format!("- id: {artifact_id}")),
+                "VCF artifact vocabulary is missing `{artifact_id}`"
+            );
+        }
+        assert!(!artifacts_raw.contains("qc_out"));
+        assert!(!artifacts_raw.contains("pca_out"));
+        assert!(!artifacts_raw.contains("admixture_out"));
+    }
+
+    #[test]
     fn stats_and_qc_metric_contracts_cover_governed_summary_ids() {
         let stats = stage_metrics_contract(VcfDomainStage::Stats);
         assert!(stats.required_metrics.contains(&"sample_count"));
-        assert!(stats.required_metrics.contains(&"annotation_coverage"));
+        assert!(stats.required_metrics.contains(&"transition_count"));
 
         let qc = stage_metrics_contract(VcfDomainStage::Qc);
-        assert!(qc.required_metrics.contains(&"sample_count"));
-        assert!(qc.required_metrics.contains(&"missingness_post"));
+        assert!(qc.required_metrics.contains(&"sample_missingness"));
+        assert!(qc.required_metrics.contains(&"variant_missingness"));
+        assert!(qc.required_metrics.contains(&"hwe_summary"));
+    }
+
+    #[test]
+    fn stage_io_contracts_use_report_specific_output_ids() {
+        let qc = stage_io_contract(VcfDomainStage::Qc)
+            .unwrap_or_else(|| panic!("missing stage IO contract for qc"));
+        assert_eq!(qc.required_outputs, vec!["qc_report"]);
+
+        let pca = stage_io_contract(VcfDomainStage::Pca)
+            .unwrap_or_else(|| panic!("missing stage IO contract for pca"));
+        assert_eq!(pca.required_outputs, vec!["pca_report"]);
+
+        let admixture = stage_io_contract(VcfDomainStage::Admixture)
+            .unwrap_or_else(|| panic!("missing stage IO contract for admixture"));
+        assert_eq!(admixture.required_outputs, vec!["admixture_report"]);
+
+        let population_structure = stage_io_contract(VcfDomainStage::PopulationStructure)
+            .unwrap_or_else(|| panic!("missing stage IO contract for population_structure"));
+        assert_eq!(population_structure.required_outputs, vec!["population_structure_report"]);
+
+        let roh = stage_io_contract(VcfDomainStage::Roh)
+            .unwrap_or_else(|| panic!("missing stage IO contract for roh"));
+        assert_eq!(roh.required_outputs, vec!["roh_report"]);
+
+        let ibd = stage_io_contract(VcfDomainStage::Ibd)
+            .unwrap_or_else(|| panic!("missing stage IO contract for ibd"));
+        assert_eq!(ibd.required_outputs, vec!["ibd_segments"]);
+
+        let demography = stage_io_contract(VcfDomainStage::Demography)
+            .unwrap_or_else(|| panic!("missing stage IO contract for demography"));
+        assert_eq!(demography.required_inputs, vec!["ibd_segments"]);
+        assert_eq!(demography.inputs[0].data_type, "tsv");
+        assert_eq!(demography.required_outputs, vec!["demography_report"]);
+
+        let stats = stage_io_contract(VcfDomainStage::Stats)
+            .unwrap_or_else(|| panic!("missing stage IO contract for stats"));
+        assert_eq!(stats.required_outputs, vec!["stats_json"]);
+    }
+
+    #[test]
+    fn stage_metrics_contract_matches_governed_stage_schema_ids() {
+        let pca = stage_metrics_contract(VcfDomainStage::Pca);
+        assert_eq!(pca.metrics_schema_id, "bijux.vcf.pca.v1");
+        assert!(pca.required_metrics.contains(&"eigenvalues"));
+
+        let admixture = stage_metrics_contract(VcfDomainStage::Admixture);
+        assert_eq!(admixture.metrics_schema_id, "bijux.vcf.admixture.v1");
+        assert!(admixture.required_metrics.contains(&"selected_k"));
+
+        let population_structure = stage_metrics_contract(VcfDomainStage::PopulationStructure);
+        assert_eq!(population_structure.metrics_schema_id, "bijux.vcf.population_structure.v1");
+        assert!(population_structure.required_metrics.contains(&"pair_count"));
+        assert!(population_structure.required_metrics.contains(&"cross_population_pair_count"));
+
+        let impute = stage_metrics_contract(VcfDomainStage::Impute);
+        assert_eq!(impute.metrics_schema_id, "bijux.vcf.impute.v1");
+        assert!(impute.required_metrics.contains(&"masked_truth_match_count"));
+        assert!(impute.required_metrics.contains(&"sample_ids"));
+
+        let postprocess = stage_metrics_contract(VcfDomainStage::Postprocess);
+        assert_eq!(postprocess.metrics_schema_id, "bijux.vcf.postprocess.v1");
+        assert!(postprocess.required_metrics.contains(&"left_align_applied"));
+
+        let panel = stage_metrics_contract(VcfDomainStage::PrepareReferencePanel);
+        assert_eq!(panel.metrics_schema_id, "bijux.vcf.prepare_reference_panel.v1");
+        assert!(panel.required_metrics.contains(&"duplicate_sites_removed"));
+
+        let gl_propagation = stage_metrics_contract(VcfDomainStage::GlPropagation);
+        assert_eq!(gl_propagation.metrics_schema_id, "bijux.vcf.gl_propagation.v1");
+        assert!(gl_propagation.required_metrics.contains(&"input_likelihood_fields"));
+
+        let roh = stage_metrics_contract(VcfDomainStage::Roh);
+        assert_eq!(roh.metrics_schema_id, "bijux.vcf.roh.v1");
+        assert!(roh.required_metrics.contains(&"segment_count"));
+        assert!(roh.required_metrics.contains(&"per_sample_summary"));
+
+        let ibd = stage_metrics_contract(VcfDomainStage::Ibd);
+        assert_eq!(ibd.metrics_schema_id, "bijux.vcf.ibd.v1");
+        assert!(ibd.required_metrics.contains(&"rows"));
+        assert!(ibd.required_metrics.contains(&"insufficient_reason"));
+
+        let demography = stage_metrics_contract(VcfDomainStage::Demography);
+        assert_eq!(demography.metrics_schema_id, "bijux.vcf.demography.v1");
+        assert!(demography.required_metrics.contains(&"time_bins"));
+        assert!(demography.required_metrics.contains(&"insufficient_data_probe"));
+    }
+
+    #[test]
+    fn vcf_comparable_metric_contracts_cover_retained_multi_tool_stage_slice() {
+        let stage_ids = comparable_metric_stage_ids()
+            .into_iter()
+            .map(VcfDomainStage::as_str)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            stage_ids,
+            vec![
+                "vcf.admixture",
+                "vcf.call_gl",
+                "vcf.call_pseudohaploid",
+                "vcf.damage_filter",
+                "vcf.gl_propagation",
+                "vcf.ibd",
+                "vcf.imputation_metrics",
+                "vcf.impute",
+                "vcf.pca",
+                "vcf.phasing",
+                "vcf.population_structure",
+                "vcf.qc",
+            ]
+        );
+
+        let call_gl = stage_comparable_metric_specs(VcfDomainStage::CallGl);
+        assert!(call_gl.iter().any(|metric| {
+            metric.metric_id == "sites_with_likelihoods"
+                && metric.unit == "sites"
+                && metric.direction == VcfComparableMetricDirection::HigherIsBetter
+                && metric.required
+        }));
+        assert!(call_gl.iter().any(|metric| {
+            metric.metric_id == "missing_likelihoods"
+                && metric.direction == VcfComparableMetricDirection::LowerIsBetter
+        }));
+
+        let qc = stage_comparable_metric_specs(VcfDomainStage::Qc);
+        assert!(qc.iter().any(|metric| {
+            metric.metric_id == "concordance"
+                && metric.unit == "fraction"
+                && metric.direction == VcfComparableMetricDirection::HigherIsBetter
+        }));
+
+        let phasing = stage_comparable_metric_specs(VcfDomainStage::Phasing);
+        assert!(phasing.iter().any(|metric| {
+            metric.metric_id == "phase_block_n50"
+                && metric.unit == "bases"
+                && metric.direction == VcfComparableMetricDirection::HigherIsBetter
+        }));
+
+        let impute = stage_comparable_metric_specs(VcfDomainStage::Impute);
+        assert!(impute.iter().any(|metric| {
+            metric.metric_id == "masked_truth_match_count"
+                && metric.direction == VcfComparableMetricDirection::HigherIsBetter
+        }));
+    }
+
+    #[test]
+    fn vcf_parser_fixture_inventory_covers_governed_tool_stage_rows() {
+        let rows = vcf_parser_fixture_inventory();
+        assert_eq!(rows.len(), 39);
+
+        let unique_rows = rows
+            .iter()
+            .map(|row| format!("{}:{}", row.tool_id, row.stage.as_str()))
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(unique_rows.len(), rows.len());
+
+        assert!(rows.iter().any(|row| {
+            row.tool_id == "bcftools"
+                && row.stage == VcfDomainStage::Call
+                && row.parser_id == "parse_bcftools_call_metrics"
+                && row.fixture_path
+                    == "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call"
+        }));
+        assert!(rows.iter().any(|row| {
+            row.tool_id == "bcftools"
+                && row.stage == VcfDomainStage::Stats
+                && row.parser_id == "parse_bcftools_stats_metrics"
+        }));
+        assert!(rows.iter().any(|row| {
+            row.tool_id == "shapeit5"
+                && row.stage == VcfDomainStage::Phasing
+                && row.parser_id == "parse_shapeit5_phasing_metrics"
+        }));
+        assert!(rows.iter().any(|row| {
+            row.tool_id == "beagle"
+                && row.stage == VcfDomainStage::ImputationMetrics
+                && row.parser_id == "parse_beagle_imputation_metrics"
+        }));
+        assert!(rows.iter().all(|row| !row.fixture_path.is_empty()));
+        assert!(rows.iter().all(|row| stage_metrics_contract(row.stage)
+            .metrics_schema_id
+            .starts_with("bijux.vcf.")));
     }
 
     #[test]
@@ -491,7 +929,7 @@ mod contracts {
         assert!(report
             .stages
             .iter()
-            .any(|row| row.stage_id == "vcf.imputation" && row.domain_only));
+            .any(|row| row.stage_id == "vcf.imputation_metrics" && row.domain_only));
         assert!(report.tools.iter().any(|row| row.tool_id == "bcftools"));
     }
 
@@ -565,6 +1003,22 @@ mod contracts {
         assert!(
             !generated.contains("# source_commit: 53b050a6d117e40e0122777655e9d8cc428be9ad"),
             "VCF required tools registry must not embed a stale static source commit"
+        );
+    }
+
+    #[test]
+    fn generated_vcf_registry_keeps_bcftools_planned_stage_bindings() {
+        let registry_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../configs/ci/registry/tool_registry_vcf.toml");
+        let committed = std::fs::read_to_string(&registry_path)
+            .unwrap_or_else(|err| panic!("read {}: {err}", registry_path.display()));
+        assert!(
+            committed.contains("\"vcf.postprocess\""),
+            "bcftools registry row must retain vcf.postprocess"
+        );
+        assert!(
+            committed.contains("\"vcf.prepare_reference_panel\""),
+            "bcftools registry row must retain vcf.prepare_reference_panel"
         );
     }
 }

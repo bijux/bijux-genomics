@@ -123,6 +123,38 @@ pub fn write_fastq_records(path: &Path, records: &[FastqRecord]) -> Result<()> {
     Ok(())
 }
 
+/// Compare FASTQ inputs and outputs record-by-record to count changed versus unchanged reads.
+///
+/// Sequence and quality determine whether a read changed. Header or plus-line drift alone does
+/// not count as read correction because downstream benchmark rows are meant to reflect content
+/// changes, not wrapper-level formatting differences.
+///
+/// # Errors
+/// Returns an error when either FASTQ input is malformed.
+pub fn count_changed_fastq_reads(path_before: &Path, path_after: &Path) -> Result<(u64, u64)> {
+    let before = read_fastq_records(path_before)?;
+    let after = read_fastq_records(path_after)?;
+
+    let shared_len = before.len().min(after.len());
+    let mut changed_reads = 0_u64;
+    let mut unchanged_reads = 0_u64;
+
+    for (before_record, after_record) in before.iter().zip(after.iter()) {
+        if before_record.sequence == after_record.sequence
+            && before_record.quality == after_record.quality
+        {
+            unchanged_reads += 1;
+        } else {
+            changed_reads += 1;
+        }
+    }
+
+    let unmatched_reads = before.len().max(after.len()) - shared_len;
+    changed_reads += unmatched_reads as u64;
+
+    Ok((changed_reads, unchanged_reads))
+}
+
 #[must_use]
 pub fn parse_header_pairing(header: &str) -> (String, Option<u8>) {
     let token = header.split_whitespace().next().unwrap_or(header);
@@ -149,7 +181,7 @@ pub fn parse_header_pairing(header: &str) -> (String, Option<u8>) {
 
 #[cfg(test)]
 mod tests {
-    use super::{read_fastq_records, write_fastq_records, FastqRecord};
+    use super::{count_changed_fastq_reads, read_fastq_records, write_fastq_records, FastqRecord};
 
     #[test]
     fn fastq_io_round_trip_gz() -> anyhow::Result<()> {
@@ -173,6 +205,59 @@ mod tests {
         write_fastq_records(&path, &records)?;
         let decoded = read_fastq_records(&path)?;
         assert_eq!(decoded, records);
+        Ok(())
+    }
+
+    #[test]
+    fn count_changed_fastq_reads_tracks_sequence_and_quality_deltas() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-fastq-change-count")?;
+        let before = temp.path().join("before.fastq");
+        let after = temp.path().join("after.fastq");
+
+        write_fastq_records(
+            &before,
+            &[
+                FastqRecord {
+                    header: "@read1".to_string(),
+                    sequence: "ACGT".to_string(),
+                    plus: "+".to_string(),
+                    quality: "!!!!".to_string(),
+                },
+                FastqRecord {
+                    header: "@read2".to_string(),
+                    sequence: "TGCA".to_string(),
+                    plus: "+".to_string(),
+                    quality: "####".to_string(),
+                },
+                FastqRecord {
+                    header: "@read3".to_string(),
+                    sequence: "CCCC".to_string(),
+                    plus: "+".to_string(),
+                    quality: "$$$$".to_string(),
+                },
+            ],
+        )?;
+        write_fastq_records(
+            &after,
+            &[
+                FastqRecord {
+                    header: "@read1 renamed".to_string(),
+                    sequence: "ACGT".to_string(),
+                    plus: "+renamed".to_string(),
+                    quality: "!!!!".to_string(),
+                },
+                FastqRecord {
+                    header: "@read2".to_string(),
+                    sequence: "TGCT".to_string(),
+                    plus: "+".to_string(),
+                    quality: "####".to_string(),
+                },
+            ],
+        )?;
+
+        let (changed_reads, unchanged_reads) = count_changed_fastq_reads(&before, &after)?;
+        assert_eq!(changed_reads, 2);
+        assert_eq!(unchanged_reads, 1);
         Ok(())
     }
 }

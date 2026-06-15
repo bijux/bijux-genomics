@@ -1,9 +1,9 @@
 use crate::stages::ids::{
     STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA,
-    STAGE_DETECT_ADAPTERS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS,
-    STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, STAGE_PROFILE_READS, STAGE_PROFILE_READ_LENGTHS,
-    STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_POLYG_TAILS, STAGE_TRIM_READS,
-    STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
+    STAGE_DETECT_ADAPTERS, STAGE_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN, STAGE_FILTER_LOW_COMPLEXITY,
+    STAGE_FILTER_READS, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, STAGE_PROFILE_READS,
+    STAGE_PROFILE_READ_LENGTHS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_POLYG_TAILS,
+    STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
 };
 use bijux_dna_core::ids::StageId;
 
@@ -30,6 +30,13 @@ pub(super) const STAGE_PARAM_DESCRIPTORS: &[(&StageId, StageParamDescriptor)] = 
         StageParamDescriptor {
             param_type_id: "fastq.detect_adapters",
             schema_version: quality::detect_adapters::DETECT_ADAPTERS_SCHEMA_VERSION,
+        },
+    ),
+    (
+        &STAGE_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN,
+        StageParamDescriptor {
+            param_type_id: "fastq.estimate_library_complexity_prealign",
+            schema_version: quality::stats::ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_SCHEMA_VERSION,
         },
     ),
     (
@@ -64,7 +71,7 @@ pub(super) const STAGE_PARAM_DESCRIPTORS: &[(&StageId, StageParamDescriptor)] = 
         &STAGE_FILTER_LOW_COMPLEXITY,
         StageParamDescriptor {
             param_type_id: "fastq.filter_low_complexity",
-            schema_version: "bijux.fastq.params.filter_low_complexity.v1",
+            schema_version: quality::filter_low_complexity::FILTER_LOW_COMPLEXITY_SCHEMA_VERSION,
         },
     ),
     (

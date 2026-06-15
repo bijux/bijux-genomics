@@ -7,6 +7,8 @@
 - `src/surface.rs` centralizes root-level reexports and constants.
 - `src/stage_api.rs` exposes stage-level compatibility helpers and governance views.
 - `src/planner/` owns graph planning, route expansion, benchmark fan-out, graph policy, and planner-local support types.
+- `src/planner/local_readiness.rs` owns governed local-ready FASTQ stage-plan construction from repository config.
+- `src/planner/local_smoke.rs` owns governed local-smoke FASTQ stage-plan construction from repository config.
 - `src/compose/` owns input resolution, stage parameters, route lineage, report-QC input
   collection, and stage binding composition.
 - `src/preprocess/` owns preprocess policy and pipeline choice.

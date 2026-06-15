@@ -1,0 +1,21 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-ready plan input for bam.haplogroups.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_haplogroups.v1"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam"
+bai = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai"
+reference_fasta = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+reference_panel_id = "adna-y-hg38-mini"
+reference_panel = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
+tool_id = "yleaf"
+sample_id = "adna_y_haplogroup_panel"
+reference_build = "hg38"
+population_scope = "adna_y_haplogroup_panel"
+min_coverage = 2.0
+refuse_without_population_context = true
+threads = 2
+output_dir = "benchmarks/readiness/local-ready/bam.haplogroups"

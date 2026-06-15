@@ -27,6 +27,7 @@ Top-level workspace paths only.
 | `artifacts` | `dir` | `-` | - |
 | `assets` | `dir` | `-` | - |
 | `audit-allowlist.toml` | `file` | `-` | - |
+| `benchmarks` | `dir` | `-` | - |
 | `configs` | `dir` | `-` | - |
 | `containers` | `dir` | `-` | - |
 | `crates` | `dir` | `-` | - |
@@ -35,9 +36,11 @@ Top-level workspace paths only.
 | `examples` | `dir` | `-` | - |
 | `makes` | `dir` | `-` | - |
 | `mkdocs.yml` | `file` | `-` | - |
+| `runs` | `dir` | `-` | - |
 | `rust-toolchain.toml` | `file` | `-` | - |
 | `rustfmt.toml` | `file` | `-` | - |
 | `science` | `dir` | `-` | - |
+| `tests` | `dir` | `-` | - |
 
 ## Automation Intent
 | Control Plane Path | Purpose |

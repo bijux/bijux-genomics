@@ -74,6 +74,13 @@ status = "experimental"
 upstream_license = "GPL-3.0"
 source_sha256 = "220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"
 
+[bijux_dna]
+version = "0.1.0"
+source = "https://github.com/bijux/bijux-genomics"
+date_pinned = "2026-06-14"
+upstream_license = "Apache-2.0"
+source_sha256 = "a6662f59c7283ff89d7f7c3b6aa23bcb2fda58f07fc2dd2831d85639166bc5f1"
+
 [bedtools]
 version = "2.31.1"
 source = "https://github.com/arq5x/bedtools2"

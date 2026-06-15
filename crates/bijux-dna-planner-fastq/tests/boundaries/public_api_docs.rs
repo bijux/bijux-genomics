@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used, clippy::too_many_lines)]
+
 use std::collections::BTreeSet;
 use std::path::Path;
 
@@ -64,6 +66,32 @@ fn public_api_docs_match_curated_exports() {
             "toolset_for_stage",
             "stage_tool_maturity",
             "benchmark_cohorts_for_stage",
+            "local_correct_errors_smoke_plans",
+            "local_extract_umis_smoke_plans",
+            "local_deplete_host_plan",
+            "local_deplete_reference_contaminants_plan",
+            "local_deplete_rrna_plan",
+            "local_screen_taxonomy_plan",
+            "local_detect_adapters_smoke_plans",
+            "local_detect_duplicates_premerge_smoke_plans",
+            "local_estimate_library_complexity_prealign_smoke_plans",
+            "local_filter_low_complexity_smoke_plans",
+            "local_filter_reads_smoke_plans",
+            "local_cluster_otus_smoke_plans",
+            "local_infer_asvs_smoke_plans",
+            "local_index_reference_plan",
+            "local_merge_pairs_smoke_plans",
+            "local_normalize_abundance_smoke_plans",
+            "local_normalize_primers_smoke_plans",
+            "local_profile_overrepresented_sequences_smoke_plans",
+            "local_profile_read_lengths_smoke_plans",
+            "local_profile_reads_smoke_plans",
+            "local_remove_chimeras_smoke_plans",
+            "local_remove_duplicates_smoke_plans",
+            "local_trim_polyg_tails_smoke_plans",
+            "local_trim_reads_smoke_plans",
+            "local_trim_terminal_damage_smoke_plans",
+            "local_validate_reads_smoke_plans",
         ]),
         "stage_api docs must match the curated compatibility surface"
     );
@@ -139,6 +167,104 @@ fn documented_stage_api_exports_remain_compilable() {
         bijux_dna_planner_fastq::stage_api::stage_tool_maturity;
     let _: fn(&StageId) -> Vec<bijux_dna_planner_fastq::stage_api::BenchmarkCohort> =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage;
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalCorrectErrorsSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_correct_errors_smoke_plans;
+    let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
+        bijux_dna_planner_fastq::stage_api::local_deplete_host_plan;
+    let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
+        bijux_dna_planner_fastq::stage_api::local_deplete_reference_contaminants_plan;
+    let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
+        bijux_dna_planner_fastq::stage_api::local_deplete_rrna_plan;
+    let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
+        bijux_dna_planner_fastq::stage_api::local_screen_taxonomy_plan;
+    let _: fn(&Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
+        bijux_dna_planner_fastq::stage_api::local_index_reference_plan;
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalDetectAdaptersSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_detect_adapters_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalDetectDuplicatesPremergeSmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_detect_duplicates_premerge_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalEstimateLibraryComplexityPrealignSmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_estimate_library_complexity_prealign_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalFilterLowComplexitySmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_filter_low_complexity_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalClusterOtusSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_cluster_otus_smoke_plans;
+    let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalInferAsvsSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_infer_asvs_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalFilterReadsSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_filter_reads_smoke_plans;
+    let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalMergePairsSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_merge_pairs_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalNormalizeAbundanceSmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_normalize_abundance_smoke_plans;
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalNormalizePrimersSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_normalize_primers_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalProfileOverrepresentedSequencesSmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_profile_overrepresented_sequences_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalProfileReadLengthsSmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_profile_read_lengths_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalProfileReadsSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_profile_reads_smoke_plans;
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalRemoveChimerasSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_remove_chimeras_smoke_plans;
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalRemoveDuplicatesSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_remove_duplicates_smoke_plans;
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalTrimPolygTailsSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_trim_polyg_tails_smoke_plans;
+    let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalTrimReadsSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_trim_reads_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalTrimTerminalDamageSmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans;
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalValidateReadsSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_validate_reads_smoke_plans;
 }
 
 fn markdown_list_after_heading(markdown: &str, heading: &str) -> BTreeSet<String> {

@@ -1,4 +1,5 @@
 use std::collections::{BTreeSet, HashMap};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
@@ -33,6 +34,7 @@ use bijux_dna_planner_fastq::ExtractUmisStageParams;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
+use serde::Serialize;
 
 use crate::internal::fastq::stages::trim_bench_common::{
     benchmark_image_identity, build_benchmark_context, observe_fastq_stats,
@@ -43,6 +45,26 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_EXTRACT_UMIS,
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
+
+const LOCAL_EXTRACT_UMIS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.extract_umis.local_smoke.report.v1";
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalExtractUmisSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    sample_id: String,
+    planned_tool_id: String,
+    report_tool_id: String,
+    umi_pattern: String,
+    extracted_umi_count: u64,
+    invalid_umi_count: u64,
+    tag_header_format: String,
+    umi_extracted_fastq_gz: String,
+    umi_extracted_r2_fastq_gz: String,
+    case_report_json: String,
+    raw_backend_report: String,
+}
 
 fn apply_thread_override(
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
@@ -923,4 +945,162 @@ fn required_output_path<'a>(plan: &'a StagePlanV1, artifact_name: &str) -> Resul
         .find(|artifact| artifact.name.as_str() == artifact_name)
         .map(|artifact| artifact.path.as_path())
         .ok_or_else(|| anyhow!("extract_umis plan missing `{artifact_name}` output"))
+}
+
+/// Materialize the governed local-smoke `fastq.extract_umis` artifacts.
+///
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.extract_umis/report.json`
+/// under the active repository root, alongside top-level UMI-tagged FASTQ outputs.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_extract_umis_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases = bijux_dna_planner_fastq::stage_api::local_extract_umis_smoke_plans(&repo_root)?;
+    let [case] = cases.as_slice() else {
+        return Err(anyhow!(
+            "governed fastq.extract_umis local smoke must resolve exactly one case"
+        ));
+    };
+
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.extract_umis");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+    let summary = materialize_local_extract_umis_smoke_case(&repo_root, case, &output_root)?;
+    let report_path = output_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(report_path)
+}
+
+fn materialize_local_extract_umis_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalExtractUmisSmokeCasePlan,
+    output_root: &Path,
+) -> Result<LocalExtractUmisSmokeReport> {
+    let effective_params = serde_json::from_value::<bijux_dna_domain_fastq::FastqUmiParams>(
+        case.plan.effective_params.clone(),
+    )
+    .map_err(|error| anyhow!("decode extract-umis local-smoke effective params: {error}"))?;
+
+    let input_r1 = repo_root.join(&case.r1);
+    let input_r2 = repo_root.join(&case.r2);
+    let case_output_r1 =
+        resolve_smoke_path(repo_root, required_output_path(&case.plan, "umi_reads_r1")?);
+    let case_output_r2 =
+        resolve_smoke_path(repo_root, required_output_path(&case.plan, "umi_reads_r2")?);
+    let case_report_json =
+        resolve_smoke_path(repo_root, required_output_path(&case.plan, "report_json")?);
+    let raw_backend_report =
+        resolve_smoke_path(repo_root, &required_param_path(&case.plan, "raw_backend_report")?);
+
+    for path in [&case_output_r1, &case_output_r2, &case_report_json, &raw_backend_report] {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+
+    let mut report = bijux_dna_domain_fastq::stages::contract::extract_umis(
+        &input_r1,
+        Some(&input_r2),
+        &effective_params,
+        &case_output_r1,
+        Some(&case_output_r2),
+        &case_report_json,
+        Some(&raw_backend_report),
+    )?;
+
+    write_governed_local_smoke_log(
+        &raw_backend_report,
+        case.plan.tool_id.as_str(),
+        &effective_params,
+        &report,
+    )?;
+
+    report.input_r1 = case.r1.display().to_string();
+    report.input_r2 = Some(case.r2.display().to_string());
+    report.output_r1 = path_relative_to_repo(repo_root, &case_output_r1);
+    report.output_r2 = Some(path_relative_to_repo(repo_root, &case_output_r2));
+    report.report_json = path_relative_to_repo(repo_root, &case_report_json);
+    report.raw_backend_report = Some(path_relative_to_repo(repo_root, &raw_backend_report));
+    report.raw_backend_report_format = Some("governed_local_smoke_log".to_string());
+    bijux_dna_infra::atomic_write_json(&case_report_json, &report)?;
+
+    let top_level_r1 = output_root.join("umi_extracted.fastq.gz");
+    let top_level_r2 = output_root.join("umi_extracted_R2.fastq.gz");
+    copy_smoke_artifact(&case_output_r1, &top_level_r1)?;
+    copy_smoke_artifact(&case_output_r2, &top_level_r2)?;
+
+    let umi_summary = report.canonical_umi_summary();
+
+    Ok(LocalExtractUmisSmokeReport {
+        schema_version: LOCAL_EXTRACT_UMIS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: "fastq.extract_umis".to_string(),
+        sample_id: case.sample_id.clone(),
+        planned_tool_id: case.plan.tool_id.as_str().to_string(),
+        report_tool_id: report.tool_id,
+        umi_pattern: case.umi_pattern.clone(),
+        extracted_umi_count: umi_summary.extracted_umi_count,
+        invalid_umi_count: umi_summary.invalid_umi_count,
+        tag_header_format: umi_summary.tag_header_format,
+        umi_extracted_fastq_gz: path_relative_to_repo(repo_root, &top_level_r1),
+        umi_extracted_r2_fastq_gz: path_relative_to_repo(repo_root, &top_level_r2),
+        case_report_json: path_relative_to_repo(repo_root, &case_report_json),
+        raw_backend_report: path_relative_to_repo(repo_root, &raw_backend_report),
+    })
+}
+
+fn resolve_smoke_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn required_param_path(plan: &StagePlanV1, key: &str) -> Result<PathBuf> {
+    let raw = plan
+        .params
+        .get(key)
+        .and_then(serde_json::Value::as_str)
+        .ok_or_else(|| anyhow!("extract_umis plan missing `{key}` path parameter"))?;
+    Ok(PathBuf::from(raw))
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
+}
+
+fn copy_smoke_artifact(source: &Path, destination: &Path) -> Result<()> {
+    if let Some(parent) = destination.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    std::fs::copy(source, destination).map(|_| ()).map_err(Into::into)
+}
+
+fn read_name_transform_literal(transform: &UmiReadNameTransform) -> &'static str {
+    match transform {
+        UmiReadNameTransform::AppendToHeader => "append_to_header",
+        UmiReadNameTransform::ReplaceHeader => "replace_header",
+        UmiReadNameTransform::None => "none",
+    }
+}
+
+fn write_governed_local_smoke_log(
+    path: &Path,
+    planned_tool_id: &str,
+    params: &bijux_dna_domain_fastq::FastqUmiParams,
+    report: &ExtractUmisReportV1,
+) -> Result<()> {
+    let mut file = std::fs::File::create(path)?;
+    writeln!(file, "governed_local_smoke_runtime=bijux")?;
+    writeln!(file, "planned_tool_id={planned_tool_id}")?;
+    writeln!(file, "umi_pattern={}", params.umi_pattern.as_deref().unwrap_or("NNNNNNNN"))?;
+    writeln!(
+        file,
+        "read_name_transform={}",
+        read_name_transform_literal(&params.read_name_transform)
+    )?;
+    writeln!(file, "reads_with_umi={}", report.reads_with_umi)?;
+    writeln!(file, "failed_extractions={}", report.failed_extractions.unwrap_or(0))?;
+    Ok(())
 }

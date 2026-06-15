@@ -1,0 +1,7 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chrgc	LN:30
+@RG	ID:rg-gc-bias-human-like	SM:human_like_gc_window_ladder
+gc00_001	0	chrgc	1	60	10M	*	0	0	AAAAATTTTT	FFFFFFFFFF	RG:Z:rg-gc-bias-human-like
+gc50_001	0	chrgc	11	60	10M	*	0	0	ACGTACGTAC	FFFFFFFFFF	RG:Z:rg-gc-bias-human-like
+gc50_002	0	chrgc	13	60	10M	*	0	0	GTACGTACCC	FFFFFFFFFF	RG:Z:rg-gc-bias-human-like
+gc100_001	0	chrgc	21	60	10M	*	0	0	CCCCCGGGGG	FFFFFFFFFF	RG:Z:rg-gc-bias-human-like

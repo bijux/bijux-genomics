@@ -36,11 +36,11 @@ Authority:
 - FASTQ workflow execution surface:
   `cargo run -q -p bijux-dna -- run run`
 - Slurm campaign stage submit (mock-safe):
-  `cargo run -q -p bijux-dna -- slurm submit-stage-benchmark --config configs/hpc/campaign/lunarc-small.toml --stage fastq.validate_reads --mock-submit`
+  `cargo run -q -p bijux-dna -- slurm submit-stage-benchmark --config benchmarks/configs/hpc/campaign/lunarc-small.toml --stage fastq.validate_reads --mock-submit`
 - Slurm campaign domain submit:
-  `cargo run -q -p bijux-dna -- slurm submit-domain-benchmark --config configs/hpc/campaign/lunarc-small.toml --domain fastq --mock-submit`
+  `cargo run -q -p bijux-dna -- slurm submit-domain-benchmark --config benchmarks/configs/hpc/campaign/lunarc-small.toml --domain fastq --mock-submit`
 - Generate benchmark matrix with readiness and repetition policy:
-  `cargo run -q -p bijux-dna -- config benchmark-matrix --config configs/hpc/campaign/lunarc-small.toml --domain all --out artifacts/benchmark/matrix.json --json`
+  `cargo run -q -p bijux-dna -- config benchmark-matrix --config benchmarks/configs/hpc/campaign/lunarc-small.toml --domain all --out artifacts/benchmark/matrix.json --json`
 
 ## Inspect
 - Current governed status view:
@@ -99,4 +99,3 @@ This document does not redefine source-of-truth schemas, code ownership boundari
 
 ## Contracts
 Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
-

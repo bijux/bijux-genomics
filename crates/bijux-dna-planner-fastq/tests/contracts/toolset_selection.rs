@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use bijux_dna_core::contract::{Objective, PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
 use bijux_dna_planner_fastq::stage_api::args::{BenchFastqPreprocessArgs, FastqPlannerMode};
 use std::path::{Path, PathBuf};

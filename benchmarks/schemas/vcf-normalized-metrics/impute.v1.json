@@ -1,0 +1,88 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.impute.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "imputed_genotypes": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "low_confidence_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "masked_truth_match_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "masked_truth_site_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "missing_after": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "missing_before": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "not_imputable_reasons": {
+          "type": "object"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sample_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.impute.v1"
+        },
+        "stage_id": {
+          "const": "vcf.impute"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "unresolved_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "variant_count": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "variant_count",
+        "missing_before",
+        "missing_after",
+        "imputed_genotypes",
+        "low_confidence_count",
+        "masked_truth_site_count",
+        "masked_truth_match_count",
+        "unresolved_count",
+        "not_imputable_reasons",
+        "sample_count",
+        "sample_ids"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_impute_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.impute`.",
+  "title": "VCF normalized benchmark metrics: vcf.impute"
+}

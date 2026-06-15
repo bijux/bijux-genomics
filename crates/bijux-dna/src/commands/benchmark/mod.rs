@@ -1,10 +1,104 @@
+#![allow(
+    clippy::case_sensitive_file_extension_comparisons,
+    clippy::cast_precision_loss,
+    clippy::expect_used,
+    clippy::float_cmp,
+    clippy::fn_params_excessive_bools,
+    clippy::format_push_string,
+    clippy::if_same_then_else,
+    clippy::inefficient_to_string,
+    clippy::map_unwrap_or,
+    clippy::match_same_arms,
+    clippy::needless_pass_by_value,
+    clippy::struct_excessive_bools,
+    clippy::struct_field_names,
+    clippy::too_many_arguments,
+    clippy::too_many_lines,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::type_complexity,
+    clippy::uninlined_format_args,
+    clippy::unnecessary_first_then_check,
+    clippy::unnecessary_get_then_check,
+    clippy::unnecessary_wraps
+)]
+pub(crate) mod active_scope;
+pub(crate) mod alias_inventory;
 pub(crate) mod config;
 pub(crate) mod corpus_fastq;
 pub(crate) mod corpus_metadata;
 pub(crate) mod fastq_bench;
+pub(crate) mod local_all_domain_fake_failures;
+pub(crate) mod local_all_domain_fake_runs;
+pub(crate) mod local_all_domain_job_execution;
+pub(crate) mod local_all_domain_result_paths;
+pub(crate) mod local_all_domain_slurm_path_convention;
+pub(crate) mod local_all_domain_slurm_script_bodies;
+pub(crate) mod local_all_domain_slurm_scripts;
+pub(crate) mod local_all_domain_slurm_shell_syntax;
+pub(crate) mod local_all_domain_slurm_submit_manifest;
+pub(crate) mod local_benchmark_summary;
+pub(crate) mod local_corpus_fixture;
+pub(crate) mod local_corpus_skip_report;
+pub(crate) mod local_corpus_stage_compatibility;
+pub(crate) mod local_dag_watchdog_simulation;
+pub(crate) mod local_essential_pipeline_fake_runs;
+pub(crate) mod local_hpc_submission_ready;
+pub(crate) mod local_pipeline_dag;
+pub(crate) mod local_real_smoke_core_subset;
+pub(crate) mod local_slurm_dependency_check;
+pub(crate) mod local_slurm_dry_run;
+pub(crate) mod local_slurm_run_paths;
+pub(crate) mod local_slurm_script_bodies;
+pub(crate) mod local_slurm_shell_syntax;
+pub(crate) mod local_slurm_submit_manifest;
+pub(crate) mod local_stage_commands;
+pub(crate) mod local_stage_fake_runs;
+pub(crate) mod local_stage_inventory;
+pub(crate) mod local_stage_manifest_completion;
+pub(crate) mod local_stage_output_completion;
+pub(crate) mod local_stage_result_manifest;
+pub(crate) mod local_stage_runtime_metrics;
+pub(crate) mod local_taxonomy_database_fixture;
+pub(crate) mod local_taxonomy_output_judgment;
+pub(crate) mod local_tool_comparison_template;
+pub(crate) mod local_vcf_admixture_smoke;
+pub(crate) mod local_vcf_call_bam_smoke_support;
+pub(crate) mod local_vcf_call_diploid_smoke;
+pub(crate) mod local_vcf_call_gl_smoke;
+pub(crate) mod local_vcf_call_pseudohaploid_smoke;
+pub(crate) mod local_vcf_call_smoke;
+pub(crate) mod local_vcf_damage_filter_smoke;
+pub(crate) mod local_vcf_demography_smoke;
+pub(crate) mod local_vcf_filter_smoke;
+pub(crate) mod local_vcf_gl_propagation_smoke;
+pub(crate) mod local_vcf_ibd_smoke;
+pub(crate) mod local_vcf_imputation_metrics_smoke;
+pub(crate) mod local_vcf_impute_smoke;
+pub(crate) mod local_vcf_no_empty_output;
+pub(crate) mod local_vcf_panel_workflow_smoke_support;
+pub(crate) mod local_vcf_pca_smoke;
+pub(crate) mod local_vcf_phasing_smoke;
+pub(crate) mod local_vcf_population_structure_smoke;
+pub(crate) mod local_vcf_prepare_reference_panel_smoke;
+pub(crate) mod local_vcf_qc_smoke;
+pub(crate) mod local_vcf_reference_compatibility;
+pub(crate) mod local_vcf_roh_smoke;
+pub(crate) mod local_vcf_sample_compatibility;
+pub(crate) mod local_vcf_smoke_root;
+pub(crate) mod local_vcf_smoke_suite_ready;
+pub(crate) mod local_vcf_stage_catalog;
+pub(crate) mod local_vcf_stage_catalog_ready;
+pub(crate) mod local_vcf_stage_matrix;
+pub(crate) mod local_vcf_stats_smoke;
+pub(crate) mod path_resolution;
+pub(crate) mod paths;
 pub(crate) mod publication;
+pub(crate) mod readiness;
 pub(crate) mod repo_checks;
+pub(crate) mod schema_paths;
+pub(crate) mod schema_validation;
 pub(crate) mod stage_catalog;
 pub(crate) mod suite;
 pub(crate) mod taxonomy_database;
+pub(crate) mod vcf_benchmark_bindings;
 pub(crate) mod workspace;

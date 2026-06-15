@@ -1,0 +1,5 @@
+sample_id	population_id	sex	role	description
+sample_a	cohort_alpha	female	cohort	study cohort sample a
+sample_b	cohort_alpha	male	cohort	study cohort sample b
+sample_c	cohort_beta	female	cohort	study cohort sample c
+sample_d	cohort_beta	male	cohort	study cohort sample d

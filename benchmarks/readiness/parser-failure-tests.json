@@ -1,0 +1,983 @@
+{
+  "schema_version": "bijux.bench.readiness.parser_failure_tests.v1",
+  "output_path": "benchmarks/readiness/parser-failure-tests.json",
+  "row_count": 96,
+  "passed_row_count": 96,
+  "failed_row_count": 0,
+  "domain_row_counts": {
+    "bam": 51,
+    "fastq": 45
+  },
+  "expected_failure_class_counts": {
+    "empty_raw_output": 32,
+    "malformed_raw_output": 32,
+    "missing_raw_output": 32
+  },
+  "observed_failure_class_counts": {
+    "empty_raw_output": 32,
+    "malformed_raw_output": 32,
+    "missing_raw_output": 32
+  },
+  "rows": [
+    {
+      "domain": "bam",
+      "stage_id": "bam.authenticity",
+      "tool_id": "damageprofiler",
+      "parser_id": "parse_damageprofiler_json",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "EOF while parsing a value at line 1 column 0",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.authenticity",
+      "tool_id": "damageprofiler",
+      "parser_id": "parse_damageprofiler_json",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "key must be a string at line 1 column 3",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.authenticity",
+      "tool_id": "damageprofiler",
+      "parser_id": "parse_damageprofiler_json",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read damageprofiler json",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.authenticity",
+      "tool_id": "pmdtools",
+      "parser_id": "parse_pmdtools_json",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "EOF while parsing a value at line 1 column 0",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.authenticity",
+      "tool_id": "pmdtools",
+      "parser_id": "parse_pmdtools_json",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "key must be a string at line 1 column 3",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.authenticity",
+      "tool_id": "pmdtools",
+      "parser_id": "parse_pmdtools_json",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read pmdtools json",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.complexity",
+      "tool_id": "preseq",
+      "parser_id": "parse_preseq_estimates",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "preseq output contains no projection rows",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.complexity",
+      "tool_id": "preseq",
+      "parser_id": "parse_preseq_estimates",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "parse preseq x on line 1",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.complexity",
+      "tool_id": "preseq",
+      "parser_id": "parse_preseq_estimates",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read preseq output",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.contamination",
+      "tool_id": "schmutzi",
+      "parser_id": "parse_contamination_json",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "EOF while parsing a value at line 1 column 0",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.contamination",
+      "tool_id": "schmutzi",
+      "parser_id": "parse_contamination_json",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "key must be a string at line 1 column 3",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.contamination",
+      "tool_id": "schmutzi",
+      "parser_id": "parse_contamination_json",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read contamination json",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.coverage",
+      "tool_id": "mosdepth",
+      "parser_id": "parse_mosdepth_summary",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "mosdepth summary missing total/genome/all coverage row",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.coverage",
+      "tool_id": "mosdepth",
+      "parser_id": "parse_mosdepth_summary",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "mosdepth summary missing total/genome/all coverage row",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.coverage",
+      "tool_id": "mosdepth",
+      "parser_id": "parse_mosdepth_summary",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read mosdepth summary",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.coverage",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_depth",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "samtools depth report contains no coverage rows",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.coverage",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_depth",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "parse samtools depth on line 1",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.coverage",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_depth",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read samtools depth",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.coverage",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_depth_with_uniformity",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "samtools depth report contains no coverage rows",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.coverage",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_depth_with_uniformity",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "parse samtools depth on line 1",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.coverage",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_depth_with_uniformity",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read samtools depth",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "addeam",
+      "parser_id": "parse_addeam_json",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "EOF while parsing a value at line 1 column 0",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "addeam",
+      "parser_id": "parse_addeam_json",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "key must be a string at line 1 column 3",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "addeam",
+      "parser_id": "parse_addeam_json",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read addeam json",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "mapdamage2",
+      "parser_id": "parse_mapdamage2_misincorporation",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "mapdamage2 report contains no data rows",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "mapdamage2",
+      "parser_id": "parse_mapdamage2_misincorporation",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "parse mapdamage2 c_to_t on line 1",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "mapdamage2",
+      "parser_id": "parse_mapdamage2_misincorporation",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read mapdamage2 misincorporation",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "ngsbriggs",
+      "parser_id": "parse_ngsbriggs_json",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "EOF while parsing a value at line 1 column 0",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "ngsbriggs",
+      "parser_id": "parse_ngsbriggs_json",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "key must be a string at line 1 column 3",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "ngsbriggs",
+      "parser_id": "parse_ngsbriggs_json",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read ngsbriggs json",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "pydamage",
+      "parser_id": "parse_pydamage_json",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "EOF while parsing a value at line 1 column 0",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "pydamage",
+      "parser_id": "parse_pydamage_json",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "key must be a string at line 1 column 3",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.damage",
+      "tool_id": "pydamage",
+      "parser_id": "parse_pydamage_json",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read pydamage json",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.endogenous_content",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_idxstats",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "samtools idxstats report contains no contig rows",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.endogenous_content",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_idxstats",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "invalid idxstats line 1: not a valid parser fixture",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.endogenous_content",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_idxstats",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read samtools idxstats: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/bam-parser-failure-KowwIK/raw.idxstats.txt",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.gc_bias",
+      "tool_id": "picard",
+      "parser_id": "parse_picard_gc_bias_metrics",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "gc-bias metrics table missing",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.gc_bias",
+      "tool_id": "picard",
+      "parser_id": "parse_picard_gc_bias_metrics",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "gc-bias metrics table missing",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.gc_bias",
+      "tool_id": "picard",
+      "parser_id": "parse_picard_gc_bias_metrics",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read picard gc-bias metrics",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.insert_size",
+      "tool_id": "picard",
+      "parser_id": "parse_picard_insert_size_metrics",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "insert-size metrics table missing",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.insert_size",
+      "tool_id": "picard",
+      "parser_id": "parse_picard_insert_size_metrics",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "insert-size metrics table missing",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.insert_size",
+      "tool_id": "picard",
+      "parser_id": "parse_picard_insert_size_metrics",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read picard insert-size metrics",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.mapping_summary",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_stats",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "samtools stats report contains no RL or MQ rows",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.mapping_summary",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_stats",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "samtools stats report contains no RL or MQ rows",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.mapping_summary",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_stats",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read samtools stats",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.qc_pre",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_flagstat",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "flagstat summary missing `in total` line",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.qc_pre",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_flagstat",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "flagstat summary missing `in total` line",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.qc_pre",
+      "tool_id": "samtools",
+      "parser_id": "parse_samtools_flagstat",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read flagstat",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "rxy",
+      "parser_id": "parse_sex_json",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "EOF while parsing a value at line 1 column 0",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "rxy",
+      "parser_id": "parse_sex_json",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "key must be a string at line 1 column 3",
+      "passed": true
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.sex",
+      "tool_id": "rxy",
+      "parser_id": "parse_sex_json",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read sex json",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.detect_adapters",
+      "tool_id": "fastqc",
+      "parser_id": "parse_fastqc_summary_metrics",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "fastqc total sequences missing",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.detect_adapters",
+      "tool_id": "fastqc",
+      "parser_id": "parse_fastqc_summary_metrics",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "fastqc total sequences missing",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.detect_adapters",
+      "tool_id": "fastqc",
+      "parser_id": "parse_fastqc_summary_metrics",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-ZemVj5/raw.fastqc-summary.txt",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "bbduk",
+      "parser_id": "parse_bbduk_reads_removed",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "bbduk stats missing reads removed line",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "bbduk",
+      "parser_id": "parse_bbduk_reads_removed",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "bbduk stats missing reads removed line",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "bbduk",
+      "parser_id": "parse_bbduk_reads_removed",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-qZ4Csa/raw.bbduk-summary.txt",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "bbduk",
+      "parser_id": "parse_low_complexity_report",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "low-complexity report missing reads_removed_low_complexity",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "bbduk",
+      "parser_id": "parse_low_complexity_report",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "low-complexity report missing reads_removed_low_complexity",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "bbduk",
+      "parser_id": "parse_low_complexity_report",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-KF8f76/raw.low-complexity.txt",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "dustmasker",
+      "parser_id": "parse_low_complexity_report",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "low-complexity report missing reads_removed_low_complexity",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "dustmasker",
+      "parser_id": "parse_low_complexity_report",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "low-complexity report missing reads_removed_low_complexity",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "dustmasker",
+      "parser_id": "parse_low_complexity_report",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-MNTbkp/raw.low-complexity.txt",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "prinseq",
+      "parser_id": "parse_low_complexity_report",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "low-complexity report missing reads_removed_low_complexity",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "prinseq",
+      "parser_id": "parse_low_complexity_report",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "low-complexity report missing reads_removed_low_complexity",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "prinseq",
+      "parser_id": "parse_low_complexity_report",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-6hwfTm/raw.low-complexity.txt",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.profile_read_lengths",
+      "tool_id": "seqkit",
+      "parser_id": "parse_length_histogram",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "seqkit fx2tab produced no length values",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.profile_read_lengths",
+      "tool_id": "seqkit",
+      "parser_id": "parse_length_histogram",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "seqkit fx2tab produced no length values",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.profile_read_lengths",
+      "tool_id": "seqkit",
+      "parser_id": "parse_length_histogram",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-Wz4JkN/raw.seqkit-fx2tab.tsv",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.profile_reads",
+      "tool_id": "seqkit",
+      "parser_id": "parse_seqkit_tool_metrics",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "empty seqkit output",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.profile_reads",
+      "tool_id": "seqkit",
+      "parser_id": "parse_seqkit_tool_metrics",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "missing seqkit data",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.profile_reads",
+      "tool_id": "seqkit",
+      "parser_id": "parse_seqkit_tool_metrics",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-yso0J8/raw.seqkit.tsv",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "clumpify",
+      "parser_id": "parse_deduplicate_report",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "parse remove duplicates report",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "clumpify",
+      "parser_id": "parse_deduplicate_report",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "parse remove duplicates report",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "clumpify",
+      "parser_id": "parse_deduplicate_report",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-1TRwIH/raw.deduplicate.txt",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "fastuniq",
+      "parser_id": "parse_deduplicate_report",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "parse remove duplicates report",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "fastuniq",
+      "parser_id": "parse_deduplicate_report",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "parse remove duplicates report",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "fastuniq",
+      "parser_id": "parse_deduplicate_report",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-6LnfJV/raw.deduplicate.txt",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.report_qc",
+      "tool_id": "multiqc",
+      "parser_id": "parse_multiqc_general_stats_metrics",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "parse multiqc general stats json",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.report_qc",
+      "tool_id": "multiqc",
+      "parser_id": "parse_multiqc_general_stats_metrics",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "parse multiqc general stats json",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.report_qc",
+      "tool_id": "multiqc",
+      "parser_id": "parse_multiqc_general_stats_metrics",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-5G6aXL/raw.multiqc-general-stats.json",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.screen_taxonomy",
+      "tool_id": "fastq_screen",
+      "parser_id": "parse_screen_summary_tsv",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "screen report contains no taxonomy summary rows",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.screen_taxonomy",
+      "tool_id": "fastq_screen",
+      "parser_id": "parse_screen_summary_tsv",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "screen report line 1 percent parse",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.screen_taxonomy",
+      "tool_id": "fastq_screen",
+      "parser_id": "parse_screen_summary_tsv",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-vpx69F/raw.screen-summary.tsv",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "fastp",
+      "parser_id": "parse_fastp_metrics",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "parse fastp json",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "fastp",
+      "parser_id": "parse_fastp_metrics",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "parse fastp json",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "fastp",
+      "parser_id": "parse_fastp_metrics",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-oFmkEU/raw.fastp.json",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.trim_terminal_damage",
+      "tool_id": "adapterremoval",
+      "parser_id": "parse_adapterremoval_metrics",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "adapterremoval line for `Total number of read pairs` is missing",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.trim_terminal_damage",
+      "tool_id": "adapterremoval",
+      "parser_id": "parse_adapterremoval_metrics",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "adapterremoval line for `Total number of read pairs` is missing",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.trim_terminal_damage",
+      "tool_id": "adapterremoval",
+      "parser_id": "parse_adapterremoval_metrics",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-gSQYkp/raw.adapterremoval.txt",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqvalidator",
+      "parser_id": "parse_fastqvalidator_count",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "fastqvalidator total reads line missing",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqvalidator",
+      "parser_id": "parse_fastqvalidator_count",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "fastqvalidator total reads line missing",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqvalidator",
+      "parser_id": "parse_fastqvalidator_count",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-ZsZtFG/raw.fastqvalidator.txt",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "seqkit",
+      "parser_id": "parse_seqkit_stats",
+      "expected_failure_class": "empty_raw_output",
+      "observed_failure_class": "empty_raw_output",
+      "observed_error": "empty seqkit output",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "seqkit",
+      "parser_id": "parse_seqkit_stats",
+      "expected_failure_class": "malformed_raw_output",
+      "observed_failure_class": "malformed_raw_output",
+      "observed_error": "missing seqkit data",
+      "passed": true
+    },
+    {
+      "domain": "fastq",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "seqkit",
+      "parser_id": "parse_seqkit_stats",
+      "expected_failure_class": "missing_raw_output",
+      "observed_failure_class": "missing_raw_output",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-1tm9RH/raw.seqkit.tsv",
+      "passed": true
+    }
+  ]
+}

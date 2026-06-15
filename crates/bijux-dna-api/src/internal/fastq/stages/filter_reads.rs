@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
@@ -21,7 +22,8 @@ use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::{
-    params::PairedMode, FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION,
+    params::{filter::FilterEffectiveParams, PairedMode},
+    FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION,
 };
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
@@ -33,8 +35,55 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
+use serde::Serialize;
 
 use crate::internal::fastq::stages::trim_bench_common::TrimBenchInputs;
+
+const LOCAL_FILTER_READS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.filter_reads.local_smoke.report.v1";
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalFilterReadsSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    sample_id: String,
+    tool_id: String,
+    max_n_count: Option<u32>,
+    low_complexity_threshold: Option<f64>,
+    input_reads: u64,
+    output_reads: u64,
+    reads_dropped: u64,
+    reads_removed_by_n: u64,
+    reads_removed_by_entropy: u64,
+    reads_removed_low_complexity: u64,
+    reads_removed_by_kmer: u64,
+    reads_removed_contaminant_kmer: u64,
+    reads_removed_by_length: u64,
+    filtered_fastq_gz: String,
+    report_json: String,
+    raw_backend_report: String,
+    used_fallback: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct LocalFastqRecord {
+    header: String,
+    sequence: String,
+    plus: String,
+    quality: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum LocalFilterDropReason {
+    TooManyN,
+    LowComplexity,
+}
+
+#[derive(Debug, Clone)]
+struct LocalFilterDecision {
+    record: LocalFastqRecord,
+    drop_reason: Option<LocalFilterDropReason>,
+}
 
 fn apply_thread_override(
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
@@ -45,6 +94,366 @@ fn apply_thread_override(
         spec.resources.threads = threads.max(1);
     }
     spec
+}
+
+/// Materialize the governed local-smoke `fastq.filter_reads` report bundle.
+///
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.filter_reads/report.json`
+/// under the active repository root, alongside the top-level `filtered.fastq.gz`.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_filter_reads_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases = bijux_dna_planner_fastq::stage_api::local_filter_reads_smoke_plans(&repo_root)?;
+    let [case] = cases.as_slice() else {
+        return Err(anyhow!(
+            "local-smoke fastq.filter_reads expects exactly one governed case, found {}",
+            cases.len()
+        ));
+    };
+    if case.r2.is_some() {
+        return Err(anyhow!(
+            "local-smoke fastq.filter_reads currently supports only the governed single-end case"
+        ));
+    }
+
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.filter_reads");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+    let summary = materialize_local_filter_reads_smoke_case(&repo_root, case, &output_root)?;
+    let report_path = output_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(report_path)
+}
+
+#[allow(clippy::too_many_lines)]
+fn materialize_local_filter_reads_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalFilterReadsSmokeCasePlan,
+    output_root: &Path,
+) -> Result<LocalFilterReadsSmokeReport> {
+    let effective_params =
+        serde_json::from_value::<FilterEffectiveParams>(case.plan.effective_params.clone())
+            .context("decode filter reads local-smoke effective params")?;
+    let input_r1 = repo_root.join(&case.r1);
+    let output_r1 = resolve_output_path(
+        repo_root,
+        &required_plan_output_path(&case.plan, "filtered_reads_r1")?,
+    );
+    let report_path =
+        resolve_output_path(repo_root, &required_plan_output_path(&case.plan, "report_json")?);
+    let raw_backend_report = resolve_output_path(
+        repo_root,
+        &required_plan_param_path(&case.plan, "raw_backend_report")?,
+    );
+
+    for path in [&output_r1, &report_path, &raw_backend_report] {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+
+    let input_records = read_local_fastq_records(&input_r1)?;
+    let decisions = input_records
+        .iter()
+        .cloned()
+        .map(|record| LocalFilterDecision {
+            drop_reason: local_filter_drop_reason(&record, &effective_params),
+            record,
+        })
+        .collect::<Vec<_>>();
+    let retained_records = decisions
+        .iter()
+        .filter(|decision| decision.drop_reason.is_none())
+        .map(|decision| decision.record.clone())
+        .collect::<Vec<_>>();
+    write_local_fastq_records(&output_r1, &retained_records)?;
+
+    let reads_removed_by_n = decisions
+        .iter()
+        .filter(|decision| decision.drop_reason == Some(LocalFilterDropReason::TooManyN))
+        .count() as u64;
+    let reads_removed_low_complexity = decisions
+        .iter()
+        .filter(|decision| decision.drop_reason == Some(LocalFilterDropReason::LowComplexity))
+        .count() as u64;
+    let reads_in = input_records.len() as u64;
+    let reads_out = retained_records.len() as u64;
+    let reads_dropped = reads_in.saturating_sub(reads_out);
+    let bases_in = total_bases(&input_records);
+    let bases_out = total_bases(&retained_records);
+    let mean_q_before = mean_quality(&input_records);
+    let mean_q_after = mean_quality(&retained_records);
+    let backend_metrics = serde_json::json!({
+        "passed_filter_reads": reads_out,
+        "too_many_n_reads": reads_removed_by_n,
+        "low_complexity_reads": reads_removed_low_complexity,
+        "too_short_reads": 0_u64,
+    });
+    let report = FilterReadsReportV1 {
+        schema_version: FILTER_READS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_FILTER_READS.as_str().to_string(),
+        stage_id: STAGE_FILTER_READS.as_str().to_string(),
+        tool_id: case.plan.tool_id.as_str().to_string(),
+        paired_mode: effective_params.paired_mode,
+        threads: effective_params.threads,
+        input_r1: case.r1.display().to_string(),
+        input_r2: None,
+        output_r1: path_relative_to_repo(repo_root, &output_r1),
+        output_r2: None,
+        report_json: path_relative_to_repo(repo_root, &report_path),
+        max_n: effective_params.max_n,
+        max_n_fraction: effective_params.max_n_fraction,
+        max_n_count: effective_params.max_n_count,
+        low_complexity_threshold: effective_params.low_complexity_threshold,
+        entropy_threshold: effective_params.entropy_threshold,
+        n_policy: Some("drop".to_string()),
+        polyx_policy: effective_params.polyx_policy.clone(),
+        contaminant_db: effective_params.contaminant_db.clone(),
+        reads_in,
+        reads_out,
+        reads_dropped,
+        reads_removed_by_n,
+        reads_removed_by_entropy: 0,
+        reads_removed_low_complexity,
+        reads_removed_by_kmer: 0,
+        reads_removed_contaminant_kmer: 0,
+        reads_removed_by_length: 0,
+        bases_in,
+        bases_out,
+        pairs_in: None,
+        pairs_out: None,
+        mean_q_before,
+        mean_q_after,
+        runtime_s: None,
+        memory_mb: None,
+        exit_code: Some(0),
+        raw_backend_report: Some(path_relative_to_repo(repo_root, &raw_backend_report)),
+        raw_backend_report_format: Some("fastp_json".to_string()),
+        backend_metrics: Some(backend_metrics.clone()),
+    };
+    write_governed_filter_report(&report_path, &report)?;
+    write_local_filter_backend_report(
+        &raw_backend_report,
+        case.plan.tool_id.as_str(),
+        &backend_metrics,
+    )?;
+
+    let top_level_filtered = output_root.join("filtered.fastq.gz");
+    std::fs::copy(&output_r1, &top_level_filtered).with_context(|| {
+        format!(
+            "copy local filter smoke output from {} to {}",
+            output_r1.display(),
+            top_level_filtered.display()
+        )
+    })?;
+
+    Ok(LocalFilterReadsSmokeReport {
+        schema_version: LOCAL_FILTER_READS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_FILTER_READS.as_str().to_string(),
+        sample_id: case.sample_id.clone(),
+        tool_id: case.plan.tool_id.as_str().to_string(),
+        max_n_count: effective_params.max_n_count,
+        low_complexity_threshold: effective_params.low_complexity_threshold,
+        input_reads: reads_in,
+        output_reads: reads_out,
+        reads_dropped,
+        reads_removed_by_n,
+        reads_removed_by_entropy: 0,
+        reads_removed_low_complexity,
+        reads_removed_by_kmer: 0,
+        reads_removed_contaminant_kmer: 0,
+        reads_removed_by_length: 0,
+        filtered_fastq_gz: path_relative_to_repo(repo_root, &top_level_filtered),
+        report_json: path_relative_to_repo(repo_root, &report_path),
+        raw_backend_report: path_relative_to_repo(repo_root, &raw_backend_report),
+        used_fallback: true,
+    })
+}
+
+fn write_governed_filter_report(report_path: &Path, report: &FilterReadsReportV1) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(report_path, report)
+        .with_context(|| format!("write governed filter report {}", report_path.display()))
+}
+
+#[allow(clippy::cast_possible_truncation)]
+fn local_filter_drop_reason(
+    record: &LocalFastqRecord,
+    effective_params: &FilterEffectiveParams,
+) -> Option<LocalFilterDropReason> {
+    let max_n_count = effective_params.max_n_count.or(effective_params.max_n);
+    if let Some(limit) = max_n_count {
+        let n_count =
+            record.sequence.bytes().filter(|base| matches!(*base, b'N' | b'n')).count() as u32;
+        if n_count > limit {
+            return Some(LocalFilterDropReason::TooManyN);
+        }
+    }
+
+    if let Some(threshold) =
+        effective_params.low_complexity_threshold.or(effective_params.entropy_threshold)
+    {
+        let complexity = local_complexity_score(&record.sequence);
+        if complexity < threshold {
+            return Some(LocalFilterDropReason::LowComplexity);
+        }
+    }
+
+    None
+}
+
+#[allow(clippy::cast_precision_loss)]
+fn local_complexity_score(sequence: &str) -> f64 {
+    let bytes = sequence.as_bytes();
+    if bytes.len() <= 1 {
+        return 0.0;
+    }
+    let transitions = bytes.windows(2).filter(|window| window[0] != window[1]).count() as f64;
+    (transitions / (bytes.len() as f64 - 1.0)) * 100.0
+}
+
+fn total_bases(records: &[LocalFastqRecord]) -> u64 {
+    records.iter().map(|record| record.sequence.len() as u64).sum()
+}
+
+#[allow(clippy::cast_precision_loss)]
+fn mean_quality(records: &[LocalFastqRecord]) -> f64 {
+    let total_bases = total_bases(records);
+    if total_bases == 0 {
+        return 0.0;
+    }
+    let total_quality = records
+        .iter()
+        .flat_map(|record| record.quality.bytes())
+        .map(|value| u64::from(value.saturating_sub(33)))
+        .sum::<u64>();
+    total_quality as f64 / total_bases as f64
+}
+
+fn read_local_fastq_records(path: &Path) -> Result<Vec<LocalFastqRecord>> {
+    let reader: Box<dyn BufRead> = if path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
+    {
+        let file = std::fs::File::open(path)?;
+        let decoder = flate2::read::MultiGzDecoder::new(file);
+        Box::new(BufReader::new(decoder))
+    } else {
+        Box::new(BufReader::new(std::fs::File::open(path)?))
+    };
+
+    let mut lines = reader.lines();
+    let mut records = Vec::new();
+    while let Some(header) = lines.next() {
+        let header = header?;
+        let sequence =
+            lines.next().ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
+        let plus =
+            lines.next().ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
+        let quality =
+            lines.next().ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
+        records.push(LocalFastqRecord { header, sequence, plus, quality });
+    }
+    Ok(records)
+}
+
+fn write_local_fastq_records(path: &Path, records: &[LocalFastqRecord]) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+
+    if path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
+    {
+        let file = std::fs::File::create(path)?;
+        let mut encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
+        for record in records {
+            writeln!(encoder, "{}", record.header)?;
+            writeln!(encoder, "{}", record.sequence)?;
+            writeln!(encoder, "{}", record.plus)?;
+            writeln!(encoder, "{}", record.quality)?;
+        }
+        encoder.finish()?;
+    } else {
+        let file = std::fs::File::create(path)?;
+        let mut writer = std::io::BufWriter::new(file);
+        for record in records {
+            writeln!(writer, "{}", record.header)?;
+            writeln!(writer, "{}", record.sequence)?;
+            writeln!(writer, "{}", record.plus)?;
+            writeln!(writer, "{}", record.quality)?;
+        }
+        writer.flush()?;
+    }
+
+    Ok(())
+}
+
+fn write_local_filter_backend_report(
+    path: &Path,
+    tool_id: &str,
+    backend_metrics: &serde_json::Value,
+) -> Result<()> {
+    match tool_id {
+        "fastp" => bijux_dna_infra::write_bytes(
+            path,
+            serde_json::json!({
+                "filtering_result": {
+                    "passed_filter_reads": backend_metrics["passed_filter_reads"],
+                    "low_quality_reads": 0_u64,
+                    "too_many_N_reads": backend_metrics["too_many_n_reads"],
+                    "too_short_reads": 0_u64,
+                    "low_complexity_reads": backend_metrics["low_complexity_reads"],
+                }
+            })
+            .to_string(),
+        )
+        .with_context(|| format!("write local filter backend report {}", path.display())),
+        _ => Err(anyhow!(
+            "local-smoke fastq.filter_reads does not support backend report materialization for tool `{tool_id}`"
+        )),
+    }
+}
+
+fn resolve_output_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
+fn required_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Result<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| artifact.path.clone())
+        .ok_or_else(|| {
+            anyhow!(
+                "filter_reads plan is missing governed output `{output_id}` for tool {}",
+                plan.tool_id.as_str()
+            )
+        })
+}
+
+fn required_plan_param_path(plan: &StagePlanV1, param_name: &str) -> Result<PathBuf> {
+    plan.params.get(param_name).and_then(serde_json::Value::as_str).map(PathBuf::from).ok_or_else(
+        || {
+            anyhow!(
+                "filter_reads plan is missing governed parameter path `{param_name}` for tool {}",
+                plan.tool_id.as_str()
+            )
+        },
+    )
 }
 
 /// # Errors

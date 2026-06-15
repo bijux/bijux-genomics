@@ -1,0 +1,64 @@
+# schema_version = 1
+# owner = platform
+# purpose = Cross-domain HPC campaign profile for multi-stage handoff fixtures
+# authority = platform
+# stability = stable
+# last_updated = 2026-06-01
+schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "cross-hpc-mini"
+domain = "cross"
+description = "Cross-domain mini profile with explicit handoff dependencies"
+
+[layout]
+corpora_root = "/shared/bijux/corpora"
+databases_root = "/shared/bijux/databases"
+images_root = "/shared/bijux/images"
+scratch_root = "/shared/bijux/scratch"
+logs_root = "/shared/bijux/logs"
+encrypted_results_root = "/shared/bijux/results"
+encrypted_code_root = "/shared/bijux/code"
+appraiser_imports_root = "/shared/bijux/appraiser-imports"
+baselines_root = "/shared/bijux/baselines"
+
+[slurm]
+site_profile = "generic"
+default_resource_template = "standard"
+
+[resources]
+default = "standard"
+
+[resources.templates.standard]
+cpus = 8
+mem_gb = 32
+walltime = "02:00:00"
+scratch_gb = 64
+
+[resources.templates.fastq_small]
+cpus = 4
+mem_gb = 16
+walltime = "01:00:00"
+scratch_gb = 16
+
+[resources.stage_defaults]
+fastq = "fastq_small"
+
+[security]
+encryption_backend = "mock-envelope-v1"
+encryption_recipients = ["bio-team"]
+encrypt_operator_outputs = false
+env_file = "configs/hpc/.env"
+
+[[jobs]]
+name = "fastq_validate_sample_0001"
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample_0001"
+
+[[jobs]]
+name = "bam_align_sample_0001"
+stage = "bam.align"
+tool = "bwa"
+sample = "sample_0001"
+depends_on = ["fastq_validate_sample_0001"]

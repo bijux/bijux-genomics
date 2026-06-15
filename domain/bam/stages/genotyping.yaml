@@ -1,6 +1,6 @@
 extends: "_schema.yaml"
 stage_id: "bam.genotyping"
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "bam"
 inputs:
@@ -9,6 +9,18 @@ inputs:
     cardinality: "One"
 outputs:
   - name: "genotyping_report_json"
+    data_type: "json"
+    cardinality: "One"
+  - name: "genotyping_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "population_metrics"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
     data_type: "json"
     cardinality: "One"
 parameters: []
@@ -30,11 +42,12 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
-  - gatk
+  - angsd
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "default stage assumptions captured"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
-planned_out_of_scope: []
+planned_out_of_scope:
+  - gatk

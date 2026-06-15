@@ -110,6 +110,7 @@ fn yaml_metric_keys(v: &serde_yaml::Value) -> Vec<String> {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consistent() {
     let root = support::workspace_root();
     let domain_docs = domain_stage_docs(&root);

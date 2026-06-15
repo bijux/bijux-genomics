@@ -182,6 +182,8 @@ struct ScreenRecordInputs<'a> {
 struct ScreenReportPaths {
     summary_tsv: std::path::PathBuf,
     classification_json: std::path::PathBuf,
+    unclassified_r1: Option<std::path::PathBuf>,
+    unclassified_r2: Option<std::path::PathBuf>,
 }
 
 struct ScreenReadAccounting {
@@ -387,6 +389,14 @@ fn build_screen_record(
         input_r2: inputs.bench_inputs.r2.as_ref().map(|path| path.display().to_string()),
         screen_report_tsv: report_paths.summary_tsv.display().to_string(),
         classification_report_json: report_paths.classification_json.display().to_string(),
+        unclassified_reads_r1: report_paths
+            .unclassified_r1
+            .as_ref()
+            .map(|path| path.display().to_string()),
+        unclassified_reads_r2: report_paths
+            .unclassified_r2
+            .as_ref()
+            .map(|path| path.display().to_string()),
         reads_in: Some(read_accounting.reads_in),
         reads_out: Some(read_accounting.reads_in),
         bases_in: Some(read_accounting.bases_in),
@@ -454,6 +464,12 @@ fn validate_screen_written_artifacts(
 ) -> Result<()> {
     validate_screen_nonempty_artifact(&report_paths.summary_tsv)?;
     validate_screen_nonempty_artifact(&report_paths.classification_json)?;
+    if let Some(path) = report_paths.unclassified_r1.as_ref() {
+        validate_screen_nonempty_artifact(path)?;
+    }
+    if let Some(path) = report_paths.unclassified_r2.as_ref() {
+        validate_screen_nonempty_artifact(path)?;
+    }
     validate_screen_nonempty_artifact(&out_dir.join("metrics.json"))
 }
 
@@ -470,6 +486,8 @@ fn screen_report_paths(plan: &StagePlanV1) -> Result<ScreenReportPaths> {
     Ok(ScreenReportPaths {
         summary_tsv: required_screen_output_path(plan, "screen_report_tsv")?,
         classification_json: required_screen_output_path(plan, "classification_report_json")?,
+        unclassified_r1: artifact_output_path(plan, "unclassified_reads_r1"),
+        unclassified_r2: artifact_output_path(plan, "unclassified_reads_r2"),
     })
 }
 
@@ -676,6 +694,16 @@ fn validate_screen_report_paths(plan: &StagePlanV1, report: &ScreenTaxonomyRepor
         "classification json",
         &required_screen_output_path(plan, "classification_report_json")?,
         &report.classification_report_json,
+    )?;
+    validate_screen_optional_report_path(
+        "unclassified reads r1",
+        artifact_output_path(plan, "unclassified_reads_r1").as_deref(),
+        report.unclassified_reads_r1.as_deref(),
+    )?;
+    validate_screen_optional_report_path(
+        "unclassified reads r2",
+        artifact_output_path(plan, "unclassified_reads_r2").as_deref(),
+        report.unclassified_reads_r2.as_deref(),
     )?;
     if report.database_artifact_id == "taxonomy_database_root" {
         required_screen_input_path(plan, "taxonomy_database_root")?;

@@ -1,0 +1,4208 @@
+use std::collections::BTreeSet;
+use std::path::{Path, PathBuf};
+
+use anyhow::{anyhow, Context, Result};
+use bijux_dna_core::prelude::{ArtifactId, ArtifactRole, StageId, ToolExecutionSpecV1, ToolId};
+use bijux_dna_domain_bam::{
+    metrics::SexConfidenceClass,
+    params::{
+        AuthenticityEffectiveParams, BqsrMode, ComplexityEffectiveParams, CoverageEffectiveParams,
+        DamageEffectiveParams, DuplicateAction, FilterEffectiveParams, MarkDupEffectiveParams,
+        OpticalDuplicatePolicy, UmiPolicy,
+    },
+    types::BedRegions,
+    BamStage,
+};
+use serde::Deserialize;
+
+use crate::selection::{allowed_tools_for_stage, load_bam_domain_tool_planning_spec};
+
+const LOCAL_VALIDATE_CONFIG_PATH: &str = "benchmarks/configs/local/bam-validate.toml";
+const DEFAULT_LOCAL_VALIDATE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.validate";
+const LOCAL_QC_PRE_CONFIG_PATH: &str = "benchmarks/configs/local/bam-qc-pre.toml";
+const DEFAULT_LOCAL_QC_PRE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.qc_pre";
+const LOCAL_MAPPING_SUMMARY_CONFIG_PATH: &str = "benchmarks/configs/local/bam-mapping-summary.toml";
+const DEFAULT_LOCAL_MAPPING_SUMMARY_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.mapping_summary";
+const LOCAL_FILTER_CONFIG_PATH: &str = "benchmarks/configs/local/bam-filter.toml";
+const DEFAULT_LOCAL_FILTER_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.filter";
+const LOCAL_MAPQ_FILTER_CONFIG_PATH: &str = "benchmarks/configs/local/bam-mapq-filter.toml";
+const DEFAULT_LOCAL_MAPQ_FILTER_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.mapq_filter";
+const LOCAL_LENGTH_FILTER_CONFIG_PATH: &str = "benchmarks/configs/local/bam-length-filter.toml";
+const DEFAULT_LOCAL_LENGTH_FILTER_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.length_filter";
+const LOCAL_MARKDUP_CONFIG_PATH: &str = "benchmarks/configs/local/bam-markdup.toml";
+const DEFAULT_LOCAL_MARKDUP_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.markdup";
+const LOCAL_DUPLICATION_METRICS_CONFIG_PATH: &str =
+    "benchmarks/configs/local/bam-duplication-metrics.toml";
+const DEFAULT_LOCAL_DUPLICATION_METRICS_OUTPUT_DIR: &str =
+    "runs/bench/local-smoke/bam.duplication_metrics";
+const LOCAL_COMPLEXITY_CONFIG_PATH: &str = "benchmarks/configs/local/bam-complexity.toml";
+const DEFAULT_LOCAL_COMPLEXITY_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.complexity";
+const LOCAL_COVERAGE_CONFIG_PATH: &str = "benchmarks/configs/local/bam-coverage.toml";
+const DEFAULT_LOCAL_COVERAGE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.coverage";
+const LOCAL_INSERT_SIZE_CONFIG_PATH: &str = "benchmarks/configs/local/bam-insert-size.toml";
+const DEFAULT_LOCAL_INSERT_SIZE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.insert_size";
+const LOCAL_GC_BIAS_CONFIG_PATH: &str = "benchmarks/configs/local/bam-gc-bias.toml";
+const DEFAULT_LOCAL_GC_BIAS_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.gc_bias";
+#[cfg(feature = "bam_downstream")]
+const LOCAL_BIAS_MITIGATION_CONFIG_PATH: &str = "benchmarks/configs/local/bam-bias-mitigation.toml";
+#[cfg(feature = "bam_downstream")]
+const DEFAULT_LOCAL_BIAS_MITIGATION_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.bias_mitigation";
+const LOCAL_RECALIBRATION_CONFIG_PATH: &str = "benchmarks/configs/local/bam-recalibration.toml";
+const DEFAULT_LOCAL_RECALIBRATION_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.recalibration";
+const LOCAL_ENDOGENOUS_CONTENT_CONFIG_PATH: &str =
+    "benchmarks/configs/local/bam-endogenous-content.toml";
+const DEFAULT_LOCAL_ENDOGENOUS_CONTENT_OUTPUT_DIR: &str =
+    "runs/bench/local-smoke/bam.endogenous_content";
+const LOCAL_OVERLAP_CORRECTION_CONFIG_PATH: &str =
+    "benchmarks/configs/local/bam-overlap-correction.toml";
+const DEFAULT_LOCAL_OVERLAP_CORRECTION_OUTPUT_DIR: &str =
+    "runs/bench/local-smoke/bam.overlap_correction";
+const LOCAL_DAMAGE_CONFIG_PATH: &str = "benchmarks/configs/local/bam-damage.toml";
+const DEFAULT_LOCAL_DAMAGE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.damage";
+const LOCAL_AUTHENTICITY_CONFIG_PATH: &str = "benchmarks/configs/local/bam-authenticity.toml";
+const DEFAULT_LOCAL_AUTHENTICITY_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.authenticity";
+const LOCAL_AUTHENTICITY_EXPECTED_METRIC_IDS: [&str; 5] =
+    ["damage", "contamination", "complexity", "coverage", "mapping"];
+const LOCAL_SEX_CONFIG_PATH: &str = "benchmarks/configs/local/bam-sex.toml";
+const DEFAULT_LOCAL_SEX_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.sex";
+#[cfg(feature = "bam_downstream")]
+const LOCAL_KINSHIP_CONFIG_PATH: &str = "benchmarks/configs/local/bam-kinship.toml";
+#[cfg(feature = "bam_downstream")]
+const DEFAULT_LOCAL_KINSHIP_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.kinship";
+const BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
+
+fn local_smoke_case_output_dir(
+    repo_root: &Path,
+    output_root: &Path,
+    sample_id: &str,
+    tool_id: &str,
+) -> Result<PathBuf> {
+    let resolved_root = if output_root.is_absolute() {
+        output_root.to_path_buf()
+    } else {
+        repo_root.join(output_root)
+    };
+    let readiness_root = repo_root.join(BENCHMARK_READINESS_ROOT_RELATIVE);
+    if resolved_root == readiness_root || resolved_root.starts_with(&readiness_root) {
+        return Err(anyhow!(
+            "local-smoke output_dir must remain disposable under `runs/bench/local-smoke` and must not resolve inside `{BENCHMARK_READINESS_ROOT_RELATIVE}`"
+        ));
+    }
+    Ok(output_root.join(sample_id).join(tool_id))
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalValidateSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub alignment_fixture_encoding: LocalValidateAlignmentFixtureEncoding,
+    pub bam_index: Option<PathBuf>,
+    pub reference_fasta: Option<PathBuf>,
+    pub expect_pass: bool,
+    pub required_refusal_codes: Vec<String>,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalQcPreSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub expected_total_reads: u64,
+    pub expected_mapped_reads: u64,
+    pub expected_unmapped_reads: u64,
+    pub expected_duplicate_flagged_reads: u64,
+    pub expected_contigs: Vec<String>,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalMappingSummarySmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub expected_total_reads: u64,
+    pub expected_mapped_reads: u64,
+    pub expected_mapping_fraction: f64,
+    pub expected_reference_name: String,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalFilterSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub expected_input_reads: u64,
+    pub expected_kept_reads: u64,
+    pub expected_removed_reads: u64,
+    pub expected_active_filters: Vec<String>,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalMapqFilterSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub mapq_threshold: u8,
+    pub expected_input_reads: u64,
+    pub expected_kept_reads: u64,
+    pub expected_removed_reads: u64,
+    pub expected_mapped_reads_removed: u64,
+    pub expected_mapped_fraction_retained: f64,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalLengthFilterSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub min_length: u32,
+    pub expected_input_reads: u64,
+    pub expected_kept_reads: u64,
+    pub expected_removed_reads: u64,
+    pub expected_observed_min_length: u32,
+    pub expected_observed_max_length: u32,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalMarkdupSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub expected_input_reads: u64,
+    pub expected_output_reads: u64,
+    pub expected_removed_reads: u64,
+    pub expected_duplicate_reads_before: u64,
+    pub expected_duplicate_reads_after: u64,
+    pub expected_duplicate_fraction: f64,
+    pub expected_newly_marked_reads: u64,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalDuplicationMetricsSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub expected_examined_reads: u64,
+    pub expected_duplicate_reads: u64,
+    pub expected_duplicate_fraction: f64,
+    pub expected_estimated_library_size: Option<u64>,
+    pub expected_insufficient_library_size_reason: Option<String>,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalComplexitySmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub min_reads: u64,
+    pub projection_points: Vec<u64>,
+    pub expected_observed_total_reads: u64,
+    pub expected_observed_unique_reads: u64,
+    pub expected_estimated_unique_reads: Option<u64>,
+    pub expected_insufficient_data_reason: Option<String>,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+pub struct LocalCoverageSmokeExpectedRow {
+    pub region_id: String,
+    pub contig: String,
+    pub start: u64,
+    pub end: u64,
+    pub length: u64,
+    pub mean_depth: f64,
+    pub breadth_1x: f64,
+    pub covered_bases: u64,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalCoverageSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub regions: PathBuf,
+    pub depth_thresholds: Vec<u32>,
+    pub expected_coverage_regime: String,
+    pub expected_rows: Vec<LocalCoverageSmokeExpectedRow>,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalInsertSizeSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub expected_read_pairs: u64,
+    pub expected_median_insert_size: f64,
+    pub expected_mean_insert_size: f64,
+    pub expected_min_insert_size: u64,
+    pub expected_max_insert_size: u64,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+pub struct LocalGcBiasSmokeExpectedRow {
+    pub gc_bin: u8,
+    pub normalized_coverage: f64,
+    pub windows: u64,
+    pub read_starts: u64,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalGcBiasSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub reference: PathBuf,
+    pub window_size: u32,
+    pub expected_rows: Vec<LocalGcBiasSmokeExpectedRow>,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[cfg(feature = "bam_downstream")]
+#[derive(Debug, Clone)]
+pub struct LocalBiasMitigationSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub reference: PathBuf,
+    pub window_size: u32,
+    pub expected_metric_name: String,
+    pub expected_pre_mitigation_metric: f64,
+    pub expected_post_mitigation_metric: f64,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalRecalibrationSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub reference: PathBuf,
+    pub known_sites: Vec<PathBuf>,
+    pub requested_mode: BqsrMode,
+    pub effective_mode: BqsrMode,
+    pub min_mean_coverage: f64,
+    pub min_breadth_1x: f64,
+    pub observed_mean_coverage: f64,
+    pub observed_breadth_1x: f64,
+    pub expected_status: String,
+    pub expected_reason: String,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalEndogenousContentSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub host_reference_scope: String,
+    pub expected_total_reads: u64,
+    pub expected_mapped_reads: u64,
+    pub expected_endogenous_fraction: f64,
+    pub expected_method: String,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalOverlapCorrectionSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub expected_pair_count: u64,
+    pub expected_corrected_pairs: u64,
+    pub expected_corrected_overlap_bases: u64,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalDamageSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub expected_terminal_c_to_t_5p: f64,
+    pub expected_terminal_g_to_a_3p: f64,
+    pub expected_short_fragment_fraction: f64,
+    pub expected_damage_signal: String,
+    pub expected_strict_profile_upgraded: bool,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalAuthenticitySmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub damage_terminal_c_to_t_5p: f64,
+    pub damage_terminal_g_to_a_3p: f64,
+    pub contamination_method: String,
+    pub contamination_estimate: f64,
+    pub contamination_ci_low: f64,
+    pub contamination_ci_high: f64,
+    pub complexity_min_reads: u64,
+    pub complexity_projection_points: Vec<u64>,
+    pub coverage_depth_thresholds: Vec<u32>,
+    pub expected_score: f64,
+    pub expected_confidence: f64,
+    pub expected_pmd_like_signal_present: bool,
+    pub expected_consumed_metrics: Vec<String>,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone)]
+pub struct LocalSexSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub reference: PathBuf,
+    pub chromosome_system: String,
+    pub minimum_y_sites: u32,
+    pub expected_method: String,
+    pub expected_x_coverage: f64,
+    pub expected_y_coverage: f64,
+    pub expected_autosomal_coverage: f64,
+    pub expected_call: SexConfidenceClass,
+    pub expected_confidence: f64,
+    pub expected_status: String,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[cfg(feature = "bam_downstream")]
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+pub struct LocalKinshipSmokeExpectedPair {
+    pub sample_a: String,
+    pub sample_b: String,
+    pub overlap_snps: u32,
+    pub matching_sites: u32,
+    pub mismatch_sites: u32,
+    pub concordance: f64,
+    pub kinship_coefficient: f64,
+    pub relationship_label: String,
+}
+
+#[cfg(feature = "bam_downstream")]
+#[derive(Debug, Clone)]
+pub struct LocalKinshipSmokeCasePlan {
+    pub sample_id: String,
+    pub bam: PathBuf,
+    pub reference_panel: String,
+    pub reference_build: String,
+    pub population_scope: String,
+    pub min_overlap_snps: u32,
+    pub requires_cohort_context: bool,
+    pub expected_status: String,
+    pub expected_observed_max_overlap_snps: u32,
+    pub expected_insufficiency_reason: Option<String>,
+    pub expected_pairwise_results: Vec<LocalKinshipSmokeExpectedPair>,
+    pub plan: bijux_dna_stage_contract::StagePlanV1,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum LocalValidateAlignmentFixtureEncoding {
+    BinaryBam,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalValidateSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalValidateSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalQcPreSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalQcPreSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalMappingSummarySmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalMappingSummarySmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalFilterSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalFilterSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalMapqFilterSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalMapqFilterSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalLengthFilterSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalLengthFilterSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalMarkdupSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalMarkdupSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalDuplicationMetricsSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalDuplicationMetricsSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalComplexitySmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalComplexitySmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalCoverageSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalCoverageSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalInsertSizeSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalInsertSizeSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalGcBiasSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalGcBiasSmokeCase>,
+}
+
+#[cfg(feature = "bam_downstream")]
+#[derive(Debug, Deserialize)]
+struct LocalBiasMitigationSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalBiasMitigationSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalRecalibrationSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalRecalibrationSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalEndogenousContentSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalEndogenousContentSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalOverlapCorrectionSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalOverlapCorrectionSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalDamageSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalDamageSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalAuthenticitySmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalAuthenticitySmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalSexSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalSexSmokeCase>,
+}
+
+#[cfg(feature = "bam_downstream")]
+#[derive(Debug, Deserialize)]
+struct LocalKinshipSmokeConfig {
+    schema_version: String,
+    tool_id: String,
+    #[serde(default)]
+    threads: Option<u32>,
+    #[serde(default)]
+    output_dir: Option<PathBuf>,
+    cases: Vec<LocalKinshipSmokeCase>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalValidateSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    alignment_fixture_encoding: LocalValidateAlignmentFixtureEncoding,
+    #[serde(default)]
+    bam_index: Option<PathBuf>,
+    #[serde(default)]
+    reference_fasta: Option<PathBuf>,
+    #[serde(default = "default_expect_pass")]
+    expect_pass: bool,
+    #[serde(default)]
+    required_refusal_codes: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalQcPreSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    expected_total_reads: u64,
+    expected_mapped_reads: u64,
+    expected_unmapped_reads: u64,
+    expected_duplicate_flagged_reads: u64,
+    expected_contigs: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalMappingSummarySmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    expected_total_reads: u64,
+    expected_mapped_reads: u64,
+    expected_mapping_fraction: f64,
+    expected_reference_name: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalFilterSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    expected_input_reads: u64,
+    expected_kept_reads: u64,
+    expected_removed_reads: u64,
+    expected_active_filters: Vec<String>,
+    mapq_threshold: u8,
+    #[serde(default)]
+    include_flags: Vec<u16>,
+    #[serde(default)]
+    exclude_flags: Vec<u16>,
+    min_length: u32,
+    remove_duplicates: bool,
+    base_quality_threshold: u8,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalMapqFilterSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    mapq_threshold: u8,
+    expected_input_reads: u64,
+    expected_kept_reads: u64,
+    expected_removed_reads: u64,
+    expected_mapped_reads_removed: u64,
+    expected_mapped_fraction_retained: f64,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalLengthFilterSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    min_length: u32,
+    expected_input_reads: u64,
+    expected_kept_reads: u64,
+    expected_removed_reads: u64,
+    expected_observed_min_length: u32,
+    expected_observed_max_length: u32,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalMarkdupSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    duplicate_action: DuplicateAction,
+    optical_duplicates: OpticalDuplicatePolicy,
+    umi_policy: UmiPolicy,
+    expected_input_reads: u64,
+    expected_output_reads: u64,
+    expected_removed_reads: u64,
+    expected_duplicate_reads_before: u64,
+    expected_duplicate_reads_after: u64,
+    expected_duplicate_fraction: f64,
+    expected_newly_marked_reads: u64,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalDuplicationMetricsSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    optical_duplicates: OpticalDuplicatePolicy,
+    umi_policy: UmiPolicy,
+    duplicate_action: DuplicateAction,
+    expected_examined_reads: u64,
+    expected_duplicate_reads: u64,
+    expected_duplicate_fraction: f64,
+    #[serde(default)]
+    expected_estimated_library_size: Option<u64>,
+    #[serde(default)]
+    expected_insufficient_library_size_reason: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalComplexitySmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    min_reads: u64,
+    projection_points: Vec<u64>,
+    expected_observed_total_reads: u64,
+    expected_observed_unique_reads: u64,
+    #[serde(default)]
+    expected_estimated_unique_reads: Option<u64>,
+    #[serde(default)]
+    expected_insufficient_data_reason: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalCoverageSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    regions: PathBuf,
+    depth_thresholds: Vec<u32>,
+    expected_coverage_regime: String,
+    expected_rows: Vec<LocalCoverageSmokeExpectedRow>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalInsertSizeSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    expected_read_pairs: u64,
+    expected_median_insert_size: f64,
+    expected_mean_insert_size: f64,
+    expected_min_insert_size: u64,
+    expected_max_insert_size: u64,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalGcBiasSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    reference: PathBuf,
+    window_size: u32,
+    expected_rows: Vec<LocalGcBiasSmokeExpectedRow>,
+}
+
+#[cfg(feature = "bam_downstream")]
+#[derive(Debug, Deserialize)]
+struct LocalBiasMitigationSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    reference: PathBuf,
+    window_size: u32,
+    gc_bias_correction: bool,
+    map_bias_correction: bool,
+    expected_metric_name: String,
+    expected_pre_mitigation_metric: f64,
+    expected_post_mitigation_metric: f64,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalRecalibrationSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    reference: PathBuf,
+    known_sites: Vec<PathBuf>,
+    mode: BqsrMode,
+    min_mean_coverage: f64,
+    min_breadth_1x: f64,
+    expected_status: String,
+    expected_reason: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalEndogenousContentSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    host_reference_scope: String,
+    expected_total_reads: u64,
+    expected_mapped_reads: u64,
+    expected_endogenous_fraction: f64,
+    expected_method: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalOverlapCorrectionSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    expected_pair_count: u64,
+    expected_corrected_pairs: u64,
+    expected_corrected_overlap_bases: u64,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalDamageSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    expected_terminal_c_to_t_5p: f64,
+    expected_terminal_g_to_a_3p: f64,
+    expected_short_fragment_fraction: f64,
+    expected_damage_signal: String,
+    expected_strict_profile_upgraded: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalAuthenticitySmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    damage_terminal_c_to_t_5p: f64,
+    damage_terminal_g_to_a_3p: f64,
+    contamination_method: String,
+    contamination_estimate: f64,
+    contamination_ci_low: f64,
+    contamination_ci_high: f64,
+    complexity_min_reads: u64,
+    complexity_projection_points: Vec<u64>,
+    coverage_depth_thresholds: Vec<u32>,
+    expected_score: f64,
+    expected_confidence: f64,
+    expected_pmd_like_signal_present: bool,
+    expected_consumed_metrics: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LocalSexSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    reference: PathBuf,
+    chromosome_system: String,
+    minimum_y_sites: u32,
+    expected_method: String,
+    expected_x_coverage: f64,
+    expected_y_coverage: f64,
+    expected_autosomal_coverage: f64,
+    expected_call: SexConfidenceClass,
+    expected_confidence: f64,
+    expected_status: String,
+}
+
+#[cfg(feature = "bam_downstream")]
+#[derive(Debug, Deserialize)]
+struct LocalKinshipSmokeCase {
+    sample_id: String,
+    bam: PathBuf,
+    reference_panel: String,
+    reference_build: String,
+    population_scope: String,
+    min_overlap_snps: u32,
+    requires_cohort_context: bool,
+    expected_status: String,
+    expected_observed_max_overlap_snps: u32,
+    #[serde(default)]
+    expected_insufficiency_reason: Option<String>,
+    #[serde(default)]
+    expected_pairwise_results: Vec<LocalKinshipSmokeExpectedPair>,
+}
+
+const fn default_expect_pass() -> bool {
+    true
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.validate` plans cannot be built.
+pub fn local_validate_smoke_plans(repo_root: &Path) -> Result<Vec<LocalValidateSmokeCasePlan>> {
+    let config = load_local_validate_smoke_config(repo_root)?;
+    ensure_unique_validate_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Validate;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.validate tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_VALIDATE_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_validate_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.qc_pre` plans cannot be built.
+pub fn local_qc_pre_smoke_plans(repo_root: &Path) -> Result<Vec<LocalQcPreSmokeCasePlan>> {
+    let config = load_local_qc_pre_smoke_config(repo_root)?;
+    ensure_unique_qc_pre_sample_ids(&config.cases)?;
+
+    let stage = BamStage::QcPre;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.qc_pre tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_QC_PRE_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_qc_pre_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.mapping_summary` plans cannot be built.
+pub fn local_mapping_summary_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalMappingSummarySmokeCasePlan>> {
+    let config = load_local_mapping_summary_smoke_config(repo_root)?;
+    ensure_unique_mapping_summary_sample_ids(&config.cases)?;
+
+    let stage = BamStage::MappingSummary;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.mapping_summary tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_MAPPING_SUMMARY_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_mapping_summary_smoke_case(repo_root, &tool_spec, &output_root, case)
+        })
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.filter` plans cannot be built.
+pub fn local_filter_smoke_plans(repo_root: &Path) -> Result<Vec<LocalFilterSmokeCasePlan>> {
+    let config = load_local_filter_smoke_config(repo_root)?;
+    ensure_unique_filter_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Filter;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.filter tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_FILTER_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_filter_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.mapq_filter` plans cannot be built.
+pub fn local_mapq_filter_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalMapqFilterSmokeCasePlan>> {
+    let config = load_local_mapq_filter_smoke_config(repo_root)?;
+    ensure_unique_mapq_filter_sample_ids(&config.cases)?;
+
+    let stage = BamStage::MapqFilter;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.mapq_filter tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_MAPQ_FILTER_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_mapq_filter_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.length_filter` plans cannot be built.
+pub fn local_length_filter_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalLengthFilterSmokeCasePlan>> {
+    let config = load_local_length_filter_smoke_config(repo_root)?;
+    ensure_unique_length_filter_sample_ids(&config.cases)?;
+
+    let stage = BamStage::LengthFilter;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.length_filter tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_LENGTH_FILTER_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_length_filter_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.markdup` plans cannot be built.
+pub fn local_markdup_smoke_plans(repo_root: &Path) -> Result<Vec<LocalMarkdupSmokeCasePlan>> {
+    let config = load_local_markdup_smoke_config(repo_root)?;
+    ensure_unique_markdup_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Markdup;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.markdup tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_MARKDUP_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_markdup_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.duplication_metrics` plans cannot be built.
+pub fn local_duplication_metrics_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalDuplicationMetricsSmokeCasePlan>> {
+    let config = load_local_duplication_metrics_smoke_config(repo_root)?;
+    ensure_unique_duplication_metrics_sample_ids(&config.cases)?;
+
+    let stage = BamStage::DuplicationMetrics;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.duplication_metrics tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DUPLICATION_METRICS_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_duplication_metrics_smoke_case(repo_root, &tool_spec, &output_root, case)
+        })
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.complexity` plans cannot be built.
+pub fn local_complexity_smoke_plans(repo_root: &Path) -> Result<Vec<LocalComplexitySmokeCasePlan>> {
+    let config = load_local_complexity_smoke_config(repo_root)?;
+    ensure_unique_complexity_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Complexity;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.complexity tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_COMPLEXITY_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_complexity_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.coverage` plans cannot be built.
+pub fn local_coverage_smoke_plans(repo_root: &Path) -> Result<Vec<LocalCoverageSmokeCasePlan>> {
+    let config = load_local_coverage_smoke_config(repo_root)?;
+    ensure_unique_coverage_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Coverage;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.coverage tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_COVERAGE_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_coverage_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.insert_size` plans cannot be built.
+pub fn local_insert_size_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalInsertSizeSmokeCasePlan>> {
+    let config = load_local_insert_size_smoke_config(repo_root)?;
+    ensure_unique_insert_size_sample_ids(&config.cases)?;
+
+    let stage = BamStage::InsertSize;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.insert_size tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_INSERT_SIZE_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_insert_size_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.gc_bias` plans cannot be built.
+pub fn local_gc_bias_smoke_plans(repo_root: &Path) -> Result<Vec<LocalGcBiasSmokeCasePlan>> {
+    let config = load_local_gc_bias_smoke_config(repo_root)?;
+    ensure_unique_gc_bias_sample_ids(&config.cases)?;
+
+    let stage = BamStage::GcBias;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.gc_bias tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_GC_BIAS_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_gc_bias_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.bias_mitigation` plans cannot be built.
+#[cfg(feature = "bam_downstream")]
+pub fn local_bias_mitigation_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalBiasMitigationSmokeCasePlan>> {
+    let config = load_local_bias_mitigation_smoke_config(repo_root)?;
+    ensure_unique_bias_mitigation_sample_ids(&config.cases)?;
+
+    let stage = BamStage::BiasMitigation;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_BIAS_MITIGATION_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_bias_mitigation_smoke_case(repo_root, &tool_spec, &output_root, case)
+        })
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.recalibration` plans cannot be built.
+pub fn local_recalibration_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalRecalibrationSmokeCasePlan>> {
+    let config = load_local_recalibration_smoke_config(repo_root)?;
+    ensure_unique_recalibration_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Recalibration;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.recalibration tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_RECALIBRATION_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_recalibration_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.endogenous_content` plans cannot be built.
+pub fn local_endogenous_content_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalEndogenousContentSmokeCasePlan>> {
+    let config = load_local_endogenous_content_smoke_config(repo_root)?;
+    ensure_unique_endogenous_content_sample_ids(&config.cases)?;
+
+    let stage = BamStage::EndogenousContent;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.endogenous_content tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_ENDOGENOUS_CONTENT_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_endogenous_content_smoke_case(repo_root, &tool_spec, &output_root, case)
+        })
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.overlap_correction` plans cannot be built.
+pub fn local_overlap_correction_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalOverlapCorrectionSmokeCasePlan>> {
+    let config = load_local_overlap_correction_smoke_config(repo_root)?;
+    ensure_unique_overlap_correction_sample_ids(&config.cases)?;
+
+    let stage = BamStage::OverlapCorrection;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_OVERLAP_CORRECTION_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| {
+            build_local_overlap_correction_smoke_case(repo_root, &tool_spec, &output_root, case)
+        })
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.damage` plans cannot be built.
+pub fn local_damage_smoke_plans(repo_root: &Path) -> Result<Vec<LocalDamageSmokeCasePlan>> {
+    let config = load_local_damage_smoke_config(repo_root)?;
+    ensure_unique_damage_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Damage;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.damage tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DAMAGE_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_damage_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.authenticity` plans cannot be built.
+pub fn local_authenticity_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalAuthenticitySmokeCasePlan>> {
+    let config = load_local_authenticity_smoke_config(repo_root)?;
+    ensure_unique_authenticity_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Authenticity;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_AUTHENTICITY_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_authenticity_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.sex` plans cannot be built.
+pub fn local_sex_smoke_plans(repo_root: &Path) -> Result<Vec<LocalSexSmokeCasePlan>> {
+    let config = load_local_sex_smoke_config(repo_root)?;
+    ensure_unique_sex_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Sex;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.sex tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_SEX_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_sex_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+#[cfg(feature = "bam_downstream")]
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
+/// governed `bam.kinship` plans cannot be built.
+pub fn local_kinship_smoke_plans(repo_root: &Path) -> Result<Vec<LocalKinshipSmokeCasePlan>> {
+    let config = load_local_kinship_smoke_config(repo_root)?;
+    ensure_unique_kinship_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Kinship;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let tool_id = ToolId::try_from(config.tool_id.as_str())
+        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
+    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+        return Err(anyhow!(
+            "local-smoke bam.kinship tool `{}` is not admitted by the BAM stage contract",
+            tool_id.as_str()
+        ));
+    }
+
+    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_KINSHIP_OUTPUT_DIR));
+
+    config
+        .cases
+        .into_iter()
+        .map(|case| build_local_kinship_smoke_case(repo_root, &tool_spec, &output_root, case))
+        .collect()
+}
+
+fn build_local_validate_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalValidateSmokeCase,
+) -> Result<LocalValidateSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.validate BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+
+    if let Some(bam_index) = case.bam_index.as_ref() {
+        let bam_index_abs = repo_root.join(bam_index);
+        if !bam_index_abs.is_file() {
+            return Err(anyhow!(
+                "local-smoke bam.validate BAM index fixture is missing: {}",
+                bam_index_abs.display()
+            ));
+        }
+    }
+
+    if let Some(reference_fasta) = case.reference_fasta.as_ref() {
+        let reference_abs = repo_root.join(reference_fasta);
+        if !reference_abs.is_file() {
+            return Err(anyhow!(
+                "local-smoke bam.validate reference fixture is missing: {}",
+                reference_abs.display()
+            ));
+        }
+    }
+
+    if case.expect_pass && !case.required_refusal_codes.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.validate passing case `{}` must not declare refusal expectations",
+            case.sample_id
+        ));
+    }
+    if !case.expect_pass && case.required_refusal_codes.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.validate refusal case `{}` must declare at least one expected refusal code",
+            case.sample_id
+        ));
+    }
+
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan = crate::tool_adapters::bam::validate::plan(
+        tool_spec,
+        &case.bam,
+        case.bam_index.as_deref(),
+        case.reference_fasta.as_deref(),
+        &out_dir,
+    )?;
+
+    Ok(LocalValidateSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        alignment_fixture_encoding: case.alignment_fixture_encoding,
+        bam_index: case.bam_index,
+        reference_fasta: case.reference_fasta,
+        expect_pass: case.expect_pass,
+        required_refusal_codes: case.required_refusal_codes,
+        plan,
+    })
+}
+
+fn build_local_qc_pre_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalQcPreSmokeCase,
+) -> Result<LocalQcPreSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.qc_pre BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.expected_contigs.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.qc_pre case `{}` must declare at least one expected contig",
+            case.sample_id
+        ));
+    }
+    if case.expected_mapped_reads + case.expected_unmapped_reads != case.expected_total_reads {
+        return Err(anyhow!(
+            "local-smoke bam.qc_pre case `{}` must satisfy mapped + unmapped == total",
+            case.sample_id
+        ));
+    }
+
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan = crate::tool_adapters::bam::qc_pre::plan(tool_spec, &case.bam, &out_dir)?;
+
+    Ok(LocalQcPreSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        expected_total_reads: case.expected_total_reads,
+        expected_mapped_reads: case.expected_mapped_reads,
+        expected_unmapped_reads: case.expected_unmapped_reads,
+        expected_duplicate_flagged_reads: case.expected_duplicate_flagged_reads,
+        expected_contigs: case.expected_contigs,
+        plan,
+    })
+}
+
+fn build_local_mapping_summary_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalMappingSummarySmokeCase,
+) -> Result<LocalMappingSummarySmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.mapping_summary BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.expected_reference_name.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.mapping_summary case `{}` must declare a non-empty expected reference name",
+            case.sample_id
+        ));
+    }
+    if case.expected_mapped_reads > case.expected_total_reads {
+        return Err(anyhow!(
+            "local-smoke bam.mapping_summary case `{}` cannot declare mapped reads greater than total reads",
+            case.sample_id
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.expected_mapping_fraction) {
+        return Err(anyhow!(
+            "local-smoke bam.mapping_summary case `{}` must declare mapping fraction within [0, 1]",
+            case.sample_id
+        ));
+    }
+    let derived_fraction = if case.expected_total_reads == 0 {
+        0.0
+    } else {
+        case.expected_mapped_reads as f64 / case.expected_total_reads as f64
+    };
+    if (derived_fraction - case.expected_mapping_fraction).abs() > 1e-9 {
+        return Err(anyhow!(
+            "local-smoke bam.mapping_summary case `{}` must keep expected mapping fraction aligned with mapped and total reads",
+            case.sample_id
+        ));
+    }
+
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan = crate::tool_adapters::bam::mapping_summary::plan(tool_spec, &case.bam, &out_dir)?;
+
+    Ok(LocalMappingSummarySmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        expected_total_reads: case.expected_total_reads,
+        expected_mapped_reads: case.expected_mapped_reads,
+        expected_mapping_fraction: case.expected_mapping_fraction,
+        expected_reference_name: case.expected_reference_name,
+        plan,
+    })
+}
+
+fn build_local_filter_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalFilterSmokeCase,
+) -> Result<LocalFilterSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.filter BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.expected_kept_reads > case.expected_input_reads {
+        return Err(anyhow!(
+            "local-smoke bam.filter case `{}` cannot declare kept reads greater than input reads",
+            case.sample_id
+        ));
+    }
+    if case.expected_removed_reads
+        != case.expected_input_reads.saturating_sub(case.expected_kept_reads)
+    {
+        return Err(anyhow!(
+            "local-smoke bam.filter case `{}` must keep expected removed reads aligned with input and kept reads",
+            case.sample_id
+        ));
+    }
+    if case.expected_active_filters.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.filter case `{}` must declare at least one active filter",
+            case.sample_id
+        ));
+    }
+    let mut seen_filters = BTreeSet::new();
+    for filter in &case.expected_active_filters {
+        if filter.trim().is_empty() {
+            return Err(anyhow!(
+                "local-smoke bam.filter case `{}` must not declare empty active filter names",
+                case.sample_id
+            ));
+        }
+        if !seen_filters.insert(filter.clone()) {
+            return Err(anyhow!(
+                "local-smoke bam.filter case `{}` declared duplicate active filter `{}`",
+                case.sample_id,
+                filter
+            ));
+        }
+    }
+
+    let params = FilterEffectiveParams {
+        mapq_threshold: case.mapq_threshold,
+        include_flags: case.include_flags,
+        exclude_flags: case.exclude_flags,
+        min_length: case.min_length,
+        remove_duplicates: case.remove_duplicates,
+        base_quality_threshold: case.base_quality_threshold,
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan = crate::tool_adapters::bam::filter::plan(tool_spec, &case.bam, &out_dir, &params)?;
+
+    Ok(LocalFilterSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        expected_input_reads: case.expected_input_reads,
+        expected_kept_reads: case.expected_kept_reads,
+        expected_removed_reads: case.expected_removed_reads,
+        expected_active_filters: case.expected_active_filters,
+        plan,
+    })
+}
+
+fn build_local_mapq_filter_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalMapqFilterSmokeCase,
+) -> Result<LocalMapqFilterSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.mapq_filter BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.mapq_threshold == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.mapq_filter case `{}` must declare a non-zero mapq_threshold",
+            case.sample_id
+        ));
+    }
+    if case.expected_kept_reads > case.expected_input_reads {
+        return Err(anyhow!(
+            "local-smoke bam.mapq_filter case `{}` cannot declare kept reads greater than input reads",
+            case.sample_id
+        ));
+    }
+    if case.expected_removed_reads
+        != case.expected_input_reads.saturating_sub(case.expected_kept_reads)
+    {
+        return Err(anyhow!(
+            "local-smoke bam.mapq_filter case `{}` must keep expected removed reads aligned with input and kept reads",
+            case.sample_id
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.expected_mapped_fraction_retained) {
+        return Err(anyhow!(
+            "local-smoke bam.mapq_filter case `{}` must declare mapped_fraction_retained within [0, 1]",
+            case.sample_id
+        ));
+    }
+
+    let params = FilterEffectiveParams {
+        mapq_threshold: case.mapq_threshold,
+        include_flags: Vec::new(),
+        exclude_flags: Vec::new(),
+        min_length: 0,
+        remove_duplicates: false,
+        base_quality_threshold: 20,
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan =
+        crate::tool_adapters::bam::mapq_filter::plan(tool_spec, &case.bam, &out_dir, &params)?;
+
+    Ok(LocalMapqFilterSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        mapq_threshold: case.mapq_threshold,
+        expected_input_reads: case.expected_input_reads,
+        expected_kept_reads: case.expected_kept_reads,
+        expected_removed_reads: case.expected_removed_reads,
+        expected_mapped_reads_removed: case.expected_mapped_reads_removed,
+        expected_mapped_fraction_retained: case.expected_mapped_fraction_retained,
+        plan,
+    })
+}
+
+fn build_local_length_filter_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalLengthFilterSmokeCase,
+) -> Result<LocalLengthFilterSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.length_filter BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.min_length == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.length_filter case `{}` must declare a non-zero min_length",
+            case.sample_id
+        ));
+    }
+    if case.expected_kept_reads > case.expected_input_reads {
+        return Err(anyhow!(
+            "local-smoke bam.length_filter case `{}` cannot declare kept reads greater than input reads",
+            case.sample_id
+        ));
+    }
+    if case.expected_removed_reads
+        != case.expected_input_reads.saturating_sub(case.expected_kept_reads)
+    {
+        return Err(anyhow!(
+            "local-smoke bam.length_filter case `{}` must keep expected removed reads aligned with input and kept reads",
+            case.sample_id
+        ));
+    }
+    if case.expected_observed_min_length > case.expected_observed_max_length {
+        return Err(anyhow!(
+            "local-smoke bam.length_filter case `{}` must declare observed min length less than or equal to observed max length",
+            case.sample_id
+        ));
+    }
+    if case.expected_observed_min_length < case.min_length {
+        return Err(anyhow!(
+            "local-smoke bam.length_filter case `{}` must keep observed min length at or above the filter threshold",
+            case.sample_id
+        ));
+    }
+
+    let params = FilterEffectiveParams {
+        mapq_threshold: 0,
+        include_flags: Vec::new(),
+        exclude_flags: Vec::new(),
+        min_length: case.min_length,
+        remove_duplicates: false,
+        base_quality_threshold: 20,
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan =
+        crate::tool_adapters::bam::length_filter::plan(tool_spec, &case.bam, &out_dir, &params)?;
+
+    Ok(LocalLengthFilterSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        min_length: case.min_length,
+        expected_input_reads: case.expected_input_reads,
+        expected_kept_reads: case.expected_kept_reads,
+        expected_removed_reads: case.expected_removed_reads,
+        expected_observed_min_length: case.expected_observed_min_length,
+        expected_observed_max_length: case.expected_observed_max_length,
+        plan,
+    })
+}
+
+fn build_local_markdup_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalMarkdupSmokeCase,
+) -> Result<LocalMarkdupSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.markdup BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.expected_output_reads > case.expected_input_reads {
+        return Err(anyhow!(
+            "local-smoke bam.markdup case `{}` cannot declare output reads greater than input reads",
+            case.sample_id
+        ));
+    }
+    if case.expected_removed_reads
+        != case.expected_input_reads.saturating_sub(case.expected_output_reads)
+    {
+        return Err(anyhow!(
+            "local-smoke bam.markdup case `{}` must keep expected removed reads aligned with input and output reads",
+            case.sample_id
+        ));
+    }
+    if case.expected_duplicate_reads_before > case.expected_input_reads {
+        return Err(anyhow!(
+            "local-smoke bam.markdup case `{}` cannot declare duplicate reads before greater than input reads",
+            case.sample_id
+        ));
+    }
+    if case.expected_duplicate_reads_after > case.expected_output_reads {
+        return Err(anyhow!(
+            "local-smoke bam.markdup case `{}` cannot declare duplicate reads after greater than output reads",
+            case.sample_id
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.expected_duplicate_fraction) {
+        return Err(anyhow!(
+            "local-smoke bam.markdup case `{}` must declare duplicate fraction within [0, 1]",
+            case.sample_id
+        ));
+    }
+    let derived_fraction = if case.expected_output_reads == 0 {
+        0.0
+    } else {
+        case.expected_duplicate_reads_after as f64 / case.expected_output_reads as f64
+    };
+    if (derived_fraction - case.expected_duplicate_fraction).abs() > 1e-9 {
+        return Err(anyhow!(
+            "local-smoke bam.markdup case `{}` must keep duplicate fraction aligned with output and duplicate reads",
+            case.sample_id
+        ));
+    }
+    if case.expected_newly_marked_reads > case.expected_duplicate_reads_after {
+        return Err(anyhow!(
+            "local-smoke bam.markdup case `{}` cannot declare newly marked reads greater than duplicate reads after processing",
+            case.sample_id
+        ));
+    }
+    match case.duplicate_action {
+        DuplicateAction::Mark => {
+            if case.expected_removed_reads != 0 {
+                return Err(anyhow!(
+                    "local-smoke bam.markdup case `{}` must not remove reads when duplicate_action is mark",
+                    case.sample_id
+                ));
+            }
+        }
+        DuplicateAction::Remove => {
+            if case.expected_newly_marked_reads != 0 {
+                return Err(anyhow!(
+                    "local-smoke bam.markdup case `{}` must not declare newly marked reads when duplicate_action is remove",
+                    case.sample_id
+                ));
+            }
+        }
+    }
+
+    let params = MarkDupEffectiveParams {
+        optical_duplicates: case.optical_duplicates,
+        umi_policy: case.umi_policy,
+        duplicate_action: case.duplicate_action,
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan = crate::tool_adapters::bam::markdup::plan(tool_spec, &case.bam, &out_dir, &params)?;
+
+    Ok(LocalMarkdupSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        expected_input_reads: case.expected_input_reads,
+        expected_output_reads: case.expected_output_reads,
+        expected_removed_reads: case.expected_removed_reads,
+        expected_duplicate_reads_before: case.expected_duplicate_reads_before,
+        expected_duplicate_reads_after: case.expected_duplicate_reads_after,
+        expected_duplicate_fraction: case.expected_duplicate_fraction,
+        expected_newly_marked_reads: case.expected_newly_marked_reads,
+        plan,
+    })
+}
+
+fn build_local_duplication_metrics_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalDuplicationMetricsSmokeCase,
+) -> Result<LocalDuplicationMetricsSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.duplication_metrics BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.expected_duplicate_reads > case.expected_examined_reads {
+        return Err(anyhow!(
+            "local-smoke bam.duplication_metrics case `{}` cannot declare duplicate reads greater than examined reads",
+            case.sample_id
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.expected_duplicate_fraction) {
+        return Err(anyhow!(
+            "local-smoke bam.duplication_metrics case `{}` must declare duplicate fraction within [0, 1]",
+            case.sample_id
+        ));
+    }
+    let derived_fraction = if case.expected_examined_reads == 0 {
+        0.0
+    } else {
+        case.expected_duplicate_reads as f64 / case.expected_examined_reads as f64
+    };
+    if (derived_fraction - case.expected_duplicate_fraction).abs() > 1e-9 {
+        return Err(anyhow!(
+            "local-smoke bam.duplication_metrics case `{}` must keep duplicate fraction aligned with examined and duplicate reads",
+            case.sample_id
+        ));
+    }
+    if case.expected_estimated_library_size.is_some()
+        == case.expected_insufficient_library_size_reason.is_some()
+    {
+        return Err(anyhow!(
+            "local-smoke bam.duplication_metrics case `{}` must declare exactly one of expected_estimated_library_size or expected_insufficient_library_size_reason",
+            case.sample_id
+        ));
+    }
+    if case.expected_insufficient_library_size_reason.as_deref().is_some_and(str::is_empty) {
+        return Err(anyhow!(
+            "local-smoke bam.duplication_metrics case `{}` must not declare an empty insufficiency reason",
+            case.sample_id
+        ));
+    }
+
+    let params = MarkDupEffectiveParams {
+        optical_duplicates: case.optical_duplicates,
+        umi_policy: case.umi_policy,
+        duplicate_action: case.duplicate_action,
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan = crate::tool_adapters::bam::duplication_metrics::plan(
+        tool_spec, &case.bam, &out_dir, &params,
+    )?;
+
+    Ok(LocalDuplicationMetricsSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        expected_examined_reads: case.expected_examined_reads,
+        expected_duplicate_reads: case.expected_duplicate_reads,
+        expected_duplicate_fraction: case.expected_duplicate_fraction,
+        expected_estimated_library_size: case.expected_estimated_library_size,
+        expected_insufficient_library_size_reason: case.expected_insufficient_library_size_reason,
+        plan,
+    })
+}
+
+fn build_local_complexity_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalComplexitySmokeCase,
+) -> Result<LocalComplexitySmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.complexity BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.min_reads == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.complexity case `{}` must declare min_reads greater than zero",
+            case.sample_id
+        ));
+    }
+    if case.projection_points.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.complexity case `{}` must declare at least one projection point",
+            case.sample_id
+        ));
+    }
+    if case.projection_points.contains(&0) {
+        return Err(anyhow!(
+            "local-smoke bam.complexity case `{}` must keep projection points greater than zero",
+            case.sample_id
+        ));
+    }
+    if case.projection_points.windows(2).any(|pair| pair[0] >= pair[1]) {
+        return Err(anyhow!(
+            "local-smoke bam.complexity case `{}` must keep projection points strictly increasing",
+            case.sample_id
+        ));
+    }
+    if case.expected_observed_unique_reads > case.expected_observed_total_reads {
+        return Err(anyhow!(
+            "local-smoke bam.complexity case `{}` cannot declare unique reads greater than observed total reads",
+            case.sample_id
+        ));
+    }
+    if case.expected_estimated_unique_reads.is_some()
+        == case.expected_insufficient_data_reason.is_some()
+    {
+        return Err(anyhow!(
+            "local-smoke bam.complexity case `{}` must declare exactly one of expected_estimated_unique_reads or expected_insufficient_data_reason",
+            case.sample_id
+        ));
+    }
+    if case
+        .expected_estimated_unique_reads
+        .is_some_and(|value| value < case.expected_observed_unique_reads)
+    {
+        return Err(anyhow!(
+            "local-smoke bam.complexity case `{}` must keep estimated unique reads greater than or equal to observed unique reads",
+            case.sample_id
+        ));
+    }
+    if case.expected_insufficient_data_reason.as_deref().is_some_and(str::is_empty) {
+        return Err(anyhow!(
+            "local-smoke bam.complexity case `{}` must not declare an empty insufficiency reason",
+            case.sample_id
+        ));
+    }
+
+    let params = ComplexityEffectiveParams {
+        min_reads: case.min_reads,
+        projection_points: case.projection_points.clone(),
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan =
+        crate::tool_adapters::bam::complexity::plan(tool_spec, &case.bam, &out_dir, &params)?;
+
+    Ok(LocalComplexitySmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        min_reads: case.min_reads,
+        projection_points: case.projection_points,
+        expected_observed_total_reads: case.expected_observed_total_reads,
+        expected_observed_unique_reads: case.expected_observed_unique_reads,
+        expected_estimated_unique_reads: case.expected_estimated_unique_reads,
+        expected_insufficient_data_reason: case.expected_insufficient_data_reason,
+        plan,
+    })
+}
+
+fn build_local_coverage_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalCoverageSmokeCase,
+) -> Result<LocalCoverageSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.coverage BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    let regions_abs = repo_root.join(&case.regions);
+    if !regions_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.coverage regions fixture is missing: {}",
+            regions_abs.display()
+        ));
+    }
+    if case.depth_thresholds.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.coverage case `{}` must declare at least one depth threshold",
+            case.sample_id
+        ));
+    }
+    if case.depth_thresholds.contains(&0) {
+        return Err(anyhow!(
+            "local-smoke bam.coverage case `{}` must keep depth thresholds greater than zero",
+            case.sample_id
+        ));
+    }
+    if case.depth_thresholds.windows(2).any(|pair| pair[0] >= pair[1]) {
+        return Err(anyhow!(
+            "local-smoke bam.coverage case `{}` must keep depth thresholds strictly increasing",
+            case.sample_id
+        ));
+    }
+    if case.expected_coverage_regime.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.coverage case `{}` must declare a non-empty expected coverage regime",
+            case.sample_id
+        ));
+    }
+    if case.expected_rows.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.coverage case `{}` must declare at least one expected region row",
+            case.sample_id
+        ));
+    }
+
+    let mut seen_region_ids = BTreeSet::new();
+    for row in &case.expected_rows {
+        if row.region_id.trim().is_empty() {
+            return Err(anyhow!(
+                "local-smoke bam.coverage case `{}` must not declare empty region identifiers",
+                case.sample_id
+            ));
+        }
+        if !seen_region_ids.insert(row.region_id.clone()) {
+            return Err(anyhow!(
+                "local-smoke bam.coverage case `{}` declared duplicate region `{}`",
+                case.sample_id,
+                row.region_id
+            ));
+        }
+        if row.contig.trim().is_empty() {
+            return Err(anyhow!(
+                "local-smoke bam.coverage case `{}` must not declare empty contig names",
+                case.sample_id
+            ));
+        }
+        if row.start == 0 || row.end < row.start {
+            return Err(anyhow!(
+                "local-smoke bam.coverage case `{}` must keep region coordinates 1-based and ordered",
+                case.sample_id
+            ));
+        }
+        if row.length != row.end.saturating_sub(row.start).saturating_add(1) {
+            return Err(anyhow!(
+                "local-smoke bam.coverage case `{}` must keep expected row length aligned with region coordinates",
+                case.sample_id
+            ));
+        }
+        if !(0.0..=1.0).contains(&row.breadth_1x) {
+            return Err(anyhow!(
+                "local-smoke bam.coverage case `{}` must keep breadth_1x within [0, 1]",
+                case.sample_id
+            ));
+        }
+        if row.covered_bases > row.length {
+            return Err(anyhow!(
+                "local-smoke bam.coverage case `{}` cannot declare covered bases greater than region length",
+                case.sample_id
+            ));
+        }
+    }
+
+    let params = CoverageEffectiveParams {
+        regions: Some(BedRegions(case.regions.clone())),
+        depth_thresholds: case.depth_thresholds.clone(),
+        regime_mode: "advisory_and_enforced".to_string(),
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan = crate::tool_adapters::bam::coverage::plan(tool_spec, &case.bam, &out_dir, &params)?;
+
+    Ok(LocalCoverageSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        regions: case.regions,
+        depth_thresholds: case.depth_thresholds,
+        expected_coverage_regime: case.expected_coverage_regime,
+        expected_rows: case.expected_rows,
+        plan,
+    })
+}
+
+fn build_local_insert_size_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalInsertSizeSmokeCase,
+) -> Result<LocalInsertSizeSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.insert_size BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.expected_read_pairs == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.insert_size case `{}` must declare expected_read_pairs greater than zero",
+            case.sample_id
+        ));
+    }
+    if case.expected_min_insert_size == 0 || case.expected_max_insert_size == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.insert_size case `{}` must keep expected insert-size bounds greater than zero",
+            case.sample_id
+        ));
+    }
+    if case.expected_min_insert_size > case.expected_max_insert_size {
+        return Err(anyhow!(
+            "local-smoke bam.insert_size case `{}` must keep expected min insert size less than or equal to expected max insert size",
+            case.sample_id
+        ));
+    }
+    if case.expected_mean_insert_size < case.expected_min_insert_size as f64
+        || case.expected_mean_insert_size > case.expected_max_insert_size as f64
+    {
+        return Err(anyhow!(
+            "local-smoke bam.insert_size case `{}` must keep expected mean insert size within the declared bounds",
+            case.sample_id
+        ));
+    }
+    if case.expected_median_insert_size < case.expected_min_insert_size as f64
+        || case.expected_median_insert_size > case.expected_max_insert_size as f64
+    {
+        return Err(anyhow!(
+            "local-smoke bam.insert_size case `{}` must keep expected median insert size within the declared bounds",
+            case.sample_id
+        ));
+    }
+
+    let params = CoverageEffectiveParams {
+        regions: None,
+        depth_thresholds: vec![1],
+        regime_mode: "advisory_and_enforced".to_string(),
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan =
+        crate::tool_adapters::bam::insert_size::plan(tool_spec, &case.bam, &out_dir, &params)?;
+
+    Ok(LocalInsertSizeSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        expected_read_pairs: case.expected_read_pairs,
+        expected_median_insert_size: case.expected_median_insert_size,
+        expected_mean_insert_size: case.expected_mean_insert_size,
+        expected_min_insert_size: case.expected_min_insert_size,
+        expected_max_insert_size: case.expected_max_insert_size,
+        plan,
+    })
+}
+
+fn build_local_gc_bias_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalGcBiasSmokeCase,
+) -> Result<LocalGcBiasSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.gc_bias BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    let reference_abs = repo_root.join(&case.reference);
+    if !reference_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.gc_bias reference fixture is missing: {}",
+            reference_abs.display()
+        ));
+    }
+    if case.window_size == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.gc_bias case `{}` must declare window_size greater than zero",
+            case.sample_id
+        ));
+    }
+    validate_local_gc_bias_expected_rows(&case.sample_id, &case.expected_rows)?;
+
+    let params = CoverageEffectiveParams {
+        regions: None,
+        depth_thresholds: vec![1],
+        regime_mode: "advisory_and_enforced".to_string(),
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let mut plan = crate::tool_adapters::bam::gc_bias::plan(
+        tool_spec,
+        &case.bam,
+        &case.reference,
+        &out_dir,
+        &params,
+    )?;
+    let plan_params = plan.params.as_object_mut().ok_or_else(|| {
+        anyhow!("local-smoke bam.gc_bias planner params must serialize as an object")
+    })?;
+    plan_params.insert("window_size".to_string(), serde_json::json!(case.window_size));
+
+    Ok(LocalGcBiasSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        reference: case.reference,
+        window_size: case.window_size,
+        expected_rows: case.expected_rows,
+        plan,
+    })
+}
+
+fn validate_local_gc_bias_expected_rows(
+    sample_id: &str,
+    expected_rows: &[LocalGcBiasSmokeExpectedRow],
+) -> Result<()> {
+    if expected_rows.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.gc_bias case `{sample_id}` must declare at least one expected GC bin row"
+        ));
+    }
+
+    let mut seen_gc_bins = BTreeSet::new();
+    for row in expected_rows {
+        if !seen_gc_bins.insert(row.gc_bin) {
+            return Err(anyhow!(
+                "local-smoke bam.gc_bias case `{}` must not repeat expected gc_bin `{}`",
+                sample_id,
+                row.gc_bin
+            ));
+        }
+        if row.windows == 0 {
+            return Err(anyhow!(
+                "local-smoke bam.gc_bias case `{}` must keep expected gc_bin `{}` windows greater than zero",
+                sample_id,
+                row.gc_bin
+            ));
+        }
+        if !row.normalized_coverage.is_finite() || row.normalized_coverage < 0.0 {
+            return Err(anyhow!(
+                "local-smoke bam.gc_bias case `{}` must keep expected gc_bin `{}` normalized_coverage finite and non-negative",
+                sample_id,
+                row.gc_bin
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+fn float_matches(left: f64, right: f64) -> bool {
+    (left - right).abs() <= 1e-9
+}
+
+fn build_local_endogenous_content_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalEndogenousContentSmokeCase,
+) -> Result<LocalEndogenousContentSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.endogenous_content BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.host_reference_scope.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.endogenous_content case `{}` must declare a non-empty host_reference_scope",
+            case.sample_id
+        ));
+    }
+    if case.expected_total_reads == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.endogenous_content case `{}` must declare expected_total_reads greater than zero",
+            case.sample_id
+        ));
+    }
+    if case.expected_mapped_reads > case.expected_total_reads {
+        return Err(anyhow!(
+            "local-smoke bam.endogenous_content case `{}` cannot declare mapped reads greater than total reads",
+            case.sample_id
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.expected_endogenous_fraction) {
+        return Err(anyhow!(
+            "local-smoke bam.endogenous_content case `{}` must keep expected_endogenous_fraction within [0, 1]",
+            case.sample_id
+        ));
+    }
+    if case.expected_method.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.endogenous_content case `{}` must declare a non-empty expected_method",
+            case.sample_id
+        ));
+    }
+    let expected_fraction = case.expected_mapped_reads as f64 / case.expected_total_reads as f64;
+    if (case.expected_endogenous_fraction - expected_fraction).abs() > 1e-9 {
+        return Err(anyhow!(
+            "local-smoke bam.endogenous_content case `{}` must keep expected_endogenous_fraction aligned with expected_mapped_reads and expected_total_reads",
+            case.sample_id
+        ));
+    }
+
+    let params = bijux_dna_domain_bam::params::EndogenousContentEffectiveParams {
+        regions: None,
+        depth_thresholds: vec![1],
+        host_reference_scope: case.host_reference_scope.clone(),
+        host_reference_digest: None,
+        refuse_without_host_reference: true,
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan = crate::tool_adapters::bam::endogenous_content::plan(
+        tool_spec, &case.bam, &out_dir, &params,
+    )?;
+
+    Ok(LocalEndogenousContentSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        host_reference_scope: case.host_reference_scope,
+        expected_total_reads: case.expected_total_reads,
+        expected_mapped_reads: case.expected_mapped_reads,
+        expected_endogenous_fraction: case.expected_endogenous_fraction,
+        expected_method: case.expected_method,
+        plan,
+    })
+}
+
+fn build_local_overlap_correction_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalOverlapCorrectionSmokeCase,
+) -> Result<LocalOverlapCorrectionSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.expected_pair_count == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction case `{}` must declare expected_pair_count greater than zero",
+            case.sample_id
+        ));
+    }
+    if case.expected_corrected_pairs > case.expected_pair_count {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction case `{}` cannot declare corrected pairs greater than pair count",
+            case.sample_id
+        ));
+    }
+    if case.expected_corrected_pairs > 0 && case.expected_corrected_overlap_bases == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction case `{}` must declare positive expected_corrected_overlap_bases when expected_corrected_pairs is greater than zero",
+            case.sample_id
+        ));
+    }
+    if case.expected_corrected_pairs == 0 && case.expected_corrected_overlap_bases > 0 {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction case `{}` must keep expected_corrected_overlap_bases at zero when expected_corrected_pairs is zero",
+            case.sample_id
+        ));
+    }
+
+    let params = FilterEffectiveParams {
+        mapq_threshold: 0,
+        include_flags: Vec::new(),
+        exclude_flags: Vec::new(),
+        min_length: 0,
+        remove_duplicates: false,
+        base_quality_threshold: 20,
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan = crate::tool_adapters::bam::overlap_correction::plan(
+        tool_spec, &case.bam, &out_dir, &params,
+    )?;
+
+    Ok(LocalOverlapCorrectionSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        expected_pair_count: case.expected_pair_count,
+        expected_corrected_pairs: case.expected_corrected_pairs,
+        expected_corrected_overlap_bases: case.expected_corrected_overlap_bases,
+        plan,
+    })
+}
+
+fn build_local_damage_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalDamageSmokeCase,
+) -> Result<LocalDamageSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.damage BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.expected_terminal_c_to_t_5p) {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must keep expected_terminal_c_to_t_5p within [0, 1]",
+            case.sample_id
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.expected_terminal_g_to_a_3p) {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must keep expected_terminal_g_to_a_3p within [0, 1]",
+            case.sample_id
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.expected_short_fragment_fraction) {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must keep expected_short_fragment_fraction within [0, 1]",
+            case.sample_id
+        ));
+    }
+    if case.expected_damage_signal.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must declare a non-empty expected_damage_signal",
+            case.sample_id
+        ));
+    }
+    if !matches!(case.expected_damage_signal.as_str(), "low" | "moderate" | "high") {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must declare expected_damage_signal as one of `low`, `moderate`, or `high`",
+            case.sample_id
+        ));
+    }
+    let terminal_damage = case.expected_terminal_c_to_t_5p.max(case.expected_terminal_g_to_a_3p);
+    let governed_damage_signal = if terminal_damage >= 0.20 {
+        "high"
+    } else if terminal_damage >= 0.10 {
+        "moderate"
+    } else {
+        "low"
+    };
+    if case.expected_damage_signal != governed_damage_signal {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must keep expected_damage_signal aligned with the governed terminal damage thresholds",
+            case.sample_id
+        ));
+    }
+    if case.expected_strict_profile_upgraded {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` must keep expected_strict_profile_upgraded false for the governed evidence-only damage profile",
+            case.sample_id
+        ));
+    }
+
+    let params = DamageEffectiveParams {
+        udg_model: bijux_dna_domain_bam::params::UdgModel::NonUdg,
+        pmd_threshold_5p: 0.3,
+        pmd_threshold_3p: 0.3,
+        trim_5p: 2,
+        trim_3p: 2,
+        damage_tool_profile: Some("ancient_dna_evidence".to_string()),
+        evidence_only: true,
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan = crate::tool_adapters::bam::damage::plan(tool_spec, &case.bam, &out_dir, &params)?;
+
+    Ok(LocalDamageSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        expected_terminal_c_to_t_5p: case.expected_terminal_c_to_t_5p,
+        expected_terminal_g_to_a_3p: case.expected_terminal_g_to_a_3p,
+        expected_short_fragment_fraction: case.expected_short_fragment_fraction,
+        expected_damage_signal: case.expected_damage_signal,
+        expected_strict_profile_upgraded: case.expected_strict_profile_upgraded,
+        plan,
+    })
+}
+
+fn build_local_authenticity_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalAuthenticitySmokeCase,
+) -> Result<LocalAuthenticitySmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.damage_terminal_c_to_t_5p) {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep damage_terminal_c_to_t_5p within [0, 1]",
+            case.sample_id
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.damage_terminal_g_to_a_3p) {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep damage_terminal_g_to_a_3p within [0, 1]",
+            case.sample_id
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.contamination_estimate)
+        || !(0.0..=1.0).contains(&case.contamination_ci_low)
+        || !(0.0..=1.0).contains(&case.contamination_ci_high)
+    {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep contamination estimate and interval within [0, 1]",
+            case.sample_id
+        ));
+    }
+    if case.contamination_ci_low > case.contamination_ci_high {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep contamination_ci_low less than or equal to contamination_ci_high",
+            case.sample_id
+        ));
+    }
+    if case.contamination_estimate < case.contamination_ci_low
+        || case.contamination_estimate > case.contamination_ci_high
+    {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep contamination_estimate within the declared confidence interval",
+            case.sample_id
+        ));
+    }
+    if case.contamination_method.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must declare a non-empty contamination_method",
+            case.sample_id
+        ));
+    }
+    if case.complexity_min_reads == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must declare complexity_min_reads > 0",
+            case.sample_id
+        ));
+    }
+    if case.complexity_projection_points.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must declare at least one complexity_projection_point",
+            case.sample_id
+        ));
+    }
+    if case.coverage_depth_thresholds.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must declare at least one coverage_depth_threshold",
+            case.sample_id
+        ));
+    }
+    if case.expected_consumed_metrics.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must declare expected_consumed_metrics",
+            case.sample_id
+        ));
+    }
+    if case.expected_consumed_metrics != LOCAL_AUTHENTICITY_EXPECTED_METRIC_IDS.map(str::to_string)
+    {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep expected_consumed_metrics aligned with the governed composition inputs",
+            case.sample_id
+        ));
+    }
+
+    let governed_advisory = bijux_dna_domain_bam::summarize_tiny_bam_authenticity_advisory(
+        &bam_abs,
+        &bijux_dna_domain_bam::metrics::DamageMetricsV1 {
+            c_to_t_5p: case.damage_terminal_c_to_t_5p,
+            g_to_a_3p: case.damage_terminal_g_to_a_3p,
+            pmd_score_histogram: Vec::new(),
+        },
+    )?;
+    if !float_matches(case.expected_score, governed_advisory.score) {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep expected_score aligned with the governed authenticity advisory",
+            case.sample_id
+        ));
+    }
+    if !float_matches(case.expected_confidence, governed_advisory.confidence) {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep expected_confidence aligned with the governed authenticity advisory",
+            case.sample_id
+        ));
+    }
+    if case.expected_pmd_like_signal_present != governed_advisory.pmd_like_signal_present {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity case `{}` must keep expected_pmd_like_signal_present aligned with the governed authenticity advisory",
+            case.sample_id
+        ));
+    }
+
+    let params = AuthenticityEffectiveParams {
+        mode: "aggregate".to_string(),
+        evidence_only: true,
+        disallow_certification: true,
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan =
+        crate::tool_adapters::bam::authenticity::plan(tool_spec, &case.bam, &out_dir, &params)?;
+
+    Ok(LocalAuthenticitySmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        damage_terminal_c_to_t_5p: case.damage_terminal_c_to_t_5p,
+        damage_terminal_g_to_a_3p: case.damage_terminal_g_to_a_3p,
+        contamination_method: case.contamination_method,
+        contamination_estimate: case.contamination_estimate,
+        contamination_ci_low: case.contamination_ci_low,
+        contamination_ci_high: case.contamination_ci_high,
+        complexity_min_reads: case.complexity_min_reads,
+        complexity_projection_points: case.complexity_projection_points,
+        coverage_depth_thresholds: case.coverage_depth_thresholds,
+        expected_score: case.expected_score,
+        expected_confidence: case.expected_confidence,
+        expected_pmd_like_signal_present: case.expected_pmd_like_signal_present,
+        expected_consumed_metrics: case.expected_consumed_metrics,
+        plan,
+    })
+}
+
+fn build_local_sex_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalSexSmokeCase,
+) -> Result<LocalSexSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!("local-smoke bam.sex BAM fixture is missing: {}", bam_abs.display()));
+    }
+    let reference_abs = repo_root.join(&case.reference);
+    if !reference_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.sex reference fixture is missing: {}",
+            reference_abs.display()
+        ));
+    }
+    if case.chromosome_system.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must declare a non-empty chromosome_system",
+            case.sample_id
+        ));
+    }
+    if case.minimum_y_sites == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must declare minimum_y_sites greater than zero",
+            case.sample_id
+        ));
+    }
+    if case.expected_method.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must declare a non-empty expected_method",
+            case.sample_id
+        ));
+    }
+    if case.expected_status.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must declare a non-empty expected_status",
+            case.sample_id
+        ));
+    }
+    if case.expected_x_coverage < 0.0
+        || case.expected_y_coverage < 0.0
+        || case.expected_autosomal_coverage < 0.0
+    {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected coverage values non-negative",
+            case.sample_id
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.expected_confidence) {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_confidence within [0, 1]",
+            case.sample_id
+        ));
+    }
+    if case.expected_method != tool_spec.tool_id.as_str() {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_method aligned with the governed sex tool",
+            case.sample_id
+        ));
+    }
+
+    let governed_summary = bijux_dna_domain_bam::summarize_tiny_bam_sex(
+        &bam_abs,
+        &reference_abs,
+        case.expected_method.as_str(),
+        Some(case.chromosome_system.as_str()),
+        Some(case.minimum_y_sites),
+    )?;
+    if !float_matches(case.expected_x_coverage, governed_summary.x_coverage) {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_x_coverage aligned with the governed sex summary",
+            case.sample_id
+        ));
+    }
+    if !float_matches(case.expected_y_coverage, governed_summary.y_coverage) {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_y_coverage aligned with the governed sex summary",
+            case.sample_id
+        ));
+    }
+    if !float_matches(case.expected_autosomal_coverage, governed_summary.autosomal_coverage) {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_autosomal_coverage aligned with the governed sex summary",
+            case.sample_id
+        ));
+    }
+    if case.expected_call != governed_summary.call {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_call aligned with the governed sex summary",
+            case.sample_id
+        ));
+    }
+    if !float_matches(case.expected_confidence, governed_summary.confidence) {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_confidence aligned with the governed sex summary",
+            case.sample_id
+        ));
+    }
+    if case.expected_status != governed_summary.status {
+        return Err(anyhow!(
+            "local-smoke bam.sex case `{}` must keep expected_status aligned with the governed sex summary",
+            case.sample_id
+        ));
+    }
+
+    let params = bijux_dna_domain_bam::params::SexEffectiveParams {
+        expected_sex: None,
+        method: case.expected_method.clone(),
+        chromosome_system: Some(case.chromosome_system.clone()),
+        minimum_y_sites: Some(case.minimum_y_sites),
+        refuse_without_context: true,
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let mut plan = crate::tool_adapters::bam::sex::plan(tool_spec, &case.bam, &out_dir, &params)?;
+    plan.io.inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+        ArtifactId::from_static("reference"),
+        case.reference.clone(),
+        ArtifactRole::Reference,
+    ));
+    let plan_params = plan
+        .params
+        .as_object_mut()
+        .ok_or_else(|| anyhow!("local-smoke bam.sex planner params must serialize as an object"))?;
+    plan_params.insert("reference".to_string(), serde_json::json!(case.reference));
+
+    Ok(LocalSexSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        reference: case.reference,
+        chromosome_system: case.chromosome_system,
+        minimum_y_sites: case.minimum_y_sites,
+        expected_method: case.expected_method,
+        expected_x_coverage: case.expected_x_coverage,
+        expected_y_coverage: case.expected_y_coverage,
+        expected_autosomal_coverage: case.expected_autosomal_coverage,
+        expected_call: case.expected_call,
+        expected_confidence: case.expected_confidence,
+        expected_status: case.expected_status,
+        plan,
+    })
+}
+
+#[cfg(feature = "bam_downstream")]
+fn build_local_kinship_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalKinshipSmokeCase,
+) -> Result<LocalKinshipSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.kinship BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    if case.reference_panel.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.kinship case `{}` must declare a non-empty reference_panel",
+            case.sample_id
+        ));
+    }
+    if case.reference_build.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.kinship case `{}` must declare a non-empty reference_build",
+            case.sample_id
+        ));
+    }
+    if case.population_scope.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.kinship case `{}` must declare a non-empty population_scope",
+            case.sample_id
+        ));
+    }
+    if case.min_overlap_snps == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.kinship case `{}` must declare min_overlap_snps greater than zero",
+            case.sample_id
+        ));
+    }
+    match case.expected_status.as_str() {
+        "ok" => {
+            if case.expected_pairwise_results.is_empty() {
+                return Err(anyhow!(
+                    "local-smoke bam.kinship case `{}` must declare at least one expected pairwise result when expected_status is ok",
+                    case.sample_id
+                ));
+            }
+            if case.expected_insufficiency_reason.is_some() {
+                return Err(anyhow!(
+                    "local-smoke bam.kinship case `{}` must not declare expected_insufficiency_reason when expected_status is ok",
+                    case.sample_id
+                ));
+            }
+            if case.expected_observed_max_overlap_snps < case.min_overlap_snps {
+                return Err(anyhow!(
+                    "local-smoke bam.kinship case `{}` must keep expected_observed_max_overlap_snps at or above min_overlap_snps when expected_status is ok",
+                    case.sample_id
+                ));
+            }
+        }
+        "insufficient" => {
+            if !case.expected_pairwise_results.is_empty() {
+                return Err(anyhow!(
+                    "local-smoke bam.kinship case `{}` must not declare pairwise results when expected_status is insufficient",
+                    case.sample_id
+                ));
+            }
+            if case
+                .expected_insufficiency_reason
+                .as_deref()
+                .is_none_or(|reason| reason.trim().is_empty())
+            {
+                return Err(anyhow!(
+                    "local-smoke bam.kinship case `{}` must declare a non-empty expected_insufficiency_reason when expected_status is insufficient",
+                    case.sample_id
+                ));
+            }
+        }
+        _ => {
+            return Err(anyhow!(
+                "local-smoke bam.kinship case `{}` must declare expected_status as `ok` or `insufficient`",
+                case.sample_id
+            ));
+        }
+    }
+
+    let mut seen_pairs = BTreeSet::new();
+    for pair in &case.expected_pairwise_results {
+        if pair.sample_a.trim().is_empty() || pair.sample_b.trim().is_empty() {
+            return Err(anyhow!(
+                "local-smoke bam.kinship case `{}` must keep pairwise sample names non-empty",
+                case.sample_id
+            ));
+        }
+        if pair.sample_a == pair.sample_b {
+            return Err(anyhow!(
+                "local-smoke bam.kinship case `{}` must keep pairwise sample names distinct",
+                case.sample_id
+            ));
+        }
+        if pair.overlap_snps == 0 {
+            return Err(anyhow!(
+                "local-smoke bam.kinship case `{}` must keep pairwise overlap_snps greater than zero",
+                case.sample_id
+            ));
+        }
+        if pair.matching_sites > pair.overlap_snps {
+            return Err(anyhow!(
+                "local-smoke bam.kinship case `{}` cannot declare matching_sites greater than overlap_snps",
+                case.sample_id
+            ));
+        }
+        if pair.mismatch_sites != pair.overlap_snps.saturating_sub(pair.matching_sites) {
+            return Err(anyhow!(
+                "local-smoke bam.kinship case `{}` must keep mismatch_sites aligned with overlap_snps and matching_sites",
+                case.sample_id
+            ));
+        }
+        if !(0.0..=1.0).contains(&pair.concordance) {
+            return Err(anyhow!(
+                "local-smoke bam.kinship case `{}` must keep concordance within [0, 1]",
+                case.sample_id
+            ));
+        }
+        if pair.kinship_coefficient < 0.0 {
+            return Err(anyhow!(
+                "local-smoke bam.kinship case `{}` must keep kinship_coefficient non-negative",
+                case.sample_id
+            ));
+        }
+        if pair.relationship_label.trim().is_empty() {
+            return Err(anyhow!(
+                "local-smoke bam.kinship case `{}` must declare a non-empty relationship_label",
+                case.sample_id
+            ));
+        }
+        let pair_key = if pair.sample_a < pair.sample_b {
+            (pair.sample_a.clone(), pair.sample_b.clone())
+        } else {
+            (pair.sample_b.clone(), pair.sample_a.clone())
+        };
+        if !seen_pairs.insert(pair_key) {
+            return Err(anyhow!(
+                "local-smoke bam.kinship case `{}` declared a duplicate pairwise sample combination",
+                case.sample_id
+            ));
+        }
+    }
+
+    let params = bijux_dna_domain_bam::params::KinshipEffectiveParams {
+        reference_panel: case.reference_panel.clone(),
+        reference_build: case.reference_build.clone(),
+        population_scope: case.population_scope.clone(),
+        min_overlap_snps: case.min_overlap_snps,
+        requires_cohort_context: case.requires_cohort_context,
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let plan = crate::tool_adapters::bam::kinship::plan(tool_spec, &case.bam, &out_dir, &params)?;
+
+    Ok(LocalKinshipSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        reference_panel: case.reference_panel,
+        reference_build: case.reference_build,
+        population_scope: case.population_scope,
+        min_overlap_snps: case.min_overlap_snps,
+        requires_cohort_context: case.requires_cohort_context,
+        expected_status: case.expected_status,
+        expected_observed_max_overlap_snps: case.expected_observed_max_overlap_snps,
+        expected_insufficiency_reason: case.expected_insufficiency_reason,
+        expected_pairwise_results: case.expected_pairwise_results,
+        plan,
+    })
+}
+
+#[cfg(feature = "bam_downstream")]
+fn build_local_bias_mitigation_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalBiasMitigationSmokeCase,
+) -> Result<LocalBiasMitigationSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    let reference_abs = repo_root.join(&case.reference);
+    if !reference_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation reference fixture is missing: {}",
+            reference_abs.display()
+        ));
+    }
+    if case.window_size == 0 {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must declare window_size greater than zero",
+            case.sample_id
+        ));
+    }
+    if case.expected_metric_name.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must declare a non-empty expected_metric_name",
+            case.sample_id
+        ));
+    }
+    if case.expected_pre_mitigation_metric < 0.0 || case.expected_post_mitigation_metric < 0.0 {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must keep expected metrics non-negative",
+            case.sample_id
+        ));
+    }
+    if case.expected_post_mitigation_metric > case.expected_pre_mitigation_metric {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must not raise the expected post-mitigation metric above the pre-mitigation metric",
+            case.sample_id
+        ));
+    }
+    let governed_summary = bijux_dna_domain_bam::summarize_tiny_bam_bias_mitigation(
+        &bam_abs,
+        &reference_abs,
+        tool_spec.tool_id.as_str(),
+        case.window_size,
+        case.gc_bias_correction,
+        case.map_bias_correction,
+    )?;
+    if case.expected_metric_name != governed_summary.metric_name {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must keep expected_metric_name aligned with the governed bias summary",
+            case.sample_id
+        ));
+    }
+    let governed_pre_metric = governed_summary.pre_mitigation_metric.ok_or_else(|| {
+        anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` governed bias summary is missing pre_mitigation_metric",
+            case.sample_id
+        )
+    })?;
+    if !float_matches(case.expected_pre_mitigation_metric, governed_pre_metric) {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must keep expected_pre_mitigation_metric aligned with the governed bias summary",
+            case.sample_id
+        ));
+    }
+    let governed_post_metric = governed_summary.post_mitigation_metric.ok_or_else(|| {
+        anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` governed bias summary is missing post_mitigation_metric",
+            case.sample_id
+        )
+    })?;
+    if !float_matches(case.expected_post_mitigation_metric, governed_post_metric) {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation case `{}` must keep expected_post_mitigation_metric aligned with the governed bias summary",
+            case.sample_id
+        ));
+    }
+
+    let params = bijux_dna_domain_bam::params::BiasMitigationEffectiveParams {
+        gc_bias_correction: case.gc_bias_correction,
+        map_bias_correction: case.map_bias_correction,
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let mut plan =
+        crate::tool_adapters::bam::bias_mitigation::plan(tool_spec, &case.bam, &out_dir, &params)?;
+    plan.io.inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+        ArtifactId::from_static("reference"),
+        case.reference.clone(),
+        ArtifactRole::Reference,
+    ));
+    let plan_params = plan.params.as_object_mut().ok_or_else(|| {
+        anyhow!("local-smoke bam.bias_mitigation planner params must serialize as an object")
+    })?;
+    plan_params.insert("reference".to_string(), serde_json::json!(case.reference));
+    plan_params.insert("window_size".to_string(), serde_json::json!(case.window_size));
+
+    Ok(LocalBiasMitigationSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        reference: case.reference,
+        window_size: case.window_size,
+        expected_metric_name: case.expected_metric_name,
+        expected_pre_mitigation_metric: case.expected_pre_mitigation_metric,
+        expected_post_mitigation_metric: case.expected_post_mitigation_metric,
+        plan,
+    })
+}
+
+fn build_local_recalibration_smoke_case(
+    repo_root: &Path,
+    tool_spec: &ToolExecutionSpecV1,
+    output_root: &Path,
+    case: LocalRecalibrationSmokeCase,
+) -> Result<LocalRecalibrationSmokeCasePlan> {
+    let bam_abs = repo_root.join(&case.bam);
+    if !bam_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.recalibration BAM fixture is missing: {}",
+            bam_abs.display()
+        ));
+    }
+    let reference_abs = repo_root.join(&case.reference);
+    if !reference_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.recalibration reference fixture is missing: {}",
+            reference_abs.display()
+        ));
+    }
+    if case.known_sites.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.recalibration case `{}` must declare at least one known_sites path",
+            case.sample_id
+        ));
+    }
+    for known_sites in &case.known_sites {
+        let known_sites_abs = repo_root.join(known_sites);
+        if !known_sites_abs.is_file() {
+            return Err(anyhow!(
+                "local-smoke bam.recalibration known-sites fixture is missing: {}",
+                known_sites_abs.display()
+            ));
+        }
+    }
+    if case.min_mean_coverage < 0.0 || case.min_breadth_1x < 0.0 {
+        return Err(anyhow!(
+            "local-smoke bam.recalibration case `{}` must keep coverage gates non-negative",
+            case.sample_id
+        ));
+    }
+    if case.expected_status.trim().is_empty() || case.expected_reason.trim().is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.recalibration case `{}` must declare non-empty expected status and reason",
+            case.sample_id
+        ));
+    }
+
+    let coverage = bijux_dna_domain_bam::summarize_tiny_bam_coverage(&bam_abs, &[1])?;
+    let observed_mean_coverage = coverage.mean_depth.unwrap_or(0.0);
+    let observed_breadth_1x = coverage.regime.as_ref().map_or(0.0, |regime| regime.breadth_1x);
+    let gate_tripped = observed_mean_coverage < case.min_mean_coverage
+        || observed_breadth_1x < case.min_breadth_1x;
+    let effective_mode = if gate_tripped { BqsrMode::Skip } else { case.mode };
+    let decision_reason = if gate_tripped {
+        "coverage_below_gate"
+    } else {
+        match case.mode {
+            BqsrMode::Skip => "requested_skip_mode",
+            BqsrMode::EmitOnly => "emit_only_requested",
+            BqsrMode::Standard => "coverage_gate_passed",
+        }
+    };
+    let status = match effective_mode {
+        BqsrMode::Skip => "skipped",
+        BqsrMode::EmitOnly => "emitted_only",
+        BqsrMode::Standard => "ready_to_run",
+    };
+    if case.expected_status != status {
+        return Err(anyhow!(
+            "local-smoke bam.recalibration case `{}` must keep expected_status aligned with the governed recalibration decision",
+            case.sample_id
+        ));
+    }
+    if case.expected_reason != decision_reason {
+        return Err(anyhow!(
+            "local-smoke bam.recalibration case `{}` must keep expected_reason aligned with the governed recalibration decision",
+            case.sample_id
+        ));
+    }
+    let params = bijux_dna_domain_bam::params::BqsrEffectiveParams {
+        known_sites: case.known_sites.iter().map(|path| path.display().to_string()).collect(),
+        mode: effective_mode,
+        skip_criteria: bijux_dna_domain_bam::params::RecalibrationSkipCriteria {
+            min_mean_coverage: case.min_mean_coverage,
+            min_breadth_1x: case.min_breadth_1x,
+        },
+    };
+    let out_dir = local_smoke_case_output_dir(
+        repo_root,
+        output_root,
+        &case.sample_id,
+        tool_spec.tool_id.as_str(),
+    )?;
+    let mut plan = crate::tool_adapters::bam::recalibration::plan(
+        tool_spec,
+        &case.bam,
+        Some(&case.reference),
+        &out_dir,
+        &params,
+    )?;
+    let plan_params = plan.params.as_object_mut().ok_or_else(|| {
+        anyhow!("local-smoke bam.recalibration planner params must serialize as an object")
+    })?;
+    // Keep the mocked skip summary aligned with the governed local-smoke decision.
+    for fragment in &mut plan.command.template {
+        *fragment = fragment.replace("requested_skip_mode", decision_reason);
+    }
+    plan_params.insert("reference".to_string(), serde_json::json!(case.reference));
+    plan_params.insert("requested_mode".to_string(), serde_json::json!(case.mode));
+    plan_params.insert("status".to_string(), serde_json::json!(status));
+    plan_params.insert("decision_reason".to_string(), serde_json::json!(decision_reason));
+    plan_params
+        .insert("observed_mean_coverage".to_string(), serde_json::json!(observed_mean_coverage));
+    plan_params.insert("observed_breadth_1x".to_string(), serde_json::json!(observed_breadth_1x));
+
+    Ok(LocalRecalibrationSmokeCasePlan {
+        sample_id: case.sample_id,
+        bam: case.bam,
+        reference: case.reference,
+        known_sites: case.known_sites,
+        requested_mode: case.mode,
+        effective_mode,
+        min_mean_coverage: case.min_mean_coverage,
+        min_breadth_1x: case.min_breadth_1x,
+        observed_mean_coverage,
+        observed_breadth_1x,
+        expected_status: case.expected_status,
+        expected_reason: case.expected_reason,
+        plan,
+    })
+}
+
+fn hydrate_smoke_threads(tool_spec: &mut ToolExecutionSpecV1, threads: Option<u32>) {
+    if let Some(threads) = threads {
+        tool_spec.resources.threads = threads.max(1);
+    } else {
+        tool_spec.resources.threads = tool_spec.resources.threads.max(1);
+    }
+}
+
+fn ensure_unique_validate_sample_ids(cases: &[LocalValidateSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.validate sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.validate sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_qc_pre_sample_ids(cases: &[LocalQcPreSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.qc_pre sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!("duplicate local-smoke bam.qc_pre sample_id `{}`", case.sample_id));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_mapping_summary_sample_ids(cases: &[LocalMappingSummarySmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.mapping_summary sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.mapping_summary sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_damage_sample_ids(cases: &[LocalDamageSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.damage sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!("duplicate local-smoke bam.damage sample_id `{}`", case.sample_id));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_authenticity_sample_ids(cases: &[LocalAuthenticitySmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.authenticity sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.authenticity sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_filter_sample_ids(cases: &[LocalFilterSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.filter sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!("duplicate local-smoke bam.filter sample_id `{}`", case.sample_id));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_mapq_filter_sample_ids(cases: &[LocalMapqFilterSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.mapq_filter sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.mapq_filter sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_length_filter_sample_ids(cases: &[LocalLengthFilterSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.length_filter sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.length_filter sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_markdup_sample_ids(cases: &[LocalMarkdupSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.markdup sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.markdup sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_duplication_metrics_sample_ids(
+    cases: &[LocalDuplicationMetricsSmokeCase],
+) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.duplication_metrics sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.duplication_metrics sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_complexity_sample_ids(cases: &[LocalComplexitySmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.complexity sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.complexity sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_coverage_sample_ids(cases: &[LocalCoverageSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.coverage sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.coverage sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_insert_size_sample_ids(cases: &[LocalInsertSizeSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.insert_size sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.insert_size sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_gc_bias_sample_ids(cases: &[LocalGcBiasSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.gc_bias sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.gc_bias sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+#[cfg(feature = "bam_downstream")]
+fn ensure_unique_bias_mitigation_sample_ids(cases: &[LocalBiasMitigationSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.bias_mitigation sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.bias_mitigation sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_endogenous_content_sample_ids(
+    cases: &[LocalEndogenousContentSmokeCase],
+) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.endogenous_content sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.endogenous_content sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_overlap_correction_sample_ids(
+    cases: &[LocalOverlapCorrectionSmokeCase],
+) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.overlap_correction sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.overlap_correction sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_sex_sample_ids(cases: &[LocalSexSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.sex sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!("duplicate local-smoke bam.sex sample_id `{}`", case.sample_id));
+        }
+    }
+    Ok(())
+}
+
+#[cfg(feature = "bam_downstream")]
+fn ensure_unique_kinship_sample_ids(cases: &[LocalKinshipSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.kinship sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "local-smoke bam.kinship sample_id `{}` must be unique",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn ensure_unique_recalibration_sample_ids(cases: &[LocalRecalibrationSmokeCase]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for case in cases {
+        if case.sample_id.trim().is_empty() {
+            return Err(anyhow!("local-smoke bam.recalibration sample_id must not be empty"));
+        }
+        if !seen.insert(case.sample_id.clone()) {
+            return Err(anyhow!(
+                "duplicate local-smoke bam.recalibration sample_id `{}`",
+                case.sample_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn load_local_validate_smoke_config(repo_root: &Path) -> Result<LocalValidateSmokeConfig> {
+    let path = repo_root.join(LOCAL_VALIDATE_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalValidateSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_validate.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.validate schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.validate must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+fn load_local_qc_pre_smoke_config(repo_root: &Path) -> Result<LocalQcPreSmokeConfig> {
+    let path = repo_root.join(LOCAL_QC_PRE_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalQcPreSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_qc_pre.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.qc_pre schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.qc_pre must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+fn load_local_mapping_summary_smoke_config(
+    repo_root: &Path,
+) -> Result<LocalMappingSummarySmokeConfig> {
+    let path = repo_root.join(LOCAL_MAPPING_SUMMARY_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalMappingSummarySmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_mapping_summary.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.mapping_summary schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.mapping_summary must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_filter_smoke_config(repo_root: &Path) -> Result<LocalFilterSmokeConfig> {
+    let path = repo_root.join(LOCAL_FILTER_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalFilterSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_filter.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.filter schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.filter must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+fn load_local_mapq_filter_smoke_config(repo_root: &Path) -> Result<LocalMapqFilterSmokeConfig> {
+    let path = repo_root.join(LOCAL_MAPQ_FILTER_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalMapqFilterSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_mapq_filter.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.mapq_filter schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.mapq_filter must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+fn load_local_length_filter_smoke_config(repo_root: &Path) -> Result<LocalLengthFilterSmokeConfig> {
+    let path = repo_root.join(LOCAL_LENGTH_FILTER_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalLengthFilterSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_length_filter.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.length_filter schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.length_filter must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_markdup_smoke_config(repo_root: &Path) -> Result<LocalMarkdupSmokeConfig> {
+    let path = repo_root.join(LOCAL_MARKDUP_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalMarkdupSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_markdup.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.markdup schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.markdup must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+fn load_local_duplication_metrics_smoke_config(
+    repo_root: &Path,
+) -> Result<LocalDuplicationMetricsSmokeConfig> {
+    let path = repo_root.join(LOCAL_DUPLICATION_METRICS_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalDuplicationMetricsSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_duplication_metrics.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.duplication_metrics schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.duplication_metrics must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_complexity_smoke_config(repo_root: &Path) -> Result<LocalComplexitySmokeConfig> {
+    let path = repo_root.join(LOCAL_COMPLEXITY_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalComplexitySmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_complexity.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.complexity schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.complexity must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+fn load_local_coverage_smoke_config(repo_root: &Path) -> Result<LocalCoverageSmokeConfig> {
+    let path = repo_root.join(LOCAL_COVERAGE_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalCoverageSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_coverage.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.coverage schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.coverage must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+fn load_local_insert_size_smoke_config(repo_root: &Path) -> Result<LocalInsertSizeSmokeConfig> {
+    let path = repo_root.join(LOCAL_INSERT_SIZE_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalInsertSizeSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_insert_size.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.insert_size schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.insert_size must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+fn load_local_gc_bias_smoke_config(repo_root: &Path) -> Result<LocalGcBiasSmokeConfig> {
+    let path = repo_root.join(LOCAL_GC_BIAS_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalGcBiasSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_gc_bias.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.gc_bias schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.gc_bias must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+#[cfg(feature = "bam_downstream")]
+fn load_local_bias_mitigation_smoke_config(
+    repo_root: &Path,
+) -> Result<LocalBiasMitigationSmokeConfig> {
+    let path = repo_root.join(LOCAL_BIAS_MITIGATION_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalBiasMitigationSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_bias_mitigation.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.bias_mitigation schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.bias_mitigation must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_recalibration_smoke_config(
+    repo_root: &Path,
+) -> Result<LocalRecalibrationSmokeConfig> {
+    let path = repo_root.join(LOCAL_RECALIBRATION_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalRecalibrationSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_recalibration.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.recalibration schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.recalibration must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_endogenous_content_smoke_config(
+    repo_root: &Path,
+) -> Result<LocalEndogenousContentSmokeConfig> {
+    let path = repo_root.join(LOCAL_ENDOGENOUS_CONTENT_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalEndogenousContentSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_endogenous_content.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.endogenous_content schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.endogenous_content must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_overlap_correction_smoke_config(
+    repo_root: &Path,
+) -> Result<LocalOverlapCorrectionSmokeConfig> {
+    let path = repo_root.join(LOCAL_OVERLAP_CORRECTION_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalOverlapCorrectionSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_overlap_correction.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.overlap_correction schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.overlap_correction must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_damage_smoke_config(repo_root: &Path) -> Result<LocalDamageSmokeConfig> {
+    let path = repo_root.join(LOCAL_DAMAGE_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalDamageSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_damage.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.damage schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.damage must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+fn load_local_authenticity_smoke_config(repo_root: &Path) -> Result<LocalAuthenticitySmokeConfig> {
+    let path = repo_root.join(LOCAL_AUTHENTICITY_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalAuthenticitySmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_authenticity.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.authenticity schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!(
+            "local-smoke bam.authenticity must declare at least one governed case"
+        ));
+    }
+    Ok(config)
+}
+
+fn load_local_sex_smoke_config(repo_root: &Path) -> Result<LocalSexSmokeConfig> {
+    let path = repo_root.join(LOCAL_SEX_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalSexSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_sex.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.sex schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.sex must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+#[cfg(feature = "bam_downstream")]
+fn load_local_kinship_smoke_config(repo_root: &Path) -> Result<LocalKinshipSmokeConfig> {
+    let path = repo_root.join(LOCAL_KINSHIP_CONFIG_PATH);
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: LocalKinshipSmokeConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    if config.schema_version != "bijux.bench.bam.local_kinship.v1" {
+        return Err(anyhow!(
+            "unsupported local-smoke bam.kinship schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.cases.is_empty() {
+        return Err(anyhow!("local-smoke bam.kinship must declare at least one governed case"));
+    }
+    Ok(config)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    use super::{local_smoke_case_output_dir, LocalValidateSmokeConfig};
+
+    #[test]
+    fn local_validate_smoke_config_rejects_sam_text_proxy_fixtures() {
+        let config = r#"
+schema_version = "bijux.bench.bam.local_validate.v1"
+tool_id = "samtools"
+
+[[cases]]
+sample_id = "proxy-refusal"
+bam = "assets/toy/core-v1/bam/validation_malformed.bam"
+alignment_fixture_encoding = "sam_text_proxy"
+expect_pass = false
+required_refusal_codes = ["malformed_alignment_record"]
+"#;
+
+        let error = toml::from_str::<LocalValidateSmokeConfig>(config)
+            .expect_err("sam_text_proxy should not deserialize for bam.validate local smoke");
+        assert!(
+            error.to_string().contains("unknown variant `sam_text_proxy`"),
+            "unexpected deserialize error: {error}"
+        );
+    }
+
+    #[test]
+    fn local_smoke_case_output_dir_rejects_readiness_root() {
+        let error = local_smoke_case_output_dir(
+            Path::new("/workspace/repo"),
+            Path::new("benchmarks/readiness/local-ready/bam.validate"),
+            "core-v1-coordinate-pass",
+            "samtools",
+        )
+        .expect_err("readiness-root smoke outputs must be refused");
+
+        assert!(
+            error.to_string().contains("local-smoke output_dir must remain disposable"),
+            "unexpected error: {error}"
+        );
+    }
+}

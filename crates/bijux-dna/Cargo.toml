@@ -13,9 +13,20 @@ path = "src/bin/bijux-dna.rs"
 [dependencies]
 bijux-dna-api.workspace = true
 bijux-dna-analyze.workspace = true
+bijux-dna-core.workspace = true
+bijux-dna-domain-bam.workspace = true
+bijux-dna-domain-fastq.workspace = true
 bijux-dna-domain-compiler.workspace = true
+bijux-dna-domain-vcf.workspace = true
+bijux-dna-db-ref.workspace = true
 bijux-dna-infra.workspace = true
 bijux-dna-db-ena.workspace = true
+bijux-dna-planner-bam.workspace = true
+bijux-dna-planner-fastq.workspace = true
+bijux-dna-planner-vcf.workspace = true
+bijux-dna-stages-fastq.workspace = true
+bijux-dna-stages-vcf.workspace = true
+bijux-dna-stage-contract.workspace = true
 anyhow = { workspace = true }
 clap = { workspace = true }
 tracing = { workspace = true }
@@ -26,6 +37,7 @@ toml = { workspace = true }
 sha2 = { workspace = true }
 tar.workspace = true
 flate2.workspace = true
+schemars.workspace = true
 
 [features]
 bam_downstream = ["bijux-dna-api/bam_downstream"]

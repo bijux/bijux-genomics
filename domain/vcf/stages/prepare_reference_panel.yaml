@@ -1,6 +1,6 @@
 schema_version: "bijux.stage.v1"
 stage_id: "vcf.prepare_reference_panel"
-status: "planned"
+status: "supported"
 scope: "post_vcf"
 domain: "vcf"
 description: "VCF stage contract for vcf.prepare_reference_panel in the governed domain registry."
@@ -20,9 +20,9 @@ metrics:
 compatible_tools: ["bcftools"]
 single_tool_justification: "bcftools provides deterministic normalization/index baseline for reference panel prep."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
-assumptions: ["planned_stage", "reference_build_fixed"]
+assumptions: ["reference_build_fixed"]
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
 allowed_missingness:
   - "none"
-planned_out_of_scope: ["full scientific validation pending downstream admission"]
+planned_out_of_scope: []

@@ -1,0 +1,5 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chr1	LN:125
+@RG	ID:rg-recalibration-human-like	SM:human_like_recalibration_low_coverage
+recal_skip_read_1	0	chr1	1	60	12M	*	0	0	ACGTTGCAACGT	FFFFFFFFFFFF	RG:Z:rg-recalibration-human-like
+recal_skip_read_2	0	chr1	50	60	12M	*	0	0	TGCATGCATGCA	FFFFFFFFFFFF	RG:Z:rg-recalibration-human-like

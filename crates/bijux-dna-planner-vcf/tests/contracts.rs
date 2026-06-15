@@ -24,6 +24,18 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
         coverage_regime: regime,
         mean_depth_x: None,
         vcf: PathBuf::from("sample.vcf.gz"),
+        call_bam: Some(PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
+        )),
+        call_bam_index: Some(PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam.bai",
+        )),
+        reference_fasta: Some(PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+        )),
+        reference_panel_vcf: Some(PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+        )),
         out_dir: PathBuf::from("out"),
         stage_tool_overrides: BTreeMap::new(),
         requested_stages: None,
@@ -78,6 +90,408 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
         pipeline_domain: "vcf".to_string(),
         chunking: ChunkPlanSettings::default(),
         stage_param_overrides: BTreeMap::new(),
+    }
+}
+
+#[test]
+fn vcf_planner_renders_executable_bcftools_stage_templates_for_retained_rows() {
+    for regime in [CoverageRegime::Diploid, CoverageRegime::LowCovGl, CoverageRegime::Pseudohaploid]
+    {
+        let plans = plan_vcf_stage_plans(&base_inputs(regime))
+            .unwrap_or_else(|err| panic!("stage plans for {regime:?}: {err}"));
+        for plan in plans.iter().filter(|plan| plan.tool_id.to_string() == "bcftools") {
+            assert!(
+                !plan.command.template.is_empty(),
+                "bcftools stage {} must keep a real command template",
+                plan.stage_id
+            );
+            assert!(
+                !plan.command.template.iter().any(|part| part == "--help"),
+                "bcftools stage {} must not fall back to --help placeholder rendering: {:?}",
+                plan.stage_id,
+                plan.command.template
+            );
+        }
+    }
+}
+
+#[test]
+fn vcf_planner_renders_executable_angsd_stage_templates_for_low_coverage_rows() {
+    for regime in [CoverageRegime::LowCovGl, CoverageRegime::Pseudohaploid] {
+        let plans = plan_vcf_stage_plans(&base_inputs(regime))
+            .unwrap_or_else(|err| panic!("stage plans for {regime:?}: {err}"));
+        for plan in plans.iter().filter(|plan| plan.tool_id.to_string() == "angsd") {
+            assert!(
+                !plan.command.template.is_empty(),
+                "angsd stage {} must keep a real command template",
+                plan.stage_id
+            );
+            assert_eq!(
+                plan.command.template.first().map(String::as_str),
+                Some("angsd"),
+                "angsd stage {} must start with the real angsd binary",
+                plan.stage_id
+            );
+            assert!(
+                !plan.command.template.iter().any(|part| part == "--help"),
+                "angsd stage {} must not fall back to --help placeholder rendering: {:?}",
+                plan.stage_id,
+                plan.command.template
+            );
+        }
+    }
+}
+
+#[test]
+fn vcf_planner_renders_executable_plink2_stage_templates_for_cohort_rows() {
+    for regime in [CoverageRegime::Diploid, CoverageRegime::LowCovGl, CoverageRegime::Pseudohaploid]
+    {
+        let plans = plan_vcf_stage_plans(&base_inputs(regime))
+            .unwrap_or_else(|err| panic!("stage plans for {regime:?}: {err}"));
+        let plink2_rows =
+            plans.iter().filter(|plan| plan.tool_id.to_string() == "plink2").collect::<Vec<_>>();
+        assert!(!plink2_rows.is_empty(), "expected plink2 cohort-analysis rows for {regime:?}");
+        for plan in plink2_rows {
+            assert!(
+                !plan.command.template.is_empty(),
+                "plink2 stage {} must keep a real command template",
+                plan.stage_id
+            );
+            let joined = plan.command.template.join(" ");
+            assert!(
+                joined.contains("plink2"),
+                "plink2 stage {} must keep the concrete plink2 binary in its command template: {:?}",
+                plan.stage_id,
+                plan.command.template
+            );
+            assert!(
+                !plan.command.template.iter().any(|part| part == "--help"),
+                "plink2 stage {} must not fall back to --help placeholder rendering: {:?}",
+                plan.stage_id,
+                plan.command.template
+            );
+        }
+    }
+}
+
+#[test]
+fn vcf_planner_renders_executable_plink_stage_templates_when_overridden() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.requested_stages = Some(vec!["vcf.qc".to_string(), "vcf.admixture".to_string()]);
+    input.stage_tool_overrides.insert("vcf.qc".to_string(), "plink".to_string());
+    input.stage_tool_overrides.insert("vcf.admixture".to_string(), "plink".to_string());
+
+    let plans =
+        plan_vcf_stage_plans(&input).unwrap_or_else(|err| panic!("stage plans with plink: {err}"));
+    let plink_rows = plans
+        .iter()
+        .filter(|plan| {
+            plan.tool_id.to_string() == "plink"
+                && matches!(plan.stage_id.as_str(), "vcf.qc" | "vcf.admixture")
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(plink_rows.len(), 2, "expected governed plink overrides for qc and admixture");
+    for plan in plink_rows {
+        assert!(
+            !plan.command.template.is_empty(),
+            "plink stage {} must keep a real command template",
+            plan.stage_id
+        );
+        assert_eq!(
+            plan.command.template.first().map(String::as_str),
+            Some("plink"),
+            "plink stage {} must start with the real plink binary",
+            plan.stage_id
+        );
+        assert!(
+            !plan.command.template.iter().any(|part| part == "--help"),
+            "plink stage {} must not fall back to --help placeholder rendering: {:?}",
+            plan.stage_id,
+            plan.command.template
+        );
+    }
+}
+
+#[test]
+fn vcf_planner_renders_executable_eigensoft_stage_templates_when_overridden() {
+    for stage_id in ["vcf.pca", "vcf.population_structure"] {
+        let mut input = base_inputs(CoverageRegime::Diploid);
+        input.requested_stages = Some(vec![stage_id.to_string()]);
+        input.stage_tool_overrides.insert(stage_id.to_string(), "eigensoft".to_string());
+
+        let plans = plan_vcf_stage_plans(&input)
+            .unwrap_or_else(|err| panic!("stage plans with eigensoft for {stage_id}: {err}"));
+        let plan = plans
+            .iter()
+            .find(|plan| {
+                plan.tool_id.to_string() == "eigensoft" && plan.stage_id.as_str() == stage_id
+            })
+            .unwrap_or_else(|| panic!("expected governed eigensoft override for {stage_id}"));
+        assert!(
+            !plan.command.template.is_empty(),
+            "eigensoft stage {} must keep a real command template",
+            plan.stage_id
+        );
+        let joined = plan.command.template.join(" ");
+        assert!(
+            joined.contains("convertf"),
+            "eigensoft stage {} must render convertf input conversion: {:?}",
+            plan.stage_id,
+            plan.command.template
+        );
+        assert!(
+            joined.contains("smartpca"),
+            "eigensoft stage {} must render smartpca execution: {:?}",
+            plan.stage_id,
+            plan.command.template
+        );
+        assert!(
+            !plan.command.template.iter().any(|part| part == "--help"),
+            "eigensoft stage {} must not fall back to --help placeholder rendering: {:?}",
+            plan.stage_id,
+            plan.command.template
+        );
+    }
+}
+
+#[test]
+fn vcf_planner_renders_executable_phasing_stage_templates_for_retained_backends() {
+    let cases = [
+        (CoverageRegime::Diploid, "shapeit5"),
+        (CoverageRegime::Diploid, "eagle"),
+        (CoverageRegime::Diploid, "beagle"),
+    ];
+
+    for (regime, tool_id) in cases {
+        let mut input = base_inputs(regime);
+        input.requested_stages = Some(vec!["vcf.phasing".to_string()]);
+        input.stage_tool_overrides.insert("vcf.phasing".to_string(), tool_id.to_string());
+
+        let plans = plan_vcf_stage_plans(&input)
+            .unwrap_or_else(|err| panic!("stage plans for phasing backend {tool_id}: {err}"));
+        let phasing_plan = plans
+            .iter()
+            .find(|plan| plan.stage_id.to_string() == "vcf.phasing")
+            .unwrap_or_else(|| panic!("phasing plan for {tool_id}"));
+        let joined = phasing_plan.command.template.join(" ");
+
+        assert!(
+            !joined.contains("--help"),
+            "phasing backend {tool_id} must not fall back to placeholder rendering: {:?}",
+            phasing_plan.command.template
+        );
+        assert!(
+            joined.contains("reference_panel_vcf")
+                || joined.contains("vcf_mini_reference_panel.vcf"),
+            "phasing backend {tool_id} must keep panel input wiring: {:?}",
+            phasing_plan.command.template
+        );
+        assert!(
+            joined.contains("map.tsv.gz"),
+            "phasing backend {tool_id} must keep genetic-map wiring: {:?}",
+            phasing_plan.command.template
+        );
+        assert!(
+            joined.contains("bcftools index"),
+            "phasing backend {tool_id} must keep phased-vcf indexing: {:?}",
+            phasing_plan.command.template
+        );
+
+        match tool_id {
+            "shapeit5" => {
+                assert!(
+                    joined.contains("shapeit5 phase_common"),
+                    "shapeit5 phasing must render phase_common: {:?}",
+                    phasing_plan.command.template
+                );
+                assert!(joined.contains("--reference"));
+                assert!(joined.contains("--map"));
+            }
+            "eagle" => {
+                assert!(
+                    joined.contains("eagle"),
+                    "eagle phasing must render eagle command: {:?}",
+                    phasing_plan.command.template
+                );
+                assert!(joined.contains("--vcfTarget"));
+                assert!(joined.contains("--geneticMapFile"));
+            }
+            "beagle" => {
+                assert!(
+                    joined.contains("beagle"),
+                    "beagle phasing must render beagle command: {:?}",
+                    phasing_plan.command.template
+                );
+                assert!(joined.contains("gt='") || joined.contains("gt="));
+                assert!(joined.contains("ref='") || joined.contains("ref="));
+                assert!(joined.contains("map='") || joined.contains("map="));
+            }
+            other => panic!("unexpected phasing backend {other}"),
+        }
+    }
+}
+
+#[test]
+fn vcf_planner_renders_executable_imputation_stage_templates_for_retained_backends() {
+    let cases = [
+        (CoverageRegime::Diploid, "vcf.imputation_metrics", "beagle"),
+        (CoverageRegime::LowCovGl, "vcf.imputation_metrics", "glimpse"),
+        (CoverageRegime::Diploid, "vcf.imputation_metrics", "impute5"),
+        (CoverageRegime::Diploid, "vcf.imputation_metrics", "minimac4"),
+        (CoverageRegime::Diploid, "vcf.impute", "beagle"),
+        (CoverageRegime::LowCovGl, "vcf.impute", "glimpse"),
+        (CoverageRegime::Diploid, "vcf.impute", "impute5"),
+        (CoverageRegime::Diploid, "vcf.impute", "minimac4"),
+    ];
+
+    for (regime, stage_id, tool_id) in cases {
+        let mut input = base_inputs(regime);
+        input.requested_stages = Some(vec![stage_id.to_string()]);
+        input.stage_tool_overrides.insert(stage_id.to_string(), tool_id.to_string());
+
+        let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| {
+            panic!("stage plans for imputation backend {tool_id} on {stage_id}: {err}")
+        });
+        let stage_plan = plans
+            .iter()
+            .find(|plan| plan.stage_id.as_str() == stage_id)
+            .unwrap_or_else(|| panic!("stage plan for {tool_id} on {stage_id}"));
+        let joined = stage_plan.command.template.join(" ");
+
+        assert!(
+            !joined.contains("--help") && !joined.contains(" impute --input vcf"),
+            "imputation backend {tool_id} on {stage_id} must not fall back to placeholder rendering: {:?}",
+            stage_plan.command.template
+        );
+        assert!(
+            joined.contains("vcf_mini_reference_panel.vcf")
+                || joined.contains("reference_panel_vcf")
+                || (stage_id == "vcf.impute" && joined.contains("panel.m3vcf.gz")),
+            "imputation backend {tool_id} on {stage_id} must keep panel input wiring: {:?}",
+            stage_plan.command.template
+        );
+        if tool_id != "minimac4" || stage_id == "vcf.imputation_metrics" {
+            assert!(
+                joined.contains("recombination_map.tsv.gz"),
+                "imputation backend {tool_id} on {stage_id} must keep map wiring: {:?}",
+                stage_plan.command.template
+            );
+        }
+
+        if stage_id == "vcf.imputation_metrics" {
+            assert!(
+                joined.contains("printf")
+                    && joined.contains("bijux.vcf.imputation_metrics.v1")
+                    && joined.contains("\"stage_id\":\"vcf.imputation_metrics\"")
+                    && joined.contains(&format!("\"tool_id\":\"{tool_id}\""))
+                    && joined.contains("imputation_metrics.json"),
+                "imputation metrics stage for {tool_id} must render a governed report command: {:?}",
+                stage_plan.command.template
+            );
+            continue;
+        }
+
+        assert!(
+            joined.contains("bcftools index"),
+            "imputation backend {tool_id} on {stage_id} must keep indexed VCF output wiring: {:?}",
+            stage_plan.command.template
+        );
+
+        match tool_id {
+            "beagle" => {
+                assert!(joined.contains("beagle"));
+                assert!(joined.contains("gt='") || joined.contains("gt="));
+                assert!(joined.contains("ref='") || joined.contains("ref="));
+                assert!(joined.contains("map='") || joined.contains("map="));
+                assert!(joined.contains("impute=true"));
+            }
+            "glimpse" => {
+                assert!(joined.contains("GLIMPSE_phase"));
+                assert!(joined.contains("--reference"));
+                assert!(joined.contains("--input-region"));
+                assert!(joined.contains("--output-region"));
+            }
+            "impute5" => {
+                assert!(joined.contains("impute5"));
+                assert!(joined.contains("--g"));
+                assert!(joined.contains("--h"));
+                assert!(joined.contains("--m"));
+                assert!(joined.contains("--r"));
+            }
+            "minimac4" => {
+                assert!(joined.contains("minimac4"));
+                assert!(joined.contains("panel.m3vcf.gz"));
+                assert!(joined.contains("--refHaps"));
+                assert!(joined.contains("--prefix"));
+            }
+            other => panic!("unexpected imputation backend {other}"),
+        }
+    }
+}
+
+#[test]
+fn vcf_planner_renders_executable_descent_stage_templates_for_retained_backends() {
+    let cases = [
+        (CoverageRegime::Diploid, "vcf.roh", "plink2"),
+        (CoverageRegime::Diploid, "vcf.ibd", "germline"),
+        (CoverageRegime::Diploid, "vcf.ibd", "ibdseq"),
+        (CoverageRegime::Diploid, "vcf.ibd", "ibdhap"),
+        (CoverageRegime::Diploid, "vcf.demography", "ibdne"),
+    ];
+
+    for (regime, stage_id, tool_id) in cases {
+        let mut input = base_inputs(regime);
+        input.requested_stages = Some(if stage_id == "vcf.demography" {
+            vec!["vcf.ibd".to_string(), stage_id.to_string()]
+        } else {
+            vec![stage_id.to_string()]
+        });
+        input.stage_tool_overrides.insert(stage_id.to_string(), tool_id.to_string());
+
+        let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| {
+            panic!("stage plans for descent backend {tool_id} on {stage_id}: {err}")
+        });
+        let stage_plan = plans
+            .iter()
+            .find(|plan| plan.stage_id.as_str() == stage_id)
+            .unwrap_or_else(|| panic!("stage plan for {tool_id} on {stage_id}"));
+        let joined = stage_plan.command.template.join(" ");
+
+        assert!(
+            !joined.contains("--help"),
+            "descent backend {tool_id} on {stage_id} must not fall back to placeholder rendering: {:?}",
+            stage_plan.command.template
+        );
+
+        match (stage_id, tool_id) {
+            ("vcf.roh", "plink2") => {
+                assert!(joined.contains("plink2"));
+                assert!(joined.contains("--homozyg"));
+                assert!(joined.contains("--vcf"));
+            }
+            ("vcf.ibd", "germline") => {
+                assert!(joined.contains("germline"));
+                assert!(joined.contains("plink2 --vcf"));
+                assert!(joined.contains("-make-bed") || joined.contains("--make-bed"));
+                assert!(joined.contains("-output"));
+            }
+            ("vcf.ibd", "ibdseq") => {
+                assert!(joined.contains("ibdseq"));
+                assert!(joined.contains("--vcf"));
+                assert!(joined.contains(".segments.tsv"));
+            }
+            ("vcf.ibd", "ibdhap") => {
+                assert!(joined.contains("ibdhap"));
+                assert!(joined.contains("--vcf"));
+                assert!(joined.contains(".segments.tsv"));
+            }
+            ("vcf.demography", "ibdne") => {
+                assert!(joined.contains("ibdne"));
+                assert!(joined.contains("ibd_segments.tsv"));
+                assert!(joined.contains("--out"));
+            }
+            other => panic!("unexpected descent backend {other:?}"),
+        }
     }
 }
 
@@ -475,7 +889,7 @@ fn vcf_planner_resolves_coverage_regime_from_mean_depth() {
 }
 
 #[test]
-fn vcf_planner_keeps_sample_vcf_after_reference_panel_preparation() {
+fn vcf_planner_keeps_bam_call_inputs_after_reference_panel_preparation() {
     let input = base_inputs(CoverageRegime::LowCovGl);
     let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| panic!("stage plans: {err}"));
     let call_gl = plans
@@ -483,7 +897,12 @@ fn vcf_planner_keeps_sample_vcf_after_reference_panel_preparation() {
         .find(|plan| plan.stage_id.to_string() == "vcf.call_gl")
         .expect("call_gl stage plan");
 
-    assert_eq!(call_gl.io.inputs[0].path, PathBuf::from("sample.vcf.gz"));
+    assert_eq!(
+        call_gl.io.inputs[0].path,
+        PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+        )
+    );
 }
 
 #[test]
@@ -499,6 +918,21 @@ fn vcf_planner_keeps_variant_stream_after_report_stages() {
 
     assert_eq!(roh.io.inputs[0].path, PathBuf::from("out/postprocess_vcf.vcf.gz"));
     assert_eq!(stats.io.inputs[0].path, PathBuf::from("out/postprocess_vcf.vcf.gz"));
+}
+
+#[test]
+fn vcf_planner_aligns_ibd_and_demography_io_contracts() {
+    let input = base_inputs(CoverageRegime::Diploid);
+    let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| panic!("stage plans: {err}"));
+    let ibd =
+        plans.iter().find(|plan| plan.stage_id.to_string() == "vcf.ibd").expect("ibd stage plan");
+    let demography = plans
+        .iter()
+        .find(|plan| plan.stage_id.to_string() == "vcf.demography")
+        .expect("demography stage plan");
+
+    assert_eq!(ibd.io.outputs[0].path, PathBuf::from("out/ibd_segments.tsv"));
+    assert_eq!(demography.io.inputs[0].path, PathBuf::from("out/ibd_segments.tsv"));
 }
 
 #[test]

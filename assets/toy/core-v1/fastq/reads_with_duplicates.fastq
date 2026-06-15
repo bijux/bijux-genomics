@@ -1,0 +1,16 @@
+@dup_a_1
+ACGTACGT
++
+IIIIIIII
+@dup_b_1
+GGGGTTTT
++
+JJJJJJJJ
+@dup_a_2
+ACGTACGT
++
+HHHHHHHH
+@unique_c
+TTCCAAGG
++
+FFFFFFFF

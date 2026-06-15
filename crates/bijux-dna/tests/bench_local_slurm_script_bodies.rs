@@ -1,0 +1,232 @@
+#![allow(clippy::expect_used, clippy::too_many_lines)]
+
+use std::process::Command;
+
+#[path = "contracts/banks/bank_fixtures.rs"]
+mod support;
+
+fn run_cli(args: &[&str]) -> std::process::Output {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(args)
+        .output()
+        .expect("run cli")
+}
+
+fn fake_target_like_job_paths() -> String {
+    let disposable_root_name = "target";
+    format!(
+        "#!/usr/bin/env bash\n\
+set -euo pipefail\n\
+# TODO: wire the real command\n\
+REPO_ROOT=/tmp/repo\n\
+JOB_ROOT={disposable_root_name}/slurm/example\n\
+STDOUT_PATH={disposable_root_name}/slurm/example/stdout.log\n\
+STDERR_PATH={disposable_root_name}/slurm/example/stderr.log\n\
+cd \"$REPO_ROOT\"\n\
+mkdir -p \"$JOB_ROOT\"\n"
+    )
+}
+
+#[cfg(feature = "bam_downstream")]
+fn run_cli_json(args: &[&str]) -> serde_json::Value {
+    let output = run_cli(args);
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+}
+
+#[test]
+fn bench_local_validate_slurm_script_bodies_refuses_placeholder_job_bodies() {
+    let repo_root = support::repo_root().expect("repo root");
+    let runs_root = repo_root.join("runs/bench");
+    std::fs::create_dir_all(&runs_root).expect("create runs root");
+    let temp = tempfile::Builder::new()
+        .prefix("slurm-script-body-placeholder-")
+        .tempdir_in(&runs_root)
+        .expect("tempdir");
+    let root = temp.path().join("slurm-dry-run");
+    std::fs::create_dir_all(&root).expect("create root");
+    let script_path = root.join("fake-placeholder.sbatch");
+    std::fs::write(
+        &script_path,
+        "#!/usr/bin/env bash\nset -euo pipefail\necho execute placeholder job\nrc=0\n",
+    )
+    .expect("write fake script");
+    let report_path = temp.path().join("no-placeholder-report.json");
+
+    let output = run_cli(&[
+        "bench",
+        "local",
+        "validate-slurm-script-bodies",
+        "--root",
+        root.to_str().expect("root str"),
+        "--output",
+        report_path.to_str().expect("report str"),
+        "--json",
+    ]);
+
+    assert!(!output.status.success(), "command should fail on placeholder script");
+
+    let payload: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&report_path).expect("read report"))
+            .expect("parse report");
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
+    assert_eq!(payload.get("script_count").and_then(serde_json::Value::as_u64), Some(1));
+    let scripts =
+        payload.get("scripts").and_then(serde_json::Value::as_array).expect("scripts array");
+    let findings = scripts[0]
+        .get("findings")
+        .and_then(serde_json::Value::as_array)
+        .expect("findings array")
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+    assert!(
+        findings.iter().any(|finding| finding.contains("placeholder")),
+        "findings must include placeholder detection"
+    );
+    assert!(
+        findings.iter().any(|finding| finding.contains("echo execute")),
+        "findings must include fake echo detection"
+    );
+    assert!(
+        findings.iter().any(|finding| finding.contains("unconditional `rc=0`")),
+        "findings must include unconditional rc=0 detection"
+    );
+    assert!(
+        findings.iter().any(|finding| finding.contains("missing `bijux-dna` command")),
+        "findings must include missing bijux-dna detection"
+    );
+}
+
+#[test]
+fn bench_local_validate_slurm_script_bodies_refuses_todo_and_empty_job_bodies() {
+    let repo_root = support::repo_root().expect("repo root");
+    let runs_root = repo_root.join("runs/bench");
+    std::fs::create_dir_all(&runs_root).expect("create runs root");
+    let temp = tempfile::Builder::new()
+        .prefix("slurm-script-body-todo-")
+        .tempdir_in(&runs_root)
+        .expect("tempdir");
+    let root = temp.path().join("slurm-dry-run");
+    std::fs::create_dir_all(&root).expect("create root");
+    let script_path = root.join("fake-empty.sbatch");
+    std::fs::write(&script_path, fake_target_like_job_paths()).expect("write fake script");
+    let report_path = temp.path().join("no-placeholder-report.json");
+
+    let output = run_cli(&[
+        "bench",
+        "local",
+        "validate-slurm-script-bodies",
+        "--root",
+        root.to_str().expect("root str"),
+        "--output",
+        report_path.to_str().expect("report str"),
+        "--json",
+    ]);
+
+    assert!(!output.status.success(), "command should fail on TODO-only script");
+
+    let payload: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&report_path).expect("read report"))
+            .expect("parse report");
+    let scripts =
+        payload.get("scripts").and_then(serde_json::Value::as_array).expect("scripts array");
+    let findings = scripts[0]
+        .get("findings")
+        .and_then(serde_json::Value::as_array)
+        .expect("findings array")
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+    assert!(findings.iter().any(|finding| finding.contains("TODO")));
+    assert!(findings.iter().any(|finding| finding.contains("empty command body")));
+    assert!(findings.iter().any(|finding| finding.contains("missing `bijux-dna` command")));
+}
+
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_validate_slurm_script_bodies_accepts_governed_fastq_and_bam_scripts() {
+    let fastq_render =
+        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "fastq", "--json"]);
+    assert!(
+        fastq_render.status.success(),
+        "fastq render failed: {}\nstdout:\n{}\nstderr:\n{}",
+        fastq_render.status,
+        String::from_utf8_lossy(&fastq_render.stdout),
+        String::from_utf8_lossy(&fastq_render.stderr)
+    );
+    let bam_render =
+        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
+    assert!(
+        bam_render.status.success(),
+        "bam render failed: {}\nstdout:\n{}\nstderr:\n{}",
+        bam_render.status,
+        String::from_utf8_lossy(&bam_render.stdout),
+        String::from_utf8_lossy(&bam_render.stderr)
+    );
+
+    let payload = run_cli_json(&["bench", "local", "validate-slurm-script-bodies", "--json"]);
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.local_slurm_script_bodies.v1")
+    );
+    assert_eq!(
+        payload.get("root_path").and_then(serde_json::Value::as_str),
+        Some("runs/bench/slurm-dry-run")
+    );
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(payload.get("script_count").and_then(serde_json::Value::as_u64), Some(51));
+    assert_eq!(payload.get("findings_count").and_then(serde_json::Value::as_u64), Some(0));
+    let scripts =
+        payload.get("scripts").and_then(serde_json::Value::as_array).expect("scripts array");
+    assert_eq!(scripts.len(), 51);
+    assert!(scripts.iter().all(|entry| {
+        entry.get("ok").and_then(serde_json::Value::as_bool) == Some(true)
+            && entry.get("has_bijux_dna_command").and_then(serde_json::Value::as_bool) == Some(true)
+    }));
+}
+
+#[cfg(feature = "bam_downstream")]
+#[test]
+fn bench_local_validate_slurm_script_bodies_writes_governed_report_path() {
+    let fastq_render =
+        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "fastq", "--json"]);
+    assert!(fastq_render.status.success(), "fastq render failed");
+    let bam_render =
+        run_cli(&["bench", "local", "render-slurm-scripts", "--domain", "bam", "--json"]);
+    assert!(bam_render.status.success(), "bam render failed");
+
+    let payload = run_cli_json(&["bench", "local", "validate-slurm-script-bodies", "--json"]);
+    assert_eq!(
+        payload.get("report_path").and_then(serde_json::Value::as_str),
+        Some("runs/bench/slurm-dry-run/no-placeholder-report.json")
+    );
+
+    let repo_root = support::repo_root().expect("repo root");
+    let report_path = repo_root.join("runs/bench/slurm-dry-run/no-placeholder-report.json");
+    assert!(report_path.is_file(), "governed no-placeholder report must exist");
+
+    let written_payload: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&report_path).expect("read report"))
+            .expect("parse report");
+    assert_eq!(written_payload.get("script_count").and_then(serde_json::Value::as_u64), Some(51));
+    assert_eq!(written_payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+}

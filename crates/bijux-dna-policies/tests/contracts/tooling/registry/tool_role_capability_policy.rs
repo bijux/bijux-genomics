@@ -69,6 +69,7 @@ fn policy__contracts__tool_role_capability_policy__stage_tools_match_required_ro
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn policy__contracts__tool_role_capability_policy__fastq_benchmark_stages_capabilities_satisfied() {
     let root = support::workspace_root();
     let index_raw =

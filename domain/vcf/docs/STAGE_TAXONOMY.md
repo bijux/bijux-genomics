@@ -21,15 +21,15 @@ Covers every `domain/vcf/stages/*.yaml` entry, including supported calling stage
 | vcf.filter | normalization | mutation | supported | Apply deterministic VCF filter normalization. |
 | vcf.gl_propagation | provenance retention | mutation | supported | Preserve GL/PL evidence across downstream transforms. |
 | vcf.stats | reporting | report | supported | Emit required summary metrics for quality review. |
-| vcf.qc | downstream gating | report | planned | Apply cohort-level QC summaries and thresholds. |
-| vcf.pca | downstream inference | inference | planned | Estimate PCA-based structure projections. |
-| vcf.admixture | downstream inference | inference | planned | Estimate ancestry-mixture-style summaries. |
-| vcf.population_structure | downstream inference | inference | planned | Emit broader structure summaries from filtered cohorts. |
-| vcf.phasing | panel mediation | mutation | planned | Phase haplotypes before imputation or IBD. |
-| vcf.prepare_reference_panel | panel mediation | mutation | planned | Normalize and prepare reference panels. |
-| vcf.imputation | panel mediation | inference | planned | Describe the admitted imputation family for downstream workflows. |
-| vcf.impute | panel mediation | mutation | planned | Execute explicit imputation with a pinned backend. |
-| vcf.postprocess | normalization | mutation | planned | Normalize INFO/FILTER/FORMAT surfaces after imputation. |
-| vcf.ibd | downstream inference | inference | planned | Estimate pairwise IBD segments. |
-| vcf.roh | downstream inference | inference | planned | Estimate runs of homozygosity burden and segments. |
+| vcf.qc | downstream gating | report | supported | Apply cohort-level QC summaries and thresholds. |
+| vcf.pca | downstream inference | inference | supported | Estimate PCA-based structure projections with normalized per-sample component output. |
+| vcf.admixture | downstream inference | inference | supported | Estimate ancestry-mixture-style summaries. |
+| vcf.population_structure | downstream inference | inference | supported | Emit broader structure summaries from consumed PCA and admixture evidence. |
+| vcf.phasing | panel mediation | mutation | supported | Phase haplotypes before imputation or IBD. |
+| vcf.prepare_reference_panel | panel mediation | mutation | supported | Normalize and prepare reference panels. |
+| vcf.imputation_metrics | panel mediation | report | supported | Summarize imputation-quality evidence from governed imputation outputs. |
+| vcf.impute | panel mediation | mutation | supported | Execute explicit imputation with a pinned backend. |
+| vcf.postprocess | normalization | mutation | supported | Normalize INFO/FILTER/FORMAT surfaces after imputation with the governed deterministic bcftools baseline. |
+| vcf.ibd | downstream inference | inference | planned | Estimate pairwise IBD segments with normalized pair rows and explicit insufficient-overlap status. |
+| vcf.roh | downstream inference | inference | supported | Estimate runs of homozygosity burden and normalized segment output. |
 | vcf.demography | downstream inference | inference | planned | Estimate recent demography summaries from IBD-derived evidence. |

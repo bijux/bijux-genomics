@@ -1,0 +1,2 @@
+database_component	status	notes
+kraken2	local_ready_only	Tiny governed taxonomy directory skeleton for local-ready plan resolution. This bundle is intentionally not a runnable Kraken2 production database.

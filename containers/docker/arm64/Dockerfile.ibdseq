@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# VERSION_SOURCE: containers/versions/versions.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=3.0-planned
+LABEL org.opencontainers.image.source="https://faculty.washington.edu/browning/ibdseq.shtml" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+LABEL org.opencontainers.image.tool="ibdseq"
+LABEL org.opencontainers.image.title="ibdseq"
+LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq && apt-get install -y --no-install-recommends ca-certificates=20240203 && \
+    rm -rf /var/lib/apt/lists/*
+RUN cat > /usr/local/bin/ibdseq <<'SH' && chmod 0755 /usr/local/bin/ibdseq
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" == "--version" ]]; then
+  echo "ibdseq 3.0-planned"
+  exit 0
+fi
+if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
+  echo "ibdseq planned wrapper image. Upstream: https://faculty.washington.edu/browning/ibdseq.shtml"
+  exit 0
+fi
+echo "error: ibdseq runtime payload is not bundled in this planned wrapper image" >&2
+exit 2
+SH
+
+WORKDIR /data
+ENTRYPOINT ["/usr/local/bin/ibdseq"]
+CMD ["--help"]

@@ -14,7 +14,7 @@ stage_ids:
   - vcf.filter
   - vcf.gl_propagation
   - vcf.ibd
-  - vcf.imputation
+  - vcf.imputation_metrics
   - vcf.impute
   - vcf.pca
   - vcf.phasing
@@ -34,6 +34,7 @@ tool_ids:
   - glimpse
   - ibdhap
   - ibdne
+  - ibdseq
   - impute5
   - minimac4
   - plink
@@ -47,9 +48,21 @@ governed_stage_ids:
   - vcf.damage_filter
   - vcf.filter
   - vcf.gl_propagation
+  - vcf.imputation_metrics
+  - vcf.impute
+  - vcf.pca
+  - vcf.phasing
+  - vcf.population_structure
+  - vcf.postprocess
+  - vcf.prepare_reference_panel
+  - vcf.qc
   - vcf.stats
 governed_tool_ids:
   - bcftools
+  - beagle
+  - eigensoft
+  - plink2
+  - shapeit5
 stage_tool_compatibility:
   vcf.admixture:
   - plink
@@ -76,8 +89,9 @@ stage_tool_compatibility:
   - angsd
   vcf.ibd:
   - germline
+  - ibdseq
   - ibdhap
-  vcf.imputation:
+  vcf.imputation_metrics:
   - beagle
   - glimpse
   - impute5
@@ -103,6 +117,7 @@ stage_tool_compatibility:
   vcf.prepare_reference_panel:
   - bcftools
   vcf.qc:
+  - bcftools
   - plink
   - plink2
   vcf.roh:
@@ -136,7 +151,8 @@ stage_tool_integration:
   vcf.ibd:
     germline: governed_contract
     ibdhap: governed_contract
-  vcf.imputation:
+    ibdseq: governed_contract
+  vcf.imputation_metrics:
     beagle: governed_contract
     glimpse: governed_contract
     impute5: governed_contract
@@ -162,6 +178,7 @@ stage_tool_integration:
   vcf.prepare_reference_panel:
     bcftools: governed_contract
   vcf.qc:
+    bcftools: governed_contract
     plink: governed_contract
     plink2: governed_contract
   vcf.roh:
@@ -197,19 +214,29 @@ active_defaults:
   vcf.damage_filter: "bcftools"
   vcf.filter: "bcftools"
   vcf.gl_propagation: "bcftools"
+  vcf.imputation_metrics: "beagle"
   vcf.impute: "beagle"
+  vcf.pca: "plink2"
+  vcf.phasing: "shapeit5"
+  vcf.population_structure: "plink2"
   vcf.postprocess: "bcftools"
   vcf.prepare_reference_panel: "bcftools"
+  vcf.qc: "plink2"
   vcf.stats: "bcftools"
 active_default_rationale:
-  vcf.call: "deterministic baseline caller"
-  vcf.call_diploid: "deterministic diploid baseline for the current governed production profile"
-  vcf.call_gl: "current governed production default while angsd remains a planned low-coverage alternative"
-  vcf.call_pseudohaploid: "current governed production default while angsd remains a planned low-coverage alternative"
-  vcf.damage_filter: "deterministic transition and PMD masking baseline for the current governed profile"
-  vcf.filter: "deterministic pass filter"
-  vcf.gl_propagation: "retain GL/PL tags across downstream handoffs in the current governed profile"
-  vcf.impute: "planned pinned imputation baseline"
-  vcf.postprocess: "deterministic post-imputation normalization baseline"
-  vcf.prepare_reference_panel: "deterministic panel preparation baseline"
-  vcf.stats: "required summary metrics"
+  vcf.call: "deterministic baseline caller for current production profile."
+  vcf.call_diploid: "deterministic diploid baseline for the current governed production profile."
+  vcf.call_gl: "current governed production default keeps GL emission runnable while `angsd` remains a planned low-coverage alternative."
+  vcf.call_pseudohaploid: "current governed production default preserves the pseudohaploid contract while `angsd` remains a planned alternative."
+  vcf.damage_filter: "deterministic PMD/C>T-G>A masking contract anchor for the current governed profile."
+  vcf.filter: "stable filtering semantics for regression comparability."
+  vcf.gl_propagation: "preserves GL fields across downstream handoffs in the current governed profile."
+  vcf.imputation_metrics: "keep the governed imputation-metrics contract anchored to the same backend family that produces the source imputation evidence."
+  vcf.impute: "current governed production default keeps explicit panel-aware imputation runnable while retained alternatives stay comparative."
+  vcf.pca: "current governed PCA default keeps sample-complete eigenvector output, eigenvalue reporting, and metadata joins anchored to the PLINK2 smoke-backed cohort path while retained `eigensoft` stays comparative."
+  vcf.phasing: "current governed production default keeps phasing anchored to the dedicated phasing backend while Beagle and Eagle stay comparative."
+  vcf.population_structure: "the governed population-structure baseline keeps consumed PCA and admixture evidence on the admitted PLINK-family structure path with explicit sample-group distance summaries."
+  vcf.postprocess: "deterministic normalization/filter baseline for governed post-imputation outputs."
+  vcf.prepare_reference_panel: "deterministic reference panel prep baseline."
+  vcf.qc: "the governed cohort-QC baseline keeps missingness, MAF, and HWE summaries anchored to the admitted PLINK-family execution surface while retaining deterministic bcftools compatibility for comparison."
+  vcf.stats: "minimal required metrics for quality gating."

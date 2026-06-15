@@ -173,6 +173,7 @@ fn validate_metrics(path: &std::path::Path, mapping: &serde_yaml::Mapping) -> Re
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::validate_stage_schema_contracts;
     use crate::ValidateOptions;

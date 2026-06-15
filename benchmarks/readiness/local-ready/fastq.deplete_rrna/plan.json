@@ -1,0 +1,102 @@
+{
+  "stage_id": "fastq.deplete_rrna",
+  "stage_instance_id": "fastq.deplete_rrna.tool.sortmerna",
+  "stage_version": 1,
+  "tool_id": "sortmerna",
+  "tool_version": "latest-pinned",
+  "image": {
+    "image": "bijuxdna/sortmerna",
+    "digest": "sha256:2021b21d075d06404339ec019b9729f2dfb820685c86835df654c2fb7d8b447c"
+  },
+  "command": {
+    "template": [
+      "bash",
+      "-lc",
+      "set -euo pipefail\nshopt -s nullglob\ncollect_output_from_globs() { dest=\"$1\"; shift; local pattern candidate matches=(); local -a inputs=(); for pattern in \"$@\"; do matches=( $pattern ); for candidate in \"${matches[@]}\"; do if [ -f \"$candidate\" ]; then inputs+=( \"$candidate\" ); fi; done; done; if [ \"${#inputs[@]}\" -eq 0 ]; then printf 'missing expected SortMeRNA output for %s\\n' \"$dest\" >&2; return 1; fi; { for candidate in \"${inputs[@]}\"; do case \"$candidate\" in *.gz) gzip -cd -- \"$candidate\" ;; *) cat -- \"$candidate\" ;; esac; done; } | gzip -c > \"$dest\"; }\nrm -rf 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/kvdb' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/readb' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/out'\nmkdir -p 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/idx' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/kvdb' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/readb' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/out'\nmkdir -p \"$(dirname 'benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered.fastq.gz')\" \"$(dirname 'benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz')\" \"$(dirname 'benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.tsv')\" \"$(dirname 'benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.json')\"\nrm -f 'benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered.fastq.gz' '' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz' '' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.tsv' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.json'\n'sortmerna' '--ref' 'assets/reference/rrna/references/sortmerna_common_rrna_reference.fasta' '--reads' 'assets/toy/core-v1/fastq/reads_1.fastq' '--workdir' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/' '--idx-dir' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/idx' '--kvdb' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/kvdb' '--readb' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/readb' '--threads' '4' '--fastx' '--zip-out' 'yes'\ncollect_output_from_globs 'benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered.fastq.gz' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/out/other*.fastq.gz' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/out/other*.fq.gz' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/out/other*.fastq' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/out/other*.fq' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/readb/fwd_*.fastq.gz' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/readb/fwd_*.fq.gz' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/readb/fwd_*.fastq' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/readb/fwd_*.fq'\ncollect_output_from_globs 'benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/out/aligned*.fastq.gz' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/out/aligned*.fq.gz' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/out/aligned*.fastq' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/out/aligned*.fq' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/readb/aligned_fwd_*.fastq.gz' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/readb/aligned_fwd_*.fq.gz' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/readb/aligned_fwd_*.fastq' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/readb/aligned_fwd_*.fq'\nif [ -f 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/out/aligned.log' ]; then cp -- 'benchmarks/readiness/local-ready/fastq.deplete_rrna/sortmerna_workdir/out/aligned.log' 'benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.tsv'; else : > 'benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.tsv'; fi\nprintf '{}\\n' > 'benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.json'\n"
+    ]
+  },
+  "resources": {
+    "runtime": "local",
+    "mem_gb": 8,
+    "tmp_gb": 8,
+    "threads": 4
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "assets/toy/core-v1/fastq/reads_1.fastq",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "rrna_reference",
+        "path": "assets/reference/rrna/references/sortmerna_common_rrna_reference.fasta",
+        "role": "reference",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "rrna_filtered_reads_r1",
+        "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "rrna_report_tsv",
+        "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.tsv",
+        "role": "summary_tsv",
+        "optional": false
+      },
+      {
+        "name": "rrna_removed_reads_r1",
+        "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "rrna_report_json",
+        "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.json",
+        "role": "metrics_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "benchmarks/readiness/local-ready/fastq.deplete_rrna",
+  "params": {
+    "database_artifact_id": "sortmerna_common_rrna_reference",
+    "filtered_reads_r1": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered.fastq.gz",
+    "filtered_reads_r2": null,
+    "input_r1": "assets/toy/core-v1/fastq/reads_1.fastq",
+    "input_r2": null,
+    "min_identity": 0.95,
+    "removed_reads_r1": "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz",
+    "removed_reads_r2": null,
+    "report_json": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.json",
+    "report_tsv": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.tsv",
+    "rrna_db": "assets/reference/rrna/references/sortmerna_common_rrna_reference.fasta",
+    "threads": 4,
+    "tool": "sortmerna"
+  },
+  "effective_params": {
+    "contaminant_db": "assets/reference/rrna/references/sortmerna_common_rrna_reference.fasta",
+    "database_artifact_id": "sortmerna_common_rrna_reference",
+    "database_build_id": null,
+    "emit_removed_reads": true,
+    "paired_mode": "single_end",
+    "report_format": "summary_tsv_and_json",
+    "schema_version": "bijux.fastq.params.deplete_rrna.v1",
+    "screening_engine": "sortmerna",
+    "threads": 4
+  },
+  "operating_mode": "enforced",
+  "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}

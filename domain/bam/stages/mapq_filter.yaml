@@ -8,20 +8,52 @@ inputs:
     data_type: "bam"
     cardinality: "One"
 outputs:
-  - name: "mapq_filter_report_json"
+  - name: "filtered_bam"
+    data_type: "bam"
+    cardinality: "One"
+  - name: "filtered_bai"
+    data_type: "bai"
+    cardinality: "One"
+  - name: "flagstat_before"
+    data_type: "text"
+    cardinality: "One"
+  - name: "flagstat_after"
+    data_type: "text"
+    cardinality: "One"
+  - name: "idxstats_before"
+    data_type: "text"
+    cardinality: "One"
+  - name: "idxstats_after"
+    data_type: "text"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
     data_type: "json"
     cardinality: "One"
 parameters: []
 metrics:
-  - name: "runtime_s"
-    meaning: "Wall-clock runtime in seconds"
-  - name: "memory_mb"
-    meaning: "Peak memory usage in MB"
-description: "BAM MAPQ filtering stage contract."
+  - name: "mapq_threshold"
+    meaning: "Mapping-quality threshold preserved in the governed BAM MAPQ-filter benchmark row"
+  - name: "kept_reads"
+    meaning: "Read count retained after applying the governed BAM MAPQ threshold"
+  - name: "removed_reads"
+    meaning: "Read count removed by the governed BAM MAPQ threshold"
+  - name: "filtered_bam"
+    meaning: "Filtered BAM artifact emitted for the governed BAM MAPQ-filter benchmark row"
+description: "BAM MAPQ-filter contract for governed threshold-count benchmarking and deterministic filtered-BAM reporting."
 required_inputs:
   - bam
 required_outputs:
-  - mapq_filter_report_json
+  - filtered_bam
+  - filtered_bai
+  - flagstat_before
+  - flagstat_after
+  - idxstats_before
+  - idxstats_after
+  - summary
+  - stage_metrics
 tool_capability_requirements:
   - bam_input
 invariants:
@@ -35,6 +67,7 @@ compatible_tools:
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "MAPQ thresholds are deterministic for fixed BAM/input index"
+  - "all admitted BAM MAPQ-filter tools must preserve the governed threshold, retained-read, removed-read, and filtered-BAM contract"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"

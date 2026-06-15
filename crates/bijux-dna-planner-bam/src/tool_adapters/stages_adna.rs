@@ -44,6 +44,11 @@ pub mod damage {
                 &out_dir.join("damage.ngsbriggs.json"),
                 params,
             ),
+            "pmdtools" => crate::tool_adapters::tools::pmdtools::damage_args(
+                bam,
+                &out_dir.join("damage.pmdtools.json"),
+                params,
+            ),
             _ => crate::tool_adapters::tools::pydamage::args(bam, &out_json, params),
         };
         let plan = StagePlanV1 {
@@ -87,7 +92,7 @@ pub mod damage {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &["damage_pydamage", "damage_mapdamage2", "stage_metrics"],
+            &["damage_report", "terminal_position_metrics", "parser_output", "stage_metrics"],
         )
     }
 }
@@ -200,6 +205,8 @@ pub mod contamination {
     pub fn plan(
         tool: &ToolExecutionSpecV1,
         bam: &Path,
+        bam_index: Option<&Path>,
+        reference: Option<&Path>,
         out_dir: &Path,
         params: &ContaminationEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
@@ -209,20 +216,64 @@ pub mod contamination {
         );
         let report = out_dir.join("contamination.json");
         let summary = out_dir.join("contamination.summary.json");
+        let panel_paths = params.reference_panels.iter().map(Path::new).collect::<Vec<_>>();
         let command = match tool.tool_id.as_str() {
             "schmutzi" => crate::tool_adapters::tools::schmutzi::args_with_outputs(
-                bam, &report, &summary, params,
+                bam, reference, &report, &summary, params,
             ),
             "verifybamid2" => crate::tool_adapters::tools::verifybamid2::args_with_outputs(
-                bam, &report, &summary, params,
+                bam,
+                bam_index,
+                reference,
+                &panel_paths,
+                &report,
+                &summary,
+                params,
             ),
             "contammix" => crate::tool_adapters::tools::contammix::args_with_outputs(
-                bam, &report, &summary, params,
+                bam,
+                bam_index,
+                reference,
+                &panel_paths,
+                &report,
+                &summary,
+                params,
             ),
             _ => crate::tool_adapters::tools::authenticity::args_with_outputs(
                 bam, &report, &summary, params,
             ),
         };
+        let mut inputs = vec![bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("bam"),
+            bam.to_path_buf(),
+            ArtifactRole::Bam,
+        )];
+        if let Some(bam_index) = bam_index {
+            inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("bam_bai"),
+                bam_index.to_path_buf(),
+                ArtifactRole::Index,
+            ));
+        }
+        if let Some(reference) = reference {
+            inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("reference"),
+                reference.to_path_buf(),
+                ArtifactRole::Reference,
+            ));
+        }
+        for (idx, panel) in panel_paths.iter().enumerate() {
+            let artifact_id = if idx == 0 {
+                ArtifactId::from_static("reference_panel")
+            } else {
+                ArtifactId::new(format!("reference_panel_{}", idx + 1))
+            };
+            inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                artifact_id,
+                panel.to_path_buf(),
+                ArtifactRole::Reference,
+            ));
+        }
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_instance_id: None,
@@ -232,17 +283,12 @@ pub mod contamination {
             image: tool.image.clone(),
             command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
-            io: StageIO {
-                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
-                    ArtifactId::from_static("bam"),
-                    bam.to_path_buf(),
-                    ArtifactRole::Bam,
-                )],
-                outputs,
-            },
+            io: StageIO { inputs, outputs },
             out_dir: out_dir.to_path_buf(),
             params: serde_json::json!({
                 "bam": bam,
+                "bai": bam_index,
+                "reference": reference,
                 "reference_panels": params.reference_panels,
                 "scope": params.scope,
                 "prior": params.prior,
@@ -313,6 +359,11 @@ pub mod sex {
                 template: match (tool.tool_id.as_str(), params.method.as_str()) {
                     ("angsd", _) | (_, "angsd") => {
                         crate::tool_adapters::tools::angsd_sex::args_with_outputs(
+                            bam, &report, &summary, params,
+                        )
+                    }
+                    ("yleaf", _) | (_, "yleaf") => {
+                        crate::tool_adapters::tools::yleaf_sex::args_with_outputs(
                             bam, &report, &summary, params,
                         )
                     }

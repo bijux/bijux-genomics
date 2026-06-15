@@ -428,7 +428,7 @@ const VCF_GOALS_CATALOG: &[GoalDefinition] = &[
         title: "benchmark imputation workflows",
         stage_ids: &[
             "vcf.impute",
-            "vcf.imputation",
+            "vcf.imputation_metrics",
             "vcf.prepare_reference_panel",
             "vcf.postprocess",
         ],
@@ -1189,7 +1189,7 @@ mod tests {
                 row("v10", "vcf.gl_propagation", "ready"),
                 row("v11", "vcf.phasing", "degraded"),
                 row("v12", "vcf.impute", "degraded"),
-                row("v13", "vcf.imputation", "ready"),
+                row("v13", "vcf.imputation_metrics", "ready"),
                 row("v14", "vcf.qc", "ready"),
                 row("v15", "vcf.pca", "degraded"),
                 row("v16", "vcf.admixture", "ready"),

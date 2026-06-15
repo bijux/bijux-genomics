@@ -1,0 +1,11 @@
+{
+  "schema_version": "bijux.vcf.phasing.v1",
+  "backend": "beagle",
+  "backend_selection": {
+    "requested": "beagle",
+    "resolved": "beagle"
+  },
+  "phase_block_n50": 2,
+  "switch_error_proxy": 0.125,
+  "warnings": []
+}

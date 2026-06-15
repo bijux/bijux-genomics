@@ -54,6 +54,32 @@ The `stage_api` module is the curated compatibility surface for downstream stage
 - `toolset_for_stage`
 - `stage_tool_maturity`
 - `benchmark_cohorts_for_stage`
+- `local_correct_errors_smoke_plans`
+- `local_extract_umis_smoke_plans`
+- `local_deplete_host_plan`
+- `local_deplete_reference_contaminants_plan`
+- `local_deplete_rrna_plan`
+- `local_screen_taxonomy_plan`
+- `local_detect_adapters_smoke_plans`
+- `local_detect_duplicates_premerge_smoke_plans`
+- `local_estimate_library_complexity_prealign_smoke_plans`
+- `local_filter_low_complexity_smoke_plans`
+- `local_filter_reads_smoke_plans`
+- `local_cluster_otus_smoke_plans`
+- `local_infer_asvs_smoke_plans`
+- `local_index_reference_plan`
+- `local_merge_pairs_smoke_plans`
+- `local_normalize_abundance_smoke_plans`
+- `local_normalize_primers_smoke_plans`
+- `local_profile_overrepresented_sequences_smoke_plans`
+- `local_profile_read_lengths_smoke_plans`
+- `local_profile_reads_smoke_plans`
+- `local_remove_chimeras_smoke_plans`
+- `local_remove_duplicates_smoke_plans`
+- `local_trim_polyg_tails_smoke_plans`
+- `local_trim_reads_smoke_plans`
+- `local_trim_terminal_damage_smoke_plans`
+- `local_validate_reads_smoke_plans`
 
 ## Stability Rules
 - Additions must be documented here and covered by boundary or contract tests.

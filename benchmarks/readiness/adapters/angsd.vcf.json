@@ -1,0 +1,421 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_angsd_adapter.v1",
+  "domain": "vcf",
+  "tool_id": "angsd",
+  "tool_status": "planned",
+  "output_path": "benchmarks/readiness/adapters/angsd.vcf.json",
+  "row_count": 4,
+  "supported_stage_row_count": 4,
+  "benchmark_ready_row_count": 0,
+  "argv_valid_row_count": 4,
+  "missing_input_test_passed_row_count": 4,
+  "bam_list_row_count": 3,
+  "parser_output_row_count": 4,
+  "rows": [
+    {
+      "tool_id": "angsd",
+      "tool_status": "planned",
+      "stage_id": "vcf.call_gl",
+      "stage_status": "supported",
+      "benchmark_status": "not_benchmark_ready",
+      "adapter_id": "vcf.adapter.calling",
+      "parser_id": "vcf.parser.call_summary",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "command_contract_source": "domain/vcf/fixtures/vcf.call_gl/angsd.txt",
+      "output_root": "benchmarks/readiness/adapters/angsd/vcf.call_gl",
+      "output_prefix": "benchmarks/readiness/adapters/angsd/vcf.call_gl/gl_sites",
+      "bam_member_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+      ],
+      "bam_list_path": "benchmarks/readiness/adapters/angsd/vcf.call_gl/angsd-inputs.bam.list",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+      "sites_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+      "likelihood_model": "GL2_doGlf2_doMajorMinor1_doMaf1",
+      "stage_output_ids": [
+        "gl_sites_vcf",
+        "gl_provenance"
+      ],
+      "raw_output_ids": [
+        "gl_sites_vcf",
+        "angsd_arg"
+      ],
+      "parser_output_ids": [
+        "gl_provenance"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "bam_list",
+          "role": "bam_list",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.call_gl/angsd-inputs.bam.list"
+        },
+        {
+          "artifact_id": "reference_fasta",
+          "role": "reference",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        },
+        {
+          "artifact_id": "sites_vcf",
+          "role": "sites_vcf",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "gl_sites_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.call_gl/gl_sites.vcf.gz"
+        },
+        {
+          "artifact_id": "angsd_arg",
+          "role": "report",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.call_gl/gl_sites.arg"
+        },
+        {
+          "artifact_id": "gl_provenance",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.call_gl/gl_provenance.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "call_gl",
+          "step_kind": "call",
+          "argv": [
+            "angsd",
+            "-b",
+            "benchmarks/readiness/adapters/angsd/vcf.call_gl/angsd-inputs.bam.list",
+            "-ref",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+            "-sites",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+            "-GL",
+            "2",
+            "-doGlf",
+            "2",
+            "-doMajorMinor",
+            "1",
+            "-doMaf",
+            "1",
+            "-minMapQ",
+            "30",
+            "-minQ",
+            "20",
+            "-setMinDepth",
+            "3",
+            "-setMaxDepth",
+            "100",
+            "-doVcf",
+            "1",
+            "-out",
+            "benchmarks/readiness/adapters/angsd/vcf.call_gl/gl_sites"
+          ],
+          "declared_output_artifact_ids": [
+            "gl_sites_vcf",
+            "angsd_arg"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "bam_list",
+      "missing_input_expected_error_fragment": "required input `bam_list`",
+      "missing_input_observed_error": "VCF angsd adapter for `vcf.call_gl` is missing required input `bam_list` at `artifacts/bench-readiness/adapters/probes/vcf.call_gl/bam_list.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.call_gl` / `angsd` renders concrete angsd argv with 1 declared command step(s), 3 required input(s), 2 raw output id(s), and 1 parser output id(s)"
+    },
+    {
+      "tool_id": "angsd",
+      "tool_status": "planned",
+      "stage_id": "vcf.call_pseudohaploid",
+      "stage_status": "supported",
+      "benchmark_status": "not_benchmark_ready",
+      "adapter_id": "vcf.adapter.calling",
+      "parser_id": "vcf.parser.call_summary",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "command_contract_source": "domain/vcf/fixtures/vcf.call_pseudohaploid/angsd.txt",
+      "output_root": "benchmarks/readiness/adapters/angsd/vcf.call_pseudohaploid",
+      "output_prefix": "benchmarks/readiness/adapters/angsd/vcf.call_pseudohaploid/pseudo",
+      "bam_member_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+      ],
+      "bam_list_path": "benchmarks/readiness/adapters/angsd/vcf.call_pseudohaploid/angsd-inputs.bam.list",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+      "sites_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+      "likelihood_model": "doHaploCall1_seed42",
+      "stage_output_ids": [
+        "pseudohaploid_vcf",
+        "pseudohaploid_sampling_log"
+      ],
+      "raw_output_ids": [
+        "pseudohaploid_vcf",
+        "angsd_arg"
+      ],
+      "parser_output_ids": [
+        "pseudohaploid_sampling_log"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "bam_list",
+          "role": "bam_list",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.call_pseudohaploid/angsd-inputs.bam.list"
+        },
+        {
+          "artifact_id": "reference_fasta",
+          "role": "reference",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        },
+        {
+          "artifact_id": "sites_vcf",
+          "role": "sites_vcf",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "pseudohaploid_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.call_pseudohaploid/pseudo.vcf.gz"
+        },
+        {
+          "artifact_id": "angsd_arg",
+          "role": "report",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.call_pseudohaploid/pseudo.arg"
+        },
+        {
+          "artifact_id": "pseudohaploid_sampling_log",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.call_pseudohaploid/pseudohaploid_sampling_log.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "call_pseudohaploid",
+          "step_kind": "call",
+          "argv": [
+            "angsd",
+            "-b",
+            "benchmarks/readiness/adapters/angsd/vcf.call_pseudohaploid/angsd-inputs.bam.list",
+            "-ref",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+            "-sites",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+            "-doHaploCall",
+            "1",
+            "-doCounts",
+            "1",
+            "-seed",
+            "42",
+            "-doVcf",
+            "1",
+            "-out",
+            "benchmarks/readiness/adapters/angsd/vcf.call_pseudohaploid/pseudo"
+          ],
+          "declared_output_artifact_ids": [
+            "pseudohaploid_vcf",
+            "angsd_arg"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "bam_list",
+      "missing_input_expected_error_fragment": "required input `bam_list`",
+      "missing_input_observed_error": "VCF angsd adapter for `vcf.call_pseudohaploid` is missing required input `bam_list` at `artifacts/bench-readiness/adapters/probes/vcf.call_pseudohaploid/bam_list.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.call_pseudohaploid` / `angsd` renders concrete angsd argv with 1 declared command step(s), 3 required input(s), 2 raw output id(s), and 1 parser output id(s)"
+    },
+    {
+      "tool_id": "angsd",
+      "tool_status": "planned",
+      "stage_id": "vcf.damage_filter",
+      "stage_status": "supported",
+      "benchmark_status": "not_benchmark_ready",
+      "adapter_id": "vcf.adapter.transform",
+      "parser_id": "vcf.parser.vcf_output",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "command_contract_source": "domain/vcf/fixtures/vcf.damage_filter/angsd.txt",
+      "output_root": "benchmarks/readiness/adapters/angsd/vcf.damage_filter",
+      "output_prefix": "benchmarks/readiness/adapters/angsd/vcf.damage_filter/damage",
+      "bam_member_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
+      ],
+      "bam_list_path": "benchmarks/readiness/adapters/angsd/vcf.damage_filter/angsd-inputs.bam.list",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+      "sites_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+      "likelihood_model": "doDamage1_pmd1",
+      "stage_output_ids": [
+        "damage_report_txt",
+        "damage_bias_audit_report"
+      ],
+      "raw_output_ids": [
+        "damage_report_txt",
+        "angsd_arg"
+      ],
+      "parser_output_ids": [
+        "damage_bias_audit_report"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "bam_list",
+          "role": "bam_list",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.damage_filter/angsd-inputs.bam.list"
+        },
+        {
+          "artifact_id": "reference_fasta",
+          "role": "reference",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
+        },
+        {
+          "artifact_id": "sites_vcf",
+          "role": "sites_vcf",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "damage_report_txt",
+          "role": "report",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.damage_filter/damage_report.txt"
+        },
+        {
+          "artifact_id": "angsd_arg",
+          "role": "report",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.damage_filter/damage.arg"
+        },
+        {
+          "artifact_id": "damage_bias_audit_report",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.damage_filter/damage_bias_audit_report.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "damage_filter",
+          "step_kind": "damage_aware",
+          "argv": [
+            "angsd",
+            "-b",
+            "benchmarks/readiness/adapters/angsd/vcf.damage_filter/angsd-inputs.bam.list",
+            "-ref",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+            "-sites",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+            "-out",
+            "benchmarks/readiness/adapters/angsd/vcf.damage_filter/damage",
+            "-doDamage",
+            "1",
+            "-minMapQ",
+            "30",
+            "-minQ",
+            "20",
+            "-pmd",
+            "1"
+          ],
+          "declared_output_artifact_ids": [
+            "damage_report_txt",
+            "angsd_arg"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "bam_list",
+      "missing_input_expected_error_fragment": "required input `bam_list`",
+      "missing_input_observed_error": "VCF angsd adapter for `vcf.damage_filter` is missing required input `bam_list` at `artifacts/bench-readiness/adapters/probes/vcf.damage_filter/bam_list.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.damage_filter` / `angsd` renders concrete angsd argv with 1 declared command step(s), 3 required input(s), 2 raw output id(s), and 1 parser output id(s)"
+    },
+    {
+      "tool_id": "angsd",
+      "tool_status": "planned",
+      "stage_id": "vcf.gl_propagation",
+      "stage_status": "supported",
+      "benchmark_status": "not_benchmark_ready",
+      "adapter_id": "vcf.adapter.transform",
+      "parser_id": "vcf.parser.vcf_output",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_single_sample",
+      "command_contract_source": "registry:configs/ci/registry/tool_registry_vcf_downstream.toml",
+      "output_root": "benchmarks/readiness/adapters/angsd/vcf.gl_propagation",
+      "output_prefix": "benchmarks/readiness/adapters/angsd/vcf.gl_propagation/gl_propagation",
+      "bam_member_paths": [],
+      "bam_list_path": null,
+      "reference_path": null,
+      "sites_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+      "likelihood_model": "vcf_gl_input_doPost1_doVcf1",
+      "stage_output_ids": [
+        "gl_propagated_vcf",
+        "gl_propagation_report"
+      ],
+      "raw_output_ids": [
+        "gl_propagated_vcf",
+        "angsd_arg"
+      ],
+      "parser_output_ids": [
+        "gl_propagation_report"
+      ],
+      "required_inputs": [
+        {
+          "artifact_id": "vcf",
+          "role": "variant",
+          "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf"
+        },
+        {
+          "artifact_id": "sites_vcf",
+          "role": "sites_vcf",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+        }
+      ],
+      "declared_outputs": [
+        {
+          "artifact_id": "gl_propagated_vcf",
+          "role": "variant",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.gl_propagation/gl_propagation.vcf.gz"
+        },
+        {
+          "artifact_id": "angsd_arg",
+          "role": "report",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.gl_propagation/gl_propagation.arg"
+        },
+        {
+          "artifact_id": "gl_propagation_report",
+          "role": "report_json",
+          "path": "benchmarks/readiness/adapters/angsd/vcf.gl_propagation/gl_propagation_report.json"
+        }
+      ],
+      "command_steps": [
+        {
+          "step_id": "gl_propagation",
+          "step_kind": "normalize_gl",
+          "argv": [
+            "angsd",
+            "-vcf-gl",
+            "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf",
+            "-sites",
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+            "-doMajorMinor",
+            "1",
+            "-doMaf",
+            "1",
+            "-doPost",
+            "1",
+            "-doVcf",
+            "1",
+            "-out",
+            "benchmarks/readiness/adapters/angsd/vcf.gl_propagation/gl_propagation"
+          ],
+          "declared_output_artifact_ids": [
+            "gl_propagated_vcf",
+            "angsd_arg"
+          ]
+        }
+      ],
+      "argv_validation_passed": true,
+      "missing_input_probe_artifact_id": "vcf",
+      "missing_input_expected_error_fragment": "required input `vcf`",
+      "missing_input_observed_error": "VCF angsd adapter for `vcf.gl_propagation` is missing required input `vcf` at `artifacts/bench-readiness/adapters/probes/vcf.gl_propagation/vcf.missing`",
+      "missing_input_test_passed": true,
+      "reason": "row `vcf.gl_propagation` / `angsd` renders concrete angsd argv with 1 declared command step(s), 2 required input(s), 2 raw output id(s), and 1 parser output id(s)"
+    }
+  ]
+}

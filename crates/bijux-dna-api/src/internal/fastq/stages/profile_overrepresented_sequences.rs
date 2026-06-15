@@ -33,6 +33,7 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
+use serde::Serialize;
 
 use crate::internal::fastq::stages::trim_bench_common::{
     benchmark_image_identity, build_benchmark_context,
@@ -41,6 +42,24 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.profile_overrepresented_sequences";
+const LOCAL_PROFILE_OVERREPRESENTED_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.profile_overrepresented_sequences.local_smoke.report.v1";
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalProfileOverrepresentedSequencesSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    sample_id: String,
+    planned_tool_id: String,
+    report_tool_id: String,
+    top_sequence: String,
+    top_count: u64,
+    top_fraction: f64,
+    flagged_sequences: u64,
+    overrepresented_tsv: String,
+    case_report_json: String,
+    raw_backend_report: String,
+}
 
 /// Benchmark FASTQ overrepresented-sequence profiling tools.
 ///
@@ -117,6 +136,110 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
     }
 
     Ok(BenchOutcome { records, failures, bench_dir: setup.bench_dir, explain: args.explain })
+}
+
+/// Materialize the governed local-smoke `fastq.profile_overrepresented_sequences` summary TSV.
+///
+/// The written top-level artifact lives at
+/// `runs/bench/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv`
+/// under the active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_profile_overrepresented_sequences_smoke_summary() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases =
+        bijux_dna_planner_fastq::stage_api::local_profile_overrepresented_sequences_smoke_plans(
+            &repo_root,
+        )?;
+    let [case] = cases.as_slice() else {
+        return Err(anyhow!(
+            "governed fastq.profile_overrepresented_sequences local smoke must resolve exactly one case"
+        ));
+    };
+
+    let output_root =
+        repo_root.join("runs/bench/local-smoke/fastq.profile_overrepresented_sequences");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+    let summary = materialize_local_profile_overrepresented_sequences_smoke_case(
+        &repo_root,
+        case,
+        &output_root,
+    )?;
+    let report_path = output_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(output_root.join("overrepresented.tsv"))
+}
+
+fn materialize_local_profile_overrepresented_sequences_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalProfileOverrepresentedSequencesSmokeCasePlan,
+    output_root: &Path,
+) -> Result<LocalProfileOverrepresentedSequencesSmokeReport> {
+    let effective_params = serde_json::from_value::<FastqOverrepresentedProfileParams>(
+        case.plan.effective_params.clone(),
+    )
+    .map_err(|error| {
+        anyhow!("decode profile-overrepresented local-smoke effective params: {error}")
+    })?;
+
+    let input_r1 = repo_root.join(&case.r1);
+    let input_r2 = case.r2.as_ref().map(|path| repo_root.join(path));
+    let case_output_tsv = resolve_smoke_path(
+        repo_root,
+        required_output_path(&case.plan, "overrepresented_sequences_tsv")?,
+    );
+    let case_output_json = resolve_smoke_path(
+        repo_root,
+        required_output_path(&case.plan, "overrepresented_sequences_json")?,
+    );
+    let case_report_json =
+        resolve_smoke_path(repo_root, required_output_path(&case.plan, "report_json")?);
+    let raw_backend_report = resolve_smoke_path(
+        repo_root,
+        &case.plan.out_dir.join("profile_overrepresented_sequences.local.log"),
+    );
+
+    let mut report = bijux_dna_domain_fastq::stages::contract::profile_overrepresented_sequences(
+        &input_r1,
+        input_r2.as_deref(),
+        &effective_params,
+        &case_output_tsv,
+        &case_output_json,
+        &case_report_json,
+        Some(&raw_backend_report),
+    )?;
+
+    report.input_r1 = case.r1.display().to_string();
+    report.input_r2 = case.r2.as_ref().map(|path| path.display().to_string());
+    report.overrepresented_sequences_tsv = path_relative_to_repo(repo_root, &case_output_tsv);
+    report.overrepresented_sequences_json = path_relative_to_repo(repo_root, &case_output_json);
+    report.report_json = path_relative_to_repo(repo_root, &case_report_json);
+    report.raw_backend_report = Some(path_relative_to_repo(repo_root, &raw_backend_report));
+    bijux_dna_infra::atomic_write_json(&case_report_json, &report)?;
+
+    let top_level_tsv = output_root.join("overrepresented.tsv");
+    copy_smoke_artifact(&case_output_tsv, &top_level_tsv)?;
+
+    let top_row = report.rows.first().ok_or_else(|| {
+        anyhow!("profile_overrepresented_sequences local smoke expected at least one ranked row")
+    })?;
+
+    Ok(LocalProfileOverrepresentedSequencesSmokeReport {
+        schema_version: LOCAL_PROFILE_OVERREPRESENTED_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        sample_id: case.sample_id.clone(),
+        planned_tool_id: case.plan.tool_id.as_str().to_string(),
+        report_tool_id: report.tool_id,
+        top_sequence: top_row.sequence.clone(),
+        top_count: top_row.count,
+        top_fraction: top_row.fraction,
+        flagged_sequences: report.flagged_sequences,
+        overrepresented_tsv: path_relative_to_repo(repo_root, &top_level_tsv),
+        case_report_json: path_relative_to_repo(repo_root, &case_report_json),
+        raw_backend_report: path_relative_to_repo(repo_root, &raw_backend_report),
+    })
 }
 
 struct OverrepresentedBenchmarkSetup {
@@ -809,6 +932,27 @@ fn required_output_path<'a>(
         .find(|artifact| artifact.name.as_str() == artifact_id)
         .map(|artifact| artifact.path.as_path())
         .ok_or_else(|| anyhow!("missing required output artifact `{artifact_id}`"))
+}
+
+fn resolve_smoke_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
+fn copy_smoke_artifact(from: &Path, to: &Path) -> Result<()> {
+    if let Some(parent) = to.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    std::fs::copy(from, to)
+        .with_context(|| format!("copy smoke artifact {} -> {}", from.display(), to.display()))?;
+    Ok(())
 }
 
 fn open_fastq_lines(path: &Path) -> Result<Vec<String>> {

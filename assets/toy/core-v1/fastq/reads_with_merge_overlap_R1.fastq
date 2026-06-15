@@ -1,0 +1,8 @@
+@merge_pair/1
+ACGTACGTGGGG
++
+IIIIIIIIIIII
+@separate_pair/1
+GGGGAAAACCCC
++
+JJJJJJJJJJJJ

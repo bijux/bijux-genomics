@@ -1,0 +1,1188 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Governed runtime declarations for benchmark-ready FASTQ and BAM stage-tool commands.
+# authority = bijux-dna-bench
+# stability = evolving
+
+schema_version = "bijux.bench.local_stage_tool_containers.v1"
+classification_scope = "benchmark_ready_runtime_declarations"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.align"
+tool_id = "bowtie2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bowtie2"
+command_entrypoint = "bowtie2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.align"
+tool_id = "bwa"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bwa"
+command_entrypoint = "bwa"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.authenticity"
+tool_id = "authenticct"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/authenticct:1.0.0"
+command_entrypoint = "authenticct"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.authenticity"
+tool_id = "damageprofiler"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/damageprofiler:1.1"
+command_entrypoint = "damageprofiler"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.authenticity"
+tool_id = "pmdtools"
+execution_mode = "python"
+install_kind = "container"
+container_id = "bijuxdna/pmdtools:0.60"
+command_entrypoint = "pmdtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.bias_mitigation"
+tool_id = "mapdamage2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/mapdamage2:2.2.2"
+command_entrypoint = "mapdamage2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.complexity"
+tool_id = "preseq"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/preseq"
+command_entrypoint = "preseq"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.contamination"
+tool_id = "contammix"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/contammix"
+command_entrypoint = "contammix"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.contamination"
+tool_id = "schmutzi"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/schmutzi"
+command_entrypoint = "schmutzi"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.contamination"
+tool_id = "verifybamid2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/verifybamid2"
+command_entrypoint = "verifybamid2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.coverage"
+tool_id = "bedtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bedtools:2.31.1"
+command_entrypoint = "bedtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.coverage"
+tool_id = "mosdepth"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/mosdepth:0.3.10"
+command_entrypoint = "mosdepth"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.coverage"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+tool_id = "addeam"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/addeam:1.0.0"
+command_entrypoint = "addeam"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+tool_id = "damageprofiler"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/damageprofiler:1.1"
+command_entrypoint = "damageprofiler"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+tool_id = "mapdamage2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/mapdamage2:2.2.2"
+command_entrypoint = "mapdamage2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+tool_id = "ngsbriggs"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/ngsbriggs:0.1.3"
+command_entrypoint = "ngsbriggs"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+tool_id = "pmdtools"
+execution_mode = "python"
+install_kind = "container"
+container_id = "bijuxdna/pmdtools:0.60"
+command_entrypoint = "pmdtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+tool_id = "pydamage"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/pydamage:1.0.0"
+command_entrypoint = "pydamage"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.duplication_metrics"
+tool_id = "picard"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/picard:3.3.0"
+command_entrypoint = "picard"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.duplication_metrics"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.endogenous_content"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.filter"
+tool_id = "bamtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bamtools:2.5.2"
+command_entrypoint = "bamtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.filter"
+tool_id = "bedtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bedtools:2.31.1"
+command_entrypoint = "bedtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.filter"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.gc_bias"
+tool_id = "picard"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/picard:3.3.0"
+command_entrypoint = "picard"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.genotyping"
+tool_id = "angsd"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/angsd"
+command_entrypoint = "angsd"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.haplogroups"
+tool_id = "yleaf"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/yleaf"
+command_entrypoint = "yleaf"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.insert_size"
+tool_id = "picard"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/picard:3.3.0"
+command_entrypoint = "picard"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.kinship"
+tool_id = "angsd"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/angsd"
+command_entrypoint = "angsd"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.kinship"
+tool_id = "king"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/king:2.3.0"
+command_entrypoint = "king"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.length_filter"
+tool_id = "picard"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/picard:3.3.0"
+command_entrypoint = "picard"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.length_filter"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapping_summary"
+tool_id = "picard"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/picard:3.3.0"
+command_entrypoint = "picard"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapping_summary"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapq_filter"
+tool_id = "bamtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bamtools:2.5.2"
+command_entrypoint = "bamtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapq_filter"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.markdup"
+tool_id = "picard"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/picard:3.3.0"
+command_entrypoint = "picard"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.markdup"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.overlap_correction"
+tool_id = "bamutil"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bamutil:1.0.15"
+command_entrypoint = "bam"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.qc_pre"
+tool_id = "multiqc"
+execution_mode = "python"
+install_kind = "container"
+container_id = "bijuxdna/multiqc@sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec"
+command_entrypoint = "multiqc"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.qc_pre"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.recalibration"
+tool_id = "gatk"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/gatk:4.6.2.0"
+command_entrypoint = "gatk"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+tool_id = "angsd"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/angsd"
+command_entrypoint = "angsd"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+tool_id = "rxy"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/rxy"
+command_entrypoint = "rxy"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+tool_id = "yleaf"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/yleaf"
+command_entrypoint = "yleaf"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.validate"
+tool_id = "bamtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bamtools:2.5.2"
+command_entrypoint = "bamtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.validate"
+tool_id = "bedtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bedtools:2.31.1"
+command_entrypoint = "bedtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.validate"
+tool_id = "samtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/samtools:1.21"
+command_entrypoint = "samtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.cluster_otus"
+tool_id = "vsearch"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/vsearch@sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3"
+command_entrypoint = "vsearch"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.correct_errors"
+tool_id = "bayeshammer"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bayeshammer@sha256:99849ca7576f392a125ce5836e915481ada762cbb4fa9b69593b81c4ca359cd7"
+command_entrypoint = "spades.py"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.correct_errors"
+tool_id = "lighter"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/lighter@sha256:e65d145062ddedd1e584f7aec7db45c13ddf33f849888e61d6c3b91e89730085"
+command_entrypoint = "lighter"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.correct_errors"
+tool_id = "musket"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/musket@sha256:d2761679719e961709c0c4842842c0bcb5b3fdc23a5046aa6cd2b28a6dfaca68"
+command_entrypoint = "musket"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.correct_errors"
+tool_id = "rcorrector"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/rcorrector@sha256:cfec0e32dc980f61681376e78961785c8f74804bd90ebabccb98f825e5fdb454"
+command_entrypoint = "run_rcorrector.pl"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.deplete_host"
+tool_id = "bowtie2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bowtie2"
+command_entrypoint = "bowtie2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.deplete_reference_contaminants"
+tool_id = "bowtie2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bowtie2"
+command_entrypoint = "bowtie2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.deplete_rrna"
+tool_id = "sortmerna"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/sortmerna@sha256:2021b21d075d06404339ec019b9729f2dfb820685c86835df654c2fb7d8b447c"
+command_entrypoint = "sortmerna"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.detect_adapters"
+tool_id = "fastqc"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789"
+command_entrypoint = "fastqc"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.detect_duplicates_premerge"
+tool_id = "bijux_dna"
+execution_mode = "internal"
+install_kind = "workspace_binary"
+command_entrypoint = "bijux-dna"
+host_binary_mode = "workspace_binary"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.estimate_library_complexity_prealign"
+tool_id = "bijux_dna"
+execution_mode = "internal"
+install_kind = "workspace_binary"
+command_entrypoint = "bijux-dna"
+host_binary_mode = "workspace_binary"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.extract_umis"
+tool_id = "umi_tools"
+execution_mode = "python"
+install_kind = "container"
+container_id = "bijuxdna/umi_tools@sha256:b2913af8c02c1eeea5de7a4b5c120f65e2003b90479c8873f0ec37689d36296c"
+command_entrypoint = "umi_tools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_low_complexity"
+tool_id = "bbduk"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4"
+command_entrypoint = "bbduk"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_low_complexity"
+tool_id = "prinseq"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
+command_entrypoint = "prinseq++"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_reads"
+tool_id = "bbduk"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4"
+command_entrypoint = "bbduk"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_reads"
+tool_id = "fastp"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10"
+command_entrypoint = "fastp"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_reads"
+tool_id = "prinseq"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
+command_entrypoint = "prinseq++"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_reads"
+tool_id = "seqkit"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+command_entrypoint = "seqkit"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.index_reference"
+tool_id = "bowtie2_build"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bowtie2_build"
+command_entrypoint = "bowtie2-build"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.index_reference"
+tool_id = "star"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/star"
+command_entrypoint = "star"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.infer_asvs"
+tool_id = "dada2"
+execution_mode = "r"
+install_kind = "container"
+container_id = "bijuxdna/dada2@sha256:930e06fb8e27965ccafae61d4161ab5e32933aea2555e68ad409ef7af43c8245"
+command_entrypoint = "dada2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
+tool_id = "adapterremoval"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/adapterremoval@sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d"
+command_entrypoint = "AdapterRemoval"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
+tool_id = "bbmerge"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bbmerge@sha256:6182848b989c8dbf094e06c486190b5d54243ac8eea542daa2c5c059a11bba54"
+command_entrypoint = "bbmerge"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
+tool_id = "flash2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/flash2@sha256:e3dfc866d56d1ca6d62c58ade5981e0b00fc3c8bf8148ecbd196ab56293e1dd5"
+command_entrypoint = "flash2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
+tool_id = "leehom"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/leehom@sha256:146f111ee336a7d01cba5861a9672d75a7739ad7ece923925bbd90c2550341b1"
+command_entrypoint = "leehom"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
+tool_id = "pear"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/pear@sha256:4e00e9ffabc5ed46115efab5b6bae946913f1713bb314fd4acb7c379c37efae6"
+command_entrypoint = "pear"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
+tool_id = "vsearch"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/vsearch@sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3"
+command_entrypoint = "vsearch"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.normalize_abundance"
+tool_id = "seqkit"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+command_entrypoint = "seqkit"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.normalize_primers"
+tool_id = "cutadapt"
+execution_mode = "python"
+install_kind = "container"
+container_id = "bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
+command_entrypoint = "cutadapt"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_overrepresented_sequences"
+tool_id = "fastq_scan"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/fastq_scan@sha256:973e958d84a4a5d779a71e34f890b0a5335607e1fe56207c8a145409fd2937ad"
+command_entrypoint = "fastq_scan"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_overrepresented_sequences"
+tool_id = "fastqc"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789"
+command_entrypoint = "fastqc"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_overrepresented_sequences"
+tool_id = "seqkit"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+command_entrypoint = "seqkit"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_read_lengths"
+tool_id = "fastp"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10"
+command_entrypoint = "fastp"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_read_lengths"
+tool_id = "prinseq"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
+command_entrypoint = "prinseq++"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_read_lengths"
+tool_id = "seqfu"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqfu:2.4.0"
+command_entrypoint = "seqfu"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_read_lengths"
+tool_id = "seqkit_stats"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+command_entrypoint = "seqkit_stats"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_reads"
+tool_id = "seqfu"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqfu:2.4.0"
+command_entrypoint = "seqfu"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_reads"
+tool_id = "seqkit"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+command_entrypoint = "seqkit"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_reads"
+tool_id = "seqkit_stats"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+command_entrypoint = "seqkit_stats"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.remove_chimeras"
+tool_id = "vsearch"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/vsearch@sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3"
+command_entrypoint = "vsearch"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.remove_duplicates"
+tool_id = "clumpify"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/clumpify@sha256:fa8159777183edae8355363ba8cc5e8f8f069bee09cb6f2fb70a7ca4220a5c81"
+command_entrypoint = "bash"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.remove_duplicates"
+tool_id = "fastuniq"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/fastuniq@sha256:4e0aba0be50a2894b7d36e34599cb4ff727be3e57fe47895f1a35b04985fcacf"
+command_entrypoint = "bash"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.screen_taxonomy"
+tool_id = "centrifuge"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/centrifuge@sha256:7a29ee8d8dc156513a23e05e9f8fda2299032ab7e6d5cb3c241c9f34c3f81553"
+command_entrypoint = "centrifuge"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.screen_taxonomy"
+tool_id = "kaiju"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/kaiju@sha256:4f30fd9becc62e873bc223231c717bba5b42db8a4f993979bf26c7fc00979f9b"
+command_entrypoint = "kaiju"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.screen_taxonomy"
+tool_id = "kraken2"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/kraken2@sha256:e493061d26aeea71812ed8b587a0e65f67617b192e225d8d53eba896dfe7cb35"
+command_entrypoint = "kraken2"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.screen_taxonomy"
+tool_id = "krakenuniq"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/krakenuniq"
+command_entrypoint = "krakenuniq"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_polyg_tails"
+tool_id = "bbduk"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4"
+command_entrypoint = "bbduk"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_polyg_tails"
+tool_id = "fastp"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10"
+command_entrypoint = "fastp"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "adapterremoval"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/adapterremoval@sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d"
+command_entrypoint = "AdapterRemoval"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "alientrimmer"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/alientrimmer"
+command_entrypoint = "alientrimmer"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "atropos"
+execution_mode = "python"
+install_kind = "container"
+container_id = "bijuxdna/atropos@sha256:5a2fab22811303ced83475111a2427eaa894fcb39436618bb26be1da391f300d"
+command_entrypoint = "atropos"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "bbduk"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4"
+command_entrypoint = "bbduk"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "cutadapt"
+execution_mode = "python"
+install_kind = "container"
+container_id = "bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
+command_entrypoint = "cutadapt"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "fastp"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10"
+command_entrypoint = "fastp"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "fastx_clipper"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/fastx_clipper"
+command_entrypoint = "fastx_clipper"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "leehom"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/leehom@sha256:146f111ee336a7d01cba5861a9672d75a7739ad7ece923925bbd90c2550341b1"
+command_entrypoint = "leehom"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "prinseq"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
+command_entrypoint = "prinseq++"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "seqkit"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+command_entrypoint = "seqkit"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "skewer"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/skewer"
+command_entrypoint = "skewer"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "trim_galore"
+execution_mode = "mixed"
+install_kind = "container"
+container_id = "bijuxdna/trim_galore@sha256:f323405a5a0ba19bbdae765dd4269e9156c415993977996079b63c5eb5bb0a61"
+command_entrypoint = "trim_galore"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+tool_id = "trimmomatic"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/trimmomatic@sha256:41c0d161444ee7bb6b36ead3bbceb998af611be6ead6784231c5440e092bd5a4"
+command_entrypoint = "trimmomatic"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_terminal_damage"
+tool_id = "adapterremoval"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/adapterremoval@sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d"
+command_entrypoint = "AdapterRemoval"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_terminal_damage"
+tool_id = "cutadapt"
+execution_mode = "python"
+install_kind = "container"
+container_id = "bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
+command_entrypoint = "cutadapt"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_terminal_damage"
+tool_id = "seqkit"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+command_entrypoint = "seqkit"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+tool_id = "fastq_scan"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/fastq_scan@sha256:973e958d84a4a5d779a71e34f890b0a5335607e1fe56207c8a145409fd2937ad"
+command_entrypoint = "fastq_scan"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+tool_id = "fastqc"
+execution_mode = "java"
+install_kind = "container"
+container_id = "bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789"
+command_entrypoint = "fastqc"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+tool_id = "fastqvalidator"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/fastqvalidator@sha256:3e01ccfed0313ffb63e8b9a8c4044a47249906d0b7b32c68caccf81f0a532edc"
+command_entrypoint = "fastqvalidator"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+tool_id = "fqtools"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/fqtools@sha256:d7190221f5582bdabccecb3bae06d463d81c0cb06d47a80fa4c1b3c4704d4bf6"
+command_entrypoint = "fqtools"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+tool_id = "seqtk"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/seqtk@sha256:16e615286a66f1654278a862ad47c3d62bdfabbbf17cb2e12a568256d1b05024"
+command_entrypoint = "seqtk"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"

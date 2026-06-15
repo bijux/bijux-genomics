@@ -7,7 +7,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "optional read-two input is admitted only for paired-end alignment runs",
+          "reference index assets stay aligned with the selected aligner backend"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -28,10 +29,10 @@
       },
       {
         "stage_id": "bam.bias_mitigation",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "admitted bias-mitigation tools must preserve the governed bias report, summary JSON, and benchmark-facing stage metrics"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -40,10 +41,11 @@
       },
       {
         "stage_id": "bam.complexity",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "complexity extrapolation requires sufficient observed unique-read support before estimated_library_size and saturation_estimate can be emitted",
+          "the governed complexity_curve artifact is the benchmark-facing tabular curve even when the underlying backend is preseq"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -67,7 +69,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "default stage assumptions captured",
+          "coverage summaries stay comparable only when target-space selection is fixed"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -79,7 +82,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "damage tools emit comparable terminal-position evidence from the same aligned BAM input",
+          "admitted and planned damage rows preserve governed damage-report, terminal-position-metrics, and parser-output semantics even when backend raw artifacts differ"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -91,7 +95,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "duplicate-rate estimation requires coordinate-consistent BAM and read-group metadata"
+          "duplicate-rate estimation requires coordinate-consistent BAM and read-group metadata",
+          "admitted BAM duplication-metrics tools must preserve the governed duplicate-count, duplicate-fraction, and estimated-library-size contract"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -103,7 +108,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "endogenous ratio computed from stable mapping summary counts and host-contig rules"
+          "endogenous ratio computed from stable mapping summary counts and host-contig rules",
+          "admitted endogenous-content tools must preserve governed total-read, mapped-read, endogenous-read, and endogenous-fraction semantics"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -115,7 +121,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "all admitted BAM filter tools must preserve the governed retained/removed read accounting contract",
+          "active_filters records policy intent even when tool-specific argv differs across samtools, bamtools, and bedtools"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -127,7 +134,8 @@
         "evidence_status": "planned",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "reference GC context and aligned read depth are available"
+          "reference GC context and aligned read depth are available",
+          "admitted GC-bias tools must preserve the governed metrics report, plot, summary JSON, and benchmark-facing dropout metric contract"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -138,7 +146,7 @@
       },
       {
         "stage_id": "bam.genotyping",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "default stage assumptions captured"
@@ -150,7 +158,7 @@
       },
       {
         "stage_id": "bam.haplogroups",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "default stage assumptions captured"
@@ -165,7 +173,8 @@
         "evidence_status": "planned",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "paired-end alignment metadata is available for insert-size inference"
+          "paired-end alignment metadata is available for insert-size inference",
+          "admitted BAM insert-size tools must preserve the governed report, histogram, paired-template count, and insert-size summary contract"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -191,7 +200,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "length thresholds are deterministic for fixed BAM input"
+          "length thresholds are deterministic for fixed BAM input",
+          "all admitted BAM length-filter tools must preserve the governed threshold, retained-read, removed-read, and filtered-BAM contract"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -203,7 +213,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "mapping summary metrics are generated from deterministic BAM summary commands"
+          "samtools remains the governed baseline for fixture-backed BAM mapping-summary smoke coverage",
+          "picard contributes a governed comparison backend for alignment-summary metrics without changing the canonical BAM row metrics"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -215,7 +226,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "MAPQ thresholds are deterministic for fixed BAM/input index"
+          "MAPQ thresholds are deterministic for fixed BAM/input index",
+          "all admitted BAM MAPQ-filter tools must preserve the governed threshold, retained-read, removed-read, and filtered-BAM contract"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -227,7 +239,7 @@
         "evidence_status": "planned",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "admitted BAM markdup tools must preserve the governed marked-BAM, duplicate-metric, duplicate-count, and duplicate-fraction contract"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -236,10 +248,11 @@
       },
       {
         "stage_id": "bam.overlap_correction",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "paired read overlap clipping requires consistent template metadata"
+          "paired read overlap clipping requires consistent template metadata",
+          "admitted overlap-correction tools must preserve the governed corrected-BAM, corrected-index, before-and-after audit artifacts, and overlap summary metrics contract"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -248,10 +261,11 @@
       },
       {
         "stage_id": "bam.qc_pre",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "samtools is the governed primary executor for flagstat, idxstats, and stats materialization",
+          "multiqc is a governed reporting companion that aggregates governed bam.qc_pre summaries without redefining the canonical row metrics"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -260,7 +274,7 @@
       },
       {
         "stage_id": "bam.recalibration",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "default stage assumptions captured"
@@ -287,7 +301,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "bam_index and reference_fasta are optional inputs that enrich validation identity when present",
+          "governed fixtures currently emit refusal codes as errors and no warning-grade findings"
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -370,7 +385,9 @@
         ],
         "invariants": [
           "stable_artifact_contract",
-          "deterministic_output_order"
+          "deterministic_output_order",
+          "clustering_threshold == otu_identity",
+          "representative_sequence_count == representative_count"
         ]
       },
       {
@@ -444,6 +461,7 @@
         "assumptions": [
           "contaminant decoy reference is explicitly versioned and separate from taxonomy DB.",
           "single-end input omits reads_r2 and contaminant_screened_reads_r2; paired-end input preserves mate synchronization during contaminant depletion.",
+          "removed_contaminant_reads_* artifacts carry the reads rejected by contaminant depletion while preserving mate synchronization.",
           "contaminant_screen_report_json is the canonical governed depletion report; backend-native alignment metrics remain traceable from that report."
         ],
         "invariants": [
@@ -470,7 +488,8 @@
         "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "single-end input omits reads_r2; paired-end input contributes both mates to governed evidence-only adapter inspection.",
-          "fastqc inspects the full input set, so sampled-read evidence is not claimed by the canonical contract."
+          "fastqc inspects the full input set, so sampled-read evidence is not claimed by the canonical contract.",
+          "governed benchmark rows must expose adapter_report, detected_adapter_ids, detection_confidence, and detection_threshold fields from the canonical adapter-inspection report."
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -480,7 +499,7 @@
       },
       {
         "stage_id": "fastq.detect_duplicates_premerge",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "premerge duplicate detection is not equivalent to aligned duplicate marking and must stay report-only until route evidence is present."
@@ -504,7 +523,7 @@
       },
       {
         "stage_id": "fastq.estimate_library_complexity_prealign",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "prealignment complexity estimates are exploratory unless benchmarked against aligned duplicate metrics."
@@ -633,7 +652,8 @@
         "invariants": [
           "stable_artifact_contract",
           "amplicon_only_stage",
-          "per_sample_abundance_is_compositional"
+          "per_sample_abundance_is_compositional",
+          "normalization_method == method"
         ]
       },
       {
@@ -753,7 +773,9 @@
           "stable_artifact_contract",
           "deterministic_output_order",
           "reads_out <= reads_in",
+          "non_chimera_count == reads_out",
           "chimeras_removed == reads_in - reads_out",
+          "chimera_count == chimeras_removed",
           "chimera_fraction in [0, 1]"
         ]
       },
@@ -804,7 +826,8 @@
         "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "supported tools must emit read-level taxonomic classifications from the screened FASTQ input.",
-          "screen_report_tsv preserves the raw classifier summary while classification_report_json stores the governed taxonomy report contract."
+          "screen_report_tsv preserves the raw classifier summary while classification_report_json stores the governed taxonomy report contract.",
+          "when the selected backend supports unclassified-read export and emit_unclassified is enabled, unclassified_reads_* preserve the reads that remained taxonomically unresolved."
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -909,7 +932,9 @@
         "evidence_status": "planned",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage"
+          "sample_population_labels_are_required",
+          "cluster_assignments_sum_to_one_within_tolerance_per_sample",
+          "admixture_outputs_emit_metrics_json_with_schema_bijux.vcf.admixture.v1"
         ],
         "invariants": [
           "stable_artifact_contract"
@@ -1028,11 +1053,13 @@
         ]
       },
       {
-        "stage_id": "vcf.imputation",
-        "evidence_status": "planned",
+        "stage_id": "vcf.imputation_metrics",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage"
+          "panel_required",
+          "genetic_map_required",
+          "imputation_metrics_outputs_emit_metrics_json_with_schema_bijux.vcf.imputation_metrics.v1"
         ],
         "invariants": [
           "stable_artifact_contract"
@@ -1040,11 +1067,11 @@
       },
       {
         "stage_id": "vcf.impute",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage",
-          "panel_required"
+          "panel_required",
+          "genetic_map_required"
         ],
         "invariants": [
           "stable_artifact_contract"
@@ -1052,10 +1079,12 @@
       },
       {
         "stage_id": "vcf.pca",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage"
+          "diploid_assumptions",
+          "ld_pruning_and_missingness_thresholds_are_fixed_per_run",
+          "pca_outputs_emit_metrics_json_with_schema_bijux.vcf.pca.v1"
         ],
         "invariants": [
           "stable_artifact_contract"
@@ -1063,10 +1092,11 @@
       },
       {
         "stage_id": "vcf.phasing",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage"
+          "panel_required",
+          "genetic_map_required"
         ],
         "invariants": [
           "stable_artifact_contract"
@@ -1074,11 +1104,11 @@
       },
       {
         "stage_id": "vcf.population_structure",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "diploid_assumptions",
-          "ld_pruning_and_missingness_thresholds_are_fixed_per_run",
+          "sample_population_labels_are_required",
+          "pca_and_admixture_outputs_are_consumed_from_the_same_run",
           "population_structure_outputs_emit_metrics_json_with_schema_bijux.vcf.population_structure.v1"
         ],
         "invariants": [
@@ -1087,10 +1117,10 @@
       },
       {
         "stage_id": "vcf.postprocess",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage"
+          "governed_stage"
         ],
         "invariants": [
           "stable_artifact_contract"
@@ -1098,10 +1128,9 @@
       },
       {
         "stage_id": "vcf.prepare_reference_panel",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage",
           "reference_build_fixed"
         ],
         "invariants": [
@@ -1110,10 +1139,12 @@
       },
       {
         "stage_id": "vcf.qc",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "planned_stage"
+          "cohort_missingness_thresholds_are_fixed_per_run",
+          "ancient_dna_hwe_policy_is_explicit",
+          "qc_outputs_emit_metrics_json_with_schema_bijux.vcf.qc.v1"
         ],
         "invariants": [
           "stable_artifact_contract"

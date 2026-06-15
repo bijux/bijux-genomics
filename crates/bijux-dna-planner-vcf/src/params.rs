@@ -147,7 +147,7 @@ pub(crate) fn stage_params(
                 })
             }
         },
-        VcfDomainStage::Imputation | VcfDomainStage::Impute => match tool {
+        VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute => match tool {
             "glimpse" => {
                 let boundary = phase_impute_boundary(stage).expect("imputation boundary contract");
                 serde_json::json!({

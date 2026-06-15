@@ -1,0 +1,65 @@
+{
+  "schema_version": "bijux.bench.stage_result.v2",
+  "stage_id": "fastq.infer_asvs",
+  "tool": {
+    "id": "dada2"
+  },
+  "command": {
+    "rendered": "bijux-dna bench readiness missing-result-fixture --stage fastq.infer_asvs --tool dada2"
+  },
+  "runtime": {
+    "mode": "fake_benchmark_result",
+    "status": "succeeded",
+    "started_at": "1970-01-01T00:00:00Z",
+    "finished_at": "1970-01-01T00:00:01Z",
+    "elapsed_seconds": 1.0,
+    "exit_code": 0
+  },
+  "resource_metrics": {
+    "source": "estimated",
+    "memory_mb": 512.0,
+    "cpu_threads": 1
+  },
+  "outputs": [
+    {
+      "artifact_id": "asv_table_tsv",
+      "declared_path": "outputs/asv_table_tsv.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-03-amplicon-mini/fastq.infer_asvs/sample-set/dada2/outputs/asv_table_tsv.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "asv_sequences_fasta",
+      "declared_path": "outputs/asv_sequences_fasta.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-03-amplicon-mini/fastq.infer_asvs/sample-set/dada2/outputs/asv_sequences_fasta.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "taxonomy_ready_fasta",
+      "declared_path": "outputs/taxonomy_ready_fasta.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-03-amplicon-mini/fastq.infer_asvs/sample-set/dada2/outputs/taxonomy_ready_fasta.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "taxonomy_ready_fastq",
+      "declared_path": "outputs/taxonomy_ready_fastq.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-03-amplicon-mini/fastq.infer_asvs/sample-set/dada2/outputs/taxonomy_ready_fastq.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "report_json",
+      "declared_path": "outputs/report_json.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-03-amplicon-mini/fastq.infer_asvs/sample-set/dada2/outputs/report_json.json",
+      "role": "normalized_metrics",
+      "optional": false,
+      "exists": true
+    }
+  ]
+}

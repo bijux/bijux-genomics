@@ -28,72 +28,104 @@ pub struct StageIoContract {
 
 #[must_use]
 pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
-    fn port(
-        name: &'static str,
-        data_type: &'static str,
-        cardinality: PortCardinality,
-    ) -> StagePortContract {
-        StagePortContract { name, data_type, cardinality }
-    }
-
     let one = PortCardinality::One;
     let many = PortCardinality::Many;
-    let contract = match stage {
+    Some(match stage {
         VcfDomainStage::Call
         | VcfDomainStage::CallDiploid
         | VcfDomainStage::CallGl
-        | VcfDomainStage::CallPseudohaploid => StageIoContract {
+        | VcfDomainStage::CallPseudohaploid => contract(
             stage,
-            inputs: vec![port("bam", "bam", many)],
-            outputs: vec![port("vcf", "vcf", one)],
-            required_inputs: vec!["bam"],
-            required_outputs: vec!["vcf"],
-            required_indices: vec!["bam.bai"],
-        },
+            vec![port("bam", "bam", many)],
+            vec![port("vcf", "vcf", one)],
+            vec!["bam"],
+            vec!["vcf"],
+            vec!["bam.bai"],
+        ),
         VcfDomainStage::DamageFilter
         | VcfDomainStage::Filter
         | VcfDomainStage::GlPropagation
         | VcfDomainStage::Phasing
-        | VcfDomainStage::Imputation
         | VcfDomainStage::Impute
-        | VcfDomainStage::Postprocess
-        | VcfDomainStage::Qc
-        | VcfDomainStage::Stats => StageIoContract {
+        | VcfDomainStage::Postprocess => indexed_vcf_transform_contract(stage, "vcf", "vcf_out"),
+        VcfDomainStage::Qc => indexed_vcf_report_contract(stage, "vcf", "qc_report"),
+        VcfDomainStage::Stats => indexed_vcf_report_contract(stage, "vcf", "stats_json"),
+        VcfDomainStage::ImputationMetrics => {
+            indexed_vcf_report_contract(stage, "vcf", "imputation_metrics_json")
+        }
+        VcfDomainStage::Pca => indexed_vcf_report_contract(stage, "vcf", "pca_report"),
+        VcfDomainStage::Admixture => indexed_vcf_report_contract(stage, "vcf", "admixture_report"),
+        VcfDomainStage::PopulationStructure => {
+            indexed_vcf_report_contract(stage, "filtered_vcf", "population_structure_report")
+        }
+        VcfDomainStage::Roh => indexed_vcf_report_contract(stage, "filtered_vcf", "roh_report"),
+        VcfDomainStage::Ibd => contract(
             stage,
-            inputs: vec![port("vcf", "vcf", one)],
-            outputs: vec![port("vcf_out", "vcf", one)],
-            required_inputs: vec!["vcf"],
-            required_outputs: vec!["vcf_out"],
-            required_indices: vec!["vcf.tbi"],
-        },
-        VcfDomainStage::PopulationStructure
-        | VcfDomainStage::Pca
-        | VcfDomainStage::Admixture
-        | VcfDomainStage::Roh
-        | VcfDomainStage::Ibd => StageIoContract {
+            vec![port("filtered_vcf", "vcf", one)],
+            vec![port("ibd_segments", "tsv", one)],
+            vec!["filtered_vcf"],
+            vec!["ibd_segments"],
+            vec!["vcf.tbi"],
+        ),
+        VcfDomainStage::Demography => contract(
             stage,
-            inputs: vec![port("filtered_vcf", "vcf", one)],
-            outputs: vec![port("report_json", "json", one)],
-            required_inputs: vec!["filtered_vcf"],
-            required_outputs: vec!["report_json"],
-            required_indices: vec!["vcf.tbi"],
-        },
-        VcfDomainStage::Demography => StageIoContract {
-            stage,
-            inputs: vec![port("ibd_segments", "json", one)],
-            outputs: vec![port("demography_report", "json", one)],
-            required_inputs: vec!["ibd_segments"],
-            required_outputs: vec!["demography_report"],
-            required_indices: vec![],
-        },
-        VcfDomainStage::PrepareReferencePanel => StageIoContract {
-            stage,
-            inputs: vec![port("panel_vcf", "vcf", one)],
-            outputs: vec![port("prepared_panel", "vcf", one)],
-            required_inputs: vec!["panel_vcf"],
-            required_outputs: vec!["prepared_panel"],
-            required_indices: vec!["vcf.tbi"],
-        },
-    };
-    Some(contract)
+            vec![port("ibd_segments", "tsv", one)],
+            vec![port("demography_report", "json", one)],
+            vec!["ibd_segments"],
+            vec!["demography_report"],
+            vec![],
+        ),
+        VcfDomainStage::PrepareReferencePanel => {
+            indexed_vcf_transform_contract(stage, "panel_vcf", "prepared_panel")
+        }
+    })
+}
+
+fn port(
+    name: &'static str,
+    data_type: &'static str,
+    cardinality: PortCardinality,
+) -> StagePortContract {
+    StagePortContract { name, data_type, cardinality }
+}
+
+fn contract(
+    stage: VcfDomainStage,
+    inputs: Vec<StagePortContract>,
+    outputs: Vec<StagePortContract>,
+    required_inputs: Vec<&'static str>,
+    required_outputs: Vec<&'static str>,
+    required_indices: Vec<&'static str>,
+) -> StageIoContract {
+    StageIoContract { stage, inputs, outputs, required_inputs, required_outputs, required_indices }
+}
+
+fn indexed_vcf_transform_contract(
+    stage: VcfDomainStage,
+    input_name: &'static str,
+    output_name: &'static str,
+) -> StageIoContract {
+    contract(
+        stage,
+        vec![port(input_name, "vcf", PortCardinality::One)],
+        vec![port(output_name, "vcf", PortCardinality::One)],
+        vec![input_name],
+        vec![output_name],
+        vec!["vcf.tbi"],
+    )
+}
+
+fn indexed_vcf_report_contract(
+    stage: VcfDomainStage,
+    input_name: &'static str,
+    output_name: &'static str,
+) -> StageIoContract {
+    contract(
+        stage,
+        vec![port(input_name, "vcf", PortCardinality::One)],
+        vec![port(output_name, "json", PortCardinality::One)],
+        vec![input_name],
+        vec![output_name],
+        vec!["vcf.tbi"],
+    )
 }

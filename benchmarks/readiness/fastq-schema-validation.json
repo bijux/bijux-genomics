@@ -1,0 +1,146 @@
+{
+  "schema_version": "bijux.bench.readiness.fastq_schema_validation.v1",
+  "domain": "fastq",
+  "output_path": "benchmarks/readiness/fastq-schema-validation.json",
+  "shared_schema_path": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
+  "passes_gate": true,
+  "shared_schema_matches": true,
+  "stage_count": 27,
+  "rows": [
+    {
+      "stage_id": "fastq.cluster_otus",
+      "extension_id": "fastq_cluster_otus_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "extension_id": "fastq_correct_errors_v1",
+      "required_key_count": 10
+    },
+    {
+      "stage_id": "fastq.deplete_host",
+      "extension_id": "fastq_deplete_host_v1",
+      "required_key_count": 8
+    },
+    {
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "extension_id": "fastq_deplete_reference_contaminants_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "fastq.deplete_rrna",
+      "extension_id": "fastq_deplete_rrna_v2",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "fastq.detect_adapters",
+      "extension_id": "fastq_detect_adapters_v1",
+      "required_key_count": 6
+    },
+    {
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "extension_id": "fastq_detect_duplicates_premerge_v1",
+      "required_key_count": 7
+    },
+    {
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "extension_id": "fastq_estimate_library_complexity_prealign_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "fastq.extract_umis",
+      "extension_id": "fastq_extract_umis_v1",
+      "required_key_count": 12
+    },
+    {
+      "stage_id": "fastq.filter_low_complexity",
+      "extension_id": "fastq_low_complexity_v1",
+      "required_key_count": 11
+    },
+    {
+      "stage_id": "fastq.filter_reads",
+      "extension_id": "fastq_filter_reads_v2",
+      "required_key_count": 16
+    },
+    {
+      "stage_id": "fastq.index_reference",
+      "extension_id": "fastq_index_reference_v1",
+      "required_key_count": 11
+    },
+    {
+      "stage_id": "fastq.infer_asvs",
+      "extension_id": "fastq_infer_asvs_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "extension_id": "fastq_merge_pairs_v1",
+      "required_key_count": 20
+    },
+    {
+      "stage_id": "fastq.normalize_abundance",
+      "extension_id": "fastq_normalize_abundance_v1",
+      "required_key_count": 11
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
+      "extension_id": "fastq_normalize_primers_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "extension_id": "fastq_profile_overrepresented_sequences_v1",
+      "required_key_count": 7
+    },
+    {
+      "stage_id": "fastq.profile_read_lengths",
+      "extension_id": "fastq_profile_read_lengths_v1",
+      "required_key_count": 10
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "extension_id": "fastq_profile_reads_v1",
+      "required_key_count": 7
+    },
+    {
+      "stage_id": "fastq.remove_chimeras",
+      "extension_id": "fastq_remove_chimeras_v1",
+      "required_key_count": 11
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "extension_id": "fastq_deduplicate_v1",
+      "required_key_count": 16
+    },
+    {
+      "stage_id": "fastq.report_qc",
+      "extension_id": "fastq_report_qc_v1",
+      "required_key_count": 9
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "extension_id": "fastq_screen_taxonomy_v1",
+      "required_key_count": 10
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "extension_id": "fastq_trim_polyg_tails_v1",
+      "required_key_count": 12
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "extension_id": "fastq_trim_reads_v2",
+      "required_key_count": 12
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "extension_id": "fastq_trim_terminal_damage_v2",
+      "required_key_count": 15
+    },
+    {
+      "stage_id": "fastq.validate_reads",
+      "extension_id": "fastq_validate_reads_v1",
+      "required_key_count": 7
+    }
+  ]
+}

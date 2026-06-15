@@ -6,7 +6,7 @@ use crate::params::{
     PairedMode,
 };
 
-pub const DETECT_ADAPTERS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.detect_adapters.report.v2";
+pub const DETECT_ADAPTERS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.detect_adapters.report.v3";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
@@ -24,6 +24,9 @@ pub struct DetectAdaptersReportV1 {
     pub evidence_format: AdapterEvidenceFormat,
     pub evidence_artifact_id: String,
     pub detected_adapter_source: String,
+    pub detected_adapter_ids: Vec<String>,
+    pub detection_confidence: Option<f64>,
+    pub detection_threshold: Option<f64>,
     pub input_r1: String,
     pub input_r2: Option<String>,
     pub report_json: String,
@@ -77,6 +80,9 @@ mod tests {
             evidence_format: AdapterEvidenceFormat::FastqcSummary,
             evidence_artifact_id: "report_json".to_string(),
             detected_adapter_source: "fastqc_summary".to_string(),
+            detected_adapter_ids: vec!["truseq_universal".to_string()],
+            detection_confidence: Some(0.08),
+            detection_threshold: Some(0.01),
             input_r1: "reads_R1.fastq.gz".to_string(),
             input_r2: Some("reads_R2.fastq.gz".to_string()),
             report_json: "adapter_report.json".to_string(),
@@ -114,5 +120,8 @@ mod tests {
         assert_eq!(decoded.evidence_scope, AdapterEvidenceScope::FullInput);
         assert_eq!(decoded.candidate_adapter_count, 2);
         assert_eq!(decoded.detected_adapter_source, "fastqc_summary");
+        assert_eq!(decoded.detected_adapter_ids, vec!["truseq_universal".to_string()]);
+        assert_eq!(decoded.detection_confidence, Some(0.08));
+        assert_eq!(decoded.detection_threshold, Some(0.01));
     }
 }

@@ -1,0 +1,11 @@
+schema_version = "bijux.bench.fastq.local_remove_duplicates.v1"
+tool_id = "clumpify"
+threads = 1
+dedup_mode = "exact"
+keep_order = true
+output_dir = "runs/bench/local-smoke/fastq.remove_duplicates"
+
+[[cases]]
+sample_id = "human_like_pe_duplicate_signals"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz"
+r2 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz"

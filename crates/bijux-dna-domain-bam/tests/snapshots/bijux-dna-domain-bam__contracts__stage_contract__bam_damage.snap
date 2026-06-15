@@ -5,12 +5,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 {
   "audit_artifacts": [
     {
-      "filename": "damage.pydamage.json",
-      "name": "damage_pydamage"
+      "filename": "damage.summary.json",
+      "name": "damage_report"
     },
     {
-      "filename": "damage.mapdamage2.txt",
-      "name": "damage_mapdamage2"
+      "filename": "damage.unified_metrics.json",
+      "name": "terminal_position_metrics"
+    },
+    {
+      "filename": "damage.parser_output.json",
+      "name": "parser_output"
     },
     {
       "filename": "stage.metrics.json",
@@ -34,15 +38,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "sorting": "requires_coordinate_sorted_input"
   },
   "outputs": [
-    "damage_pydamage",
-    "damage_mapdamage2",
+    "damage_report",
+    "terminal_position_metrics",
+    "parser_output",
     "stage_metrics"
   ],
   "schema_version": "bijux.stage_contract.v1",
   "stage_id": "bam.damage",
   "tool_ids": [
-    "mapdamage2",
+    "addeam",
     "damageprofiler",
+    "mapdamage2",
+    "ngsbriggs",
     "pmdtools",
     "pydamage"
   ]

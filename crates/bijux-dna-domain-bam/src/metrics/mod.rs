@@ -4,10 +4,12 @@ mod catalog;
 pub mod core;
 pub mod downstream;
 pub mod pre;
+mod raw_parser_contract;
 
 pub use core::{
-    compare_damage_metrics, parse_damageprofiler_json, parse_mapdamage2_misincorporation,
-    parse_mosdepth_summary, parse_picard_gc_bias_metrics, parse_picard_insert_size_metrics,
+    compare_damage_metrics, parse_addeam_json, parse_damageprofiler_json,
+    parse_mapdamage2_misincorporation, parse_mosdepth_summary, parse_ngsbriggs_json,
+    parse_picard_gc_bias_metrics, parse_picard_insert_size_metrics, parse_pmdtools_json,
     parse_preseq_estimates, parse_pydamage_json, parse_samtools_depth,
     parse_samtools_depth_with_uniformity, AdDeamMetricsV1, BamMetricsBundleV1, BamMetricsV1,
     ComplexityMetricsV1, CoverageMetricsV1, CoverageUniformityV1, DamageComparisonV1,
@@ -27,6 +29,10 @@ pub use downstream::{
 pub use pre::{
     parse_samtools_flagstat, parse_samtools_idxstats, parse_samtools_stats, AlignmentCountsV1,
     FragmentLengthSummaryV1, IdxstatsContigV1, IdxstatsSummaryV1, MapqSummaryV1,
+};
+pub use raw_parser_contract::{
+    evaluate_bam_raw_parser_failure_contracts, BamRawParserFailureClass,
+    BamRawParserFailureContractRow,
 };
 
 pub use crate::invariants::{

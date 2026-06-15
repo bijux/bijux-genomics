@@ -8,7 +8,8 @@
 - `configs/coverage/`: coverage thresholds and coverage gate inputs.
 - `configs/rust/`: Rust fmt, lint, audit, and nextest configuration.
 - `configs/logging/`: logging presets and logging format configuration.
-- `configs/bench/`: benchmark suite and benchmark profile configuration.
+- `configs/bench/`: benchmark suite and benchmark profile configuration; benchmark-local tracked
+  configs live under `benchmarks/configs/`.
 - `configs/runtime/`: runtime defaults and platform/local runtime knobs.
 - `configs/schema/`: schema-oriented config docs or schema descriptors.
 - `configs/domain/`: domain policy/config mappings.

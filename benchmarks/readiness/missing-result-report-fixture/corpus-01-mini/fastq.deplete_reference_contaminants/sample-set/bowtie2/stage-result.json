@@ -1,0 +1,89 @@
+{
+  "schema_version": "bijux.bench.stage_result.v2",
+  "stage_id": "fastq.deplete_reference_contaminants",
+  "tool": {
+    "id": "bowtie2"
+  },
+  "command": {
+    "rendered": "bijux-dna bench readiness missing-result-fixture --stage fastq.deplete_reference_contaminants --tool bowtie2"
+  },
+  "runtime": {
+    "mode": "fake_benchmark_result",
+    "status": "succeeded",
+    "started_at": "1970-01-01T00:00:00Z",
+    "finished_at": "1970-01-01T00:00:01Z",
+    "elapsed_seconds": 1.0,
+    "exit_code": 0
+  },
+  "resource_metrics": {
+    "source": "estimated",
+    "memory_mb": 512.0,
+    "cpu_threads": 1
+  },
+  "outputs": [
+    {
+      "artifact_id": "host_depleted_reads_r1",
+      "declared_path": "outputs/host_depleted_reads_r1.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.deplete_reference_contaminants/sample-set/bowtie2/outputs/host_depleted_reads_r1.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "host_depleted_reads_r2",
+      "declared_path": "outputs/host_depleted_reads_r2.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.deplete_reference_contaminants/sample-set/bowtie2/outputs/host_depleted_reads_r2.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "removed_host_reads_r1",
+      "declared_path": "outputs/removed_host_reads_r1.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.deplete_reference_contaminants/sample-set/bowtie2/outputs/removed_host_reads_r1.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "removed_host_reads_r2",
+      "declared_path": "outputs/removed_host_reads_r2.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.deplete_reference_contaminants/sample-set/bowtie2/outputs/removed_host_reads_r2.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "contaminant_screened_reads_r1",
+      "declared_path": "outputs/contaminant_screened_reads_r1.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.deplete_reference_contaminants/sample-set/bowtie2/outputs/contaminant_screened_reads_r1.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "contaminant_screened_reads_r2",
+      "declared_path": "outputs/contaminant_screened_reads_r2.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.deplete_reference_contaminants/sample-set/bowtie2/outputs/contaminant_screened_reads_r2.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "host_depletion_report_json",
+      "declared_path": "outputs/host_depletion_report_json.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.deplete_reference_contaminants/sample-set/bowtie2/outputs/host_depletion_report_json.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "contaminant_screen_report_json",
+      "declared_path": "outputs/contaminant_screen_report_json.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.deplete_reference_contaminants/sample-set/bowtie2/outputs/contaminant_screen_report_json.json",
+      "role": "normalized_metrics",
+      "optional": false,
+      "exists": true
+    }
+  ]
+}

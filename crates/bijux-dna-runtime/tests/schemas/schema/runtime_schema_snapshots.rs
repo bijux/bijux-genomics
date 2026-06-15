@@ -219,6 +219,7 @@ fn executor_descriptor_schema_snapshot() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn runtime_operations_schema_snapshots() {
     let backend = RunBackendRecordV1 {
         schema_version: "bijux.run_backend.v1".to_string(),

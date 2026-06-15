@@ -1,0 +1,45 @@
+schema_version = "bijux.bench.taxonomy_database_fixture.v2"
+database_id = "taxonomy-mini"
+description = "Tiny governed taxonomy directory bundle for local taxonomy dry-run and fixture-validation checks."
+lineage_table_path = "lineage.tsv"
+source_manifest_path = "source/panel_manifest.json"
+expected_classifier_compatibility = ["kraken2", "krakenuniq", "centrifuge", "kaiju"]
+limitations = [
+  "This bundle is a tiny governed fixture for local validation and lineage checks, not a production taxonomy database.",
+  "Placeholder classifier backend roots satisfy fixture-bundle shape for local validation and must not be interpreted as runnable production indexes.",
+]
+source_paths = [
+  "assets/reference/taxonomy/references/mock_community_taxonomy/lineage.tsv",
+  "assets/reference/taxonomy/references/mock_community_taxonomy/kraken2/DB_STATUS.tsv",
+]
+
+[[classifier_backends]]
+classifier = "kraken2"
+index_path = "kraken2/hash.k2d"
+
+[[classifier_backends]]
+classifier = "krakenuniq"
+index_path = "krakenuniq/database.kdb"
+
+[[classifier_backends]]
+classifier = "centrifuge"
+index_path = "centrifuge/reference.1.cf"
+
+[[classifier_backends]]
+classifier = "kaiju"
+index_path = "kaiju/nodes.dmp"
+
+[[taxa]]
+taxon_id = 561
+name = "Escherichia coli"
+rank = "species"
+
+[[taxa]]
+taxon_id = 28901
+name = "Salmonella enterica"
+rank = "species"
+
+[[taxa]]
+taxon_id = 28890
+name = "Halobacterium salinarum"
+rank = "species"

@@ -3,17 +3,15 @@ tool_id: seqfu
 upstream: https://github.com/telatin/seqfu2
 versioning_strategy: pinned
 pin_strategy: pinned
-default_version: planned
+default_version: 2.4.0
 install_kind: container
+container:
+  image: bijuxdna/seqfu:2.4.0
 license: GPL-3.0
 citation: paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC8148589/
-planned_stage_ids:
-- fastq.profile_read_lengths
-- fastq.normalize_abundance
-- fastq.profile_reads
 stage_ids:
 - fastq.profile_read_lengths
-- fastq.normalize_abundance
+- fastq.profile_reads
 stage_contracts:
   fastq.profile_read_lengths:
     required_inputs:
@@ -22,27 +20,21 @@ stage_contracts:
     - report_json
     - length_distribution_tsv
     - length_distribution_json
-    notes: Planned read-length profiling would emit governed histogram artifacts.
-  fastq.normalize_abundance:
-    required_inputs:
-    - abundance_table
-    expected_artifacts:
-    - normalized_abundance_tsv
-    - report_json
-    notes: Planned abundance normalization would emit the governed normalized abundance table and canonical report artifacts.
+    notes: SeqFu read-length profiling emits the governed summary report plus deterministic histogram artifacts.
   fastq.profile_reads:
     required_inputs:
     - reads_r1
+    optional_inputs:
+    - reads_r2
     expected_artifacts:
     - qc_json
     - qc_tsv
-    notes: Planned read profiling would emit governed qc_json and qc_tsv artifacts.
-status: planned
+    notes: SeqFu read profiling retains the governed qc_json and qc_tsv profile artifacts while using the current seqfu compatibility wrapper as the backend stats entrypoint.
+status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
 - length_distribution_tsv
 - length_distribution_json
-- normalized_abundance_tsv
 - report_json
 - qc_json
 - qc_tsv
@@ -61,3 +53,30 @@ capabilities:
 - SE
 - PE
 - qc
+outputs:
+- name: report_json
+  data_type: json
+  cardinality: One
+- name: length_distribution_tsv
+  data_type: tsv
+  cardinality: One
+- name: length_distribution_json
+  data_type: json
+  cardinality: One
+- name: qc_json
+  data_type: json
+  cardinality: One
+- name: qc_tsv
+  data_type: tsv
+  cardinality: One
+execution_contract:
+  required_inputs:
+  - reads_r1
+  expected_outputs:
+  - report_json
+  - length_distribution_tsv
+  - length_distribution_json
+  - qc_json
+  - qc_tsv
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true

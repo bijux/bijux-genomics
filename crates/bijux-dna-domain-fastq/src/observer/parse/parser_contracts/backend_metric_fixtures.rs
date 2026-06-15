@@ -29,14 +29,15 @@ fn parse_fastp_metrics_fixture() -> Result<()> {
 }
 
 #[test]
-fn parse_adapterremoval_metrics_fixture() {
+fn parse_adapterremoval_metrics_fixture() -> Result<()> {
     let raw = include_str!(
         "../../../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/adapterremoval.txt"
     );
-    let parsed = parse_adapterremoval_metrics(raw);
+    let parsed = parse_adapterremoval_metrics(raw)?;
     assert_eq!(parsed.schema_version, "bijux.adapterremoval.metrics.v1");
     assert_eq!(parsed.pairs_processed, 1000);
     assert_eq!(parsed.pairs_merged, 640);
+    Ok(())
 }
 
 #[test]
@@ -51,25 +52,27 @@ fn parse_seqkit_tool_metrics_fixture() -> Result<()> {
 }
 
 #[test]
-fn parse_samtools_flagstat_fixture() {
+fn parse_samtools_flagstat_fixture() -> Result<()> {
     let raw = include_str!(
         "../../../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/samtools_flagstat.txt"
     );
-    let parsed = parse_samtools_flagstat_metrics(raw);
+    let parsed = parse_samtools_flagstat_metrics(raw)?;
     assert_eq!(parsed.schema_version, "bijux.samtools.flagstat.v1");
     assert_eq!(parsed.total_reads, 1000);
     assert_eq!(parsed.mapped_reads, 900);
+    Ok(())
 }
 
 #[test]
-fn parse_fastqc_summary_fixture() {
+fn parse_fastqc_summary_fixture() -> Result<()> {
     let raw = include_str!(
         "../../../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/fastqc_summary.txt"
     );
-    let parsed = parse_fastqc_summary_metrics(raw);
+    let parsed = parse_fastqc_summary_metrics(raw)?;
     assert_eq!(parsed.schema_version, "bijux.fastqc.metrics.v1");
     assert_eq!(parsed.total_sequences, 1000);
     assert_f64_eq(parsed.gc_percent, 42.0);
+    Ok(())
 }
 
 #[test]

@@ -827,7 +827,7 @@ fn scenario_reference_build_conflict_propagation() -> Result<(Vec<String>, serde
         json!({
             "topic": "vcf_refusal",
             "caveat": "VCF calling/phasing/imputation workflows must refuse on reference-panel-map build mismatch",
-            "propagation_targets": ["vcf.call_variants", "vcf.phasing", "vcf.imputation"],
+            "propagation_targets": ["vcf.call_variants", "vcf.phasing", "vcf.imputation_metrics"],
         }),
         json!({
             "topic": "population_refusal",

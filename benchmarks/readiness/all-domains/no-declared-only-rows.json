@@ -1,0 +1,18 @@
+{
+  "schema_version": "bijux.bench.readiness.all_domain_no_declared_only_rows.v1",
+  "output_path": "benchmarks/readiness/all-domains/no-declared-only-rows.json",
+  "lifecycle_active_row_count": 139,
+  "lifecycle_active_stage_count": 68,
+  "lifecycle_active_tool_count": 71,
+  "active_row_count": 139,
+  "active_stage_count": 68,
+  "active_tool_count": 71,
+  "removed_row_count": 0,
+  "removed_stage_count": 0,
+  "removed_tool_count": 0,
+  "removed_adapter_status_counts": {},
+  "violation_count": 0,
+  "ok": true,
+  "removed_rows": [],
+  "violations": []
+}

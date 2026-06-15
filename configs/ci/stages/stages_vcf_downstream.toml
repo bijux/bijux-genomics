@@ -6,60 +6,12 @@
 # last_updated = 2026-02-13
 
 [[stages]]
-id = "vcf.qc"
-status = "planned"
-experimental = true
-metrics_schema = "bijux.vcf.qc.v1"
-smoke_required = false
-tools = ["plink", "plink2"]
-
-[[stages]]
 id = "vcf.phasing"
-status = "planned"
+status = "supported"
 experimental = true
 metrics_schema = "bijux.vcf.phasing.v1"
-smoke_required = false
+smoke_required = true
 tools = ["beagle", "shapeit5", "eagle"]
-
-[[stages]]
-id = "vcf.imputation"
-status = "planned"
-experimental = true
-metrics_schema = "bijux.vcf.imputation.v1"
-smoke_required = false
-tools = ["beagle", "glimpse", "impute5", "minimac4"]
-
-[[stages]]
-id = "vcf.impute"
-status = "planned"
-experimental = true
-metrics_schema = "bijux.vcf.imputation.v1"
-smoke_required = false
-tools = ["beagle", "glimpse", "impute5", "minimac4"]
-
-[[stages]]
-id = "vcf.postprocess"
-status = "planned"
-experimental = true
-metrics_schema = "bijux.vcf.filter.v1"
-smoke_required = false
-tools = ["bcftools"]
-
-[[stages]]
-id = "vcf.prepare_reference_panel"
-status = "planned"
-experimental = true
-metrics_schema = "bijux.vcf.filter.v1"
-smoke_required = false
-tools = ["bcftools"]
-
-[[stages]]
-id = "vcf.pca"
-status = "planned"
-experimental = true
-metrics_schema = "bijux.vcf.pca.v1"
-smoke_required = false
-tools = ["eigensoft", "plink2"]
 
 [[stages]]
 id = "vcf.admixture"
@@ -76,14 +28,6 @@ experimental = true
 metrics_schema = "bijux.vcf.ibd.v1"
 smoke_required = false
 tools = ["germline", "ibdseq", "ibdhap", "ibdne"]
-
-[[stages]]
-id = "vcf.population_structure"
-status = "planned"
-experimental = true
-metrics_schema = "bijux.vcf.pca.v1"
-smoke_required = false
-tools = ["plink2", "eigensoft"]
 
 [[stages]]
 id = "vcf.roh"

@@ -1,0 +1,107 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Governed execution-mode classification for local FASTQ and BAM benchmark tools.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-02
+
+schema_version = "bijux.bench.local_tool_execution_modes.v1"
+classification_scope = "primary_operator_runtime"
+
+[[modes]]
+execution_mode = "internal"
+expected_install_kind = "workspace_binary"
+required_runtime_fields = ["help_cmd", "install_kind", "version_cmd"]
+summary = "Repository-owned workspace binaries executed directly from the governed checkout."
+tool_ids = ["bijux_dna"]
+
+[[modes]]
+execution_mode = "containerized"
+expected_install_kind = "container"
+required_runtime_fields = ["help_cmd", "install_kind", "version_cmd"]
+summary = "Benchmarked tools whose governed operator runtime is a direct CLI inside a managed container image."
+tool_ids = [
+  "adapterremoval",
+  "addeam",
+  "alientrimmer",
+  "angsd",
+  "authenticct",
+  "bamtools",
+  "bamutil",
+  "bayeshammer",
+  "bbduk",
+  "bbmerge",
+  "bedtools",
+  "bowtie2",
+  "bowtie2_build",
+  "bwa",
+  "centrifuge",
+  "clumpify",
+  "contammix",
+  "damageprofiler",
+  "dustmasker",
+  "fastp",
+  "fastq_scan",
+  "fastqvalidator",
+  "fastuniq",
+  "fastx_clipper",
+  "flash2",
+  "fqtools",
+  "kaiju",
+  "king",
+  "kraken2",
+  "krakenuniq",
+  "leehom",
+  "lighter",
+  "mapdamage2",
+  "mosdepth",
+  "musket",
+  "ngsbriggs",
+  "pear",
+  "preseq",
+  "prinseq",
+  "pydamage",
+  "rcorrector",
+  "rxy",
+  "samtools",
+  "schmutzi",
+  "seqfu",
+  "seqkit",
+  "seqkit_stats",
+  "seqpurge",
+  "seqtk",
+  "skewer",
+  "sortmerna",
+  "star",
+  "verifybamid2",
+  "vsearch",
+  "yleaf",
+]
+
+[[modes]]
+execution_mode = "python"
+expected_install_kind = "container"
+required_runtime_fields = ["help_cmd", "install_kind", "version_cmd"]
+summary = "Benchmarked tools whose governed operator surface is a Python CLI inside a managed container."
+tool_ids = ["atropos", "cutadapt", "multiqc", "pmdtools", "umi_tools"]
+
+[[modes]]
+execution_mode = "r"
+expected_install_kind = "container"
+required_runtime_fields = ["help_cmd", "install_kind", "version_cmd"]
+summary = "Benchmarked tools whose governed operator surface is an R-driven analysis interface inside a managed container."
+tool_ids = ["dada2"]
+
+[[modes]]
+execution_mode = "java"
+expected_install_kind = "container"
+required_runtime_fields = ["help_cmd", "install_kind", "version_cmd"]
+summary = "Benchmarked tools whose governed operator surface is a Java application or Java-backed launcher inside a managed container."
+tool_ids = ["fastqc", "gatk", "picard", "trimmomatic"]
+
+[[modes]]
+execution_mode = "mixed"
+expected_install_kind = "container"
+required_runtime_fields = ["help_cmd", "install_kind", "version_cmd"]
+summary = "Benchmarked tools whose governed operator surface composes multiple runtime layers behind one managed container entrypoint."
+tool_ids = ["trim_galore"]

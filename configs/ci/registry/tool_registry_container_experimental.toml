@@ -161,20 +161,6 @@ dockerfile = "containers/docker/arm64/Dockerfile.qualimap"
 apptainer_def = "containers/apptainer/shared/qualimap.def"
 
 [[tools]]
-id = "seqfu"
-tool_id = "seqfu"
-status = "experimental"
-domain = "fastq"
-domains = ["fastq"]
-container = true
-runtimes = ["docker", "apptainer"]
-expected_bin = "seqfu"
-smoke_version_cmd = "seqfu --version"
-smoke_help_cmd = "seqfu --help"
-dockerfile = "containers/docker/arm64/Dockerfile.seqfu"
-apptainer_def = "containers/apptainer/shared/seqfu.def"
-
-[[tools]]
 id = "seqprep"
 tool_id = "seqprep"
 status = "experimental"

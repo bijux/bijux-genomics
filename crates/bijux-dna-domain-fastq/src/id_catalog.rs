@@ -68,6 +68,36 @@ pub const FASTQ_STAGE_ID_CATALOG: &[&str] = &[
     "fastq.verify_assets",
 ];
 
+pub const FASTQ_LOCAL_BENCH_STAGE_ID_CATALOG: &[&str] = &[
+    "fastq.index_reference",
+    "fastq.validate_reads",
+    "fastq.profile_read_lengths",
+    "fastq.detect_adapters",
+    "fastq.detect_duplicates_premerge",
+    "fastq.estimate_library_complexity_prealign",
+    "fastq.trim_terminal_damage",
+    "fastq.normalize_primers",
+    "fastq.trim_polyg_tails",
+    "fastq.trim_reads",
+    "fastq.filter_reads",
+    "fastq.profile_reads",
+    "fastq.deplete_rrna",
+    "fastq.merge_pairs",
+    "fastq.remove_duplicates",
+    "fastq.filter_low_complexity",
+    "fastq.deplete_host",
+    "fastq.deplete_reference_contaminants",
+    "fastq.correct_errors",
+    "fastq.extract_umis",
+    "fastq.profile_overrepresented_sequences",
+    "fastq.report_qc",
+    "fastq.remove_chimeras",
+    "fastq.infer_asvs",
+    "fastq.cluster_otus",
+    "fastq.normalize_abundance",
+    "fastq.screen_taxonomy",
+];
+
 pub const FASTQ_PARAMS_CATALOG: &[&str] = &[
     "bijux.fastq.params.validate.v1",
     "bijux.fastq.params.trim.v1",

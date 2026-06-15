@@ -17,6 +17,12 @@ outputs:
   - name: "classification_report_json"
     data_type: "json"
     cardinality: "One"
+  - name: "unclassified_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "unclassified_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
 parameters:
   - name: "threads"
     param_type: "int"
@@ -45,12 +51,18 @@ metrics:
     meaning: "Catalog identifier of the taxonomy database used for screening"
   - name: "database_artifact_id"
     meaning: "Artifact identifier of the taxonomy database used for screening"
+  - name: "taxonomy_database_id"
+    meaning: "Canonical benchmark alias for the governed taxonomy database artifact identifier."
   - name: "minimum_confidence"
     meaning: "Minimum classification confidence threshold enforced by governed screening"
   - name: "emit_unclassified"
     meaning: "Whether unclassified reads were retained in governed taxonomy outputs"
   - name: "contamination_summary"
     meaning: "Structured governed taxonomy summary entries reduced from the raw classifier report"
+  - name: "classified_reads"
+    meaning: "Canonical benchmark read count derived from the governed classified fraction and input read total."
+  - name: "unclassified_reads"
+    meaning: "Canonical benchmark read count derived from the governed unclassified fraction and input read total."
   - name: "classified_fraction"
     meaning: "Fraction of reads assigned to non-unclassified taxa under the governed taxonomy report"
   - name: "unclassified_fraction"
@@ -76,7 +88,9 @@ invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
 allowed_missingness:
-  - "none"
+  - "reads_r2"
+  - "unclassified_reads_r1"
+  - "unclassified_reads_r2"
 compatible_tools:
   - kraken2
   - krakenuniq
@@ -86,8 +100,9 @@ defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "supported tools must emit read-level taxonomic classifications from the screened FASTQ input."
   - "screen_report_tsv preserves the raw classifier summary while classification_report_json stores the governed taxonomy report contract."
+  - "when the selected backend supports unclassified-read export and emit_unclassified is enabled, unclassified_reads_* preserve the reads that remained taxonomically unresolved."
 bank_hooks:
   - "taxonomy_database_lock"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope:
-  - "diamond"
+  - diamond

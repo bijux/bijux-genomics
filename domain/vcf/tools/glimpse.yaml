@@ -15,7 +15,7 @@ version_cmd: "glimpse --version"
 help_cmd: "glimpse --help"
 expected_artifacts: ["imputed_vcf"]
 capabilities: ["SE", "PE"]
-metrics_schema_id: "bijux.vcf.imputation.v1"
+metrics_schema_id: "bijux.vcf.imputation_metrics.v1"
 comparability_notes: "External planned tool for low-coverage/aDNA-oriented imputation workflows."
 container:
   image: "external"

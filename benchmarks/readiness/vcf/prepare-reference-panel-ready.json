@@ -1,0 +1,150 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_prepare_reference_panel_ready.v1",
+  "output_path": "benchmarks/readiness/vcf/prepare-reference-panel-ready.json",
+  "retained_row_count": 1,
+  "active_row_count": 1,
+  "complete_row_count": 1,
+  "incomplete_row_count": 0,
+  "checked_surface_count": 8,
+  "required_metric_names": [
+    "input_variants",
+    "output_variants",
+    "sample_count",
+    "duplicate_sites_removed",
+    "normalization_status"
+  ],
+  "tool_status_counts": {
+    "production": 1
+  },
+  "coverage_status_counts": {
+    "complete": 1
+  },
+  "violation_count": 0,
+  "ok": true,
+  "rows": [
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools",
+      "stage_id": "vcf.prepare_reference_panel",
+      "tool_id": "bcftools",
+      "tool_status": "production",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_reference_panel",
+      "adapter_id": "vcf.adapter.reference_panel",
+      "parser_id": "vcf.parser.vcf_output",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.prepare-reference-panel.v1",
+      "retained_scope_state": "active",
+      "retained_scope_detail": "active",
+      "retained_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "all_domain_active_row_present": true,
+      "all_domain_active_row_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_ready": true,
+      "command_source": "vcf_bcftools_adapter",
+      "command_step_count": 2,
+      "command_step_ids": [
+        "normalize_panel",
+        "index_panel"
+      ],
+      "primary_executables": [
+        "bcftools"
+      ],
+      "command_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
+      "command_argv_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl",
+      "output_ready": true,
+      "output_proof_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
+      "raw_outputs": [
+        "prepared_panel=benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz"
+      ],
+      "normalized_metrics_outputs": [
+        "prepared_panel=benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz",
+        "chunks_json=benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/chunks.json"
+      ],
+      "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.prepare_reference_panel/{sample_scope}/bcftools/stage-result.json",
+      "index_outputs": [
+        "prepared_panel_tbi=benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz.tbi"
+      ],
+      "parser_ready": true,
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
+      "parser_fixture_parser_id": "parse_bcftools_prepare_reference_panel_metrics",
+      "parser_fixture_schema_id": "bijux.vcf.prepare_reference_panel.v1",
+      "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.prepare_reference_panel",
+      "expected_result_ready": true,
+      "expected_result_proof_path": "benchmarks/readiness/vcf-expected-benchmark-results.tsv",
+      "expected_outputs": [
+        "prepared_panel",
+        "chunks_json"
+      ],
+      "expected_metrics": [
+        "input_variants",
+        "output_variants",
+        "sample_count",
+        "sample_ids",
+        "sample_consistent",
+        "duplicate_sites_removed",
+        "normalization_status",
+        "parseable"
+      ],
+      "report_section_id": "reference_panel_preparation",
+      "report_ready": true,
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
+      "summary_table_id": "reference_panel_readiness",
+      "report_metric_columns": [
+        "input_variants",
+        "output_variants",
+        "sample_count",
+        "sample_ids",
+        "sample_consistent",
+        "duplicate_sites_removed",
+        "normalization_status",
+        "parseable"
+      ],
+      "smoke_ready": true,
+      "smoke_command": "bijux-dna bench local run-vcf-prepare-reference-panel-smoke --tool-id bcftools",
+      "smoke_output_root": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools",
+      "smoke_input_vcf_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/artifacts/input/prepare_reference_panel_input.vcf",
+      "smoke_raw_panel_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/artifacts/input/panel_store/hsapiens_grch38_mini/local-reference-panel/raw/panel.vcf.gz",
+      "smoke_panel_vcf_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz",
+      "smoke_panel_tbi_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi",
+      "smoke_panel_manifest_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel_manifest.json",
+      "smoke_overlap_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/overlap.json",
+      "smoke_panel_overlap_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel_overlap.json",
+      "smoke_panel_files_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel_files.json",
+      "smoke_overlap_tsv_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/overlap.tsv",
+      "smoke_chunks_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/chunks.json",
+      "smoke_metrics_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json",
+      "smoke_stage_result_manifest_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/stage-result.json",
+      "smoke_panel_id": "hsapiens_grch38_mini",
+      "smoke_map_id": "hsapiens_grch38_chr_map",
+      "smoke_input_variants": 5,
+      "smoke_output_variants": 4,
+      "smoke_sample_count": 1,
+      "smoke_sample_ids": [
+        "sample1"
+      ],
+      "smoke_sample_consistent": true,
+      "smoke_duplicate_sites_removed": 1,
+      "smoke_normalization_status": "sorted_indexed_deduplicated",
+      "smoke_index_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi",
+      "smoke_parseable": true,
+      "smoke_gt_present": true,
+      "smoke_gl_present": false,
+      "smoke_validation_checks": {
+        "bgzip": true,
+        "contig_header_sane": true,
+        "sample_ids_valid": true,
+        "sorted": true,
+        "tabix_index": true
+      },
+      "required_metric_names": [
+        "input_variants",
+        "output_variants",
+        "sample_count",
+        "duplicate_sites_removed",
+        "normalization_status"
+      ],
+      "missing_surfaces": [],
+      "coverage_status": "complete",
+      "reason": "retained VCF caller `bcftools` keeps active scope, command, output, parser, expected-result, report, and smoke proof for `vcf.prepare_reference_panel`"
+    }
+  ],
+  "violations": []
+}

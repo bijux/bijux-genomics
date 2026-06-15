@@ -6,6 +6,7 @@ use bijux_dna_environment::api::RuntimeKind;
 use super::artifacts::write_minimum_run_artifacts;
 use super::identity::{execution_pipeline_identity, execution_sample_identity};
 
+#[allow(clippy::too_many_arguments)]
 pub(super) fn materialize_execution_records(
     step: &ExecutionStep,
     input_hashes: &[String],

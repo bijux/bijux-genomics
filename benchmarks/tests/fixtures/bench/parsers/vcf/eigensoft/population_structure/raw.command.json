@@ -1,0 +1,9 @@
+{
+  "tool_id": "eigensoft",
+  "stage_id": "vcf.population_structure",
+  "argv": [
+    "sh",
+    "-lc",
+    "convertf -p population_structure.convertf.par && smartpca -p population_structure.smartpca.par > population_structure.smartpca.log 2>&1"
+  ]
+}

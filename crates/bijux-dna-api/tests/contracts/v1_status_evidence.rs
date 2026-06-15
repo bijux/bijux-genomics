@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use anyhow::Result;
 use bijux_dna_api::v1::api::{
     browse_runs, evidence_gap, operator_diagnosis, query_run_lineage,

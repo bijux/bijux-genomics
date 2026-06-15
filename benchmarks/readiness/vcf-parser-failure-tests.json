@@ -1,0 +1,102 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_parser_failure_tests.v1",
+  "output_path": "benchmarks/readiness/vcf-parser-failure-tests.json",
+  "row_count": 7,
+  "passed_row_count": 7,
+  "failed_row_count": 0,
+  "failure_reason_counts": {
+    "empty_output": 1,
+    "malformed_imputation_quality_file": 1,
+    "malformed_pca_table": 1,
+    "malformed_segment_file": 1,
+    "malformed_vcf": 1,
+    "missing_index": 1,
+    "missing_sample_column": 1
+  },
+  "rows": [
+    {
+      "case_id": "empty-output",
+      "stage_id": "vcf.call",
+      "tool_id": "bcftools",
+      "parser_id": "parse_bcftools_call_metrics",
+      "failure_reason": "empty_output",
+      "fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call",
+      "probe_artifact_path": "artifacts/bench-readiness/vcf-parser-failure-tests/empty-output/fixture/raw.calls.vcf",
+      "expected_error_fragment": "raw VCF is missing #CHROM header",
+      "observed_error": "raw VCF is missing #CHROM header",
+      "passed": true
+    },
+    {
+      "case_id": "malformed-vcf",
+      "stage_id": "vcf.call",
+      "tool_id": "bcftools",
+      "parser_id": "parse_bcftools_call_metrics",
+      "failure_reason": "malformed_vcf",
+      "fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call",
+      "probe_artifact_path": "artifacts/bench-readiness/vcf-parser-failure-tests/malformed-vcf/fixture/raw.calls.vcf",
+      "expected_error_fragment": "malformed raw VCF record at line",
+      "observed_error": "malformed raw VCF record at line 3: expected at least 8 fields",
+      "passed": true
+    },
+    {
+      "case_id": "malformed-segment-file",
+      "stage_id": "vcf.ibd",
+      "tool_id": "germline",
+      "parser_id": "parse_germline_ibd_segment_metrics",
+      "failure_reason": "malformed_segment_file",
+      "fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/segments/germline/vcf.ibd/complete",
+      "probe_artifact_path": "artifacts/bench-readiness/vcf-parser-failure-tests/malformed-segment-file/fixture/raw.ibd_filtered_segments.tsv",
+      "expected_error_fragment": "must have 7 columns",
+      "observed_error": "IBD filtered segment row 2 in /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/vcf-parser-failure-tests/malformed-segment-file/fixture/raw.ibd_filtered_segments.tsv must have 7 columns",
+      "passed": true
+    },
+    {
+      "case_id": "malformed-imputation-quality-file",
+      "stage_id": "vcf.impute",
+      "tool_id": "beagle",
+      "parser_id": "parse_beagle_impute_metrics",
+      "failure_reason": "malformed_imputation_quality_file",
+      "fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute",
+      "probe_artifact_path": "artifacts/bench-readiness/vcf-parser-failure-tests/malformed-imputation-quality-file/fixture/raw.imputation_qc.json",
+      "expected_error_fragment": "raw.imputation_qc.json",
+      "observed_error": "parse /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/vcf-parser-failure-tests/malformed-imputation-quality-file/fixture/raw.imputation_qc.json",
+      "passed": true
+    },
+    {
+      "case_id": "malformed-pca-table",
+      "stage_id": "vcf.pca",
+      "tool_id": "eigensoft",
+      "parser_id": "parse_eigensoft_pca_metrics",
+      "failure_reason": "malformed_pca_table",
+      "fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/eigensoft/pca",
+      "probe_artifact_path": "artifacts/bench-readiness/vcf-parser-failure-tests/malformed-pca-table/fixture/raw.evec",
+      "expected_error_fragment": "does not contain any numeric components",
+      "observed_error": "eigensoft EVEC row for `sample_a` does not contain any numeric components",
+      "passed": true
+    },
+    {
+      "case_id": "missing-sample-column",
+      "stage_id": "vcf.phasing",
+      "tool_id": "shapeit5",
+      "parser_id": "parse_shapeit5_phasing_metrics",
+      "failure_reason": "missing_sample_column",
+      "fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/shapeit5",
+      "probe_artifact_path": "artifacts/bench-readiness/vcf-parser-failure-tests/missing-sample-column/fixture/raw.phased.vcf",
+      "expected_error_fragment": "phased VCF row is missing sample columns",
+      "observed_error": "phased VCF row is missing sample columns",
+      "passed": true
+    },
+    {
+      "case_id": "missing-index",
+      "stage_id": "vcf.postprocess",
+      "tool_id": "bcftools",
+      "parser_id": "parse_bcftools_postprocess_metrics",
+      "failure_reason": "missing_index",
+      "fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.postprocess",
+      "probe_artifact_path": "artifacts/bench-readiness/vcf-parser-failure-tests/missing-index/fixture/raw.postprocess.vcf.tbi",
+      "expected_error_fragment": "required tabix index for postprocess output is missing",
+      "observed_error": "required tabix index for postprocess output is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/vcf-parser-failure-tests/missing-index/fixture/raw.postprocess.vcf.tbi",
+      "passed": true
+    }
+  ]
+}

@@ -7,6 +7,11 @@ use tracing::warn;
 use crate::aggregate::{BenchError, Result, StageMetricSchema};
 use crate::model::JsonBlob;
 
+#[allow(clippy::cast_precision_loss)]
+fn read_length_bound_as_f64(value: u64) -> f64 {
+    value as f64
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FastqDeltaMetrics {
@@ -128,6 +133,8 @@ pub struct FastqTrimPolygMetrics {
     #[serde(default)]
     pub min_polyg_run: Option<u32>,
     #[serde(default)]
+    pub trimmed_tail_count: Option<u64>,
+    #[serde(default)]
     pub bases_trimmed_polyg: Option<u64>,
     #[serde(default)]
     pub raw_backend_report_format: Option<String>,
@@ -176,6 +183,10 @@ pub struct FastqTrimTerminalDamageMetrics {
     pub mean_q_before: f64,
     pub mean_q_after: f64,
     #[serde(default)]
+    pub trim_5p_bases: Option<u32>,
+    #[serde(default)]
+    pub trim_3p_bases: Option<u32>,
+    #[serde(default)]
     pub damage_mode: Option<String>,
     #[serde(default)]
     pub execution_policy: Option<String>,
@@ -183,6 +194,10 @@ pub struct FastqTrimTerminalDamageMetrics {
     pub requested_trim_5p_bases: Option<u32>,
     #[serde(default)]
     pub requested_trim_3p_bases: Option<u32>,
+    #[serde(default)]
+    pub reads_retained: Option<u64>,
+    #[serde(default)]
+    pub bases_removed: Option<u64>,
     #[serde(default)]
     pub udg_classification: Option<String>,
     #[serde(default)]
@@ -290,14 +305,22 @@ pub struct FastqDetectAdaptersMetrics {
     pub bases_in: u64,
     pub bases_out: u64,
     pub mean_q: f64,
+    #[serde(default)]
+    pub adapter_report: Option<String>,
     pub candidate_adapter_count: u64,
+    #[serde(default)]
+    pub detected_adapter_ids: Vec<String>,
+    #[serde(default)]
+    pub detection_confidence: Option<f64>,
+    #[serde(default)]
+    pub detection_threshold: Option<f64>,
     #[serde(default)]
     pub adapter_trimmed_fraction: Option<f64>,
 }
 
 impl StageMetricSchema for FastqDetectAdaptersMetrics {
     const STAGE: &'static str = "fastq.detect_adapters";
-    const VERSION: i32 = 1;
+    const VERSION: i32 = 2;
 
     fn validate(&self) -> Result<()> {
         if self.reads_out != self.reads_in {
@@ -308,6 +331,42 @@ impl StageMetricSchema for FastqDetectAdaptersMetrics {
         }
         if !self.mean_q.is_finite() || !(0.0..=45.0).contains(&self.mean_q) {
             return Err(BenchError::Validation("mean_q must be within [0, 45]".to_string()));
+        }
+        if let Some(path) = &self.adapter_report {
+            if path.trim().is_empty() {
+                return Err(BenchError::Validation(
+                    "adapter_report must not be empty when present".to_string(),
+                ));
+            }
+        }
+        if self.detected_adapter_ids.len() as u64 != self.candidate_adapter_count {
+            return Err(BenchError::Validation(
+                "detected_adapter_ids length must equal candidate_adapter_count".to_string(),
+            ));
+        }
+        if let Some(confidence) = self.detection_confidence {
+            if !confidence.is_finite() || !(0.0..=1.0).contains(&confidence) {
+                return Err(BenchError::Validation(
+                    "detection_confidence must be within [0, 1]".to_string(),
+                ));
+            }
+        }
+        if let Some(threshold) = self.detection_threshold {
+            if !threshold.is_finite() || !(0.0..=1.0).contains(&threshold) {
+                return Err(BenchError::Validation(
+                    "detection_threshold must be within [0, 1]".to_string(),
+                ));
+            }
+        }
+        if let (Some(confidence), Some(threshold)) =
+            (self.detection_confidence, self.detection_threshold)
+        {
+            if self.candidate_adapter_count > 0 && confidence < threshold {
+                return Err(BenchError::Validation(
+                    "detection_confidence must be >= detection_threshold when adapters are detected"
+                        .to_string(),
+                ));
+            }
         }
         if let Some(fraction) = self.adapter_trimmed_fraction {
             if !fraction.is_finite() || !(0.0..=1.0).contains(&fraction) {
@@ -816,14 +875,18 @@ impl StageMetricSchema for FastqStatsMetrics {
 #[serde(deny_unknown_fields)]
 pub struct FastqReadLengthMetrics {
     pub read_count: u64,
+    #[serde(default)]
+    pub min_read_length: u64,
     pub mean_read_length: f64,
+    #[serde(default)]
+    pub median_read_length: f64,
     pub max_read_length: u64,
     pub distinct_lengths: u64,
 }
 
 impl StageMetricSchema for FastqReadLengthMetrics {
     const STAGE: &'static str = "fastq.profile_read_lengths";
-    const VERSION: i32 = 1;
+    const VERSION: i32 = 2;
 
     fn validate(&self) -> Result<()> {
         if !self.mean_read_length.is_finite() || self.mean_read_length < 0.0 {
@@ -831,9 +894,33 @@ impl StageMetricSchema for FastqReadLengthMetrics {
                 "mean_read_length must be finite and >= 0".to_string(),
             ));
         }
+        if !self.median_read_length.is_finite() || self.median_read_length < 0.0 {
+            return Err(BenchError::Validation(
+                "median_read_length must be finite and >= 0".to_string(),
+            ));
+        }
+        if self.read_count > 0 && self.min_read_length == 0 {
+            return Err(BenchError::Validation(
+                "min_read_length must be > 0 when reads are present".to_string(),
+            ));
+        }
         if self.read_count > 0 && self.max_read_length == 0 {
             return Err(BenchError::Validation(
                 "max_read_length must be > 0 when reads are present".to_string(),
+            ));
+        }
+        if self.read_count > 0
+            && self.median_read_length < read_length_bound_as_f64(self.min_read_length)
+        {
+            return Err(BenchError::Validation(
+                "median_read_length must be >= min_read_length when reads are present".to_string(),
+            ));
+        }
+        if self.read_count > 0
+            && self.median_read_length > read_length_bound_as_f64(self.max_read_length)
+        {
+            return Err(BenchError::Validation(
+                "median_read_length must be <= max_read_length when reads are present".to_string(),
             ));
         }
         Ok(())

@@ -1,0 +1,125 @@
+{
+  "schema_version": "bijux.bench.readiness.vcf_stats_ready.v1",
+  "output_path": "benchmarks/readiness/vcf/stats-ready.json",
+  "retained_row_count": 1,
+  "active_row_count": 1,
+  "complete_row_count": 1,
+  "incomplete_row_count": 0,
+  "checked_surface_count": 8,
+  "required_metric_names": [
+    "variant_count",
+    "snp_count",
+    "indel_count",
+    "transition_count",
+    "transversion_count",
+    "ti_tv",
+    "sample_count"
+  ],
+  "tool_status_counts": {
+    "production": 1
+  },
+  "coverage_status_counts": {
+    "complete": 1
+  },
+  "violation_count": 0,
+  "ok": true,
+  "rows": [
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
+      "stage_id": "vcf.stats",
+      "tool_id": "bcftools",
+      "tool_status": "production",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "adapter_id": "vcf.adapter.quality_control",
+      "parser_id": "vcf.parser.stats_report",
+      "schema_id": "bijux.schemas.bench.vcf-normalized-metrics.stats.v1",
+      "retained_scope_state": "active",
+      "retained_scope_detail": "active",
+      "retained_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "all_domain_active_row_present": true,
+      "all_domain_active_row_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_ready": true,
+      "command_source": "vcf_bcftools_adapter",
+      "command_step_count": 1,
+      "command_step_ids": [
+        "render_stats"
+      ],
+      "primary_executables": [
+        "bcftools"
+      ],
+      "command_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.sh",
+      "command_argv_output_path": "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl",
+      "output_ready": true,
+      "output_proof_path": "benchmarks/readiness/vcf-adapter-output-coverage.tsv",
+      "raw_outputs": [
+        "bcftools_stats_txt=benchmarks/readiness/adapters/bcftools/vcf.stats/bcftools_stats.txt"
+      ],
+      "normalized_metrics_outputs": [
+        "stats_json=benchmarks/readiness/adapters/bcftools/vcf.stats/stats_json.json"
+      ],
+      "manifest_output": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/{fixture_scope}/vcf.stats/{sample_scope}/bcftools/stage-result.json",
+      "index_outputs": [],
+      "parser_ready": true,
+      "parser_proof_path": "benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv",
+      "parser_fixture_parser_id": "parse_bcftools_stats_metrics",
+      "parser_fixture_schema_id": "bijux.vcf.stats.v1",
+      "parser_fixture_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.stats",
+      "expected_result_ready": true,
+      "expected_result_proof_path": "benchmarks/readiness/vcf-expected-benchmark-results.tsv",
+      "expected_outputs": [
+        "stats_json"
+      ],
+      "expected_metrics": [
+        "variant_count",
+        "snp_count",
+        "indel_count",
+        "transition_count",
+        "transversion_count",
+        "ti_tv",
+        "sample_count"
+      ],
+      "report_section_id": "quality_control",
+      "report_ready": true,
+      "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
+      "summary_table_id": "quality_control_metrics",
+      "report_metric_columns": [
+        "variant_count",
+        "snp_count",
+        "indel_count",
+        "transition_count",
+        "transversion_count",
+        "ti_tv",
+        "sample_count"
+      ],
+      "smoke_ready": true,
+      "smoke_command": "bijux-dna bench local run-vcf-stats-smoke --tool-id bcftools",
+      "smoke_output_root": "runs/bench/local-smoke/vcf.stats/bcftools",
+      "smoke_input_vcf_path": "runs/bench/local-smoke/vcf.stats/bcftools/artifacts/input/stats_input.vcf",
+      "smoke_stats_json_path": "runs/bench/local-smoke/vcf.stats/bcftools/stats.json",
+      "smoke_bcftools_stats_path": "runs/bench/local-smoke/vcf.stats/bcftools/bcftools_stats.txt",
+      "smoke_metrics_path": "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json",
+      "smoke_stage_result_manifest_path": "runs/bench/local-smoke/vcf.stats/bcftools/stage-result.json",
+      "smoke_variant_count": 4,
+      "smoke_snp_count": 3,
+      "smoke_indel_count": 1,
+      "smoke_transition_count": 2,
+      "smoke_transversion_count": 1,
+      "smoke_ti_tv": 2.0,
+      "smoke_sample_count": 2,
+      "required_metric_names": [
+        "variant_count",
+        "snp_count",
+        "indel_count",
+        "transition_count",
+        "transversion_count",
+        "ti_tv",
+        "sample_count"
+      ],
+      "missing_surfaces": [],
+      "coverage_status": "complete",
+      "reason": "active retained VCF stats caller `bcftools` keeps active scope, command, output, parser, expected-result, report, and normalized stats smoke proof for `vcf.stats`"
+    }
+  ],
+  "violations": []
+}

@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::io::{BufRead, BufReader};
+use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
@@ -19,6 +20,7 @@ use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_runtime::{RunProvenanceV1, StageObservabilityContextV1};
+use serde::Serialize;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_dna_core::contract::validate_execution_outputs;
@@ -52,6 +54,252 @@ use crate::public_bridge::handlers::fastq::{
 };
 use bijux_dna_core::contract::{ContractVersion, ExecutionManifest, ToolRegistry};
 use bijux_dna_planner_fastq::stage_api::RawFailure;
+
+const LOCAL_PROFILE_READS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.profile_reads.local_smoke.report.v1";
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalProfileReadsSmokeCaseReport {
+    sample_id: String,
+    layout: PairedMode,
+    input_r1: String,
+    input_r2: Option<String>,
+    reads_total: u64,
+    bases_total: u64,
+    mean_q: f64,
+    gc_percent: f64,
+    report_json: String,
+    qc_tsv: String,
+    qc_plots_dir: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalProfileReadsSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    case_count: u64,
+    cases: Vec<LocalProfileReadsSmokeCaseReport>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct LocalFastqRecord {
+    header: String,
+    sequence: String,
+    plus: String,
+    quality: String,
+}
+
+/// Materialize the governed local-smoke `fastq.profile_reads` report bundle.
+///
+/// The written summary artifact lives at `runs/bench/local-smoke/fastq.profile_reads/profile.json`
+/// under the active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
+/// invalid, or the smoke artifacts cannot be written.
+pub fn write_local_profile_reads_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases = bijux_dna_planner_fastq::stage_api::local_profile_reads_smoke_plans(&repo_root)?;
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.profile_reads");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+
+    let case_reports = cases
+        .iter()
+        .map(|case| materialize_local_profile_reads_smoke_case(&repo_root, case))
+        .collect::<Result<Vec<_>>>()?;
+
+    let summary = LocalProfileReadsSmokeReport {
+        schema_version: LOCAL_PROFILE_READS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_PROFILE_READS.as_str().to_string(),
+        case_count: case_reports.len() as u64,
+        cases: case_reports,
+    };
+    let report_path = output_root.join("profile.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(report_path)
+}
+
+fn materialize_local_profile_reads_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalProfileReadsSmokeCasePlan,
+) -> Result<LocalProfileReadsSmokeCaseReport> {
+    let case_out_dir = resolve_output_path(repo_root, &case.plan.out_dir);
+    bijux_dna_infra::ensure_dir(&case_out_dir)?;
+    let resolved_plan = local_profile_reads_plan_with_resolved_outputs(repo_root, &case.plan);
+
+    let r1 = repo_root.join(&case.r1);
+    let r2 = case.r2.as_ref().map(|path| repo_root.join(path));
+    let mate_summaries = local_profile_reads_mate_summaries(&r1, r2.as_deref())?;
+    let length_histogram = local_profile_reads_length_histogram(&r1, r2.as_deref())?;
+    validate_profile_reads_observation_inputs(&mate_summaries, &length_histogram)?;
+    materialize_profile_reads_outputs(
+        &resolved_plan,
+        &mate_summaries,
+        &length_histogram,
+        &ExecutionMetrics { runtime_s: 0.0, memory_mb: 0.0, exit_code: 0 },
+    )?;
+    let mut report = read_profile_reads_report(&resolved_plan)?;
+    let tool_plan = StatsToolPlan {
+        tool: resolved_plan.tool_id.to_string(),
+        tool_spec: bijux_dna_core::prelude::ToolExecutionSpecV1 {
+            tool_id: resolved_plan.tool_id.clone(),
+            tool_version: resolved_plan.tool_version.clone(),
+            image: resolved_plan.image.clone(),
+            command: resolved_plan.command.clone(),
+            resources: resolved_plan.resources.clone(),
+        },
+        plan: resolved_plan.clone(),
+        params_hash: String::new(),
+        image_digest: String::new(),
+    };
+    validate_profile_reads_report_identity(&tool_plan, &report)?;
+    validate_profile_reads_report_metrics(&report)?;
+
+    let report_path =
+        resolve_output_path(repo_root, required_plan_output_path(&resolved_plan, "qc_json")?);
+    let qc_tsv_path =
+        resolve_output_path(repo_root, required_plan_output_path(&resolved_plan, "qc_tsv")?);
+    let qc_plots_dir = resolved_plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "qc_plots_dir")
+        .map(|artifact| resolve_output_path(repo_root, &artifact.path));
+    report.qc_json = path_relative_to_repo(repo_root, &report_path);
+    report.qc_tsv = path_relative_to_repo(repo_root, &qc_tsv_path);
+    report.qc_plots_dir = qc_plots_dir.as_ref().map(|path| path_relative_to_repo(repo_root, path));
+    report.raw_backend_report = Some(path_relative_to_repo(repo_root, &qc_tsv_path));
+    bijux_dna_infra::atomic_write_json(&report_path, &report)?;
+
+    Ok(LocalProfileReadsSmokeCaseReport {
+        sample_id: case.sample_id.clone(),
+        layout: report.paired_mode,
+        input_r1: case.r1.display().to_string(),
+        input_r2: case.r2.as_ref().map(|path| path.display().to_string()),
+        reads_total: report.reads_total,
+        bases_total: report.bases_total,
+        mean_q: report.mean_q,
+        gc_percent: report.gc_percent,
+        report_json: path_relative_to_repo(repo_root, &report_path),
+        qc_tsv: path_relative_to_repo(repo_root, &qc_tsv_path),
+        qc_plots_dir: qc_plots_dir.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
+    })
+}
+
+fn local_profile_reads_mate_summaries(
+    r1: &Path,
+    r2: Option<&Path>,
+) -> Result<Vec<ProfileReadsMateSummaryV1>> {
+    let mut summaries =
+        vec![local_profile_reads_mate_summary("reads_r1", &read_local_fastq_records(r1)?)];
+    if let Some(r2) = r2 {
+        summaries
+            .push(local_profile_reads_mate_summary("reads_r2", &read_local_fastq_records(r2)?));
+    }
+    Ok(summaries)
+}
+
+fn local_profile_reads_mate_summary(
+    label: &str,
+    records: &[LocalFastqRecord],
+) -> ProfileReadsMateSummaryV1 {
+    let reads = u64::try_from(records.len()).unwrap_or(u64::MAX);
+    let bases = records
+        .iter()
+        .map(|record| u64::try_from(record.sequence.len()).unwrap_or(u64::MAX))
+        .sum::<u64>();
+    ProfileReadsMateSummaryV1 {
+        label: label.to_string(),
+        reads,
+        bases,
+        mean_q: Some(local_mean_q(records)),
+        gc_percent: Some(local_gc_percent(records)),
+    }
+}
+
+fn local_profile_reads_length_histogram(
+    r1: &Path,
+    r2: Option<&Path>,
+) -> Result<Vec<LengthHistogramBin>> {
+    let mut histogram = local_length_histogram_bins(&read_local_fastq_records(r1)?);
+    if let Some(r2) = r2 {
+        histogram = combine_length_histograms(
+            &histogram,
+            Some(&local_length_histogram_bins(&read_local_fastq_records(r2)?)),
+        );
+    }
+    Ok(histogram)
+}
+
+fn local_length_histogram_bins(records: &[LocalFastqRecord]) -> Vec<LengthHistogramBin> {
+    let mut bins = std::collections::BTreeMap::<u64, u64>::new();
+    for record in records {
+        *bins.entry(u64::try_from(record.sequence.len()).unwrap_or(u64::MAX)).or_insert(0) += 1;
+    }
+    bins.into_iter().map(|(length, count)| LengthHistogramBin { length, count }).collect()
+}
+
+fn local_mean_q(records: &[LocalFastqRecord]) -> f64 {
+    let total_bases = records
+        .iter()
+        .map(|record| u64::try_from(record.sequence.len()).unwrap_or(u64::MAX))
+        .sum::<u64>();
+    if total_bases == 0 {
+        return 0.0;
+    }
+    let total_quality = records
+        .iter()
+        .flat_map(|record| record.quality.bytes())
+        .map(|value| u64::from(value.saturating_sub(33)))
+        .sum::<u64>();
+    u64_to_f64(total_quality) / u64_to_f64(total_bases)
+}
+
+fn local_gc_percent(records: &[LocalFastqRecord]) -> f64 {
+    let total_bases = records
+        .iter()
+        .map(|record| u64::try_from(record.sequence.len()).unwrap_or(u64::MAX))
+        .sum::<u64>();
+    if total_bases == 0 {
+        return 0.0;
+    }
+    let gc_bases = records
+        .iter()
+        .flat_map(|record| record.sequence.bytes())
+        .filter(|base| matches!(*base, b'G' | b'g' | b'C' | b'c'))
+        .count()
+        .try_into()
+        .unwrap_or(u64::MAX);
+    (u64_to_f64(gc_bases) / u64_to_f64(total_bases)) * 100.0
+}
+
+fn read_local_fastq_records(path: &Path) -> Result<Vec<LocalFastqRecord>> {
+    let reader: Box<dyn BufRead> = if path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
+    {
+        let file = std::fs::File::open(path)?;
+        let decoder = flate2::read::MultiGzDecoder::new(file);
+        Box::new(BufReader::new(decoder))
+    } else {
+        Box::new(BufReader::new(std::fs::File::open(path)?))
+    };
+
+    let mut lines = reader.lines();
+    let mut records = Vec::new();
+    while let Some(header) = lines.next() {
+        let header = header?;
+        let sequence =
+            lines.next().ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
+        let plus =
+            lines.next().ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
+        let quality =
+            lines.next().ok_or_else(|| anyhow!("truncated FASTQ at {}", path.display()))??;
+        records.push(LocalFastqRecord { header, sequence, plus, quality });
+    }
+    Ok(records)
+}
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -724,6 +972,30 @@ fn required_plan_output_path<'a>(
         .find(|artifact| artifact.name.as_str() == artifact_name)
         .map(|artifact| artifact.path.as_path())
         .ok_or_else(|| anyhow!("profile_reads plan missing `{artifact_name}` output"))
+}
+
+fn resolve_output_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
+fn local_profile_reads_plan_with_resolved_outputs(
+    repo_root: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+) -> bijux_dna_stage_contract::StagePlanV1 {
+    let mut plan = plan.clone();
+    plan.out_dir = resolve_output_path(repo_root, &plan.out_dir);
+    for artifact in &mut plan.io.outputs {
+        artifact.path = resolve_output_path(repo_root, &artifact.path);
+    }
+    plan
 }
 
 fn execution_metrics_from_stage_result(execution: &StageResultV1) -> ExecutionMetrics {

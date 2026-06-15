@@ -1,0 +1,113 @@
+{
+  "stage_id": "fastq.screen_taxonomy",
+  "stage_instance_id": "fastq.screen_taxonomy.tool.kraken2",
+  "stage_version": 1,
+  "tool_id": "kraken2",
+  "tool_version": "2.1.3",
+  "image": {
+    "image": "bijuxdna/kraken2",
+    "digest": "sha256:e493061d26aeea71812ed8b587a0e65f67617b192e225d8d53eba896dfe7cb35"
+  },
+  "command": {
+    "template": [
+      "sh",
+      "-lc",
+      "set -eu\nmkdir -p 'assets/reference/taxonomy/references/mock_community_taxonomy/kraken2'\nkraken2 --db 'assets/reference/taxonomy/references/mock_community_taxonomy/kraken2' --threads 4 --report 'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.native.tsv' --output 'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.native.tsv' --unclassified-out 'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq' 'assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq'\nawk -F '\\t' 'NF >= 6 { label=$6; sub(/^[[:space:]]+/, \"\", label); pct=$1; sub(/%$/, \"\", pct); printf \"%s\\t0\\t%s%%\\n\", label, pct }' 'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.native.tsv' > 'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv'\n\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.screen_taxonomy.report.v2\",\"stage\":\"fastq.screen_taxonomy\",\"stage_id\":\"fastq.screen_taxonomy\",\"tool_id\":\"kraken2\",\"paired_mode\":\"single_end\",\"threads\":4,\"classifier\":\"kraken2\",\"report_format\":\"kraken_report\",\"assignment_format\":\"kraken_assignments\",\"database_catalog_id\":\"taxonomy_reference\",\"database_artifact_id\":\"taxonomy_db\",\"database_build_id\":null,\"database_digest\":null,\"database_namespace\":\"read_screening\",\"database_scope\":\"read_screening\",\"minimum_confidence\":null,\"emit_unclassified\":true,\"interpretation_boundary\":\"screening_only\",\"truth_conditions\":[],\"input_r1\":\"assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq\",\"input_r2\":null,\"screen_report_tsv\":\"benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv\",\"classification_report_json\":\"benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.json\",\"unclassified_reads_r1\":\"benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq\",\"unclassified_reads_r2\":null,\"reads_in\":null,\"reads_out\":null,\"bases_in\":null,\"bases_out\":null,\"pairs_in\":null,\"pairs_out\":null,\"contamination_rate\":null,\"classified_fraction\":null,\"unclassified_fraction\":null,\"summary_entries\":[],\"top_taxa\":[],\"runtime_s\":null,\"memory_mb\":null}' > 'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.json'\n"
+    ]
+  },
+  "resources": {
+    "runtime": "local",
+    "mem_gb": 16,
+    "tmp_gb": 8,
+    "threads": 4
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "taxonomy_database_root",
+        "path": "assets/reference/taxonomy/references/mock_community_taxonomy",
+        "role": "reference",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "screen_report_tsv",
+        "path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv",
+        "role": "summary_tsv",
+        "optional": false
+      },
+      {
+        "name": "classification_report_json",
+        "path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "unclassified_reads_r1",
+        "path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq",
+        "role": "reads",
+        "optional": true
+      }
+    ]
+  },
+  "out_dir": "benchmarks/readiness/local-ready/fastq.screen_taxonomy",
+  "params": {
+    "assignment_format": "kraken_assignments",
+    "assignments": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.json",
+    "classifier": "kraken2",
+    "contaminant_db": "assets/reference/taxonomy/references/mock_community_taxonomy",
+    "database_artifact_id": "taxonomy_db",
+    "database_build_id": null,
+    "database_catalog_id": "taxonomy_reference",
+    "database_digest": null,
+    "database_namespace": "read_screening",
+    "database_root": "assets/reference/taxonomy/references/mock_community_taxonomy",
+    "database_scope": "read_screening",
+    "emit_unclassified": true,
+    "input_r1": "assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq",
+    "input_r2": null,
+    "minimum_confidence": null,
+    "out_dir": "benchmarks/readiness/local-ready/fastq.screen_taxonomy",
+    "report": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv",
+    "report_format": "kraken_report",
+    "threads": 4,
+    "tool": "kraken2",
+    "unclassified_reads_r1": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq",
+    "unclassified_reads_r2": null
+  },
+  "effective_params": {
+    "assignment_format": "kraken_assignments",
+    "classifier": "kraken2",
+    "contaminant_db": "assets/reference/taxonomy/references/mock_community_taxonomy",
+    "database_artifact_id": "taxonomy_db",
+    "database_build_id": null,
+    "database_catalog_id": "taxonomy_reference",
+    "database_digest": null,
+    "database_namespace": "read_screening",
+    "database_scope": "read_screening",
+    "emit_unclassified": true,
+    "interpretation_boundary": "screening_only",
+    "minimum_confidence": null,
+    "paired_mode": "single_end",
+    "report_format": "kraken_report",
+    "schema_version": "bijux.fastq.params.screen_taxonomy.v1",
+    "threads": 4,
+    "truth_conditions": []
+  },
+  "operating_mode": "enforced",
+  "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}

@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 #[test]
 fn no_command_building_or_tool_selection() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");

@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::support::benchmark_runtime::ensure_bench_runner;
@@ -33,6 +33,7 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
 use bijux_dna_runner::step_runner::{execute_observer_command, StageResultV1};
+use serde::{Deserialize, Serialize};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::{
@@ -44,6 +45,160 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_VALIDATE_READS,
 };
 use bijux_dna_stage_contract::StagePlanV1;
+
+const LOCAL_VALIDATE_READS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.validate.local_smoke.report.v1";
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+enum LocalValidateReadsSmokeLayout {
+    SingleEnd,
+    PairedEnd,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+enum LocalValidateReadsSmokeStatus {
+    Pass,
+    Fail,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct LocalValidateReadsSmokeCaseReport {
+    sample_id: String,
+    layout: LocalValidateReadsSmokeLayout,
+    input_r1: String,
+    input_r2: Option<String>,
+    input_read_count_total: u64,
+    input_read_count_r1: u64,
+    input_read_count_r2: Option<u64>,
+    input_pair_count: Option<u64>,
+    validation_status: LocalValidateReadsSmokeStatus,
+    missing_output_marker_present: bool,
+    validation_report: String,
+    validated_reads_manifest: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct LocalValidateReadsSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    case_count: u64,
+    all_cases_passed: bool,
+    missing_output_marker_present: bool,
+    cases: Vec<LocalValidateReadsSmokeCaseReport>,
+}
+
+/// Materialize the governed local-smoke `fastq.validate_reads` artifacts and summary report.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, governed smoke plans are invalid,
+/// or the smoke report artifacts cannot be written.
+pub fn write_local_validate_reads_smoke_report() -> Result<PathBuf> {
+    let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let cases = bijux_dna_planner_fastq::stage_api::local_validate_reads_smoke_plans(&repo_root)?;
+    let output_root = repo_root.join("runs/bench/local-smoke/fastq.validate_reads");
+    bijux_dna_infra::ensure_dir(&output_root)?;
+
+    let case_reports = cases
+        .iter()
+        .map(|case| materialize_local_validate_reads_smoke_case(&repo_root, case))
+        .collect::<Result<Vec<_>>>()?;
+
+    let summary = LocalValidateReadsSmokeReport {
+        schema_version: LOCAL_VALIDATE_READS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_VALIDATE_READS.as_str().to_string(),
+        case_count: case_reports.len() as u64,
+        all_cases_passed: case_reports
+            .iter()
+            .all(|case| matches!(case.validation_status, LocalValidateReadsSmokeStatus::Pass)),
+        missing_output_marker_present: case_reports
+            .iter()
+            .any(|case| case.missing_output_marker_present),
+        cases: case_reports,
+    };
+
+    let report_path = output_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
+    Ok(report_path)
+}
+
+fn materialize_local_validate_reads_smoke_case(
+    repo_root: &Path,
+    case: &bijux_dna_planner_fastq::LocalValidateReadsSmokeCasePlan,
+) -> Result<LocalValidateReadsSmokeCaseReport> {
+    let case_out_dir = resolve_plan_dir(repo_root, &case.plan.out_dir);
+    let artifact_paths =
+        bijux_dna_domain_fastq::validation_artifact_paths(&case_out_dir, case.r2.is_some());
+    bijux_dna_infra::ensure_dir(&case_out_dir)?;
+
+    let r1 = repo_root.join(&case.r1);
+    let r2 = case.r2.as_ref().map(|path| repo_root.join(path));
+    let (report, manifest) = bijux_dna_domain_fastq::stages::validate_reads(
+        &r1,
+        r2.as_deref(),
+        case.validation_mode.clone(),
+        case.pair_sync_policy.clone(),
+        &artifact_paths.validation_log_r1,
+        artifact_paths.validation_log_r2.as_deref(),
+        &artifact_paths.report_json,
+    )?;
+
+    bijux_dna_infra::atomic_write_json(&artifact_paths.report_json, &report)?;
+    bijux_dna_infra::atomic_write_json(&artifact_paths.validated_reads_manifest, &manifest)?;
+
+    let missing_output_marker_present = scan_missing_output_markers(&case_out_dir);
+    let input_read_count_r2 = report.validated_reads_r2;
+    let input_pair_count = report.validated_pairs;
+    Ok(LocalValidateReadsSmokeCaseReport {
+        sample_id: case.sample_id.clone(),
+        layout: if case.r2.is_some() {
+            LocalValidateReadsSmokeLayout::PairedEnd
+        } else {
+            LocalValidateReadsSmokeLayout::SingleEnd
+        },
+        input_r1: case.r1.display().to_string(),
+        input_r2: case.r2.as_ref().map(|path| path.display().to_string()),
+        input_read_count_total: report.validated_reads_r1 + input_read_count_r2.unwrap_or(0),
+        input_read_count_r1: report.validated_reads_r1,
+        input_read_count_r2,
+        input_pair_count,
+        validation_status: if report.strict_pass {
+            LocalValidateReadsSmokeStatus::Pass
+        } else {
+            LocalValidateReadsSmokeStatus::Fail
+        },
+        missing_output_marker_present,
+        validation_report: path_relative_to_repo(repo_root, &artifact_paths.report_json),
+        validated_reads_manifest: path_relative_to_repo(
+            repo_root,
+            &artifact_paths.validated_reads_manifest,
+        ),
+    })
+}
+
+fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {
+    if out_dir.is_absolute() {
+        out_dir.to_path_buf()
+    } else {
+        repo_root.join(out_dir)
+    }
+}
+
+fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
+fn scan_missing_output_markers(root: &Path) -> bool {
+    walkdir::WalkDir::new(root)
+        .into_iter()
+        .flatten()
+        .filter(|entry| entry.file_type().is_file())
+        .any(|entry| {
+            let name = entry.file_name().to_string_lossy();
+            name.contains("missing_output") || name.ends_with(".invalid")
+        })
+}
 
 /// # Errors
 /// Returns an error if planning, execution, metric derivation, or persistence fails.

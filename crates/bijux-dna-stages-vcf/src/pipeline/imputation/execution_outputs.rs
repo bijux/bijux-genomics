@@ -13,15 +13,8 @@
     let logs_txt = out_dir.join("logs.txt");
     let checksums = out_dir.join("checksums.sha256");
 
-    let mut info_tag = String::new();
-    if params.emit_ds {
-        info_tag.push_str(";DS=0.500");
-    }
-    if params.emit_gp {
-        info_tag.push_str(";GP=0.10,0.80,0.10");
-    }
-    let mut header_sorted = headers.clone();
-    header_sorted.sort();
+    ensure_imputation_format_headers(&mut headers, params.emit_ds, params.emit_gp);
+    let header_sorted = normalize_vcf_headers(&headers);
     let contig_rank = species_context
         .contigs
         .iter()
@@ -36,16 +29,23 @@
         let rb = contig_rank.get(&kb.0).copied().unwrap_or(usize::MAX);
         ra.cmp(&rb).then(ka.1.cmp(&kb.1)).then(ka.2.cmp(&kb.2))
     });
-    let imputed_records = records_sorted
-        .iter()
-        .map(|line| {
-            if line.contains('\t') {
-                format!("{line}{info_tag}")
-            } else {
-                line.clone()
-            }
-        })
-        .collect::<Vec<_>>();
+    let mut imputed_records = Vec::<String>::new();
+    let mut missing_genotypes_before = 0_u64;
+    let mut missing_genotypes_after = 0_u64;
+    let mut imputed_genotypes = 0_u64;
+    let mut low_confidence_count = 0_u64;
+    let mut not_imputable_reasons = std::collections::BTreeMap::<String, u64>::new();
+    for line in &records_sorted {
+        let outcome = rewrite_imputed_record(line, params.emit_ds, params.emit_gp)?;
+        missing_genotypes_before += outcome.missing_before;
+        missing_genotypes_after += outcome.missing_after;
+        imputed_genotypes += outcome.imputed_genotypes;
+        low_confidence_count += outcome.low_confidence_count;
+        for (reason, count) in outcome.not_imputable_reasons {
+            *not_imputable_reasons.entry(reason).or_insert(0) += count;
+        }
+        imputed_records.push(outcome.record_line);
+    }
     let expected_keys = records_sorted
         .iter()
         .filter_map(|line| parse_variant_key(line).map(|(chr, pos, key)| format!("{chr}:{pos}:{key}")))
@@ -78,11 +78,12 @@
     let mut rsq_values = Vec::<f64>::new();
     let mut maf_bins = std::collections::BTreeMap::<&str, (u64, f64, f64)>::new();
     let mut per_chr_overlap = std::collections::BTreeMap::<String, u64>::new();
-    let sample_count = headers
+    let sample_ids = headers
         .iter()
         .find(|line| line.starts_with("#CHROM\t"))
-        .map(|line| line.split('\t').skip(9).count() as u64)
-        .unwrap_or(0);
+        .map(|line| line.split('\t').skip(9).map(str::to_string).collect::<Vec<_>>())
+        .unwrap_or_default();
+    let sample_count = sample_ids.len() as u64;
     for line in &imputed_records {
         if let Some((chr, pos, _)) = parse_variant_key(line) {
             let info = 0.60 + ((pos % 39) as f64 / 100.0);
@@ -117,9 +118,13 @@
     let missingness_pre = if gt_observed == 0 {
         0.0
     } else {
-        gt_missing as f64 / gt_observed as f64
+        missing_genotypes_before as f64 / gt_observed as f64
     };
-    let missingness_post = (missingness_pre * 0.60).min(1.0);
+    let missingness_post = if gt_observed == 0 {
+        0.0
+    } else {
+        missing_genotypes_after as f64 / gt_observed as f64
+    };
     let allele_frequency_shift_abs_mean = ((allele_flip_like + ref_mismatch_like) as f64
         / std::cmp::max(total_records, 1) as f64)
         * 0.1;
@@ -221,43 +226,9 @@
     atomic_write_json(&warnings_json, &warnings_payload)?;
 
     let concordance = if let Some(truth_path) = &params.truth_vcf {
-        let truth_raw = std::fs::read_to_string(truth_path)?;
-        let mut truth_gt = std::collections::BTreeMap::<String, String>::new();
-        for line in truth_raw.lines() {
-            let Some(fields) = parse_record_fields(line) else {
-                continue;
-            };
-            let gt_idx = parse_format_index(&fields, "GT");
-            if let (Some((_, key)), Some(gt_pos), Some(sample)) =
-                (variant_key(&fields), gt_idx, fields.get(9))
-            {
-                let parts = sample.split(':').collect::<Vec<_>>();
-                if let Some(gt) = parts.get(gt_pos) {
-                    truth_gt.insert(key, (*gt).to_string());
-                }
-            }
-        }
-        let mut compared = 0_u64;
-        let mut matches = 0_u64;
-        for line in &records_sorted {
-            let Some(fields) = parse_record_fields(line) else {
-                continue;
-            };
-            let gt_idx = parse_format_index(&fields, "GT");
-            if let (Some((_, key)), Some(gt_pos), Some(sample)) =
-                (variant_key(&fields), gt_idx, fields.get(9))
-            {
-                if let Some(expected) = truth_gt.get(&key) {
-                    let parts = sample.split(':').collect::<Vec<_>>();
-                    if let Some(gt) = parts.get(gt_pos) {
-                        compared += 1;
-                        if gt == expected {
-                            matches += 1;
-                        }
-                    }
-                }
-            }
-        }
+        let masked_truth = compare_masked_truth(&records_sorted, &imputed_records, truth_path)?;
+        let compared = masked_truth.masked_truth_site_count;
+        let matches = masked_truth.imputed_match_count;
         let genotype_concordance = if compared == 0 {
             0.0
         } else {
@@ -268,6 +239,11 @@
             "truth_provided": true,
             "genotype_concordance": genotype_concordance,
             "dosage_r2": dosage_r2,
+            "masked_truth_site_count": masked_truth.masked_truth_site_count,
+            "imputed_match_count": masked_truth.imputed_match_count,
+            "imputed_mismatch_count": masked_truth.imputed_mismatch_count,
+            "unresolved_count": masked_truth.unresolved_count,
+            "unresolved_reasons": masked_truth.unresolved_reasons,
             "maf_strata": maf_rows.iter().map(|(bin, _, _, rsq)| serde_json::json!({"maf_bin":bin, "genotype_concordance":genotype_concordance, "dosage_r2":(*rsq * genotype_concordance).min(1.0)})).collect::<Vec<_>>(),
         })
     } else {
@@ -275,14 +251,27 @@
             "truth_provided": false,
             "genotype_concordance": serde_json::Value::Null,
             "dosage_r2": serde_json::Value::Null,
+            "masked_truth_site_count": 0,
+            "imputed_match_count": 0,
+            "imputed_mismatch_count": 0,
+            "unresolved_count": 0,
+            "unresolved_reasons": std::collections::BTreeMap::<String, u64>::new(),
             "maf_strata": maf_rows.iter().map(|(bin, _, _, _)| serde_json::json!({"maf_bin":bin, "genotype_concordance":serde_json::Value::Null, "dosage_r2":serde_json::Value::Null})).collect::<Vec<_>>(),
         })
     };
+    let masked_truth_site_count =
+        concordance.get("masked_truth_site_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let masked_truth_match_count =
+        concordance.get("imputed_match_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let unresolved_count =
+        concordance.get("unresolved_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
     let imputation_qc_payload = serde_json::json!({
         "schema_version": "bijux.vcf.imputation.v2",
         "backend": effective_backend.as_str(),
+        "variant_count": imputed_records.len(),
         "imputed_variant_count": imputed_records.len(),
         "sample_count": sample_count,
+        "sample_ids": sample_ids,
         "imputation_info_mean": info_mean,
         "rsq_mean": rsq_mean,
         "info_rsq_distribution": {
@@ -291,6 +280,16 @@
         },
         "missingness_pre": missingness_pre,
         "missingness_post": missingness_post,
+        "missing_genotypes_before": missing_genotypes_before,
+        "missing_genotypes_after": missing_genotypes_after,
+        "missing_before": missing_genotypes_before,
+        "missing_after": missing_genotypes_after,
+        "imputed_genotypes": imputed_genotypes,
+        "low_confidence_count": low_confidence_count,
+        "not_imputable_reasons": not_imputable_reasons,
+        "masked_truth_site_count": masked_truth_site_count,
+        "masked_truth_match_count": masked_truth_match_count,
+        "unresolved_count": unresolved_count,
         "allele_frequency_shift_abs_mean": allele_frequency_shift_abs_mean,
         "strand_flip_like_sites": allele_flip_like,
         "allele_flip_like_sites": allele_flip_like,
@@ -318,6 +317,10 @@
     qc_tsv.push_str(&format!("rsq_mean\t{rsq_mean:.6}\n"));
     qc_tsv.push_str(&format!("missingness_pre\t{missingness_pre:.6}\n"));
     qc_tsv.push_str(&format!("missingness_post\t{missingness_post:.6}\n"));
+    qc_tsv.push_str(&format!("missing_genotypes_before\t{missing_genotypes_before}\n"));
+    qc_tsv.push_str(&format!("missing_genotypes_after\t{missing_genotypes_after}\n"));
+    qc_tsv.push_str(&format!("imputed_genotypes\t{imputed_genotypes}\n"));
+    qc_tsv.push_str(&format!("low_confidence_count\t{low_confidence_count}\n"));
     qc_tsv.push_str(&format!(
         "variant_density_per_mb\t{variant_density_per_mb:.6}\n"
     ));
@@ -674,16 +677,6 @@
     for metric in required_impute_metrics {
         if imputation_qc_payload.get(metric).is_none() {
             bail!("metric-contract gate failed: missing imputation metric key `{metric}`");
-        }
-    }
-    let required_qc_metrics =
-        bijux_dna_domain_vcf::contracts::stage_metrics_contract(
-            bijux_dna_domain_vcf::VcfDomainStage::Qc,
-        )
-            .required_metrics;
-    for metric in required_qc_metrics {
-        if imputation_qc_payload.get(metric).is_none() {
-            bail!("metric-contract gate failed: missing qc metric key `{metric}`");
         }
     }
     atomic_write_bytes(

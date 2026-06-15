@@ -1,0 +1,1634 @@
+{
+  "schema_version": "bijux.bench.readiness.essential_pipeline_partial_resume.v1",
+  "output_path": "benchmarks/readiness/essential-pipeline-partial-resume.json",
+  "simulation_root": "runs/bench/local-fake-runs/pipelines/essential-partial-resume",
+  "pipeline_count": 10,
+  "node_count": 93,
+  "valid_completed_node_count": 92,
+  "invalid_manifest_node_count": 1,
+  "missing_manifest_node_count": 0,
+  "skip_node_count": 91,
+  "rerun_node_count": 2,
+  "seeded_invalid_node_id": "relatedness-segments-vcf::vcf.ibd",
+  "downstream_rerun_node_ids": [
+    "relatedness-segments-vcf::vcf.demography"
+  ],
+  "continued_unrelated_node_ids": [
+    "relatedness-segments-vcf::vcf.roh"
+  ],
+  "passes_behavior_test": true,
+  "rows": [
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "bam.align",
+      "stage_id": "bam.align",
+      "tool_id": "bowtie2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.filter_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/bam.align/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "bam.authenticity",
+      "stage_id": "bam.authenticity",
+      "tool_id": "authenticct",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 5,
+      "depends_on": [
+        "bam.mapping_summary",
+        "bam.coverage",
+        "bam.damage",
+        "bam.contamination",
+        "bam.complexity"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/bam.authenticity/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "bam.complexity",
+      "stage_id": "bam.complexity",
+      "tool_id": "preseq",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "bam.align"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/bam.complexity/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "bam.contamination",
+      "stage_id": "bam.contamination",
+      "tool_id": "verifybamid2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "bam.align"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/bam.contamination/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "bam.coverage",
+      "stage_id": "bam.coverage",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.align",
+        "bam.mapping_summary"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/bam.coverage/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "bam.damage",
+      "stage_id": "bam.damage",
+      "tool_id": "ngsbriggs",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "bam.align"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/bam.damage/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "bam.mapping_summary",
+      "stage_id": "bam.mapping_summary",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.align",
+        "bam.validate"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/bam.mapping_summary/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "bam.validate",
+      "stage_id": "bam.validate",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "bam.align"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/bam.validate/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 1,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "fastq.filter_reads",
+      "stage_id": "fastq.filter_reads",
+      "tool_id": "fastp",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.remove_duplicates"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/fastq.filter_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "fastq.remove_duplicates",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "clumpify",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.trim_terminal_damage"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/fastq.remove_duplicates/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 5,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "fastq.trim_terminal_damage",
+      "stage_id": "fastq.trim_terminal_damage",
+      "tool_id": "cutadapt",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/fastq.trim_terminal_damage/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqvalidator",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/fastq.validate_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "vcf.call_gl",
+      "stage_id": "vcf.call_gl",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 4,
+      "depends_on": [
+        "bam.align",
+        "bam.coverage",
+        "bam.damage",
+        "bam.authenticity"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/vcf.call_gl/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "vcf.gl_propagation",
+      "stage_id": "vcf.gl_propagation",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.call_gl"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/vcf.gl_propagation/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 4,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-gl-fastq-bam-vcf",
+      "node_id": "vcf.qc",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.gl_propagation"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-gl-fastq-bam-vcf/vcf.qc/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "bam.align",
+      "stage_id": "bam.align",
+      "tool_id": "bowtie2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.filter_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/bam.align/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "bam.authenticity",
+      "stage_id": "bam.authenticity",
+      "tool_id": "authenticct",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 5,
+      "depends_on": [
+        "bam.mapping_summary",
+        "bam.coverage",
+        "bam.damage",
+        "bam.contamination",
+        "bam.complexity"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/bam.authenticity/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "bam.complexity",
+      "stage_id": "bam.complexity",
+      "tool_id": "preseq",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "bam.align"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/bam.complexity/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "bam.contamination",
+      "stage_id": "bam.contamination",
+      "tool_id": "verifybamid2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "bam.align"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/bam.contamination/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "bam.coverage",
+      "stage_id": "bam.coverage",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.align",
+        "bam.mapping_summary"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/bam.coverage/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "bam.damage",
+      "stage_id": "bam.damage",
+      "tool_id": "ngsbriggs",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "bam.align"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/bam.damage/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "bam.mapping_summary",
+      "stage_id": "bam.mapping_summary",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.align",
+        "bam.validate"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/bam.mapping_summary/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "bam.validate",
+      "stage_id": "bam.validate",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "bam.align"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/bam.validate/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 1,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "fastq.filter_reads",
+      "stage_id": "fastq.filter_reads",
+      "tool_id": "fastp",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.remove_duplicates"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/fastq.filter_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "fastq.remove_duplicates",
+      "stage_id": "fastq.remove_duplicates",
+      "tool_id": "clumpify",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.trim_terminal_damage"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/fastq.remove_duplicates/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 5,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "fastq.trim_terminal_damage",
+      "stage_id": "fastq.trim_terminal_damage",
+      "tool_id": "cutadapt",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/fastq.trim_terminal_damage/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqvalidator",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/fastq.validate_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "vcf.call_pseudohaploid",
+      "stage_id": "vcf.call_pseudohaploid",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 4,
+      "depends_on": [
+        "bam.align",
+        "bam.coverage",
+        "bam.damage",
+        "bam.authenticity"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/vcf.call_pseudohaploid/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 4,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "vcf.damage_filter",
+      "stage_id": "vcf.damage_filter",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "vcf.call_pseudohaploid",
+        "bam.damage"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/vcf.damage_filter/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 4,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+      "node_id": "vcf.stats",
+      "stage_id": "vcf.stats",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.damage_filter"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/adna-pseudohaploid-fastq-bam-vcf/vcf.stats/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "amplicon-asv-otu-no-vcf",
+      "node_id": "fastq.cluster_otus",
+      "stage_id": "fastq.cluster_otus",
+      "tool_id": "vsearch",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "fastq.normalize_primers",
+        "fastq.remove_chimeras"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/amplicon-asv-otu-no-vcf/fastq.cluster_otus/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "amplicon-asv-otu-no-vcf",
+      "node_id": "fastq.infer_asvs",
+      "stage_id": "fastq.infer_asvs",
+      "tool_id": "dada2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.normalize_primers"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/amplicon-asv-otu-no-vcf/fastq.infer_asvs/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "amplicon-asv-otu-no-vcf",
+      "node_id": "fastq.normalize_abundance",
+      "stage_id": "fastq.normalize_abundance",
+      "tool_id": "seqkit",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.cluster_otus"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/amplicon-asv-otu-no-vcf/fastq.normalize_abundance/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 1,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "amplicon-asv-otu-no-vcf",
+      "node_id": "fastq.normalize_primers",
+      "stage_id": "fastq.normalize_primers",
+      "tool_id": "cutadapt",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/amplicon-asv-otu-no-vcf/fastq.normalize_primers/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "amplicon-asv-otu-no-vcf",
+      "node_id": "fastq.remove_chimeras",
+      "stage_id": "fastq.remove_chimeras",
+      "tool_id": "vsearch",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.infer_asvs"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/amplicon-asv-otu-no-vcf/fastq.remove_chimeras/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "amplicon-asv-otu-no-vcf",
+      "node_id": "fastq.report_qc",
+      "stage_id": "fastq.report_qc",
+      "tool_id": "bijux-dna",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 6,
+      "depends_on": [
+        "fastq.validate_reads",
+        "fastq.normalize_primers",
+        "fastq.infer_asvs",
+        "fastq.remove_chimeras",
+        "fastq.cluster_otus",
+        "fastq.normalize_abundance"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/amplicon-asv-otu-no-vcf/fastq.report_qc/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 1,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "amplicon-asv-otu-no-vcf",
+      "node_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqvalidator",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/amplicon-asv-otu-no-vcf/fastq.validate_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "bam-genotyping-to-vcf-downstream",
+      "node_id": "bam.coverage",
+      "stage_id": "bam.coverage",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "bam.filter"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/bam-genotyping-to-vcf-downstream/bam.coverage/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "bam-genotyping-to-vcf-downstream",
+      "node_id": "bam.filter",
+      "stage_id": "bam.filter",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/bam-genotyping-to-vcf-downstream/bam.filter/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 4,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "bam-genotyping-to-vcf-downstream",
+      "node_id": "bam.genotyping",
+      "stage_id": "bam.genotyping",
+      "tool_id": "bijux-dna",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.filter",
+        "bam.recalibration"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/bam-genotyping-to-vcf-downstream/bam.genotyping/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 6,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "bam-genotyping-to-vcf-downstream",
+      "node_id": "bam.recalibration",
+      "stage_id": "bam.recalibration",
+      "tool_id": "gatk",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.filter",
+        "bam.coverage"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/bam-genotyping-to-vcf-downstream/bam.recalibration/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 5,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "bam-genotyping-to-vcf-downstream",
+      "node_id": "vcf.filter",
+      "stage_id": "vcf.filter",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "bam.genotyping"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/bam-genotyping-to-vcf-downstream/vcf.filter/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 4,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "bam-genotyping-to-vcf-downstream",
+      "node_id": "vcf.pca",
+      "stage_id": "vcf.pca",
+      "tool_id": "plink2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.qc"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/bam-genotyping-to-vcf-downstream/vcf.pca/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "bam-genotyping-to-vcf-downstream",
+      "node_id": "vcf.qc",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/bam-genotyping-to-vcf-downstream/vcf.qc/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 6,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "bam-genotyping-to-vcf-downstream",
+      "node_id": "vcf.roh",
+      "stage_id": "vcf.roh",
+      "tool_id": "plink2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.qc"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/bam-genotyping-to-vcf-downstream/vcf.roh/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "bam-genotyping-to-vcf-downstream",
+      "node_id": "vcf.stats",
+      "stage_id": "vcf.stats",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.filter"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/bam-genotyping-to-vcf-downstream/vcf.stats/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "core-germline-fastq-bam-vcf",
+      "node_id": "bam.align",
+      "stage_id": "bam.align",
+      "tool_id": "bowtie2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.filter_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/core-germline-fastq-bam-vcf/bam.align/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "core-germline-fastq-bam-vcf",
+      "node_id": "bam.coverage",
+      "stage_id": "bam.coverage",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.align",
+        "bam.qc_pre"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/core-germline-fastq-bam-vcf/bam.coverage/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "core-germline-fastq-bam-vcf",
+      "node_id": "bam.qc_pre",
+      "stage_id": "bam.qc_pre",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.align",
+        "bam.validate"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/core-germline-fastq-bam-vcf/bam.qc_pre/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 4,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "core-germline-fastq-bam-vcf",
+      "node_id": "bam.validate",
+      "stage_id": "bam.validate",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "bam.align"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/core-germline-fastq-bam-vcf/bam.validate/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 1,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "core-germline-fastq-bam-vcf",
+      "node_id": "fastq.filter_reads",
+      "stage_id": "fastq.filter_reads",
+      "tool_id": "fastp",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/core-germline-fastq-bam-vcf/fastq.filter_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "core-germline-fastq-bam-vcf",
+      "node_id": "fastq.profile_reads",
+      "stage_id": "fastq.profile_reads",
+      "tool_id": "seqkit_stats",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/core-germline-fastq-bam-vcf/fastq.profile_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 1,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "core-germline-fastq-bam-vcf",
+      "node_id": "fastq.trim_reads",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "fastp",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/core-germline-fastq-bam-vcf/fastq.trim_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "core-germline-fastq-bam-vcf",
+      "node_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqvalidator",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/core-germline-fastq-bam-vcf/fastq.validate_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "core-germline-fastq-bam-vcf",
+      "node_id": "vcf.call",
+      "stage_id": "vcf.call",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.align",
+        "bam.coverage"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/core-germline-fastq-bam-vcf/vcf.call/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "core-germline-fastq-bam-vcf",
+      "node_id": "vcf.filter",
+      "stage_id": "vcf.filter",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.call"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/core-germline-fastq-bam-vcf/vcf.filter/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 4,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "core-germline-fastq-bam-vcf",
+      "node_id": "vcf.qc",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/core-germline-fastq-bam-vcf/vcf.qc/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "core-germline-fastq-bam-vcf",
+      "node_id": "vcf.stats",
+      "stage_id": "vcf.stats",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.filter"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/core-germline-fastq-bam-vcf/vcf.stats/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "bam.align",
+      "stage_id": "bam.align",
+      "tool_id": "bowtie2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.filter_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/bam.align/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "bam.coverage",
+      "stage_id": "bam.coverage",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.mapping_summary",
+        "bam.filter"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/bam.coverage/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "bam.filter",
+      "stage_id": "bam.filter",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.align",
+        "bam.qc_pre"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/bam.filter/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 4,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "bam.mapping_summary",
+      "stage_id": "bam.mapping_summary",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.align",
+        "bam.qc_pre"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/bam.mapping_summary/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "bam.qc_pre",
+      "stage_id": "bam.qc_pre",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.align",
+        "bam.validate"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/bam.qc_pre/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 4,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "bam.recalibration",
+      "stage_id": "bam.recalibration",
+      "tool_id": "gatk",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "bam.filter",
+        "bam.coverage"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/bam.recalibration/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 5,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "bam.validate",
+      "stage_id": "bam.validate",
+      "tool_id": "samtools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "bam.align"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/bam.validate/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 1,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "fastq.filter_reads",
+      "stage_id": "fastq.filter_reads",
+      "tool_id": "fastp",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/fastq.filter_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "fastq.profile_reads",
+      "stage_id": "fastq.profile_reads",
+      "tool_id": "seqkit_stats",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/fastq.profile_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 1,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "fastq.trim_reads",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "fastp",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/fastq.trim_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqvalidator",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/fastq.validate_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "vcf.call_diploid",
+      "stage_id": "vcf.call_diploid",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 3,
+      "depends_on": [
+        "bam.filter",
+        "bam.coverage",
+        "bam.recalibration"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/vcf.call_diploid/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "vcf.filter",
+      "stage_id": "vcf.filter",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.call_diploid"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/vcf.filter/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 4,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "vcf.phasing",
+      "stage_id": "vcf.phasing",
+      "tool_id": "shapeit5",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "vcf.filter",
+        "vcf.qc"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/vcf.phasing/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "vcf.qc",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/vcf.qc/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "diploid-small-fastq-bam-vcf",
+      "node_id": "vcf.stats",
+      "stage_id": "vcf.stats",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.filter"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/diploid-small-fastq-bam-vcf/vcf.stats/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "edna-taxonomy-no-vcf",
+      "node_id": "fastq.detect_adapters",
+      "stage_id": "fastq.detect_adapters",
+      "tool_id": "fastqc",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/edna-taxonomy-no-vcf/fastq.detect_adapters/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 1,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "edna-taxonomy-no-vcf",
+      "node_id": "fastq.filter_reads",
+      "stage_id": "fastq.filter_reads",
+      "tool_id": "fastp",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/edna-taxonomy-no-vcf/fastq.filter_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "edna-taxonomy-no-vcf",
+      "node_id": "fastq.report_qc",
+      "stage_id": "fastq.report_qc",
+      "tool_id": "bijux-dna",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 5,
+      "depends_on": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.screen_taxonomy"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/edna-taxonomy-no-vcf/fastq.report_qc/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 1,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "edna-taxonomy-no-vcf",
+      "node_id": "fastq.screen_taxonomy",
+      "stage_id": "fastq.screen_taxonomy",
+      "tool_id": "kraken2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "fastq.filter_reads"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/edna-taxonomy-no-vcf/fastq.screen_taxonomy/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "edna-taxonomy-no-vcf",
+      "node_id": "fastq.trim_reads",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "fastp",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/edna-taxonomy-no-vcf/fastq.trim_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "edna-taxonomy-no-vcf",
+      "node_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqvalidator",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/edna-taxonomy-no-vcf/fastq.validate_reads/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "popgen-structure-vcf",
+      "node_id": "vcf.admixture",
+      "stage_id": "vcf.admixture",
+      "tool_id": "plink2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "vcf.qc",
+        "vcf.pca"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/popgen-structure-vcf/vcf.admixture/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "popgen-structure-vcf",
+      "node_id": "vcf.pca",
+      "stage_id": "vcf.pca",
+      "tool_id": "plink2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.qc"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/popgen-structure-vcf/vcf.pca/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "popgen-structure-vcf",
+      "node_id": "vcf.population_structure",
+      "stage_id": "vcf.population_structure",
+      "tool_id": "plink2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 3,
+      "depends_on": [
+        "vcf.qc",
+        "vcf.pca",
+        "vcf.admixture"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/popgen-structure-vcf/vcf.population_structure/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 2,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "popgen-structure-vcf",
+      "node_id": "vcf.qc",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/popgen-structure-vcf/vcf.qc/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 6,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "reference-panel-imputation",
+      "node_id": "vcf.imputation_metrics",
+      "stage_id": "vcf.imputation_metrics",
+      "tool_id": "beagle",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "vcf.prepare_reference_panel",
+        "vcf.impute"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/reference-panel-imputation/vcf.imputation_metrics/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "reference-panel-imputation",
+      "node_id": "vcf.impute",
+      "stage_id": "vcf.impute",
+      "tool_id": "beagle",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 3,
+      "depends_on": [
+        "vcf.prepare_reference_panel",
+        "vcf.qc",
+        "vcf.phasing"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/reference-panel-imputation/vcf.impute/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 6,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "reference-panel-imputation",
+      "node_id": "vcf.phasing",
+      "stage_id": "vcf.phasing",
+      "tool_id": "shapeit5",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 2,
+      "depends_on": [
+        "vcf.prepare_reference_panel",
+        "vcf.qc"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/reference-panel-imputation/vcf.phasing/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 4,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "reference-panel-imputation",
+      "node_id": "vcf.prepare_reference_panel",
+      "stage_id": "vcf.prepare_reference_panel",
+      "tool_id": "bcftools",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/reference-panel-imputation/vcf.prepare_reference_panel/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 5,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "reference-panel-imputation",
+      "node_id": "vcf.qc",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/reference-panel-imputation/vcf.qc/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 5,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "relatedness-segments-vcf",
+      "node_id": "vcf.demography",
+      "stage_id": "vcf.demography",
+      "tool_id": "ibdne",
+      "completion_state": "valid_completed",
+      "resume_action": "rerun",
+      "reason": "upstream_dependency_rerun",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.ibd"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/relatedness-segments-vcf/vcf.demography/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "relatedness-segments-vcf",
+      "node_id": "vcf.ibd",
+      "stage_id": "vcf.ibd",
+      "tool_id": "germline",
+      "completion_state": "invalid_stage_result_manifest",
+      "resume_action": "rerun",
+      "reason": "invalid_stage_result_manifest",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.qc"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/relatedness-segments-vcf/vcf.ibd/stage-result.json",
+      "outputs_present": false,
+      "manifest_output_count": 0,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "relatedness-segments-vcf",
+      "node_id": "vcf.qc",
+      "stage_id": "vcf.qc",
+      "tool_id": "plink2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 0,
+      "depends_on": [],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/relatedness-segments-vcf/vcf.qc/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 6,
+      "unrelated_branch_continues": false
+    },
+    {
+      "pipeline_id": "relatedness-segments-vcf",
+      "node_id": "vcf.roh",
+      "stage_id": "vcf.roh",
+      "tool_id": "plink2",
+      "completion_state": "valid_completed",
+      "resume_action": "skip",
+      "reason": "valid_completed",
+      "dependency_count": 1,
+      "depends_on": [
+        "vcf.qc"
+      ],
+      "stage_result_path": "runs/bench/local-fake-runs/pipelines/essential-partial-resume/relatedness-segments-vcf/vcf.roh/stage-result.json",
+      "outputs_present": true,
+      "manifest_output_count": 3,
+      "unrelated_branch_continues": true
+    }
+  ]
+}

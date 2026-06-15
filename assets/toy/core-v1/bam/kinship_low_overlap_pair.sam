@@ -1,0 +1,6 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chr1	LN:20
+@RG	ID:rg_a	SM:sample_a
+@RG	ID:rg_b	SM:sample_b
+pair_a	0	chr1	1	60	4M	*	0	0	ACGT	FFFF	RG:Z:rg_a
+pair_b	0	chr1	1	60	4M	*	0	0	ACGA	FFFF	RG:Z:rg_b

@@ -4,6 +4,7 @@
 
 include!("parse/parse_root_and_analyze.rs");
 include!("parse/parse_env_and_pipeline.rs");
+include!("parse/fixtures.rs");
 mod bench;
 include!("parse/ci.rs");
 include!("parse/fastq.rs");

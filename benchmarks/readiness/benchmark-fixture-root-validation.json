@@ -1,0 +1,166 @@
+{
+  "schema_version": "bijux.bench.fixture_root_validation.v1",
+  "output_path": "benchmarks/readiness/benchmark-fixture-root-validation.json",
+  "root_path": "benchmarks/tests/fixtures",
+  "required_subroot_count": 3,
+  "parser_domain_count": 3,
+  "checked_fixture_count": 17,
+  "valid_fixture_count": 17,
+  "invalid_fixture_count": 0,
+  "ok": true,
+  "rows": [
+    {
+      "fixture_kind": "corpus",
+      "fixture_id": "corpus-01-adna-bam-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_corpus_fixture.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "corpus",
+      "fixture_id": "corpus-01-adna-damage-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_damage_fixture.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "corpus",
+      "fixture_id": "corpus-01-bam-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_corpus_fixture.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "corpus",
+      "fixture_id": "corpus-01-genotyping-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_corpus_fixture.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "corpus",
+      "fixture_id": "corpus-01-kinship-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-01-kinship-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_corpus_fixture.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "corpus",
+      "fixture_id": "corpus-01-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.fastq_corpus_fixture.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "corpus",
+      "fixture_id": "corpus-02-edna-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.edna_corpus_fixture.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "corpus",
+      "fixture_id": "corpus-03-amplicon-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.amplicon_corpus_fixture.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "corpus",
+      "fixture_id": "vcf-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.vcf_corpus_fixture.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "database",
+      "fixture_id": "taxonomy-mini",
+      "manifest_path": "benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.taxonomy_database_fixture.v2",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "vcf-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/corpora/vcf-mini/expected",
+      "schema_version": "bijux.bench.vcf_expected_truth_validation.v1",
+      "valid": true,
+      "detail": "truth_file_count=8"
+    },
+    {
+      "fixture_kind": "fixture_subroot",
+      "fixture_id": "bench",
+      "manifest_path": null,
+      "detail_path": "benchmarks/tests/fixtures/bench",
+      "schema_version": null,
+      "valid": true,
+      "detail": "present"
+    },
+    {
+      "fixture_kind": "fixture_subroot",
+      "fixture_id": "corpora",
+      "manifest_path": null,
+      "detail_path": "benchmarks/tests/fixtures/corpora",
+      "schema_version": null,
+      "valid": true,
+      "detail": "present"
+    },
+    {
+      "fixture_kind": "fixture_subroot",
+      "fixture_id": "databases",
+      "manifest_path": null,
+      "detail_path": "benchmarks/tests/fixtures/databases",
+      "schema_version": null,
+      "valid": true,
+      "detail": "present"
+    },
+    {
+      "fixture_kind": "parser_fixture_domain",
+      "fixture_id": "bam",
+      "manifest_path": null,
+      "detail_path": "benchmarks/tests/fixtures/bench/parsers/bam",
+      "schema_version": null,
+      "valid": true,
+      "detail": "present"
+    },
+    {
+      "fixture_kind": "parser_fixture_domain",
+      "fixture_id": "fastq",
+      "manifest_path": null,
+      "detail_path": "benchmarks/tests/fixtures/bench/parsers/fastq",
+      "schema_version": null,
+      "valid": true,
+      "detail": "present"
+    },
+    {
+      "fixture_kind": "parser_fixture_domain",
+      "fixture_id": "vcf",
+      "manifest_path": null,
+      "detail_path": "benchmarks/tests/fixtures/bench/parsers/vcf",
+      "schema_version": null,
+      "valid": true,
+      "detail": "present"
+    }
+  ]
+}

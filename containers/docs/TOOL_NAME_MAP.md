@@ -12,7 +12,7 @@
 | Tool ID | Expected Binary | Status |
 |---|---|---|
 | `adapterremoval` | `adapterremoval` | `production` |
-| `addeam` | `addeam` | `experimental` |
+| `addeam` | `addeam` | `production` |
 | `alientrimmer` | `alientrimmer` | `production` |
 | `angsd` | `angsd` | `planned` |
 | `atropos` | `atropos` | `production` |
@@ -25,6 +25,7 @@
 | `bcftools` | `bcftools` | `production` |
 | `beagle` | `beagle` | `experimental` |
 | `bedtools` | `bedtools` | `production` |
+| `bijux_dna` | `bijux-dna` | `production` |
 | `bowtie2` | `bowtie2` | `production` |
 | `bowtie2_build` | `bowtie2-build` | `production` |
 | `bracken` | `bracken` | `experimental` |
@@ -34,7 +35,7 @@
 | `contammix` | `contammix` | `production` |
 | `cutadapt` | `cutadapt` | `production` |
 | `dada2` | `dada2` | `production` |
-| `damageprofiler` | `damageprofiler` | `experimental` |
+| `damageprofiler` | `damageprofiler` | `production` |
 | `diamond` | `diamond` | `experimental` |
 | `dustmasker` | `dustmasker` | `experimental` |
 | `eagle` | `eagle` | `experimental` |
@@ -81,7 +82,7 @@
 | `rxy` | `rxy` | `production` |
 | `samtools` | `samtools` | `production` |
 | `schmutzi` | `schmutzi` | `production` |
-| `seqfu` | `seqfu` | `experimental` |
+| `seqfu` | `seqfu` | `production` |
 | `seqkit` | `seqkit` | `production` |
 | `seqkit_stats` | `seqkit_stats` | `production` |
 | `seqprep` | `seqprep` | `experimental` |
@@ -98,4 +99,4 @@
 | `umi_tools` | `umi_tools` | `production` |
 | `verifybamid2` | `verifybamid2` | `production` |
 | `vsearch` | `vsearch` | `production` |
-| `yleaf` | `yleaf` | `experimental` |
+| `yleaf` | `yleaf` | `production` |

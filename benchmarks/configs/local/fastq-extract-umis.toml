@@ -1,0 +1,16 @@
+schema_version = "bijux.bench.fastq.local_extract_umis.v1"
+tool_id = "umi_tools"
+threads = 1
+umi_pattern = "NNNN"
+extraction_location = "read1_prefix"
+read_name_transform = "append_to_header"
+failed_extraction_policy = "retain_unmodified"
+grouping_policy = "pair_aware"
+downstream_dedup_policy = "sequence_identity_recommended"
+downstream_propagation = "header_and_report"
+output_dir = "runs/bench/local-smoke/fastq.extract_umis"
+
+[[cases]]
+sample_id = "human_like_pe_umi_prefix_signals"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_umi_prefix_signals_R1.fastq.gz"
+r2 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_umi_prefix_signals_R2.fastq.gz"

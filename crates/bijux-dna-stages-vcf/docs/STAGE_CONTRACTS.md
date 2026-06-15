@@ -16,7 +16,7 @@ artifact paths, and contract tests covering success or refusal behavior.
 - `vcf.filter`
 - `vcf.gl_propagation`
 - `vcf.ibd`
-- `vcf.imputation`
+- `vcf.imputation_metrics`
 - `vcf.impute`
 - `vcf.pca`
 - `vcf.phasing`

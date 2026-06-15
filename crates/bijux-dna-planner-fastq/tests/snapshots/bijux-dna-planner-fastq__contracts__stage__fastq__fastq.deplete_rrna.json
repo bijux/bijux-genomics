@@ -12,7 +12,7 @@
     "template": [
       "bash",
       "-lc",
-      "set -euo pipefail\nshopt -s nullglob\ncollect_output_from_globs() { dest=\"$1\"; shift; local pattern candidate matches=(); local -a inputs=(); for pattern in \"$@\"; do matches=( $pattern ); for candidate in \"${matches[@]}\"; do if [ -f \"$candidate\" ]; then inputs+=( \"$candidate\" ); fi; done; done; if [ \"${#inputs[@]}\" -eq 0 ]; then printf 'missing expected SortMeRNA output for %s\\n' \"$dest\" >&2; return 1; fi; { for candidate in \"${inputs[@]}\"; do case \"$candidate\" in *.gz) gzip -cd -- \"$candidate\" ;; *) cat -- \"$candidate\" ;; esac; done; } | gzip -c > \"$dest\"; }\nrm -rf 'out/sortmerna_workdir/kvdb' 'out/sortmerna_workdir/readb' 'out/sortmerna_workdir/out'\nmkdir -p 'out/sortmerna_workdir' 'out/sortmerna_workdir/idx' 'out/sortmerna_workdir/kvdb' 'out/sortmerna_workdir/readb' 'out/sortmerna_workdir/out'\nmkdir -p \"$(dirname 'out/rrna_filtered.fastq.gz')\" \"$(dirname 'out/rrna_report.tsv')\" \"$(dirname 'out/rrna_report.json')\"\nrm -f 'out/rrna_filtered.fastq.gz' '' 'out/rrna_report.tsv' 'out/rrna_report.json'\n'sortmerna' '--ref' 'rrna_reference' '--reads' 'reads_R1.fastq.gz' '--workdir' 'out/sortmerna_workdir/' '--idx-dir' 'out/sortmerna_workdir/idx' '--kvdb' 'out/sortmerna_workdir/kvdb' '--readb' 'out/sortmerna_workdir/readb' '--threads' '1' '--fastx' '--zip-out' 'yes'\ncollect_output_from_globs 'out/rrna_filtered.fastq.gz' 'out/sortmerna_workdir/out/other*.fastq.gz' 'out/sortmerna_workdir/out/other*.fq.gz' 'out/sortmerna_workdir/out/other*.fastq' 'out/sortmerna_workdir/out/other*.fq' 'out/sortmerna_workdir/readb/fwd_*.fastq.gz' 'out/sortmerna_workdir/readb/fwd_*.fq.gz' 'out/sortmerna_workdir/readb/fwd_*.fastq' 'out/sortmerna_workdir/readb/fwd_*.fq'\nif [ -f 'out/sortmerna_workdir/out/aligned.log' ]; then cp -- 'out/sortmerna_workdir/out/aligned.log' 'out/rrna_report.tsv'; else : > 'out/rrna_report.tsv'; fi\nprintf '{}\\n' > 'out/rrna_report.json'\n"
+      "set -euo pipefail\nshopt -s nullglob\ncollect_output_from_globs() { dest=\"$1\"; shift; local pattern candidate matches=(); local -a inputs=(); for pattern in \"$@\"; do matches=( $pattern ); for candidate in \"${matches[@]}\"; do if [ -f \"$candidate\" ]; then inputs+=( \"$candidate\" ); fi; done; done; if [ \"${#inputs[@]}\" -eq 0 ]; then printf 'missing expected SortMeRNA output for %s\\n' \"$dest\" >&2; return 1; fi; { for candidate in \"${inputs[@]}\"; do case \"$candidate\" in *.gz) gzip -cd -- \"$candidate\" ;; *) cat -- \"$candidate\" ;; esac; done; } | gzip -c > \"$dest\"; }\nrm -rf 'out/sortmerna_workdir/kvdb' 'out/sortmerna_workdir/readb' 'out/sortmerna_workdir/out'\nmkdir -p 'out/sortmerna_workdir' 'out/sortmerna_workdir/idx' 'out/sortmerna_workdir/kvdb' 'out/sortmerna_workdir/readb' 'out/sortmerna_workdir/out'\nmkdir -p \"$(dirname 'out/rrna_filtered.fastq.gz')\" \"$(dirname 'out/removed_rrna.fastq.gz')\" \"$(dirname 'out/rrna_report.tsv')\" \"$(dirname 'out/rrna_report.json')\"\nrm -f 'out/rrna_filtered.fastq.gz' '' 'out/removed_rrna.fastq.gz' '' 'out/rrna_report.tsv' 'out/rrna_report.json'\n'sortmerna' '--ref' 'rrna_reference' '--reads' 'reads_R1.fastq.gz' '--workdir' 'out/sortmerna_workdir/' '--idx-dir' 'out/sortmerna_workdir/idx' '--kvdb' 'out/sortmerna_workdir/kvdb' '--readb' 'out/sortmerna_workdir/readb' '--threads' '1' '--fastx' '--zip-out' 'yes'\ncollect_output_from_globs 'out/rrna_filtered.fastq.gz' 'out/sortmerna_workdir/out/other*.fastq.gz' 'out/sortmerna_workdir/out/other*.fq.gz' 'out/sortmerna_workdir/out/other*.fastq' 'out/sortmerna_workdir/out/other*.fq' 'out/sortmerna_workdir/readb/fwd_*.fastq.gz' 'out/sortmerna_workdir/readb/fwd_*.fq.gz' 'out/sortmerna_workdir/readb/fwd_*.fastq' 'out/sortmerna_workdir/readb/fwd_*.fq'\ncollect_output_from_globs 'out/removed_rrna.fastq.gz' 'out/sortmerna_workdir/out/aligned*.fastq.gz' 'out/sortmerna_workdir/out/aligned*.fq.gz' 'out/sortmerna_workdir/out/aligned*.fastq' 'out/sortmerna_workdir/out/aligned*.fq' 'out/sortmerna_workdir/readb/aligned_fwd_*.fastq.gz' 'out/sortmerna_workdir/readb/aligned_fwd_*.fq.gz' 'out/sortmerna_workdir/readb/aligned_fwd_*.fastq' 'out/sortmerna_workdir/readb/aligned_fwd_*.fq'\nif [ -f 'out/sortmerna_workdir/out/aligned.log' ]; then cp -- 'out/sortmerna_workdir/out/aligned.log' 'out/rrna_report.tsv'; else : > 'out/rrna_report.tsv'; fi\nprintf '{}\\n' > 'out/rrna_report.json'\n"
     ]
   },
   "resources": {
@@ -50,6 +50,12 @@
         "optional": false
       },
       {
+        "name": "rrna_removed_reads_r1",
+        "path": "out/removed_rrna.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
         "name": "rrna_report_json",
         "path": "out/rrna_report.json",
         "role": "metrics_json",
@@ -65,6 +71,8 @@
     "input_r1": "reads_R1.fastq.gz",
     "input_r2": null,
     "min_identity": 0.95,
+    "removed_reads_r1": "out/removed_rrna.fastq.gz",
+    "removed_reads_r2": null,
     "report_json": "out/rrna_report.json",
     "report_tsv": "out/rrna_report.tsv",
     "rrna_db": "rrna_reference",
@@ -75,7 +83,7 @@
     "contaminant_db": "rrna_reference",
     "database_artifact_id": "rrna_reference",
     "database_build_id": null,
-    "emit_removed_reads": false,
+    "emit_removed_reads": true,
     "paired_mode": "single_end",
     "report_format": "summary_tsv_and_json",
     "schema_version": "bijux.fastq.params.deplete_rrna.v1",

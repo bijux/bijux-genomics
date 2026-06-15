@@ -1,0 +1,38 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local-smoke inputs for bam.coverage.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.bam.local_coverage.v1"
+tool_id = "samtools"
+threads = 4
+output_dir = "runs/bench/local-smoke/bam.coverage"
+
+[[cases]]
+sample_id = "human_like_target_window_coverage"
+bam = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_target_window_coverage.sam"
+regions = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_target_window_coverage.bed"
+depth_thresholds = [1, 5]
+expected_coverage_regime = "low_pass"
+
+[[cases.expected_rows]]
+region_id = "chr1_window"
+contig = "chr1"
+start = 1
+end = 6
+length = 6
+mean_depth = 1.3333333333333333
+breadth_1x = 1.0
+covered_bases = 6
+
+[[cases.expected_rows]]
+region_id = "chr2_window"
+contig = "chr2"
+start = 2
+end = 5
+length = 4
+mean_depth = 0.75
+breadth_1x = 0.75
+covered_bases = 3

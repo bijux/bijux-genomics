@@ -4,9 +4,9 @@ stage_ids: ["vcf.phasing"]
 role: "analysis"
 authoritative: false
 strict_capable: true
-status: "planned"
+status: "supported"
 scope: "post_vcf"
-default_version: "planned"
+default_version: "5.1.1"
 upstream: "https://odelaneau.github.io/shapeit5/"
 pin_strategy: "external_tool"
 license: "MIT"
@@ -16,7 +16,7 @@ help_cmd: "shapeit5 --help"
 expected_artifacts: ["phased_vcf"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.phasing.v1"
-comparability_notes: "External planned tool for phasing; containerization pending."
+comparability_notes: "Comparable only when panel build, genetic map, and pinned Shapeit5 profile stay identical."
 container:
   image: "external"
   digest: "external"

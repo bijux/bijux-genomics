@@ -1,4 +1,100 @@
 use super::*;
+use crate::observer::parse_merge_pairs_report;
+
+#[test]
+fn parse_merge_pairs_report_parses_canonical_pair_counts() -> Result<()> {
+    let parsed = parse_merge_pairs_report(
+        &serde_json::json!({
+            "schema_version": "bijux.fastq.merge_pairs.report.v2",
+            "stage": "fastq.merge_pairs",
+            "stage_id": "fastq.merge_pairs",
+            "tool_id": "pear",
+            "paired_mode": "paired_end",
+            "merge_engine": "pear",
+            "threads": 4,
+            "merge_overlap": 20,
+            "min_len": 80,
+            "unmerged_read_policy": "emit_unmerged_pairs",
+            "input_r1": "reads_R1.fastq.gz",
+            "input_r2": "reads_R2.fastq.gz",
+            "merged_reads": "merged.fastq.gz",
+            "unmerged_reads_r1": "unmerged_R1.fastq.gz",
+            "unmerged_reads_r2": "unmerged_R2.fastq.gz",
+            "reads_r1": 100,
+            "reads_r2": 96,
+            "reads_merged": 88,
+            "reads_unmerged": 6,
+            "merge_rate": 0.916_666_666_7
+        })
+        .to_string(),
+    )?;
+    let pair_counts = parsed.canonical_pair_counts();
+    assert_eq!(parsed.tool_id, "pear");
+    assert_eq!(pair_counts.input_pair_count, 96);
+    assert_eq!(pair_counts.merged_pair_count, 88);
+    assert_eq!(pair_counts.unmerged_pair_count, 6);
+    assert_eq!(pair_counts.discarded_pair_count, 2);
+    Ok(())
+}
+
+#[test]
+fn parse_detect_duplicates_premerge_report_parses_governed_json() -> Result<()> {
+    let parsed = parse_detect_duplicates_premerge_report(
+        &serde_json::json!({
+            "schema_version": "bijux.fastq.detect_duplicates_premerge.report.v1",
+            "stage": "fastq.detect_duplicates_premerge",
+            "stage_id": "fastq.detect_duplicates_premerge",
+            "tool_id": "bijux",
+            "paired_mode": "paired_end",
+            "duplicate_detection_policy": "report_only",
+            "measurement_scope": "premerge_sequence_signature",
+            "modifies_reads": false,
+            "advisory_only": true,
+            "reads_in": 12,
+            "duplicate_signal_reads": 4,
+            "duplicate_signal_fraction": 0.333_333_333_333_333_3,
+            "compared_read_pairs": 6
+        })
+        .to_string(),
+    )?;
+    assert_eq!(parsed.tool_id, "bijux");
+    assert_eq!(parsed.reads_in, 12);
+    assert_eq!(parsed.duplicate_signal_reads, 4);
+    assert_eq!(parsed.compared_read_pairs, Some(6));
+    assert_f64_eq(parsed.duplicate_signal_fraction, 0.333_333_333_333_333_3);
+    Ok(())
+}
+
+#[test]
+fn parse_estimate_library_complexity_prealign_report_parses_governed_json() -> Result<()> {
+    let parsed = parse_estimate_library_complexity_prealign_report(
+        &serde_json::json!({
+            "schema_version": "bijux.fastq.estimate_library_complexity_prealign.report.v1",
+            "stage": "fastq.estimate_library_complexity_prealign",
+            "stage_id": "fastq.estimate_library_complexity_prealign",
+            "tool_id": "bijux",
+            "paired_mode": "single_end",
+            "complexity_policy": "prealign_kmer",
+            "estimate_method": "kmer_redundancy",
+            "modifies_reads": false,
+            "advisory_only": true,
+            "reads_in": 0,
+            "estimated_unique_fraction": 0.0,
+            "estimated_duplicate_fraction": 0.0,
+            "insufficient_data_reason": "insufficient_reads_for_prealign_complexity_estimation",
+            "kmer_size": 31
+        })
+        .to_string(),
+    )?;
+    assert_eq!(parsed.tool_id, "bijux");
+    assert_eq!(parsed.reads_in, 0);
+    assert_eq!(
+        parsed.insufficient_data_reason.as_deref(),
+        Some("insufficient_reads_for_prealign_complexity_estimation")
+    );
+    assert_f64_eq(parsed.estimated_unique_fraction, 0.0);
+    Ok(())
+}
 
 #[test]
 fn parse_deduplicate_report_parses_fixture() -> Result<()> {

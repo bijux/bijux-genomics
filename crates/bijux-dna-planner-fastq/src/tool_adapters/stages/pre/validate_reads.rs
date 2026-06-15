@@ -237,6 +237,7 @@ pub fn pair_sync_policy_from_literal(value: &str) -> Result<PairSyncPolicy> {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 fn validation_command(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
@@ -617,6 +618,7 @@ fn shell_join(command: &[String]) -> String {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
     use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolId};

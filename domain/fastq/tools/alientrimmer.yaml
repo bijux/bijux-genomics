@@ -9,6 +9,27 @@ license: GPL-3.0
 citation: paper:https://pubmed.ncbi.nlm.nih.gov/23912058/
 container:
   image: bijuxdna/alientrimmer
+outputs:
+- name: trimmed_reads_r1
+  data_type: fastq
+  cardinality: Many
+- name: trimmed_reads_r2
+  data_type: fastq
+  cardinality: Many
+- name: report_json
+  data_type: json
+  cardinality: One
+execution_contract:
+  required_inputs:
+  - reads_r1
+  optional_inputs:
+  - reads_r2
+  expected_outputs:
+  - trimmed_reads_r1
+  - trimmed_reads_r2
+  - report_json
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
 stage_ids:
 - fastq.trim_reads
 stage_contracts:

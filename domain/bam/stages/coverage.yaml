@@ -8,20 +8,34 @@ inputs:
     data_type: "bam"
     cardinality: "One"
 outputs:
-  - name: "coverage_report_json"
+  - name: "coverage_summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "coverage_depth"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "stage_metrics"
     data_type: "json"
     cardinality: "One"
 parameters: []
 metrics:
-  - name: "runtime_s"
-    meaning: "Wall-clock runtime in seconds"
-  - name: "memory_mb"
-    meaning: "Peak memory usage in MB"
-description: "BAM coverage stage contract."
+  - name: "mean_depth"
+    meaning: "Mean observed depth across the governed target space"
+  - name: "breadth_1x"
+    meaning: "Fraction of governed target positions with at least one aligned base"
+  - name: "covered_bases"
+    meaning: "Count of governed target positions with at least one aligned base"
+  - name: "observed_region_count"
+    meaning: "Count of governed target regions materialized in the BAM coverage comparison output"
+  - name: "region_ids"
+    meaning: "Governed ordered region identifiers preserved in the BAM coverage comparison output"
+description: "BAM coverage stage contract with governed summary, depth sidecar, and benchmark-facing coverage metrics."
 required_inputs:
   - bam
 required_outputs:
-  - coverage_report_json
+  - coverage_summary
+  - coverage_depth
+  - stage_metrics
 tool_capability_requirements:
   - bam_input
 invariants:
@@ -32,9 +46,11 @@ allowed_missingness:
 compatible_tools:
   - mosdepth
   - samtools
+  - bedtools
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "default stage assumptions captured"
+  - "coverage summaries stay comparable only when target-space selection is fixed"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"

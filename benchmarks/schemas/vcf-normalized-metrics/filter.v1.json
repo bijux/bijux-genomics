@@ -1,0 +1,71 @@
+{
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.filter.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "allOf": [
+    {
+      "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "depth_threshold": {
+          "type": "number"
+        },
+        "failed_variants": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "filter_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "input_variants": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "missingness_threshold": {
+          "type": "number"
+        },
+        "pass_variants": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "quality_threshold": {
+          "type": "number"
+        },
+        "sample_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "bijux.vcf.filter.v1"
+        },
+        "stage_id": {
+          "const": "vcf.filter"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "input_variants",
+        "pass_variants",
+        "failed_variants",
+        "filter_ids",
+        "depth_threshold",
+        "quality_threshold",
+        "missingness_threshold",
+        "sample_count"
+      ],
+      "type": "object",
+      "x-bijux-extension-id": "vcf_filter_normalized_v1"
+    }
+  ],
+  "description": "Governed normalized parser output for `vcf.filter`.",
+  "title": "VCF normalized benchmark metrics: vcf.filter"
+}

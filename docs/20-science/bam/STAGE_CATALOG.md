@@ -116,9 +116,9 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Purpose: coverage summaries.
 - Inputs/Outputs: bam → coverage report.
 - Metrics: depth/breadth.
-- Tools: mosdepth, samtools.
+- Tools: mosdepth, samtools, bedtools.
 - Defaults: default `mosdepth`; rationale lives in [domain/bam/docs/DEFAULT_SETTINGS.md](../../../domain/bam/docs/DEFAULT_SETTINGS.md).
-- References: mosdepth and SAMtools depth summaries.
+- References: mosdepth, SAMtools depth summaries, and BEDTools interval coverage.
 
 ### bam.endogenous_content {#bam-endogenous-content}
 - Status: supported.
@@ -184,8 +184,8 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - References: GATK.
 
 ### bam.haplogroups {#bam-haplogroups}
-- Status: planned.
-- Purpose: infer haplogroups from BAM-aligned evidence once reference and acceptance rules are promoted.
+- Status: supported.
+- Purpose: infer haplogroups from governed BAM-aligned Y-panel evidence with explicit readiness and contamination guardrails.
 - Inputs/Outputs: bam → haplogroups report.
 - Metrics: haplogroup calls.
 - Tools: yleaf.
@@ -193,13 +193,13 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - References: Yleaf.
 
 ### bam.genotyping {#bam-genotyping}
-- Status: planned.
-- Purpose: summarize genotyping from BAM evidence without yet promoting BAM-driven calling as a default runtime surface.
+- Status: supported.
+- Purpose: summarize low-depth genotyping from BAM evidence with owned candidate-sites and target-regions contracts.
 - Inputs/Outputs: bam → genotyping report.
 - Metrics: variant summary.
-- Tools: gatk.
-- Defaults: default `gatk`; rationale lives in [domain/bam/docs/DEFAULT_SETTINGS.md](../../../domain/bam/docs/DEFAULT_SETTINGS.md).
-- References: GATK genotyping/reporting surfaces.
+- Tools: angsd.
+- Defaults: default `angsd`; rationale lives in [domain/bam/docs/DEFAULT_SETTINGS.md](../../../domain/bam/docs/DEFAULT_SETTINGS.md).
+- References: ANGSD genotype-likelihood/reporting surfaces.
 
 ### bam.kinship {#bam-kinship}
 - Status: supported.

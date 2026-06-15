@@ -1,0 +1,13 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local-ready plan input for fastq.deplete_rrna.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-06-01
+
+schema_version = "bijux.bench.fastq.local_deplete_rrna.v1"
+input_r1 = "assets/toy/core-v1/fastq/reads_1.fastq"
+rrna_db = "assets/reference/rrna/references/sortmerna_common_rrna_reference.fasta"
+tool_id = "sortmerna"
+threads = 4
+output_dir = "benchmarks/readiness/local-ready/fastq.deplete_rrna"

@@ -10,6 +10,54 @@
 // Auto-generated test aggregator for contracts
 #[path = "contracts/fastq_amplicon_governance_contract.rs"]
 mod mod_contracts_fastq_amplicon_governance_contract_rs;
+#[path = "contracts/v1_bam_local_align_plan.rs"]
+mod mod_contracts_v1_bam_local_align_plan_rs;
+#[path = "contracts/v1_bam_local_authenticity_smoke.rs"]
+mod mod_contracts_v1_bam_local_authenticity_smoke_rs;
+#[path = "contracts/v1_bam_local_bias_mitigation_smoke.rs"]
+mod mod_contracts_v1_bam_local_bias_mitigation_smoke_rs;
+#[path = "contracts/v1_bam_local_complexity_smoke.rs"]
+mod mod_contracts_v1_bam_local_complexity_smoke_rs;
+#[path = "contracts/v1_bam_local_contamination_plan.rs"]
+mod mod_contracts_v1_bam_local_contamination_plan_rs;
+#[path = "contracts/v1_bam_local_coverage_smoke.rs"]
+mod mod_contracts_v1_bam_local_coverage_smoke_rs;
+#[path = "contracts/v1_bam_local_damage_smoke.rs"]
+mod mod_contracts_v1_bam_local_damage_smoke_rs;
+#[path = "contracts/v1_bam_local_duplication_metrics_smoke.rs"]
+mod mod_contracts_v1_bam_local_duplication_metrics_smoke_rs;
+#[path = "contracts/v1_bam_local_endogenous_content_smoke.rs"]
+mod mod_contracts_v1_bam_local_endogenous_content_smoke_rs;
+#[path = "contracts/v1_bam_local_filter_smoke.rs"]
+mod mod_contracts_v1_bam_local_filter_smoke_rs;
+#[path = "contracts/v1_bam_local_gc_bias_smoke.rs"]
+mod mod_contracts_v1_bam_local_gc_bias_smoke_rs;
+#[path = "contracts/v1_bam_local_genotyping_plan.rs"]
+mod mod_contracts_v1_bam_local_genotyping_plan_rs;
+#[path = "contracts/v1_bam_local_haplogroups_plan.rs"]
+mod mod_contracts_v1_bam_local_haplogroups_plan_rs;
+#[path = "contracts/v1_bam_local_insert_size_smoke.rs"]
+mod mod_contracts_v1_bam_local_insert_size_smoke_rs;
+#[path = "contracts/v1_bam_local_kinship_smoke.rs"]
+mod mod_contracts_v1_bam_local_kinship_smoke_rs;
+#[path = "contracts/v1_bam_local_length_filter_smoke.rs"]
+mod mod_contracts_v1_bam_local_length_filter_smoke_rs;
+#[path = "contracts/v1_bam_local_mapping_summary_smoke.rs"]
+mod mod_contracts_v1_bam_local_mapping_summary_smoke_rs;
+#[path = "contracts/v1_bam_local_mapq_filter_smoke.rs"]
+mod mod_contracts_v1_bam_local_mapq_filter_smoke_rs;
+#[path = "contracts/v1_bam_local_markdup_smoke.rs"]
+mod mod_contracts_v1_bam_local_markdup_smoke_rs;
+#[path = "contracts/v1_bam_local_overlap_correction_smoke.rs"]
+mod mod_contracts_v1_bam_local_overlap_correction_smoke_rs;
+#[path = "contracts/v1_bam_local_qc_pre_smoke.rs"]
+mod mod_contracts_v1_bam_local_qc_pre_smoke_rs;
+#[path = "contracts/v1_bam_local_recalibration_smoke.rs"]
+mod mod_contracts_v1_bam_local_recalibration_smoke_rs;
+#[path = "contracts/v1_bam_local_sex_smoke.rs"]
+mod mod_contracts_v1_bam_local_sex_smoke_rs;
+#[path = "contracts/v1_bam_local_validate_smoke.rs"]
+mod mod_contracts_v1_bam_local_validate_smoke_rs;
 #[path = "contracts/v1_cross_contract_spine.rs"]
 mod mod_contracts_v1_cross_contract_spine_rs;
 #[path = "contracts/v1_cross_explain_roundtrip.rs"]
@@ -20,6 +68,58 @@ mod mod_contracts_v1_cross_profile_contracts_rs;
 mod mod_contracts_v1_cross_public_contract_rs;
 #[path = "contracts/v1_dry_run_manifest.rs"]
 mod mod_contracts_v1_dry_run_manifest_rs;
+#[path = "contracts/v1_fastq_local_cluster_otus_smoke.rs"]
+mod mod_contracts_v1_fastq_local_cluster_otus_smoke_rs;
+#[path = "contracts/v1_fastq_local_correct_errors_smoke.rs"]
+mod mod_contracts_v1_fastq_local_correct_errors_smoke_rs;
+#[path = "contracts/v1_fastq_local_deplete_host_plan.rs"]
+mod mod_contracts_v1_fastq_local_deplete_host_plan_rs;
+#[path = "contracts/v1_fastq_local_deplete_reference_contaminants_plan.rs"]
+mod mod_contracts_v1_fastq_local_deplete_reference_contaminants_plan_rs;
+#[path = "contracts/v1_fastq_local_deplete_rrna_plan.rs"]
+mod mod_contracts_v1_fastq_local_deplete_rrna_plan_rs;
+#[path = "contracts/v1_fastq_local_detect_adapters_smoke.rs"]
+mod mod_contracts_v1_fastq_local_detect_adapters_smoke_rs;
+#[path = "contracts/v1_fastq_local_detect_duplicates_premerge_smoke.rs"]
+mod mod_contracts_v1_fastq_local_detect_duplicates_premerge_smoke_rs;
+#[path = "contracts/v1_fastq_local_estimate_library_complexity_prealign_smoke.rs"]
+mod mod_contracts_v1_fastq_local_estimate_library_complexity_prealign_smoke_rs;
+#[path = "contracts/v1_fastq_local_extract_umis_smoke.rs"]
+mod mod_contracts_v1_fastq_local_extract_umis_smoke_rs;
+#[path = "contracts/v1_fastq_local_filter_low_complexity_smoke.rs"]
+mod mod_contracts_v1_fastq_local_filter_low_complexity_smoke_rs;
+#[path = "contracts/v1_fastq_local_filter_reads_smoke.rs"]
+mod mod_contracts_v1_fastq_local_filter_reads_smoke_rs;
+#[path = "contracts/v1_fastq_local_index_reference_plan.rs"]
+mod mod_contracts_v1_fastq_local_index_reference_plan_rs;
+#[path = "contracts/v1_fastq_local_infer_asvs_smoke.rs"]
+mod mod_contracts_v1_fastq_local_infer_asvs_smoke_rs;
+#[path = "contracts/v1_fastq_local_merge_pairs_smoke.rs"]
+mod mod_contracts_v1_fastq_local_merge_pairs_smoke_rs;
+#[path = "contracts/v1_fastq_local_normalize_abundance_smoke.rs"]
+mod mod_contracts_v1_fastq_local_normalize_abundance_smoke_rs;
+#[path = "contracts/v1_fastq_local_normalize_primers_smoke.rs"]
+mod mod_contracts_v1_fastq_local_normalize_primers_smoke_rs;
+#[path = "contracts/v1_fastq_local_profile_overrepresented_sequences_smoke.rs"]
+mod mod_contracts_v1_fastq_local_profile_overrepresented_sequences_smoke_rs;
+#[path = "contracts/v1_fastq_local_profile_read_lengths_smoke.rs"]
+mod mod_contracts_v1_fastq_local_profile_read_lengths_smoke_rs;
+#[path = "contracts/v1_fastq_local_profile_reads_smoke.rs"]
+mod mod_contracts_v1_fastq_local_profile_reads_smoke_rs;
+#[path = "contracts/v1_fastq_local_remove_chimeras_smoke.rs"]
+mod mod_contracts_v1_fastq_local_remove_chimeras_smoke_rs;
+#[path = "contracts/v1_fastq_local_remove_duplicates_smoke.rs"]
+mod mod_contracts_v1_fastq_local_remove_duplicates_smoke_rs;
+#[path = "contracts/v1_fastq_local_screen_taxonomy_plan.rs"]
+mod mod_contracts_v1_fastq_local_screen_taxonomy_plan_rs;
+#[path = "contracts/v1_fastq_local_trim_polyg_tails_smoke.rs"]
+mod mod_contracts_v1_fastq_local_trim_polyg_tails_smoke_rs;
+#[path = "contracts/v1_fastq_local_trim_reads_smoke.rs"]
+mod mod_contracts_v1_fastq_local_trim_reads_smoke_rs;
+#[path = "contracts/v1_fastq_local_trim_terminal_damage_smoke.rs"]
+mod mod_contracts_v1_fastq_local_trim_terminal_damage_smoke_rs;
+#[path = "contracts/v1_fastq_local_validate_reads_smoke.rs"]
+mod mod_contracts_v1_fastq_local_validate_reads_smoke_rs;
 #[path = "contracts/v1_fastq_small_integration.rs"]
 mod mod_contracts_v1_fastq_small_integration_rs;
 #[path = "contracts/v1_plan_manifest_contract.rs"]

@@ -1,15 +1,27 @@
 schema_version: "bijux.domain.artifacts.v1"
 domain: "bam"
 artifact_ids:
+  - align_bai
+  - align_bam
+  - align_metrics
   - align_report_json
   - authenticity_report_json
+  - bias_report
   - bias_mitigation_report_json
   - complexity_report_json
+  - complexity_report
+  - contamination_report
   - contamination_report_json
+  - coverage_depth
   - coverage_report_json
+  - coverage_summary
+  - damage_report
   - damage_report_json
   - filter_report_json
   - genotyping_report_json
+  - genotyping_report
+  - governed_qc_inputs_manifest
+  - haplogroups
   - haplogroups_report_json
   - kinship_report_json
   - markdup_report_json
@@ -22,8 +34,20 @@ artifact_ids:
   - duplication_metrics_report_json
   - insert_size_report_json
   - gc_bias_report_json
+  - endogenous_report
   - endogenous_content_report_json
   - overlap_correction_report_json
+  - filtered_bai
+  - filtered_bam
+  - flagstat
+  - flagstat_after
+  - flagstat_before
+  - idxstats
+  - idxstats_after
+  - idxstats_before
+  - markdup_bai
+  - overlap_corrected_bai
+  - parser_output
   - report_json
   - aligned_bam
   - authenticity_report
@@ -52,7 +76,17 @@ artifact_ids:
   - kinship_report
   - markdup_bam
   - mt_consensus
+  - multiqc_data
+  - multiqc_report
   - pmd_scores
   - population_metrics
+  - recal_bai
+  - recal_bam
   - recal_report
+  - sex_report
   - sex_estimate
+  - stage_metrics
+  - stats
+  - summary
+  - terminal_position_metrics
+  - validation_report

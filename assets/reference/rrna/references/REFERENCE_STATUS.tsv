@@ -1,0 +1,2 @@
+reference_id	path	reference_scope	format	status	notes
+sortmerna_common_rrna_reference	assets/reference/rrna/references/sortmerna_common_rrna_reference.fasta	local_ready_rrna_depletion	fasta	governed	Tiny governed rRNA reference for local-ready SortMeRNA planning.

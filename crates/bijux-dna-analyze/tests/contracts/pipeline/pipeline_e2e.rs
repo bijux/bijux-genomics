@@ -17,7 +17,7 @@ fn snapshot_name(group: &str, name: &str) -> String {
 }
 
 fn is_optional_bam_downstream(stage_id: &str) -> bool {
-    matches!(stage_id, "bam.genotyping" | "bam.haplogroups" | "bam.kinship")
+    matches!(stage_id, "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship")
 }
 
 fn feature_stable_profile(

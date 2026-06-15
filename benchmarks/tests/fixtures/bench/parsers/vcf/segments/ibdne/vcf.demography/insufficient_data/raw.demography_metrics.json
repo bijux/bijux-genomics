@@ -1,0 +1,14 @@
+{
+  "schema_version": "bijux.vcf.demography.v1",
+  "method": "ibdne",
+  "input_ibd_segments": "filtered_segments.tsv",
+  "inference_status": "insufficient_data",
+  "status": "insufficient_data",
+  "insufficient_data_reason": "not_enough_ibd_segments",
+  "segments_validated": 0,
+  "time_bins": [],
+  "ne_estimates": [],
+  "tool_attempts": {
+    "ibdne": false
+  }
+}

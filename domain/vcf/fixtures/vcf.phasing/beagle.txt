@@ -3,7 +3,7 @@ tool_version=pinned
 stage=vcf.phasing
 domain=vcf
 fixture_kind=planned
-command=beagle
-args=gt=input.vcf out=phased
-expected_outputs=phased_vcf
-expected_stdout_patterns=phasing
+command=sh
+args=-lc "beagle gt=input.vcf ref=panel.vcf.gz map=map.tsv.gz out=phased nthreads=8 seed=42 > logs.txt 2>&1 && bcftools index -t phased.vcf.gz"
+expected_outputs=phased_vcf,phased_vcf_tbi,phase_block_stats,switch_error_proxy,phasing_qc,phasing_manifest,phasing_log
+expected_stdout_patterns=beagle

@@ -16,6 +16,10 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 - `configs/bench/benchmark.toml`
 - `configs/bench/knobs.toml`
 
+## Local Benchmark Readiness Contracts
+- `benchmarks/configs/local/tool-execution-modes.toml` classifies every governed FASTQ and BAM benchmark tool by its primary operator runtime and required runtime fields so readiness validation can prove the current execution surface is explicit and complete.
+- `benchmarks/configs/local/tool-families.toml` classifies every governed FASTQ and BAM benchmark tool by its primary benchmark function so readiness reports can group tools consistently across domains.
+
 ## Control Plane Contract
 - `bijux-dna` is the primary benchmark control plane for workspace lookups, dossier refresh, publication audits, and corpus benchmark execution.
 - `bijux-dna bench workspace-value`, `bijux-dna bench corpus-fastq`, `bijux-dna bench corpus-fastq-report`, `bijux-dna bench corpus-fastq-publication-status`, and `bijux-dna bench corpus-fastq-published-dossiers` consume the governed benchmark config directly.

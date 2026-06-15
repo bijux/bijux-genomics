@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 7f92f74f3d6b5fa90319ebb5b71976f79393927f
+# source_commit: 309abc654f2dfad274ec2582e8e2b3e55fbf4910
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -13,7 +13,7 @@
 version = "2.3.3"
 
 [addeam]
-version = "latest-pinned"
+version = "1.0.0"
 
 [alientrimmer]
 version = "3.2"
@@ -31,6 +31,9 @@ version = "latest-pinned"
 [bamtools]
 version = "2.5.2"
 
+[bamutil]
+version = "1.0.15"
+
 [bayeshammer]
 version = "4.2.0"
 
@@ -44,11 +47,13 @@ version = "39.01"
 version = "1.20"
 
 [beagle]
-version = "planned"
-enabled = false
+version = "5.4"
 
 [bedtools]
 version = "2.31.1"
+
+[bijux_dna]
+version = "workspace"
 
 [bowtie2]
 version = "2.5.4"
@@ -75,15 +80,14 @@ version = "4.9"
 version = "latest-pinned"
 
 [damageprofiler]
-version = "latest-pinned"
+version = "1.1"
 
 [eagle]
 version = "planned"
 enabled = false
 
 [eigensoft]
-version = "planned"
-enabled = false
+version = "8.0.0"
 
 [fastp]
 version = "latest-pinned"
@@ -108,6 +112,9 @@ version = "2.2.00"
 
 [fqtools]
 version = "latest-pinned"
+
+[gatk]
+version = "4.6.2.0"
 
 [germline]
 version = "planned"
@@ -162,12 +169,18 @@ enabled = false
 version = "0.3.10"
 
 [multiqc]
-version = "latest-pinned"
+version = "1.24"
 
 [musket]
 version = "1.1"
 
+[ngsbriggs]
+version = "0.1.3"
+
 [pear]
+version = "latest-pinned"
+
+[picard]
 version = "latest-pinned"
 
 [plink]
@@ -175,11 +188,13 @@ version = "planned"
 enabled = false
 
 [plink2]
-version = "planned"
-enabled = false
+version = "2.00a5"
 
 [pmdtools]
 version = "0.60"
+
+[preseq]
+version = "3.2.0"
 
 [prinseq]
 version = "1.2.4"
@@ -199,6 +214,9 @@ version = "1.21"
 [schmutzi]
 version = "latest-pinned"
 
+[seqfu]
+version = "2.4.0"
+
 [seqkit]
 version = "latest-pinned"
 
@@ -213,8 +231,7 @@ version = "planned"
 enabled = false
 
 [shapeit5]
-version = "planned"
-enabled = false
+version = "5.1.1"
 
 [skewer]
 version = "978e8e46cba4"

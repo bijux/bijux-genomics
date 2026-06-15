@@ -1,0 +1,609 @@
+#![allow(clippy::expect_used, clippy::too_many_lines)]
+
+use std::process::Command;
+
+#[path = "contracts/banks/bank_fixtures.rs"]
+mod support;
+
+fn run_cli(args: &[&str]) -> std::process::Output {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(args)
+        .output()
+        .expect("run cli")
+}
+
+fn run_cli_json(args: &[&str]) -> serde_json::Value {
+    let output = run_cli(args);
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+}
+
+#[test]
+fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() {
+    let payload = run_cli_json(&["bench", "readiness", "render-stage-tool-resources", "--json"]);
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.readiness.stage_tool_resources.v1")
+    );
+    assert_eq!(
+        payload.get("config_path").and_then(serde_json::Value::as_str),
+        Some("benchmarks/configs/local/stage-tool-resources.toml")
+    );
+    assert_eq!(
+        payload.get("classification_scope").and_then(serde_json::Value::as_str),
+        Some("benchmark_ready_command_resources")
+    );
+    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    assert_eq!(
+        payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
+        Some(row_count)
+    );
+    assert_eq!(
+        payload.get("nonzero_resource_row_count").and_then(serde_json::Value::as_u64),
+        Some(row_count)
+    );
+    let domain_counts = support::json_object(&payload, "domain_counts");
+    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(67));
+    assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
+    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(20));
+    assert_eq!(support::object_u64_sum(domain_counts), row_count);
+    let rows = support::json_array(&payload, "rows");
+    let bwa_align = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bwa")
+        })
+        .expect("bam align bwa row");
+    assert_eq!(bwa_align.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(bwa_align.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(bwa_align.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(bwa_align.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    let bowtie2_align = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2")
+        })
+        .expect("bam align bowtie2 row");
+    assert_eq!(bowtie2_align.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(bowtie2_align.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(bowtie2_align.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(bowtie2_align.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    let fastqc = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.detect_adapters")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastqc")
+        })
+        .expect("detect-adapters fastqc row");
+    assert_eq!(fastqc.get("threads").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(fastqc.get("memory_gb").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(fastqc.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(fastqc.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(4));
+    let prepare_reference_panel = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.prepare_reference_panel")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+        })
+        .expect("prepare-reference-panel bcftools row");
+    assert_eq!(prepare_reference_panel.get("threads").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        prepare_reference_panel.get("memory_gb").and_then(serde_json::Value::as_u64),
+        Some(4)
+    );
+    assert_eq!(
+        prepare_reference_panel.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(30)
+    );
+    assert_eq!(
+        prepare_reference_panel.get("scratch_gb").and_then(serde_json::Value::as_u64),
+        Some(8)
+    );
+    let bam_authenticity = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.authenticity")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("authenticct")
+        })
+        .expect("bam authenticity authenticct row");
+    assert_eq!(bam_authenticity.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(bam_authenticity.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        bam_authenticity.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(7)
+    );
+    assert_eq!(bam_authenticity.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    let fastp = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.filter_reads")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastp")
+        })
+        .expect("filter-reads fastp row");
+    assert_eq!(fastp.get("threads").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(fastp.get("memory_gb").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(fastp.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(fastp.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(4));
+    let ngsbriggs = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ngsbriggs")
+        })
+        .expect("bam damage ngsbriggs row");
+    assert_eq!(ngsbriggs.get("threads").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(ngsbriggs.get("memory_gb").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(ngsbriggs.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(ngsbriggs.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(1));
+    let angsd_genotyping = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
+        })
+        .expect("bam genotyping angsd row");
+    assert_eq!(angsd_genotyping.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(angsd_genotyping.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        angsd_genotyping.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(7)
+    );
+    assert_eq!(angsd_genotyping.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    let king_kinship = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.kinship")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("king")
+        })
+        .expect("bam kinship king row");
+    assert_eq!(king_kinship.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(king_kinship.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(king_kinship.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(king_kinship.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    let gatk_recalibration = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.recalibration")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("gatk")
+        })
+        .expect("bam recalibration gatk row");
+    assert_eq!(gatk_recalibration.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(gatk_recalibration.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        gatk_recalibration.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(7)
+    );
+    assert_eq!(gatk_recalibration.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    let bamutil_overlap = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.overlap_correction")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bamutil")
+        })
+        .expect("overlap-correction bamutil row");
+    assert_eq!(bamutil_overlap.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(bamutil_overlap.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        bamutil_overlap.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(7)
+    );
+    assert_eq!(bamutil_overlap.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    let mapdamage2_bias = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.bias_mitigation")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mapdamage2")
+        })
+        .expect("bam bias-mitigation mapdamage2 row");
+    assert_eq!(mapdamage2_bias.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(mapdamage2_bias.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        mapdamage2_bias.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(7)
+    );
+    assert_eq!(mapdamage2_bias.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    let vcf_call = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.call")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+        })
+        .expect("vcf call bcftools row");
+    assert_eq!(vcf_call.get("threads").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(vcf_call.get("memory_gb").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(vcf_call.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(vcf_call.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(8));
+    let trim_polyg_fastp = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.trim_polyg_tails")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastp")
+        })
+        .expect("trim-polyg fastp row");
+    assert_eq!(trim_polyg_fastp.get("threads").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(trim_polyg_fastp.get("memory_gb").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(
+        trim_polyg_fastp.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(15)
+    );
+    assert_eq!(trim_polyg_fastp.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(4));
+    let trim_terminal_damage_cutadapt = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.trim_terminal_damage")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("cutadapt")
+        })
+        .expect("trim-terminal-damage cutadapt row");
+    assert_eq!(
+        trim_terminal_damage_cutadapt.get("threads").and_then(serde_json::Value::as_u64),
+        Some(4)
+    );
+    assert_eq!(
+        trim_terminal_damage_cutadapt.get("memory_gb").and_then(serde_json::Value::as_u64),
+        Some(8)
+    );
+    assert_eq!(
+        trim_terminal_damage_cutadapt.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(15)
+    );
+    assert_eq!(
+        trim_terminal_damage_cutadapt.get("scratch_gb").and_then(serde_json::Value::as_u64),
+        Some(4)
+    );
+    let extract_umis = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.extract_umis")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("umi_tools")
+        })
+        .expect("extract-umis umi_tools row");
+    assert_eq!(extract_umis.get("threads").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(extract_umis.get("memory_gb").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(extract_umis.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(15));
+    assert_eq!(extract_umis.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(4));
+    let detect_duplicates_bijux = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.detect_duplicates_premerge")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")
+        })
+        .expect("detect-duplicates bijux_dna row");
+    assert_eq!(detect_duplicates_bijux.get("threads").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(
+        detect_duplicates_bijux.get("memory_gb").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    assert_eq!(
+        detect_duplicates_bijux.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(15)
+    );
+    assert_eq!(
+        detect_duplicates_bijux.get("scratch_gb").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    for tool_id in ["angsd", "rxy", "yleaf"] {
+        let bam_sex = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.sex")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam.sex {tool_id} row"));
+        assert_eq!(bam_sex.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(bam_sex.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+        assert_eq!(bam_sex.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(7));
+        assert_eq!(bam_sex.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    }
+    let bam_haplogroups = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.haplogroups")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("yleaf")
+        })
+        .expect("bam.haplogroups yleaf row");
+    assert_eq!(bam_haplogroups.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(bam_haplogroups.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        bam_haplogroups.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(7)
+    );
+    assert_eq!(bam_haplogroups.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    let normalize_abundance_seqkit = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.normalize_abundance")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqkit")
+        })
+        .expect("normalize-abundance seqkit row");
+    assert_eq!(
+        normalize_abundance_seqkit.get("threads").and_then(serde_json::Value::as_u64),
+        Some(2)
+    );
+    assert_eq!(
+        normalize_abundance_seqkit.get("memory_gb").and_then(serde_json::Value::as_u64),
+        Some(4)
+    );
+    assert_eq!(
+        normalize_abundance_seqkit.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(15)
+    );
+    assert_eq!(
+        normalize_abundance_seqkit.get("scratch_gb").and_then(serde_json::Value::as_u64),
+        Some(2)
+    );
+    let bam_complexity_preseq = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.complexity")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("preseq")
+        })
+        .expect("bam complexity preseq row");
+    assert_eq!(bam_complexity_preseq.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(bam_complexity_preseq.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        bam_complexity_preseq.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(7)
+    );
+    assert_eq!(
+        bam_complexity_preseq.get("scratch_gb").and_then(serde_json::Value::as_u64),
+        Some(2)
+    );
+    let bam_endogenous_content = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("bam.endogenous_content")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
+        })
+        .expect("bam endogenous-content samtools row");
+    assert_eq!(bam_endogenous_content.get("threads").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(
+        bam_endogenous_content.get("memory_gb").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    assert_eq!(
+        bam_endogenous_content.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+        Some(5)
+    );
+    assert_eq!(
+        bam_endogenous_content.get("scratch_gb").and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    for tool_id in ["contammix", "schmutzi", "verifybamid2"] {
+        let contamination = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.contamination")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam contamination {tool_id} row"));
+        assert_eq!(contamination.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(contamination.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+        assert_eq!(
+            contamination.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+            Some(7)
+        );
+        assert_eq!(contamination.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    }
+    for tool_id in ["bedtools", "mosdepth", "samtools"] {
+        let bam_coverage = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.coverage")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam coverage {tool_id} row"));
+        assert_eq!(bam_coverage.get("threads").and_then(serde_json::Value::as_u64), Some(1));
+        assert_eq!(bam_coverage.get("memory_gb").and_then(serde_json::Value::as_u64), Some(1));
+        assert_eq!(
+            bam_coverage.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+            Some(6)
+        );
+        assert_eq!(bam_coverage.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(1));
+    }
+    let gc_bias = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.gc_bias")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
+        })
+        .expect("bam gc-bias picard row");
+    assert_eq!(gc_bias.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(gc_bias.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(gc_bias.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(gc_bias.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    for tool_id in ["multiqc", "samtools"] {
+        let qc_pre = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.qc_pre")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam qc-pre {tool_id} row"));
+        assert_eq!(qc_pre.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(qc_pre.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+        assert_eq!(qc_pre.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(7));
+        assert_eq!(qc_pre.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    }
+    for tool_id in ["picard", "samtools"] {
+        let markdup = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.markdup")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam markdup {tool_id} row"));
+        assert_eq!(markdup.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(markdup.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+        assert_eq!(markdup.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(9));
+        assert_eq!(markdup.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(3));
+    }
+    for tool_id in ["picard", "samtools"] {
+        let length_filter = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.length_filter")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam length-filter {tool_id} row"));
+        assert_eq!(length_filter.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(length_filter.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+        assert_eq!(
+            length_filter.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+            Some(7)
+        );
+        assert_eq!(length_filter.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    }
+    for tool_id in ["picard", "samtools"] {
+        let mapping_summary = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.mapping_summary")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam mapping-summary {tool_id} row"));
+        assert_eq!(mapping_summary.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(mapping_summary.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+        assert_eq!(
+            mapping_summary.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+            Some(7)
+        );
+        assert_eq!(mapping_summary.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    }
+    let insert_size = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.insert_size")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("picard")
+        })
+        .expect("bam insert-size picard row");
+    assert_eq!(insert_size.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(insert_size.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(insert_size.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(insert_size.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    for tool_id in ["picard", "samtools"] {
+        let duplication_metrics = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("bam.duplication_metrics")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam duplication-metrics {tool_id} row"));
+        assert_eq!(duplication_metrics.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(
+            duplication_metrics.get("memory_gb").and_then(serde_json::Value::as_u64),
+            Some(2)
+        );
+        assert_eq!(
+            duplication_metrics.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+            Some(7)
+        );
+        assert_eq!(
+            duplication_metrics.get("scratch_gb").and_then(serde_json::Value::as_u64),
+            Some(2)
+        );
+    }
+    for tool_id in ["bamtools", "samtools"] {
+        let mapq_filter = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.mapq_filter")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam mapq-filter {tool_id} row"));
+        assert_eq!(mapq_filter.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(mapq_filter.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+        assert_eq!(
+            mapq_filter.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+            Some(7)
+        );
+        assert_eq!(mapq_filter.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    }
+    for tool_id in ["bamtools", "bedtools", "samtools"] {
+        let bam_filter = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.filter")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("bam filter {tool_id} row"));
+        assert_eq!(bam_filter.get("threads").and_then(serde_json::Value::as_u64), Some(3));
+        assert_eq!(bam_filter.get("memory_gb").and_then(serde_json::Value::as_u64), Some(2));
+        assert_eq!(bam_filter.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(7));
+        assert_eq!(bam_filter.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(2));
+    }
+    for tool_id in ["bbduk", "prinseq"] {
+        let filter_low_complexity = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.filter_low_complexity")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("filter-low-complexity {tool_id} row"));
+        assert_eq!(
+            filter_low_complexity.get("threads").and_then(serde_json::Value::as_u64),
+            Some(4)
+        );
+        assert_eq!(
+            filter_low_complexity.get("memory_gb").and_then(serde_json::Value::as_u64),
+            Some(8)
+        );
+        assert_eq!(
+            filter_low_complexity.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+            Some(15)
+        );
+        assert_eq!(
+            filter_low_complexity.get("scratch_gb").and_then(serde_json::Value::as_u64),
+            Some(4)
+        );
+    }
+    for tool_id in ["clumpify", "fastuniq"] {
+        let remove_duplicates = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.remove_duplicates")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .unwrap_or_else(|| panic!("remove-duplicates {tool_id} row"));
+        assert_eq!(remove_duplicates.get("threads").and_then(serde_json::Value::as_u64), Some(4));
+        assert_eq!(remove_duplicates.get("memory_gb").and_then(serde_json::Value::as_u64), Some(8));
+        assert_eq!(
+            remove_duplicates.get("walltime_minutes").and_then(serde_json::Value::as_u64),
+            Some(15)
+        );
+        assert_eq!(
+            remove_duplicates.get("scratch_gb").and_then(serde_json::Value::as_u64),
+            Some(4)
+        );
+    }
+}

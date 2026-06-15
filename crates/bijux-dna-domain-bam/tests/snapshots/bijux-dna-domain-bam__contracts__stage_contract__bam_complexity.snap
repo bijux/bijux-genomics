@@ -9,8 +9,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "name": "complexity_report"
     },
     {
-      "filename": "preseq.txt",
-      "name": "preseq"
+      "filename": "complexity_curve.tsv",
+      "name": "complexity_curve"
     },
     {
       "filename": "complexity.summary.json",
@@ -39,7 +39,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "outputs": [
     "complexity_report",
-    "preseq",
+    "complexity_curve",
     "summary",
     "stage_metrics"
   ],

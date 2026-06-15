@@ -1,0 +1,530 @@
+{
+  "schema_version": "bijux.bench.local_stage_output_completion.v1",
+  "fake_run_root": "runs/bench/local-fake-runs/stages-output-completion-missing-cli",
+  "report_output_path": "benchmarks/readiness/local-ready/output-completion-report.missing-cli.json",
+  "source_stage_command_manifest_path": "benchmarks/readiness/local-ready/rendered-stage-commands.json",
+  "stage_count": 51,
+  "complete_stage_count": 50,
+  "incomplete_stage_count": 1,
+  "complete": false,
+  "stages": [
+    {
+      "stage_id": "fastq.index_reference",
+      "readiness_kind": "dry_run",
+      "tool_id": "bowtie2_build",
+      "declared_output_count": 2,
+      "present_output_count": 2,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "tool_id": "fastqvalidator",
+      "declared_output_count": 4,
+      "present_output_count": 4,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.profile_read_lengths",
+      "readiness_kind": "smoke",
+      "tool_id": "seqkit_stats",
+      "declared_output_count": 6,
+      "present_output_count": 6,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.detect_adapters",
+      "readiness_kind": "smoke",
+      "tool_id": "fastqc",
+      "declared_output_count": 6,
+      "present_output_count": 6,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "readiness_kind": "smoke",
+      "tool_id": "bijux_dna",
+      "declared_output_count": 2,
+      "present_output_count": 2,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "readiness_kind": "smoke",
+      "tool_id": "bijux_dna",
+      "declared_output_count": 2,
+      "present_output_count": 2,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "readiness_kind": "smoke",
+      "tool_id": "cutadapt",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
+      "readiness_kind": "smoke",
+      "tool_id": "cutadapt",
+      "declared_output_count": 4,
+      "present_output_count": 4,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "readiness_kind": "smoke",
+      "tool_id": "fastp",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "tool_id": "fastp",
+      "declared_output_count": 7,
+      "present_output_count": 7,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "tool_id": "fastp",
+      "declared_output_count": 2,
+      "present_output_count": 2,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "readiness_kind": "smoke",
+      "tool_id": "seqkit_stats",
+      "declared_output_count": 6,
+      "present_output_count": 6,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.deplete_rrna",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "sortmerna",
+      "declared_output_count": 4,
+      "present_output_count": 4,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "readiness_kind": "smoke",
+      "tool_id": "pear",
+      "declared_output_count": 5,
+      "present_output_count": 5,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "readiness_kind": "smoke",
+      "tool_id": "clumpify",
+      "declared_output_count": 5,
+      "present_output_count": 5,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.filter_low_complexity",
+      "readiness_kind": "smoke",
+      "tool_id": "bbduk",
+      "declared_output_count": 2,
+      "present_output_count": 2,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.deplete_host",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "bowtie2",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "bowtie2",
+      "declared_output_count": 2,
+      "present_output_count": 2,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "rcorrector",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.extract_umis",
+      "readiness_kind": "smoke",
+      "tool_id": "umi_tools",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "readiness_kind": "smoke",
+      "tool_id": "seqkit",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.report_qc",
+      "readiness_kind": "smoke",
+      "tool_id": "multiqc",
+      "declared_output_count": 4,
+      "present_output_count": 3,
+      "missing_output_count": 1,
+      "complete": false,
+      "missing_outputs": [
+        {
+          "artifact_id": "report_json",
+          "declared_path": "runs/bench/local-smoke/fastq.report_qc/report_qc_report.json",
+          "expected_fake_run_path": "runs/bench/local-fake-runs/stages-output-completion-missing-cli/fastq.report_qc/declared-outputs/runs/bench/local-smoke/fastq.report_qc/report_qc_report.json",
+          "role": "report_json",
+          "optional": false
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.remove_chimeras",
+      "readiness_kind": "smoke",
+      "tool_id": "vsearch",
+      "declared_output_count": 5,
+      "present_output_count": 5,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.infer_asvs",
+      "readiness_kind": "smoke",
+      "tool_id": "dada2",
+      "declared_output_count": 5,
+      "present_output_count": 5,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.cluster_otus",
+      "readiness_kind": "smoke",
+      "tool_id": "vsearch",
+      "declared_output_count": 5,
+      "present_output_count": 5,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.normalize_abundance",
+      "readiness_kind": "smoke",
+      "tool_id": "seqkit",
+      "declared_output_count": 2,
+      "present_output_count": 2,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "kraken2",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.align",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "bowtie2",
+      "declared_output_count": 7,
+      "present_output_count": 7,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.authenticity",
+      "readiness_kind": "smoke",
+      "tool_id": "authenticct",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.bias_mitigation",
+      "readiness_kind": "smoke",
+      "tool_id": "mapdamage2",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.complexity",
+      "readiness_kind": "smoke",
+      "tool_id": "preseq",
+      "declared_output_count": 4,
+      "present_output_count": 4,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.contamination",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "verifybamid2",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.damage",
+      "readiness_kind": "smoke",
+      "tool_id": "ngsbriggs",
+      "declared_output_count": 4,
+      "present_output_count": 4,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.duplication_metrics",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "declared_output_count": 4,
+      "present_output_count": 4,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.endogenous_content",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.filter",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "samtools",
+      "declared_output_count": 8,
+      "present_output_count": 8,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.gc_bias",
+      "readiness_kind": "smoke",
+      "tool_id": "picard",
+      "declared_output_count": 4,
+      "present_output_count": 4,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.genotyping",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "angsd",
+      "declared_output_count": 7,
+      "present_output_count": 7,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.haplogroups",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "yleaf",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.insert_size",
+      "readiness_kind": "smoke",
+      "tool_id": "picard",
+      "declared_output_count": 4,
+      "present_output_count": 4,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.kinship",
+      "readiness_kind": "smoke",
+      "tool_id": "king",
+      "declared_output_count": 6,
+      "present_output_count": 6,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.length_filter",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "declared_output_count": 8,
+      "present_output_count": 8,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.mapping_summary",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "declared_output_count": 5,
+      "present_output_count": 5,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.mapq_filter",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "declared_output_count": 8,
+      "present_output_count": 8,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.markdup",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "declared_output_count": 8,
+      "present_output_count": 8,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.overlap_correction",
+      "readiness_kind": "dry_or_smoke",
+      "tool_id": "bamutil",
+      "declared_output_count": 8,
+      "present_output_count": 8,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.qc_pre",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "declared_output_count": 4,
+      "present_output_count": 4,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.recalibration",
+      "readiness_kind": "smoke",
+      "tool_id": "gatk",
+      "declared_output_count": 5,
+      "present_output_count": 5,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.sex",
+      "readiness_kind": "smoke",
+      "tool_id": "rxy",
+      "declared_output_count": 3,
+      "present_output_count": 3,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    },
+    {
+      "stage_id": "bam.validate",
+      "readiness_kind": "smoke",
+      "tool_id": "samtools",
+      "declared_output_count": 6,
+      "present_output_count": 6,
+      "missing_output_count": 0,
+      "complete": true,
+      "missing_outputs": []
+    }
+  ]
+}

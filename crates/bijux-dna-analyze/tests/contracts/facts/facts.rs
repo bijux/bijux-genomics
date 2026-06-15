@@ -184,6 +184,7 @@ fn run_summary_snapshot_is_stable() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 #[test]
 fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
     let dir = bijux_dna_infra::temp_dir("bijux")?;
@@ -520,6 +521,7 @@ fn draft_profile_tolerates_missing_publication_material() {
     assert!(!publication.required_paths_present || !publication.blocking_gap_codes.is_empty());
 }
 
+#[allow(clippy::too_many_lines)]
 #[test]
 fn profile_bundles_write_and_verify_for_release_surfaces() -> anyhow::Result<()> {
     let dir = bijux_dna_infra::temp_dir("bijux")?;

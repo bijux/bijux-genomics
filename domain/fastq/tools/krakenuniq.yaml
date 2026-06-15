@@ -40,3 +40,20 @@ capabilities:
 - SE
 - PE
 - taxonomic
+outputs:
+- name: screen_report_tsv
+  data_type: tsv
+  cardinality: Many
+- name: classification_report_json
+  data_type: json
+  cardinality: One
+execution_contract:
+  required_inputs:
+  - reads_r1
+  optional_inputs:
+  - reads_r2
+  expected_outputs:
+  - screen_report_tsv
+  - classification_report_json
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true

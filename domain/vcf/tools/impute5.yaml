@@ -15,7 +15,7 @@ version_cmd: "impute5 --version"
 help_cmd: "impute5 --help"
 expected_artifacts: ["imputed_vcf"]
 capabilities: ["SE", "PE"]
-metrics_schema_id: "bijux.vcf.imputation.v1"
+metrics_schema_id: "bijux.vcf.imputation_metrics.v1"
 comparability_notes: "External planned tool pending container policy and licensing review."
 container:
   image: "external"

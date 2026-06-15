@@ -12,6 +12,11 @@ pub const FASTQ_VALIDATE_READS: &str = "fastq.validate_reads";
 pub const FASTQ_VALIDATE_PRE: &str = FASTQ_VALIDATE_READS;
 /// Canonical FASTQ adapter-detection stage.
 pub const FASTQ_DETECT_ADAPTERS: &str = "fastq.detect_adapters";
+/// Canonical FASTQ premerge duplicate-signaling stage.
+pub const FASTQ_DETECT_DUPLICATES_PREMERGE: &str = "fastq.detect_duplicates_premerge";
+/// Canonical FASTQ prealignment library-complexity stage.
+pub const FASTQ_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN: &str =
+    "fastq.estimate_library_complexity_prealign";
 /// Canonical FASTQ trimming stage.
 pub const FASTQ_TRIM: &str = "fastq.trim_reads";
 /// Canonical FASTQ filtering stage.

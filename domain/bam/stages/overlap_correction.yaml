@@ -1,6 +1,6 @@
 extends: "_schema.yaml"
 stage_id: "bam.overlap_correction"
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "bam"
 inputs:
@@ -8,20 +8,54 @@ inputs:
     data_type: "bam"
     cardinality: "One"
 outputs:
-  - name: "overlap_correction_report_json"
+  - name: "overlap_corrected_bam"
+    data_type: "bam"
+    cardinality: "One"
+  - name: "overlap_corrected_bai"
+    data_type: "bai"
+    cardinality: "One"
+  - name: "flagstat_before"
+    data_type: "text"
+    cardinality: "One"
+  - name: "flagstat_after"
+    data_type: "text"
+    cardinality: "One"
+  - name: "idxstats_before"
+    data_type: "text"
+    cardinality: "One"
+  - name: "idxstats_after"
+    data_type: "text"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
     data_type: "json"
     cardinality: "One"
 parameters: []
 metrics:
+  - name: "corrected_bam"
+    meaning: "Corrected BAM artifact preserved in the governed BAM overlap-correction benchmark row"
+  - name: "corrected_pairs"
+    meaning: "Observed corrected read-pair count preserved in the governed BAM overlap-correction benchmark row"
+  - name: "corrected_overlap_bases"
+    meaning: "Observed corrected overlap-base count preserved in the governed BAM overlap-correction benchmark row"
   - name: "runtime_s"
     meaning: "Wall-clock runtime in seconds"
   - name: "memory_mb"
     meaning: "Peak memory usage in MB"
-description: "BAM overlapping-read correction stage contract."
+description: "BAM overlap-correction contract for governed corrected-BAM output, before-and-after audit artifacts, and benchmark-facing overlap metrics."
 required_inputs:
   - bam
 required_outputs:
-  - overlap_correction_report_json
+  - overlap_corrected_bam
+  - overlap_corrected_bai
+  - flagstat_before
+  - flagstat_after
+  - idxstats_before
+  - idxstats_after
+  - summary
+  - stage_metrics
 tool_capability_requirements:
   - bam_input
 invariants:
@@ -34,6 +68,7 @@ compatible_tools:
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "paired read overlap clipping requires consistent template metadata"
+  - "admitted overlap-correction tools must preserve the governed corrected-BAM, corrected-index, before-and-after audit artifacts, and overlap summary metrics contract"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"

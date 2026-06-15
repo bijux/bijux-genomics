@@ -1,0 +1,10 @@
+schema_version = "bijux.bench.fastq.local_filter_low_complexity.v1"
+tool_id = "bbduk"
+threads = 1
+entropy_threshold = 0.6
+polyx_threshold = 8
+output_dir = "runs/bench/local-smoke/fastq.filter_low_complexity"
+
+[[cases]]
+sample_id = "human_like_se_filter_signals"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz"

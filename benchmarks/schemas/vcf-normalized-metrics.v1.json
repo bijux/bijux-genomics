@@ -1,0 +1,1230 @@
+{
+  "$defs": {
+    "base": {
+      "additionalProperties": true,
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "stage_id": {
+          "enum": [
+            "vcf.call",
+            "vcf.call_gl",
+            "vcf.call_diploid",
+            "vcf.call_pseudohaploid",
+            "vcf.damage_filter",
+            "vcf.gl_propagation",
+            "vcf.qc",
+            "vcf.pca",
+            "vcf.population_structure",
+            "vcf.admixture",
+            "vcf.roh",
+            "vcf.ibd",
+            "vcf.imputation_metrics",
+            "vcf.impute",
+            "vcf.phasing",
+            "vcf.postprocess",
+            "vcf.prepare_reference_panel",
+            "vcf.demography",
+            "vcf.filter",
+            "vcf.stats"
+          ],
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "stage_id",
+        "tool_id"
+      ],
+      "type": "object"
+    },
+    "stages": {
+      "vcf.admixture": {
+        "additionalProperties": true,
+        "properties": {
+          "cluster_headers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "population_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "rows": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.admixture.v1"
+          },
+          "selected_k": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stage_id": {
+            "const": "vcf.admixture"
+          },
+          "status": {
+            "type": "string"
+          },
+          "tool_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "selected_k",
+          "status",
+          "sample_count",
+          "population_count",
+          "cluster_headers",
+          "rows"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_admixture_normalized_v1"
+      },
+      "vcf.call": {
+        "additionalProperties": true,
+        "properties": {
+          "indel_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.call.v1"
+          },
+          "snp_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stage_id": {
+            "const": "vcf.call"
+          },
+          "tool_id": {
+            "type": "string"
+          },
+          "variant_count": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "variant_count",
+          "snp_count",
+          "indel_count",
+          "sample_count"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_call_normalized_v1"
+      },
+      "vcf.call_diploid": {
+        "additionalProperties": true,
+        "properties": {
+          "called_genotypes": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "heterozygous_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "homozygous_alt_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "homozygous_ref_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "missing_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "ploidy": {
+            "type": "string"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.call_diploid.v1"
+          },
+          "stage_id": {
+            "const": "vcf.call_diploid"
+          },
+          "tool_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "ploidy",
+          "called_genotypes",
+          "heterozygous_count",
+          "homozygous_ref_count",
+          "homozygous_alt_count",
+          "missing_count",
+          "sample_count"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_call_diploid_normalized_v1"
+      },
+      "vcf.call_gl": {
+        "additionalProperties": true,
+        "properties": {
+          "likelihood_field": {
+            "type": "string"
+          },
+          "missing_likelihoods": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "samples_with_likelihoods": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.call_gl.v1"
+          },
+          "sites_with_likelihoods": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stage_id": {
+            "const": "vcf.call_gl"
+          },
+          "tool_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "likelihood_field",
+          "sites_with_likelihoods",
+          "samples_with_likelihoods",
+          "missing_likelihoods",
+          "sample_count"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_call_gl_normalized_v1"
+      },
+      "vcf.call_pseudohaploid": {
+        "additionalProperties": true,
+        "properties": {
+          "called_sites": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "covered_sites": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "missing_sites": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "random_seed": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sampling_policy": {
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.call_pseudohaploid.v1"
+          },
+          "stage_id": {
+            "const": "vcf.call_pseudohaploid"
+          },
+          "target_sites": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "tool_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "target_sites",
+          "covered_sites",
+          "called_sites",
+          "missing_sites",
+          "sampling_policy",
+          "random_seed",
+          "sample_count"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_call_pseudohaploid_normalized_v1"
+      },
+      "vcf.damage_filter": {
+        "additionalProperties": true,
+        "properties": {
+          "damage_context_rule": {
+            "type": "string"
+          },
+          "damage_ratio_filtered_variants": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "input_variants": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "low_quality_filtered_variants": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "removed_variants": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "retained_variants": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.damage_filter.v1"
+          },
+          "stage_id": {
+            "const": "vcf.damage_filter"
+          },
+          "terminal_context_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "terminal_damage_filtered_variants": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "tool_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "input_variants",
+          "removed_variants",
+          "retained_variants",
+          "low_quality_filtered_variants",
+          "damage_ratio_filtered_variants",
+          "terminal_damage_filtered_variants",
+          "damage_context_rule",
+          "terminal_context_count",
+          "sample_count"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_damage_filter_normalized_v1"
+      },
+      "vcf.demography": {
+        "additionalProperties": true,
+        "properties": {
+          "inference_status": {
+            "type": "string"
+          },
+          "insufficient_data_probe": {
+            "type": "object"
+          },
+          "method": {
+            "type": "string"
+          },
+          "ne_estimates": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.demography.v1"
+          },
+          "stage_id": {
+            "const": "vcf.demography"
+          },
+          "status": {
+            "type": "string"
+          },
+          "time_bins": {
+            "items": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "tool_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "method",
+          "inference_status",
+          "status",
+          "time_bins",
+          "ne_estimates",
+          "insufficient_data_probe"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_demography_normalized_v1"
+      },
+      "vcf.filter": {
+        "additionalProperties": true,
+        "properties": {
+          "depth_threshold": {
+            "type": "number"
+          },
+          "failed_variants": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "filter_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "input_variants": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "missingness_threshold": {
+            "type": "number"
+          },
+          "pass_variants": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "quality_threshold": {
+            "type": "number"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.filter.v1"
+          },
+          "stage_id": {
+            "const": "vcf.filter"
+          },
+          "tool_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "input_variants",
+          "pass_variants",
+          "failed_variants",
+          "filter_ids",
+          "depth_threshold",
+          "quality_threshold",
+          "missingness_threshold",
+          "sample_count"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_filter_normalized_v1"
+      },
+      "vcf.gl_propagation": {
+        "additionalProperties": true,
+        "properties": {
+          "input_likelihood_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "lost_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "output_likelihood_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.gl_propagation.v1"
+          },
+          "site_count_after": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "site_count_before": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stage_id": {
+            "const": "vcf.gl_propagation"
+          },
+          "tool_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "input_likelihood_fields",
+          "output_likelihood_fields",
+          "lost_fields",
+          "site_count_before",
+          "site_count_after",
+          "sample_count"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_gl_propagation_normalized_v1"
+      },
+      "vcf.ibd": {
+        "additionalProperties": true,
+        "properties": {
+          "insufficient_overlap_probe": {
+            "type": "object"
+          },
+          "pair_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "rows": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.ibd.v1"
+          },
+          "stage_id": {
+            "const": "vcf.ibd"
+          },
+          "status": {
+            "type": "string"
+          },
+          "tool_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "status",
+          "pair_count",
+          "rows",
+          "insufficient_overlap_probe"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_ibd_normalized_v1"
+      },
+      "vcf.imputation_metrics": {
+        "additionalProperties": true,
+        "properties": {
+          "concordance": {
+            "type": "number"
+          },
+          "dosage_r2": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "low_confidence_sites": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "masked_truth_sites": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "mean_info_score": {
+            "type": "number"
+          },
+          "missing_quality_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "r2_available": {
+            "type": "boolean"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.imputation_metrics.v1"
+          },
+          "stage_id": {
+            "const": "vcf.imputation_metrics"
+          },
+          "status": {
+            "type": "string"
+          },
+          "tool_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "status",
+          "concordance",
+          "mean_info_score",
+          "r2_available",
+          "dosage_r2",
+          "low_confidence_sites",
+          "masked_truth_sites",
+          "missing_quality_fields"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_imputation_metrics_normalized_v1"
+      },
+      "vcf.impute": {
+        "additionalProperties": true,
+        "properties": {
+          "imputed_genotypes": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "low_confidence_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "masked_truth_match_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "masked_truth_site_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "missing_after": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "missing_before": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "not_imputable_reasons": {
+            "type": "object"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sample_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.impute.v1"
+          },
+          "stage_id": {
+            "const": "vcf.impute"
+          },
+          "tool_id": {
+            "type": "string"
+          },
+          "unresolved_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "variant_count": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "variant_count",
+          "missing_before",
+          "missing_after",
+          "imputed_genotypes",
+          "low_confidence_count",
+          "masked_truth_site_count",
+          "masked_truth_match_count",
+          "unresolved_count",
+          "not_imputable_reasons",
+          "sample_count",
+          "sample_ids"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_impute_normalized_v1"
+      },
+      "vcf.pca": {
+        "additionalProperties": true,
+        "properties": {
+          "eigenvalues": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "excluded_samples": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.pca.v1"
+          },
+          "stage_id": {
+            "const": "vcf.pca"
+          },
+          "tool_id": {
+            "type": "string"
+          },
+          "unexpected_samples": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "variant_count": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "variant_count",
+          "sample_count",
+          "excluded_samples",
+          "unexpected_samples",
+          "eigenvalues",
+          "rows"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_pca_normalized_v1"
+      },
+      "vcf.phasing": {
+        "additionalProperties": true,
+        "properties": {
+          "input_genotypes": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "phase_set_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "phased_genotypes": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sample_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.phasing.v1"
+          },
+          "stage_id": {
+            "const": "vcf.phasing"
+          },
+          "tool_id": {
+            "type": "string"
+          },
+          "unphased_genotypes": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "input_genotypes",
+          "phased_genotypes",
+          "unphased_genotypes",
+          "phase_set_count",
+          "sample_count",
+          "sample_ids"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_phasing_normalized_v1"
+      },
+      "vcf.population_structure": {
+        "additionalProperties": true,
+        "properties": {
+          "consumed_admixture": {
+            "type": "object"
+          },
+          "consumed_pca": {
+            "type": "object"
+          },
+          "distance_summary": {
+            "type": "object"
+          },
+          "sample_groups": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.population_structure.v1"
+          },
+          "stage_id": {
+            "const": "vcf.population_structure"
+          },
+          "status": {
+            "type": "string"
+          },
+          "tool_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "consumed_pca",
+          "consumed_admixture",
+          "sample_groups",
+          "distance_summary",
+          "status"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_population_structure_normalized_v1"
+      },
+      "vcf.postprocess": {
+        "additionalProperties": true,
+        "properties": {
+          "contigs_consistent_with_species_context": {
+            "type": "boolean"
+          },
+          "filter_standardized_to_pass": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "indels_normalized": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "invalid_records_removed": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "left_align_applied": {
+            "type": "boolean"
+          },
+          "multiallelic_records_split": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "readable_vcf": {
+            "type": "boolean"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.postprocess.v1"
+          },
+          "stage_id": {
+            "const": "vcf.postprocess"
+          },
+          "tabix_present": {
+            "type": "boolean"
+          },
+          "tool_id": {
+            "type": "string"
+          },
+          "variant_ids_normalized": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "readable_vcf",
+          "tabix_present",
+          "contigs_consistent_with_species_context",
+          "left_align_applied",
+          "multiallelic_records_split",
+          "indels_normalized",
+          "variant_ids_normalized",
+          "invalid_records_removed",
+          "filter_standardized_to_pass"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_postprocess_normalized_v1"
+      },
+      "vcf.prepare_reference_panel": {
+        "additionalProperties": true,
+        "properties": {
+          "duplicate_sites_removed": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "input_variants": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "normalization_status": {
+            "type": "string"
+          },
+          "output_variants": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "parseable": {
+            "type": "boolean"
+          },
+          "sample_consistent": {
+            "type": "boolean"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sample_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.prepare_reference_panel.v1"
+          },
+          "stage_id": {
+            "const": "vcf.prepare_reference_panel"
+          },
+          "tool_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "input_variants",
+          "output_variants",
+          "sample_count",
+          "sample_ids",
+          "sample_consistent",
+          "duplicate_sites_removed",
+          "normalization_status",
+          "parseable"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_prepare_reference_panel_normalized_v1"
+      },
+      "vcf.qc": {
+        "additionalProperties": true,
+        "properties": {
+          "excluded_samples": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "excluded_variants": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "heterozygosity": {
+            "type": "object"
+          },
+          "maf_summary": {
+            "type": "object"
+          },
+          "sample_missingness": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "sample_missingness_exclusion_threshold": {
+            "type": "number"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.qc.v1"
+          },
+          "stage_id": {
+            "const": "vcf.qc"
+          },
+          "tool_id": {
+            "type": "string"
+          },
+          "variant_missingness": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "variant_missingness_exclusion_threshold": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "sample_missingness",
+          "variant_missingness",
+          "maf_summary",
+          "heterozygosity",
+          "excluded_samples",
+          "excluded_variants",
+          "sample_missingness_exclusion_threshold",
+          "variant_missingness_exclusion_threshold"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_qc_normalized_v1"
+      },
+      "vcf.roh": {
+        "additionalProperties": true,
+        "properties": {
+          "per_sample_summary": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.roh.v1"
+          },
+          "segment_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "segments": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "stage_id": {
+            "const": "vcf.roh"
+          },
+          "status": {
+            "type": "string"
+          },
+          "tool_id": {
+            "type": "string"
+          },
+          "total_length": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "status",
+          "sample_count",
+          "segment_count",
+          "total_length",
+          "segments",
+          "per_sample_summary"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_roh_normalized_v1"
+      },
+      "vcf.stats": {
+        "additionalProperties": true,
+        "properties": {
+          "indel_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sample_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "bijux.vcf.stats.v1"
+          },
+          "snp_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stage_id": {
+            "const": "vcf.stats"
+          },
+          "ti_tv": {
+            "type": "number"
+          },
+          "tool_id": {
+            "type": "string"
+          },
+          "transition_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "transversion_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "variant_count": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "stage_id",
+          "tool_id",
+          "variant_count",
+          "snp_count",
+          "indel_count",
+          "transition_count",
+          "transversion_count",
+          "ti_tv",
+          "sample_count"
+        ],
+        "type": "object",
+        "x-bijux-extension-id": "vcf_stats_normalized_v1"
+      }
+    }
+  },
+  "$id": "bijux.schemas.bench.vcf-normalized-metrics.v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Governed normalized parser outputs for VCF benchmark stages. Each payload must satisfy the shared envelope and exactly one stage-specific extension.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/stages/vcf.call"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.call_gl"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.call_diploid"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.call_pseudohaploid"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.damage_filter"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.gl_propagation"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.qc"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.pca"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.population_structure"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.admixture"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.roh"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.ibd"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.imputation_metrics"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.impute"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.phasing"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.postprocess"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.prepare_reference_panel"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.demography"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.filter"
+    },
+    {
+      "$ref": "#/$defs/stages/vcf.stats"
+    }
+  ],
+  "title": "VCF normalized benchmark metrics",
+  "type": "object"
+}

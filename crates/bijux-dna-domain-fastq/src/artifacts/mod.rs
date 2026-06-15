@@ -88,6 +88,7 @@ pub use detect_instrument_artifacts::{
 pub use estimate_library_complexity_prealign::{
     EstimateLibraryComplexityPrealignReportV1,
     ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_REPORT_SCHEMA_VERSION,
+    PREALIGN_COMPLEXITY_INSUFFICIENT_DATA_REASON,
 };
 pub use extract_umis::{ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
 pub use filter_low_complexity::{

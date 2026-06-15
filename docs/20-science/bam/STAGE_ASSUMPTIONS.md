@@ -31,6 +31,7 @@ instead of merely syntactically valid.
 - `bam.damage`: deamination/misincorporation signatures are interpretable for authenticity context.
 - `bam.contamination`: contamination-model inputs, references, and mixture assumptions must be appropriate for the cohort.
 - `bam.sex`: sex inference assumptions require sufficient chrX/chrY informative coverage.
+- `bam.haplogroups`: haplogroup inference requires a compatible Y-panel reference, adequate coverage, and contamination context.
 - `bam.kinship`: kinship inference assumes adequate marker overlap and compatible panel or allele-frequency assumptions.
 
 ## Stage notes
@@ -38,6 +39,6 @@ instead of merely syntactically valid.
   scientific interpretations in the pre-HPC surface.
 - Planned stages such as `bam.qc_pre`, `bam.markdup`, `bam.gc_bias`, `bam.insert_size`,
   `bam.overlap_correction`, `bam.bias_mitigation`, `bam.recalibration`,
-  `bam.haplogroups`, `bam.genotyping`, and `bam.complexity` stay documented in
+  and `bam.complexity` stay documented in
   [STAGE_CATALOG.md](STAGE_CATALOG.md) and [TOOLS_ROSTER.md](TOOLS_ROSTER.md), but they do not belong in this
   supported-stage assumption ledger yet.

@@ -16,8 +16,13 @@ required_inputs: ["vcf"]
 required_outputs: ["stats_json"]
 tool_capability_requirements: []
 metrics:
-  - name: "variants_total"
+  - name: "variant_count"
+  - name: "snp_count"
+  - name: "indel_count"
+  - name: "transition_count"
+  - name: "transversion_count"
   - name: "ti_tv"
+  - name: "sample_count"
 compatible_tools: ["bcftools"]
 single_tool_justification: "bcftools is the only production-approved stats provider in current VCF baseline."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"

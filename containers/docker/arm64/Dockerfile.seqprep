@@ -23,7 +23,7 @@ ARG VERSION_SEQPREP=1.3.2
 ENV VERSION_SEQPREP=${VERSION_SEQPREP}
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends seqkit && \
+    apt-get install -y --no-install-recommends seqkit=2.3.1+ds-2ubuntu0.3 && \
     printf '#!/bin/sh\n' > /usr/local/bin/seqprep && \
     printf 'if [ "$1" = "--version" ]; then echo "$VERSION_SEQPREP"; exit 0; fi\n' >> /usr/local/bin/seqprep && \
     printf 'if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$#" -eq 0 ]; then echo "seqprep compatibility wrapper"; exit 0; fi\n' >> /usr/local/bin/seqprep && \

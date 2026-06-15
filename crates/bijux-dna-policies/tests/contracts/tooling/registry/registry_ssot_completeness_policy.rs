@@ -32,6 +32,7 @@ fn stage_tools_from_matrix(stage: &toml::Value) -> Vec<String> {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_tools_are_complete() {
     let root = support::workspace_root();
     let images_raw = std::fs::read_to_string(root.join("configs/ci/tools/images.toml"))

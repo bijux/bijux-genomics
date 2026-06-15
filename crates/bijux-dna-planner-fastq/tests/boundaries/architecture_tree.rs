@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::Path;
@@ -48,6 +50,8 @@ fn planner_fastq_tree_matches_architecture_contract() {
             "benchmark.rs",
             "graph_policy.rs",
             "layout_branching.rs",
+            "local_readiness.rs",
+            "local_smoke.rs",
             "mod.rs",
             "quality_sampling.rs",
             "route_expansion.rs",

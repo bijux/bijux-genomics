@@ -1,0 +1,9 @@
+{
+  "tool_id": "glimpse",
+  "stage_id": "vcf.impute",
+  "argv": [
+    "sh",
+    "-lc",
+    "GLIMPSE_phase --input 'target.vcf.gz' --reference 'panel.vcf.gz' --map 'map.tsv.gz' --input-region '1:1-1000000' --output-region '1:1-1000000' --threads 8 --seed 42 --output 'imputed.vcf.gz' > 'logs.txt' 2>&1"
+  ]
+}
