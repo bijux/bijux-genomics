@@ -531,7 +531,7 @@ fn tracked_visible_repo_root_entries(workspace: &Workspace) -> Result<Vec<PathBu
         names.insert(top.to_string());
     }
 
-    Ok(names.into_iter().map(|name| workspace.path(name)).collect())
+    Ok(names.into_iter().map(|name| workspace.path(&name)).collect())
 }
 
 fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
