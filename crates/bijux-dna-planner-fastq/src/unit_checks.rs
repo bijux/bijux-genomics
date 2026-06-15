@@ -411,7 +411,7 @@ fn mixed_normalization_stages_only_mark_observer_specialized_tools_comparable() 
 }
 
 #[test]
-fn normalize_abundance_rejects_planned_seqfu_backend() {
+fn normalize_abundance_rejects_unsupported_seqfu_backend() {
     let error = crate::compose::ensure_normalize_abundance_tool("seqfu")
         .expect_err("seqfu should stay outside the governed normalize_abundance runtime");
 

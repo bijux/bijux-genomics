@@ -77,11 +77,8 @@ pub(super) fn planned_terminal_damage_report(
 }
 
 pub(super) fn normalize_abundance_tool_id(planned: &ExecutionStep) -> &'static str {
-    if planned.command.template.iter().any(|part| part.contains("seqfu")) {
-        "seqfu"
-    } else {
-        "seqkit"
-    }
+    let _ = planned;
+    "seqkit"
 }
 
 pub(super) fn normalize_abundance_method(planned: &ExecutionStep) -> &'static str {

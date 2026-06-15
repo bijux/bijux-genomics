@@ -295,7 +295,7 @@ mod tests {
     }
 
     #[test]
-    fn load_fastq_domain_tool_contract_metadata_distinguishes_supported_and_planned_seqfu_pairs(
+    fn load_fastq_domain_tool_contract_metadata_keeps_seqfu_on_supported_profile_routes(
     ) -> Result<()> {
         let repo_root = repo_root();
         let tool_id = ToolId::new("seqfu");
@@ -307,21 +307,12 @@ mod tests {
             "seqfu must retain governed profile-reads admission"
         );
         assert!(
-            metadata
-                .planned_stage_ids
-                .iter()
-                .any(|stage_id| stage_id.as_str() == "fastq.normalize_abundance"),
-            "seqfu must retain planned normalize-abundance admission"
+            metadata.planned_stage_ids.is_empty(),
+            "seqfu must not retain any planned stage admission once normalize-abundance is removed"
         );
         assert_eq!(
             metadata.pair_support_level(&StageId::new("fastq.profile_reads".to_string())).as_str(),
             "supported"
-        );
-        assert_eq!(
-            metadata
-                .pair_support_level(&StageId::new("fastq.normalize_abundance".to_string()))
-                .as_str(),
-            "planned"
         );
         Ok(())
     }
