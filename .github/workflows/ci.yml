@@ -15,6 +15,7 @@ on:
         default: false
 jobs:
   fast-tier:
+    if: "${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && !endsWith(github.actor, '[bot]')) || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}"
     runs-on: ubuntu-latest
     env:
       SCCACHE_GHA_ENABLED: true

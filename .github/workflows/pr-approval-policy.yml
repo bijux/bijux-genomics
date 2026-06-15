@@ -27,6 +27,7 @@ permissions:
 jobs:
   pr-approval:
     name: policy / pr approval
+    if: ${{ !contains(fromJson('["pull_request_target","pull_request_review"]'), github.event_name) || (github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}
     runs-on: ubuntu-latest
 
     steps:
