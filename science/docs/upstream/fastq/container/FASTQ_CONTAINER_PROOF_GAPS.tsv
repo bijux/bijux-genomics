@@ -15,6 +15,10 @@ fastq.detect_adapters	fastqc	docker_cyclonedx_sbom	missing_from_snapshot	artifac
 fastq.detect_adapters	fastqc	docker_spdx_sbom	missing_from_snapshot	artifacts/containers/sbom/fastqc/docker-spdx.json;artifacts/containers/sbom/fastqc.spdx.json
 fastq.detect_adapters	fastqc	apptainer_sbom	missing_from_snapshot	artifacts/containers/sbom/fastqc/apptainer-cyclonedx.json;artifacts/containers/sbom/fastqc.apptainer.cyclonedx.json
 fastq.detect_adapters	fastqc	smoke_manifest	missing_from_snapshot	artifacts/containers/smoke/fastqc/manifest.json;artifacts/containers/smoke/fastqc.json
+fastq.detect_duplicates_premerge	bijux_dna	docker_cyclonedx_sbom	missing_from_snapshot	artifacts/containers/sbom/bijux_dna/docker-cyclonedx.json;artifacts/containers/sbom/bijux_dna.cyclonedx.json
+fastq.detect_duplicates_premerge	bijux_dna	docker_spdx_sbom	missing_from_snapshot	artifacts/containers/sbom/bijux_dna/docker-spdx.json;artifacts/containers/sbom/bijux_dna.spdx.json
+fastq.detect_duplicates_premerge	bijux_dna	apptainer_sbom	missing_from_snapshot	artifacts/containers/sbom/bijux_dna/apptainer-cyclonedx.json;artifacts/containers/sbom/bijux_dna.apptainer.cyclonedx.json
+fastq.detect_duplicates_premerge	bijux_dna	smoke_manifest	missing_from_snapshot	artifacts/containers/smoke/bijux_dna/manifest.json;artifacts/containers/smoke/bijux_dna.json
 fastq.trim_terminal_damage	cutadapt	docker_cyclonedx_sbom	missing_from_snapshot	artifacts/containers/sbom/cutadapt/docker-cyclonedx.json;artifacts/containers/sbom/cutadapt.cyclonedx.json
 fastq.trim_terminal_damage	cutadapt	docker_spdx_sbom	missing_from_snapshot	artifacts/containers/sbom/cutadapt/docker-spdx.json;artifacts/containers/sbom/cutadapt.spdx.json
 fastq.trim_terminal_damage	cutadapt	apptainer_sbom	missing_from_snapshot	artifacts/containers/sbom/cutadapt/apptainer-cyclonedx.json;artifacts/containers/sbom/cutadapt.apptainer.cyclonedx.json
@@ -99,3 +103,7 @@ fastq.report_qc	multiqc	docker_cyclonedx_sbom	missing_from_snapshot	artifacts/co
 fastq.report_qc	multiqc	docker_spdx_sbom	missing_from_snapshot	artifacts/containers/sbom/multiqc/docker-spdx.json;artifacts/containers/sbom/multiqc.spdx.json
 fastq.report_qc	multiqc	apptainer_sbom	missing_from_snapshot	artifacts/containers/sbom/multiqc/apptainer-cyclonedx.json;artifacts/containers/sbom/multiqc.apptainer.cyclonedx.json
 fastq.report_qc	multiqc	smoke_manifest	missing_from_snapshot	artifacts/containers/smoke/multiqc/manifest.json;artifacts/containers/smoke/multiqc.json
+fastq.estimate_library_complexity_prealign	bijux_dna	docker_cyclonedx_sbom	missing_from_snapshot	artifacts/containers/sbom/bijux_dna/docker-cyclonedx.json;artifacts/containers/sbom/bijux_dna.cyclonedx.json
+fastq.estimate_library_complexity_prealign	bijux_dna	docker_spdx_sbom	missing_from_snapshot	artifacts/containers/sbom/bijux_dna/docker-spdx.json;artifacts/containers/sbom/bijux_dna.spdx.json
+fastq.estimate_library_complexity_prealign	bijux_dna	apptainer_sbom	missing_from_snapshot	artifacts/containers/sbom/bijux_dna/apptainer-cyclonedx.json;artifacts/containers/sbom/bijux_dna.apptainer.cyclonedx.json
+fastq.estimate_library_complexity_prealign	bijux_dna	smoke_manifest	missing_from_snapshot	artifacts/containers/smoke/bijux_dna/manifest.json;artifacts/containers/smoke/bijux_dna.json

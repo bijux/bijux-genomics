@@ -6,6 +6,13 @@ bbduk	frontend_resolved_sif_sha256		missing	39.06	production
 bbduk	source_sha256		missing	39.06	production
 bbduk	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	39.06	production
 bbduk	frontend_smoke_version_output_sha256		missing	39.06	production
+bijux_dna	resolved_image_digest		missing	0.1.0	production
+bijux_dna	image_size_bytes	0	missing	0.1.0	production
+bijux_dna	resolved_sif_sha256		missing	0.1.0	production
+bijux_dna	frontend_resolved_sif_sha256		missing	0.1.0	production
+bijux_dna	source_sha256	a6662f59c7283ff89d7f7c3b6aa23bcb2fda58f07fc2dd2831d85639166bc5f1	present	0.1.0	production
+bijux_dna	pinned_commit		missing	0.1.0	production
+bijux_dna	frontend_smoke_version_output_sha256		missing	0.1.0	production
 bowtie2	resolved_image_digest		missing	2.5.4	production
 bowtie2	image_size_bytes	0	missing	2.5.4	production
 bowtie2	resolved_sif_sha256		missing	2.5.4	production

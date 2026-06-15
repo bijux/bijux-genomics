@@ -1,5 +1,6 @@
 default_tool	stage_ids	registry_container_ref	registry_package	domain_container_image	domain_package	digest_class	package_status
 bbduk	fastq.filter_low_complexity	bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4	bijuxdna/bbduk	bijuxdna/bbduk	bijuxdna/bbduk	immutable	ready
+bijux_dna	fastq.detect_duplicates_premerge;fastq.estimate_library_complexity_prealign	bijuxdna/bijux_dna:workspace	bijuxdna/bijux_dna			tag_only	domain_package_missing
 bowtie2	fastq.deplete_host;fastq.deplete_reference_contaminants	bijuxdna/bowtie2:2.5.4	bijuxdna/bowtie2	bijuxdna/bowtie2	bijuxdna/bowtie2	tag_only	ready
 bowtie2_build	fastq.index_reference	bijuxdna/bowtie2_build:2.5.4	bijuxdna/bowtie2_build	bijuxdna/bowtie2_build	bijuxdna/bowtie2_build	tag_only	ready
 clumpify	fastq.remove_duplicates	bijuxdna/clumpify@sha256:fa8159777183edae8355363ba8cc5e8f8f069bee09cb6f2fb70a7ca4220a5c81	bijuxdna/clumpify	bijuxdna/clumpify	bijuxdna/clumpify	immutable	ready
