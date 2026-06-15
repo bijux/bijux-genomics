@@ -6,16 +6,15 @@ use crate::{
     DEPLETE_HOST_REPORT_SCHEMA_VERSION, DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION,
     DEPLETE_RRNA_REPORT_SCHEMA_VERSION, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION,
     DETECT_DUPLICATES_PREMERGE_REPORT_SCHEMA_VERSION,
-    ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_REPORT_SCHEMA_VERSION,
-    EXTRACT_UMIS_REPORT_SCHEMA_VERSION, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
-    INDEX_REFERENCE_REPORT_SCHEMA_VERSION, INFER_ASVS_REPORT_SCHEMA_VERSION,
-    MERGE_PAIRS_REPORT_SCHEMA_VERSION, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION,
-    NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION, PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,
-    PROFILE_READ_LENGTHS_REPORT_SCHEMA_VERSION, PROFILE_READS_REPORT_SCHEMA_VERSION,
-    REMOVE_DUPLICATES_REPORT_SCHEMA_VERSION, REPORT_QC_REPORT_SCHEMA_VERSION,
-    SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION,
-    TRIM_POLYG_REPORT_SCHEMA_VERSION, TRIM_READS_REPORT_SCHEMA_VERSION,
-    VALIDATION_REPORT_SCHEMA_VERSION,
+    ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_REPORT_SCHEMA_VERSION, EXTRACT_UMIS_REPORT_SCHEMA_VERSION,
+    FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION, INDEX_REFERENCE_REPORT_SCHEMA_VERSION,
+    INFER_ASVS_REPORT_SCHEMA_VERSION, MERGE_PAIRS_REPORT_SCHEMA_VERSION,
+    NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION,
+    PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION, PROFILE_READS_REPORT_SCHEMA_VERSION,
+    PROFILE_READ_LENGTHS_REPORT_SCHEMA_VERSION, REMOVE_DUPLICATES_REPORT_SCHEMA_VERSION,
+    REPORT_QC_REPORT_SCHEMA_VERSION, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
+    TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION, TRIM_POLYG_REPORT_SCHEMA_VERSION,
+    TRIM_READS_REPORT_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -36,14 +35,17 @@ pub struct FastqParserFixtureCase {
     pub raw_fixture: &'static str,
 }
 
+#[must_use]
 pub fn fastq_parser_fixture_bindings() -> &'static [FastqParserFixtureBinding] {
     fixture_bindings().as_slice()
 }
 
+#[must_use]
 pub fn fastq_parser_fixture_cases() -> &'static [FastqParserFixtureCase] {
     FASTQ_PARSER_FIXTURE_CASES
 }
 
+#[must_use]
 pub fn find_fastq_parser_fixture_binding(
     stage_id: &str,
     tool_id: &str,
@@ -54,13 +56,9 @@ pub fn find_fastq_parser_fixture_binding(
         .find(|row| row.stage_id == stage_id && row.tool_id == tool_id)
 }
 
-pub fn find_fastq_parser_fixture_case(
-    fixture_case_id: &str,
-) -> Option<FastqParserFixtureCase> {
-    fastq_parser_fixture_cases()
-        .iter()
-        .copied()
-        .find(|row| row.fixture_case_id == fixture_case_id)
+#[must_use]
+pub fn find_fastq_parser_fixture_case(fixture_case_id: &str) -> Option<FastqParserFixtureCase> {
+    fastq_parser_fixture_cases().iter().copied().find(|row| row.fixture_case_id == fixture_case_id)
 }
 
 fn fixture_bindings() -> &'static Vec<FastqParserFixtureBinding> {
@@ -68,7 +66,13 @@ fn fixture_bindings() -> &'static Vec<FastqParserFixtureBinding> {
     BINDINGS.get_or_init(|| {
         let mut rows = observer_specialization_contracts()
             .iter()
-            .map(|contract| binding_for_stage_surface(contract.stage_id, contract.tool_id, contract.semantic_surface))
+            .map(|contract| {
+                binding_for_stage_surface(
+                    contract.stage_id,
+                    contract.tool_id,
+                    contract.semantic_surface,
+                )
+            })
             .collect::<Vec<_>>();
         rows.push(binding_for_stage_surface(
             "fastq.detect_duplicates_premerge",
@@ -81,9 +85,7 @@ fn fixture_bindings() -> &'static Vec<FastqParserFixtureBinding> {
             "report_json",
         ));
         rows.sort_by(|left, right| {
-            left.stage_id
-                .cmp(right.stage_id)
-                .then_with(|| left.tool_id.cmp(right.tool_id))
+            left.stage_id.cmp(right.stage_id).then_with(|| left.tool_id.cmp(right.tool_id))
         });
         rows
     })
@@ -235,13 +237,7 @@ fn binding_for_stage_surface(
         ),
     };
 
-    FastqParserFixtureBinding {
-        tool_id,
-        stage_id,
-        parser_id,
-        parser_schema_id,
-        fixture_case_id,
-    }
+    FastqParserFixtureBinding { tool_id, stage_id, parser_id, parser_schema_id, fixture_case_id }
 }
 
 const FASTQ_PARSER_FIXTURE_CASES: &[FastqParserFixtureCase] = &[
@@ -441,8 +437,8 @@ mod tests {
     use std::collections::BTreeSet;
 
     use super::{
-        fastq_parser_fixture_bindings, fastq_parser_fixture_cases, find_fastq_parser_fixture_binding,
-        find_fastq_parser_fixture_case,
+        fastq_parser_fixture_bindings, fastq_parser_fixture_cases,
+        find_fastq_parser_fixture_binding, find_fastq_parser_fixture_case,
     };
 
     #[test]
@@ -458,7 +454,9 @@ mod tests {
 
         assert!(rows.iter().all(|row| !row.parser_id.is_empty()));
         assert!(rows.iter().all(|row| !row.parser_schema_id.is_empty()));
-        assert!(rows.iter().all(|row| find_fastq_parser_fixture_case(row.fixture_case_id).is_some()));
+        assert!(rows
+            .iter()
+            .all(|row| find_fastq_parser_fixture_case(row.fixture_case_id).is_some()));
 
         assert!(rows.iter().any(|row| {
             row.stage_id == "fastq.trim_reads"
@@ -483,10 +481,7 @@ mod tests {
         let cases = fastq_parser_fixture_cases();
         assert_eq!(cases.len(), 27);
 
-        let unique_rows = cases
-            .iter()
-            .map(|row| row.fixture_case_id)
-            .collect::<BTreeSet<_>>();
+        let unique_rows = cases.iter().map(|row| row.fixture_case_id).collect::<BTreeSet<_>>();
         assert_eq!(unique_rows.len(), cases.len());
         assert!(cases.iter().all(|row| !row.raw_fixture.trim().is_empty()));
 

@@ -36,6 +36,7 @@ Top-level workspace paths only.
 | `examples` | `dir` | `-` | - |
 | `makes` | `dir` | `-` | - |
 | `mkdocs.yml` | `file` | `-` | - |
+| `runs` | `dir` | `-` | - |
 | `rust-toolchain.toml` | `file` | `-` | - |
 | `rustfmt.toml` | `file` | `-` | - |
 | `science` | `dir` | `-` | - |

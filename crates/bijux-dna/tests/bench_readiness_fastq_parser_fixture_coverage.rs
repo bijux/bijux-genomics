@@ -37,12 +37,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_fastq_parser_fixture_coverage_reports_governed_rows() {
-    let payload = run_cli_json(&[
-        "bench",
-        "readiness",
-        "render-fastq-parser-fixture-coverage",
-        "--json",
-    ]);
+    let payload =
+        run_cli_json(&["bench", "readiness", "render-fastq-parser-fixture-coverage", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -74,8 +70,7 @@ fn bench_readiness_fastq_parser_fixture_coverage_reports_governed_rows() {
     }));
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("trimmomatic")
-            && row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.trim_reads")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.trim_reads")
             && row.get("parser_fixture_parser_id").and_then(serde_json::Value::as_str)
                 == Some("parse_trim_reads_report")
             && row.get("parser_fixture_reference").and_then(serde_json::Value::as_str)

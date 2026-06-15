@@ -3,7 +3,6 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_domain_fastq::{find_fastq_parser_fixture_binding, find_fastq_parser_fixture_case};
 use bijux_dna_domain_fastq::observer::{
     parse_cluster_otus_report, parse_correct_errors_report, parse_deplete_host_report,
     parse_deplete_reference_contaminants_report, parse_deplete_rrna_report,
@@ -12,11 +11,12 @@ use bijux_dna_domain_fastq::observer::{
     parse_filter_low_complexity_report, parse_filter_reads_report, parse_index_reference_report,
     parse_infer_asvs_report, parse_merge_pairs_report, parse_normalize_abundance_report,
     parse_normalize_primers_report, parse_profile_overrepresented_report,
-    parse_profile_read_lengths_report, parse_profile_reads_report,
-    parse_remove_chimeras_report, parse_remove_duplicates_report, parse_report_qc_report,
-    parse_screen_taxonomy_report, parse_terminal_damage_report, parse_trim_polyg_report,
-    parse_trim_reads_report, parse_validation_report,
+    parse_profile_read_lengths_report, parse_profile_reads_report, parse_remove_chimeras_report,
+    parse_remove_duplicates_report, parse_report_qc_report, parse_screen_taxonomy_report,
+    parse_terminal_damage_report, parse_trim_polyg_report, parse_trim_reads_report,
+    parse_validation_report,
 };
+use bijux_dna_domain_fastq::{find_fastq_parser_fixture_binding, find_fastq_parser_fixture_case};
 use serde::Serialize;
 
 use super::fastq_active_stage_tool_matrix::collect_fastq_active_stage_tool_matrix_rows;
@@ -107,11 +107,8 @@ pub(crate) fn render_fastq_parser_fixture_coverage(
         .filter(|row| row.coverage_status == FastqParserFixtureCoverageStatus::Covered)
         .count();
     let missing_row_count = rows.len().saturating_sub(covered_row_count);
-    let parser_fixture_coverage_percent = if rows.is_empty() {
-        0.0
-    } else {
-        covered_row_count as f64 * 100.0 / rows.len() as f64
-    };
+    let parser_fixture_coverage_percent =
+        if rows.is_empty() { 0.0 } else { covered_row_count as f64 * 100.0 / rows.len() as f64 };
     let mut coverage_status_counts = BTreeMap::<String, usize>::new();
     for row in &rows {
         *coverage_status_counts
@@ -239,9 +236,7 @@ pub(crate) fn collect_fastq_parser_fixture_coverage_rows(
     }
 
     rows.sort_by(|left, right| {
-        left.stage_id
-            .cmp(&right.stage_id)
-            .then_with(|| left.tool_id.cmp(&right.tool_id))
+        left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
     });
     Ok((stage_count, tool_count, rows))
 }
@@ -273,84 +268,96 @@ fn validate_fixture_case(
 
 fn parse_fixture_case(parser_id: &str, raw_fixture: &str) -> Result<serde_json::Value> {
     match parser_id {
-        "parse_cluster_otus_report" => serde_json::to_value(parse_cluster_otus_report(raw_fixture)?)
-            .context("serialize cluster otus parser output"),
+        "parse_cluster_otus_report" => {
+            serde_json::to_value(parse_cluster_otus_report(raw_fixture)?)
+                .context("serialize cluster otus parser output")
+        }
         "parse_correct_errors_report" => {
             serde_json::to_value(parse_correct_errors_report(raw_fixture)?)
                 .context("serialize correct-errors parser output")
         }
-        "parse_deplete_host_report" => serde_json::to_value(parse_deplete_host_report(raw_fixture)?)
-            .context("serialize deplete-host parser output"),
+        "parse_deplete_host_report" => {
+            serde_json::to_value(parse_deplete_host_report(raw_fixture)?)
+                .context("serialize deplete-host parser output")
+        }
         "parse_deplete_reference_contaminants_report" => {
             serde_json::to_value(parse_deplete_reference_contaminants_report(raw_fixture)?)
                 .context("serialize deplete-reference-contaminants parser output")
         }
-        "parse_deplete_rrna_report" => serde_json::to_value(parse_deplete_rrna_report(raw_fixture)?)
-            .context("serialize deplete-rrna parser output"),
+        "parse_deplete_rrna_report" => {
+            serde_json::to_value(parse_deplete_rrna_report(raw_fixture)?)
+                .context("serialize deplete-rrna parser output")
+        }
         "parse_detect_adapters_report" => {
             serde_json::to_value(parse_detect_adapters_report(raw_fixture)?)
                 .context("serialize detect-adapters parser output")
         }
-        "parse_detect_duplicates_premerge_report" => serde_json::to_value(
-            parse_detect_duplicates_premerge_report(raw_fixture)?,
-        )
-        .context("serialize detect-duplicates-premerge parser output"),
-        "parse_estimate_library_complexity_prealign_report" => serde_json::to_value(
-            parse_estimate_library_complexity_prealign_report(raw_fixture)?,
-        )
-        .context("serialize estimate-library-complexity-prealign parser output"),
+        "parse_detect_duplicates_premerge_report" => {
+            serde_json::to_value(parse_detect_duplicates_premerge_report(raw_fixture)?)
+                .context("serialize detect-duplicates-premerge parser output")
+        }
+        "parse_estimate_library_complexity_prealign_report" => {
+            serde_json::to_value(parse_estimate_library_complexity_prealign_report(raw_fixture)?)
+                .context("serialize estimate-library-complexity-prealign parser output")
+        }
         "parse_extract_umis_report" => {
             serde_json::to_value(parse_extract_umis_report(raw_fixture)?)
                 .context("serialize extract-umis parser output")
         }
-        "parse_filter_low_complexity_report" => serde_json::to_value(
-            parse_filter_low_complexity_report(raw_fixture)?,
-        )
-        .context("serialize filter-low-complexity parser output"),
-        "parse_filter_reads_report" => serde_json::to_value(parse_filter_reads_report(raw_fixture)?)
-            .context("serialize filter-reads parser output"),
-        "parse_index_reference_report" => serde_json::to_value(parse_index_reference_report(raw_fixture)?)
-            .context("serialize index-reference parser output"),
+        "parse_filter_low_complexity_report" => {
+            serde_json::to_value(parse_filter_low_complexity_report(raw_fixture)?)
+                .context("serialize filter-low-complexity parser output")
+        }
+        "parse_filter_reads_report" => {
+            serde_json::to_value(parse_filter_reads_report(raw_fixture)?)
+                .context("serialize filter-reads parser output")
+        }
+        "parse_index_reference_report" => {
+            serde_json::to_value(parse_index_reference_report(raw_fixture)?)
+                .context("serialize index-reference parser output")
+        }
         "parse_infer_asvs_report" => serde_json::to_value(parse_infer_asvs_report(raw_fixture)?)
             .context("serialize infer-asvs parser output"),
         "parse_merge_pairs_report" => serde_json::to_value(parse_merge_pairs_report(raw_fixture)?)
             .context("serialize merge-pairs parser output"),
-        "parse_normalize_abundance_report" => serde_json::to_value(
-            parse_normalize_abundance_report(raw_fixture)?,
-        )
-        .context("serialize normalize-abundance parser output"),
-        "parse_normalize_primers_report" => serde_json::to_value(
-            parse_normalize_primers_report(raw_fixture)?,
-        )
-        .context("serialize normalize-primers parser output"),
-        "parse_profile_overrepresented_report" => serde_json::to_value(
-            parse_profile_overrepresented_report(raw_fixture)?,
-        )
-        .context("serialize profile-overrepresented parser output"),
-        "parse_profile_read_lengths_report" => serde_json::to_value(
-            parse_profile_read_lengths_report(raw_fixture)?,
-        )
-        .context("serialize profile-read-lengths parser output"),
-        "parse_profile_reads_report" => serde_json::to_value(parse_profile_reads_report(raw_fixture)?)
-            .context("serialize profile-reads parser output"),
-        "parse_remove_chimeras_report" => serde_json::to_value(
-            parse_remove_chimeras_report(raw_fixture)?,
-        )
-        .context("serialize remove-chimeras parser output"),
-        "parse_remove_duplicates_report" => serde_json::to_value(
-            parse_remove_duplicates_report(raw_fixture)?,
-        )
-        .context("serialize remove-duplicates parser output"),
+        "parse_normalize_abundance_report" => {
+            serde_json::to_value(parse_normalize_abundance_report(raw_fixture)?)
+                .context("serialize normalize-abundance parser output")
+        }
+        "parse_normalize_primers_report" => {
+            serde_json::to_value(parse_normalize_primers_report(raw_fixture)?)
+                .context("serialize normalize-primers parser output")
+        }
+        "parse_profile_overrepresented_report" => {
+            serde_json::to_value(parse_profile_overrepresented_report(raw_fixture)?)
+                .context("serialize profile-overrepresented parser output")
+        }
+        "parse_profile_read_lengths_report" => {
+            serde_json::to_value(parse_profile_read_lengths_report(raw_fixture)?)
+                .context("serialize profile-read-lengths parser output")
+        }
+        "parse_profile_reads_report" => {
+            serde_json::to_value(parse_profile_reads_report(raw_fixture)?)
+                .context("serialize profile-reads parser output")
+        }
+        "parse_remove_chimeras_report" => {
+            serde_json::to_value(parse_remove_chimeras_report(raw_fixture)?)
+                .context("serialize remove-chimeras parser output")
+        }
+        "parse_remove_duplicates_report" => {
+            serde_json::to_value(parse_remove_duplicates_report(raw_fixture)?)
+                .context("serialize remove-duplicates parser output")
+        }
         "parse_report_qc_report" => serde_json::to_value(parse_report_qc_report(raw_fixture)?)
             .context("serialize report-qc parser output"),
-        "parse_screen_taxonomy_report" => serde_json::to_value(
-            parse_screen_taxonomy_report(raw_fixture)?,
-        )
-        .context("serialize screen-taxonomy parser output"),
-        "parse_terminal_damage_report" => serde_json::to_value(
-            parse_terminal_damage_report(raw_fixture)?,
-        )
-        .context("serialize terminal-damage parser output"),
+        "parse_screen_taxonomy_report" => {
+            serde_json::to_value(parse_screen_taxonomy_report(raw_fixture)?)
+                .context("serialize screen-taxonomy parser output")
+        }
+        "parse_terminal_damage_report" => {
+            serde_json::to_value(parse_terminal_damage_report(raw_fixture)?)
+                .context("serialize terminal-damage parser output")
+        }
         "parse_trim_polyg_report" => serde_json::to_value(parse_trim_polyg_report(raw_fixture)?)
             .context("serialize trim-polyg parser output"),
         "parse_trim_reads_report" => serde_json::to_value(parse_trim_reads_report(raw_fixture)?)
@@ -468,8 +475,7 @@ mod tests {
             row.stage_id == "fastq.detect_duplicates_premerge"
                 && row.tool_id == "bijux_dna"
                 && row.parser_fixture_parser_id == "parse_detect_duplicates_premerge_report"
-                && row.parser_fixture_reference
-                    == "fastq.detect_duplicates_premerge.report_json"
+                && row.parser_fixture_reference == "fastq.detect_duplicates_premerge.report_json"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.screen_taxonomy"
@@ -481,10 +487,7 @@ mod tests {
 
     #[test]
     fn coverage_status_labels_are_stable() {
-        assert_eq!(
-            coverage_status_label(FastqParserFixtureCoverageStatus::Covered),
-            "covered"
-        );
+        assert_eq!(coverage_status_label(FastqParserFixtureCoverageStatus::Covered), "covered");
         assert_eq!(
             coverage_status_label(FastqParserFixtureCoverageStatus::MissingFixtureBinding),
             "missing_fixture_binding"

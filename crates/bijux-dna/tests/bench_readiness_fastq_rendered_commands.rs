@@ -69,19 +69,18 @@ fn bench_readiness_fastq_rendered_commands_report_tracks_active_rows() {
         row.get("benchmark_status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
             && row.get("command_source").and_then(serde_json::Value::as_str)
                 == Some("fastq_bam_command_adapter")
-            && row.get("command_steps").and_then(serde_json::Value::as_array).is_some_and(
-                |steps| {
-                    steps.len() == 1
-                        && steps[0].get("step_id").and_then(serde_json::Value::as_str)
-                            == Some("invoke")
-                        && steps[0]
-                            .get("argv")
-                            .and_then(serde_json::Value::as_array)
-                            .is_some_and(|argv| !argv.is_empty())
-                }
-            )
+            && row.get("command_steps").and_then(serde_json::Value::as_array).is_some_and(|steps| {
+                steps.len() == 1
+                    && steps[0].get("step_id").and_then(serde_json::Value::as_str) == Some("invoke")
+                    && steps[0]
+                        .get("argv")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|argv| !argv.is_empty())
+            })
             && row.get("script_commands").and_then(serde_json::Value::as_array).is_some_and(
-                |commands| commands.len() == 1 && commands[0].as_str().is_some_and(|cmd| !cmd.is_empty())
+                |commands| {
+                    commands.len() == 1 && commands[0].as_str().is_some_and(|cmd| !cmd.is_empty())
+                },
             )
     }));
 
@@ -137,13 +136,12 @@ fn bench_readiness_fastq_rendered_commands_report_tracks_active_rows() {
         taxonomy.get("command_source").and_then(serde_json::Value::as_str),
         Some("fastq_bam_command_adapter")
     );
-    assert!(taxonomy
-        .get("command_steps")
-        .and_then(serde_json::Value::as_array)
-        .is_some_and(|steps| {
+    assert!(taxonomy.get("command_steps").and_then(serde_json::Value::as_array).is_some_and(
+        |steps| {
             steps[0]
                 .get("argv")
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|argv| argv.first().and_then(serde_json::Value::as_str) == Some("sh"))
-        }));
+        }
+    ));
 }

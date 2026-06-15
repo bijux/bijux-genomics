@@ -80,9 +80,7 @@ pub(crate) fn run_render_fastq_commands(
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let report = render_fastq_commands(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_FASTQ_RENDERED_COMMANDS_PATH)),
+        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_FASTQ_RENDERED_COMMANDS_PATH)),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -181,9 +179,7 @@ pub(crate) fn collect_fastq_rendered_command_rows(
     }
 
     rows.sort_by(|left, right| {
-        left.stage_id
-            .cmp(&right.stage_id)
-            .then_with(|| left.tool_id.cmp(&right.tool_id))
+        left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
     });
     ensure_fastq_rendered_command_contract(&rows)?;
     Ok(rows)
@@ -288,8 +284,7 @@ fn render_fastq_commands_shell_script(
 ) -> String {
     let mut rendered = String::from("#!/usr/bin/env bash\nset -euo pipefail\n");
     rendered.push_str(&format!(
-        "repo_root=\"$(cd \"$(dirname \"${{BASH_SOURCE[0]}}\")/{}\" && pwd)\"\n",
-        repo_root_relative_to_output
+        "repo_root=\"$(cd \"$(dirname \"${{BASH_SOURCE[0]}}\")/{repo_root_relative_to_output}\" && pwd)\"\n"
     ));
     rendered.push_str("cd \"$repo_root\"\n\n");
     for (index, row) in rows.iter().enumerate() {
@@ -360,8 +355,7 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 
 fn repo_root_relative_to_output(repo_root: &Path, output_path: &Path) -> String {
     let relative_output_path = output_path.strip_prefix(repo_root).unwrap_or(output_path);
-    let depth =
-        relative_output_path.parent().map(|parent| parent.components().count()).unwrap_or(0);
+    let depth = relative_output_path.parent().map_or(0, |parent| parent.components().count());
     if depth == 0 {
         ".".to_string()
     } else {
@@ -398,10 +392,7 @@ mod tests {
         assert_eq!(report.row_count, 69);
         assert_eq!(report.stage_count, 26);
         assert_eq!(report.tool_count, 41);
-        assert_eq!(
-            report.command_source_counts.get("fastq_bam_command_adapter"),
-            Some(&69)
-        );
+        assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&69));
         assert!(report.rows.iter().all(|row| {
             row.benchmark_status == "benchmark_ready"
                 && row.command_source == "fastq_bam_command_adapter"
