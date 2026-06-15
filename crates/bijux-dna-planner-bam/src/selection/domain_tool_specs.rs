@@ -407,7 +407,7 @@ mod tests {
         let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
         assert_eq!(spec.tool_id.as_str(), "samtools");
         assert_eq!(spec.command.template, vec!["samtools".to_string()]);
-        assert_eq!(spec.image.image, "samtools");
+        assert_eq!(spec.image.image, "bijuxdna/samtools:1.21");
         assert!(spec.image.digest.is_none());
         Ok(())
     }
@@ -427,7 +427,7 @@ mod tests {
 
         let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
         assert_eq!(spec.tool_id.as_str(), "bamutil");
-        assert_eq!(spec.command.template, vec!["bam".to_string()]);
+        assert_eq!(spec.command.template, vec!["bamutil".to_string()]);
         assert_eq!(spec.image.image, "bijuxdna/bamutil:1.0.15");
         assert!(spec.image.digest.is_none());
         Ok(())
@@ -442,7 +442,7 @@ mod tests {
         let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
         assert_eq!(spec.tool_id.as_str(), "bamutil");
-        assert_eq!(spec.command.template, vec!["bam".to_string()]);
+        assert_eq!(spec.command.template, vec!["bamutil".to_string()]);
         assert_eq!(spec.image.image, "bijuxdna/bamutil:1.0.15");
         assert!(spec.image.digest.is_none());
         Ok(())
@@ -658,8 +658,11 @@ mod tests {
 
         assert_eq!(spec.tool_id.as_str(), "multiqc");
         assert_eq!(spec.command.template, vec!["multiqc".to_string()]);
-        assert_eq!(spec.image.image, "multiqc");
-        assert!(spec.image.digest.is_none());
+        assert_eq!(spec.image.image, "bijuxdna/multiqc");
+        assert_eq!(
+            spec.image.digest.as_deref(),
+            Some("sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec")
+        );
         Ok(())
     }
 
@@ -684,13 +687,17 @@ mod tests {
         let repo_root = repo_root();
         let stage_id = StageId::new("bam.filter".to_string());
 
-        for tool in ["samtools", "bamtools", "bedtools"] {
+        for (tool, expected_image) in [
+            ("samtools", "bijuxdna/samtools:1.21"),
+            ("bamtools", "bijuxdna/bamtools:2.5.2"),
+            ("bedtools", "bijuxdna/bedtools:2.31.1"),
+        ] {
             let tool_id = ToolId::new(tool);
             let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
 
             assert_eq!(spec.tool_id.as_str(), tool);
             assert_eq!(spec.command.template, vec![tool.to_string()]);
-            assert_eq!(spec.image.image, tool);
+            assert_eq!(spec.image.image, expected_image);
             assert!(spec.image.digest.is_none());
         }
 
@@ -702,13 +709,17 @@ mod tests {
         let repo_root = repo_root();
         let stage_id = StageId::new("bam.coverage".to_string());
 
-        for tool in ["mosdepth", "samtools", "bedtools"] {
+        for (tool, expected_image) in [
+            ("mosdepth", "bijuxdna/mosdepth:0.3.10"),
+            ("samtools", "bijuxdna/samtools:1.21"),
+            ("bedtools", "bijuxdna/bedtools:2.31.1"),
+        ] {
             let tool_id = ToolId::new(tool);
             let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
 
             assert_eq!(spec.tool_id.as_str(), tool);
             assert_eq!(spec.command.template, vec![tool.to_string()]);
-            assert_eq!(spec.image.image, tool);
+            assert_eq!(spec.image.image, expected_image);
             assert!(spec.image.digest.is_none());
         }
 
@@ -721,13 +732,15 @@ mod tests {
         let repo_root = repo_root();
         let stage_id = StageId::new("bam.mapq_filter".to_string());
 
-        for tool in ["samtools", "bamtools"] {
+        for (tool, expected_image) in
+            [("samtools", "bijuxdna/samtools:1.21"), ("bamtools", "bijuxdna/bamtools:2.5.2")]
+        {
             let tool_id = ToolId::new(tool);
             let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
 
             assert_eq!(spec.tool_id.as_str(), tool);
             assert_eq!(spec.command.template, vec![tool.to_string()]);
-            assert_eq!(spec.image.image, tool);
+            assert_eq!(spec.image.image, expected_image);
             assert!(spec.image.digest.is_none());
         }
 
@@ -750,7 +763,7 @@ mod tests {
                 assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
                 assert!(spec.image.digest.is_none());
             } else {
-                assert_eq!(spec.image.image, tool);
+                assert_eq!(spec.image.image, "bijuxdna/samtools:1.21");
                 assert!(spec.image.digest.is_none());
             }
         }
@@ -773,7 +786,7 @@ mod tests {
                 assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
                 assert!(spec.image.digest.is_none());
             } else {
-                assert_eq!(spec.image.image, tool);
+                assert_eq!(spec.image.image, "bijuxdna/samtools:1.21");
                 assert!(spec.image.digest.is_none());
             }
         }
@@ -797,7 +810,7 @@ mod tests {
                 assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
                 assert!(spec.image.digest.is_none());
             } else {
-                assert_eq!(spec.image.image, tool);
+                assert_eq!(spec.image.image, "bijuxdna/samtools:1.21");
                 assert!(spec.image.digest.is_none());
             }
         }

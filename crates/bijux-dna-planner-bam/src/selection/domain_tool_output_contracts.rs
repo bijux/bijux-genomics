@@ -173,7 +173,12 @@ mod tests {
         assert_eq!(contract.stage_id.as_str(), "bam.contamination");
         assert_eq!(
             contract.stage_expected_artifact_ids,
-            vec!["contamination_estimate".to_string()]
+            vec![
+                "contamination_report".to_string(),
+                "summary".to_string(),
+                "stage_metrics".to_string(),
+                "contamination_estimate".to_string(),
+            ]
         );
         Ok(())
     }
