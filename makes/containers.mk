@@ -119,7 +119,7 @@ _ghcr-apptainer-build-one: ## Build one Apptainer image for GHCR publication.
 	@cargo run -q -p bijux-dna-dev -- containers run build-apptainer-all -- --build-one "$(TOOL_ID)"
 
 _fastq-container-readiness: ## Generate FASTQ container readiness evidence reports.
-	@python3 makes/bin/generate_fastq_container_readiness.py
+	@PYTHONDONTWRITEBYTECODE=1 python3 makes/bin/generate_fastq_container_readiness.py
 	@git diff --exit-code -- science/docs/upstream/fastq/container
 
 _containers: ## Print tools/runtime/result/log summary from target-containers manifests
