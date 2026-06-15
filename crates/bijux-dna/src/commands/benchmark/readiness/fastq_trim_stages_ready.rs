@@ -286,9 +286,9 @@ fn build_fastq_trim_stages_ready_report(
         .into_iter()
         .filter(|row| trim_stage_spec(&row.stage_id).is_some())
         .collect::<Vec<_>>();
-    ensure_required_stage_rows(
+    ensure_trim_stage_tool_sets(
         "FASTQ trim-stage report-map rows",
-        report_map_rows.iter().map(|row| row.stage_id.as_str()),
+        report_map_rows.iter().map(|row| (row.stage_id.as_str(), row.tool_id.as_str())),
     )?;
     ensure_required_stage_rows(
         "FASTQ trim-stage schema rows",
@@ -299,9 +299,9 @@ fn build_fastq_trim_stages_ready_report(
     let parser_by_binding = collect_rows_by_binding(parser_rows)?;
     let expected_by_binding = collect_rows_by_binding(expected_rows)?;
     let command_by_binding = collect_rows_by_binding(command_rows)?;
-    let report_map_by_stage = report_map_rows
+    let report_map_by_binding = report_map_rows
         .into_iter()
-        .map(|row| (row.stage_id.clone(), row))
+        .map(|row| (binding_key(&row.stage_id, &row.tool_id), row))
         .collect::<BTreeMap<_, _>>();
 
     let mut rows = Vec::with_capacity(active_rows.len());
@@ -336,8 +336,12 @@ fn build_fastq_trim_stages_ready_report(
                 active_row.tool_id
             )
         })?;
-        let report_map_row = report_map_by_stage.get(&active_row.stage_id).ok_or_else(|| {
-            anyhow!("missing trim-stage report-map row for `{}`", active_row.stage_id)
+        let report_map_row = report_map_by_binding.get(&key).ok_or_else(|| {
+            anyhow!(
+                "missing trim-stage report-map row for `{}` / `{}`",
+                active_row.stage_id,
+                active_row.tool_id
+            )
         })?;
         let schema_contract = schema_contracts.get(&active_row.stage_id).ok_or_else(|| {
             anyhow!("missing trim-stage schema contract for `{}`", active_row.stage_id)

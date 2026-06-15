@@ -302,11 +302,15 @@ fn build_fastq_validate_reads_ready_report(
         .ok_or_else(|| {
             anyhow!("missing comparable-metrics row for `{FASTQ_VALIDATE_READS_STAGE_ID}`")
         })?;
-    let report_map_row = report_map
+    let report_map_rows = report_map
         .rows
         .into_iter()
-        .find(|row| row.stage_id == FASTQ_VALIDATE_READS_STAGE_ID)
-        .ok_or_else(|| anyhow!("missing report-map row for `{FASTQ_VALIDATE_READS_STAGE_ID}`"))?;
+        .filter(|row| row.stage_id == FASTQ_VALIDATE_READS_STAGE_ID)
+        .collect::<Vec<_>>();
+    ensure_required_tool_set(
+        "fastq validate-reads report-map rows",
+        report_map_rows.iter().map(|row| row.tool_id.as_str()),
+    )?;
 
     let output_by_binding = output_rows
         .into_iter()
@@ -321,6 +325,10 @@ fn build_fastq_validate_reads_ready_report(
         .map(|row| (binding_key(&row.stage_id, &row.tool_id), row))
         .collect::<BTreeMap<_, _>>();
     let command_by_binding = command_rows
+        .into_iter()
+        .map(|row| (binding_key(&row.stage_id, &row.tool_id), row))
+        .collect::<BTreeMap<_, _>>();
+    let report_map_by_binding = report_map_rows
         .into_iter()
         .map(|row| (binding_key(&row.stage_id, &row.tool_id), row))
         .collect::<BTreeMap<_, _>>();
@@ -352,6 +360,13 @@ fn build_fastq_validate_reads_ready_report(
                 active_row.tool_id
             )
         })?;
+        let report_map_row = report_map_by_binding.get(&key).ok_or_else(|| {
+            anyhow!(
+                "missing report-map row for `{}` / `{}`",
+                active_row.stage_id,
+                active_row.tool_id
+            )
+        })?;
         rows.push(build_fastq_validate_reads_ready_row(
             active_row,
             output_row,
@@ -359,7 +374,7 @@ fn build_fastq_validate_reads_ready_report(
             expected_row,
             command_row,
             &comparable_row,
-            &report_map_row,
+            report_map_row,
             &smoke,
         ));
     }
