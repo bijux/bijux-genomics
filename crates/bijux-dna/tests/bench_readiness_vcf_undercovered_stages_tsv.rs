@@ -49,8 +49,8 @@ fn bench_readiness_vcf_undercovered_stages_writes_governed_tsv_columns() {
         "vcf.damage_filter\tgenotype_likelihood_calling,variant_processing\tbcftools\tangsd\tfuture_not_benchmark_ready",
         "vcf.gl_propagation\tgenotype_likelihood_calling,variant_processing\tbcftools\tangsd\tfuture_not_benchmark_ready",
         "vcf.ibd\tdemography,relatedness\tgermline\tibdhap,ibdne,ibdseq\tfuture_not_benchmark_ready",
-        "vcf.imputation_metrics\timputation,phasing\tbeagle\tbeagle-imputation,glimpse,impute5,minimac4\tfuture_not_benchmark_ready",
-        "vcf.impute\timputation,phasing\tbeagle\tbeagle-imputation,glimpse,impute5,minimac4\tfuture_not_benchmark_ready",
+        "vcf.imputation_metrics\timputation,phasing\tbeagle\tglimpse,impute5,minimac4\tfuture_not_benchmark_ready",
+        "vcf.impute\timputation,phasing\tbeagle\tglimpse,impute5,minimac4\tfuture_not_benchmark_ready",
         "vcf.phasing\tphasing\tshapeit5\tbeagle,eagle,shapeit\tfuture_not_benchmark_ready",
         "vcf.population_structure\tcohort_analysis,population_structure\tplink2\teigensoft,plink\tlimit_to_specialized_tool",
     ] {

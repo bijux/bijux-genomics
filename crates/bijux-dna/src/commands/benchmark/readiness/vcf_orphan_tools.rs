@@ -219,7 +219,6 @@ fn ensure_vcf_orphan_tool_contract(
 ) -> Result<()> {
     let expected_rows = [
         ("angsd", "angsd", 0usize, "future_not_benchmark_ready"),
-        ("beagle-imputation", "beagle", 0usize, "future_not_benchmark_ready"),
         ("eagle", "eagle", 0usize, "future_not_benchmark_ready"),
         ("glimpse", "glimpse", 0usize, "future_not_benchmark_ready"),
         ("ibdhap", "ibdhap", 0usize, "future_not_benchmark_ready"),

@@ -46,13 +46,13 @@ fn bench_readiness_vcf_orphan_tools_reports_governed_decisions() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-orphan-tools.tsv")
     );
-    assert_eq!(payload.get("orphan_count").and_then(serde_json::Value::as_u64), Some(9));
-    assert_eq!(payload.get("required_tool_count").and_then(serde_json::Value::as_u64), Some(17));
-    assert_eq!(payload.get("registered_tool_count").and_then(serde_json::Value::as_u64), Some(17));
+    assert_eq!(payload.get("orphan_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("required_tool_count").and_then(serde_json::Value::as_u64), Some(16));
+    assert_eq!(payload.get("registered_tool_count").and_then(serde_json::Value::as_u64), Some(16));
     assert_eq!(payload.get("served_tool_count").and_then(serde_json::Value::as_u64), Some(8));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 9);
+    assert_eq!(rows.len(), 8);
     assert!(rows.iter().all(|row| {
         row.get("served_stage_count").and_then(serde_json::Value::as_u64) == Some(0)
             && row.get("decision").and_then(serde_json::Value::as_str)
@@ -73,7 +73,6 @@ fn bench_readiness_vcf_orphan_tools_reports_governed_decisions() {
 
     for (tool_id, registered_binary) in [
         ("angsd", "angsd"),
-        ("beagle-imputation", "beagle"),
         ("eagle", "eagle"),
         ("glimpse", "glimpse"),
         ("ibdhap", "ibdhap"),

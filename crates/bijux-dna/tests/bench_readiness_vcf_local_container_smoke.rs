@@ -46,16 +46,16 @@ fn bench_readiness_vcf_local_container_smoke_reports_retained_wrapper_paths() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf/vcf-local-container-smoke.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(44));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(42));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(17));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(16));
     assert_eq!(
         payload.get("host_stage_smoke_row_count").and_then(serde_json::Value::as_u64),
         Some(19)
     );
     assert_eq!(
         payload.get("container_smoke_row_count").and_then(serde_json::Value::as_u64),
-        Some(25)
+        Some(23)
     );
 
     let runtime_counts = payload
@@ -63,11 +63,11 @@ fn bench_readiness_vcf_local_container_smoke_reports_retained_wrapper_paths() {
         .and_then(serde_json::Value::as_object)
         .expect("runtime counts");
     assert_eq!(runtime_counts.get("host").and_then(serde_json::Value::as_u64), Some(19));
-    assert_eq!(runtime_counts.get("docker-arm64").and_then(serde_json::Value::as_u64), Some(23));
-    assert_eq!(runtime_counts.get("apptainer").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(runtime_counts.get("docker-arm64").and_then(serde_json::Value::as_u64), Some(22));
+    assert_eq!(runtime_counts.get("apptainer").and_then(serde_json::Value::as_u64), Some(1));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 44);
+    assert_eq!(rows.len(), 42);
 
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.call")
@@ -89,24 +89,22 @@ fn bench_readiness_vcf_local_container_smoke_reports_retained_wrapper_paths() {
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation_metrics")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle-imputation")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
             && row.get("registered_binary").and_then(serde_json::Value::as_str) == Some("beagle")
             && row.get("smoke_path_kind").and_then(serde_json::Value::as_str)
-                == Some("docker_container_smoke")
-            && row.get("smoke_runtime").and_then(serde_json::Value::as_str) == Some("docker-arm64")
+                == Some("host_stage_smoke")
+            && row.get("smoke_runtime").and_then(serde_json::Value::as_str) == Some("host")
             && row.get("smoke_tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
             && row.get("smoke_command").and_then(serde_json::Value::as_str)
-                == Some("bijux-dna env smoke docker-arm64 beagle")
-            && row.get("smoke_minimal_cmd").and_then(serde_json::Value::as_str)
-                == Some("beagle --help")
+                == Some("bijux-dna bench local run-vcf-imputation-metrics-smoke --tool-id beagle")
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.impute")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("glimpse")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
             && row.get("smoke_path_kind").and_then(serde_json::Value::as_str)
-                == Some("docker_container_smoke")
+                == Some("host_stage_smoke")
             && row.get("smoke_command").and_then(serde_json::Value::as_str)
-                == Some("bijux-dna env smoke docker-arm64 glimpse")
+                == Some("bijux-dna bench local run-vcf-impute-smoke --tool-id beagle")
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.postprocess")

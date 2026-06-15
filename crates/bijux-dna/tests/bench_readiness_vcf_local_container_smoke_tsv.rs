@@ -45,7 +45,7 @@ fn bench_readiness_vcf_local_container_smoke_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 44);
+    assert_eq!(rows.len(), 42);
     assert!(rows.iter().any(|row| {
         row == &"vcf.call\tbcftools\tbcftools\tproduction\tsupported\tactive\tactive\thost_stage_smoke\thost\tbcftools\tbijux-dna bench local run-vcf-call-smoke --tool-id bcftools\tcrates/bijux-dna/src/commands/benchmark/local_vcf_call_smoke.rs\t\tbinding `vcf.call` / `bcftools` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host"
     }));
@@ -53,15 +53,18 @@ fn bench_readiness_vcf_local_container_smoke_writes_governed_tsv_file() {
         row == &"vcf.ibd\tgermline\tgermline\texperimental,planned\tplanned\tremoved_from_scope\tlifecycle_not_active\thost_stage_smoke\thost\tgermline\tbijux-dna bench local run-vcf-ibd-smoke --tool-id germline\tcrates/bijux-dna/src/commands/benchmark/local_vcf_ibd_smoke.rs\t\tbinding `vcf.ibd` / `germline` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"vcf.imputation_metrics\tbeagle-imputation\tbeagle\texperimental\tsupported\tremoved_from_scope\tbenchmark_not_ready\tdocker_container_smoke\tdocker-arm64\tbeagle\tbijux-dna env smoke docker-arm64 beagle\tcontainers/docker/arm64/Dockerfile.beagle\tbeagle --help\tretained tool `beagle-imputation` resolves through registered binary `beagle`, so the governed container smoke wrapper is the available local exercise path for `vcf.imputation_metrics` / `beagle-imputation`; no deterministic imputation fixture is promoted into the downstream registry smoke surface yet; keep help/version smoke until that packaging contract is governed."
+        row == &"vcf.imputation_metrics\tbeagle\tbeagle\tproduction\tsupported\tactive\tactive\thost_stage_smoke\thost\tbeagle\tbijux-dna bench local run-vcf-imputation-metrics-smoke --tool-id beagle\tcrates/bijux-dna/src/commands/benchmark/local_vcf_imputation_metrics_smoke.rs\t\tbinding `vcf.imputation_metrics` / `beagle` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"vcf.impute\tglimpse\tglimpse\tplanned\tsupported\tremoved_from_scope\tbenchmark_not_ready\tdocker_container_smoke\tdocker-arm64\tglimpse\tbijux-dna env smoke docker-arm64 glimpse\tcontainers/docker/arm64/Dockerfile.glimpse\tglimpse --help\tretained tool `glimpse` has no exact tiny-fixture stage smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `vcf.impute` / `glimpse`; no-run-possible: planned wrapper image exposes help/version contract only."
+        row == &"vcf.impute\tbeagle\tbeagle\tproduction\tsupported\tactive\tactive\thost_stage_smoke\thost\tbeagle\tbijux-dna bench local run-vcf-impute-smoke --tool-id beagle\tcrates/bijux-dna/src/commands/benchmark/local_vcf_impute_smoke.rs\t\tbinding `vcf.impute` / `beagle` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host"
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf.postprocess\tbcftools\tbcftools\tproduction\tsupported\tactive\tactive\tdocker_container_smoke\tdocker-arm64\tbcftools\tbijux-dna env smoke docker-arm64 bcftools\tcontainers/docker/arm64/Dockerfile.bcftools\t\tbinding `vcf.postprocess` / `bcftools` matches the governed VCF stage-matrix default tool, but no exact tiny-fixture stage smoke wrapper is checked in, so the governed container smoke wrapper is the available local exercise path for `vcf.postprocess` / `bcftools`"
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf.phasing\tshapeit\tshapeit\tplanned\tsupported\tremoved_from_scope\tbenchmark_not_ready\tapptainer_container_smoke\tapptainer\tshapeit\tbijux-dna env smoke apptainer shapeit\tcontainers/apptainer/shared/shapeit.def\tshapeit --help\tretained tool `shapeit` has no exact tiny-fixture stage smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `vcf.phasing` / `shapeit`; no-run-possible: planned wrapper surface exposes help/version only until packaging and phasing fixtures are governed."
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"vcf.ibd\tibdseq\tibdseq\tplanned\tplanned\tremoved_from_scope\tlifecycle_not_active\tdocker_container_smoke\tdocker-arm64\tibdseq\tbijux-dna env smoke docker-arm64 ibdseq\tcontainers/docker/arm64/Dockerfile.ibdseq\tibdseq --help\tretained tool `ibdseq` has no exact tiny-fixture stage smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `vcf.ibd` / `ibdseq`; no-run-possible: planned wrapper surface exposes help/version only until packaging and IBD fixtures are governed."
     }));
 }

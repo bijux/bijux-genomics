@@ -116,14 +116,14 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
         "vcf.impute",
         &["imputation", "phasing"],
         &["beagle"],
-        &["beagle-imputation", "glimpse", "impute5", "minimac4"],
+        &["glimpse", "impute5", "minimac4"],
         "future_not_benchmark_ready",
     ));
     assert!(has_row(
         "vcf.imputation_metrics",
         &["imputation", "phasing"],
         &["beagle"],
-        &["beagle-imputation", "glimpse", "impute5", "minimac4"],
+        &["glimpse", "impute5", "minimac4"],
         "future_not_benchmark_ready",
     ));
     assert!(has_row(

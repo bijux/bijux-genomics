@@ -390,9 +390,9 @@ fn ensure_vcf_local_container_smoke_contract(
             host_smoke_source_path(repo_root, &row.stage_id).is_ok_and(|path| path.is_some())
         })
         .count();
-    if rows.len() != 44 {
+    if rows.len() != 42 {
         return Err(anyhow!(
-            "VCF local-container smoke report drifted from the governed retained surface (expected 44 rows, found {})",
+            "VCF local-container smoke report drifted from the governed retained surface (expected 42 rows, found {})",
             rows.len()
         ));
     }
@@ -431,25 +431,25 @@ fn ensure_vcf_local_container_smoke_contract(
         ),
         (
             "vcf.imputation_metrics",
-            "beagle-imputation",
             "beagle",
-            "docker_container_smoke",
-            "docker-arm64",
             "beagle",
-            "bijux-dna env smoke docker-arm64 beagle",
-            "containers/docker/arm64/Dockerfile.beagle",
-            "beagle --help",
+            "host_stage_smoke",
+            "host",
+            "beagle",
+            "bijux-dna bench local run-vcf-imputation-metrics-smoke --tool-id beagle",
+            "crates/bijux-dna/src/commands/benchmark/local_vcf_imputation_metrics_smoke.rs",
+            "",
         ),
         (
             "vcf.impute",
-            "glimpse",
-            "glimpse",
-            "docker_container_smoke",
-            "docker-arm64",
-            "glimpse",
-            "bijux-dna env smoke docker-arm64 glimpse",
-            "containers/docker/arm64/Dockerfile.glimpse",
-            "glimpse --help",
+            "beagle",
+            "beagle",
+            "host_stage_smoke",
+            "host",
+            "beagle",
+            "bijux-dna bench local run-vcf-impute-smoke --tool-id beagle",
+            "crates/bijux-dna/src/commands/benchmark/local_vcf_impute_smoke.rs",
+            "",
         ),
         (
             "vcf.postprocess",
@@ -477,11 +477,11 @@ fn ensure_vcf_local_container_smoke_contract(
             "vcf.ibd",
             "ibdseq",
             "ibdseq",
-            "apptainer_container_smoke",
-            "apptainer",
+            "docker_container_smoke",
+            "docker-arm64",
             "ibdseq",
-            "bijux-dna env smoke apptainer ibdseq",
-            "containers/apptainer/shared/ibdseq.def",
+            "bijux-dna env smoke docker-arm64 ibdseq",
+            "containers/docker/arm64/Dockerfile.ibdseq",
             "ibdseq --help",
         ),
     ];
@@ -607,13 +607,13 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_LOCAL_CONTAINER_SMOKE_SCHEMA_VERSION);
         assert_eq!(report.output_path, "benchmarks/readiness/vcf/vcf-local-container-smoke.tsv");
-        assert_eq!(report.row_count, 44);
+        assert_eq!(report.row_count, 42);
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.tool_count, 17);
+        assert_eq!(report.tool_count, 16);
         assert_eq!(report.host_stage_smoke_row_count, 19);
-        assert_eq!(report.container_smoke_row_count, 25);
+        assert_eq!(report.container_smoke_row_count, 23);
         assert_eq!(report.runtime_counts.get("host").copied(), Some(19));
-        assert_eq!(report.runtime_counts.get("docker-arm64").copied(), Some(23));
+        assert_eq!(report.runtime_counts.get("docker-arm64").copied(), Some(21));
         assert_eq!(report.runtime_counts.get("apptainer").copied(), Some(2));
 
         assert!(report.rows.iter().any(|row| {

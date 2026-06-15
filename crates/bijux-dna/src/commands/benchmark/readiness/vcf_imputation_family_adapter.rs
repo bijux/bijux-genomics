@@ -26,6 +26,10 @@ const VCF_IMPUTATION_FAMILY_ADAPTER_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_imputation_family_adapter.v1";
 const GOVERNED_IMPUTATION_STAGE_IDS: [&str; 2] = ["vcf.imputation_metrics", "vcf.impute"];
 const GOVERNED_IMPUTATION_TOOL_IDS: [&str; 4] = ["beagle", "glimpse", "impute5", "minimac4"];
+const VCF_IMPUTATION_REGISTRY_PATHS: [&str; 2] = [
+    "configs/ci/registry/tool_registry_vcf.toml",
+    "configs/ci/registry/tool_registry_vcf_downstream.toml",
+];
 const GOVERNED_GTCOHORT_VCF_PATH: &str =
     "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_phased.vcf";
 const GOVERNED_GLLIKE_VCF_PATH: &str =
@@ -690,19 +694,19 @@ fn materialize_panel_inputs(
 }
 
 fn load_registry_tool_contract(repo_root: &Path, tool_id: &str) -> Result<RegistryToolContract> {
-    let registry_path = repo_root.join("configs/ci/registry/tool_registry_vcf_downstream.toml");
-    let raw = fs::read_to_string(&registry_path)
-        .with_context(|| format!("read {}", registry_path.display()))?;
-    let parsed: toml::Value =
-        toml::from_str(&raw).with_context(|| format!("parse {}", registry_path.display()))?;
-    let tools = parsed
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .ok_or_else(|| anyhow!("missing tools in {}", registry_path.display()))?;
     let required_stage_ids = GOVERNED_IMPUTATION_STAGE_IDS.iter().copied().collect::<BTreeSet<_>>();
-    let tool = tools
-        .iter()
-        .find(|entry| {
+
+    for relative_path in VCF_IMPUTATION_REGISTRY_PATHS {
+        let registry_path = repo_root.join(relative_path);
+        let raw = fs::read_to_string(&registry_path)
+            .with_context(|| format!("read {}", registry_path.display()))?;
+        let parsed: toml::Value =
+            toml::from_str(&raw).with_context(|| format!("parse {}", registry_path.display()))?;
+        let tools = parsed
+            .get("tools")
+            .and_then(toml::Value::as_array)
+            .ok_or_else(|| anyhow!("missing tools in {}", registry_path.display()))?;
+        let Some(tool) = tools.iter().find(|entry| {
             let Some(candidate) = entry.get("tool_id").and_then(toml::Value::as_str) else {
                 return false;
             };
@@ -717,27 +721,33 @@ fn load_registry_tool_contract(repo_root: &Path, tool_id: &str) -> Result<Regist
                 .filter_map(toml::Value::as_str)
                 .collect::<BTreeSet<_>>();
             stage_ids.is_superset(&required_stage_ids)
-        })
-        .ok_or_else(|| {
-            anyhow!("missing {tool_id} VCF registry row in {}", registry_path.display())
-        })?;
-    let tool_status = tool
-        .get("status")
-        .and_then(toml::Value::as_str)
-        .ok_or_else(|| anyhow!("{tool_id} VCF registry row is missing status"))?;
-    let stage_ids = tool
-        .get("stage_ids")
-        .and_then(toml::Value::as_array)
-        .ok_or_else(|| anyhow!("{tool_id} VCF registry row is missing stage_ids"))?
-        .iter()
-        .filter_map(toml::Value::as_str)
-        .map(str::to_string)
-        .collect::<Vec<_>>();
-    Ok(RegistryToolContract {
-        tool_id: tool_id.to_string(),
-        tool_status: tool_status.to_string(),
-        stage_ids,
-    })
+        }) else {
+            continue;
+        };
+
+        let tool_status = tool
+            .get("status")
+            .and_then(toml::Value::as_str)
+            .ok_or_else(|| anyhow!("{tool_id} VCF registry row is missing status"))?;
+        let stage_ids = tool
+            .get("stage_ids")
+            .and_then(toml::Value::as_array)
+            .ok_or_else(|| anyhow!("{tool_id} VCF registry row is missing stage_ids"))?
+            .iter()
+            .filter_map(toml::Value::as_str)
+            .map(str::to_string)
+            .collect::<Vec<_>>();
+        return Ok(RegistryToolContract {
+            tool_id: tool_id.to_string(),
+            tool_status: tool_status.to_string(),
+            stage_ids,
+        });
+    }
+
+    Err(anyhow!(
+        "missing {tool_id} VCF registry row covering {:?} in the governed VCF registries",
+        GOVERNED_IMPUTATION_STAGE_IDS
+    ))
 }
 
 fn validate_required_inputs(

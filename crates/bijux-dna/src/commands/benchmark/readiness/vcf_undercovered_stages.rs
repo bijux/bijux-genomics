@@ -228,7 +228,6 @@ fn vcf_tool_class_label(tool_id: &str) -> Result<&'static str> {
         "angsd" => "genotype_likelihood_calling",
         "bcftools" => "variant_processing",
         "beagle" => "phasing",
-        "beagle-imputation" => "imputation",
         "eagle" => "phasing",
         "eigensoft" => "population_structure",
         "germline" => "relatedness",
@@ -299,14 +298,14 @@ fn ensure_vcf_undercovered_stage_contract(rows: &[VcfUndercoveredStageRow]) -> R
             "vcf.imputation_metrics",
             &["imputation", "phasing"][..],
             &["beagle"][..],
-            &["beagle-imputation", "glimpse", "impute5", "minimac4"][..],
+            &["glimpse", "impute5", "minimac4"][..],
             "future_not_benchmark_ready",
         ),
         (
             "vcf.impute",
             &["imputation", "phasing"][..],
             &["beagle"][..],
-            &["beagle-imputation", "glimpse", "impute5", "minimac4"][..],
+            &["glimpse", "impute5", "minimac4"][..],
             "future_not_benchmark_ready",
         ),
         (
@@ -466,12 +465,7 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.impute"
                 && row.missing_tools
-                    == vec![
-                        "beagle-imputation".to_string(),
-                        "glimpse".to_string(),
-                        "impute5".to_string(),
-                        "minimac4".to_string(),
-                    ]
+                    == vec!["glimpse".to_string(), "impute5".to_string(), "minimac4".to_string()]
                 && row.decision == "future_not_benchmark_ready"
         }));
         assert!(report.rows.iter().any(|row| {
@@ -479,12 +473,7 @@ mod tests {
                 && row.valid_tool_classes == vec!["imputation".to_string(), "phasing".to_string()]
                 && row.registered_tools == vec!["beagle".to_string()]
                 && row.missing_tools
-                    == vec![
-                        "beagle-imputation".to_string(),
-                        "glimpse".to_string(),
-                        "impute5".to_string(),
-                        "minimac4".to_string(),
-                    ]
+                    == vec!["glimpse".to_string(), "impute5".to_string(), "minimac4".to_string()]
                 && row.decision == "future_not_benchmark_ready"
         }));
     }
