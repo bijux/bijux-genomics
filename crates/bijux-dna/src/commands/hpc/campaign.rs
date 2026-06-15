@@ -1033,14 +1033,13 @@ fn resolve_campaign_config(
     merge_site_profile_file(&mut config, config_path)?;
     validate_campaign_job_stage_ids(config_path, &config)?;
 
-    let policy_path = match user_policy_path {
-        Some(path) => path.to_path_buf(),
-        None => {
-            let cwd = std::env::current_dir().context("resolve current directory")?;
-            BenchmarkPathResolver::new(&cwd, None)
-                .benchmark_hpc_campaign_root()
-                .join("user.policy.toml")
-        }
+    let policy_path = if let Some(path) = user_policy_path {
+        path.to_path_buf()
+    } else {
+        let cwd = std::env::current_dir().context("resolve current directory")?;
+        BenchmarkPathResolver::new(&cwd, None)
+            .benchmark_hpc_campaign_root()
+            .join("user.policy.toml")
     };
     let mut user_policies_applied = false;
     if policy_path.exists() {

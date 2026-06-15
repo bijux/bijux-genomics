@@ -886,127 +886,125 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchLocalCommand::RenderVcfStageCatalog(args) => {
                         crate::commands::benchmark::local_vcf_stage_catalog::run_render_vcf_stage_catalog(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RenderVcfStageMatrix(args) => {
                         crate::commands::benchmark::local_vcf_stage_matrix::run_render_vcf_stage_matrix(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RenderVcfSmokeRoot(args) => {
                         crate::commands::benchmark::local_vcf_smoke_root::run_render_vcf_smoke_root(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunVcfCallSmoke(args) => {
-                        crate::commands::benchmark::local_vcf_call_smoke::run_vcf_call_smoke(
-                            &args,
-                        )?;
+                        crate::commands::benchmark::local_vcf_call_smoke::run_vcf_call_smoke(args)?;
                     }
                     cli::BenchLocalCommand::RunVcfCallDiploidSmoke(args) => {
                         crate::commands::benchmark::local_vcf_call_diploid_smoke::run_vcf_call_diploid_smoke(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunVcfCallGlSmoke(args) => {
                         crate::commands::benchmark::local_vcf_call_gl_smoke::run_vcf_call_gl_smoke(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunVcfDamageFilterSmoke(args) => {
                         crate::commands::benchmark::local_vcf_damage_filter_smoke::run_vcf_damage_filter_smoke(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunVcfFilterSmoke(args) => {
                         crate::commands::benchmark::local_vcf_filter_smoke::run_vcf_filter_smoke(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunVcfQcSmoke(args) => {
-                        crate::commands::benchmark::local_vcf_qc_smoke::run_vcf_qc_smoke(&args)?;
+                        crate::commands::benchmark::local_vcf_qc_smoke::run_vcf_qc_smoke(args)?;
                     }
                     cli::BenchLocalCommand::RunVcfAdmixtureSmoke(args) => {
                         crate::commands::benchmark::local_vcf_admixture_smoke::run_vcf_admixture_smoke(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunVcfPopulationStructureSmoke(args) => {
                         crate::commands::benchmark::local_vcf_population_structure_smoke::run_vcf_population_structure_smoke(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunVcfIbdSmoke(args) => {
-                        crate::commands::benchmark::local_vcf_ibd_smoke::run_vcf_ibd_smoke(&args)?;
+                        crate::commands::benchmark::local_vcf_ibd_smoke::run_vcf_ibd_smoke(args)?;
                     }
                     cli::BenchLocalCommand::RunVcfDemographySmoke(args) => {
-                        crate::commands::benchmark::local_vcf_demography_smoke::run_vcf_demography_smoke(&args)?;
+                        crate::commands::benchmark::local_vcf_demography_smoke::run_vcf_demography_smoke(args)?;
                     }
                     cli::BenchLocalCommand::RunVcfRohSmoke(args) => {
-                        crate::commands::benchmark::local_vcf_roh_smoke::run_vcf_roh_smoke(&args)?;
+                        crate::commands::benchmark::local_vcf_roh_smoke::run_vcf_roh_smoke(args)?;
                     }
                     cli::BenchLocalCommand::RunVcfPcaSmoke(args) => {
-                        crate::commands::benchmark::local_vcf_pca_smoke::run_vcf_pca_smoke(&args)?;
+                        crate::commands::benchmark::local_vcf_pca_smoke::run_vcf_pca_smoke(args)?;
                     }
                     cli::BenchLocalCommand::RunVcfStatsSmoke(args) => {
                         crate::commands::benchmark::local_vcf_stats_smoke::run_vcf_stats_smoke(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunVcfGlPropagationSmoke(args) => {
                         crate::commands::benchmark::local_vcf_gl_propagation_smoke::run_vcf_gl_propagation_smoke(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunVcfImputeSmoke(args) => {
                         crate::commands::benchmark::local_vcf_impute_smoke::run_vcf_impute_smoke(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunVcfImputationMetricsSmoke(args) => {
                         crate::commands::benchmark::local_vcf_imputation_metrics_smoke::run_vcf_imputation_metrics_smoke(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunVcfCallPseudohaploidSmoke(args) => {
                         crate::commands::benchmark::local_vcf_call_pseudohaploid_smoke::run_vcf_call_pseudohaploid_smoke(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunVcfPhasingSmoke(args) => {
                         crate::commands::benchmark::local_vcf_phasing_smoke::run_vcf_phasing_smoke(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunVcfPrepareReferencePanelSmoke(args) => {
                         crate::commands::benchmark::local_vcf_prepare_reference_panel_smoke::run_vcf_prepare_reference_panel_smoke(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateVcfNoEmptyOutput(args) => {
                         crate::commands::benchmark::local_vcf_no_empty_output::run_validate_vcf_no_empty_output(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateVcfStageCatalogReady(args) => {
                         crate::commands::benchmark::local_vcf_stage_catalog_ready::run_validate_vcf_stage_catalog_ready(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateVcfSmokeSuiteReady(args) => {
                         crate::commands::benchmark::local_vcf_smoke_suite_ready::run_validate_vcf_smoke_suite_ready(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateVcfReferenceCompatibility(args) => {
                         crate::commands::benchmark::local_vcf_reference_compatibility::run_validate_vcf_reference_compatibility(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateVcfSampleCompatibility(args) => {
                         crate::commands::benchmark::local_vcf_sample_compatibility::run_validate_vcf_sample_compatibility(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateHpcSubmissionReady(args) => {
@@ -1017,167 +1015,167 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchLocalCommand::SimulateDagWatchdog(args) => {
                         crate::commands::benchmark::local_dag_watchdog_simulation::run_simulate_dag_watchdog(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidatePipelineDag(args) => {
                         crate::commands::benchmark::local_pipeline_dag::run_validate_pipeline_dag(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateCorpusFixture(args) => {
                         crate::commands::benchmark::local_corpus_fixture::run_validate_corpus_fixture(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateCorpusStageCompatibility(args) => {
                         crate::commands::benchmark::local_corpus_stage_compatibility::run_validate_corpus_stage_compatibility(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RenderCorpusSkipReport(args) => {
                         crate::commands::benchmark::local_corpus_skip_report::run_render_corpus_skip_report(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateTaxonomyDatabaseFixture(args) => {
                         crate::commands::benchmark::local_taxonomy_database_fixture::run_validate_taxonomy_database_fixture(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::JudgeTaxonomyOutput(args) => {
                         crate::commands::benchmark::local_taxonomy_output_judgment::run_judge_taxonomy_output(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateSlurmShellSyntax(args) => {
                         crate::commands::benchmark::local_slurm_shell_syntax::run_validate_slurm_shell_syntax(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateAllDomainSlurmShellSyntax(args) => {
                         crate::commands::benchmark::local_all_domain_slurm_shell_syntax::run_validate_all_domain_slurm_shell_syntax(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateSlurmDependencies(args) => {
                         crate::commands::benchmark::local_slurm_dependency_check::run_validate_slurm_dependencies(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateSlurmScriptBodies(args) => {
                         crate::commands::benchmark::local_slurm_script_bodies::run_validate_slurm_script_bodies(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateAllDomainSlurmScriptBodies(args) => {
                         crate::commands::benchmark::local_all_domain_slurm_script_bodies::run_validate_all_domain_slurm_script_bodies(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateAllDomainSlurmResultPaths(args) => {
                         crate::commands::benchmark::local_all_domain_slurm_path_convention::run_validate_all_domain_slurm_result_paths(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RenderAllDomainSlurmSubmitManifest(args) => {
                         crate::commands::benchmark::local_all_domain_slurm_submit_manifest::run_render_all_domain_slurm_submit_manifest(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RenderSlurmSubmitManifest(args) => {
                         crate::commands::benchmark::local_slurm_submit_manifest::run_render_slurm_submit_manifest(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RenderBenchmarkSummary(args) => {
                         crate::commands::benchmark::local_benchmark_summary::run_render_benchmark_summary(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::CheckManifestCompletion(args) => {
                         crate::commands::benchmark::local_stage_manifest_completion::run_check_manifest_completion(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::CheckOutputCompletion(args) => {
                         crate::commands::benchmark::local_stage_output_completion::run_check_output_completion(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::CollectRuntimeMetrics(args) => {
                         crate::commands::benchmark::local_stage_runtime_metrics::run_collect_runtime_metrics(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RenderToolComparisonTemplate(args) => {
                         crate::commands::benchmark::local_tool_comparison_template::run_render_tool_comparison_template(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ValidateStageResult(args) => {
                         crate::commands::benchmark::local_stage_result_manifest::run_validate_stage_result(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::MaterializeStage(args) => {
                         crate::commands::benchmark::local_stage_commands::run_materialize_stage(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::FakeRunEssentialPipelines(args) => {
                         crate::commands::benchmark::local_essential_pipeline_fake_runs::run_fake_run_essential_pipelines(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RunRealSmokeCoreSubset(args) => {
                         crate::commands::benchmark::local_real_smoke_core_subset::run_real_smoke_core_subset(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::FakeRunAllDomains(args) => {
                         crate::commands::benchmark::local_all_domain_fake_runs::run_fake_run_all_domains(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::FakeRunAllDomainFailures(args) => {
                         crate::commands::benchmark::local_all_domain_fake_failures::run_fake_run_all_domain_failures(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ExecuteAllDomainBenchmarkResult(args) => {
                         crate::commands::benchmark::local_all_domain_job_execution::run_execute_all_domain_benchmark_result(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::ExecuteEssentialPipelineNode(args) => {
                         crate::commands::benchmark::local_all_domain_job_execution::run_execute_essential_pipeline_node(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RenderAllDomainSlurmScripts(args) => {
                         crate::commands::benchmark::local_all_domain_slurm_scripts::run_render_all_domain_slurm_scripts(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::FakeRunFailures(args) => {
                         crate::commands::benchmark::local_stage_fake_runs::run_fake_run_failures(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::FakeRunStages(args) => {
                         crate::commands::benchmark::local_stage_fake_runs::run_fake_run_stages(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RenderSlurmScripts(args) => {
                         crate::commands::benchmark::local_slurm_dry_run::run_render_slurm_scripts(
-                            &args,
+                            args,
                         )?;
                     }
                     cli::BenchLocalCommand::RenderStageCommands(args) => {
                         crate::commands::benchmark::local_stage_commands::run_render_stage_commands(
-                            &args,
+                            args,
                         )?;
                     }
                 },
