@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "46720b46284cb9e1ad04b898a0c6f39c7a27427a",
-  "bundle_checksum_sha256": "f0c5f05bd9f426d7a35feb2b41fe2eb6ab4fccb511e441efc3b3382e35c30758",
+  "source_commit": "aa8afa7cdc2631f586f5d1cd67f606889aa877eb",
+  "bundle_checksum_sha256": "25f89cf5cae4ca1f721053bfc4016a133b012f2caf56091c1f0c019d14f8a2ae",
   "domains": [
     {
       "domain_id": "bam",
@@ -4431,7 +4431,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "33c229cae7d0b53e2a7ee96a9f79b18faa9b084e697abfeadc7ad9b8b78203fd"
+      "checksum_sha256": "d9c7adfd67dc81ac565b2f8c994a8dd64744878a5d1d7a8b8c60485cc71601b4"
     },
     {
       "domain_id": "fastq",
@@ -7380,9 +7380,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "seqfu"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "fastq.normalize_primers",
@@ -11031,9 +11029,7 @@
             "fastq.profile_read_lengths",
             "fastq.profile_reads"
           ],
-          "planned_stage_ids": [
-            "fastq.normalize_abundance"
-          ],
+          "planned_stage_ids": [],
           "expected_artifacts": [
             "length_distribution_json",
             "length_distribution_tsv",
@@ -13574,7 +13570,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "a23e6be8d7b4ed5a5455d52d37bcb2ff89067ee4d2c77bb1461c8030774b3deb"
+      "checksum_sha256": "b37be51369a2969cfed3c1af36b93c35f40d71e06e9ac87c8b0f1ffaef0b1bff"
     },
     {
       "domain_id": "vcf",
@@ -16298,7 +16294,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "d0a6cf34391930c401f685e5e868ce4855e2b5eb3d9acc6e07fe4d210996e7d4"
+      "checksum_sha256": "c57ff23aae2dfe4d77abf51853cb61f210aa08b929b1658565e98324573f2f5b"
     }
   ]
 }
