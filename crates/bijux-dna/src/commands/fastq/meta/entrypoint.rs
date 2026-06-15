@@ -365,6 +365,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderFastqParserFixtureCoverage(args) => {
+                        crate::commands::benchmark::readiness::fastq_parser_fixture_coverage::run_render_fastq_parser_fixture_coverage(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderFastqReportMap(args) => {
                         crate::commands::benchmark::readiness::fastq_report_map::run_render_fastq_report_map(
                             args,
