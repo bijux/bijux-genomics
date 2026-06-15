@@ -42,6 +42,7 @@ fn parse_profile_reads_report_parses_governed_contract() -> Result<()> {
                 "qc_json": "qc.json",
                 "qc_tsv": "qc.tsv",
                 "qc_plots_dir": "plots",
+                "length_histogram_source": "seqkit_fx2tab",
                 "reads_total": 200,
                 "bases_total": 20000,
                 "mean_q": 31.2,

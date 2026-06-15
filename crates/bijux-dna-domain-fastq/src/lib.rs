@@ -41,6 +41,7 @@ pub mod banks;
 mod bench;
 pub mod bench_repository;
 mod chunking;
+pub mod contracts;
 mod comparison_contract;
 mod domain_adapter;
 pub mod execution_support;
@@ -201,6 +202,10 @@ pub use comparison_contract::{
     comparison_contract_for_stage, comparison_input_artifact_ids_for_stage,
     trim_backend_comparison_contract, StageComparisonContract, TrimBackendComparisonContract,
     TrimComparisonToolProfile,
+};
+pub use contracts::{
+    fastq_parser_fixture_bindings, fastq_parser_fixture_cases, find_fastq_parser_fixture_binding,
+    find_fastq_parser_fixture_case, FastqParserFixtureBinding, FastqParserFixtureCase,
 };
 pub use domain_adapter::FastqDomain;
 pub use execution_support::{
