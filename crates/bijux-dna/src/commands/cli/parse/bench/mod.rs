@@ -121,6 +121,7 @@ pub use self::readiness::{
     BenchReadinessRenderFastqComparableMetricsArgs, BenchReadinessRenderFastqCorpusAssignmentArgs,
     BenchReadinessRenderFastqDuplicateStagesReadyArgs,
     BenchReadinessRenderFastqFilterStagesReadyArgs,
+    BenchReadinessRenderFastqLocalContainerSmokeArgs,
     BenchReadinessRenderFastqNormalizedMetricsSchemaArgs,
     BenchReadinessRenderFastqParserCoverageArgs, BenchReadinessRenderFastqReportMapArgs,
     BenchReadinessRenderFastqToolServingMapArgs, BenchReadinessRenderFastqTrimStagesReadyArgs,

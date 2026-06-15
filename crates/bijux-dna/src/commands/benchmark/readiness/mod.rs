@@ -54,6 +54,7 @@ pub(crate) mod fastq_comparable_metrics;
 pub(crate) mod fastq_corpus_assignment;
 pub(crate) mod fastq_duplicate_stages_ready;
 pub(crate) mod fastq_filter_stages_ready;
+pub(crate) mod fastq_local_container_smoke;
 pub(crate) mod fastq_normalized_metrics_schema;
 pub(crate) mod fastq_parser_coverage;
 pub(crate) mod fastq_report_map;

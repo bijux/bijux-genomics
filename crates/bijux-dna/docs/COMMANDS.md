@@ -564,6 +564,14 @@ Visible aliases are part of the operator surface:
   through retained-vs-removed counts, while the TSV fail-closes unless every retained active row
   stays `benchmark_ready` and none leak `planned_contract`, `declared_only`, or `planner_only`
   readiness states back into FASTQ job scope.
+- `bijux-dna bench readiness render-fastq-local-container-smoke`
+  `render-fastq-local-container-smoke` writes
+  `benchmarks/readiness/fastq/fastq-local-container-smoke.tsv` with one governed row per retained
+  FASTQ active stage-tool binding, resolving each row to either an exact host tiny-fixture stage
+  smoke wrapper or the governed Docker/Apptainer smoke wrapper for the registered execution
+  binary. Each row keeps the retained benchmark status, support class, corpus class, selected
+  smoke runtime, concrete smoke command, tracked wrapper support path, and any registry-level
+  minimal smoke rationale so every retained FASTQ binding has an honest local exercise path.
 - `bijux-dna bench readiness render-fastq-duplicate-stages-ready`
   `render-fastq-duplicate-stages-ready` writes
   `benchmarks/readiness/fastq/duplicate-stages-ready.json` with one governed row per admitted

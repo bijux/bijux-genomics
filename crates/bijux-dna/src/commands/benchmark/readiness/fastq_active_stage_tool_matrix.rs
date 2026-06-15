@@ -67,14 +67,14 @@ pub(crate) struct FastqActiveStageToolMatrixReport {
 }
 
 #[derive(Debug, Clone)]
-struct FastqActiveStageToolMatrixCollection {
-    retained_row_count: usize,
-    retained_stage_count: usize,
-    retained_tool_count: usize,
-    removed_row_count: usize,
-    removed_stage_count: usize,
-    removed_tool_count: usize,
-    rows: Vec<FastqActiveStageToolMatrixRow>,
+pub(crate) struct FastqActiveStageToolMatrixCollection {
+    pub(crate) retained_row_count: usize,
+    pub(crate) retained_stage_count: usize,
+    pub(crate) retained_tool_count: usize,
+    pub(crate) removed_row_count: usize,
+    pub(crate) removed_stage_count: usize,
+    pub(crate) removed_tool_count: usize,
+    pub(crate) rows: Vec<FastqActiveStageToolMatrixRow>,
 }
 
 pub(crate) fn run_render_fastq_active_stage_tool_matrix(
@@ -147,7 +147,7 @@ pub(crate) fn render_fastq_active_stage_tool_matrix(
     })
 }
 
-fn collect_fastq_active_stage_tool_matrix_rows(
+pub(crate) fn collect_fastq_active_stage_tool_matrix_rows(
     repo_root: &Path,
 ) -> Result<FastqActiveStageToolMatrixCollection> {
     let (retained_stage_count, retained_tool_count, coverage_rows) =

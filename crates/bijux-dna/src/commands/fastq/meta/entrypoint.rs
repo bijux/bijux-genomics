@@ -375,6 +375,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderFastqLocalContainerSmoke(args) => {
+                        crate::commands::benchmark::readiness::fastq_local_container_smoke::run_render_fastq_local_container_smoke(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderFastqDuplicateStagesReady(args) => {
                         crate::commands::benchmark::readiness::fastq_duplicate_stages_ready::run_render_fastq_duplicate_stages_ready(
                             args,
