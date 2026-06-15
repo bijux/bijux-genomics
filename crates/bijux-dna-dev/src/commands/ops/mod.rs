@@ -497,8 +497,13 @@ fn generate_domain_coverage_doc(workspace: &Workspace, out: &Path) -> Result<()>
         "| Domain | Stage Count | Tool Count | Fixture Count |".to_string(),
         "|---|---:|---:|---:|".to_string(),
     ];
-    for entry in fs::read_dir(&domain_root)?.filter_map(std::result::Result::ok) {
-        let path = entry.path();
+    let mut domain_entries = fs::read_dir(&domain_root)?
+        .filter_map(std::result::Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.is_dir())
+        .collect::<Vec<_>>();
+    domain_entries.sort();
+    for path in domain_entries {
         if !path.is_dir() {
             continue;
         }
@@ -509,6 +514,24 @@ fn generate_domain_coverage_doc(workspace: &Workspace, out: &Path) -> Result<()>
         lines.push(format!("| `{domain}` | {stages} | {tools} | {fixtures} |"));
     }
     write_utf8(out, &format!("{}\n", lines.join("\n")))
+}
+
+fn tracked_visible_repo_root_entries(workspace: &Workspace) -> Result<Vec<PathBuf>> {
+    let tracked = run_program(workspace, "git", &["ls-files".to_string()])?;
+    if !tracked.is_success() {
+        return Err(anyhow!("git ls-files failed while generating repo root map"));
+    }
+
+    let mut names = BTreeSet::new();
+    for rel in tracked.stdout.lines().filter(|line| !line.trim().is_empty()) {
+        let top = rel.split('/').next().unwrap_or_default().trim();
+        if top.is_empty() || top.starts_with('.') {
+            continue;
+        }
+        names.insert(top.to_string());
+    }
+
+    Ok(names.into_iter().map(|name| workspace.path(name)).collect())
 }
 
 fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
@@ -537,18 +560,10 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
         "| Path | Kind | Owner | Purpose |".to_string(),
         "|---|---|---|---|".to_string(),
     ];
-    let mut entries = fs::read_dir(&workspace.root)?
-        .filter_map(std::result::Result::ok)
-        .map(|entry| entry.path())
-        .collect::<Vec<_>>();
-    entries.sort();
-    for path in entries {
+    for path in tracked_visible_repo_root_entries(workspace)? {
         let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
             continue;
         };
-        if name.starts_with('.') {
-            continue;
-        }
         let rel = name.to_string();
         let kind = if path.is_dir() { "dir" } else { "file" };
         let purpose = path

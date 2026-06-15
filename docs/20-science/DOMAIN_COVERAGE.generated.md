@@ -19,5 +19,5 @@ Derived from `domain/*/{stages,tools,fixtures}`.
 | Domain | Stage Count | Tool Count | Fixture Count |
 |---|---:|---:|---:|
 | `bam` | 24 | 25 | 49 |
-| `vcf` | 20 | 15 | 42 |
 | `fastq` | 45 | 45 | 91 |
+| `vcf` | 20 | 15 | 42 |

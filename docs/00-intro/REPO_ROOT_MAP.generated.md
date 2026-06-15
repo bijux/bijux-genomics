@@ -24,7 +24,6 @@ Top-level workspace paths only.
 | `Makefile` | `file` | `-` | - |
 | `NOTICE` | `file` | `-` | - |
 | `README.md` | `file` | `-` | - |
-| `artifacts` | `dir` | `-` | - |
 | `assets` | `dir` | `-` | - |
 | `audit-allowlist.toml` | `file` | `-` | - |
 | `benchmarks` | `dir` | `-` | - |
@@ -36,7 +35,6 @@ Top-level workspace paths only.
 | `examples` | `dir` | `-` | - |
 | `makes` | `dir` | `-` | - |
 | `mkdocs.yml` | `file` | `-` | - |
-| `runs` | `dir` | `-` | - |
 | `rust-toolchain.toml` | `file` | `-` | - |
 | `rustfmt.toml` | `file` | `-` | - |
 | `science` | `dir` | `-` | - |
