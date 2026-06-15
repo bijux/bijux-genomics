@@ -19,6 +19,7 @@ permissions:
 jobs:
   policy:
     name: policy / github
+    if: ${{ github.event_name == 'merge_group' || (github.event_name == 'push' && !endsWith(github.actor, '[bot]')) || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}
     runs-on: ubuntu-latest
 
     steps:
