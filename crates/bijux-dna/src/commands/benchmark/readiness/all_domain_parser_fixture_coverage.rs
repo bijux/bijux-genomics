@@ -11,8 +11,9 @@ use super::all_domain_active_stage_tool_matrix::{
 use super::bam_parser_coverage::{
     collect_bam_parser_coverage_rows, BamParserCoverageKind, BamParserCoverageRow,
 };
-use super::fastq_parser_coverage::{
-    collect_fastq_parser_coverage_rows, FastqParserCoverageKind, FastqParserCoverageRow,
+use super::fastq_parser_fixture_coverage::{
+    collect_fastq_parser_fixture_coverage_rows, FastqParserFixtureCoverageRow,
+    FastqParserFixtureCoverageStatus,
 };
 use super::vcf_parser_fixture_coverage::{
     collect_vcf_parser_fixture_coverage_rows, VcfParserFixtureCoverageRow,
@@ -29,9 +30,10 @@ const COVERAGE_STATUS_COVERED: &str = "covered";
 const COVERAGE_STATUS_MISSING_ACTIVE_BINDING: &str = "missing_active_binding";
 const FIXTURE_REFERENCE_KIND_CORPUS: &str = "fixture_corpus";
 const FIXTURE_REFERENCE_KIND_ASSET_SCOPE: &str = "asset_scope";
+const FIXTURE_REFERENCE_KIND_FASTQ_CASE: &str = "fixture_case";
 const FIXTURE_REFERENCE_KIND_VCF_FIXTURE_DIRECTORY: &str = "fixture_directory";
 const FIXTURE_REFERENCE_KIND_NONE: &str = "none";
-const PROOF_SOURCE_FASTQ: &str = "fastq_parser_coverage";
+const PROOF_SOURCE_FASTQ: &str = "fastq_parser_fixture_coverage";
 const PROOF_SOURCE_BAM: &str = "bam_parser_coverage";
 const PROOF_SOURCE_VCF: &str = "vcf_parser_fixture_coverage";
 const NO_VALUE: &str = "none";
@@ -261,7 +263,7 @@ fn render_row(
 fn collect_parser_proof_by_key(repo_root: &Path) -> Result<BTreeMap<CoverageKey, ParserProofRow>> {
     let mut rows = BTreeMap::<CoverageKey, ParserProofRow>::new();
 
-    let (_, _, fastq_rows) = collect_fastq_parser_coverage_rows(repo_root)?;
+    let (_, _, fastq_rows) = collect_fastq_parser_fixture_coverage_rows(repo_root)?;
     for row in fastq_rows {
         insert_parser_proof_row(
             &mut rows,
@@ -319,28 +321,34 @@ fn insert_parser_proof_row(
     Ok(())
 }
 
-fn render_fastq_parser_proof_row(row: FastqParserCoverageRow) -> ParserProofRow {
+fn render_fastq_parser_proof_row(row: FastqParserFixtureCoverageRow) -> ParserProofRow {
     ParserProofRow {
-        parser_fixture_parser_id: NO_VALUE.to_string(),
-        parser_fixture_schema_id: NO_VALUE.to_string(),
-        parser_fixture_reference_kind: fastq_parser_reference_kind(&row.corpus_status).to_string(),
-        parser_fixture_reference: row.corpus_status,
+        parser_fixture_parser_id: row.parser_fixture_parser_id,
+        parser_fixture_schema_id: row.parser_fixture_schema_id,
+        parser_fixture_reference_kind: if row.parser_fixture_reference.trim().is_empty() {
+            FIXTURE_REFERENCE_KIND_NONE.to_string()
+        } else {
+            FIXTURE_REFERENCE_KIND_FASTQ_CASE.to_string()
+        },
+        parser_fixture_reference: if row.parser_fixture_reference.trim().is_empty() {
+            NO_VALUE.to_string()
+        } else {
+            row.parser_fixture_reference
+        },
         proof_source: PROOF_SOURCE_FASTQ.to_string(),
-        coverage_status: match row.parser_coverage {
-            FastqParserCoverageKind::Covered => COVERAGE_STATUS_COVERED.to_string(),
-            FastqParserCoverageKind::Missing => "missing".to_string(),
+        coverage_status: match row.coverage_status {
+            FastqParserFixtureCoverageStatus::Covered => COVERAGE_STATUS_COVERED.to_string(),
+            FastqParserFixtureCoverageStatus::MissingFixtureBinding => {
+                "missing_fixture_binding".to_string()
+            }
+            FastqParserFixtureCoverageStatus::MissingFixtureCase => {
+                "missing_fixture_case".to_string()
+            }
+            FastqParserFixtureCoverageStatus::InvalidFixtureCase => {
+                "invalid_fixture_case".to_string()
+            }
         },
         reason: row.reason,
-    }
-}
-
-fn fastq_parser_reference_kind(corpus_status: &str) -> &'static str {
-    if corpus_status.starts_with("fixture:") {
-        FIXTURE_REFERENCE_KIND_CORPUS
-    } else if corpus_status.starts_with("asset:") {
-        FIXTURE_REFERENCE_KIND_ASSET_SCOPE
-    } else {
-        FIXTURE_REFERENCE_KIND_NONE
     }
 }
 
@@ -597,7 +605,7 @@ mod tests {
         assert_eq!(report.domain_counts.get("fastq"), Some(&69));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
         assert_eq!(report.domain_counts.get("vcf"), Some(&20));
-        assert_eq!(report.proof_source_counts.get("fastq_parser_coverage"), Some(&69));
+        assert_eq!(report.proof_source_counts.get("fastq_parser_fixture_coverage"), Some(&69));
         assert_eq!(report.proof_source_counts.get("bam_parser_coverage"), Some(&49));
         assert_eq!(report.proof_source_counts.get("vcf_parser_fixture_coverage"), Some(&20));
         assert_eq!(report.proof_source_counts.values().copied().sum::<usize>(), report.row_count);
@@ -612,9 +620,10 @@ mod tests {
             row.domain == "fastq"
                 && row.stage_id == "fastq.trim_reads"
                 && row.tool_id == "trimmomatic"
-                && row.parser_fixture_reference_kind == "fixture_corpus"
-                && row.parser_fixture_reference == "fixture:corpus-01-mini"
-                && row.proof_source == "fastq_parser_coverage"
+                && row.parser_fixture_reference_kind == "fixture_case"
+                && row.parser_fixture_reference == "fastq.trim_reads.report_json"
+                && row.parser_fixture_parser_id == "parse_trim_reads_report"
+                && row.proof_source == "fastq_parser_fixture_coverage"
         }));
         assert!(report.rows.iter().any(|row| {
             row.domain == "bam"
@@ -640,9 +649,10 @@ mod tests {
             row.domain == "fastq"
                 && row.stage_id == "fastq.index_reference"
                 && row.tool_id == "bowtie2_build"
-                && row.parser_fixture_reference_kind == "asset_scope"
-                && row.parser_fixture_reference == "asset:reference-index-assets"
-                && row.proof_source == "fastq_parser_coverage"
+                && row.parser_fixture_reference_kind == "fixture_case"
+                && row.parser_fixture_reference == "fastq.index_reference.report_json"
+                && row.parser_fixture_parser_id == "parse_index_reference_report"
+                && row.proof_source == "fastq_parser_fixture_coverage"
         }));
     }
 }
