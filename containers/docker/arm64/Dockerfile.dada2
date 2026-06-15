@@ -23,7 +23,7 @@ ARG VERSION_DADA2=1.30.0
 ENV VERSION_DADA2=${VERSION_DADA2}
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends r-base && \
+    apt-get install -y --no-install-recommends r-base=4.3.3-2build2 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN printf '#!/bin/sh\n' > /usr/local/bin/dada2 && \

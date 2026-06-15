@@ -23,7 +23,7 @@ ARG VERSION_NGSBRIGGS=0.1.3
 ENV VERSION_NGSBRIGGS=${VERSION_NGSBRIGGS}
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3 && \
+    apt-get install -y --no-install-recommends python3=3.12.3-0ubuntu2.1 && \
     printf '#!/bin/sh\n' > /usr/local/bin/ngsbriggs && \
     printf 'if [ "$1" = "--version" ]; then echo "$VERSION_NGSBRIGGS"; exit 0; fi\n' >> /usr/local/bin/ngsbriggs && \
     printf 'if [ "$1" = "--help" ] || [ "$#" -eq 0 ]; then echo "ngsbriggs compatibility wrapper"; exit 0; fi\n' >> /usr/local/bin/ngsbriggs && \

@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-04-25T23:10:27+02:00",
+  "build_date_utc": "2026-06-15T02:53:09+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",

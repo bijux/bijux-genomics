@@ -23,7 +23,7 @@ ARG VERSION_DIAMOND=2.1.10
 ENV VERSION_DIAMOND=${VERSION_DIAMOND}
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends diamond-aligner && \
+    apt-get install -y --no-install-recommends diamond-aligner=2.1.9-1 && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /data

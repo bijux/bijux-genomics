@@ -15,7 +15,7 @@ LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c368
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -qq && apt-get install -y --no-install-recommends     ca-certificates mosdepth && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -qq && apt-get install -y --no-install-recommends     ca-certificates=20240203 mosdepth=0.3.6+ds-1 && rm -rf /var/lib/apt/lists/*
 
 ENTRYPOINT ["/usr/bin/env", "mosdepth"]
 CMD ["--help"]
