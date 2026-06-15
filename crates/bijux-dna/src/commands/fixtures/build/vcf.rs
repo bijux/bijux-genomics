@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -57,9 +58,9 @@ pub(crate) struct VcfVariantSetCountSummary {
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub(crate) struct VcfTruthCountSummary {
-    pub(crate) truth_file_count: usize,
-    pub(crate) cohort_sample_count: usize,
-    pub(crate) pair_count: usize,
+    pub(crate) truth_files: usize,
+    pub(crate) cohort_samples: usize,
+    pub(crate) sample_pairs: usize,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -279,13 +280,16 @@ fn write_reference_files(output_root: &Path) -> Result<()> {
         fasta.push_str(&header);
         fasta.push_str(&sequence_line);
         let base_offset = byte_offset + header.len();
-        fai.push_str(&format!(
-            "{name}\t{}\t{base_offset}\t{}\t{}\n",
+        writeln!(
+            &mut fai,
+            "{name}\t{}\t{base_offset}\t{}\t{}",
             sequence.len(),
             sequence.len(),
             sequence.len() + 1
-        ));
-        dict.push_str(&format!("@SQ\tSN:{name}\tLN:{}\n", sequence.len()));
+        )
+        .map_err(|error| anyhow!(error))?;
+        writeln!(&mut dict, "@SQ\tSN:{name}\tLN:{}", sequence.len())
+            .map_err(|error| anyhow!(error))?;
         byte_offset += header.len() + sequence_line.len();
     }
 
@@ -305,15 +309,17 @@ fn write_metadata_files(output_root: &Path) -> Result<()> {
     let mut population_payload =
         String::from("population_id\tpopulation_label\tsuper_population\trole\n");
     for (population_id, population_label, super_population, role) in POPULATION_ROWS {
-        population_payload.push_str(&format!(
-            "{population_id}\t{population_label}\t{super_population}\t{role}\n"
-        ));
+        writeln!(
+            &mut population_payload,
+            "{population_id}\t{population_label}\t{super_population}\t{role}"
+        )
+        .map_err(|error| anyhow!(error))?;
     }
 
     let mut sample_payload = String::from("sample_id\tpopulation_id\tsex\trole\tdescription\n");
     for (sample_id, population_id, sex, role, description) in SAMPLE_ROWS {
-        sample_payload
-            .push_str(&format!("{sample_id}\t{population_id}\t{sex}\t{role}\t{description}\n"));
+        writeln!(&mut sample_payload, "{sample_id}\t{population_id}\t{sex}\t{role}\t{description}")
+            .map_err(|error| anyhow!(error))?;
     }
 
     bijux_dna_infra::atomic_write_bytes(&population_path, population_payload.as_bytes())
@@ -327,7 +333,7 @@ fn write_target_sites_bed(output_root: &Path) -> Result<()> {
     let bed_path = output_root.join("regions/vcf_mini_target_sites.bed");
     let mut payload = String::new();
     for (contig, start, end) in TARGET_INTERVALS {
-        payload.push_str(&format!("{contig}\t{start}\t{end}\n"));
+        writeln!(&mut payload, "{contig}\t{start}\t{end}").map_err(|error| anyhow!(error))?;
     }
     bijux_dna_infra::atomic_write_bytes(&bed_path, payload.as_bytes())
         .with_context(|| format!("write {}", bed_path.display()))
@@ -375,9 +381,10 @@ fn write_vcf_file(path: &Path, sample_ids: &[&str], variants: &[VariantRecordSpe
 
     let mut payload = String::new();
     payload.push_str("##fileformat=VCFv4.2\n");
-    payload.push_str(&format!("##reference={REFERENCE_ID}\n"));
+    writeln!(&mut payload, "##reference={REFERENCE_ID}").map_err(|error| anyhow!(error))?;
     for (contig, sequence) in REFERENCE_CONTIGS {
-        payload.push_str(&format!("##contig=<ID={contig},length={}>\n", sequence.len()));
+        writeln!(&mut payload, "##contig=<ID={contig},length={}>", sequence.len())
+            .map_err(|error| anyhow!(error))?;
     }
     payload.push_str("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n");
     payload.push_str("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT");
@@ -388,7 +395,8 @@ fn write_vcf_file(path: &Path, sample_ids: &[&str], variants: &[VariantRecordSpe
     payload.push('\n');
 
     for record in variants {
-        payload.push_str(&format!(
+        write!(
+            &mut payload,
             "{}\t{}\t{}\t{}\t{}\t{}\t{}\t.\tGT",
             record.site.contig,
             record.site.position,
@@ -397,7 +405,8 @@ fn write_vcf_file(path: &Path, sample_ids: &[&str], variants: &[VariantRecordSpe
             record.site.alternate,
             record.site.quality,
             record.site.filter
-        ));
+        )
+        .map_err(|error| anyhow!(error))?;
         for genotype in record.genotypes {
             payload.push('\t');
             payload.push_str(genotype);
@@ -423,7 +432,7 @@ fn write_checksums(output_root: &Path, checksums_path: &Path) -> Result<()> {
             path.strip_prefix(output_root).unwrap_or(path.as_path()).display().to_string();
         let digest = bijux_dna_infra::hash_file_sha256(&path)
             .with_context(|| format!("hash {}", path.display()))?;
-        payload.push_str(&format!("{digest}  {relative}\n"));
+        writeln!(&mut payload, "{digest}  {relative}").map_err(|error| anyhow!(error))?;
     }
     bijux_dna_infra::atomic_write_bytes(checksums_path, payload.as_bytes())
         .with_context(|| format!("write {}", checksums_path.display()))
@@ -465,9 +474,9 @@ fn variant_set_count_summary(row: &VcfVariantSetValidationReport) -> VcfVariantS
 
 fn truth_count_summary(report: &VcfExpectedTruthValidationReport) -> VcfTruthCountSummary {
     VcfTruthCountSummary {
-        truth_file_count: report.truth_file_count,
-        cohort_sample_count: report.cohort_sample_count,
-        pair_count: report.pair_count,
+        truth_files: report.truth_files,
+        cohort_samples: report.cohort_samples,
+        sample_pairs: report.sample_pairs,
     }
 }
 
@@ -501,9 +510,9 @@ mod tests {
         assert!(report.governed_counts_match);
         assert_eq!(report.generated_fixture_counts.sample_count, 6);
         assert_eq!(report.generated_fixture_counts.population_count, 4);
-        assert_eq!(report.generated_truth_counts.truth_file_count, 8);
-        assert_eq!(report.generated_truth_counts.cohort_sample_count, 4);
-        assert_eq!(report.generated_truth_counts.pair_count, 6);
+        assert_eq!(report.generated_truth_counts.truth_files, 8);
+        assert_eq!(report.generated_truth_counts.cohort_samples, 4);
+        assert_eq!(report.generated_truth_counts.sample_pairs, 6);
         assert!(output_root.join("manifest.toml").exists());
         assert!(output_root.join("expected/variant_counts.json").exists());
         assert!(output_root.join("CHECKSUMS.sha256").exists());

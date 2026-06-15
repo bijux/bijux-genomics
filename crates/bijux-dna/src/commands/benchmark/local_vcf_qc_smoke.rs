@@ -444,7 +444,7 @@ fn validate_qc_summary(summary: &LocalVcfQcSummary) -> Result<()> {
             summary.hwe_summary.tested_variant_count
         );
     }
-    if summary.hwe_summary.pvalue_mean != Some(0.825656) {
+    if summary.hwe_summary.pvalue_mean != Some(0.825_656) {
         bail!(
             "governed VCF QC smoke expected HWE p-value mean 0.825656, found {:?}",
             summary.hwe_summary.pvalue_mean
@@ -591,7 +591,7 @@ mod tests {
         assert_eq!(report.maf_summary.observed_variant_count, 4);
         assert_eq!(report.heterozygosity.het_hom_ratio, Some(2.0));
         assert_eq!(report.hwe_summary.tested_variant_count, 3);
-        assert_eq!(report.hwe_summary.pvalue_mean, Some(0.825656));
+        assert_eq!(report.hwe_summary.pvalue_mean, Some(0.825_656));
         assert_eq!(report.hwe_summary.status, "computed_modern");
     }
 

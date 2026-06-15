@@ -151,7 +151,7 @@ pub(crate) fn validate_vcf_stage_catalog_ready(
             let report = validate_vcf_expected_truth_manifest_path(repo_root, &manifest_path)?;
             Ok(format!(
                 "validated {} truth files for {} cohort samples and {} pairs",
-                report.truth_file_count, report.cohort_sample_count, report.pair_count
+                report.truth_files, report.cohort_samples, report.sample_pairs
             ))
         },
     );
@@ -225,7 +225,7 @@ pub(crate) fn validate_vcf_stage_catalog_ready(
             }
             Ok(format!(
                 "regenerated {} files with {} truth files and matching governed counts",
-                report.generated_fixture_file_count, report.generated_truth_counts.truth_file_count
+                report.generated_fixture_file_count, report.generated_truth_counts.truth_files
             ))
         },
     );

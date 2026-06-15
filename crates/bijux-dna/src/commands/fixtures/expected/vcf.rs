@@ -27,9 +27,9 @@ pub(crate) struct VcfExpectedTruthValidationReport {
     pub(crate) schema_version: &'static str,
     pub(crate) corpus_id: String,
     pub(crate) expected_dir: String,
-    pub(crate) truth_file_count: usize,
-    pub(crate) cohort_sample_count: usize,
-    pub(crate) pair_count: usize,
+    pub(crate) truth_files: usize,
+    pub(crate) cohort_samples: usize,
+    pub(crate) sample_pairs: usize,
     pub(crate) valid: bool,
     pub(crate) checked_truth_files: Vec<String>,
 }
@@ -40,7 +40,7 @@ pub(crate) struct VcfExpectedTruthBuildReport {
     pub(crate) corpus_id: String,
     pub(crate) manifest_path: String,
     pub(crate) expected_dir: String,
-    pub(crate) truth_file_count: usize,
+    pub(crate) truth_files: usize,
     pub(crate) checked_truth_files: Vec<String>,
 }
 
@@ -389,9 +389,9 @@ pub(crate) fn validate_vcf_expected_truth_manifest_path(
         schema_version: VCF_EXPECTED_TRUTH_VALIDATION_SCHEMA_VERSION,
         corpus_id: manifest.corpus_id,
         expected_dir: path_relative_to_repo(repo_root, &expected_dir),
-        truth_file_count: 8,
-        cohort_sample_count: multisample_summary.sample_count,
-        pair_count: pair_keys(&multisample_summary.sample_ids).len(),
+        truth_files: 8,
+        cohort_samples: multisample_summary.sample_count,
+        sample_pairs: pair_keys(&multisample_summary.sample_ids).len(),
         valid: true,
         checked_truth_files: vec![
             path_relative_to_repo(repo_root, &variant_counts_path),
@@ -496,7 +496,7 @@ pub(crate) fn write_vcf_expected_truth_bundle(
         corpus_id: manifest.corpus_id,
         manifest_path: path_relative_to_repo(repo_root, manifest_path),
         expected_dir: validation.expected_dir,
-        truth_file_count: validation.truth_file_count,
+        truth_files: validation.truth_files,
         checked_truth_files: validation.checked_truth_files,
     })
 }
@@ -535,7 +535,8 @@ fn build_sample_missingness_truth(
             let missingness = if summary.variant_count == 0 {
                 0.0
             } else {
-                state.missing as f64 / summary.variant_count as f64
+                checked_f64_from_u64(state.missing, "sample missing count")
+                    / checked_f64_from_u64(summary.variant_count, "variant count")
             };
             (sample_id.clone(), missingness)
         })
@@ -845,7 +846,12 @@ fn validate_sample_missingness_truth(
                 .get(sample_id)
                 .ok_or_else(|| anyhow!("missing observed genotype state for `{sample_id}`"))?;
             let total = state.hom_ref + state.het + state.hom_alt + state.missing;
-            let ratio = if total == 0 { 0.0 } else { state.missing as f64 / total as f64 };
+            let ratio = if total == 0 {
+                0.0
+            } else {
+                checked_f64_from_u64(state.missing, "observed missing genotype count")
+                    / checked_f64_from_u64(total, "observed genotype total")
+            };
             Ok((sample_id.clone(), ratio))
         })
         .collect::<Result<BTreeMap<_, _>>>()?;
@@ -859,9 +865,7 @@ fn validate_sample_missingness_truth(
             })?;
         if !float_eq(expected_ratio, observed_ratio) {
             return Err(anyhow!(
-                "sample-missingness truth for `{sample_id}` expected {}, observed {}",
-                expected_ratio,
-                observed_ratio
+                "sample-missingness truth for `{sample_id}` expected {expected_ratio}, observed {observed_ratio}"
             ));
         }
     }
@@ -1286,7 +1290,8 @@ fn summarize_vcf_variant_set(vcf_path: &Path) -> Result<VcfVariantTruthSummary> 
         let allele_frequency = if called_allele_count == 0 {
             0.0
         } else {
-            alt_allele_count as f64 / called_allele_count as f64
+            checked_f64_from_u64(alt_allele_count, "alternate allele count")
+                / checked_f64_from_u64(called_allele_count, "called allele count")
         };
         allele_frequencies.insert(
             (record.contig, record.position),
@@ -1403,7 +1408,8 @@ fn pairwise_squared_distances(
             .iter()
             .zip(right.dosages.iter())
             .map(|(left_dosage, right_dosage)| {
-                let delta = *left_dosage as f64 - *right_dosage as f64;
+                let delta = checked_f64_from_u64(*left_dosage, "left dosage")
+                    - checked_f64_from_u64(*right_dosage, "right dosage");
                 delta * delta
             })
             .sum::<f64>();
@@ -1483,6 +1489,12 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
 
+fn checked_f64_from_u64(value: u64, context: &str) -> f64 {
+    u32::try_from(value)
+        .map(f64::from)
+        .unwrap_or_else(|_| panic!("{context} exceeds the supported fixture range"))
+}
+
 fn float_eq(left: f64, right: f64) -> bool {
     (left - right).abs() <= 1e-9
 }
@@ -1507,9 +1519,9 @@ mod tests {
             .expect("validate expected truth");
 
         assert_eq!(report.corpus_id, "vcf-mini");
-        assert_eq!(report.truth_file_count, 8);
-        assert_eq!(report.cohort_sample_count, 4);
-        assert_eq!(report.pair_count, 6);
+        assert_eq!(report.truth_files, 8);
+        assert_eq!(report.cohort_samples, 4);
+        assert_eq!(report.sample_pairs, 6);
         assert_eq!(report.checked_truth_files.len(), 8);
     }
 }

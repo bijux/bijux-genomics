@@ -154,21 +154,20 @@ pub(crate) fn run_local_vcf_gl_propagation_smoke(
     fs::copy(&stage_outputs.normalized_tbi, &output_tbi).with_context(|| {
         format!("copy {} to {}", stage_outputs.normalized_tbi.display(), output_tbi.display())
     })?;
-    let output_bcf = output_root.join(DEFAULT_OUTPUT_BCF_NAME);
+    let bcf_path = output_root.join(DEFAULT_OUTPUT_BCF_NAME);
     let normalized_bcf = stage_outputs
         .normalized_bcf
         .as_ref()
         .ok_or_else(|| anyhow!("gl_propagation smoke expected normalized_bcf output"))?;
-    fs::copy(normalized_bcf, &output_bcf).with_context(|| {
-        format!("copy {} to {}", normalized_bcf.display(), output_bcf.display())
-    })?;
-    let output_bcf_csi = PathBuf::from(format!("{}.csi", output_bcf.display()));
+    fs::copy(normalized_bcf, &bcf_path)
+        .with_context(|| format!("copy {} to {}", normalized_bcf.display(), bcf_path.display()))?;
+    let bcf_index_path = PathBuf::from(format!("{}.csi", bcf_path.display()));
     let normalized_bcf_csi = stage_outputs
         .normalized_bcf_csi
         .as_ref()
         .ok_or_else(|| anyhow!("gl_propagation smoke expected normalized_bcf_csi output"))?;
-    fs::copy(normalized_bcf_csi, &output_bcf_csi).with_context(|| {
-        format!("copy {} to {}", normalized_bcf_csi.display(), output_bcf_csi.display())
+    fs::copy(normalized_bcf_csi, &bcf_index_path).with_context(|| {
+        format!("copy {} to {}", normalized_bcf_csi.display(), bcf_index_path.display())
     })?;
     let report_path = output_root.join(DEFAULT_OUTPUT_REPORT_NAME);
     fs::copy(&stage_outputs.gl_propagation_report_json, &report_path).with_context(|| {
@@ -234,13 +233,13 @@ pub(crate) fn run_local_vcf_gl_propagation_smoke(
             (
                 "gl_propagated_bcf",
                 DEFAULT_OUTPUT_BCF_NAME.to_string(),
-                output_bcf.as_path(),
+                bcf_path.as_path(),
                 "bcf_output",
             ),
             (
                 "bcf_index",
                 format!("{DEFAULT_OUTPUT_BCF_NAME}.csi"),
-                output_bcf_csi.as_path(),
+                bcf_index_path.as_path(),
                 "bcf_index",
             ),
             (
@@ -275,8 +274,8 @@ pub(crate) fn run_local_vcf_gl_propagation_smoke(
         output_root: path_relative_to_repo(repo_root, &output_root),
         output_vcf_path: path_relative_to_repo(repo_root, &output_vcf),
         output_tbi_path: path_relative_to_repo(repo_root, &output_tbi),
-        output_bcf_path: path_relative_to_repo(repo_root, &output_bcf),
-        output_bcf_csi_path: path_relative_to_repo(repo_root, &output_bcf_csi),
+        output_bcf_path: path_relative_to_repo(repo_root, &bcf_path),
+        output_bcf_csi_path: path_relative_to_repo(repo_root, &bcf_index_path),
         report_path: path_relative_to_repo(repo_root, &report_path),
         metrics_path: path_relative_to_repo(repo_root, &metrics_path),
         stage_result_manifest_path: path_relative_to_repo(repo_root, &stage_result_manifest_path),

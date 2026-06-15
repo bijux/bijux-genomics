@@ -61,7 +61,7 @@ pub(crate) fn validate_fixture(cwd: &Path, args: &cli::FixturesValidateArgs) -> 
         let report = validate_benchmark_fixture_root(
             cwd,
             &fixture_root,
-            cwd.join(DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH),
+            &cwd.join(DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH),
         )?;
         if args.json {
             cli::render::json::print_pretty(&report)?;

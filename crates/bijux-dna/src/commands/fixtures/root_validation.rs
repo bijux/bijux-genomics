@@ -47,10 +47,10 @@ pub(crate) struct BenchmarkFixtureRootValidationReport {
 pub(crate) fn validate_benchmark_fixture_root(
     repo_root: &Path,
     fixture_root: &Path,
-    output_path: PathBuf,
+    output_path: &Path,
 ) -> Result<BenchmarkFixtureRootValidationReport> {
     let absolute_root = absolutize(repo_root, fixture_root);
-    let absolute_output_path = absolutize(repo_root, &output_path);
+    let absolute_output_path = absolutize(repo_root, output_path);
     let parser_root = absolute_root.join("bench").join("parsers");
     let corpora_root = absolute_root.join("corpora");
     let databases_root = absolute_root.join("databases");
@@ -250,7 +250,7 @@ fn validate_vcf_expected_truth_row(
             detail_path: Some(report.expected_dir),
             schema_version: Some(report.schema_version.to_string()),
             valid: report.valid,
-            detail: format!("truth_file_count={}", report.truth_file_count),
+            detail: format!("truth_files={}", report.truth_files),
         },
         Err(error) => BenchmarkFixtureRootValidationRow {
             fixture_kind: "expected_truth".to_string(),
