@@ -37,9 +37,18 @@ execution_contract:
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 stage_ids: ["bam.recalibration"]
+planned_stage_ids: ["bam.genotyping"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 stage_contracts:
+  bam.genotyping:
+    required_inputs:
+      - "bam"
+    expected_artifacts:
+      - "genotyping_report"
+      - "summary"
+      - "stage_metrics"
+    notes: "Planned GATK genotyping would preserve the governed BAM genotyping report, summary, and benchmark-facing stage metrics surface once the backend is admitted."
   bam.recalibration:
     required_inputs:
       - "bam"

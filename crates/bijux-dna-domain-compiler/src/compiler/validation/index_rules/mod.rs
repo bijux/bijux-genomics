@@ -15,9 +15,9 @@ pub(super) fn validate_domain_indexes_and_pipelines(
     options: &ValidateOptions,
     stage_ids: &BTreeMap<String, String>,
     tool_ids: &BTreeMap<String, String>,
-    tool_capabilities: &BTreeMap<String, BTreeSet<String>>,
-    tool_statuses: &BTreeMap<String, String>,
-    tool_metrics_schemas: &BTreeMap<String, String>,
+    tool_capabilities_by_domain: &BTreeMap<String, BTreeMap<String, BTreeSet<String>>>,
+    tool_statuses_by_domain: &BTreeMap<String, BTreeMap<String, String>>,
+    tool_metrics_schemas_by_domain: &BTreeMap<String, BTreeMap<String, String>>,
 ) -> Result<()> {
     validate_domain_versions(options)?;
 
@@ -26,10 +26,23 @@ pub(super) fn validate_domain_indexes_and_pipelines(
         let index: DomainIndex = read_yaml(&index_path)?;
         let stage_status_by_id =
             validate_domain_index_inventory(options, dom, &index, stage_ids, tool_ids)?;
+        let domain_capabilities = tool_capabilities_by_domain.get(dom).ok_or_else(|| {
+            anyhow!("{} missing tool capability catalog for domain {}", index_path.display(), dom)
+        })?;
+        let domain_statuses = tool_statuses_by_domain.get(dom).ok_or_else(|| {
+            anyhow!("{} missing tool status catalog for domain {}", index_path.display(), dom)
+        })?;
+        let domain_metrics_schemas = tool_metrics_schemas_by_domain.get(dom).ok_or_else(|| {
+            anyhow!(
+                "{} missing tool metrics schema catalog for domain {}",
+                index_path.display(),
+                dom
+            )
+        })?;
         let tool_catalogs = ToolCatalogs {
-            capabilities: tool_capabilities,
-            statuses: tool_statuses,
-            metrics_schemas: tool_metrics_schemas,
+            capabilities: domain_capabilities,
+            statuses: domain_statuses,
+            metrics_schemas: domain_metrics_schemas,
         };
         if dom == "vcf" {
             validate_vcf_index_contracts(&index, &index_path, &stage_status_by_id)?;

@@ -5,15 +5,14 @@ use super::{
 };
 use std::path::Path;
 
-fn domain_tool_key(dom: &str, tool_id: &str) -> String {
-    format!("{dom}::{tool_id}")
-}
-
 pub(super) struct ToolValidationState<'a> {
     pub(super) ids: &'a mut BTreeMap<String, String>,
     pub(super) capabilities: &'a mut BTreeMap<String, BTreeSet<String>>,
     pub(super) statuses: &'a mut BTreeMap<String, String>,
     pub(super) metrics_schemas: &'a mut BTreeMap<String, String>,
+    pub(super) domain_capabilities: &'a mut BTreeMap<String, BTreeMap<String, BTreeSet<String>>>,
+    pub(super) domain_statuses: &'a mut BTreeMap<String, BTreeMap<String, String>>,
+    pub(super) domain_metrics_schemas: &'a mut BTreeMap<String, BTreeMap<String, String>>,
 }
 
 pub(super) fn validate_tool_files(
@@ -75,10 +74,14 @@ pub(super) fn validate_tool_files(
             bail!("{} missing required tool fields", path.display());
         }
         if !tool.capabilities.is_empty() {
-            state.capabilities.insert(
-                domain_tool_key(dom, &tool.tool_id),
-                tool.capabilities.iter().cloned().collect(),
-            );
+            state
+                .capabilities
+                .insert(tool.tool_id.clone(), tool.capabilities.iter().cloned().collect());
+            state
+                .domain_capabilities
+                .entry(dom.to_string())
+                .or_default()
+                .insert(tool.tool_id.clone(), tool.capabilities.iter().cloned().collect());
         }
         if dom != "vcf" && tool.status == "supported" {
             if tool.stage_ids.is_empty() {
@@ -167,9 +170,18 @@ pub(super) fn validate_tool_files(
         } else {
             state.ids.insert(tool.tool_id.clone(), path.display().to_string());
         }
-        let scoped_key = domain_tool_key(dom, &tool.tool_id);
-        state.statuses.insert(scoped_key.clone(), tool.status.clone());
-        state.metrics_schemas.insert(scoped_key, tool.metrics_schema_id.clone());
+        state.statuses.insert(tool.tool_id.clone(), tool.status.clone());
+        state.metrics_schemas.insert(tool.tool_id.clone(), tool.metrics_schema_id.clone());
+        state
+            .domain_statuses
+            .entry(dom.to_string())
+            .or_default()
+            .insert(tool.tool_id.clone(), tool.status.clone());
+        state
+            .domain_metrics_schemas
+            .entry(dom.to_string())
+            .or_default()
+            .insert(tool.tool_id.clone(), tool.metrics_schema_id.clone());
     }
     Ok(())
 }

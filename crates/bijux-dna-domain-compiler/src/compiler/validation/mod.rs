@@ -61,6 +61,10 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     let mut tool_capabilities = BTreeMap::<String, BTreeSet<String>>::new();
     let mut tool_statuses = BTreeMap::<String, String>::new();
     let mut tool_metrics_schemas = BTreeMap::<String, String>::new();
+    let mut tool_capabilities_by_domain =
+        BTreeMap::<String, BTreeMap<String, BTreeSet<String>>>::new();
+    let mut tool_statuses_by_domain = BTreeMap::<String, BTreeMap<String, String>>::new();
+    let mut tool_metrics_schemas_by_domain = BTreeMap::<String, BTreeMap<String, String>>::new();
     let DomainVocabularies { artifact_vocab, metric_vocab } =
         validate_domain_vocabularies(&options.domain_dir)?;
 
@@ -72,6 +76,9 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
             capabilities: &mut tool_capabilities,
             statuses: &mut tool_statuses,
             metrics_schemas: &mut tool_metrics_schemas,
+            domain_capabilities: &mut tool_capabilities_by_domain,
+            domain_statuses: &mut tool_statuses_by_domain,
+            domain_metrics_schemas: &mut tool_metrics_schemas_by_domain,
         };
         validate_tool_files(options, dom, &artifact_vocab, &shared_tool_domains, &mut tool_state)?;
     }
@@ -82,9 +89,9 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         options,
         &stage_ids,
         &tool_ids,
-        &tool_capabilities,
-        &tool_statuses,
-        &tool_metrics_schemas,
+        &tool_capabilities_by_domain,
+        &tool_statuses_by_domain,
+        &tool_metrics_schemas_by_domain,
     )?;
     validate_fixture_consistency(options, &stage_ids, &tool_ids)?;
     validate_deprecations_contract(workspace_root, &stage_ids, &tool_ids)?;
