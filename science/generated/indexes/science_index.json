@@ -21,38 +21,38 @@
   "decisions": 3,
   "bindings": 5,
   "releases": 1,
-  "fastq_container_reference_rows": 44,
-  "fastq_download_backlog_rows": 44,
+  "fastq_container_reference_rows": 45,
+  "fastq_download_backlog_rows": 45,
   "fastq_paper_archive_rows": 47,
   "fastq_environment_rows": 92,
   "fastq_closure_gate_rows": 92,
   "fastq_truth_delta_rows": 33,
-  "fastq_missing_closure_prerequisite_rows": 138,
-  "fastq_default_binding_risk_rows": 26,
+  "fastq_missing_closure_prerequisite_rows": 136,
+  "fastq_default_binding_risk_rows": 27,
   "fastq_closure_summary": {
     "total_rows": 92,
-    "default_rows": 26,
-    "world_class_closed_rows": 40,
+    "default_rows": 27,
+    "world_class_closed_rows": 41,
     "declared_closed_with_gaps_rows": 33,
-    "not_closed_rows": 19,
+    "not_closed_rows": 18,
     "blocking_reason_counts": {
       "missing_benchmark_support": 20,
-      "missing_container_ref": 2,
-      "missing_environment_qa_stage": 50,
+      "missing_container_ref": 3,
+      "missing_environment_qa_stage": 49,
       "missing_paper_archive": 20,
-      "missing_runtime_surface": 2,
+      "missing_runtime_surface": 3,
       "missing_upstream_archive": 20,
-      "registry_not_production": 5,
-      "stage_not_marked_closed": 19
+      "registry_not_production": 3,
+      "stage_not_marked_closed": 18
     },
     "warning_reason_counts": {
-      "non_default_binding": 66,
-      "planned_binding_not_admitted": 23
+      "non_default_binding": 65,
+      "planned_binding_not_admitted": 22
     }
   },
   "fastq_evidence_summary": {
     "backlog_status_counts": {
-      "ready": 44
+      "ready": 45
     },
     "paper_status_counts": {
       "mapped": 37,
@@ -65,27 +65,27 @@
     },
     "prerequisite_counts": {
       "missing_benchmark_support": 20,
-      "missing_container_ref": 2,
-      "missing_environment_qa_stage": 50,
+      "missing_container_ref": 3,
+      "missing_environment_qa_stage": 49,
       "missing_paper_archive": 20,
-      "missing_runtime_surface": 2,
+      "missing_runtime_surface": 3,
       "missing_upstream_archive": 20,
-      "registry_not_production": 5,
-      "stage_not_marked_closed": 19
+      "registry_not_production": 3,
+      "stage_not_marked_closed": 18
     },
     "default_risk_counts": {
-      "archive_evidence_blocked": 1,
+      "archive_evidence_blocked": 2,
       "closure_prerequisite_blocked": 16,
       "world_class_closed": 9
     },
     "truth_delta_reason_counts": {
-      "missing_benchmark_support": 1,
-      "missing_container_ref": 2,
+      "missing_benchmark_support": 2,
+      "missing_container_ref": 3,
       "missing_environment_qa_stage": 31,
-      "missing_paper_archive": 1,
-      "missing_runtime_surface": 2,
-      "missing_upstream_archive": 1,
-      "registry_not_production": 5
+      "missing_paper_archive": 2,
+      "missing_runtime_surface": 3,
+      "missing_upstream_archive": 2,
+      "registry_not_production": 3
     }
   }
 }
