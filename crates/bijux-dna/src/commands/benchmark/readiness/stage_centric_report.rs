@@ -8,7 +8,7 @@ use serde::Serialize;
 use super::bam_comparable_metrics::render_bam_comparable_metrics;
 use super::bam_report_map::collect_bam_report_map_rows;
 use super::fastq_comparable_metrics::render_fastq_comparable_metrics;
-use super::fastq_report_map::collect_fastq_report_map_rows;
+use super::fastq_report_map::collect_fastq_report_stage_metadata;
 use super::pair_readiness::{collect_pair_readiness_rows, PairAssetStatus, PairReadinessGap};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -243,9 +243,9 @@ pub(crate) fn collect_stage_centric_stage_reports(
 
 fn load_stage_metadata(repo_root: &Path) -> Result<BTreeMap<(String, String), StageMetadata>> {
     let mut metadata_by_stage = BTreeMap::<(String, String), StageMetadata>::new();
-    for row in collect_fastq_report_map_rows(repo_root)? {
+    for (stage_id, row) in collect_fastq_report_stage_metadata(repo_root)? {
         metadata_by_stage.insert(
-            ("fastq".to_string(), row.stage_id.clone()),
+            ("fastq".to_string(), stage_id),
             StageMetadata {
                 canonical_stage_rank: row.canonical_stage_rank,
                 report_section_id: row.report_section_id,

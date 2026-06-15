@@ -11,7 +11,7 @@ use super::bam_parser_coverage::collect_bam_parser_coverage_rows;
 use super::bam_report_map::collect_bam_report_map_rows;
 use super::fastq_normalized_metrics_schema::collect_fastq_normalized_metrics_schema_report_rows;
 use super::fastq_parser_coverage::collect_fastq_parser_coverage_rows;
-use super::fastq_report_map::collect_fastq_report_map_rows;
+use super::fastq_report_map::collect_fastq_report_stage_metadata;
 use super::vcf_normalized_metrics_schema::collect_vcf_normalized_metrics_schema_report_rows;
 use super::vcf_parser_fixture_coverage::{
     collect_vcf_parser_fixture_coverage_rows, VcfParserFixtureCoverageStatus,
@@ -283,11 +283,13 @@ fn collect_schema_stage_rows() -> Result<BTreeSet<(String, String)>> {
 
 fn collect_report_stage_rows(repo_root: &Path) -> Result<Vec<ReportStageRow>> {
     let mut rows = Vec::new();
-    rows.extend(collect_fastq_report_map_rows(repo_root)?.into_iter().map(|row| ReportStageRow {
-        domain: "fastq".to_string(),
-        stage_id: row.stage_id,
-        report_section_id: row.report_section_id,
-    }));
+    rows.extend(collect_fastq_report_stage_metadata(repo_root)?.into_iter().map(
+        |(stage_id, row)| ReportStageRow {
+            domain: "fastq".to_string(),
+            stage_id,
+            report_section_id: row.report_section_id,
+        },
+    ));
     rows.extend(collect_bam_report_map_rows(repo_root)?.into_iter().map(|row| ReportStageRow {
         domain: "bam".to_string(),
         stage_id: row.stage_id,

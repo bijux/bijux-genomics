@@ -18,7 +18,7 @@ use super::expected_benchmark_results::{
 use super::fastq_corpus_assignment::{
     collect_fastq_corpus_assignment_rows, FastqCorpusAssignmentStatus,
 };
-use super::fastq_report_map::{collect_fastq_report_map_rows, DEFAULT_FASTQ_REPORT_MAP_PATH};
+use super::fastq_report_map::{collect_fastq_report_stage_metadata, DEFAULT_FASTQ_REPORT_MAP_PATH};
 use super::missing_benchmark_pairs::{
     render_missing_benchmark_pairs, DEFAULT_MISSING_BENCHMARK_PAIRS_PATH,
 };
@@ -221,10 +221,8 @@ pub(crate) fn render_stage_tool_benchmark_ready(
         )
         .collect::<BTreeSet<_>>();
 
-    let fastq_report_stage_ids = collect_fastq_report_map_rows(repo_root)?
-        .into_iter()
-        .map(|row| row.stage_id)
-        .collect::<BTreeSet<_>>();
+    let fastq_report_stage_ids =
+        collect_fastq_report_stage_metadata(repo_root)?.into_keys().collect::<BTreeSet<_>>();
     let bam_report_stage_ids = collect_bam_report_map_rows(repo_root)?
         .into_iter()
         .map(|row| row.stage_id)

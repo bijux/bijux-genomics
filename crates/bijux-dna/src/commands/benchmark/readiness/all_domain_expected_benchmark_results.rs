@@ -10,7 +10,7 @@ use serde::Serialize;
 
 use super::bam_report_map::collect_bam_report_map_rows;
 use super::expected_benchmark_results::collect_expected_benchmark_result_rows;
-use super::fastq_report_map::collect_fastq_report_map_rows;
+use super::fastq_report_map::collect_fastq_report_stage_metadata;
 use super::stage_tool_assets::{
     StageToolAssetRow, StageToolAssetsConfig, DEFAULT_STAGE_TOOL_ASSETS_PATH,
     LOCAL_STAGE_TOOL_ASSETS_SCHEMA_VERSION,
@@ -133,9 +133,9 @@ pub(crate) fn collect_all_domain_expected_benchmark_result_rows(
         },
     );
 
-    let fastq_report_sections = collect_fastq_report_map_rows(repo_root)?
+    let fastq_report_sections = collect_fastq_report_stage_metadata(repo_root)?
         .into_iter()
-        .map(|row| (row.stage_id, row.report_section_id))
+        .map(|(stage_id, row)| (stage_id, row.report_section_id))
         .collect::<BTreeMap<_, _>>();
     let bam_report_sections = collect_bam_report_map_rows(repo_root)?
         .into_iter()

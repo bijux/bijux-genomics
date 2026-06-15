@@ -6,7 +6,7 @@ use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
 use super::bam_report_map::collect_bam_report_map_rows;
-use super::fastq_report_map::collect_fastq_report_map_rows;
+use super::fastq_report_map::collect_fastq_report_stage_metadata;
 use super::pair_readiness::{collect_pair_readiness_rows, PairAssetStatus, PairReadinessGap};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -216,9 +216,9 @@ fn load_stage_report_placements(
     repo_root: &Path,
 ) -> Result<BTreeMap<(String, String), StageReportPlacement>> {
     let mut placements = BTreeMap::<(String, String), StageReportPlacement>::new();
-    for row in collect_fastq_report_map_rows(repo_root)? {
+    for (stage_id, row) in collect_fastq_report_stage_metadata(repo_root)? {
         placements.insert(
-            ("fastq".to_string(), row.stage_id),
+            ("fastq".to_string(), stage_id),
             StageReportPlacement {
                 report_section_id: row.report_section_id,
                 report_section_title: row.report_section_title,

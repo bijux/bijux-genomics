@@ -8,7 +8,7 @@ use serde::Serialize;
 use super::bam_report_map::collect_bam_report_map_rows;
 use super::essential_pipeline_corpus_assets::ESSENTIAL_PIPELINE_IDS;
 use super::essential_pipeline_rendered_commands::collect_essential_pipeline_rendered_command_rows;
-use super::fastq_report_map::collect_fastq_report_map_rows;
+use super::fastq_report_map::collect_fastq_report_stage_metadata;
 use crate::commands::benchmark::local_pipeline_dag::validate_pipeline_dag_path;
 use crate::commands::benchmark::local_vcf_stage_catalog::build_vcf_stage_catalog_rows;
 use crate::commands::cli::parse;
@@ -115,9 +115,9 @@ pub(crate) fn collect_essential_pipeline_report_map_rows(
         .into_iter()
         .map(|row| ((row.pipeline_id.clone(), row.node_id.clone()), row))
         .collect::<BTreeMap<_, _>>();
-    let fastq_section_by_stage = collect_fastq_report_map_rows(repo_root)?
+    let fastq_section_by_stage = collect_fastq_report_stage_metadata(repo_root)?
         .into_iter()
-        .map(|row| (row.stage_id, row.report_section_id))
+        .map(|(stage_id, row)| (stage_id, row.report_section_id))
         .collect::<BTreeMap<_, _>>();
     let bam_section_by_stage = collect_bam_report_map_rows(repo_root)?
         .into_iter()

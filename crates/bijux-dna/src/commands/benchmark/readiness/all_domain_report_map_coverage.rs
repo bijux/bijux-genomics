@@ -362,7 +362,7 @@ fn collect_report_map_source_rows(
             SourceKey {
                 domain: "fastq".to_string(),
                 stage_id: row.stage_id.clone(),
-                tool_id: NO_VALUE.to_string(),
+                tool_id: row.tool_id.clone(),
             },
             ReportMapSourceRow {
                 proof_source: PROOF_SOURCE_FASTQ.to_string(),
@@ -486,7 +486,7 @@ fn source_key_from_active_row(active_row: &AllDomainActiveStageToolMatrixRow) ->
     SourceKey {
         domain: active_row.domain.clone(),
         stage_id: active_row.stage_id.clone(),
-        tool_id: if active_row.domain == "vcf" {
+        tool_id: if active_row.domain == "fastq" || active_row.domain == "vcf" {
             active_row.tool_id.clone()
         } else {
             NO_VALUE.to_string()
