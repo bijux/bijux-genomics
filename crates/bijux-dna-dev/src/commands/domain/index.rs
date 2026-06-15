@@ -294,7 +294,7 @@ fn parse_vcf_default_settings_entries(
     let settings_path = dom_dir.join("docs").join("DEFAULT_SETTINGS.md");
     let text = read_utf8(&settings_path)?;
     let line_re = regex(
-        r#"^- `(?P<stage_id>[^`]+)` default: `(?P<tool_id>[^`]+)`(?: \([^)]+\))?\. rationale: (?P<rationale>.+)$"#,
+        r"^- `(?P<stage_id>[^`]+)` default: `(?P<tool_id>[^`]+)`(?: \([^)]+\))?\. rationale: (?P<rationale>.+)$",
     )?;
     let mut entries = BTreeMap::new();
 
@@ -545,48 +545,6 @@ fn is_fastq_read_stream_artifact(artifact_id: &str) -> bool {
 
 fn is_legacy_generic_read_estimate(artifact_id: &str, estimate: f64) -> bool {
     is_fastq_read_stream_artifact(artifact_id) && (estimate - 4.0).abs() < f64::EPSILON
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn parse_vcf_default_settings_entries_filters_to_supported_vcf_stages() {
-        let temp = tempfile::tempdir().expect("create tempdir");
-        let dom_dir = temp.path().join("vcf");
-        std::fs::create_dir_all(dom_dir.join("docs")).expect("create docs dir");
-        std::fs::write(
-            dom_dir.join("docs/DEFAULT_SETTINGS.md"),
-            "## Blessed Defaults And Rationale\n\
-- `vcf.phasing` default: `shapeit5`. rationale: phasing stays on the governed dedicated backend.\n\
-- `vcf.imputation_metrics` default: `beagle`. rationale: imputation metrics stay anchored to the governed panel-aware backend.\n\
-- `vcf.pca` default: `plink2` (planned). rationale: planned population structure tooling remains comparative.\n",
-        )
-        .expect("write settings doc");
-
-        let supported =
-            BTreeSet::from(["vcf.phasing".to_string(), "vcf.imputation_metrics".to_string()]);
-        let entries =
-            parse_vcf_default_settings_entries(&dom_dir, &supported).expect("parse VCF defaults");
-
-        assert_eq!(
-            entries.get("vcf.phasing"),
-            Some(&VcfDefaultEntry {
-                default_tool: "shapeit5".to_string(),
-                rationale: "phasing stays on the governed dedicated backend.".to_string(),
-            })
-        );
-        assert_eq!(
-            entries.get("vcf.imputation_metrics"),
-            Some(&VcfDefaultEntry {
-                default_tool: "beagle".to_string(),
-                rationale: "imputation metrics stay anchored to the governed panel-aware backend."
-                    .to_string(),
-            })
-        );
-        assert!(!entries.contains_key("vcf.pca"));
-    }
 }
 
 fn fallback_artifact_size_estimate_mb(artifact_id: &str) -> f64 {
@@ -849,4 +807,47 @@ pub(super) fn generate_index(
         stdout.push('\n');
     }
     Ok(DomainCommandOutcome::success(stdout))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_vcf_default_settings_entries_filters_to_supported_vcf_stages() {
+        let temp = tempfile::tempdir().unwrap_or_else(|error| panic!("create tempdir: {error}"));
+        let dom_dir = temp.path().join("vcf");
+        std::fs::create_dir_all(dom_dir.join("docs"))
+            .unwrap_or_else(|error| panic!("create docs dir: {error}"));
+        std::fs::write(
+            dom_dir.join("docs/DEFAULT_SETTINGS.md"),
+            "## Blessed Defaults And Rationale\n\
+- `vcf.phasing` default: `shapeit5`. rationale: phasing stays on the governed dedicated backend.\n\
+- `vcf.imputation_metrics` default: `beagle`. rationale: imputation metrics stay anchored to the governed panel-aware backend.\n\
+- `vcf.pca` default: `plink2` (planned). rationale: planned population structure tooling remains comparative.\n",
+        )
+        .unwrap_or_else(|error| panic!("write settings doc: {error}"));
+
+        let supported =
+            BTreeSet::from(["vcf.phasing".to_string(), "vcf.imputation_metrics".to_string()]);
+        let entries = parse_vcf_default_settings_entries(&dom_dir, &supported)
+            .unwrap_or_else(|error| panic!("parse VCF defaults: {error}"));
+
+        assert_eq!(
+            entries.get("vcf.phasing"),
+            Some(&VcfDefaultEntry {
+                default_tool: "shapeit5".to_string(),
+                rationale: "phasing stays on the governed dedicated backend.".to_string(),
+            })
+        );
+        assert_eq!(
+            entries.get("vcf.imputation_metrics"),
+            Some(&VcfDefaultEntry {
+                default_tool: "beagle".to_string(),
+                rationale: "imputation metrics stay anchored to the governed panel-aware backend."
+                    .to_string(),
+            })
+        );
+        assert!(!entries.contains_key("vcf.pca"));
+    }
 }
