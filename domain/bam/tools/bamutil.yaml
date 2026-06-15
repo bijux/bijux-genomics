@@ -76,8 +76,8 @@ expected_artifacts:
   - "stage_metrics"
 metrics_schema_id: "bijux.bam.overlap_correction.v1"
 metrics_schema: "bijux.bam.overlap_correction.v1"
-version_cmd: "bam clipOverlap --help"
-help_cmd: "bam clipOverlap --help"
+version_cmd: "bamutil --version"
+help_cmd: "bamutil --help"
 comparability:
   comparable_with: []
   non_comparable_with: []
