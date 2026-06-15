@@ -32,7 +32,7 @@ fn bench_readiness_fastq_report_map_writes_governed_tsv_columns() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/fastq-report-map.tsv");
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/fastq/fastq-report-map.tsv");
 
     let tsv = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read FASTQ report map TSV");
@@ -40,15 +40,15 @@ fn bench_readiness_fastq_report_map_writes_governed_tsv_columns() {
     assert_eq!(
         lines.next(),
         Some(
-            "stage_id\tcanonical_stage_rank\treadiness_kind\tstage_kind\tcriticality\tanchor_tool_id\tanchor_support_status\treport_section_id\treport_section_title\tsummary_table_id\tsummary_table_title\tmetric_classes\tmutates_fastq\tproduces_reports_only\treport_focus\treason"
+            "stage_id\ttool_id\tcanonical_stage_rank\treadiness_kind\tstage_kind\tcriticality\tsupport_status\treport_section_id\treport_section_title\tsummary_table_id\tsummary_table_title\tmetric_classes\tmutates_fastq\tproduces_reports_only\treport_focus\treason"
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 27, "TSV must retain every FASTQ benchmark-ready stage");
+    assert_eq!(rows.len(), 69, "TSV must retain every FASTQ benchmark-ready stage-tool row");
     assert!(
         rows.iter().any(|row| {
             row.contains(
-                "fastq.index_reference\t27\tdry_run\tmeta\toptional\tbowtie2_build\tsupported\treference_preparation\tReference Preparation\treference_index_assets\tReference Index Assets\t\tfalse\tfalse\treference provenance and benchmark index availability\t"
+                "fastq.index_reference\tbowtie2_build\t27\tdry_run\tmeta\toptional\tsupported\treference_preparation\tReference Preparation\treference_index_assets\tReference Index Assets\t\tfalse\tfalse\treference provenance and benchmark index availability\t"
             )
         }),
         "TSV must retain the governed reference-preparation row"
@@ -56,23 +56,23 @@ fn bench_readiness_fastq_report_map_writes_governed_tsv_columns() {
     assert!(
         rows.iter().any(|row| {
             row.contains(
-                "fastq.estimate_library_complexity_prealign\t5\tsmoke\toptional\toptional\tbijux_dna\tplanned\tquality_profiling\tQuality Profiling\tpremerge_complexity\tPre-merge Complexity\tintegrity\tfalse\ttrue\tduplicate burden and pre-alignment library complexity evidence\t"
+                "fastq.estimate_library_complexity_prealign\tbijux_dna\t5\tsmoke\toptional\toptional\tsupported\tquality_profiling\tQuality Profiling\tpremerge_complexity\tPre-merge Complexity\tintegrity\tfalse\ttrue\tduplicate burden and pre-alignment library complexity evidence\t"
             )
         }),
-        "TSV must retain the planned premerge-complexity anchor row"
+        "TSV must retain the governed premerge-complexity row"
     );
     assert!(
         rows.iter().any(|row| {
             row.contains(
-                "fastq.report_qc\t26\tsmoke\toptional\tessential\tmultiqc\tsupported\tquality_profiling\tQuality Profiling\tqc_signal_profiles\tQC Signal Profiles\tquality_shift,contamination\tfalse\ttrue\tbaseline read quality, composition, and aggregated QC evidence\t"
+                "fastq.profile_reads\tseqkit_stats\t11\tsmoke\tcore\tessential\tsupported\tquality_profiling\tQuality Profiling\tqc_signal_profiles\tQC Signal Profiles\tintegrity,composition\tfalse\ttrue\tbaseline read quality, composition, and aggregated QC evidence\t"
             )
         }),
-        "TSV must retain the governed report-qc row"
+        "TSV must retain the governed quality-profiling row"
     );
     assert!(
         rows.iter().any(|row| {
             row.contains(
-                "fastq.infer_asvs\t22\tsmoke\tamplicon\texperimental\tdada2\tsupported\tamplicon_interpretation\tAmplicon Interpretation\tamplicon_features\tAmplicon Feature Tables\tcomposition\tfalse\tfalse\tamplicon cleanup, feature inference, and abundance normalization outputs\t"
+                "fastq.infer_asvs\tdada2\t22\tsmoke\tamplicon\texperimental\tsupported\tamplicon_interpretation\tAmplicon Interpretation\tamplicon_features\tAmplicon Feature Tables\tcomposition\tfalse\tfalse\tamplicon cleanup, feature inference, and abundance normalization outputs\t"
             )
         }),
         "TSV must retain the governed amplicon feature row"
