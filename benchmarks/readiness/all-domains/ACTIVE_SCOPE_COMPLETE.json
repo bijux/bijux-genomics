@@ -13,7 +13,7 @@
     {
       "surface_id": "all_domain_retained_tools",
       "proof_paths": [
-        "benchmarks/readiness/all-domains/retained-tools.tsv"
+        "benchmarks/readiness/tools/retained-tool-inventory.tsv"
       ],
       "ok": true,
       "detail": "row_count=71, active_matrix_tool_count=71, benchmark_ready_tool_count=71"
