@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -170,13 +171,14 @@ pub(crate) fn validate_benchmark_paths(
         std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
 
+    let tracked_paths = git_list_tracked_paths(repo_root)?;
     let roots = REQUIRED_BENCHMARK_ROOTS
         .iter()
-        .map(|contract| benchmark_root_status(repo_root, contract))
+        .map(|contract| benchmark_root_status(repo_root, contract, &tracked_paths))
         .collect::<Result<Vec<_>>>()?;
-    let legacy_fixture_wrapper = legacy_fixture_wrapper_status(repo_root)?;
+    let legacy_fixture_wrapper = legacy_fixture_wrapper_status(repo_root, &tracked_paths)?;
     let readiness_snapshots =
-        collect_readiness_snapshots(&repo_root.join("benchmarks/readiness"), repo_root)?;
+        collect_readiness_snapshots(&repo_root.join("benchmarks/readiness"), repo_root, &tracked_paths)?;
     let readiness_snapshot_count = readiness_snapshots.len();
     let readiness_json_snapshot_count =
         readiness_snapshots.iter().filter(|path| path.ends_with(".json")).count();
@@ -296,6 +298,7 @@ pub(crate) fn prove_disposable_root_cleanup(
 fn benchmark_root_status(
     repo_root: &Path,
     contract: &BenchmarkRootContract,
+    tracked_paths: &BTreeSet<String>,
 ) -> Result<BenchmarkRootStatus> {
     let root_path = repo_root.join(contract.relative_path);
     let marker_path = repo_root.join(contract.marker_path);
@@ -306,7 +309,7 @@ fn benchmark_root_status(
         marker_exists: marker_path.is_file(),
         ignored_by_git: git_check_ignored(repo_root, contract.relative_path)?
             || git_check_ignored(repo_root, contract.marker_path)?,
-        marker_tracked_by_git: git_check_tracked(repo_root, contract.marker_path)?,
+        marker_tracked_by_git: tracked_paths.contains(contract.marker_path),
     })
 }
 
@@ -358,7 +361,10 @@ fn remove_directory_tree(path: &Path) -> Result<()> {
     }
 }
 
-fn legacy_fixture_wrapper_status(repo_root: &Path) -> Result<LegacyFixtureWrapperStatus> {
+fn legacy_fixture_wrapper_status(
+    repo_root: &Path,
+    tracked_paths: &BTreeSet<String>,
+) -> Result<LegacyFixtureWrapperStatus> {
     let wrapper_path = repo_root.join(LEGACY_FIXTURE_WRAPPER_PATH);
     let metadata = std::fs::symlink_metadata(&wrapper_path).ok();
     let is_symlink = metadata
@@ -386,7 +392,7 @@ fn legacy_fixture_wrapper_status(repo_root: &Path) -> Result<LegacyFixtureWrappe
         is_symlink,
         root_tests_readme_path: ROOT_TESTS_README_PATH.to_string(),
         root_tests_readme_exists: root_tests_readme_path.is_file(),
-        root_tests_readme_tracked_by_git: git_check_tracked(repo_root, ROOT_TESTS_README_PATH)?,
+        root_tests_readme_tracked_by_git: tracked_paths.contains(ROOT_TESTS_README_PATH),
         root_tests_regular_file_count,
     })
 }
@@ -493,9 +499,13 @@ fn collect_path_violations(
     violations
 }
 
-fn collect_readiness_snapshots(root: &Path, repo_root: &Path) -> Result<Vec<String>> {
+fn collect_readiness_snapshots(
+    root: &Path,
+    repo_root: &Path,
+    tracked_paths: &BTreeSet<String>,
+) -> Result<Vec<String>> {
     let mut snapshots = Vec::new();
-    collect_readiness_snapshots_recursive(root, repo_root, &mut snapshots)?;
+    collect_readiness_snapshots_recursive(root, repo_root, tracked_paths, &mut snapshots)?;
     snapshots.sort();
     Ok(snapshots)
 }
@@ -503,6 +513,7 @@ fn collect_readiness_snapshots(root: &Path, repo_root: &Path) -> Result<Vec<Stri
 fn collect_readiness_snapshots_recursive(
     path: &Path,
     repo_root: &Path,
+    tracked_paths: &BTreeSet<String>,
     snapshots: &mut Vec<String>,
 ) -> Result<()> {
     if !path.exists() {
@@ -517,7 +528,7 @@ fn collect_readiness_snapshots_recursive(
             .file_type()
             .with_context(|| format!("read file type for {}", entry_path.display()))?;
         if file_type.is_dir() {
-            collect_readiness_snapshots_recursive(&entry_path, repo_root, snapshots)?;
+            collect_readiness_snapshots_recursive(&entry_path, repo_root, tracked_paths, snapshots)?;
             continue;
         }
         if !file_type.is_file() {
@@ -531,11 +542,34 @@ fn collect_readiness_snapshots_recursive(
             .strip_prefix(repo_root)
             .with_context(|| format!("strip repo root from {}", entry_path.display()))?;
         let relative_path = relative_path.display().to_string();
-        if git_check_tracked(repo_root, &relative_path)? {
+        if tracked_paths.contains(relative_path.as_str()) {
             snapshots.push(relative_path);
         }
     }
     Ok(())
+}
+
+fn git_list_tracked_paths(repo_root: &Path) -> Result<BTreeSet<String>> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["ls-files", "-z"])
+        .output()
+        .with_context(|| format!("run git ls-files for {}", repo_root.display()))?;
+    if !output.status.success() {
+        return Err(anyhow!(
+            "git ls-files returned {} for {}: {}",
+            output.status,
+            repo_root.display(),
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    Ok(output
+        .stdout
+        .split(|byte| *byte == b'\0')
+        .filter(|path| !path.is_empty())
+        .map(|path| String::from_utf8_lossy(path).into_owned())
+        .collect())
 }
 
 fn count_regular_files_without_following_symlinks(path: &Path) -> Result<usize> {
