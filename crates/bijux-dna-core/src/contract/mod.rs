@@ -24,9 +24,12 @@ pub use compatibility::{
     SchemaRegistryEntryV1, SchemaSurfaceKindV1,
 };
 pub use execution::{
-    validate_execution_outputs, ArtifactRef, ArtifactRole, ArtifactRoleFamily, ArtifactSpec,
-    ExecutionEdge, ExecutionGraph, ExecutionManifest, ExecutionStep, PlanPolicy, RetryPolicy,
-    RunRecordV1, StageExecutionRecordV1, StageIO,
+    validate_execution_outputs, validate_typed_input_handoffs, ArtifactRef, ArtifactRole,
+    ArtifactRoleFamily, ArtifactSpec, BamArtifact, BamIndexArtifact, DatabaseArtifact,
+    ExecutionEdge, ExecutionGraph, ExecutionManifest, ExecutionStep, FastqArtifact,
+    JsonMetricsArtifact, PanelArtifact, PlanPolicy, ReferenceArtifact, RetryPolicy, RunRecordV1,
+    StageExecutionRecordV1, StageIO, TableArtifact, TypedArtifactKind, TypedArtifactRef,
+    VcfArtifact, VcfIndexArtifact,
 };
 pub use planning::{
     build_plan_manifest, diff_plan_manifests, planner_refusal_from_message,
