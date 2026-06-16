@@ -480,13 +480,14 @@ Visible aliases are part of the operator surface:
   minimum-overlap thresholds, expected outputs, and pairwise skip behavior. The report cross-checks
   the BAM domain-owned routing contract against the local corpus compatibility matrix and the
   governed BAM fixture/config evidence so corpus drift cannot hide behind stage-level labels.
-- `bijux-dna bench readiness render-bam-parser-coverage`
-  `render-bam-parser-coverage` writes `benchmarks/readiness/bam-parser-coverage.tsv` with one
+- `bijux-dna bench readiness render-bam-parser-fixture-coverage`
+  `render-bam-parser-fixture-coverage` writes `benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv` with one
   governed row per BAM stage-tool binding that is already benchmark-ready. Each row carries
-  `parser_coverage`, `parser_status`, `support_status`, `adapter_status`, and `corpus_status`,
-  proving that the benchmark-ready BAM slice stays fully parser-fixture-validated while still
-  reporting any excluded non-benchmark-ready gaps in the JSON summary instead of hiding coverage
-  drift behind aggregate percentages.
+  `parser_fixture_reference_kind`, `parser_fixture_reference`, `coverage_status`,
+  `parser_status`, `support_status`, `adapter_status`, and `reason`, proving that the
+  benchmark-ready BAM slice stays fully parser-fixture-validated while keeping the governed
+  fixture corpus bound to each active row and surfacing any excluded non-benchmark-ready gaps in
+  the JSON summary instead of hiding coverage drift behind aggregate percentages.
 - `bijux-dna bench readiness render-bam-normalized-metrics-schema`
   `render-bam-normalized-metrics-schema` writes
   `benchmarks/schemas/bam-normalized-metrics.v1.json` with the governed JSON Schema contract for
