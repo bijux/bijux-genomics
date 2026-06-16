@@ -649,6 +649,15 @@ Visible aliases are part of the operator surface:
   placement, normalized-schema coverage, and owned local-smoke artifacts together so insert-size
   distribution metrics, pair counts, GC-bin summaries, bias scores, and governed report paths
   stay explicit in the BAM benchmark surface.
+- `bijux-dna bench readiness render-bam-overlap-endogenous-ready`
+  `render-bam-overlap-endogenous-ready` writes
+  `benchmarks/readiness/bam/overlap-endogenous-ready.json` with one governed row each for
+  `bam.overlap_correction` under `bamutil` and `bam.endogenous_content` under `samtools`. Each
+  row ties active-scope proof, command adapter coverage, output declarations, parser coverage,
+  expected benchmark results, report-map placement, normalized-schema coverage, and owned
+  local-smoke artifacts together so corrected overlap counts, corrected overlap bases, mapped
+  reads, total reads, endogenous fractions, and governed report paths stay explicit in the BAM
+  benchmark surface.
 - `bijux-dna bench readiness render-vcf-tool-serving-map`
   `render-vcf-tool-serving-map` writes `benchmarks/readiness/vcf-tool-serving-map.tsv` with one
   governed row per VCF stage-tool matrix binding, carrying `tool_id`, `stage_id`,
