@@ -492,7 +492,13 @@ fn result_row_id(
     sample_scope: &str,
     tool_id: &str,
 ) -> String {
-    format!("{domain}:{fixture_id}:{stage_id}:{sample_scope}:{tool_id}")
+    crate::commands::benchmark::benchmark_result_ids::build_sample_scoped_benchmark_result_id(
+        domain,
+        fixture_id,
+        stage_id,
+        sample_scope,
+        tool_id,
+    )
 }
 
 fn result_root_path(fixture_id: &str, stage_id: &str, sample_scope: &str, tool_id: &str) -> String {

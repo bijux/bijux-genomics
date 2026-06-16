@@ -429,9 +429,12 @@ fn load_committed_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<StageToo
 fn vcf_result_id(
     row: &super::vcf_expected_benchmark_results::VcfExpectedBenchmarkResultRow,
 ) -> String {
-    format!(
-        "{}:{}:{}:{}:{}",
-        row.domain, row.corpus_id, row.stage_id, row.asset_profile_id, row.tool_id
+    crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+        &row.domain,
+        &row.corpus_id,
+        &row.stage_id,
+        &row.asset_profile_id,
+        &row.tool_id,
     )
 }
 
@@ -480,7 +483,7 @@ mod tests {
         assert_eq!(report.schema_version, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH);
         assert_eq!(report.result_id_count, report.row_count);
-        assert_eq!(report.stage_count, 67);
+        assert_eq!(report.stage_count, 68);
         assert_eq!(report.tool_count, 71);
         assert_eq!(report.corpus_count, 10);
         assert_eq!(report.asset_profile_count, 14);

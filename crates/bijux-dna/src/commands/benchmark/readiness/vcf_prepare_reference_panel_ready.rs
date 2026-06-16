@@ -545,21 +545,24 @@ fn ensure_vcf_prepare_reference_panel_ready_contract(
 }
 
 fn retained_result_id(binding: &VcfStageReadinessBinding) -> String {
-    format!(
-        "vcf:{}:{}:{}:{}",
-        binding.retained_row.corpus_id,
-        binding.retained_row.stage_id,
-        binding.retained_row.asset_profile_id,
-        binding.retained_row.tool_id
+    crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+        "vcf",
+        &binding.retained_row.corpus_id,
+        &binding.retained_row.stage_id,
+        &binding.retained_row.asset_profile_id,
+        &binding.retained_row.tool_id,
     )
 }
 
 fn expected_result_id(
     binding: &super::vcf_expected_benchmark_results::VcfExpectedBenchmarkResultRow,
 ) -> String {
-    format!(
-        "vcf:{}:{}:{}:{}",
-        binding.corpus_id, binding.stage_id, binding.asset_profile_id, binding.tool_id
+    crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+        "vcf",
+        &binding.corpus_id,
+        &binding.stage_id,
+        &binding.asset_profile_id,
+        &binding.tool_id,
     )
 }
 

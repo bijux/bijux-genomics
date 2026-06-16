@@ -414,9 +414,12 @@ fn fixture_manifest_path(fake_result_root: &Path, row: &VcfExpectedBenchmarkResu
 }
 
 fn result_row_id(row: &VcfExpectedBenchmarkResultRow) -> String {
-    format!(
-        "{}:{}:{}:{}:{}",
-        row.domain, row.corpus_id, row.stage_id, row.asset_profile_id, row.tool_id
+    crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+        &row.domain,
+        &row.corpus_id,
+        &row.stage_id,
+        &row.asset_profile_id,
+        &row.tool_id,
     )
 }
 

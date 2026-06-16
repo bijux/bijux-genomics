@@ -748,7 +748,13 @@ fn collect_vcf_pca_expected_result_proofs(
             continue;
         }
         rows.push(VcfPcaExpectedResultProof {
-            result_id: format!("vcf:{}:{}:{}:{}", columns[3], columns[1], columns[4], columns[2]),
+            result_id: crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+                "vcf",
+                columns[3],
+                columns[1],
+                columns[4],
+                columns[2],
+            ),
             tool_id: columns[2].to_string(),
             corpus_id: columns[3].to_string(),
             asset_profile_id: columns[4].to_string(),
@@ -955,7 +961,13 @@ fn binding_key(stage_id: &str, tool_id: &str, corpus_id: &str, asset_profile_id:
 }
 
 fn retained_result_id(row: &VcfActiveStageToolMatrixRow) -> String {
-    format!("vcf:{}:{}:{}:{}", row.corpus_id, row.stage_id, row.asset_profile_id, row.tool_id)
+    crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+        "vcf",
+        &row.corpus_id,
+        &row.stage_id,
+        &row.asset_profile_id,
+        &row.tool_id,
+    )
 }
 
 fn contains_artifact_id(entries: &[String], expected_id: &str) -> bool {
