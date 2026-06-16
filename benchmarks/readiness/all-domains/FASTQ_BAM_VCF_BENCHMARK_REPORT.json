@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.bench.readiness.full_benchmark_report.v1",
-  "markdown_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md",
-  "json_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+  "markdown_output_path": "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.md",
+  "json_output_path": "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
   "row_count": 139,
   "expected_result_row_count": 138,
   "explicit_unsupported_row_count": 1,
@@ -3105,7 +3105,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.1670025,
+      "real_smoke_elapsed_seconds": 0.165477458,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -3621,7 +3621,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.044341958,
+      "real_smoke_elapsed_seconds": 0.03913525,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -8367,7 +8367,7 @@
       "row_status": "present",
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.1670025,
+      "real_smoke_elapsed_seconds": 0.165477458,
       "runtime_source": "fake_run_and_real_smoke"
     },
     {
@@ -8576,7 +8576,7 @@
       "row_status": "missing_result",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.044341958,
+      "real_smoke_elapsed_seconds": 0.03913525,
       "runtime_source": "fake_run_and_real_smoke"
     }
   ],
