@@ -277,6 +277,7 @@ pub(crate) fn run_local_vcf_admixture_smoke(
     let stage_result_manifest_path = output_root.join(DEFAULT_STAGE_RESULT_NAME);
     let published_artifacts_root = published_output_root.join("artifacts");
     let published_input_root = published_artifacts_root.join("input");
+    let published_stage_root = published_artifacts_root.join("stage");
     let published_admixture_tsv_path = published_output_root.join(DEFAULT_OUTPUT_TSV_NAME);
     let published_admixture_json_path = published_output_root.join(DEFAULT_OUTPUT_JSON_NAME);
     let published_input_vcf_path = published_input_root.join(DEFAULT_INPUT_VCF_NAME);
@@ -293,6 +294,9 @@ pub(crate) fn run_local_vcf_admixture_smoke(
     let published_source_logs_path = published_output_root.join(DEFAULT_OUTPUT_SOURCE_LOGS_NAME);
     let published_stage_result_manifest_path =
         published_output_root.join(DEFAULT_STAGE_RESULT_NAME);
+    let proxy_eigenval_path = stage_root.join("admixture_proxy_eigenval.tsv");
+    let proxy_eigenval_payload = build_admixture_proxy_eigenval(&cluster_headers, &source_manifest)?;
+    bijux_dna_infra::atomic_write_bytes(&proxy_eigenval_path, proxy_eigenval_payload.as_bytes())?;
     let elapsed_seconds = started.elapsed().as_secs_f64();
     let finished_at = timestamp_marker();
     let report = LocalVcfAdmixtureSmokeReport {
@@ -341,6 +345,83 @@ pub(crate) fn run_local_vcf_admixture_smoke(
         rows,
     };
 
+    let outputs = vec![
+        BenchStageResultOutputV1 {
+            artifact_id: "admixture_tsv".to_string(),
+            declared_path: DEFAULT_OUTPUT_TSV_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_admixture_tsv_path),
+            role: "table_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "admixture_json".to_string(),
+            declared_path: DEFAULT_OUTPUT_JSON_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_admixture_json_path),
+            role: "report_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "source_q_matrix_tsv".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_Q_MATRIX_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_q_matrix_path),
+            role: "table_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "source_k_selection_json".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_K_SELECTION_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_k_selection_path),
+            role: "report_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "source_logs_txt".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
+            role: "log_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "admixture_proxy_eigenvec".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_Q_MATRIX_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_q_matrix_path),
+            role: "table_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "admixture_proxy_eigenval".to_string(),
+            declared_path: "artifacts/stage/admixture_proxy_eigenval.tsv".to_string(),
+            realized_path: path_relative_to_repo(
+                repo_root,
+                &published_stage_root.join("admixture_proxy_eigenval.tsv"),
+            ),
+            role: "table_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "plink2_log".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
+            role: "log_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "admixture_report".to_string(),
+            declared_path: DEFAULT_OUTPUT_JSON_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_admixture_json_path),
+            role: "report_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+    ];
     let stage_result_manifest = BenchStageResultManifestV1 {
         schema_version: BENCH_STAGE_RESULT_SCHEMA_VERSION.to_string(),
         stage_id: contract.stage_id.clone(),
@@ -359,48 +440,7 @@ pub(crate) fn run_local_vcf_admixture_smoke(
             memory_mb: None,
             cpu_threads: None,
         },
-        outputs: vec![
-            BenchStageResultOutputV1 {
-                artifact_id: "admixture_tsv".to_string(),
-                declared_path: DEFAULT_OUTPUT_TSV_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &published_admixture_tsv_path),
-                role: "table_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "admixture_json".to_string(),
-                declared_path: DEFAULT_OUTPUT_JSON_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &published_admixture_json_path),
-                role: "report_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "source_q_matrix_tsv".to_string(),
-                declared_path: DEFAULT_OUTPUT_SOURCE_Q_MATRIX_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &published_source_q_matrix_path),
-                role: "table_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "source_k_selection_json".to_string(),
-                declared_path: DEFAULT_OUTPUT_SOURCE_K_SELECTION_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &published_source_k_selection_path),
-                role: "report_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "source_logs_txt".to_string(),
-                declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
-                role: "log_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-        ],
+        outputs,
     };
     validate_stage_result_manifest(&stage_result_manifest)?;
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;
@@ -416,6 +456,27 @@ pub(crate) fn run_local_vcf_admixture_smoke(
     let _ = staging_dir.keep();
 
     Ok(report)
+}
+
+fn build_admixture_proxy_eigenval(
+    cluster_headers: &[String],
+    source_manifest: &serde_json::Value,
+) -> Result<String> {
+    let selected_k = source_manifest
+        .get("selected_k")
+        .and_then(serde_json::Value::as_u64)
+        .ok_or_else(|| anyhow!("admixture proxy manifest missing `selected_k`"))?;
+    let population_count = source_manifest
+        .get("population_count")
+        .and_then(serde_json::Value::as_u64)
+        .ok_or_else(|| anyhow!("admixture proxy manifest missing `population_count`"))?;
+    let mut lines = vec!["component\tvalue".to_string()];
+    lines.push(format!("selected_k\t{selected_k}"));
+    lines.push(format!("population_count\t{population_count}"));
+    for (index, header) in cluster_headers.iter().enumerate() {
+        lines.push(format!("{header}\t{}", index + 1));
+    }
+    Ok(format!("{}\n", lines.join("\n")))
 }
 
 fn resolve_governed_vcf_admixture_smoke_contract(

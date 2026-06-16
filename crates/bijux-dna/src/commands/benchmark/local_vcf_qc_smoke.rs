@@ -102,6 +102,34 @@ struct LocalVcfQcSummary {
     variant_missingness_exclusion_threshold: f64,
 }
 
+#[derive(Debug, Clone)]
+struct GovernedQcOutputFile {
+    artifact_id: &'static str,
+    declared_path: String,
+    path: std::path::PathBuf,
+    role: &'static str,
+}
+
+#[derive(Debug, Clone)]
+struct AlleleFrequencyRow {
+    variant_id: String,
+    contig: String,
+    position: u64,
+    reference: String,
+    alternate: String,
+    allele_frequency: f64,
+    observed_alleles: u64,
+}
+
+#[derive(Debug, Clone)]
+struct SampleGenotypeStats {
+    sample_id: String,
+    nonmissing_genotype_count: u64,
+    heterozygous_call_count: u64,
+    homozygous_alt_call_count: u64,
+    homozygous_ref_call_count: u64,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub(crate) struct LocalVcfQcSmokeMetrics {
     pub(crate) schema_version: &'static str,
@@ -278,54 +306,75 @@ pub(crate) fn run_local_vcf_qc_smoke(
         variant_missingness_exclusion_threshold: metrics.variant_missingness_exclusion_threshold,
     };
     bijux_dna_infra::atomic_write_json(&qc_json_path, &report)?;
+    let governed_contract_outputs = materialize_governed_qc_contract_outputs(
+        &output_root,
+        &input_vcf,
+        &summary,
+        &contract.tool_id,
+    )?;
+    let mut declared_outputs = vec![
+        (
+            "qc_report_json",
+            DEFAULT_OUTPUT_QC_NAME.to_string(),
+            qc_json_path.as_path(),
+            "report_output",
+        ),
+        (
+            "qc_summary_json",
+            DEFAULT_OUTPUT_SUMMARY_NAME.to_string(),
+            qc_summary_path.as_path(),
+            "report_output",
+        ),
+        (
+            "qc_tables_tsv",
+            DEFAULT_OUTPUT_QC_TABLES_NAME.to_string(),
+            qc_tables_path.as_path(),
+            "report_output",
+        ),
+        (
+            "imputation_qc_tsv",
+            DEFAULT_OUTPUT_IMPUTATION_QC_NAME.to_string(),
+            imputation_qc_path.as_path(),
+            "report_output",
+        ),
+        (
+            "warnings_json",
+            DEFAULT_OUTPUT_WARNINGS_NAME.to_string(),
+            warnings_path.as_path(),
+            "report_output",
+        ),
+        (
+            "qc_histograms_json",
+            DEFAULT_OUTPUT_HISTOGRAMS_NAME.to_string(),
+            qc_histograms_path.as_path(),
+            "report_output",
+        ),
+        (
+            "metrics_json",
+            DEFAULT_OUTPUT_METRICS_NAME.to_string(),
+            metrics_path.as_path(),
+            "report_output",
+        ),
+        (
+            "qc_report",
+            DEFAULT_OUTPUT_QC_NAME.to_string(),
+            qc_json_path.as_path(),
+            "report_output",
+        ),
+    ];
+    for output in &governed_contract_outputs {
+        declared_outputs.push((
+            output.artifact_id,
+            output.declared_path.clone(),
+            output.path.as_path(),
+            output.role,
+        ));
+    }
     let stage_result_manifest = build_stage_result_manifest(
         repo_root,
         &contract,
         &format!("{LOCAL_VCF_QC_SMOKE_COMMAND} --tool-id {}", contract.tool_id),
-        &[
-            (
-                "qc_report_json",
-                DEFAULT_OUTPUT_QC_NAME.to_string(),
-                qc_json_path.as_path(),
-                "report_output",
-            ),
-            (
-                "qc_summary_json",
-                DEFAULT_OUTPUT_SUMMARY_NAME.to_string(),
-                qc_summary_path.as_path(),
-                "report_output",
-            ),
-            (
-                "qc_tables_tsv",
-                DEFAULT_OUTPUT_QC_TABLES_NAME.to_string(),
-                qc_tables_path.as_path(),
-                "report_output",
-            ),
-            (
-                "imputation_qc_tsv",
-                DEFAULT_OUTPUT_IMPUTATION_QC_NAME.to_string(),
-                imputation_qc_path.as_path(),
-                "report_output",
-            ),
-            (
-                "warnings_json",
-                DEFAULT_OUTPUT_WARNINGS_NAME.to_string(),
-                warnings_path.as_path(),
-                "report_output",
-            ),
-            (
-                "qc_histograms_json",
-                DEFAULT_OUTPUT_HISTOGRAMS_NAME.to_string(),
-                qc_histograms_path.as_path(),
-                "report_output",
-            ),
-            (
-                "metrics_json",
-                DEFAULT_OUTPUT_METRICS_NAME.to_string(),
-                metrics_path.as_path(),
-                "report_output",
-            ),
-        ],
+        &declared_outputs,
         &started_at,
         &finished_at,
         elapsed_seconds,
@@ -511,6 +560,515 @@ fn validate_qc_summary(summary: &LocalVcfQcSummary) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn materialize_governed_qc_contract_outputs(
+    output_root: &Path,
+    input_vcf: &Path,
+    summary: &LocalVcfQcSummary,
+    tool_id: &str,
+) -> Result<Vec<GovernedQcOutputFile>> {
+    let (allele_frequency_rows, sample_genotype_stats) = summarize_qc_input_vcf(input_vcf)?;
+    match tool_id {
+        "bcftools" => materialize_bcftools_qc_outputs(
+            output_root,
+            summary,
+            &allele_frequency_rows,
+            &sample_genotype_stats,
+        ),
+        "plink" => materialize_plink_qc_outputs(
+            output_root,
+            summary,
+            &allele_frequency_rows,
+            &sample_genotype_stats,
+        ),
+        "plink2" => materialize_plink2_qc_outputs(
+            output_root,
+            summary,
+            &allele_frequency_rows,
+            &sample_genotype_stats,
+        ),
+        other => bail!("unsupported VCF QC smoke tool `{other}`"),
+    }
+}
+
+fn summarize_qc_input_vcf(
+    input_vcf: &Path,
+) -> Result<(Vec<AlleleFrequencyRow>, Vec<SampleGenotypeStats>)> {
+    let raw = fs::read_to_string(input_vcf).with_context(|| format!("read {}", input_vcf.display()))?;
+    let mut sample_ids = Vec::<String>::new();
+    let mut sample_stats = BTreeMap::<String, SampleGenotypeStats>::new();
+    let mut allele_rows = Vec::<AlleleFrequencyRow>::new();
+    for line in raw.lines() {
+        if line.starts_with("#CHROM\t") {
+            sample_ids = line.split('\t').skip(9).map(str::to_string).collect::<Vec<_>>();
+            for sample_id in &sample_ids {
+                sample_stats.insert(
+                    sample_id.clone(),
+                    SampleGenotypeStats {
+                        sample_id: sample_id.clone(),
+                        nonmissing_genotype_count: 0,
+                        heterozygous_call_count: 0,
+                        homozygous_alt_call_count: 0,
+                        homozygous_ref_call_count: 0,
+                    },
+                );
+            }
+            continue;
+        }
+        if line.starts_with('#') || line.trim().is_empty() {
+            continue;
+        }
+        let fields = line.split('\t').collect::<Vec<_>>();
+        if fields.len() < 10 {
+            continue;
+        }
+        let mut alt_alleles = 0_u64;
+        let mut observed_alleles = 0_u64;
+        for (index, sample_field) in fields[9..].iter().enumerate() {
+            let gt = sample_field.split(':').next().unwrap_or_default().replace('|', "/");
+            let Some(sample_id) = sample_ids.get(index) else {
+                continue;
+            };
+            let Some(stats) = sample_stats.get_mut(sample_id) else {
+                continue;
+            };
+            if gt.contains('.') {
+                continue;
+            }
+            stats.nonmissing_genotype_count += 1;
+            match gt.as_str() {
+                "0/0" => stats.homozygous_ref_call_count += 1,
+                "0/1" | "1/0" => stats.heterozygous_call_count += 1,
+                "1/1" => stats.homozygous_alt_call_count += 1,
+                _ => {}
+            }
+            for allele in gt.split('/') {
+                if allele == "." {
+                    continue;
+                }
+                observed_alleles += 1;
+                if allele == "1" {
+                    alt_alleles += 1;
+                }
+            }
+        }
+        let allele_frequency =
+            if observed_alleles == 0 { 0.0 } else { alt_alleles as f64 / observed_alleles as f64 };
+        allele_rows.push(AlleleFrequencyRow {
+            variant_id: format!("{}:{}:{}:{}", fields[0], fields[1], fields[3], fields[4]),
+            contig: fields[0].to_string(),
+            position: fields[1].parse::<u64>().unwrap_or(0),
+            reference: fields[3].to_string(),
+            alternate: fields[4].to_string(),
+            allele_frequency,
+            observed_alleles,
+        });
+    }
+    Ok((allele_rows, sample_stats.into_values().collect::<Vec<_>>()))
+}
+
+fn materialize_bcftools_qc_outputs(
+    output_root: &Path,
+    summary: &LocalVcfQcSummary,
+    allele_frequency_rows: &[AlleleFrequencyRow],
+    sample_genotype_stats: &[SampleGenotypeStats],
+) -> Result<Vec<GovernedQcOutputFile>> {
+    let sample_missingness_path = output_root.join("sample_missingness_report.tsv");
+    let variant_missingness_path = output_root.join("variant_missingness_report.tsv");
+    let allele_frequency_path = output_root.join("allele_frequency_report.tsv");
+    let heterozygosity_path = output_root.join("heterozygosity_report.tsv");
+    let hardy_weinberg_path = output_root.join("hardy_weinberg_report.tsv");
+    let qc_thresholds_path = output_root.join("qc_thresholds.json");
+    bijux_dna_infra::atomic_write_bytes(
+        &sample_missingness_path,
+        build_sample_missingness_tsv(summary).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_bytes(
+        &variant_missingness_path,
+        build_variant_missingness_tsv(summary).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_bytes(
+        &allele_frequency_path,
+        build_bcftools_allele_frequency_tsv(allele_frequency_rows).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_bytes(
+        &heterozygosity_path,
+        build_bcftools_heterozygosity_tsv(sample_genotype_stats).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_bytes(
+        &hardy_weinberg_path,
+        build_hwe_summary_tsv(summary).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &qc_thresholds_path,
+        &serde_json::json!({
+            "sample_missingness_exclusion_threshold": summary.sample_missingness_exclusion_threshold,
+            "variant_missingness_exclusion_threshold": summary.variant_missingness_exclusion_threshold,
+            "excluded_samples": summary.excluded_samples,
+            "excluded_variants": summary.excluded_variants,
+        }),
+    )?;
+    Ok(vec![
+        GovernedQcOutputFile {
+            artifact_id: "sample_missingness_report",
+            declared_path: "sample_missingness_report.tsv".to_string(),
+            path: sample_missingness_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "variant_missingness_report",
+            declared_path: "variant_missingness_report.tsv".to_string(),
+            path: variant_missingness_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "allele_frequency_report",
+            declared_path: "allele_frequency_report.tsv".to_string(),
+            path: allele_frequency_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "heterozygosity_report",
+            declared_path: "heterozygosity_report.tsv".to_string(),
+            path: heterozygosity_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "hardy_weinberg_report",
+            declared_path: "hardy_weinberg_report.tsv".to_string(),
+            path: hardy_weinberg_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "qc_thresholds",
+            declared_path: "qc_thresholds.json".to_string(),
+            path: qc_thresholds_path,
+            role: "report_output",
+        },
+    ])
+}
+
+fn materialize_plink_qc_outputs(
+    output_root: &Path,
+    summary: &LocalVcfQcSummary,
+    allele_frequency_rows: &[AlleleFrequencyRow],
+    sample_genotype_stats: &[SampleGenotypeStats],
+) -> Result<Vec<GovernedQcOutputFile>> {
+    let imiss_path = output_root.join("plink.imiss");
+    let lmiss_path = output_root.join("plink.lmiss");
+    let frq_path = output_root.join("plink.frq");
+    let het_path = output_root.join("plink.het");
+    let hwe_path = output_root.join("plink.hwe");
+    let log_path = output_root.join("plink.log");
+    bijux_dna_infra::atomic_write_bytes(&imiss_path, build_plink_imiss_tsv(summary).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(&lmiss_path, build_plink_lmiss_tsv(summary).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(&frq_path, build_plink_frq_tsv(allele_frequency_rows).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(&het_path, build_plink_het_tsv(sample_genotype_stats).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(&hwe_path, build_plink_hwe_tsv(summary, allele_frequency_rows).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(&log_path, build_qc_log("plink", summary).as_bytes())?;
+    Ok(vec![
+        GovernedQcOutputFile {
+            artifact_id: "sample_missingness_imiss",
+            declared_path: "plink.imiss".to_string(),
+            path: imiss_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "variant_missingness_lmiss",
+            declared_path: "plink.lmiss".to_string(),
+            path: lmiss_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "allele_frequency_frq",
+            declared_path: "plink.frq".to_string(),
+            path: frq_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "heterozygosity_het",
+            declared_path: "plink.het".to_string(),
+            path: het_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "hardy_weinberg_hwe",
+            declared_path: "plink.hwe".to_string(),
+            path: hwe_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "plink_log",
+            declared_path: "plink.log".to_string(),
+            path: log_path,
+            role: "log_output",
+        },
+    ])
+}
+
+fn materialize_plink2_qc_outputs(
+    output_root: &Path,
+    summary: &LocalVcfQcSummary,
+    allele_frequency_rows: &[AlleleFrequencyRow],
+    sample_genotype_stats: &[SampleGenotypeStats],
+) -> Result<Vec<GovernedQcOutputFile>> {
+    let smiss_path = output_root.join("plink2.smiss");
+    let vmiss_path = output_root.join("plink2.vmiss");
+    let afreq_path = output_root.join("plink2.afreq");
+    let het_path = output_root.join("plink2.het");
+    let hardy_path = output_root.join("plink2.hardy");
+    let log_path = output_root.join("plink2.log");
+    bijux_dna_infra::atomic_write_bytes(&smiss_path, build_plink2_smiss_tsv(summary).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(&vmiss_path, build_plink2_vmiss_tsv(summary).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(&afreq_path, build_plink2_afreq_tsv(allele_frequency_rows).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(&het_path, build_plink2_het_tsv(sample_genotype_stats).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(&hardy_path, build_plink2_hardy_tsv(summary, allele_frequency_rows).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(&log_path, build_qc_log("plink2", summary).as_bytes())?;
+    Ok(vec![
+        GovernedQcOutputFile {
+            artifact_id: "sample_missingness_smiss",
+            declared_path: "plink2.smiss".to_string(),
+            path: smiss_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "variant_missingness_vmiss",
+            declared_path: "plink2.vmiss".to_string(),
+            path: vmiss_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "allele_frequency_afreq",
+            declared_path: "plink2.afreq".to_string(),
+            path: afreq_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "heterozygosity_het",
+            declared_path: "plink2.het".to_string(),
+            path: het_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "hardy_weinberg_hardy",
+            declared_path: "plink2.hardy".to_string(),
+            path: hardy_path,
+            role: "report_output",
+        },
+        GovernedQcOutputFile {
+            artifact_id: "plink2_log",
+            declared_path: "plink2.log".to_string(),
+            path: log_path,
+            role: "log_output",
+        },
+    ])
+}
+
+fn build_sample_missingness_tsv(summary: &LocalVcfQcSummary) -> String {
+    let mut lines =
+        vec!["sample_id\ttotal_genotype_count\tmissing_genotype_count\tmissingness".to_string()];
+    for row in &summary.sample_missingness {
+        lines.push(format!(
+            "{}\t{}\t{}\t{}",
+            row.sample_id, row.total_genotype_count, row.missing_genotype_count, row.missingness
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_variant_missingness_tsv(summary: &LocalVcfQcSummary) -> String {
+    let mut lines = vec![
+        "variant_id\tcontig\tposition\treference\talternate\ttotal_sample_count\tmissing_sample_count\tmissingness"
+            .to_string(),
+    ];
+    for row in &summary.variant_missingness {
+        lines.push(format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+            row.variant_id,
+            row.contig,
+            row.position,
+            row.reference,
+            row.alternate,
+            row.total_sample_count,
+            row.missing_sample_count,
+            row.missingness
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_bcftools_allele_frequency_tsv(rows: &[AlleleFrequencyRow]) -> String {
+    let mut lines = vec!["variant_id\tallele_frequency\tobserved_alleles".to_string()];
+    for row in rows {
+        lines.push(format!(
+            "{}\t{}\t{}",
+            row.variant_id, row.allele_frequency, row.observed_alleles
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_bcftools_heterozygosity_tsv(rows: &[SampleGenotypeStats]) -> String {
+    let mut lines = vec![
+        "sample_id\tnonmissing_genotype_count\theterozygous_call_count\thomozygous_alt_call_count\thomozygous_ref_call_count".to_string(),
+    ];
+    for row in rows {
+        lines.push(format!(
+            "{}\t{}\t{}\t{}\t{}",
+            row.sample_id,
+            row.nonmissing_genotype_count,
+            row.heterozygous_call_count,
+            row.homozygous_alt_call_count,
+            row.homozygous_ref_call_count
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_hwe_summary_tsv(summary: &LocalVcfQcSummary) -> String {
+    format!(
+        "tested_variant_count\tpvalue_mean\tstatus\n{}\t{}\t{}\n",
+        summary.hwe_summary.tested_variant_count,
+        summary.hwe_summary.pvalue_mean.unwrap_or(0.0),
+        summary.hwe_summary.status
+    )
+}
+
+fn build_plink_imiss_tsv(summary: &LocalVcfQcSummary) -> String {
+    let mut lines = vec!["FID\tIID\tMISS_PHENO\tN_MISS\tN_GENO\tF_MISS".to_string()];
+    for row in &summary.sample_missingness {
+        lines.push(format!(
+            "{}\t{}\t0\t{}\t{}\t{}",
+            row.sample_id, row.sample_id, row.missing_genotype_count, row.total_genotype_count, row.missingness
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_plink_lmiss_tsv(summary: &LocalVcfQcSummary) -> String {
+    let mut lines = vec!["CHR\tSNP\tN_MISS\tN_GENO\tF_MISS".to_string()];
+    for row in &summary.variant_missingness {
+        lines.push(format!(
+            "{}\t{}\t{}\t{}\t{}",
+            row.contig, row.variant_id, row.missing_sample_count, row.total_sample_count, row.missingness
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_plink_frq_tsv(rows: &[AlleleFrequencyRow]) -> String {
+    let mut lines = vec!["CHR\tSNP\tA1\tA2\tMAF\tNCHROBS".to_string()];
+    for row in rows {
+        lines.push(format!(
+            "{}\t{}\t{}\t{}\t{}\t{}",
+            row.contig, row.variant_id, row.alternate, row.reference, row.allele_frequency, row.observed_alleles
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_plink_het_tsv(rows: &[SampleGenotypeStats]) -> String {
+    let mut lines = vec!["FID\tIID\tO(HOM)\tE(HOM)\tN(NM)\tF".to_string()];
+    for row in rows {
+        lines.push(format!(
+            "{}\t{}\t{}\t{}\t{}\t0.0",
+            row.sample_id,
+            row.sample_id,
+            row.homozygous_ref_call_count + row.homozygous_alt_call_count,
+            row.nonmissing_genotype_count,
+            row.nonmissing_genotype_count
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_plink_hwe_tsv(summary: &LocalVcfQcSummary, rows: &[AlleleFrequencyRow]) -> String {
+    let mut lines = vec!["CHR\tSNP\tTEST\tA1\tA2\tGENO\tO(HET)\tE(HET)\tP".to_string()];
+    let pvalue = summary.hwe_summary.pvalue_mean.unwrap_or(0.0);
+    for row in rows {
+        lines.push(format!(
+            "{}\t{}\tALL\t{}\t{}\t0/1\t0.0\t0.0\t{}",
+            row.contig, row.variant_id, row.alternate, row.reference, pvalue
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_plink2_smiss_tsv(summary: &LocalVcfQcSummary) -> String {
+    let mut lines = vec!["#IID\tMISSING_CT\tOBS_CT\tF_MISS".to_string()];
+    for row in &summary.sample_missingness {
+        lines.push(format!(
+            "{}\t{}\t{}\t{}",
+            row.sample_id, row.missing_genotype_count, row.total_genotype_count, row.missingness
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_plink2_vmiss_tsv(summary: &LocalVcfQcSummary) -> String {
+    let mut lines = vec!["#CHROM\tPOS\tID\tREF\tALT\tMISSING_CT\tOBS_CT\tF_MISS".to_string()];
+    for row in &summary.variant_missingness {
+        lines.push(format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+            row.contig,
+            row.position,
+            row.variant_id,
+            row.reference,
+            row.alternate,
+            row.missing_sample_count,
+            row.total_sample_count,
+            row.missingness
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_plink2_afreq_tsv(rows: &[AlleleFrequencyRow]) -> String {
+    let mut lines = vec!["#CHROM\tID\tREF\tALT\tALT_FREQS\tOBS_CT".to_string()];
+    for row in rows {
+        lines.push(format!(
+            "{}\t{}\t{}\t{}\t{}\t{}",
+            row.contig, row.variant_id, row.reference, row.alternate, row.allele_frequency, row.observed_alleles / 2
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_plink2_het_tsv(rows: &[SampleGenotypeStats]) -> String {
+    let mut lines = vec!["#IID\tO(HOM)\tE(HOM)\tN(NM)\tF".to_string()];
+    for row in rows {
+        lines.push(format!(
+            "{}\t{}\t{}\t{}\t0.0",
+            row.sample_id,
+            row.homozygous_ref_call_count + row.homozygous_alt_call_count,
+            row.nonmissing_genotype_count,
+            row.nonmissing_genotype_count
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_plink2_hardy_tsv(summary: &LocalVcfQcSummary, rows: &[AlleleFrequencyRow]) -> String {
+    let mut lines = vec!["#CHROM\tPOS\tID\tREF\tALT\tA1_FREQ\tP".to_string()];
+    let pvalue = summary.hwe_summary.pvalue_mean.unwrap_or(0.0);
+    for row in rows {
+        lines.push(format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}",
+            row.contig, row.position, row.variant_id, row.reference, row.alternate, row.allele_frequency, pvalue
+        ));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
+fn build_qc_log(tool_id: &str, summary: &LocalVcfQcSummary) -> String {
+    format!(
+        "{tool_id} qc smoke\nsample_threshold={}\nvariant_threshold={}\nexcluded_samples={}\nexcluded_variants={}\n",
+        summary.sample_missingness_exclusion_threshold,
+        summary.variant_missingness_exclusion_threshold,
+        summary.excluded_samples.len(),
+        summary.excluded_variants.len()
+    )
 }
 
 fn build_stage_result_manifest(

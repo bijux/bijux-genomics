@@ -23,9 +23,14 @@ const LOCAL_VCF_IMPUTATION_METRICS_COMMAND: &str =
     "bijux-dna bench local run-vcf-imputation-metrics-smoke";
 const LOCAL_VCF_IMPUTATION_METRICS_STAGE_ID: &str = "vcf.imputation_metrics";
 const DEFAULT_OUTPUT_REPORT_NAME: &str = "imputation_metrics.json";
+const DEFAULT_OUTPUT_SOURCE_VCF_NAME: &str = "source_imputed.vcf.gz";
+const DEFAULT_OUTPUT_SOURCE_TBI_NAME: &str = "source_imputed.vcf.gz.tbi";
+const DEFAULT_OUTPUT_SOURCE_ACCEPT_NAME: &str = "source_imputation_accept.json";
 const DEFAULT_OUTPUT_SOURCE_QC_NAME: &str = "source_imputation_qc.json";
 const DEFAULT_OUTPUT_SOURCE_SMOKE_NAME: &str = "source_impute_smoke_metrics.json";
 const DEFAULT_OUTPUT_SOURCE_MANIFEST_NAME: &str = "source_imputation_manifest.json";
+const DEFAULT_OUTPUT_SOURCE_LOGS_NAME: &str = "source_logs.txt";
+const DEFAULT_OUTPUT_ORCHESTRATION_MANIFEST_NAME: &str = "orchestration_manifest.json";
 const DEFAULT_STAGE_RESULT_NAME: &str = "stage-result.json";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -108,12 +113,44 @@ pub(crate) fn run_local_vcf_imputation_metrics_smoke(
         .with_context(|| format!("create {}", output_root.display()))?;
 
     let source_imputation_qc_source = repo_root.join(&source_report.imputation_qc_path);
+    let source_imputed_vcf_source = repo_root.join(&source_report.output_vcf_path);
+    let source_imputed_tbi_source = repo_root.join(&source_report.output_tbi_path);
+    let source_imputation_accept_source = repo_root.join(&source_report.imputation_accept_path);
     let source_impute_smoke_metrics_source = repo_root.join(&source_report.metrics_path);
     let source_imputation_manifest_source = repo_root.join(&source_report.imputation_manifest_path);
+    let source_logs_source = repo_root.join(&source_report.logs_path);
+    let source_imputed_vcf_path = output_root.join(DEFAULT_OUTPUT_SOURCE_VCF_NAME);
+    let source_imputed_tbi_path = output_root.join(DEFAULT_OUTPUT_SOURCE_TBI_NAME);
+    let source_imputation_accept_path = output_root.join(DEFAULT_OUTPUT_SOURCE_ACCEPT_NAME);
     let source_imputation_qc_path = output_root.join(DEFAULT_OUTPUT_SOURCE_QC_NAME);
     let source_impute_smoke_metrics_path = output_root.join(DEFAULT_OUTPUT_SOURCE_SMOKE_NAME);
     let source_imputation_manifest_path = output_root.join(DEFAULT_OUTPUT_SOURCE_MANIFEST_NAME);
+    let source_logs_path = output_root.join(DEFAULT_OUTPUT_SOURCE_LOGS_NAME);
+    let orchestration_manifest_path = output_root.join(DEFAULT_OUTPUT_ORCHESTRATION_MANIFEST_NAME);
 
+    fs::copy(&source_imputed_vcf_source, &source_imputed_vcf_path).with_context(|| {
+        format!(
+            "copy {} to {}",
+            source_imputed_vcf_source.display(),
+            source_imputed_vcf_path.display()
+        )
+    })?;
+    fs::copy(&source_imputed_tbi_source, &source_imputed_tbi_path).with_context(|| {
+        format!(
+            "copy {} to {}",
+            source_imputed_tbi_source.display(),
+            source_imputed_tbi_path.display()
+        )
+    })?;
+    fs::copy(&source_imputation_accept_source, &source_imputation_accept_path).with_context(
+        || {
+            format!(
+                "copy {} to {}",
+                source_imputation_accept_source.display(),
+                source_imputation_accept_path.display()
+            )
+        },
+    )?;
     fs::copy(&source_imputation_qc_source, &source_imputation_qc_path).with_context(|| {
         format!(
             "copy {} to {}",
@@ -139,6 +176,9 @@ pub(crate) fn run_local_vcf_imputation_metrics_smoke(
             )
         },
     )?;
+    fs::copy(&source_logs_source, &source_logs_path).with_context(|| {
+        format!("copy {} to {}", source_logs_source.display(), source_logs_path.display())
+    })?;
 
     let started_at = timestamp_marker();
     let started = Instant::now();
@@ -188,6 +228,24 @@ pub(crate) fn run_local_vcf_imputation_metrics_smoke(
         status: summary.status.clone(),
     };
     bijux_dna_infra::atomic_write_json(&imputation_metrics_path, &report_payload)?;
+    let orchestration_manifest = serde_json::json!({
+        "schema_version": "bijux.bench.local_vcf_imputation_metrics_orchestration.v1",
+        "stage_id": LOCAL_VCF_IMPUTATION_METRICS_STAGE_ID,
+        "tool_id": source_report.tool_id,
+        "source_stage_id": source_report.stage_id,
+        "status": summary.status,
+        "input_fixture_id": source_report.input_fixture_id,
+        "paths": {
+            "imputed_vcf": path_relative_to_repo(repo_root, &source_imputed_vcf_path),
+            "imputed_tbi": path_relative_to_repo(repo_root, &source_imputed_tbi_path),
+            "imputation_qc_json": path_relative_to_repo(repo_root, &source_imputation_qc_path),
+            "imputation_accept_json": path_relative_to_repo(repo_root, &source_imputation_accept_path),
+            "imputation_manifest_json": path_relative_to_repo(repo_root, &source_imputation_manifest_path),
+            "logs_txt": path_relative_to_repo(repo_root, &source_logs_path),
+            "imputation_metrics_json": path_relative_to_repo(repo_root, &imputation_metrics_path)
+        }
+    });
+    bijux_dna_infra::atomic_write_json(&orchestration_manifest_path, &orchestration_manifest)?;
 
     let elapsed_seconds = started.elapsed().as_secs_f64();
     let finished_at = timestamp_marker();
@@ -217,6 +275,22 @@ pub(crate) fn run_local_vcf_imputation_metrics_smoke(
         },
         outputs: vec![
             BenchStageResultOutputV1 {
+                artifact_id: "imputed_vcf".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_VCF_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &source_imputed_vcf_path),
+                role: "vcf_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "imputed_tbi".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_TBI_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &source_imputed_tbi_path),
+                role: "index_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
                 artifact_id: "imputation_metrics_json".to_string(),
                 declared_path: DEFAULT_OUTPUT_REPORT_NAME.to_string(),
                 realized_path: path_relative_to_repo(repo_root, &imputation_metrics_path),
@@ -225,9 +299,41 @@ pub(crate) fn run_local_vcf_imputation_metrics_smoke(
                 exists: true,
             },
             BenchStageResultOutputV1 {
-                artifact_id: "source_imputation_qc_json".to_string(),
+                artifact_id: "imputation_qc_json".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_QC_NAME.to_string(),
                 realized_path: path_relative_to_repo(repo_root, &source_imputation_qc_path),
+                role: "report_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "imputation_accept_json".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_ACCEPT_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &source_imputation_accept_path),
+                role: "report_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "imputation_manifest_json".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_MANIFEST_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &source_imputation_manifest_path),
+                role: "report_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "logs_txt".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &source_logs_path),
+                role: "log_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "orchestration_manifest_json".to_string(),
+                declared_path: DEFAULT_OUTPUT_ORCHESTRATION_MANIFEST_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &orchestration_manifest_path),
                 role: "report_output".to_string(),
                 optional: false,
                 exists: true,
@@ -236,14 +342,6 @@ pub(crate) fn run_local_vcf_imputation_metrics_smoke(
                 artifact_id: "source_impute_smoke_metrics_json".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_SMOKE_NAME.to_string(),
                 realized_path: path_relative_to_repo(repo_root, &source_impute_smoke_metrics_path),
-                role: "report_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "source_imputation_manifest_json".to_string(),
-                declared_path: DEFAULT_OUTPUT_SOURCE_MANIFEST_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &source_imputation_manifest_path),
                 role: "report_output".to_string(),
                 optional: false,
                 exists: true,
