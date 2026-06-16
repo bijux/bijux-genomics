@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.output_contract_tests.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
   "row_count": 140,
-  "passed_row_count": 26,
-  "failed_row_count": 114,
+  "passed_row_count": 71,
+  "failed_row_count": 69,
   "domain_counts": {
     "bam": 49,
     "fastq": 71,
@@ -21,45 +21,25 @@
     "bam.authenticity",
     "bam.bias_mitigation",
     "bam.contamination",
-    "bam.coverage",
     "bam.damage",
-    "bam.duplication_metrics",
-    "bam.endogenous_content",
-    "bam.filter",
-    "bam.gc_bias",
     "bam.genotyping",
     "bam.haplogroups",
-    "bam.insert_size",
     "bam.kinship",
-    "bam.length_filter",
-    "bam.mapping_summary",
-    "bam.mapq_filter",
-    "bam.markdup",
     "bam.qc_pre",
     "bam.sex",
-    "bam.validate",
-    "fastq.cluster_otus",
     "fastq.correct_errors",
     "fastq.deplete_host",
     "fastq.deplete_reference_contaminants",
     "fastq.deplete_rrna",
-    "fastq.detect_adapters",
     "fastq.filter_low_complexity",
     "fastq.filter_reads",
     "fastq.index_reference",
-    "fastq.merge_pairs",
-    "fastq.normalize_abundance",
     "fastq.normalize_primers",
-    "fastq.profile_overrepresented_sequences",
-    "fastq.profile_read_lengths",
-    "fastq.profile_reads",
-    "fastq.remove_chimeras",
     "fastq.report_qc",
     "fastq.screen_taxonomy",
     "fastq.trim_polyg_tails",
     "fastq.trim_reads",
     "fastq.trim_terminal_damage",
-    "fastq.validate_reads",
     "vcf.admixture",
     "vcf.call",
     "vcf.call_diploid",
@@ -81,12 +61,10 @@
     "adapterremoval",
     "addeam",
     "angsd",
-    "bamtools",
     "bayeshammer",
     "bbduk",
     "bcftools",
     "beagle",
-    "bedtools",
     "bowtie2",
     "bowtie2_build",
     "bwa",
@@ -96,19 +74,15 @@
     "damageprofiler",
     "eigensoft",
     "fastp",
-    "fastq_scan",
-    "fastqc",
     "kaiju",
     "king",
     "kraken2",
     "krakenuniq",
-    "leehom",
     "lighter",
     "mapdamage2",
     "multiqc",
     "musket",
     "ngsbriggs",
-    "picard",
     "plink",
     "plink2",
     "pmdtools",
@@ -116,16 +90,12 @@
     "pydamage",
     "rcorrector",
     "rxy",
-    "samtools",
     "schmutzi",
-    "seqfu",
     "seqkit",
-    "seqkit_stats",
     "shapeit5",
     "sortmerna",
     "star",
     "verifybamid2",
-    "vsearch",
     "yleaf"
   ],
   "rows": [
@@ -332,10 +302,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:pmdtools",
@@ -388,10 +358,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.bias_mitigation:sample-set:mapdamage2",
@@ -435,10 +405,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": false,
       "passed": false,
-      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.complexity:sample-set:preseq",
@@ -686,10 +656,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.coverage` / `bedtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.coverage:sample-set:mosdepth",
@@ -794,10 +764,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.coverage` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:addeam",
@@ -912,10 +882,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:mapdamage2",
@@ -971,10 +941,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
@@ -1089,10 +1059,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pydamage",
@@ -1204,10 +1174,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.duplication_metrics` / `picard` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.duplication_metrics:sample-set:samtools",
@@ -1261,10 +1231,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.duplication_metrics` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.endogenous_content:sample-set:samtools",
@@ -1315,10 +1285,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.endogenous_content` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.filter:sample-set:bamtools",
@@ -1384,10 +1354,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.filter` / `bamtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.filter:sample-set:bedtools",
@@ -1453,10 +1423,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.filter` / `bedtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.filter:sample-set:samtools",
@@ -1522,10 +1492,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.filter` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.gc_bias:sample-set:picard",
@@ -1579,10 +1549,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.gc_bias` / `picard` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd",
@@ -1625,10 +1595,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": false,
       "passed": false,
-      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.haplogroups:sample-set:yleaf",
@@ -1671,10 +1641,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": false,
       "passed": false,
-      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.insert_size:sample-set:picard",
@@ -1728,10 +1698,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.insert_size` / `picard` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
@@ -1774,10 +1744,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": false,
       "passed": false,
-      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
     },
     {
       "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
@@ -1888,10 +1858,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.length_filter` / `picard` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.length_filter:sample-set:samtools",
@@ -1957,10 +1927,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.length_filter` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:picard",
@@ -2017,10 +1987,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.mapping_summary` / `picard` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:samtools",
@@ -2077,10 +2047,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.mapping_summary` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.mapq_filter:sample-set:bamtools",
@@ -2146,10 +2116,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.mapq_filter` / `bamtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.mapq_filter:sample-set:samtools",
@@ -2215,10 +2185,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.mapq_filter` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.markdup:sample-set:picard",
@@ -2284,10 +2254,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.markdup` / `picard` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.markdup:sample-set:samtools",
@@ -2353,10 +2323,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.markdup` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.overlap_correction:sample-set:bamutil",
@@ -2473,10 +2443,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.qc_pre:sample-set:samtools",
@@ -2530,10 +2500,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.qc_pre` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.recalibration:sample-set:gatk",
@@ -2645,10 +2615,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:rxy",
@@ -2755,10 +2725,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.validate:sample-set:bamtools",
@@ -2812,10 +2782,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.validate` / `bamtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.validate:sample-set:bedtools",
@@ -2869,10 +2839,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.validate` / `bedtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.validate:sample-set:samtools",
@@ -2926,10 +2896,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `bam.validate` / `samtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-03-amplicon-mini:fastq.cluster_otus:sample-set:vsearch",
@@ -2986,10 +2956,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.cluster_otus` / `vsearch` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.correct_errors:sample-set:bayeshammer",
@@ -3213,10 +3183,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": false,
       "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.deplete_reference_contaminants:sample-set:bowtie2",
@@ -3258,10 +3228,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": false,
       "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.deplete_rrna:sample-set:sortmerna",
@@ -3361,10 +3331,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.detect_adapters` / `fastqc` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna",
@@ -3569,10 +3539,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:fastp",
@@ -3673,10 +3643,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.filter_reads:sample-set:bbduk",
@@ -3725,10 +3695,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.filter_reads:sample-set:fastp",
@@ -3829,10 +3799,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.filter_reads:sample-set:seqkit",
@@ -3881,10 +3851,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
@@ -4089,10 +4059,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.merge_pairs` / `adapterremoval` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.merge_pairs:sample-set:bbmerge",
@@ -4269,10 +4239,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.merge_pairs` / `leehom` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.merge_pairs:sample-set:pear",
@@ -4389,10 +4359,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.merge_pairs` / `vsearch` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-03-amplicon-mini:fastq.normalize_abundance:sample-set:seqkit",
@@ -4440,10 +4410,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.normalize_abundance` / `seqkit` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-03-amplicon-mini:fastq.normalize_primers:sample-set:cutadapt",
@@ -4498,10 +4468,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan",
@@ -4552,10 +4522,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.profile_overrepresented_sequences` / `fastq_scan` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc",
@@ -4606,10 +4576,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.profile_overrepresented_sequences` / `fastqc` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit",
@@ -4660,10 +4630,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.profile_overrepresented_sequences` / `seqkit` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp",
@@ -4774,10 +4744,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.profile_read_lengths` / `prinseq` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqfu",
@@ -4831,10 +4801,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.profile_read_lengths` / `seqfu` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit_stats",
@@ -4888,10 +4858,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.profile_read_lengths` / `seqkit_stats` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqfu",
@@ -4941,10 +4911,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.profile_reads` / `seqfu` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqkit",
@@ -4994,10 +4964,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.profile_reads` / `seqkit` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqkit_stats",
@@ -5051,10 +5021,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.profile_reads` / `seqkit_stats` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-03-amplicon-mini:fastq.remove_chimeras:sample-set:vsearch",
@@ -5111,10 +5081,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.remove_chimeras` / `vsearch` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:clumpify",
@@ -5508,10 +5478,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_polyg_tails:sample-set:fastp",
@@ -5619,10 +5589,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.trim_reads` / `adapterremoval` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:alientrimmer",
@@ -5788,10 +5758,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:cutadapt",
@@ -5848,10 +5818,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.trim_reads` / `cutadapt` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:fastp",
@@ -6020,10 +5990,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.trim_reads` / `leehom` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:prinseq",
@@ -6076,10 +6046,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.trim_reads` / `prinseq` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:seqkit",
@@ -6132,10 +6102,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.trim_reads` / `seqkit` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:skewer",
@@ -6353,10 +6323,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:cutadapt",
@@ -6406,10 +6376,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit",
@@ -6458,10 +6428,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; observed outputs include undeclared artifact ids"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastq_scan",
@@ -6511,10 +6481,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.validate_reads` / `fastq_scan` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqc",
@@ -6564,10 +6534,10 @@
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
-      "no_undeclared_outputs": false,
+      "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "observed outputs include undeclared artifact ids"
+      "passed": true,
+      "reason": "binding `fastq.validate_reads` / `fastqc` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqvalidator",
