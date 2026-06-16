@@ -13,9 +13,12 @@ use super::fastq_command_adapter_coverage::{
     collect_fastq_command_adapter_coverage_rows, FastqBenchmarkStatus,
 };
 use crate::commands::benchmark::local_corpus_fixture::bam::{
-    validate_bam_corpus_fixture_manifest_path, DEFAULT_CORPUS_01_KINSHIP_MINI_MANIFEST_PATH,
+    validate_bam_corpus_fixture_manifest_path, DEFAULT_CORPUS_01_ADNA_BAM_MINI_MANIFEST_PATH,
+    DEFAULT_CORPUS_01_GENOTYPING_MINI_MANIFEST_PATH, DEFAULT_CORPUS_01_KINSHIP_MINI_MANIFEST_PATH,
 };
-use crate::commands::benchmark::local_stage_commands::collect_local_stage_plan_bundles;
+use crate::commands::benchmark::local_stage_commands::{
+    collect_local_stage_plan_bundles, local_stage_plans,
+};
 use crate::commands::benchmark::local_stage_inventory::BenchLocalDomain;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -31,6 +34,20 @@ const STAGE_TOOL_ASSETS_DECLARATION_ORIGIN: &str =
 
 #[derive(Debug, Clone)]
 struct BamKinshipAssetContract {
+    reference_fasta: PathBuf,
+    reference_panel: String,
+    reference_panel_path: PathBuf,
+}
+
+#[derive(Debug, Clone)]
+struct BamGenotypingAssetContract {
+    reference_fasta: PathBuf,
+    sites_vcf: PathBuf,
+    regions: PathBuf,
+}
+
+#[derive(Debug, Clone)]
+struct BamHaplogroupAssetContract {
     reference_fasta: PathBuf,
     reference_panel: String,
     reference_panel_path: PathBuf,
@@ -132,9 +149,33 @@ pub(crate) fn render_stage_tool_assets(
 
 pub(crate) fn collect_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<StageToolAssetRow>> {
     let fastq_base_plans = canonical_stage_plan_map(repo_root, BenchLocalDomain::Fastq)?;
-    let bam_base_plans = canonical_stage_plan_map(repo_root, BenchLocalDomain::Bam)?;
     let (_, _, fastq_rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;
     let (_, _, bam_rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;
+    let bam_base_plans = canonical_bam_stage_plan_map(repo_root, &bam_rows)?;
+    let genotyping_fixture = validate_bam_corpus_fixture_manifest_path(
+        repo_root,
+        &repo_root.join(DEFAULT_CORPUS_01_GENOTYPING_MINI_MANIFEST_PATH),
+    )?;
+    let genotyping_contract = genotyping_fixture.genotyping_contract.as_ref().ok_or_else(|| {
+        anyhow!("BAM genotyping asset coverage requires a governed genotyping fixture contract")
+    })?;
+    let genotyping_assets = BamGenotypingAssetContract {
+        reference_fasta: normalize_report_path(repo_root, &genotyping_fixture.reference_fasta)?,
+        sites_vcf: normalize_report_path(repo_root, &genotyping_contract.sites_vcf)?,
+        regions: normalize_report_path(repo_root, &genotyping_contract.regions)?,
+    };
+    let adna_fixture = validate_bam_corpus_fixture_manifest_path(
+        repo_root,
+        &repo_root.join(DEFAULT_CORPUS_01_ADNA_BAM_MINI_MANIFEST_PATH),
+    )?;
+    let haplogroup_assets = BamHaplogroupAssetContract {
+        reference_fasta: normalize_report_path(repo_root, &adna_fixture.reference_fasta)?,
+        reference_panel: "adna-y-hg38-mini".to_string(),
+        reference_panel_path: normalize_report_path(
+            repo_root,
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
+        )?,
+    };
     let kinship_fixture = validate_bam_corpus_fixture_manifest_path(
         repo_root,
         &repo_root.join(DEFAULT_CORPUS_01_KINSHIP_MINI_MANIFEST_PATH),
@@ -163,15 +204,22 @@ pub(crate) fn collect_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<Stag
         .into_iter()
         .filter(|row| row.benchmark_status == BamBenchmarkStatus::BenchmarkReady)
     {
-        let Some(plan) = bam_base_plans.get(&row.stage_id) else {
-            continue;
-        };
-        rows.extend(render_bam_stage_tool_asset_rows(
-            &row.stage_id,
-            &row.tool_id,
-            plan,
-            &kinship_assets,
-        )?);
+        if let Some(plan) = bam_base_plans.get(&row.stage_id) {
+            rows.extend(render_bam_stage_tool_asset_rows(
+                &row.stage_id,
+                &row.tool_id,
+                plan,
+                &kinship_assets,
+            )?);
+        } else {
+            rows.extend(render_feature_gated_bam_stage_tool_asset_rows(
+                &row.stage_id,
+                &row.tool_id,
+                &genotyping_assets,
+                &haplogroup_assets,
+                &kinship_assets,
+            ));
+        }
     }
 
     rows.sort_by(|left, right| {
@@ -211,6 +259,31 @@ fn canonical_stage_plan_map(
             Ok((bundle.stage_id, plan))
         })
         .collect()
+}
+
+fn canonical_bam_stage_plan_map(
+    repo_root: &Path,
+    rows: &[super::bam_command_adapter_coverage::BamCommandAdapterCoverageRow],
+) -> Result<BTreeMap<String, StagePlanV1>> {
+    let mut plans = BTreeMap::new();
+    for stage_id in rows
+        .iter()
+        .filter(|row| row.benchmark_status == BamBenchmarkStatus::BenchmarkReady)
+        .map(|row| row.stage_id.as_str())
+        .collect::<BTreeSet<_>>()
+    {
+        if matches!(
+            stage_id,
+            "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship"
+        ) {
+            continue;
+        }
+        let plan = local_stage_plans(repo_root, stage_id)?.into_iter().next().ok_or_else(|| {
+            anyhow!("local stage `{stage_id}` did not yield a canonical governed BAM plan")
+        })?;
+        plans.insert(stage_id.to_string(), plan);
+    }
+    Ok(plans)
 }
 
 fn render_fastq_stage_tool_asset_rows(
@@ -780,6 +853,81 @@ fn render_bam_stage_tool_asset_rows(
             ),
         ]),
         _ => Ok(Vec::new()),
+    }
+}
+
+fn render_feature_gated_bam_stage_tool_asset_rows(
+    stage_id: &str,
+    tool_id: &str,
+    genotyping_assets: &BamGenotypingAssetContract,
+    haplogroup_assets: &BamHaplogroupAssetContract,
+    kinship_assets: &BamKinshipAssetContract,
+) -> Vec<StageToolAssetRow> {
+    match stage_id {
+        "bam.bias_mitigation" => Vec::new(),
+        "bam.genotyping" => vec![
+            asset_row(
+                "bam",
+                stage_id,
+                tool_id,
+                "reference_fasta",
+                asset_id_from_path(&genotyping_assets.reference_fasta),
+                genotyping_assets.reference_fasta.clone(),
+            ),
+            asset_row(
+                "bam",
+                stage_id,
+                tool_id,
+                "sites_vcf",
+                asset_id_from_path(&genotyping_assets.sites_vcf),
+                genotyping_assets.sites_vcf.clone(),
+            ),
+            asset_row(
+                "bam",
+                stage_id,
+                tool_id,
+                "regions",
+                asset_id_from_path(&genotyping_assets.regions),
+                genotyping_assets.regions.clone(),
+            ),
+        ],
+        "bam.haplogroups" => vec![
+            asset_row(
+                "bam",
+                stage_id,
+                tool_id,
+                "reference_fasta",
+                asset_id_from_path(&haplogroup_assets.reference_fasta),
+                haplogroup_assets.reference_fasta.clone(),
+            ),
+            asset_row(
+                "bam",
+                stage_id,
+                tool_id,
+                "reference_panel",
+                haplogroup_assets.reference_panel.clone(),
+                haplogroup_assets.reference_panel_path.clone(),
+            ),
+        ],
+        "bam.kinship" => vec![
+            asset_row(
+                "bam",
+                stage_id,
+                tool_id,
+                "reference_fasta",
+                asset_id_from_path(&kinship_assets.reference_fasta),
+                kinship_assets.reference_fasta.clone(),
+            ),
+            asset_row(
+                "bam",
+                stage_id,
+                tool_id,
+                "reference_panel",
+                kinship_assets.reference_panel.clone(),
+                kinship_assets.reference_panel_path.clone(),
+            ),
+        ],
+        _ => Vec::new(),
     }
 }
 
