@@ -540,6 +540,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderAllDomainLocalOperationalBenchmarkComplete(args) => {
+                        crate::commands::benchmark::readiness::all_domain_local_operational_benchmark_complete::run_render_all_domain_local_operational_benchmark_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderAllDomainOutputDeclarations(args) => {
                         crate::commands::benchmark::readiness::all_domain_output_declarations::run_render_all_domain_output_declarations(
                             args,

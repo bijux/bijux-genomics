@@ -139,6 +139,7 @@ pub use self::readiness::{
     BenchReadinessRenderFastqValidateReadsReadyArgs,
     BenchReadinessRenderFullBenchmarkDashboardArgs, BenchReadinessRenderFullBenchmarkReportArgs,
     BenchReadinessRenderFullBenchmarkResultCollectorArgs,
+    BenchReadinessRenderAllDomainLocalOperationalBenchmarkCompleteArgs,
     BenchReadinessRenderMissingBenchmarkPairsArgs, BenchReadinessRenderMissingResultReportArgs,
     BenchReadinessRenderOperationalBenchmarkReadyArgs, BenchReadinessRenderOrphanToolsArgs,
     BenchReadinessRenderPairReadinessArgs, BenchReadinessRenderParserCompletenessGateArgs,

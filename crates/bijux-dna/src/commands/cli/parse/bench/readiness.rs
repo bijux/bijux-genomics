@@ -156,6 +156,10 @@ pub enum BenchReadinessCommand {
     RenderFullBenchmarkReport(BenchReadinessRenderFullBenchmarkReportArgs),
     #[command(name = "render-operational-benchmark-ready")]
     RenderOperationalBenchmarkReady(BenchReadinessRenderOperationalBenchmarkReadyArgs),
+    #[command(name = "render-all-domain-local-operational-benchmark-complete")]
+    RenderAllDomainLocalOperationalBenchmarkComplete(
+        BenchReadinessRenderAllDomainLocalOperationalBenchmarkCompleteArgs,
+    ),
     #[command(name = "render-all-domain-output-declarations")]
     RenderAllDomainOutputDeclarations(BenchReadinessRenderAllDomainOutputDeclarationsArgs),
     #[command(name = "render-all-domain-commands")]
@@ -1170,6 +1174,14 @@ pub struct BenchReadinessRenderFullBenchmarkReportArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderOperationalBenchmarkReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderAllDomainLocalOperationalBenchmarkCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
