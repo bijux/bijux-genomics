@@ -225,6 +225,11 @@ pub(crate) fn handle_meta_commands(
                         args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamContaminationSexHaplogroupsReady(args) => {
+                        crate::commands::benchmark::readiness::bam_contamination_sex_haplogroups_ready::run_render_bam_contamination_sex_haplogroups_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamDamageAuthenticityReady(args) => {
                         crate::commands::benchmark::readiness::bam_damage_authenticity_ready::run_render_bam_damage_authenticity_ready(
                             args,

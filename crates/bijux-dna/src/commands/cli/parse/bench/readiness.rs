@@ -22,6 +22,10 @@ pub enum BenchReadinessCommand {
     RenderBamCommandAdapterCoverage(BenchReadinessRenderBamCommandAdapterCoverageArgs),
     #[command(name = "render-bam-corpus-assignment")]
     RenderBamCorpusAssignment(BenchReadinessRenderBamCorpusAssignmentArgs),
+    #[command(name = "render-bam-contamination-sex-haplogroups-ready")]
+    RenderBamContaminationSexHaplogroupsReady(
+        BenchReadinessRenderBamContaminationSexHaplogroupsReadyArgs,
+    ),
     #[command(name = "render-bam-damage-authenticity-ready")]
     RenderBamDamageAuthenticityReady(BenchReadinessRenderBamDamageAuthenticityReadyArgs),
     #[command(name = "render-bam-insert-size-gc-bias-ready")]
@@ -352,6 +356,14 @@ pub struct BenchReadinessRenderBamCommandAdapterCoverageArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamCorpusAssignmentArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamContaminationSexHaplogroupsReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

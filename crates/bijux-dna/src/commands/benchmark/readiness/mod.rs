@@ -29,6 +29,7 @@ pub(crate) mod all_domain_stage_tool_table;
 pub(crate) mod bam_adapter_output_contract;
 pub(crate) mod bam_command_adapter_coverage;
 pub(crate) mod bam_comparable_metrics;
+pub(crate) mod bam_contamination_sex_haplogroups_ready;
 pub(crate) mod bam_corpus_assignment;
 pub(crate) mod bam_damage_authenticity_ready;
 pub(crate) mod bam_insert_size_gc_bias_ready;
