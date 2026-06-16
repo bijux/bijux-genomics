@@ -640,6 +640,15 @@ Visible aliases are part of the operator surface:
   `bam.contamination` and `bam.haplogroups` are backed by governed local-ready plans, keeping
   contamination estimates, confidence/status caveats, X/Y/autosome coverage calls, haplogroup
   panel identity, and governed report paths explicit in the BAM benchmark surface.
+- `bijux-dna bench readiness render-bam-kinship-ready`
+  `render-bam-kinship-ready` writes `benchmarks/readiness/bam/kinship-ready.json` with one
+  governed row each for `bam.kinship` under `angsd` and `king` when downstream BAM support is
+  enabled. Each row ties active-scope proof, command adapter coverage, output declarations, parser
+  coverage, expected benchmark results, report-map placement, normalized-schema coverage, and
+  stage-aware local proof together. The stage proof is backed by owned local-smoke kinship
+  artifacts under `king`, keeping pairwise kinship rows, overlap SNP counts, kinship
+  coefficients, insufficient-data status, and governed report paths explicit in the BAM benchmark
+  surface.
 - `bijux-dna bench readiness render-bam-recalibration-genotyping-ready`
   `render-bam-recalibration-genotyping-ready` writes
   `benchmarks/readiness/bam/recalibration-genotyping-ready.json` with one governed row for
