@@ -34,5 +34,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "schema_version": "bijux.stage_contract.v1",
   "stage_id": "fastq.estimate_library_complexity_prealign",
-  "tool_ids": []
+  "tool_ids": [
+    "bijux_dna"
+  ]
 }

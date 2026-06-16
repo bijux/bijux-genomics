@@ -76,6 +76,7 @@ allowed_missingness:
 compatible_tools:
   - prinseq
   - bbduk
+  - fastp
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "low-complexity filtering must remain deterministic for identical input."
@@ -85,5 +86,4 @@ bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope:
-  - "fastp"
-  - "dustmasker"
+  - dustmasker

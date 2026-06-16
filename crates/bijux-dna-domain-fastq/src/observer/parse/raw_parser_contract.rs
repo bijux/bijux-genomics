@@ -111,6 +111,12 @@ const FASTQ_RAW_PARSER_FIXTURE_CASES: &[FastqRawParserFixtureCase] = &[
     },
     FastqRawParserFixtureCase {
         stage_id: "fastq.filter_low_complexity",
+        tool_id: "fastp",
+        parser_id: "parse_low_complexity_report",
+        raw_file: "raw.low-complexity.txt",
+    },
+    FastqRawParserFixtureCase {
+        stage_id: "fastq.filter_low_complexity",
         tool_id: "prinseq",
         parser_id: "parse_low_complexity_report",
         raw_file: "raw.low-complexity.txt",

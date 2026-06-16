@@ -168,6 +168,7 @@ stages:
     benchmark_support: "cohort"
     default_tool: "bbduk"
     admitted_tools:
+      - "fastp"
       - "prinseq"
       - "bbduk"
   - stage_id: "fastq.deplete_host"

@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "309abc654f2dfad274ec2582e8e2b3e55fbf4910",
-  "bundle_checksum_sha256": "fe05968a8cfb68610081640e0f2b93975b9bd7b52a799a0f84e39f67591b256d",
+  "source_commit": "435e85dd5ca4fe9eeb69e18bd834137f8d51b723",
+  "bundle_checksum_sha256": "b4312c670134f0d26d1259d2d0c712cd2e0f9ddb38aa3e6af939114e1e29fcf3",
   "domains": [
     {
       "domain_id": "bam",
@@ -4435,7 +4435,7 @@
           "replacement": "samtools"
         }
       ],
-      "checksum_sha256": "b96af8961828d68d18f8e6f49eeb9cbd351008b79f7aa2c91cd5ed87d25129d5"
+      "checksum_sha256": "d0601066173809d4c5e688befb1a0b3e4860950cfcd4f1215a6ab512f52b7b76"
     },
     {
       "domain_id": "fastq",
@@ -6532,6 +6532,7 @@
           "tool_capability_requirements": [],
           "compatible_tools": [
             "bbduk",
+            "fastp",
             "prinseq"
           ],
           "assumptions": [
@@ -6555,8 +6556,7 @@
             "none"
           ],
           "planned_out_of_scope": [
-            "dustmasker",
-            "fastp"
+            "dustmasker"
           ]
         },
         {
@@ -10383,9 +10383,7 @@
           "stage_ids": [
             "fastq.filter_low_complexity"
           ],
-          "planned_stage_ids": [
-            "fastq.filter_low_complexity"
-          ],
+          "planned_stage_ids": [],
           "expected_artifacts": [
             "filter_report_json",
             "filtered_fastq_r1",
@@ -10396,7 +10394,7 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.stage.metrics.v1",
-          "comparability_notes": "Comparable when complexity thresholds and masking-to-filter conversion policy are matched.",
+          "comparability_notes": "No governed benchmark binding is admitted until the tool owns a full execution contract, normalized output contract, and reviewer-stable local smoke proof.",
           "container": null
         },
         {
@@ -10412,15 +10410,17 @@
           "version_cmd": "fastp --version",
           "help_cmd": "fastp --help",
           "stage_ids": [
+            "fastq.filter_low_complexity",
             "fastq.filter_reads",
             "fastq.profile_read_lengths",
             "fastq.trim_polyg_tails",
             "fastq.trim_reads"
           ],
-          "planned_stage_ids": [
-            "fastq.filter_low_complexity"
-          ],
+          "planned_stage_ids": [],
           "expected_artifacts": [
+            "filter_report_json",
+            "filtered_fastq_r1",
+            "filtered_fastq_r2",
             "filtered_reads_r1",
             "filtered_reads_r2",
             "length_distribution_json",
@@ -11150,9 +11150,7 @@
           "stage_ids": [
             "fastq.trim_reads"
           ],
-          "planned_stage_ids": [
-            "fastq.trim_reads"
-          ],
+          "planned_stage_ids": [],
           "expected_artifacts": [
             "report_json",
             "trimmed_reads_r1",
@@ -11162,7 +11160,7 @@
             "PE"
           ],
           "metrics_schema_id": "bijux.fastq.trim_reads.v1",
-          "comparability_notes": "Current container exposes a compatibility wrapper rather than a governed trimming runtime, so the tool is not admitted to the closed fastq.trim_reads surface.",
+          "comparability_notes": "Current container exposes a compatibility wrapper rather than a governed trimming runtime, so no governed benchmark binding is admitted.",
           "container": {
             "image": "bijuxdna/seqpurge",
             "digest": "sha256:65c1249b64696ad0783c6409126e45f8025851fd4eaf7f651b2df9bda2a0a662"
@@ -13289,6 +13287,11 @@
         },
         {
           "stage_id": "fastq.filter_low_complexity",
+          "tool_id": "fastp",
+          "fixture_path": "domain/fastq/fixtures/fastq.filter_low_complexity/fastp.txt"
+        },
+        {
+          "stage_id": "fastq.filter_low_complexity",
           "tool_id": "prinseq",
           "fixture_path": "domain/fastq/fixtures/fastq.filter_low_complexity/prinseq.txt"
         },
@@ -13574,7 +13577,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "cfeb7c29c1ff9d5a8f64092d9809e53562927cd050f4703437362ddac5300425"
+      "checksum_sha256": "2bce15f113a9906e93afdb2e2e66b18f9ec3e505eef451068f58b4c1adfe0550"
     },
     {
       "domain_id": "vcf",
@@ -16298,7 +16301,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "6db78f0fe98bed44c25a60eb19f26d2f8e489077ebde9e84abe853031554084e"
+      "checksum_sha256": "a3013380008a446497507babc8248bd2e1447908fa04d104e4bbedbec83f5a0c"
     }
   ]
 }

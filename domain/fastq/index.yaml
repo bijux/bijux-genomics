@@ -200,6 +200,7 @@ stage_tool_compatibility:
   fastq.filter_low_complexity:
   - prinseq
   - bbduk
+  - fastp
   fastq.filter_reads:
   - fastp
   - seqkit
@@ -346,6 +347,7 @@ stage_tool_integration:
     fastuniq: governed_contract
     clumpify: governed_contract
   fastq.filter_low_complexity:
+    fastp: governed_contract
     prinseq: governed_contract
     bbduk: governed_contract
   fastq.deplete_host:
@@ -673,6 +675,9 @@ stage_default_settings:
     bbduk:
       profile: adna_sane_default
       notes: entropy and homopolymer filtering preset
+    fastp:
+      profile: adna_sane_default
+      notes: low-complexity filtering preset aligned with governed filter-policy comparisons
   fastq.filter_reads:
     fastp:
       profile: adna_sane_default
