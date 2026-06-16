@@ -71,8 +71,7 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_writes_governed_tsv_file(
         rows.iter().all(|row| row.ends_with("\tbenchmark_ready")),
         "active scope TSV must keep only benchmark-ready rows"
     );
-    assert!(
-        rows.iter().all(|row| !row.contains("\tfastq.report_qc\t")),
-        "active scope TSV must exclude rows that are still not benchmark ready"
-    );
+    assert!(rows.iter().any(|row| {
+        row == &"fastq\tfastq.report_qc\tmultiqc\tcorpus-01-mini\tcorpus_only\tfastq.adapter.report_qc\tfastq.parser.report_qc\tfastq_report_qc_v1\tbenchmark_ready"
+    }));
 }

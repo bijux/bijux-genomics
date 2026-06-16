@@ -74,14 +74,20 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
         .get("removed_status_counts")
         .and_then(serde_json::Value::as_object)
         .expect("removed status counts");
-    assert!(removed_status_counts.is_empty(), "removed status counts must be empty once the active slice is clean");
+    assert!(
+        removed_status_counts.is_empty(),
+        "removed status counts must be empty once the active slice is clean"
+    );
 
     let removed_rows = support::json_array(&payload, "removed_rows");
     assert_eq!(removed_rows.len() as u64, removed_row_count);
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
     assert!(violations.is_empty(), "active scope must not retain not_benchmark_ready rows");
-    assert!(removed_rows.is_empty(), "all-domain active scope must no longer remove any benchmark rows");
+    assert!(
+        removed_rows.is_empty(),
+        "all-domain active scope must no longer remove any benchmark rows"
+    );
     assert!(
         removed_rows.iter().all(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) != Some("fastq.index_reference")

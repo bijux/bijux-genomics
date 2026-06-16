@@ -364,7 +364,11 @@ mod tests {
             &LowComplexityPlanOptions { entropy_threshold: Some(0.6), polyx_threshold: Some(8) },
         )
         .expect("plan");
-        assert!(plan.command.template.windows(2).any(|window| window == ["--complexity_threshold", "0.6"]));
+        assert!(plan
+            .command
+            .template
+            .windows(2)
+            .any(|window| window == ["--complexity_threshold", "0.6"]));
         assert!(plan.command.template.windows(2).any(|window| window == ["--poly_x_min_len", "8"]));
         assert!(plan.command.template.iter().any(|token| token == "--disable_adapter_trimming"));
         assert!(plan.command.template.iter().any(|token| token == "--disable_quality_filtering"));

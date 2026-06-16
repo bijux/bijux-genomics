@@ -54,12 +54,10 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         .get("domain_counts")
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
-    assert!(
-        domain_counts
-            .get("fastq")
-            .and_then(serde_json::Value::as_u64)
-            .is_none_or(|count| count == 0)
-    );
+    assert!(domain_counts
+        .get("fastq")
+        .and_then(serde_json::Value::as_u64)
+        .is_none_or(|count| count == 0));
     assert_eq!(domain_counts.get("bam"), None);
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");

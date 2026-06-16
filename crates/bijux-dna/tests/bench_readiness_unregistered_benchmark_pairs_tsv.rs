@@ -43,7 +43,10 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert!(rows.is_empty(), "TSV must be empty once the governed unregistered-pair slice is cleared");
+    assert!(
+        rows.is_empty(),
+        "TSV must be empty once the governed unregistered-pair slice is cleared"
+    );
     assert!(
         !rows
             .iter()

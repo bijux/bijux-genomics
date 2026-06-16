@@ -69,7 +69,10 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_a_fully_governed_ready_slic
         payload.get("benchmark_ready_stage_count").and_then(serde_json::Value::as_u64),
         Some(51)
     );
-    assert_eq!(payload.get("excluded_registry_gap_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(
+        payload.get("excluded_registry_gap_count").and_then(serde_json::Value::as_u64),
+        Some(0)
+    );
 
     let surfaces = payload
         .get("surface_summaries")

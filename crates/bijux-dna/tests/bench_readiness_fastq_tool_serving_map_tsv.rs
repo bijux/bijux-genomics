@@ -293,9 +293,7 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
         );
     }
     assert!(
-        !rows
-            .iter()
-            .any(|row| row.starts_with("dustmasker\tfastq.filter_low_complexity\t")),
+        !rows.iter().any(|row| row.starts_with("dustmasker\tfastq.filter_low_complexity\t")),
         "TSV must not retain the retired dustmasker low-complexity placeholder row"
     );
     for tool_id in ["bbduk", "fastp", "prinseq"] {

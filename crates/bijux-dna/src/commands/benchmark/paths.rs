@@ -177,8 +177,11 @@ pub(crate) fn validate_benchmark_paths(
         .map(|contract| benchmark_root_status(repo_root, contract, &tracked_paths))
         .collect::<Result<Vec<_>>>()?;
     let legacy_fixture_wrapper = legacy_fixture_wrapper_status(repo_root, &tracked_paths)?;
-    let readiness_snapshots =
-        collect_readiness_snapshots(&repo_root.join("benchmarks/readiness"), repo_root, &tracked_paths)?;
+    let readiness_snapshots = collect_readiness_snapshots(
+        &repo_root.join("benchmarks/readiness"),
+        repo_root,
+        &tracked_paths,
+    )?;
     let readiness_snapshot_count = readiness_snapshots.len();
     let readiness_json_snapshot_count =
         readiness_snapshots.iter().filter(|path| path.ends_with(".json")).count();
@@ -528,7 +531,12 @@ fn collect_readiness_snapshots_recursive(
             .file_type()
             .with_context(|| format!("read file type for {}", entry_path.display()))?;
         if file_type.is_dir() {
-            collect_readiness_snapshots_recursive(&entry_path, repo_root, tracked_paths, snapshots)?;
+            collect_readiness_snapshots_recursive(
+                &entry_path,
+                repo_root,
+                tracked_paths,
+                snapshots,
+            )?;
             continue;
         }
         if !file_type.is_file() {

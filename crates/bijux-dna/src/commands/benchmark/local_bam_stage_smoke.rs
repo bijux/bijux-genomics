@@ -97,28 +97,28 @@ pub(crate) fn governed_bam_local_smoke_tool_id(
 }
 
 pub(crate) fn supports_bam_stage_smoke(stage_id: &str) -> bool {
-    match stage_id {
+    matches!(
+        stage_id,
         "bam.authenticity"
-        | "bam.complexity"
-        | "bam.coverage"
-        | "bam.damage"
-        | "bam.duplication_metrics"
-        | "bam.endogenous_content"
-        | "bam.filter"
-        | "bam.gc_bias"
-        | "bam.insert_size"
-        | "bam.length_filter"
-        | "bam.mapping_summary"
-        | "bam.mapq_filter"
-        | "bam.markdup"
-        | "bam.overlap_correction"
-        | "bam.qc_pre"
-        | "bam.recalibration"
-        | "bam.sex"
-        | "bam.validate" => true,
-        "bam.bias_mitigation" | "bam.kinship" => cfg!(feature = "bam_downstream"),
-        _ => false,
-    }
+            | "bam.complexity"
+            | "bam.coverage"
+            | "bam.damage"
+            | "bam.duplication_metrics"
+            | "bam.endogenous_content"
+            | "bam.filter"
+            | "bam.gc_bias"
+            | "bam.insert_size"
+            | "bam.length_filter"
+            | "bam.mapping_summary"
+            | "bam.mapq_filter"
+            | "bam.markdup"
+            | "bam.overlap_correction"
+            | "bam.qc_pre"
+            | "bam.recalibration"
+            | "bam.sex"
+            | "bam.validate"
+    ) || (cfg!(feature = "bam_downstream")
+        && matches!(stage_id, "bam.bias_mitigation" | "bam.kinship"))
 }
 
 pub(crate) fn has_bam_local_ready_only_contract(stage_id: &str) -> bool {

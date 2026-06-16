@@ -277,8 +277,8 @@ fn render_fastq_stage_tool_argv(
         let report_qc_params = match fastq_stage_params_from_plan(stage_id, base_plan)? {
             Some(bijux_dna_planner_fastq::FastqStageParameters::ReportQc(params)) => params,
             _ => bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams {
-                schema_version:
-                    bijux_dna_domain_fastq::params::qc_post::REPORT_QC_SCHEMA_VERSION.to_string(),
+                schema_version: bijux_dna_domain_fastq::params::qc_post::REPORT_QC_SCHEMA_VERSION
+                    .to_string(),
                 paired_mode,
                 aggregation_engine:
                     bijux_dna_domain_fastq::params::qc_post::QcAggregationEngine::Multiqc,
@@ -286,10 +286,9 @@ fn render_fastq_stage_tool_argv(
                     bijux_dna_domain_fastq::params::qc_post::QcAggregationScope::GovernedQcArtifacts,
             },
         };
-        let out_dir =
-            benchmark_command_out_dir("fastq", stage_id, tool_id).with_context(|| {
-                format!("build benchmark command output dir for `{stage_id}` / `{tool_id}`")
-            })?;
+        let out_dir = benchmark_command_out_dir("fastq", stage_id, tool_id).with_context(|| {
+            format!("build benchmark command output dir for `{stage_id}` / `{tool_id}`")
+        })?;
         let plan =
             bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_with_qc_inputs(
                 &tool,
@@ -306,7 +305,9 @@ fn render_fastq_stage_tool_argv(
                     .map(|path| resolve_repo_input_path(repo_root, path))
                     .as_deref(),
             )
-            .with_context(|| format!("plan FASTQ benchmark command row `{stage_id}` / `{tool_id}`"))?;
+            .with_context(|| {
+                format!("plan FASTQ benchmark command row `{stage_id}` / `{tool_id}`")
+            })?;
         return Ok(plan.command.template);
     }
     let params = project_fastq_benchmark_params_for_tool(

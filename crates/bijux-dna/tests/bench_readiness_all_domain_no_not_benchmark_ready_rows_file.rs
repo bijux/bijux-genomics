@@ -52,5 +52,8 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_writes_governed_json_f
 
     let removed_rows =
         payload.get("removed_rows").and_then(serde_json::Value::as_array).expect("removed rows");
-    assert!(removed_rows.is_empty(), "all-domain active scope file must no longer carry removed benchmark rows");
+    assert!(
+        removed_rows.is_empty(),
+        "all-domain active scope file must no longer carry removed benchmark rows"
+    );
 }

@@ -158,8 +158,8 @@ pub(crate) fn render_all_domain_local_operational_benchmark_complete(
         },
     });
     if !active_scope_snapshot.ok || active_scope_snapshot.failed_surface_count != 0 {
-        let failed_checks =
-            load_active_scope_failed_checks(repo_root, &active_scope_output_path).unwrap_or_default();
+        let failed_checks = load_active_scope_failed_checks(repo_root, &active_scope_output_path)
+            .unwrap_or_default();
         if failed_checks.is_empty() {
             blockers.insert(global_blocker(
                 "cross",
@@ -293,12 +293,8 @@ fn load_operational_snapshot(repo_root: &Path, output_path: &Path) -> Result<Ope
         .collect::<Result<Vec<_>>>()?;
     Ok(OperationalSnapshot {
         ok: value.get("ok").and_then(serde_json::Value::as_bool).unwrap_or(false),
-        benchmark_ready_row_count: value
-            .get("benchmark_ready_row_count")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0) as usize,
-        blocker_count: value.get("blocker_count").and_then(serde_json::Value::as_u64).unwrap_or(0)
-            as usize,
+        benchmark_ready_row_count: json_usize(&value, "benchmark_ready_row_count")?,
+        blocker_count: json_usize(&value, "blocker_count")?,
         blockers,
     })
 }
@@ -312,18 +308,15 @@ fn load_active_scope_snapshot(repo_root: &Path, output_path: &Path) -> Result<Ac
             .and_then(serde_json::Value::as_str)
             .map(std::string::ToString::to_string)
             .unwrap_or_else(|| output_path.to_string_lossy().to_string()),
-        active_row_count: value
-            .get("active_row_count")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0) as usize,
-        failed_surface_count: value
-            .get("failed_surface_count")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0) as usize,
+        active_row_count: json_usize(&value, "active_row_count")?,
+        failed_surface_count: json_usize(&value, "failed_surface_count")?,
     })
 }
 
-fn load_cleanup_proof_snapshot(repo_root: &Path, output_path: &Path) -> Result<CleanupProofSnapshot> {
+fn load_cleanup_proof_snapshot(
+    repo_root: &Path,
+    output_path: &Path,
+) -> Result<CleanupProofSnapshot> {
     let value = load_json_value(repo_root, output_path)?;
     Ok(CleanupProofSnapshot {
         ok: value.get("ok").and_then(serde_json::Value::as_bool).unwrap_or(false),
@@ -332,16 +325,12 @@ fn load_cleanup_proof_snapshot(repo_root: &Path, output_path: &Path) -> Result<C
             .and_then(serde_json::Value::as_str)
             .map(std::string::ToString::to_string)
             .unwrap_or_else(|| output_path.to_string_lossy().to_string()),
-        deleted_root_count: value.get("deleted_root_count").and_then(serde_json::Value::as_u64)
-            .unwrap_or(0) as usize,
-        validator_violation_count: value
-            .get("validator_violation_count")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0) as usize,
-        validator_readiness_snapshot_count: value
-            .get("validator_readiness_snapshot_count")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0) as usize,
+        deleted_root_count: json_usize(&value, "deleted_root_count")?,
+        validator_violation_count: json_usize(&value, "validator_violation_count")?,
+        validator_readiness_snapshot_count: json_usize(
+            &value,
+            "validator_readiness_snapshot_count",
+        )?,
     })
 }
 
@@ -355,7 +344,7 @@ fn load_active_scope_failed_checks(
         .and_then(serde_json::Value::as_array)
         .cloned()
         .unwrap_or_default();
-    Ok(failed_checks
+    failed_checks
         .into_iter()
         .map(|check| {
             let surface_id = json_required_str(&check, "surface_id")?;
@@ -378,7 +367,12 @@ fn load_active_scope_failed_checks(
                 detail,
             ))
         })
-        .collect::<Result<Vec<_>>>()?)
+        .collect::<Result<Vec<_>>>()
+}
+
+fn json_usize(value: &serde_json::Value, key: &str) -> Result<usize> {
+    usize::try_from(value.get(key).and_then(serde_json::Value::as_u64).unwrap_or(0))
+        .with_context(|| format!("convert `{key}` to usize"))
 }
 
 fn load_json_value(repo_root: &Path, output_path: &Path) -> Result<serde_json::Value> {

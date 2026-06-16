@@ -756,14 +756,14 @@ fn collect_local_smoke_proofs(repo_root: &Path) -> Result<BTreeMap<String, Local
     .with_context(|| format!("parse {}", overlap_stage_metrics_path.display()))?;
     let overlap_corrected_bam =
         required_json_path(&overlap_payload, "overlap_corrected_bam", &overlap_report_path)?;
-    let overlap_corrected_bai = ensure_repo_relative_file(
+    let overlap_corrected_bam_index = ensure_repo_relative_file(
         repo_root,
         "runs/bench/local-smoke/bam.overlap_correction/overlap_corrected.bam.bai",
     )?;
     let mut overlap_artifact_paths = vec![path_relative_to_repo(repo_root, &overlap_report_path)];
     for relative in [
         overlap_corrected_bam,
-        overlap_corrected_bai,
+        overlap_corrected_bam_index,
         required_json_path(&overlap_payload, "overlap_correction_summary", &overlap_report_path)?,
         required_json_path(&overlap_payload, "flagstat_before", &overlap_report_path)?,
         required_json_path(&overlap_payload, "flagstat_after", &overlap_report_path)?,
