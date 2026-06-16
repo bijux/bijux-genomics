@@ -180,26 +180,12 @@ fn write_postprocess_vcf_with_left_alignment(
     let tmp_out_s = tmp_vcfgz
         .to_str()
         .ok_or_else(|| anyhow!("non-utf8 postprocess temporary output path"))?;
-    let output = std::process::Command::new("bcftools")
-        .args(["norm", "-f", reference_s, "-Oz", "-o", tmp_out_s, input_s])
-        .output()
-        .map_err(|err| anyhow!("bcftools norm invocation failed: {err}"))?;
-    if !output.status.success() {
-        bail!(
-            "bcftools norm failed during postprocess left-alignment: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-    }
-    let tabix_out = std::process::Command::new("tabix")
-        .args(["-f", "-p", "vcf", tmp_out_s])
-        .output()
-        .map_err(|err| anyhow!("tabix invocation failed: {err}"))?;
-    if !tabix_out.status.success() {
-        bail!(
-            "tabix failed during postprocess left-alignment: {}",
-            String::from_utf8_lossy(&tabix_out.stderr)
-        );
-    }
+    crate::engine::execution::run_checked_command(
+        "bcftools",
+        ["norm", "-f", reference_s, "-Oz", "-o", tmp_out_s, input_s],
+        None,
+    )?;
+    crate::engine::execution::run_checked_command("tabix", ["-f", "-p", "vcf", tmp_out_s], None)?;
     std::fs::rename(&tmp_vcfgz, out_vcf).map_err(|err| {
         anyhow!(
             "rename left-aligned VCF {} -> {} failed: {err}",
@@ -465,17 +451,17 @@ pub fn run_postprocess_stage(
         let path_s = path
             .to_str()
             .ok_or_else(|| anyhow!("non-utf8 merged bcf path"))?;
-        let bcf_conversion_output = std::process::Command::new("bcftools")
-            .args(["view", "-Ob", "-o", path_s, merged_vcf_s])
-            .output();
-        if bcf_conversion_output
-            .as_ref()
-            .map(|x| x.status.success())
-            .unwrap_or(false)
-        {
-            let _ = std::process::Command::new("bcftools")
-                .args(["index", "-f", path_s])
-                .output();
+        let bcf_conversion_output = crate::engine::execution::run_command_output(
+            "bcftools",
+            ["view", "-Ob", "-o", path_s, merged_vcf_s],
+            None,
+        );
+        if bcf_conversion_output.as_ref().map(|x| x.exit_code == 0).unwrap_or(false) {
+            let _ = crate::engine::execution::run_command_output(
+                "bcftools",
+                ["index", "-f", path_s],
+                None,
+            );
         } else {
             // Deterministic fallback keeps contract output present when BCF tooling is unavailable.
             let passthrough = std::fs::read(&merged_vcf)?;

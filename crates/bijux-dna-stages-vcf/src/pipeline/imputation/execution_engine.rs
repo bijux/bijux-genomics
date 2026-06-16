@@ -24,17 +24,11 @@ pub(crate) fn run_impute_stage_inner(
         .and_then(|x| x.to_str())
         .is_some_and(|x| x == "gz" || x == "bcf")
     {
-        let output = std::process::Command::new("bcftools")
-            .args(["view", &input_vcf.display().to_string()])
-            .output()?;
-        if !output.status.success() {
-            bail!(
-                "bcftools view failed while reading {}: {}",
-                input_vcf.display(),
-                String::from_utf8_lossy(&output.stderr)
-            );
-        }
-        String::from_utf8_lossy(&output.stdout).to_string()
+        crate::engine::execution::run_text_command(
+            "bcftools",
+            ["view", &input_vcf.display().to_string()],
+            None,
+        )?
     } else {
         std::fs::read_to_string(input_vcf)?
     };
