@@ -640,6 +640,17 @@ Visible aliases are part of the operator surface:
   `bam.contamination` and `bam.haplogroups` are backed by governed local-ready plans, keeping
   contamination estimates, confidence/status caveats, X/Y/autosome coverage calls, haplogroup
   panel identity, and governed report paths explicit in the BAM benchmark surface.
+- `bijux-dna bench readiness render-bam-recalibration-genotyping-ready`
+  `render-bam-recalibration-genotyping-ready` writes
+  `benchmarks/readiness/bam/recalibration-genotyping-ready.json` with one governed row for
+  `bam.recalibration` under `gatk` plus one governed row for `bam.genotyping` under `angsd` when
+  downstream BAM support is enabled. Each row ties active-scope proof, command adapter coverage,
+  output declarations, parser coverage, expected benchmark results, report-map placement,
+  normalized-schema coverage, and stage-aware local proof together. `bam.recalibration` is backed
+  by owned local-smoke artifacts so skip reason, coverage gate, known-sites identity, and durable
+  recalibration outputs stay explicit, while `bam.genotyping` is backed by a governed local-ready
+  plan so candidate-sites inputs, target regions, call-rate thresholds, GL/BCF/VCF producer
+  outputs, and governed report paths stay explicit in the BAM benchmark surface.
 - `bijux-dna bench readiness render-bam-insert-size-gc-bias-ready`
   `render-bam-insert-size-gc-bias-ready` writes
   `benchmarks/readiness/bam/insert-size-gc-bias-ready.json` with one governed row each for
