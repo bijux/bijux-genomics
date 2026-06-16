@@ -50,5 +50,5 @@ RUN echo '#!/bin/sh' > /usr/local/bin/trimmomatic && \
     chmod +x /usr/local/bin/trimmomatic
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "trimmomatic \"$@\""]
+ENTRYPOINT ["trimmomatic"]
 CMD ["--help"]

@@ -52,5 +52,5 @@ RUN echo '#!/bin/sh' > /usr/local/bin/musket && \
     chmod +x /usr/local/bin/musket
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "musket \"$@\""]
+ENTRYPOINT ["musket"]
 CMD ["--help"]

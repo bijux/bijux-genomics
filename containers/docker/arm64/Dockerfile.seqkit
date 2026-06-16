@@ -47,5 +47,5 @@ RUN echo '#!/bin/sh' > /usr/local/bin/seqkit && \
     chmod +x /usr/local/bin/seqkit
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "seqkit \"$@\""]
+ENTRYPOINT ["seqkit"]
 CMD ["--help"]

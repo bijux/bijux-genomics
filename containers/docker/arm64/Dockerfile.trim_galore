@@ -37,5 +37,5 @@ RUN wget -q https://github.com/FelixKrueger/TrimGalore/archive/${VERSION_TRIM_GA
 RUN pip3 install --no-cache-dir --break-system-packages cutadapt
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "trim_galore \"$@\""]
+ENTRYPOINT ["trim_galore"]
 CMD []
