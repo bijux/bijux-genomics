@@ -36,6 +36,7 @@ pub(crate) mod bam_insert_size_gc_bias_ready;
 pub(crate) mod bam_normalized_metrics_schema;
 pub(crate) mod bam_overlap_endogenous_ready;
 pub(crate) mod bam_parser_coverage;
+pub(crate) mod bam_recalibration_genotyping_ready;
 pub(crate) mod bam_report_map;
 pub(crate) mod bam_stage_decision_table;
 pub(crate) mod benchmark_command_rows;

@@ -26,6 +26,8 @@ pub enum BenchReadinessCommand {
     RenderBamContaminationSexHaplogroupsReady(
         BenchReadinessRenderBamContaminationSexHaplogroupsReadyArgs,
     ),
+    #[command(name = "render-bam-recalibration-genotyping-ready")]
+    RenderBamRecalibrationGenotypingReady(BenchReadinessRenderBamRecalibrationGenotypingReadyArgs),
     #[command(name = "render-bam-damage-authenticity-ready")]
     RenderBamDamageAuthenticityReady(BenchReadinessRenderBamDamageAuthenticityReadyArgs),
     #[command(name = "render-bam-insert-size-gc-bias-ready")]
@@ -364,6 +366,14 @@ pub struct BenchReadinessRenderBamCorpusAssignmentArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamContaminationSexHaplogroupsReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamRecalibrationGenotypingReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
