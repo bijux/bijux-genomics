@@ -30,6 +30,7 @@ use crate::commands::benchmark::local_vcf_impute_smoke::run_local_vcf_impute_smo
 use crate::commands::benchmark::local_vcf_pca_smoke::run_local_vcf_pca_smoke;
 use crate::commands::benchmark::local_vcf_phasing_smoke::run_local_vcf_phasing_smoke;
 use crate::commands::benchmark::local_vcf_population_structure_smoke::run_local_vcf_population_structure_smoke;
+use crate::commands::benchmark::local_vcf_postprocess_smoke::run_local_vcf_postprocess_smoke;
 use crate::commands::benchmark::local_vcf_prepare_reference_panel_smoke::run_local_vcf_prepare_reference_panel_smoke;
 use crate::commands::benchmark::local_vcf_qc_smoke::run_local_vcf_qc_smoke;
 use crate::commands::benchmark::local_vcf_roh_smoke::run_local_vcf_roh_smoke;
@@ -713,7 +714,9 @@ fn local_vcf_stage_result_manifest_path(
         "vcf.stats" => {
             Some(run_local_vcf_stats_smoke(repo_root, tool_id)?.stage_result_manifest_path)
         }
-        "vcf.postprocess" => None,
+        "vcf.postprocess" => {
+            Some(run_local_vcf_postprocess_smoke(repo_root, tool_id)?.stage_result_manifest_path)
+        }
         other => {
             return Err(anyhow!(
                 "output contract tests do not support unexpected VCF stage `{other}`"
@@ -803,8 +806,8 @@ mod tests {
             .iter()
             .find(|row| row.stage_id == "vcf.postprocess" && row.tool_id == "bcftools")
             .expect("vcf.postprocess row");
-        assert_eq!(vcf_postprocess.output_proof_surface, "missing_direct_tool_smoke");
-        assert!(!vcf_postprocess.independent_execution_proven);
-        assert!(!vcf_postprocess.passed);
+        assert_eq!(vcf_postprocess.output_proof_surface, "direct_tool_smoke");
+        assert!(vcf_postprocess.independent_execution_proven);
+        assert!(vcf_postprocess.passed);
     }
 }

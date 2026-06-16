@@ -57,6 +57,8 @@ pub enum BenchLocalCommand {
     RunVcfRohSmoke(BenchLocalRunVcfRohSmokeArgs),
     #[command(name = "run-vcf-pca-smoke")]
     RunVcfPcaSmoke(BenchLocalRunVcfPcaSmokeArgs),
+    #[command(name = "run-vcf-postprocess-smoke")]
+    RunVcfPostprocessSmoke(BenchLocalRunVcfPostprocessSmokeArgs),
     #[command(name = "run-vcf-stats-smoke")]
     RunVcfStatsSmoke(BenchLocalRunVcfStatsSmokeArgs),
     #[command(name = "run-vcf-gl-propagation-smoke")]
@@ -282,6 +284,14 @@ pub struct BenchLocalRunVcfRohSmokeArgs {
 #[derive(Debug, Args)]
 pub struct BenchLocalRunVcfPcaSmokeArgs {
     #[arg(long, default_value = "plink2")]
+    pub tool_id: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunVcfPostprocessSmokeArgs {
+    #[arg(long, default_value = "bcftools")]
     pub tool_id: String,
     #[arg(long, default_value_t = false)]
     pub json: bool,

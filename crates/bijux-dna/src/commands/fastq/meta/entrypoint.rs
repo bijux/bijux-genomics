@@ -1042,6 +1042,11 @@ pub(crate) fn handle_meta_commands(
                     cli::BenchLocalCommand::RunVcfPcaSmoke(args) => {
                         crate::commands::benchmark::local_vcf_pca_smoke::run_vcf_pca_smoke(args)?;
                     }
+                    cli::BenchLocalCommand::RunVcfPostprocessSmoke(args) => {
+                        crate::commands::benchmark::local_vcf_postprocess_smoke::run_vcf_postprocess_smoke(
+                            args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RunVcfStatsSmoke(args) => {
                         crate::commands::benchmark::local_vcf_stats_smoke::run_vcf_stats_smoke(
                             args,
