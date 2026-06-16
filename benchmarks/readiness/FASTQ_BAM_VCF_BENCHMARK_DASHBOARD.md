@@ -12,6 +12,6 @@ This dashboard is generated from governed machine-readable FASTQ, BAM, and VCF r
 | missing_parsers | 0 | `benchmarks/readiness/parser-collector-all-domains.json` | `expected_result_ids - fake_run_result_ids` | canonical result ids without governed fake-run parser evidence |
 | missing_adapters | 0 | `benchmarks/readiness/rendered-commands-all-domains.sh` | `expected_result_ids - rendered_command_result_ids` | canonical result ids without governed rendered command coverage |
 | missing_assets | 0 | `benchmarks/readiness/all-domain-stage-tool-table.tsv` | `expected_bindings - benchmark_ready_asset_bindings` | canonical benchmark bindings without assigned asset-profile coverage |
-| failed_real_smokes | 0 | `target/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json` | `real_smoke_rows failing success contract` | governed real-smoke executions that do not satisfy their success contract |
+| failed_real_smokes | 0 | `artifacts/benchmarks/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json` | `real_smoke_rows failing success contract` | governed real-smoke executions that do not satisfy their success contract |
 
 Unsupported pairs tracked outside the expected-job slice: 1.

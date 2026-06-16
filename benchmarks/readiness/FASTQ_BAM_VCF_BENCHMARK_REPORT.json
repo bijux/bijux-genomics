@@ -715,9 +715,7 @@
       "corpus_id": "corpus-01-genotyping-mini",
       "asset_profile_id": "reference_fasta+regions+sites_vcf",
       "report_section": "downstream_readiness",
-      "pipeline_ids": [
-        "bam-genotyping-to-vcf-downstream"
-      ],
+      "pipeline_ids": [],
       "expected_output_count": 6,
       "expected_metric_count": 1,
       "comparable_metric_count": 0,
@@ -2174,7 +2172,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "quality_profiling",
       "pipeline_ids": [],
-      "expected_output_count": 6,
+      "expected_output_count": 5,
       "expected_metric_count": 2,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -2224,7 +2222,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "quality_profiling",
       "pipeline_ids": [],
-      "expected_output_count": 6,
+      "expected_output_count": 5,
       "expected_metric_count": 3,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -2383,7 +2381,7 @@
       "report_section": "contamination_screening",
       "pipeline_ids": [],
       "expected_output_count": 2,
-      "expected_metric_count": 2,
+      "expected_metric_count": 7,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -2408,7 +2406,7 @@
       "report_section": "contamination_screening",
       "pipeline_ids": [],
       "expected_output_count": 2,
-      "expected_metric_count": 2,
+      "expected_metric_count": 7,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -2435,7 +2433,7 @@
         "edna-taxonomy-no-vcf"
       ],
       "expected_output_count": 4,
-      "expected_metric_count": 2,
+      "expected_metric_count": 7,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -2460,7 +2458,7 @@
       "report_section": "contamination_screening",
       "pipeline_ids": [],
       "expected_output_count": 2,
-      "expected_metric_count": 2,
+      "expected_metric_count": 7,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -3107,7 +3105,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.167285,
+      "real_smoke_elapsed_seconds": 0.1670025,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -3623,7 +3621,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.061633667,
+      "real_smoke_elapsed_seconds": 0.044341958,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -3886,9 +3884,7 @@
       "corpus_ids": [
         "corpus-01-genotyping-mini"
       ],
-      "pipeline_ids": [
-        "bam-genotyping-to-vcf-downstream"
-      ],
+      "pipeline_ids": [],
       "report_sections": [
         "downstream_readiness"
       ]
@@ -5116,9 +5112,7 @@
         "corpus-01-genotyping-mini",
         "corpus-01-kinship-mini"
       ],
-      "pipeline_ids": [
-        "bam-genotyping-to-vcf-downstream"
-      ]
+      "pipeline_ids": []
     },
     {
       "tool_id": "atropos",
@@ -6527,9 +6521,7 @@
       "tool_ids": [
         "angsd"
       ],
-      "pipeline_ids": [
-        "bam-genotyping-to-vcf-downstream"
-      ]
+      "pipeline_ids": []
     },
     {
       "corpus_id": "corpus-01-kinship-mini",
@@ -6760,7 +6752,7 @@
   ],
   "pipeline_centric": {
     "row_count": 10,
-    "unmapped_row_count": 98,
+    "unmapped_row_count": 99,
     "rows": [
       {
         "pipeline_id": "adna-gl-fastq-bam-vcf",
@@ -6874,8 +6866,8 @@
       },
       {
         "pipeline_id": "bam-genotyping-to-vcf-downstream",
-        "row_count": 8,
-        "present_row_count": 6,
+        "row_count": 7,
+        "present_row_count": 5,
         "missing_result_row_count": 2,
         "unsupported_pair_row_count": 0,
         "domains": [
@@ -6885,7 +6877,6 @@
         "stage_ids": [
           "bam.coverage",
           "bam.filter",
-          "bam.genotyping",
           "bam.recalibration",
           "vcf.filter",
           "vcf.pca",
@@ -6893,7 +6884,6 @@
           "vcf.stats"
         ],
         "tool_ids": [
-          "angsd",
           "bcftools",
           "gatk",
           "plink2",
@@ -8377,7 +8367,7 @@
       "row_status": "present",
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.167285,
+      "real_smoke_elapsed_seconds": 0.1670025,
       "runtime_source": "fake_run_and_real_smoke"
     },
     {
@@ -8586,7 +8576,7 @@
       "row_status": "missing_result",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.061633667,
+      "real_smoke_elapsed_seconds": 0.044341958,
       "runtime_source": "fake_run_and_real_smoke"
     }
   ],
