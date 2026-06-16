@@ -47,6 +47,7 @@ pub(crate) mod bam_stage_decision_table;
 pub(crate) mod benchmark_command_rows;
 pub(crate) mod benchmark_readiness_dashboard;
 pub(crate) mod catalog;
+pub(crate) mod container_tool_smoke;
 pub(crate) mod corpus_asset_coverage_gate;
 pub(crate) mod corpus_centric_report;
 pub(crate) mod corpus_incompatibility;

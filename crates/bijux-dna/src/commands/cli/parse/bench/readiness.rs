@@ -194,6 +194,8 @@ pub enum BenchReadinessCommand {
     RenderExecutableResolution(BenchReadinessRenderExecutableResolutionArgs),
     #[command(name = "render-version-probes")]
     RenderVersionProbes(BenchReadinessRenderVersionProbesArgs),
+    #[command(name = "run-container-tool-smoke")]
+    RunContainerToolSmoke(BenchReadinessRunContainerToolSmokeArgs),
     #[command(name = "run-host-tool-smoke")]
     RunHostToolSmoke(BenchReadinessRunHostToolSmokeArgs),
     #[command(name = "render-stage-tool-alias-check")]
@@ -1326,6 +1328,18 @@ pub struct BenchReadinessRenderExecutableResolutionArgs {
 pub struct BenchReadinessRenderVersionProbesArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRunContainerToolSmokeArgs {
+    #[arg(long)]
+    pub output_root: Option<std::path::PathBuf>,
+    #[arg(long, value_name = "TOOL_IDS", help = "Comma-separated retained non-host tool ids")]
+    pub tools: Option<String>,
+    #[arg(long, default_value_t = 300)]
+    pub timeout_seconds: u64,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
