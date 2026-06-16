@@ -11,6 +11,7 @@ pub enum CratesCommand {
     Graph(CratesGraphArgs),
     DomainNoExecution(CratesDomainNoExecutionArgs),
     ParserNoExecution(CratesParserNoExecutionArgs),
+    PlannerNoParser(CratesPlannerNoParserArgs),
 }
 
 #[derive(Debug, Args)]
@@ -28,5 +29,11 @@ pub struct CratesDomainNoExecutionArgs {
 #[derive(Debug, Args)]
 pub struct CratesParserNoExecutionArgs {
     #[arg(long, default_value = "benchmarks/readiness/crates/parser-no-execution.json")]
+    pub output: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct CratesPlannerNoParserArgs {
+    #[arg(long, default_value = "benchmarks/readiness/crates/planner-no-parser.json")]
     pub output: PathBuf,
 }

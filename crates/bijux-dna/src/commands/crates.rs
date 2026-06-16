@@ -7,6 +7,8 @@ use toml::Value;
 
 const DOMAIN_CRATES: &[&str] =
     &["bijux-dna-domain-bam", "bijux-dna-domain-fastq", "bijux-dna-domain-vcf"];
+const PLANNER_CRATES: &[&str] =
+    &["bijux-dna-planner-bam", "bijux-dna-planner-fastq", "bijux-dna-planner-vcf"];
 
 const PROCESS_EXECUTION_PATTERNS: &[&str] = &[
     concat!("Command", "::new"),
@@ -51,6 +53,15 @@ const INPUT_MUTATION_PATTERNS: &[&str] = &[
     "write_bytes(",
     "write_json(",
 ];
+const PLANNER_PARSER_API_PATTERNS: &[&str] = &[
+    "bijux_dna_domain_fastq::observer",
+    "bijux_dna_stages_fastq::observer",
+    "observer::parse_",
+    "metrics::parse_",
+    "parsers::parse_",
+    "bijux_dna_domain_vcf::parsers",
+    "raw_parser_contract",
+];
 
 #[derive(Clone, Debug)]
 struct WorkspaceMember {
@@ -67,6 +78,18 @@ struct ParserSurfaceSpec {
 
 #[derive(Clone, Copy, Debug)]
 struct ParserSurfaceExclusionSpec {
+    path: &'static str,
+    reason: &'static str,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct PlannerCrateAuditSpec {
+    crate_name: &'static str,
+    allowed_input_read_files: &'static [AllowedAuditFileSpec],
+}
+
+#[derive(Clone, Copy, Debug)]
+struct AllowedAuditFileSpec {
     path: &'static str,
     reason: &'static str,
 }
@@ -98,6 +121,77 @@ const PARSER_SURFACES: &[ParserSurfaceSpec] = &[
         crate_name: "bijux-dna-domain-vcf",
         parser_root: "src/parsers",
         excluded_paths: &[],
+    },
+];
+
+const PLANNER_AUDIT_SPECS: &[PlannerCrateAuditSpec] = &[
+    PlannerCrateAuditSpec {
+        crate_name: "bijux-dna-planner-bam",
+        allowed_input_read_files: &[
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/local_readiness.rs",
+                reason: "loads governed local-ready planning inputs and runtime defaults",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+                reason: "loads governed local-smoke planning inputs and fixture manifests",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/selection/domain_tool_specs.rs",
+                reason: "loads governed BAM tool planning metadata",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/selection/domain_tool_output_contracts.rs",
+                reason: "loads governed BAM output-contract metadata",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/selection/registry.rs",
+                reason: "reads the governed workspace tool registry snapshot",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/stage_activation.rs",
+                reason: "reads governed stage activation policy",
+            },
+        ],
+    },
+    PlannerCrateAuditSpec {
+        crate_name: "bijux-dna-planner-fastq",
+        allowed_input_read_files: &[
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+                reason: "loads governed local-ready FASTQ planning inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+                reason: "loads governed local-smoke FASTQ planning inputs and fixture manifests",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/quality_sampling.rs",
+                reason: "samples governed input reads for planning-time quality estimation",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/selection/domain_tool_specs.rs",
+                reason: "loads governed FASTQ tool planning metadata",
+            },
+            AllowedAuditFileSpec {
+                path:
+                    "crates/bijux-dna-planner-fastq/src/selection/domain_tool_output_contracts.rs",
+                reason: "loads governed FASTQ output-contract metadata",
+            },
+        ],
+    },
+    PlannerCrateAuditSpec {
+        crate_name: "bijux-dna-planner-vcf",
+        allowed_input_read_files: &[
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-vcf/src/coverage.rs",
+                reason: "reads governed coverage-regime planning thresholds",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-vcf/src/workspace_config.rs",
+                reason: "reads governed workspace tool and parameter registries",
+            },
+        ],
     },
 ];
 
@@ -153,6 +247,28 @@ pub struct ParserNoExecutionReport {
 }
 
 #[derive(Debug, Serialize)]
+pub struct PlannerNoParserReport {
+    pub schema_version: &'static str,
+    pub workspace_manifest: String,
+    pub output_path: String,
+    pub audited_crate_count: usize,
+    pub ok: bool,
+    pub crates: Vec<PlannerNoParserCrateReport>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PlannerNoParserCrateReport {
+    pub crate_name: String,
+    pub manifest_path: String,
+    pub scanned_rust_files: Vec<String>,
+    pub allowed_input_read_paths: Vec<AllowedAuditPath>,
+    pub planner_input_read_refs: Vec<SourcePatternHit>,
+    pub unexpected_input_read_refs: Vec<SourcePatternHit>,
+    pub forbidden_parser_api_refs: Vec<SourcePatternHit>,
+    pub ok: bool,
+}
+
+#[derive(Debug, Serialize)]
 pub struct ParserSurfaceAuditReport {
     pub crate_name: String,
     pub manifest_path: String,
@@ -191,6 +307,12 @@ pub struct SourcePatternHit {
 
 #[derive(Debug, Serialize)]
 pub struct ExcludedAuditPath {
+    pub path: String,
+    pub reason: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AllowedAuditPath {
     pub path: String,
     pub reason: String,
 }
@@ -424,6 +546,10 @@ fn parser_surface_spec(crate_name: &str) -> Option<&'static ParserSurfaceSpec> {
     PARSER_SURFACES.iter().find(|spec| spec.crate_name == crate_name)
 }
 
+fn planner_audit_spec(crate_name: &str) -> Option<&'static PlannerCrateAuditSpec> {
+    PLANNER_AUDIT_SPECS.iter().find(|spec| spec.crate_name == crate_name)
+}
+
 fn audit_parser_surface(
     cwd: &Path,
     member: &WorkspaceMember,
@@ -574,6 +700,71 @@ fn audit_parser_surface(
     })
 }
 
+fn audit_planner_crate(
+    cwd: &Path,
+    member: &WorkspaceMember,
+    spec: &PlannerCrateAuditSpec,
+) -> Result<PlannerNoParserCrateReport> {
+    let crate_root = member
+        .manifest_path
+        .parent()
+        .with_context(|| format!("resolve crate root from {}", member.manifest_path.display()))?;
+
+    let mut rust_files = Vec::new();
+    collect_rust_sources(&crate_root.join("src"), &mut rust_files)?;
+    rust_files.sort();
+
+    let allowed_input_read_paths = spec
+        .allowed_input_read_files
+        .iter()
+        .map(|allowed| AllowedAuditPath {
+            path: allowed.path.to_string(),
+            reason: allowed.reason.to_string(),
+        })
+        .collect::<Vec<_>>();
+    let allowed_input_read_files =
+        spec.allowed_input_read_files.iter().map(|allowed| allowed.path).collect::<BTreeSet<_>>();
+
+    let mut planner_input_read_refs = Vec::new();
+    let mut unexpected_input_read_refs = Vec::new();
+    let mut forbidden_parser_api_refs = Vec::new();
+    for rust_file in &rust_files {
+        let content = std::fs::read_to_string(rust_file)
+            .with_context(|| format!("read {}", rust_file.display()))?;
+        let mut read_refs = Vec::new();
+        push_source_hits(&mut read_refs, rust_file, cwd, &content, RAW_INPUT_READ_PATTERNS);
+        for hit in read_refs {
+            if allowed_input_read_files.contains(hit.path.as_str()) {
+                planner_input_read_refs.push(hit);
+            } else {
+                unexpected_input_read_refs.push(hit);
+            }
+        }
+        push_source_hits(
+            &mut forbidden_parser_api_refs,
+            rust_file,
+            cwd,
+            &content,
+            PLANNER_PARSER_API_PATTERNS,
+        );
+    }
+
+    let scanned_rust_files =
+        rust_files.iter().map(|path| relative_display(path, cwd)).collect::<Vec<_>>();
+    let ok = unexpected_input_read_refs.is_empty() && forbidden_parser_api_refs.is_empty();
+
+    Ok(PlannerNoParserCrateReport {
+        crate_name: member.crate_name.clone(),
+        manifest_path: relative_display(&member.manifest_path, cwd),
+        scanned_rust_files,
+        allowed_input_read_paths,
+        planner_input_read_refs,
+        unexpected_input_read_refs,
+        forbidden_parser_api_refs,
+        ok,
+    })
+}
+
 /// # Errors
 /// Returns an error if the workspace crate graph cannot be resolved or written.
 pub fn write_dependency_map(cwd: &Path, output_path: &Path) -> Result<CrateDependencyMapReport> {
@@ -687,6 +878,37 @@ pub fn write_parser_no_execution_report(
         audited_surface_count: surfaces.len(),
         ok: surfaces.iter().all(|surface| surface.ok),
         surfaces,
+    };
+
+    if let Some(parent) = output_path.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    bijux_dna_infra::atomic_write_json(output_path, &report)?;
+    Ok(report)
+}
+
+/// # Errors
+/// Returns an error if the planner crate parsing audit cannot be resolved or written.
+pub fn write_planner_no_parser_report(
+    cwd: &Path,
+    output_path: &Path,
+) -> Result<PlannerNoParserReport> {
+    let members = workspace_members(cwd)?;
+    let mut crates = members
+        .iter()
+        .filter(|member| PLANNER_CRATES.contains(&member.crate_name.as_str()))
+        .filter_map(|member| planner_audit_spec(&member.crate_name).map(|spec| (member, spec)))
+        .map(|(member, spec)| audit_planner_crate(cwd, member, spec))
+        .collect::<Result<Vec<_>>>()?;
+    crates.sort_by(|left, right| left.crate_name.cmp(&right.crate_name));
+
+    let report = PlannerNoParserReport {
+        schema_version: "bijux.crates.planner_no_parser.v1",
+        workspace_manifest: relative_display(&cwd.join("Cargo.toml"), cwd),
+        output_path: relative_display(output_path, cwd),
+        audited_crate_count: crates.len(),
+        ok: crates.iter().all(|crate_report| crate_report.ok),
+        crates,
     };
 
     if let Some(parent) = output_path.parent() {
