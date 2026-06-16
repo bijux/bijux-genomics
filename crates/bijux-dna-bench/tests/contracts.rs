@@ -7,8 +7,6 @@ mod mod_contracts_bam_local_stage_matrix_rs;
 mod mod_contracts_bench_contract_rs;
 #[path = "contracts/benching/bench_paths.rs"]
 mod mod_contracts_bench_paths_rs;
-#[path = "contracts/benching/report_consumer_handshake.rs"]
-mod mod_contracts_report_consumer_handshake_rs;
 #[path = "contracts/benching/contract_handshake.rs"]
 mod mod_contracts_contract_handshake_rs;
 #[path = "contracts/docs/docs_fixtures.rs"]
@@ -27,6 +25,8 @@ mod mod_contracts_owner_guardrail_rs;
 mod mod_contracts_public_api_owner_rs;
 #[path = "contracts/api/public_api.rs"]
 mod mod_contracts_public_api_rs;
+#[path = "contracts/benching/report_consumer_handshake.rs"]
+mod mod_contracts_report_consumer_handshake_rs;
 #[path = "contracts/benching/ssot_ids.rs"]
 mod mod_contracts_ssot_ids_rs;
 #[path = "contracts/benching/suite_catalog.rs"]
