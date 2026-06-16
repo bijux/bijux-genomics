@@ -375,13 +375,13 @@ fn current_smoke_executable(repo_root: &Path) -> Result<Option<String>> {
 fn governed_bijux_bin_env(repo_root: &Path) -> Result<Option<String>> {
     let built_bijux = repo_root.join("artifacts/rust/target/debug/bijux-dna");
     if built_bijux.is_file() {
-        return Ok(Some(format!("{} --", path_relative_to_repo(repo_root, &built_bijux))));
+        return Ok(Some(path_relative_to_repo(repo_root, &built_bijux)));
     }
     let executable = std::env::current_exe().context("resolve current executable")?;
     let executable_name =
         executable.file_name().and_then(|value| value.to_str()).unwrap_or_default();
     if executable_name == "bijux-dna" {
-        return Ok(Some(format!("{} --", path_relative_to_repo(repo_root, &executable))));
+        return Ok(Some(path_relative_to_repo(repo_root, &executable)));
     }
     Ok(None)
 }
@@ -506,7 +506,7 @@ mod tests {
                         ("TOOLS".to_string(), "adapterremoval".to_string()),
                         (
                             "BIJUX_BIN".to_string(),
-                            "artifacts/rust/target/debug/bijux-dna --".to_string(),
+                            "artifacts/rust/target/debug/bijux-dna".to_string(),
                         ),
                     ]
                 );
