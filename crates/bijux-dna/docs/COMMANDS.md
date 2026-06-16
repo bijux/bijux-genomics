@@ -996,6 +996,14 @@ Visible aliases are part of the operator surface:
   `future`, equivalent not-yet-active lifecycle rows, declaration-only adapter coverage, and
   `not_benchmark_ready` rows. The command fails closed unless every active matrix tool appears
   exactly once and no retained tool serves zero active stages.
+- `bijux-dna bench readiness render-executable-resolution`
+  `render-executable-resolution` writes
+  `benchmarks/readiness/tools/executable-resolution.tsv` with one governed row per retained tool,
+  resolving each runtime surface to `host_binary`, `docker_image`, `apptainer_image`, or
+  `unavailable_with_reason`. Each row keeps `tool_id`, `domains`, `active_stage_ids`,
+  `install_kind`, `resolution_target`, `command_entrypoint`, `runtime_probe_paths`, and any
+  explicit unavailable reason visible. The command fails closed if cross-domain runtime probes
+  drift or a retained tool falls outside the governed resolution classes.
 - `bijux-dna bench readiness render-stage-tool-alias-check`
   `render-stage-tool-alias-check` writes
   `benchmarks/readiness/all-domains/stage-tool-alias-check.json` and audits the governed
