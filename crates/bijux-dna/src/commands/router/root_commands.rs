@@ -1020,6 +1020,11 @@ pub(crate) fn handle_crates_root(command: &cli::CratesCommand, cwd: &Path) -> Re
             let report = crate::commands::crates::write_dependency_map(cwd, &args.output)?;
             cli::render::json::print_pretty(&report)?;
         }
+        cli::CratesCommand::DomainNoExecution(args) => {
+            let report =
+                crate::commands::crates::write_domain_no_execution_report(cwd, &args.output)?;
+            cli::render::json::print_pretty(&report)?;
+        }
     }
     Ok(())
 }
