@@ -3,7 +3,7 @@
   "workspace_manifest": "Cargo.toml",
   "output_path": "benchmarks/readiness/crates/crate-dependency-map.json",
   "crate_count": 30,
-  "edge_count": 169,
+  "edge_count": 168,
   "crates": [
     {
       "crate_name": "bijux-dna",
@@ -33,7 +33,6 @@
       "crate_name": "bijux-dna-analyze",
       "manifest_path": "crates/bijux-dna-analyze/Cargo.toml",
       "direct_workspace_dependencies": [
-        "bijux-dna-bench",
         "bijux-dna-core",
         "bijux-dna-domain-bam",
         "bijux-dna-domain-fastq",
@@ -49,7 +48,6 @@
         "bijux-dna",
         "bijux-dna-api",
         "bijux-dna-bench",
-        "bijux-dna-bench-model",
         "bijux-dna-environment-qa"
       ]
     },
@@ -94,15 +92,12 @@
         "bijux-dna-runtime",
         "bijux-dna-testkit"
       ],
-      "direct_workspace_dependents": [
-        "bijux-dna-analyze"
-      ]
+      "direct_workspace_dependents": []
     },
     {
       "crate_name": "bijux-dna-bench-model",
       "manifest_path": "crates/bijux-dna-bench-model/Cargo.toml",
       "direct_workspace_dependencies": [
-        "bijux-dna-analyze",
         "bijux-dna-core",
         "bijux-dna-domain-fastq",
         "bijux-dna-policies",
@@ -453,7 +448,8 @@
         "bijux-dna-runtime"
       ],
       "direct_workspace_dependents": [
-        "bijux-dna-api"
+        "bijux-dna-api",
+        "bijux-dna-stages-vcf"
       ]
     },
     {
@@ -545,6 +541,7 @@
         "bijux-dna-domain-vcf",
         "bijux-dna-infra",
         "bijux-dna-policies",
+        "bijux-dna-runner",
         "bijux-dna-testkit"
       ],
       "direct_workspace_dependents": [
@@ -648,10 +645,6 @@
     {
       "from": "bijux-dna",
       "to": "bijux-dna-stages-vcf"
-    },
-    {
-      "from": "bijux-dna-analyze",
-      "to": "bijux-dna-bench"
     },
     {
       "from": "bijux-dna-analyze",
@@ -796,10 +789,6 @@
     {
       "from": "bijux-dna-bench",
       "to": "bijux-dna-testkit"
-    },
-    {
-      "from": "bijux-dna-bench-model",
-      "to": "bijux-dna-analyze"
     },
     {
       "from": "bijux-dna-bench-model",
@@ -1248,6 +1237,10 @@
     {
       "from": "bijux-dna-stages-vcf",
       "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-stages-vcf",
+      "to": "bijux-dna-runner"
     },
     {
       "from": "bijux-dna-stages-vcf",
