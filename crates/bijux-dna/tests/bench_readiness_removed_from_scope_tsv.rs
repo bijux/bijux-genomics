@@ -45,12 +45,12 @@ fn bench_readiness_removed_from_scope_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 21);
+    assert_eq!(rows.len(), 7);
     assert!(rows.iter().any(|row| {
-        row == &"fastq\tfastq.index_reference\tbowtie2_build\tnot_assigned\treference_fasta+reference_index_output\tfastq.adapter.index_reference\tfastq.parser.index_reference\tfastq_index_reference_v1\tnot_benchmark_ready\trunnable\tbenchmark_not_ready\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
+        row == &"fastq\tfastq.report_qc\tmultiqc\tnot_assigned\tcorpus_only\tfastq.adapter.report_qc\tfastq.parser.report_qc\tfastq_report_qc_v1\tnot_benchmark_ready\trunnable\tbenchmark_not_ready\ttrue\tfalse\ttrue\ttrue\ttrue\ttrue"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"vcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1\tplanned\tdeclared_only\tlifecycle_not_active\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
+        row == &"vcf\tvcf.demography\tibdne\tvcf_production_regression\tjson_ibd_segments\tvcf.adapter.demography\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.demography.v1\tplanned\tdeclared_only\tlifecycle_not_active\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
     }));
     assert!(
         rows.iter().all(|row| {

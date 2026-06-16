@@ -21,7 +21,7 @@ pub(crate) const DEFAULT_REMOVED_FROM_SCOPE_PATH: &str =
     "benchmarks/readiness/removed-from-scope.tsv";
 const REMOVED_FROM_SCOPE_SCHEMA_VERSION: &str = "bijux.bench.readiness.removed_from_scope.v1";
 const TRACKED_FULL_BENCHMARK_REPORT_JSON_PATH: &str =
-    "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
 const REPORT_SURFACE_SOURCE_TRACKED_JSON: &str = "tracked_report_json";
 const REPORT_SURFACE_SOURCE_EXPECTED_RESULT_CONTRACT: &str = "expected_result_contract";
 pub(crate) const SCOPE_EXIT_KIND_LIFECYCLE_NOT_ACTIVE: &str = "lifecycle_not_active";
