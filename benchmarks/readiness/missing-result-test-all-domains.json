@@ -4124,8 +4124,14 @@
         "phased_vcf_tbi"
       ],
       "expected_metrics": [
-        "switch_error_proxy",
-        "phase_block_n50"
+        "input_genotypes",
+        "phased_genotypes",
+        "unphased_genotypes",
+        "phase_set_count",
+        "sample_count",
+        "sample_ids",
+        "output_variant_count",
+        "status"
       ],
       "report_section": "phasing",
       "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5` remains present with a validated fake-run manifest"

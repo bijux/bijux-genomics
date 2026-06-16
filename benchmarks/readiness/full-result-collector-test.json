@@ -2713,7 +2713,7 @@
       "result_status": "succeeded",
       "domain": "bam",
       "stage_id": "bam.genotyping",
-      "tool_id": "angsd",
+      "tool_id": "bijux-dna",
       "pipeline_id": "bam-genotyping-to-vcf-downstream",
       "node_id": "bam.genotyping",
       "result_id": null,
@@ -2725,7 +2725,7 @@
       "manifest_path": "runs/bench/local-fake-runs/pipelines/essential/bam-genotyping-to-vcf-downstream/bam.genotyping/stage-result.json",
       "declared_output_count": 6,
       "normalized_metric_count": 0,
-      "detail": "essential pipeline fake-run node with command source `bam_governed_stage_command`"
+      "detail": "essential pipeline fake-run node with command source `local_stage_materialization`"
     },
     {
       "record_id": "expected:bam:corpus-01-adna-bam-mini:bam.haplogroups:sample-set:yleaf",
@@ -12846,7 +12846,7 @@
       "evidence_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "manifest_path": null,
       "declared_output_count": 1,
-      "normalized_metric_count": 2,
+      "normalized_metric_count": 8,
       "detail": "canonical benchmark-ready result binding"
     },
     {
@@ -12888,7 +12888,7 @@
       "evidence_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.phasing/vcf_cohort_with_panel/shapeit5/metrics.json",
       "manifest_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.phasing/vcf_cohort_with_panel/shapeit5/stage-result.json",
       "declared_output_count": 5,
-      "normalized_metric_count": 2,
+      "normalized_metric_count": 8,
       "detail": "fake-run materialized via `vcf_phasing_family_adapter`"
     },
     {
@@ -12909,7 +12909,7 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.phasing/vcf_cohort_with_panel/shapeit5/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.phasing/vcf_cohort_with_panel/shapeit5/stage-result.json",
       "declared_output_count": 5,
-      "normalized_metric_count": 2,
+      "normalized_metric_count": 8,
       "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5` remains present with a validated fake-run manifest"
     },
     {
