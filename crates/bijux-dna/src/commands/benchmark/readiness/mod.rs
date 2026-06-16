@@ -54,6 +54,7 @@ pub(crate) mod essential_pipeline_failure_isolation;
 pub(crate) mod essential_pipeline_partial_resume;
 pub(crate) mod essential_pipeline_rendered_commands;
 pub(crate) mod essential_pipeline_report_map;
+pub(crate) mod essential_pipelines_local_complete;
 pub(crate) mod essential_pipelines_ready;
 pub(crate) mod expected_benchmark_results;
 pub(crate) mod fastq_active_stage_tool_matrix;

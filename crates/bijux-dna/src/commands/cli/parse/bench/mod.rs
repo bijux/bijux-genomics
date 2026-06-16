@@ -122,6 +122,7 @@ pub use self::readiness::{
     BenchReadinessRenderEssentialPipelineFailureIsolationArgs,
     BenchReadinessRenderEssentialPipelinePartialResumeArgs,
     BenchReadinessRenderEssentialPipelineReportMapArgs,
+    BenchReadinessRenderEssentialPipelinesLocalCompleteArgs,
     BenchReadinessRenderEssentialPipelinesReadyArgs,
     BenchReadinessRenderExpectedBenchmarkResultsArgs,
     BenchReadinessRenderFastqActiveStageToolMatrixArgs,

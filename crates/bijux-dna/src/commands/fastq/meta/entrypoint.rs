@@ -360,6 +360,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderEssentialPipelinesLocalComplete(args) => {
+                        crate::commands::benchmark::readiness::essential_pipelines_local_complete::run_render_essential_pipelines_local_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderEssentialPipelineReportMap(args) => {
                         crate::commands::benchmark::readiness::essential_pipeline_report_map::run_render_essential_pipeline_report_map(
                             args,
