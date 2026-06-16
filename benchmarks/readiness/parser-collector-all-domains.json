@@ -3607,7 +3607,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 2,
-        "expected_metric_count": 2,
+        "expected_metric_count": 7,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -3646,7 +3646,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 2,
-        "expected_metric_count": 2,
+        "expected_metric_count": 7,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -3685,7 +3685,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 4,
-        "expected_metric_count": 2,
+        "expected_metric_count": 7,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -3724,7 +3724,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 2,
-        "expected_metric_count": 2,
+        "expected_metric_count": 7,
         "simulated_elapsed_seconds": 1.25
       }
     },

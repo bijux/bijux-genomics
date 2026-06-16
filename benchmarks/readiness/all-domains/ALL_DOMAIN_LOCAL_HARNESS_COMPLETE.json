@@ -1,22 +1,22 @@
 {
-  "schema_version": "bijux.bench.readiness.all_domain_harness_ready.v1",
-  "output_path": "benchmarks/readiness/ALL_DOMAIN_HARNESS_READY.json",
+  "schema_version": "bijux.bench.readiness.all_domain_local_harness_complete.v1",
+  "output_path": "benchmarks/readiness/all-domains/ALL_DOMAIN_LOCAL_HARNESS_COMPLETE.json",
   "checked_goal_count": 12,
   "passed_goal_count": 12,
   "failed_goal_count": 0,
   "failing_goal_ids": [],
   "all_domain_stage_count": 71,
-  "benchmark_ready_binding_count": 132,
-  "expected_result_row_count": 132,
-  "rendered_command_row_count": 132,
-  "output_declaration_row_count": 132,
-  "fake_run_result_count": 132,
-  "fake_run_output_count": 557,
-  "fake_failure_result_count": 132,
-  "fake_failure_output_count": 557,
-  "completion_row_count": 132,
-  "parser_collector_row_count": 136,
-  "missing_result_row_count": 132,
+  "benchmark_ready_binding_count": 138,
+  "expected_result_row_count": 138,
+  "rendered_command_row_count": 138,
+  "output_declaration_row_count": 138,
+  "fake_run_result_count": 138,
+  "fake_run_output_count": 571,
+  "fake_failure_result_count": 138,
+  "fake_failure_output_count": 571,
+  "completion_row_count": 138,
+  "parser_collector_row_count": 142,
+  "missing_result_row_count": 138,
   "failure_class_count": 7,
   "real_smoke_execution_count": 4,
   "ok": true,
@@ -33,63 +33,63 @@
       "surface": "all-domain stage tool table",
       "output_path": "benchmarks/readiness/all-domain-stage-tool-table.tsv",
       "ok": true,
-      "detail": "validated 132 benchmark-ready all-domain stage/tool bindings"
+      "detail": "validated 138 benchmark-ready all-domain stage/tool bindings"
     },
     {
       "goal_id": 280,
       "surface": "all-domain expected benchmark results",
       "output_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "ok": true,
-      "detail": "validated 132 canonical all-domain expected benchmark results"
+      "detail": "validated 138 canonical all-domain expected benchmark results"
     },
     {
       "goal_id": 281,
       "surface": "all-domain rendered commands",
       "output_path": "benchmarks/readiness/rendered-commands-all-domains.sh",
       "ok": true,
-      "detail": "validated executable commands for all 132 benchmark-ready all-domain results"
+      "detail": "validated executable commands for all 138 benchmark-ready all-domain results"
     },
     {
       "goal_id": 282,
       "surface": "all-domain output declarations",
       "output_path": "benchmarks/readiness/output-declarations-all-domains.tsv",
       "ok": true,
-      "detail": "validated complete output declarations for all 132 benchmark-ready results"
+      "detail": "validated complete output declarations for all 138 benchmark-ready results"
     },
     {
       "goal_id": 283,
       "surface": "all-domain fake-runner",
       "output_path": "runs/bench/local-fake-runs/all-domains",
       "ok": true,
-      "detail": "validated fake-run materialization for all 132 benchmark-ready results"
+      "detail": "validated fake-run materialization for all 138 benchmark-ready results"
     },
     {
       "goal_id": 284,
       "surface": "all-domain fake failures",
       "output_path": "runs/bench/local-fake-runs/all-domains-failures",
       "ok": true,
-      "detail": "validated structured failure records for all 132 benchmark-ready results"
+      "detail": "validated structured failure records for all 138 benchmark-ready results"
     },
     {
       "goal_id": 285,
       "surface": "all-domain completion check",
       "output_path": "benchmarks/readiness/completion-check-all-domains.json",
       "ok": true,
-      "detail": "validated governed completion behavior across the 132-result harness slice"
+      "detail": "validated governed completion behavior across the 138-result harness slice"
     },
     {
       "goal_id": 286,
       "surface": "all-domain parser collector",
       "output_path": "benchmarks/readiness/parser-collector-all-domains.json",
       "ok": true,
-      "detail": "validated parser collection for 132 fake-run rows and 4 governed real-smoke rows"
+      "detail": "validated parser collection for 138 fake-run rows and 4 governed real-smoke rows"
     },
     {
       "goal_id": 287,
       "surface": "all-domain missing-result test",
       "output_path": "benchmarks/readiness/missing-result-test-all-domains.json",
       "ok": true,
-      "detail": "validated one explicit missing result row per domain across the 132-result slice"
+      "detail": "validated one explicit missing result row per domain across the 138-result slice"
     },
     {
       "goal_id": 288,
@@ -101,7 +101,7 @@
     {
       "goal_id": 289,
       "surface": "all-domain real-smoke subset",
-      "output_path": "target/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json",
+      "output_path": "artifacts/benchmarks/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json",
       "ok": true,
       "detail": "validated real FASTQ, BAM, VCF, and bam-to-vcf bridge smoke execution"
     }
