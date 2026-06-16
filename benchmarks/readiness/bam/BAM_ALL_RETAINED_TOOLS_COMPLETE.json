@@ -1,0 +1,141 @@
+{
+  "schema_version": "bijux.bench.readiness.bam_all_retained_tools_complete.v1",
+  "output_path": "benchmarks/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json",
+  "checked_goal_count": 17,
+  "passed_goal_count": 17,
+  "failed_goal_count": 0,
+  "failing_goal_ids": [],
+  "retained_row_count": 49,
+  "retained_stage_count": 24,
+  "retained_tool_count": 25,
+  "command_adapter_row_count": 49,
+  "expected_result_row_count": 49,
+  "rendered_command_row_count": 49,
+  "parser_fixture_row_count": 49,
+  "local_smoke_row_count": 49,
+  "local_smoke_host_stage_row_count": 18,
+  "local_smoke_container_row_count": 31,
+  "report_map_row_count": 49,
+  "ok": true,
+  "checks": [
+    {
+      "goal_id": 379,
+      "surface": "bam retained binding matrix",
+      "output_path": "benchmarks/readiness/bam-tool-serving-map.tsv",
+      "ok": true,
+      "detail": "validated the governed 49-row BAM retained matrix with only supported, adapter-backed retained bindings"
+    },
+    {
+      "goal_id": 380,
+      "surface": "bam.align",
+      "output_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
+      "ok": true,
+      "detail": "validated `bam.align` across 2 retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage"
+    },
+    {
+      "goal_id": 381,
+      "surface": "bam validation and core qc",
+      "output_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
+      "ok": true,
+      "detail": "validated `bam validation and core qc` across 7 retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage"
+    },
+    {
+      "goal_id": 382,
+      "surface": "bam filtering",
+      "output_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
+      "ok": true,
+      "detail": "validated `bam filtering` across 7 retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage"
+    },
+    {
+      "goal_id": 383,
+      "surface": "bam duplicate handling",
+      "output_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
+      "ok": true,
+      "detail": "validated `bam duplicate handling` across 4 retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage"
+    },
+    {
+      "goal_id": 384,
+      "surface": "bam complexity",
+      "output_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
+      "ok": true,
+      "detail": "validated `bam complexity` across 1 retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage"
+    },
+    {
+      "goal_id": 385,
+      "surface": "bam coverage",
+      "output_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
+      "ok": true,
+      "detail": "validated `bam coverage` across 3 retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage"
+    },
+    {
+      "goal_id": 386,
+      "surface": "bam insert-size and gc-bias",
+      "output_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
+      "ok": true,
+      "detail": "validated `bam insert-size and gc-bias` across 2 retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage"
+    },
+    {
+      "goal_id": 387,
+      "surface": "bam overlap and endogenous-content",
+      "output_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
+      "ok": true,
+      "detail": "validated `bam overlap and endogenous-content` across 2 retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage"
+    },
+    {
+      "goal_id": 388,
+      "surface": "bam damage and authenticity",
+      "output_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
+      "ok": true,
+      "detail": "validated `bam damage and authenticity` across 10 retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage"
+    },
+    {
+      "goal_id": 389,
+      "surface": "bam contamination sex haplogroups",
+      "output_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
+      "ok": true,
+      "detail": "validated `bam contamination sex haplogroups` across 7 retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage"
+    },
+    {
+      "goal_id": 390,
+      "surface": "bam recalibration and genotyping",
+      "output_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
+      "ok": true,
+      "detail": "validated `bam recalibration and genotyping` across 2 retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage"
+    },
+    {
+      "goal_id": 391,
+      "surface": "bam kinship",
+      "output_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
+      "ok": true,
+      "detail": "validated `bam kinship` across 2 retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage"
+    },
+    {
+      "goal_id": 392,
+      "surface": "bam local and container smoke coverage",
+      "output_path": "benchmarks/readiness/bam/bam-local-container-smoke.tsv",
+      "ok": true,
+      "detail": "validated governed host-vs-container smoke coverage for every retained BAM binding"
+    },
+    {
+      "goal_id": 393,
+      "surface": "bam parser fixture coverage",
+      "output_path": "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv",
+      "ok": true,
+      "detail": "validated 100% parser fixture coverage for the retained BAM binding slice"
+    },
+    {
+      "goal_id": 394,
+      "surface": "bam rendered commands",
+      "output_path": "benchmarks/readiness/bam/bam-rendered-commands.sh",
+      "ok": true,
+      "detail": "validated one bash-syntax-checked rendered command bundle for every retained BAM binding"
+    },
+    {
+      "goal_id": 395,
+      "surface": "bam report map",
+      "output_path": "benchmarks/readiness/bam/bam-report-map.tsv",
+      "ok": true,
+      "detail": "validated report-map placement for every retained BAM expected-result row"
+    }
+  ]
+}
