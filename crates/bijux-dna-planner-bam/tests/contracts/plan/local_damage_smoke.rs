@@ -57,7 +57,17 @@ fn local_damage_smoke_plans_use_governed_bam_fixture() -> Result<()> {
         .collect::<Vec<_>>();
     assert_eq!(
         output_names,
-        vec!["damage_report", "terminal_position_metrics", "parser_output", "stage_metrics"]
+        vec![
+            "damage_report",
+            "terminal_position_metrics",
+            "parser_output",
+            "stage_metrics",
+            "damage_profile",
+            "damage_plot",
+            "damage_clusters",
+            "damage_parameters",
+            "pmd_scores",
+        ]
     );
 
     let damage_output = case

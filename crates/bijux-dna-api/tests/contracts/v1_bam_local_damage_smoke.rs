@@ -69,6 +69,24 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
     let parser_output = repo_root.join(
         payload["parser_output"].as_str().unwrap_or_else(|| panic!("parser_output path missing")),
     );
+    let damage_profile = repo_root.join(
+        payload["damage_profile"].as_str().unwrap_or_else(|| panic!("damage_profile path missing")),
+    );
+    let damage_plot = repo_root
+        .join(payload["damage_plot"].as_str().unwrap_or_else(|| panic!("damage_plot path missing")));
+    let damage_clusters = repo_root.join(
+        payload["damage_clusters"]
+            .as_str()
+            .unwrap_or_else(|| panic!("damage_clusters path missing")),
+    );
+    let damage_parameters = repo_root.join(
+        payload["damage_parameters"]
+            .as_str()
+            .unwrap_or_else(|| panic!("damage_parameters path missing")),
+    );
+    let pmd_scores = repo_root.join(
+        payload["pmd_scores"].as_str().unwrap_or_else(|| panic!("pmd_scores path missing")),
+    );
     let advisory_boundary = repo_root.join(
         payload["advisory_boundary"]
             .as_str()
@@ -83,6 +101,11 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
         &damage_report,
         &terminal_position_metrics,
         &parser_output,
+        &damage_profile,
+        &damage_plot,
+        &damage_clusters,
+        &damage_parameters,
+        &pmd_scores,
         &advisory_boundary,
         &udg_regime,
         &stage_metrics,

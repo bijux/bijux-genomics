@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.output_contract_tests.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
   "row_count": 140,
-  "passed_row_count": 103,
-  "failed_row_count": 37,
+  "passed_row_count": 109,
+  "failed_row_count": 31,
   "domain_counts": {
     "bam": 49,
     "fastq": 71,
@@ -20,7 +20,6 @@
     "bam.authenticity",
     "bam.bias_mitigation",
     "bam.contamination",
-    "bam.damage",
     "bam.genotyping",
     "bam.haplogroups",
     "bam.kinship",
@@ -37,7 +36,6 @@
     "fastq.trim_reads"
   ],
   "failed_tool_ids": [
-    "addeam",
     "angsd",
     "bayeshammer",
     "bbduk",
@@ -57,9 +55,7 @@
     "mapdamage2",
     "multiqc",
     "musket",
-    "ngsbriggs",
     "pmdtools",
-    "pydamage",
     "rcorrector",
     "schmutzi",
     "sortmerna",
@@ -760,7 +756,9 @@
       "observed_raw_output_ids": [
         "terminal_position_metrics",
         "parser_output",
-        "stage_metrics"
+        "stage_metrics",
+        "damage_profile",
+        "damage_clusters"
       ],
       "declared_normalized_metric_ids": [
         "damage_report"
@@ -774,6 +772,8 @@
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_clusters.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
@@ -787,15 +787,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/addeam/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/addeam/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `bam.damage` / `addeam` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:damageprofiler",
@@ -819,7 +819,9 @@
       "observed_raw_output_ids": [
         "terminal_position_metrics",
         "parser_output",
-        "stage_metrics"
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot"
       ],
       "declared_normalized_metric_ids": [
         "damage_report"
@@ -833,6 +835,8 @@
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_plot.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
@@ -846,15 +850,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/damageprofiler/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/damageprofiler/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `bam.damage` / `damageprofiler` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:mapdamage2",
@@ -878,7 +882,9 @@
       "observed_raw_output_ids": [
         "terminal_position_metrics",
         "parser_output",
-        "stage_metrics"
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot"
       ],
       "declared_normalized_metric_ids": [
         "damage_report"
@@ -892,6 +898,8 @@
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_plot.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
@@ -905,15 +913,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/mapdamage2/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/mapdamage2/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `bam.damage` / `mapdamage2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
@@ -937,7 +945,9 @@
       "observed_raw_output_ids": [
         "terminal_position_metrics",
         "parser_output",
-        "stage_metrics"
+        "stage_metrics",
+        "damage_profile",
+        "damage_parameters"
       ],
       "declared_normalized_metric_ids": [
         "damage_report"
@@ -951,6 +961,8 @@
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_parameters.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
@@ -964,15 +976,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `bam.damage` / `ngsbriggs` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
@@ -996,7 +1008,9 @@
       "observed_raw_output_ids": [
         "terminal_position_metrics",
         "parser_output",
-        "stage_metrics"
+        "stage_metrics",
+        "pmd_scores",
+        "damage_profile"
       ],
       "declared_normalized_metric_ids": [
         "damage_report"
@@ -1010,6 +1024,8 @@
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/pmd_scores.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
@@ -1023,15 +1039,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/pmdtools/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/pmdtools/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `bam.damage` / `pmdtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pydamage",
@@ -1054,7 +1070,8 @@
       "observed_raw_output_ids": [
         "terminal_position_metrics",
         "parser_output",
-        "stage_metrics"
+        "stage_metrics",
+        "damage_profile"
       ],
       "declared_normalized_metric_ids": [
         "damage_report"
@@ -1068,6 +1085,7 @@
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
         "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
@@ -1081,15 +1099,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/pydamage/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/pydamage/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `bam.damage` / `pydamage` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.duplication_metrics:sample-set:picard",
