@@ -282,11 +282,7 @@ pub(crate) fn run_local_vcf_impute_smoke(
     })?;
     let info_hist_path = output_root.join(DEFAULT_OUTPUT_INFO_HIST_NAME);
     fs::copy(&stage_outputs.info_hist_json, &info_hist_path).with_context(|| {
-        format!(
-            "copy {} to {}",
-            stage_outputs.info_hist_json.display(),
-            info_hist_path.display()
-        )
+        format!("copy {} to {}", stage_outputs.info_hist_json.display(), info_hist_path.display())
     })?;
     let logs_path = output_root.join(DEFAULT_OUTPUT_LOGS_NAME);
     fs::copy(&stage_outputs.logs_txt, &logs_path).with_context(|| {

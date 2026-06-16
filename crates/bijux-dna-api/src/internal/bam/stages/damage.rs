@@ -208,8 +208,7 @@ fn materialize_local_damage_smoke_case(
     let damage_profile_path = resolve_output_path(repo_root, &case.plan, "damage_profile")?;
     let damage_plot_path = resolve_output_path(repo_root, &case.plan, "damage_plot")?;
     let damage_clusters_path = resolve_output_path(repo_root, &case.plan, "damage_clusters")?;
-    let damage_parameters_path =
-        resolve_output_path(repo_root, &case.plan, "damage_parameters")?;
+    let damage_parameters_path = resolve_output_path(repo_root, &case.plan, "damage_parameters")?;
     let pmd_scores_path = resolve_output_path(repo_root, &case.plan, "pmd_scores")?;
     let advisory_boundary_path = case_out_dir.join("advisory_boundary.json");
     let udg_regime_path = case_out_dir.join("udg_regime.json");

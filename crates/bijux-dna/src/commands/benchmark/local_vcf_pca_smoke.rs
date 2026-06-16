@@ -618,11 +618,13 @@ familynames: NO\n",
         ));
         let genotype_codes = fields[9..]
             .iter()
-            .map(|sample| match sample.split(':').next().unwrap_or_default().replace('|', "/").as_str() {
-                "0/0" => '0',
-                "0/1" | "1/0" => '1',
-                "1/1" => '2',
-                _ => '9',
+            .map(|sample| {
+                match sample.split(':').next().unwrap_or_default().replace('|', "/").as_str() {
+                    "0/0" => '0',
+                    "0/1" | "1/0" => '1',
+                    "1/1" => '2',
+                    _ => '9',
+                }
             })
             .collect::<String>();
         geno_lines.push(genotype_codes);
@@ -636,9 +638,18 @@ familynames: NO\n",
             format!("{sample_id}\tU\t{population_id}")
         })
         .collect::<Vec<_>>();
-    bijux_dna_infra::atomic_write_bytes(&geno_path, format!("{}\n", geno_lines.join("\n")).as_bytes())?;
-    bijux_dna_infra::atomic_write_bytes(&snp_path, format!("{}\n", snp_lines.join("\n")).as_bytes())?;
-    bijux_dna_infra::atomic_write_bytes(&ind_path, format!("{}\n", ind_lines.join("\n")).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(
+        &geno_path,
+        format!("{}\n", geno_lines.join("\n")).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_bytes(
+        &snp_path,
+        format!("{}\n", snp_lines.join("\n")).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_bytes(
+        &ind_path,
+        format!("{}\n", ind_lines.join("\n")).as_bytes(),
+    )?;
     Ok(())
 }
 

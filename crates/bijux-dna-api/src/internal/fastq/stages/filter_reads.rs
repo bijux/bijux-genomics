@@ -107,9 +107,9 @@ fn apply_thread_override(
 pub fn write_local_filter_reads_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases = bijux_dna_planner_fastq::stage_api::local_filter_reads_smoke_plans(&repo_root)?;
-    let case = cases
-        .first()
-        .ok_or_else(|| anyhow!("local-smoke fastq.filter_reads requires at least one governed case"))?;
+    let case = cases.first().ok_or_else(|| {
+        anyhow!("local-smoke fastq.filter_reads requires at least one governed case")
+    })?;
 
     let output_root = repo_root.join("runs/bench/local-smoke/fastq.filter_reads");
     bijux_dna_infra::ensure_dir(&output_root)?;
@@ -158,10 +158,7 @@ fn materialize_local_filter_reads_smoke_case(
     }
 
     let input_records = read_local_fastq_records(&input_r1)?;
-    let mate_records = input_r2
-        .as_ref()
-        .map(|path| read_local_fastq_records(path))
-        .transpose()?;
+    let mate_records = input_r2.as_ref().map(|path| read_local_fastq_records(path)).transpose()?;
     let decisions = input_records
         .iter()
         .cloned()
@@ -170,18 +167,16 @@ fn materialize_local_filter_reads_smoke_case(
             record,
         })
         .collect::<Vec<_>>();
-    let mate_decisions = mate_records
-        .as_ref()
-        .map(|records| {
-            records
-                .iter()
-                .cloned()
-                .map(|record| LocalFilterDecision {
-                    drop_reason: local_filter_drop_reason(&record, &effective_params),
-                    record,
-                })
-                .collect::<Vec<_>>()
-        });
+    let mate_decisions = mate_records.as_ref().map(|records| {
+        records
+            .iter()
+            .cloned()
+            .map(|record| LocalFilterDecision {
+                drop_reason: local_filter_drop_reason(&record, &effective_params),
+                record,
+            })
+            .collect::<Vec<_>>()
+    });
     if let Some(mate_decisions) = mate_decisions.as_ref() {
         if mate_decisions.len() != decisions.len() {
             return Err(anyhow!(
@@ -213,7 +208,9 @@ fn materialize_local_filter_reads_smoke_case(
             .map(|(_, decision)| decision.record.clone())
             .collect::<Vec<_>>()
     });
-    if let (Some(output_r2), Some(retained_records_r2)) = (output_r2.as_ref(), retained_records_r2.as_ref()) {
+    if let (Some(output_r2), Some(retained_records_r2)) =
+        (output_r2.as_ref(), retained_records_r2.as_ref())
+    {
         write_local_fastq_records(output_r2, retained_records_r2)?;
     }
 
@@ -227,9 +224,8 @@ fn materialize_local_filter_reads_smoke_case(
         .chain(mate_decisions.as_deref().unwrap_or(&[]).iter())
         .filter(|decision| decision.drop_reason == Some(LocalFilterDropReason::LowComplexity))
         .count() as u64;
-    let reads_in =
-        u64::try_from(input_records.len() + mate_records.as_ref().map_or(0, Vec::len))
-            .context("count local filter input reads")?;
+    let reads_in = u64::try_from(input_records.len() + mate_records.as_ref().map_or(0, Vec::len))
+        .context("count local filter input reads")?;
     let reads_out =
         u64::try_from(retained_records.len() + retained_records_r2.as_ref().map_or(0, Vec::len))
             .context("count local filter output reads")?;

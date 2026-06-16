@@ -368,10 +368,7 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
         BenchStageResultOutputV1 {
             artifact_id: "source_pruned_variants_tsv".to_string(),
             declared_path: DEFAULT_OUTPUT_SOURCE_PRUNED_VARIANTS_NAME.to_string(),
-            realized_path: path_relative_to_repo(
-                repo_root,
-                &published_source_pruned_variants_path,
-            ),
+            realized_path: path_relative_to_repo(repo_root, &published_source_pruned_variants_path),
             role: "table_output".to_string(),
             optional: false,
             exists: true,
@@ -414,7 +411,10 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
         BenchStageResultOutputV1 {
             artifact_id: "ld_prune_out".to_string(),
             declared_path: "artifacts/stage/ld_prune_out.tsv".to_string(),
-            realized_path: path_relative_to_repo(repo_root, &published_stage_root.join("ld_prune_out.tsv")),
+            realized_path: path_relative_to_repo(
+                repo_root,
+                &published_stage_root.join("ld_prune_out.tsv"),
+            ),
             role: "table_output".to_string(),
             optional: false,
             exists: true,
@@ -422,7 +422,10 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
         BenchStageResultOutputV1 {
             artifact_id: "population_pca_eigenvec".to_string(),
             declared_path: "artifacts/stage/eigenvec.tsv".to_string(),
-            realized_path: path_relative_to_repo(repo_root, &published_stage_root.join("eigenvec.tsv")),
+            realized_path: path_relative_to_repo(
+                repo_root,
+                &published_stage_root.join("eigenvec.tsv"),
+            ),
             role: "table_output".to_string(),
             optional: false,
             exists: true,
@@ -430,7 +433,10 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
         BenchStageResultOutputV1 {
             artifact_id: "population_pca_eigenval".to_string(),
             declared_path: "artifacts/stage/eigenval.tsv".to_string(),
-            realized_path: path_relative_to_repo(repo_root, &published_stage_root.join("eigenval.tsv")),
+            realized_path: path_relative_to_repo(
+                repo_root,
+                &published_stage_root.join("eigenval.tsv"),
+            ),
             role: "table_output".to_string(),
             optional: false,
             exists: true,

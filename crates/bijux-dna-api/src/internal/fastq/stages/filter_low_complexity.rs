@@ -87,9 +87,9 @@ pub fn write_local_filter_low_complexity_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases =
         bijux_dna_planner_fastq::stage_api::local_filter_low_complexity_smoke_plans(&repo_root)?;
-    let case = cases
-        .first()
-        .ok_or_else(|| anyhow!("local-smoke fastq.filter_low_complexity requires at least one governed case"))?;
+    let case = cases.first().ok_or_else(|| {
+        anyhow!("local-smoke fastq.filter_low_complexity requires at least one governed case")
+    })?;
 
     let output_root = repo_root.join("runs/bench/local-smoke/fastq.filter_low_complexity");
     bijux_dna_infra::ensure_dir(&output_root)?;

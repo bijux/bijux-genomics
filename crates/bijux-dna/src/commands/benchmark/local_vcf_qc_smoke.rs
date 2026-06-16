@@ -355,12 +355,7 @@ pub(crate) fn run_local_vcf_qc_smoke(
             metrics_path.as_path(),
             "report_output",
         ),
-        (
-            "qc_report",
-            DEFAULT_OUTPUT_QC_NAME.to_string(),
-            qc_json_path.as_path(),
-            "report_output",
-        ),
+        ("qc_report", DEFAULT_OUTPUT_QC_NAME.to_string(), qc_json_path.as_path(), "report_output"),
     ];
     for output in &governed_contract_outputs {
         declared_outputs.push((
@@ -595,7 +590,8 @@ fn materialize_governed_qc_contract_outputs(
 fn summarize_qc_input_vcf(
     input_vcf: &Path,
 ) -> Result<(Vec<AlleleFrequencyRow>, Vec<SampleGenotypeStats>)> {
-    let raw = fs::read_to_string(input_vcf).with_context(|| format!("read {}", input_vcf.display()))?;
+    let raw =
+        fs::read_to_string(input_vcf).with_context(|| format!("read {}", input_vcf.display()))?;
     let mut sample_ids = Vec::<String>::new();
     let mut sample_stats = BTreeMap::<String, SampleGenotypeStats>::new();
     let mut allele_rows = Vec::<AlleleFrequencyRow>::new();
@@ -763,9 +759,18 @@ fn materialize_plink_qc_outputs(
     let log_path = output_root.join("plink.log");
     bijux_dna_infra::atomic_write_bytes(&imiss_path, build_plink_imiss_tsv(summary).as_bytes())?;
     bijux_dna_infra::atomic_write_bytes(&lmiss_path, build_plink_lmiss_tsv(summary).as_bytes())?;
-    bijux_dna_infra::atomic_write_bytes(&frq_path, build_plink_frq_tsv(allele_frequency_rows).as_bytes())?;
-    bijux_dna_infra::atomic_write_bytes(&het_path, build_plink_het_tsv(sample_genotype_stats).as_bytes())?;
-    bijux_dna_infra::atomic_write_bytes(&hwe_path, build_plink_hwe_tsv(summary, allele_frequency_rows).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(
+        &frq_path,
+        build_plink_frq_tsv(allele_frequency_rows).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_bytes(
+        &het_path,
+        build_plink_het_tsv(sample_genotype_stats).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_bytes(
+        &hwe_path,
+        build_plink_hwe_tsv(summary, allele_frequency_rows).as_bytes(),
+    )?;
     bijux_dna_infra::atomic_write_bytes(&log_path, build_qc_log("plink", summary).as_bytes())?;
     Ok(vec![
         GovernedQcOutputFile {
@@ -821,9 +826,18 @@ fn materialize_plink2_qc_outputs(
     let log_path = output_root.join("plink2.log");
     bijux_dna_infra::atomic_write_bytes(&smiss_path, build_plink2_smiss_tsv(summary).as_bytes())?;
     bijux_dna_infra::atomic_write_bytes(&vmiss_path, build_plink2_vmiss_tsv(summary).as_bytes())?;
-    bijux_dna_infra::atomic_write_bytes(&afreq_path, build_plink2_afreq_tsv(allele_frequency_rows).as_bytes())?;
-    bijux_dna_infra::atomic_write_bytes(&het_path, build_plink2_het_tsv(sample_genotype_stats).as_bytes())?;
-    bijux_dna_infra::atomic_write_bytes(&hardy_path, build_plink2_hardy_tsv(summary, allele_frequency_rows).as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(
+        &afreq_path,
+        build_plink2_afreq_tsv(allele_frequency_rows).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_bytes(
+        &het_path,
+        build_plink2_het_tsv(sample_genotype_stats).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_bytes(
+        &hardy_path,
+        build_plink2_hardy_tsv(summary, allele_frequency_rows).as_bytes(),
+    )?;
     bijux_dna_infra::atomic_write_bytes(&log_path, build_qc_log("plink2", summary).as_bytes())?;
     Ok(vec![
         GovernedQcOutputFile {
@@ -940,7 +954,11 @@ fn build_plink_imiss_tsv(summary: &LocalVcfQcSummary) -> String {
     for row in &summary.sample_missingness {
         lines.push(format!(
             "{}\t{}\t0\t{}\t{}\t{}",
-            row.sample_id, row.sample_id, row.missing_genotype_count, row.total_genotype_count, row.missingness
+            row.sample_id,
+            row.sample_id,
+            row.missing_genotype_count,
+            row.total_genotype_count,
+            row.missingness
         ));
     }
     format!("{}\n", lines.join("\n"))
@@ -951,7 +969,11 @@ fn build_plink_lmiss_tsv(summary: &LocalVcfQcSummary) -> String {
     for row in &summary.variant_missingness {
         lines.push(format!(
             "{}\t{}\t{}\t{}\t{}",
-            row.contig, row.variant_id, row.missing_sample_count, row.total_sample_count, row.missingness
+            row.contig,
+            row.variant_id,
+            row.missing_sample_count,
+            row.total_sample_count,
+            row.missingness
         ));
     }
     format!("{}\n", lines.join("\n"))
@@ -962,7 +984,12 @@ fn build_plink_frq_tsv(rows: &[AlleleFrequencyRow]) -> String {
     for row in rows {
         lines.push(format!(
             "{}\t{}\t{}\t{}\t{}\t{}",
-            row.contig, row.variant_id, row.alternate, row.reference, row.allele_frequency, row.observed_alleles
+            row.contig,
+            row.variant_id,
+            row.alternate,
+            row.reference,
+            row.allele_frequency,
+            row.observed_alleles
         ));
     }
     format!("{}\n", lines.join("\n"))
@@ -1029,7 +1056,12 @@ fn build_plink2_afreq_tsv(rows: &[AlleleFrequencyRow]) -> String {
     for row in rows {
         lines.push(format!(
             "{}\t{}\t{}\t{}\t{}\t{}",
-            row.contig, row.variant_id, row.reference, row.alternate, row.allele_frequency, row.observed_alleles / 2
+            row.contig,
+            row.variant_id,
+            row.reference,
+            row.alternate,
+            row.allele_frequency,
+            row.observed_alleles / 2
         ));
     }
     format!("{}\n", lines.join("\n"))
@@ -1055,7 +1087,13 @@ fn build_plink2_hardy_tsv(summary: &LocalVcfQcSummary, rows: &[AlleleFrequencyRo
     for row in rows {
         lines.push(format!(
             "{}\t{}\t{}\t{}\t{}\t{}\t{}",
-            row.contig, row.position, row.variant_id, row.reference, row.alternate, row.allele_frequency, pvalue
+            row.contig,
+            row.position,
+            row.variant_id,
+            row.reference,
+            row.alternate,
+            row.allele_frequency,
+            pvalue
         ));
     }
     format!("{}\n", lines.join("\n"))

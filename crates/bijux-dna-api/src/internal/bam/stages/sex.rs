@@ -97,10 +97,8 @@ fn materialize_local_sex_smoke_case(
 
     let sex_report_path = resolve_output_path(repo_root, &case.plan, "sex_report")?;
     let sex_estimate_path = resolve_output_path(repo_root, &case.plan, "sex_estimate")?;
-    let population_metrics_path =
-        resolve_output_path(repo_root, &case.plan, "population_metrics")?;
-    let haplogroup_report_path =
-        resolve_output_path(repo_root, &case.plan, "haplogroup_report")?;
+    let population_metrics_path = resolve_output_path(repo_root, &case.plan, "population_metrics")?;
+    let haplogroup_report_path = resolve_output_path(repo_root, &case.plan, "haplogroup_report")?;
     let sex_summary_path = resolve_output_path(repo_root, &case.plan, "summary")?;
     let stage_metrics_path = resolve_output_path(repo_root, &case.plan, "stage_metrics")?;
     let input_bam = repo_root.join(&case.bam);

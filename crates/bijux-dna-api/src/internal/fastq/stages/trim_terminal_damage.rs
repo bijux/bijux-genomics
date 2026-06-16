@@ -104,9 +104,9 @@ pub fn write_local_trim_terminal_damage_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases =
         bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans(&repo_root)?;
-    let case = cases
-        .first()
-        .ok_or_else(|| anyhow!("local-smoke fastq.trim_terminal_damage requires at least one governed case"))?;
+    let case = cases.first().ok_or_else(|| {
+        anyhow!("local-smoke fastq.trim_terminal_damage requires at least one governed case")
+    })?;
 
     let output_root = repo_root.join("runs/bench/local-smoke/fastq.trim_terminal_damage");
     bijux_dna_infra::ensure_dir(&output_root)?;
@@ -404,10 +404,8 @@ fn materialize_local_trim_terminal_damage_smoke_case(
     }
 
     let input_records = read_local_fastq_records(&input_r1)?;
-    let input_records_r2 = input_r2
-        .as_ref()
-        .map(|path| read_local_fastq_records(path))
-        .transpose()?;
+    let input_records_r2 =
+        input_r2.as_ref().map(|path| read_local_fastq_records(path)).transpose()?;
     let trimmed_records = input_records
         .iter()
         .map(|record| {
@@ -418,20 +416,18 @@ fn materialize_local_trim_terminal_damage_smoke_case(
             )
         })
         .collect::<Vec<_>>();
-    let trimmed_records_r2 = input_records_r2
-        .as_ref()
-        .map(|records| {
-            records
-                .iter()
-                .map(|record| {
-                    trim_local_fastq_record(
-                        record,
-                        effective_params.trim_5p_bases as usize,
-                        effective_params.trim_3p_bases as usize,
-                    )
-                })
-                .collect::<Vec<_>>()
-        });
+    let trimmed_records_r2 = input_records_r2.as_ref().map(|records| {
+        records
+            .iter()
+            .map(|record| {
+                trim_local_fastq_record(
+                    record,
+                    effective_params.trim_5p_bases as usize,
+                    effective_params.trim_3p_bases as usize,
+                )
+            })
+            .collect::<Vec<_>>()
+    });
     if let Some(input_records_r2) = input_records_r2.as_ref() {
         if input_records_r2.len() != input_records.len() {
             return Err(anyhow!(
@@ -441,7 +437,9 @@ fn materialize_local_trim_terminal_damage_smoke_case(
     }
 
     write_local_fastq_records(&output_r1, &trimmed_records)?;
-    if let (Some(output_r2), Some(trimmed_records_r2)) = (output_r2.as_ref(), trimmed_records_r2.as_ref()) {
+    if let (Some(output_r2), Some(trimmed_records_r2)) =
+        (output_r2.as_ref(), trimmed_records_r2.as_ref())
+    {
         write_local_fastq_records(output_r2, trimmed_records_r2)?;
     }
 
@@ -504,9 +502,7 @@ fn materialize_local_trim_terminal_damage_smoke_case(
         raw_backend_report: raw_backend_report
             .as_ref()
             .map(|path| path_relative_to_repo(repo_root, path)),
-        raw_backend_report_format: raw_backend_report
-            .as_ref()
-            .map(|_| "cutadapt_json".to_string()),
+        raw_backend_report_format: raw_backend_report.as_ref().map(|_| "cutadapt_json".to_string()),
         runtime_s: None,
         memory_mb: None,
         used_fallback: true,

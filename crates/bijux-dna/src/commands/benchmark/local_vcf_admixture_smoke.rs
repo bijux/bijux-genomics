@@ -295,7 +295,8 @@ pub(crate) fn run_local_vcf_admixture_smoke(
     let published_stage_result_manifest_path =
         published_output_root.join(DEFAULT_STAGE_RESULT_NAME);
     let proxy_eigenval_path = stage_root.join("admixture_proxy_eigenval.tsv");
-    let proxy_eigenval_payload = build_admixture_proxy_eigenval(&cluster_headers, &source_manifest)?;
+    let proxy_eigenval_payload =
+        build_admixture_proxy_eigenval(&cluster_headers, &source_manifest)?;
     bijux_dna_infra::atomic_write_bytes(&proxy_eigenval_path, proxy_eigenval_payload.as_bytes())?;
     let elapsed_seconds = started.elapsed().as_secs_f64();
     let finished_at = timestamp_marker();

@@ -72,8 +72,9 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
     let damage_profile = repo_root.join(
         payload["damage_profile"].as_str().unwrap_or_else(|| panic!("damage_profile path missing")),
     );
-    let damage_plot = repo_root
-        .join(payload["damage_plot"].as_str().unwrap_or_else(|| panic!("damage_plot path missing")));
+    let damage_plot = repo_root.join(
+        payload["damage_plot"].as_str().unwrap_or_else(|| panic!("damage_plot path missing")),
+    );
     let damage_clusters = repo_root.join(
         payload["damage_clusters"]
             .as_str()
@@ -84,9 +85,8 @@ fn write_local_damage_smoke_report_materializes_governed_outputs() -> Result<()>
             .as_str()
             .unwrap_or_else(|| panic!("damage_parameters path missing")),
     );
-    let pmd_scores = repo_root.join(
-        payload["pmd_scores"].as_str().unwrap_or_else(|| panic!("pmd_scores path missing")),
-    );
+    let pmd_scores = repo_root
+        .join(payload["pmd_scores"].as_str().unwrap_or_else(|| panic!("pmd_scores path missing")));
     let advisory_boundary = repo_root.join(
         payload["advisory_boundary"]
             .as_str()

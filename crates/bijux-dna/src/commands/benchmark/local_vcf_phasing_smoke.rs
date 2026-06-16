@@ -345,7 +345,12 @@ pub(crate) fn run_local_vcf_phasing_smoke(
                 switch_error_proxy_path.as_path(),
                 "table_output",
             ),
-            ("phasing_log", DEFAULT_OUTPUT_LOGS_NAME.to_string(), logs_path.as_path(), "log_output"),
+            (
+                "phasing_log",
+                DEFAULT_OUTPUT_LOGS_NAME.to_string(),
+                logs_path.as_path(),
+                "log_output",
+            ),
             (
                 "metrics_json",
                 DEFAULT_OUTPUT_METRICS_NAME.to_string(),
