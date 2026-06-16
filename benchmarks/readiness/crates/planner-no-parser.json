@@ -1,0 +1,880 @@
+{
+  "schema_version": "bijux.crates.planner_no_parser.v1",
+  "workspace_manifest": "Cargo.toml",
+  "output_path": "benchmarks/readiness/crates/planner-no-parser.json",
+  "audited_crate_count": 3,
+  "ok": true,
+  "crates": [
+    {
+      "crate_name": "bijux-dna-planner-bam",
+      "manifest_path": "crates/bijux-dna-planner-bam/Cargo.toml",
+      "scanned_rust_files": [
+        "crates/bijux-dna-planner-bam/src/api.rs",
+        "crates/bijux-dna-planner-bam/src/execution_graph.rs",
+        "crates/bijux-dna-planner-bam/src/lib.rs",
+        "crates/bijux-dna-planner-bam/src/local_readiness.rs",
+        "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+        "crates/bijux-dna-planner-bam/src/params.rs",
+        "crates/bijux-dna-planner-bam/src/profile_catalog.rs",
+        "crates/bijux-dna-planner-bam/src/report_stage.rs",
+        "crates/bijux-dna-planner-bam/src/selection/domain_tool_output_contracts.rs",
+        "crates/bijux-dna-planner-bam/src/selection/domain_tool_specs.rs",
+        "crates/bijux-dna-planner-bam/src/selection/mod.rs",
+        "crates/bijux-dna-planner-bam/src/selection/registry.rs",
+        "crates/bijux-dna-planner-bam/src/selection/tool_selection.rs",
+        "crates/bijux-dna-planner-bam/src/stage_activation.rs",
+        "crates/bijux-dna-planner-bam/src/stage_dispatch/adna.rs",
+        "crates/bijux-dna-planner-bam/src/stage_dispatch/downstream.rs",
+        "crates/bijux-dna-planner-bam/src/stage_dispatch/mod.rs",
+        "crates/bijux-dna-planner-bam/src/stage_dispatch/post.rs",
+        "crates/bijux-dna-planner-bam/src/stage_dispatch/pre.rs",
+        "crates/bijux-dna-planner-bam/src/stages/mod.rs",
+        "crates/bijux-dna-planner-bam/src/stages/stage_catalog.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/bam.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/mod.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/stages_adna.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/stages_downstream.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/stages_post.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/stages_pre.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/stages_support.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/catalog.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/core/addeam.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/core/damageprofiler.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/core/mapdamage2.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/core/mod.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/core/mosdepth.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/core/ngsbriggs.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/core/picard.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/core/pmdtools.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/core/preseq.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/core/pydamage.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/downstream/angsd_sex.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/downstream/authenticity.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/downstream/authenticity_signal.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/downstream/contamination.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/downstream/gatk.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/downstream/genotyping.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/downstream/haplogroups.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/downstream/kinship.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/downstream/mod.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/downstream/rxy.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/downstream/yleaf_sex.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/mod.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/pre/bamtools.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/pre/bamutil.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/pre/bedtools.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/pre/bowtie2.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/pre/bwa.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/pre/mod.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/pre/samtools.rs",
+        "crates/bijux-dna-planner-bam/src/tool_policy.rs"
+      ],
+      "allowed_input_read_paths": [
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_readiness.rs",
+          "reason": "loads governed local-ready planning inputs and runtime defaults"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "reason": "loads governed local-smoke planning inputs and fixture manifests"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/selection/domain_tool_specs.rs",
+          "reason": "loads governed BAM tool planning metadata"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/selection/domain_tool_output_contracts.rs",
+          "reason": "loads governed BAM output-contract metadata"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/selection/registry.rs",
+          "reason": "reads the governed workspace tool registry snapshot"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/stage_activation.rs",
+          "reason": "reads governed stage activation policy"
+        }
+      ],
+      "planner_input_read_refs": [
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_readiness.rs",
+          "line": 587,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_readiness.rs",
+          "line": 587,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_readiness.rs",
+          "line": 593,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_readiness.rs",
+          "line": 593,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_readiness.rs",
+          "line": 600,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_readiness.rs",
+          "line": 600,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_readiness.rs",
+          "line": 607,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_readiness.rs",
+          "line": 607,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_readiness.rs",
+          "line": 613,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_readiness.rs",
+          "line": 613,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3797,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3797,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3814,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3814,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3833,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3833,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3852,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3852,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3869,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3869,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3886,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3886,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3905,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3905,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3924,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3924,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3943,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3943,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3960,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3960,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3977,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3977,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3994,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 3994,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4014,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4014,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4035,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4035,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4056,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4056,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4077,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4077,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4096,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4096,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4113,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4113,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4132,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4132,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4150,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+          "line": 4150,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/selection/domain_tool_output_contracts.rs",
+          "line": 110,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/selection/domain_tool_output_contracts.rs",
+          "line": 110,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/selection/domain_tool_specs.rs",
+          "line": 232,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/selection/domain_tool_specs.rs",
+          "line": 232,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/selection/registry.rs",
+          "line": 15,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/selection/registry.rs",
+          "line": 15,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/stage_activation.rs",
+          "line": 7,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-bam/src/stage_activation.rs",
+          "line": 7,
+          "pattern": "std::fs::read_to_string"
+        }
+      ],
+      "unexpected_input_read_refs": [],
+      "forbidden_parser_api_refs": [],
+      "ok": true
+    },
+    {
+      "crate_name": "bijux-dna-planner-fastq",
+      "manifest_path": "crates/bijux-dna-planner-fastq/Cargo.toml",
+      "scanned_rust_files": [
+        "crates/bijux-dna-planner-fastq/src/compose/input_resolution.rs",
+        "crates/bijux-dna-planner-fastq/src/compose/lineage.rs",
+        "crates/bijux-dna-planner-fastq/src/compose/mod.rs",
+        "crates/bijux-dna-planner-fastq/src/compose/models.rs",
+        "crates/bijux-dna-planner-fastq/src/compose/qc_inputs.rs",
+        "crates/bijux-dna-planner-fastq/src/compose/stage_params.rs",
+        "crates/bijux-dna-planner-fastq/src/lib.rs",
+        "crates/bijux-dna-planner-fastq/src/pipeline_defaults.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/graph_policy.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/layout_branching.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/mod.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/quality_sampling.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/route_expansion.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/selection_planning.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/types.rs",
+        "crates/bijux-dna-planner-fastq/src/preprocess/chunking.rs",
+        "crates/bijux-dna-planner-fastq/src/preprocess/mod.rs",
+        "crates/bijux-dna-planner-fastq/src/preprocess/planning.rs",
+        "crates/bijux-dna-planner-fastq/src/preprocess/policy.rs",
+        "crates/bijux-dna-planner-fastq/src/qc_contract.rs",
+        "crates/bijux-dna-planner-fastq/src/report_stage.rs",
+        "crates/bijux-dna-planner-fastq/src/selection/args.rs",
+        "crates/bijux-dna-planner-fastq/src/selection/domain_tool_output_contracts.rs",
+        "crates/bijux-dna-planner-fastq/src/selection/domain_tool_specs.rs",
+        "crates/bijux-dna-planner-fastq/src/selection/facade.rs",
+        "crates/bijux-dna-planner-fastq/src/selection/mod.rs",
+        "crates/bijux-dna-planner-fastq/src/selection/tool_selection.rs",
+        "crates/bijux-dna-planner-fastq/src/stage_api.rs",
+        "crates/bijux-dna-planner-fastq/src/surface.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/fastq.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/mod.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/amplicon/cluster_otus.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/amplicon/infer_asvs.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/amplicon/mod.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/amplicon/normalize_abundance.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/amplicon/normalize_primers.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/amplicon/remove_chimeras.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/catalog.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/mod.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/detect_adapters.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/detect_duplicates_premerge.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/estimate_library_complexity_prealign.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/index_reference.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/mod.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/plan_preprocess.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/preprocess.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/profile_overrepresented_sequences.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/profile_read_lengths.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/validate_reads.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/qc/deplete_rrna.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/qc/mod.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/qc/profile_reads.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/qc/report_qc.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/qc/screen_taxonomy.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/correct_errors.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/deplete_host.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/deplete_reference_contaminants.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/extract_umis.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/filter_low_complexity.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/filter_reads.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/merge_pairs.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/mod.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/remove_duplicates.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/trim_polyg_tails.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/trim_reads/config.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/trim_reads/mod.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/trim_reads/reporting.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/transform/trim_terminal_damage.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_adapters/template_render.rs",
+        "crates/bijux-dna-planner-fastq/src/tool_policy.rs",
+        "crates/bijux-dna-planner-fastq/src/unit_checks.rs"
+      ],
+      "allowed_input_read_paths": [
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+          "reason": "loads governed local-ready FASTQ planning inputs"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "reason": "loads governed local-smoke FASTQ planning inputs and fixture manifests"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/quality_sampling.rs",
+          "reason": "samples governed input reads for planning-time quality estimation"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/selection/domain_tool_specs.rs",
+          "reason": "loads governed FASTQ tool planning metadata"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/selection/domain_tool_output_contracts.rs",
+          "reason": "loads governed FASTQ output-contract metadata"
+        }
+      ],
+      "planner_input_read_refs": [
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+          "line": 385,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+          "line": 385,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+          "line": 399,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+          "line": 399,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+          "line": 415,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+          "line": 415,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+          "line": 429,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+          "line": 429,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+          "line": 445,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+          "line": 445,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+          "line": 459,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_readiness.rs",
+          "line": 459,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 2478,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 2478,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 2741,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 2741,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 2817,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 2817,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 2836,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 2836,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 2857,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 2857,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3288,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3288,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3307,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3307,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3326,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3326,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3347,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3347,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3366,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3366,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3387,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3387,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3408,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3408,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3427,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3427,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3448,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3448,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3469,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3469,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3490,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3490,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3511,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3511,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3530,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3530,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3572,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3572,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3593,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3593,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3614,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3614,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3633,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3633,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3654,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+          "line": 3654,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/quality_sampling.rs",
+          "line": 9,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/planner/quality_sampling.rs",
+          "line": 9,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/selection/domain_tool_output_contracts.rs",
+          "line": 124,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/selection/domain_tool_output_contracts.rs",
+          "line": 124,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/selection/domain_tool_specs.rs",
+          "line": 164,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-fastq/src/selection/domain_tool_specs.rs",
+          "line": 164,
+          "pattern": "std::fs::read_to_string"
+        }
+      ],
+      "unexpected_input_read_refs": [],
+      "forbidden_parser_api_refs": [],
+      "ok": true
+    },
+    {
+      "crate_name": "bijux-dna-planner-vcf",
+      "manifest_path": "crates/bijux-dna-planner-vcf/Cargo.toml",
+      "scanned_rust_files": [
+        "crates/bijux-dna-planner-vcf/src/api.rs",
+        "crates/bijux-dna-planner-vcf/src/chunk_plan.rs",
+        "crates/bijux-dna-planner-vcf/src/coverage.rs",
+        "crates/bijux-dna-planner-vcf/src/execution_graph.rs",
+        "crates/bijux-dna-planner-vcf/src/explain.rs",
+        "crates/bijux-dna-planner-vcf/src/explain_model.rs",
+        "crates/bijux-dna-planner-vcf/src/input_policy.rs",
+        "crates/bijux-dna-planner-vcf/src/lib.rs",
+        "crates/bijux-dna-planner-vcf/src/params.rs",
+        "crates/bijux-dna-planner-vcf/src/planner.rs",
+        "crates/bijux-dna-planner-vcf/src/reference_context.rs",
+        "crates/bijux-dna-planner-vcf/src/stage_io.rs",
+        "crates/bijux-dna-planner-vcf/src/stage_plan.rs",
+        "crates/bijux-dna-planner-vcf/src/stage_sequence.rs",
+        "crates/bijux-dna-planner-vcf/src/tool_catalog.rs",
+        "crates/bijux-dna-planner-vcf/src/tool_selection.rs",
+        "crates/bijux-dna-planner-vcf/src/workspace_config.rs"
+      ],
+      "allowed_input_read_paths": [
+        {
+          "path": "crates/bijux-dna-planner-vcf/src/coverage.rs",
+          "reason": "reads governed coverage-regime planning thresholds"
+        },
+        {
+          "path": "crates/bijux-dna-planner-vcf/src/workspace_config.rs",
+          "reason": "reads governed workspace tool and parameter registries"
+        }
+      ],
+      "planner_input_read_refs": [
+        {
+          "path": "crates/bijux-dna-planner-vcf/src/coverage.rs",
+          "line": 49,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-vcf/src/workspace_config.rs",
+          "line": 37,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-vcf/src/workspace_config.rs",
+          "line": 61,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-planner-vcf/src/workspace_config.rs",
+          "line": 80,
+          "pattern": "fs::read_to_string"
+        }
+      ],
+      "unexpected_input_read_refs": [],
+      "forbidden_parser_api_refs": [],
+      "ok": true
+    }
+  ]
+}
