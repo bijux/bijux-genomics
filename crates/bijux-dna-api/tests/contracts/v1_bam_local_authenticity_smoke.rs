@@ -68,6 +68,13 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
             .as_str()
             .unwrap_or_else(|| panic!("authenticity_report path missing")),
     );
+    let damage_profile = repo_root.join(
+        payload["damage_profile"].as_str().unwrap_or_else(|| panic!("damage_profile path missing")),
+    );
+    let damage_plot = repo_root
+        .join(payload["damage_plot"].as_str().unwrap_or_else(|| panic!("damage_plot path missing")));
+    let pmd_scores = repo_root
+        .join(payload["pmd_scores"].as_str().unwrap_or_else(|| panic!("pmd_scores path missing")));
     let authenticity_summary = repo_root.join(
         payload["authenticity_summary"]
             .as_str()
@@ -113,6 +120,9 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
     );
     for path in [
         &authenticity_report,
+        &damage_profile,
+        &damage_plot,
+        &pmd_scores,
         &authenticity_summary,
         &authenticity_composite,
         &advisory_boundary,

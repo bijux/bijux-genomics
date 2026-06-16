@@ -28,6 +28,9 @@ struct LocalAuthenticitySmokeReport {
     consumed_metrics: Vec<String>,
     missing_metrics: Vec<String>,
     authenticity_report: String,
+    damage_profile: String,
+    damage_plot: String,
+    pmd_scores: String,
     authenticity_summary: String,
     authenticity_composite: String,
     advisory_boundary: String,
@@ -304,6 +307,9 @@ fn materialize_local_authenticity_smoke_case(
     let _summary_path = write_stage_authenticity_artifacts(&case_out_dir, &case.plan)?;
     let authenticity_report_path =
         resolve_output_path(repo_root, &case.plan, "authenticity_report")?;
+    let damage_profile_path = resolve_output_path(repo_root, &case.plan, "damage_profile")?;
+    let damage_plot_path = resolve_output_path(repo_root, &case.plan, "damage_plot")?;
+    let pmd_scores_path = resolve_output_path(repo_root, &case.plan, "pmd_scores")?;
     let authenticity_summary_path = resolve_output_path(repo_root, &case.plan, "summary")?;
     let stage_metrics_path = resolve_output_path(repo_root, &case.plan, "stage_metrics")?;
     let authenticity_composite_path = case_out_dir.join("authenticity_composite.json");
@@ -326,6 +332,36 @@ fn materialize_local_authenticity_smoke_case(
         .and_then(|value| value.get("contamination"))
         .and_then(|value| value.get("estimate"))
         .and_then(serde_json::Value::as_f64);
+
+    bijux_dna_infra::atomic_write_json(
+        &damage_profile_path,
+        &serde_json::json!({
+            "artifact_id": "damage_profile",
+            "stage_id": "bam.authenticity",
+            "tool_id": case.plan.tool_id.as_str(),
+            "score": authenticity_summary.score,
+            "confidence": authenticity_summary.confidence,
+            "pmd_like_signal_present": authenticity_summary.pmd_like_signal_present,
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &damage_plot_path,
+        &serde_json::json!({
+            "artifact_id": "damage_plot",
+            "stage_id": "bam.authenticity",
+            "tool_id": case.plan.tool_id.as_str(),
+            "status": "local_smoke_placeholder",
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &pmd_scores_path,
+        &serde_json::json!({
+            "artifact_id": "pmd_scores",
+            "stage_id": "bam.authenticity",
+            "tool_id": case.plan.tool_id.as_str(),
+            "scores": [0, 1, 2, 3],
+        }),
+    )?;
 
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
@@ -364,6 +400,9 @@ fn materialize_local_authenticity_smoke_case(
         consumed_metrics,
         missing_metrics,
         authenticity_report: path_relative_to_repo(repo_root, &authenticity_report_path),
+        damage_profile: path_relative_to_repo(repo_root, &damage_profile_path),
+        damage_plot: path_relative_to_repo(repo_root, &damage_plot_path),
+        pmd_scores: path_relative_to_repo(repo_root, &pmd_scores_path),
         authenticity_summary: path_relative_to_repo(repo_root, &authenticity_summary_path),
         authenticity_composite: path_relative_to_repo(repo_root, &authenticity_composite_path),
         advisory_boundary: path_relative_to_repo(repo_root, &advisory_boundary_path),

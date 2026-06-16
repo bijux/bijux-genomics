@@ -77,7 +77,17 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
         .iter()
         .map(|artifact| artifact.name.as_str().to_string())
         .collect::<Vec<_>>();
-    assert_eq!(output_names, vec!["authenticity_report", "summary", "stage_metrics"]);
+    assert_eq!(
+        output_names,
+        vec![
+            "authenticity_report",
+            "damage_profile",
+            "damage_plot",
+            "pmd_scores",
+            "summary",
+            "stage_metrics",
+        ]
+    );
 
     let authenticity_output = case
         .plan

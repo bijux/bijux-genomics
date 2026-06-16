@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.output_contract_tests.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
   "row_count": 140,
-  "passed_row_count": 109,
-  "failed_row_count": 31,
+  "passed_row_count": 111,
+  "failed_row_count": 29,
   "domain_counts": {
     "bam": 49,
     "fastq": 71,
@@ -17,7 +17,6 @@
   },
   "failed_stage_ids": [
     "bam.align",
-    "bam.authenticity",
     "bam.bias_mitigation",
     "bam.contamination",
     "bam.genotyping",
@@ -45,7 +44,6 @@
     "centrifuge",
     "contammix",
     "cutadapt",
-    "damageprofiler",
     "fastp",
     "kaiju",
     "king",
@@ -55,7 +53,6 @@
     "mapdamage2",
     "multiqc",
     "musket",
-    "pmdtools",
     "rcorrector",
     "schmutzi",
     "sortmerna",
@@ -236,7 +233,9 @@
       ],
       "observed_raw_output_ids": [
         "summary",
-        "stage_metrics"
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot"
       ],
       "declared_normalized_metric_ids": [
         "authenticity_report"
@@ -249,6 +248,8 @@
       "observed_output_paths": [
         "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.json",
         "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.summary.json",
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/damage_plot.json",
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/damage_profile.json",
         "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
@@ -262,15 +263,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.authenticity/adna_damage_non_udg/damageprofiler/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.authenticity/adna_damage_non_udg/damageprofiler/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `bam.authenticity` / `damageprofiler` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:pmdtools",
@@ -292,7 +293,9 @@
       ],
       "observed_raw_output_ids": [
         "summary",
-        "stage_metrics"
+        "stage_metrics",
+        "pmd_scores",
+        "damage_profile"
       ],
       "declared_normalized_metric_ids": [
         "authenticity_report"
@@ -305,6 +308,8 @@
       "observed_output_paths": [
         "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.json",
         "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.summary.json",
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/damage_profile.json",
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/pmd_scores.json",
         "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
@@ -318,15 +323,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.authenticity/adna_damage_non_udg/pmdtools/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.authenticity/adna_damage_non_udg/pmdtools/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `bam.authenticity` / `pmdtools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.bias_mitigation:sample-set:mapdamage2",
