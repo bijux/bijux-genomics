@@ -282,14 +282,14 @@ Visible aliases are part of the operator surface:
   matches those machine-readable source surfaces exactly.
 - `bijux-dna bench readiness render-full-benchmark-report`
   `render-full-benchmark-report` writes
-  `benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md` and
-  `benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json`. It renders one canonical report
-  row per all-domain expected benchmark binding, keeps the governed missing-result rows visible,
-  appends the explicit unsupported pair row, and then builds the required stage-centric,
-  tool-centric, corpus-centric, pipeline-centric, runtime, memory, failures, missing-results,
-  comparable-metrics, and unsupported-pairs sections from the governed source surfaces. The
-  command fail-closes unless the report row count stays equal to the expected-result table count
-  plus the explicit unsupported rows.
+  `benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.md` and
+  `benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json`. It renders one
+  canonical report row per all-domain expected benchmark binding, keeps the governed
+  missing-result rows visible, appends the explicit unsupported pair row, and then builds the
+  required stage-centric, tool-centric, corpus-centric, pipeline-centric, runtime, memory,
+  failures, missing-results, comparable-metrics, and unsupported-pairs sections from the
+  governed source surfaces. The command fail-closes unless the report row count stays equal to
+  the expected-result table count plus the explicit unsupported rows.
 - `bijux-dna bench readiness render-operational-benchmark-ready`
   `render-operational-benchmark-ready` writes
   `benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json`. It reruns the
