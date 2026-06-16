@@ -1024,6 +1024,11 @@ pub(crate) fn handle_crates_root(command: &cli::CratesCommand, cwd: &Path) -> Re
             let report = crate::commands::crates::write_metric_registry_report(cwd, &args.output)?;
             cli::render::json::print_pretty(&report)?;
         }
+        cli::CratesCommand::ResultIdStability(args) => {
+            let report =
+                crate::commands::crates::write_result_id_stability_report(cwd, &args.output)?;
+            cli::render::json::print_pretty(&report)?;
+        }
         cli::CratesCommand::DomainNoExecution(args) => {
             let report =
                 crate::commands::crates::write_domain_no_execution_report(cwd, &args.output)?;

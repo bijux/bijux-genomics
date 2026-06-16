@@ -371,6 +371,52 @@ pub struct MetricRegistryRow {
     pub domain_registry_surface: String,
 }
 
+#[derive(Debug, Serialize)]
+pub struct ResultIdStabilityReport {
+    pub schema_version: &'static str,
+    pub workspace_manifest: String,
+    pub output_path: String,
+    pub row_count: usize,
+    pub local_row_count: usize,
+    pub fake_row_count: usize,
+    pub report_row_count: usize,
+    pub slurm_row_count: usize,
+    pub micro_checked_row_count: usize,
+    pub violation_count: usize,
+    pub ok: bool,
+    pub rows: Vec<ResultIdStabilityRow>,
+    pub violations: Vec<ResultIdStabilityViolation>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ResultIdStabilityRow {
+    pub result_id: String,
+    pub domain: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub corpus_id: String,
+    pub scope_kind: String,
+    pub scope_id: String,
+    pub local_result_id: Option<String>,
+    pub fake_result_id: Option<String>,
+    pub micro_result_id: Option<String>,
+    pub report_result_id: Option<String>,
+    pub slurm_result_id: Option<String>,
+    pub local_execution_argv: Option<Vec<String>>,
+    pub micro_execution_argv: Option<Vec<String>>,
+    pub fake_metrics_path: Option<String>,
+    pub report_row_id: Option<String>,
+    pub report_evidence_path: Option<String>,
+    pub slurm_job_id_local: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ResultIdStabilityViolation {
+    pub result_id: String,
+    pub surface: String,
+    pub detail: String,
+}
+
 #[derive(Debug, Deserialize, Default)]
 struct MetricRegistryStageDoc {
     #[serde(default)]
@@ -620,6 +666,172 @@ fn render_metric_registry_tsv(rows: &[MetricRegistryRow]) -> String {
         ));
     }
     rendered
+}
+
+const MICRO_RESULT_ID_SUBSET: &[&str] = &[
+    "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
+    "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
+    "vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
+];
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct CanonicalResultIdRow {
+    result_id: String,
+    domain: String,
+    stage_id: String,
+    tool_id: String,
+    corpus_id: String,
+    scope_kind: crate::commands::benchmark::benchmark_result_ids::BenchmarkResultScopeKind,
+    scope_id: String,
+}
+
+fn result_scope_kind_label(
+    kind: crate::commands::benchmark::benchmark_result_ids::BenchmarkResultScopeKind,
+) -> &'static str {
+    match kind {
+        crate::commands::benchmark::benchmark_result_ids::BenchmarkResultScopeKind::SampleScope => {
+            "sample_scope"
+        }
+        crate::commands::benchmark::benchmark_result_ids::BenchmarkResultScopeKind::AssetProfile => {
+            "asset_profile"
+        }
+    }
+}
+
+fn push_result_id_violation(
+    violations: &mut Vec<ResultIdStabilityViolation>,
+    result_id: &str,
+    surface: &str,
+    detail: impl Into<String>,
+) {
+    violations.push(ResultIdStabilityViolation {
+        result_id: result_id.to_string(),
+        surface: surface.to_string(),
+        detail: detail.into(),
+    });
+}
+
+fn collect_canonical_result_id_rows(
+    cwd: &Path,
+) -> Result<(Vec<CanonicalResultIdRow>, Vec<ResultIdStabilityViolation>)> {
+    let mut violations = Vec::new();
+    let mut rows = Vec::new();
+
+    for row in crate::commands::benchmark::readiness::expected_benchmark_results::collect_expected_benchmark_result_rows(cwd)?
+    {
+        let canonical_result_id = crate::commands::benchmark::benchmark_result_ids::build_sample_scoped_benchmark_result_id(
+            &row.domain,
+            &row.fixture_id,
+            &row.stage_id,
+            &row.sample_scope,
+            &row.tool_id,
+        );
+        if canonical_result_id != row.result_row_id {
+            push_result_id_violation(
+                &mut violations,
+                &row.result_row_id,
+                "expected_benchmark_results",
+                format!(
+                    "FASTQ/BAM expected row drifted from the canonical sample-scoped builder: `{}`",
+                    canonical_result_id
+                ),
+            );
+        }
+        rows.push(CanonicalResultIdRow {
+            result_id: canonical_result_id,
+            domain: row.domain,
+            stage_id: row.stage_id,
+            tool_id: row.tool_id,
+            corpus_id: row.fixture_id,
+            scope_kind: crate::commands::benchmark::benchmark_result_ids::BenchmarkResultScopeKind::SampleScope,
+            scope_id: row.sample_scope,
+        });
+    }
+
+    for row in crate::commands::benchmark::readiness::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result_rows(cwd)?
+    {
+        let canonical_result_id = crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+            &row.domain,
+            &row.corpus_id,
+            &row.stage_id,
+            &row.asset_profile_id,
+            &row.tool_id,
+        );
+        rows.push(CanonicalResultIdRow {
+            result_id: canonical_result_id,
+            domain: row.domain,
+            stage_id: row.stage_id,
+            tool_id: row.tool_id,
+            corpus_id: row.corpus_id,
+            scope_kind: crate::commands::benchmark::benchmark_result_ids::BenchmarkResultScopeKind::AssetProfile,
+            scope_id: row.asset_profile_id,
+        });
+    }
+
+    rows.sort_by(|left, right| {
+        left.domain
+            .cmp(&right.domain)
+            .then_with(|| left.stage_id.cmp(&right.stage_id))
+            .then_with(|| left.tool_id.cmp(&right.tool_id))
+            .then_with(|| left.corpus_id.cmp(&right.corpus_id))
+            .then_with(|| left.result_id.cmp(&right.result_id))
+    });
+
+    let mut canonical_by_result = BTreeMap::new();
+    for row in &rows {
+        if canonical_by_result.insert(row.result_id.clone(), row.clone()).is_some() {
+            push_result_id_violation(
+                &mut violations,
+                &row.result_id,
+                "canonical_result_builder",
+                "canonical result-id builder produced a duplicate binding",
+            );
+        }
+    }
+
+    let all_domain_rows = crate::commands::benchmark::readiness::all_domain_expected_benchmark_results::collect_all_domain_expected_benchmark_result_rows(cwd)?;
+    if all_domain_rows.len() != rows.len() {
+        push_result_id_violation(
+            &mut violations,
+            "all-domain-expected-row-count",
+            "all_domain_expected_benchmark_results",
+            format!(
+                "all-domain expected rows drifted from canonical benchmark rows: expected {}, found {}",
+                rows.len(),
+                all_domain_rows.len()
+            ),
+        );
+    }
+    for row in &all_domain_rows {
+        let Some(canonical) = canonical_by_result.get(&row.result_id) else {
+            push_result_id_violation(
+                &mut violations,
+                &row.result_id,
+                "all_domain_expected_benchmark_results",
+                "all-domain expected row is missing from the canonical result-id builder",
+            );
+            continue;
+        };
+        let parsed = crate::commands::benchmark::benchmark_result_ids::parse_benchmark_result_id(
+            &row.result_id,
+        )?;
+        if canonical.domain != row.domain
+            || canonical.stage_id != row.stage_id
+            || canonical.tool_id != row.tool_id
+            || canonical.corpus_id != row.corpus_id
+            || canonical.scope_kind != parsed.scope_kind
+            || canonical.scope_id != parsed.scope_id
+        {
+            push_result_id_violation(
+                &mut violations,
+                &row.result_id,
+                "all_domain_expected_benchmark_results",
+                "all-domain expected row drifted from the canonical result-id identity",
+            );
+        }
+    }
+
+    Ok((rows, violations))
 }
 
 fn workspace_members(cwd: &Path) -> Result<Vec<WorkspaceMember>> {
@@ -1265,6 +1477,277 @@ pub fn write_metric_registry_report(
         bijux_dna_infra::ensure_dir(parent)?;
     }
     bijux_dna_infra::atomic_write_bytes(output_path, render_metric_registry_tsv(&rows).as_bytes())?;
+    Ok(report)
+}
+
+/// # Errors
+/// Returns an error if the benchmark result-id stability audit cannot be resolved or written.
+pub fn write_result_id_stability_report(
+    cwd: &Path,
+    output_path: &Path,
+) -> Result<ResultIdStabilityReport> {
+    let (canonical_rows, mut violations) = collect_canonical_result_id_rows(cwd)?;
+    let canonical_by_result =
+        canonical_rows.iter().map(|row| (row.result_id.clone(), row)).collect::<BTreeMap<_, _>>();
+
+    let local_rows = crate::commands::benchmark::readiness::all_domain_rendered_commands::collect_all_domain_rendered_command_rows(cwd)?;
+    let local_by_result =
+        local_rows.iter().map(|row| (row.result_id.clone(), row)).collect::<BTreeMap<_, _>>();
+
+    let fake_report = crate::commands::benchmark::local_all_domain_fake_runs::fake_run_all_domain_benchmark_results(
+        cwd,
+        PathBuf::from(crate::commands::benchmark::local_all_domain_fake_runs::DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT),
+    )?;
+    let fake_by_result = fake_report
+        .results
+        .iter()
+        .map(|row| (row.result_id.clone(), row))
+        .collect::<BTreeMap<_, _>>();
+
+    let full_report = crate::commands::benchmark::readiness::full_benchmark_report::render_full_benchmark_report(
+        cwd,
+        PathBuf::from(crate::commands::benchmark::readiness::full_benchmark_report::DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH),
+    )?;
+    let report_by_result = full_report
+        .rows
+        .iter()
+        .filter_map(|row| row.result_id.as_ref().map(|result_id| (result_id.clone(), row)))
+        .collect::<BTreeMap<_, _>>();
+
+    let slurm_report = crate::commands::benchmark::local_all_domain_slurm_submit_manifest::render_all_domain_slurm_submit_manifest(
+        cwd,
+        PathBuf::from(crate::commands::benchmark::local_all_domain_slurm_scripts::DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT),
+        PathBuf::from(crate::commands::benchmark::local_all_domain_slurm_submit_manifest::DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH),
+    )?;
+    let slurm_by_result = slurm_report
+        .jobs
+        .iter()
+        .filter_map(|job| job.result_id.as_ref().map(|result_id| (result_id.clone(), job)))
+        .collect::<BTreeMap<_, _>>();
+
+    for result_id in local_by_result.keys() {
+        if !canonical_by_result.contains_key(result_id) {
+            push_result_id_violation(
+                &mut violations,
+                result_id,
+                "local_all_domain_rendered_commands",
+                "local execution surface produced a non-canonical result id",
+            );
+        }
+    }
+    for result_id in fake_by_result.keys() {
+        if !canonical_by_result.contains_key(result_id) {
+            push_result_id_violation(
+                &mut violations,
+                result_id,
+                "local_all_domain_fake_runs",
+                "fake-run surface produced a non-canonical result id",
+            );
+        }
+    }
+    for result_id in report_by_result.keys() {
+        if !canonical_by_result.contains_key(result_id) {
+            push_result_id_violation(
+                &mut violations,
+                result_id,
+                "full_benchmark_report",
+                "full benchmark report produced a non-canonical result id",
+            );
+        }
+    }
+    for result_id in slurm_by_result.keys() {
+        if !canonical_by_result.contains_key(result_id) {
+            push_result_id_violation(
+                &mut violations,
+                result_id,
+                "local_all_domain_slurm_submit_manifest",
+                "SLURM dry-run surface produced a non-canonical result id",
+            );
+        }
+    }
+
+    let micro_result_ids = MICRO_RESULT_ID_SUBSET
+        .iter()
+        .map(|result_id| (*result_id).to_string())
+        .collect::<BTreeSet<_>>();
+    for result_id in &micro_result_ids {
+        if !canonical_by_result.contains_key(result_id) {
+            push_result_id_violation(
+                &mut violations,
+                result_id,
+                "governed_micro_subset",
+                "micro result-id subset references a non-canonical benchmark row",
+            );
+        }
+    }
+
+    let mut rows = Vec::with_capacity(canonical_rows.len());
+    for canonical in canonical_rows {
+        let local_row = local_by_result.get(&canonical.result_id).copied();
+        let fake_row = fake_by_result.get(&canonical.result_id).copied();
+        let report_row = report_by_result.get(&canonical.result_id).copied();
+        let slurm_job = slurm_by_result.get(&canonical.result_id).copied();
+
+        if let Some(row) = local_row {
+            if !crate::commands::benchmark::local_all_domain_result_paths::benchmark_result_matches_identity(
+                &row.result_id,
+                &canonical.domain,
+                &canonical.corpus_id,
+                &canonical.stage_id,
+                &canonical.tool_id,
+            )? {
+                push_result_id_violation(
+                    &mut violations,
+                    &canonical.result_id,
+                    "local_all_domain_rendered_commands",
+                    "local execution row drifted from the canonical benchmark identity",
+                );
+            }
+        } else {
+            push_result_id_violation(
+                &mut violations,
+                &canonical.result_id,
+                "local_all_domain_rendered_commands",
+                "local execution surface is missing the canonical result id",
+            );
+        }
+
+        if let Some(row) = fake_row {
+            if !crate::commands::benchmark::local_all_domain_result_paths::benchmark_result_matches_identity(
+                &row.result_id,
+                &canonical.domain,
+                &canonical.corpus_id,
+                &canonical.stage_id,
+                &canonical.tool_id,
+            )? {
+                push_result_id_violation(
+                    &mut violations,
+                    &canonical.result_id,
+                    "local_all_domain_fake_runs",
+                    "fake-run row drifted from the canonical benchmark identity",
+                );
+            }
+        } else {
+            push_result_id_violation(
+                &mut violations,
+                &canonical.result_id,
+                "local_all_domain_fake_runs",
+                "fake-run surface is missing the canonical result id",
+            );
+        }
+
+        if let Some(row) = report_row {
+            if row.report_row_id != canonical.result_id {
+                push_result_id_violation(
+                    &mut violations,
+                    &canonical.result_id,
+                    "full_benchmark_report",
+                    format!(
+                        "full benchmark report row id `{}` drifted from canonical result id",
+                        row.report_row_id
+                    ),
+                );
+            }
+            if row.domain != canonical.domain
+                || row.stage_id != canonical.stage_id
+                || row.tool_id != canonical.tool_id
+                || row.corpus_id != canonical.corpus_id
+            {
+                push_result_id_violation(
+                    &mut violations,
+                    &canonical.result_id,
+                    "full_benchmark_report",
+                    "full benchmark report row drifted from the canonical benchmark identity",
+                );
+            }
+        } else {
+            push_result_id_violation(
+                &mut violations,
+                &canonical.result_id,
+                "full_benchmark_report",
+                "full benchmark report is missing the canonical result id",
+            );
+        }
+
+        if let Some(job) = slurm_job {
+            if job.job_id_local != format!("benchmark:{}", canonical.result_id) {
+                push_result_id_violation(
+                    &mut violations,
+                    &canonical.result_id,
+                    "local_all_domain_slurm_submit_manifest",
+                    format!(
+                        "SLURM dry-run job id `{}` drifted from the canonical benchmark job prefix",
+                        job.job_id_local
+                    ),
+                );
+            }
+            if job.domain != canonical.domain
+                || job.stage_id != canonical.stage_id
+                || job.tool_id != canonical.tool_id
+                || job.corpus_id != canonical.corpus_id
+            {
+                push_result_id_violation(
+                    &mut violations,
+                    &canonical.result_id,
+                    "local_all_domain_slurm_submit_manifest",
+                    "SLURM dry-run job drifted from the canonical benchmark identity",
+                );
+            }
+        } else {
+            push_result_id_violation(
+                &mut violations,
+                &canonical.result_id,
+                "local_all_domain_slurm_submit_manifest",
+                "SLURM dry-run surface is missing the canonical result id",
+            );
+        }
+
+        let local_execution_argv =
+            crate::commands::benchmark::local_all_domain_job_execution::rendered_benchmark_result_execution_argv(&canonical.result_id);
+        let selected_for_micro = micro_result_ids.contains(&canonical.result_id);
+
+        rows.push(ResultIdStabilityRow {
+            result_id: canonical.result_id.clone(),
+            domain: canonical.domain.clone(),
+            stage_id: canonical.stage_id.clone(),
+            tool_id: canonical.tool_id.clone(),
+            corpus_id: canonical.corpus_id.clone(),
+            scope_kind: result_scope_kind_label(canonical.scope_kind).to_string(),
+            scope_id: canonical.scope_id.clone(),
+            local_result_id: local_row.map(|row| row.result_id.clone()),
+            fake_result_id: fake_row.map(|row| row.result_id.clone()),
+            micro_result_id: selected_for_micro.then(|| canonical.result_id.clone()),
+            report_result_id: report_row.and_then(|row| row.result_id.clone()),
+            slurm_result_id: slurm_job.and_then(|job| job.result_id.clone()),
+            local_execution_argv: Some(local_execution_argv.clone()),
+            micro_execution_argv: selected_for_micro.then_some(local_execution_argv),
+            fake_metrics_path: fake_row.map(|row| row.metrics_path.clone()),
+            report_row_id: report_row.map(|row| row.report_row_id.clone()),
+            report_evidence_path: report_row.map(|row| row.evidence_path.clone()),
+            slurm_job_id_local: slurm_job.map(|job| job.job_id_local.clone()),
+        });
+    }
+
+    let report = ResultIdStabilityReport {
+        schema_version: "bijux.crates.result_id_stability.v1",
+        workspace_manifest: relative_display(&cwd.join("Cargo.toml"), cwd),
+        output_path: relative_display(output_path, cwd),
+        row_count: rows.len(),
+        local_row_count: local_rows.len(),
+        fake_row_count: fake_report.result_count,
+        report_row_count: full_report.rows.iter().filter(|row| row.result_id.is_some()).count(),
+        slurm_row_count: slurm_report.jobs.iter().filter(|job| job.result_id.is_some()).count(),
+        micro_checked_row_count: rows.iter().filter(|row| row.micro_result_id.is_some()).count(),
+        violation_count: violations.len(),
+        ok: violations.is_empty(),
+        rows,
+        violations,
+    };
+
+    if let Some(parent) = output_path.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    bijux_dna_infra::atomic_write_json(output_path, &report)?;
     Ok(report)
 }
 

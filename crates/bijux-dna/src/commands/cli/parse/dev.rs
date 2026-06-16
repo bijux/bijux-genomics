@@ -10,6 +10,7 @@ nested_root_command_args!(CratesRootArgs, CratesCommand);
 pub enum CratesCommand {
     Graph(CratesGraphArgs),
     MetricRegistry(CratesMetricRegistryArgs),
+    ResultIdStability(CratesResultIdStabilityArgs),
     DomainNoExecution(CratesDomainNoExecutionArgs),
     ParserNoExecution(CratesParserNoExecutionArgs),
     PlannerNoParser(CratesPlannerNoParserArgs),
@@ -25,6 +26,12 @@ pub struct CratesGraphArgs {
 #[derive(Debug, Args)]
 pub struct CratesMetricRegistryArgs {
     #[arg(long, default_value = "benchmarks/readiness/crates/metric-registry.tsv")]
+    pub output: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct CratesResultIdStabilityArgs {
+    #[arg(long, default_value = "benchmarks/readiness/crates/result-id-stability.json")]
     pub output: PathBuf,
 }
 
