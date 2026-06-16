@@ -1,11 +1,11 @@
 {
   "schema_version": "bijux.bench.readiness.fastq_bam_stage_tool_benchmark_ready.v1",
   "output_path": "benchmarks/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json",
-  "passes_gate": false,
+  "passes_gate": true,
   "expected_pair_count": 122,
   "benchmark_ready_pair_count": 118,
   "excluded_pair_count": 4,
-  "failing_pair_count": 1,
+  "failing_pair_count": 0,
   "generated_job_pair_count": 118,
   "expected_result_pair_count": 118,
   "benchmark_ready_stage_count": 50,
@@ -13,17 +13,17 @@
   "surface_summaries": [
     {
       "surface_id": "stage_tool_matrix",
-      "surface_status": "failing_pairs_present",
+      "surface_status": "ready_slice_complete",
       "measured_scope": "admitted_pairs_and_multi_tool_stages",
       "expected_count": 118,
-      "covered_count": 117,
+      "covered_count": 118,
       "excluded_count": 4,
-      "failing_count": 2,
+      "failing_count": 0,
       "evidence_paths": [
         "benchmarks/readiness/missing-benchmark-pairs.tsv",
         "benchmarks/readiness/undercovered-stages.tsv"
       ],
-      "detail": "missing admitted benchmark pairs: 1; undercovered multi-tool stages: 1"
+      "detail": "missing admitted benchmark pairs: 0; undercovered multi-tool stages: 0"
     },
     {
       "surface_id": "tool_registry",
@@ -120,27 +120,7 @@
       "detail": "ready-stage report map coverage: fastq=27 bam=24"
     }
   ],
-  "failing_pairs": [
-    {
-      "row_id": "bam:bam.genotyping:gatk",
-      "domain": "bam",
-      "stage_id": "bam.genotyping",
-      "tool_id": "gatk",
-      "failure_surfaces": [
-        "stage_tool_matrix",
-        "stage_tool_matrix"
-      ],
-      "benchmark_status": "unknown",
-      "readiness_gap": "unknown",
-      "support_status": "unknown",
-      "adapter_status": "unknown",
-      "parser_status": "unknown",
-      "corpus_status": "unknown",
-      "asset_status": "unknown",
-      "registry_status": "registered",
-      "reason": "domain-compatible pair `bam.genotyping` / `gatk` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: angsd stage `bam.genotyping` admits 2 governed tool options (angsd, gatk) but only registers angsd; add gatk to avoid a single-backend benchmark slice"
-    }
-  ],
+  "failing_pairs": [],
   "excluded_pairs": [
     {
       "row_id": "fastq:fastq.filter_low_complexity:dustmasker",
