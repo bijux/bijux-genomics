@@ -1024,6 +1024,13 @@ pub(crate) fn handle_crates_root(command: &cli::CratesCommand, cwd: &Path) -> Re
             let report = crate::commands::crates::write_no_crate_cycles_report(cwd, &args.output)?;
             cli::render::json::print_pretty(&report)?;
         }
+        cli::CratesCommand::Gate(args) => {
+            let report = crate::commands::crates::write_benchmarking_ready_crate_shape_gate_report(
+                cwd,
+                &args.output,
+            )?;
+            cli::render::json::print_pretty(&report)?;
+        }
         cli::CratesCommand::MetricRegistry(args) => {
             let report = crate::commands::crates::write_metric_registry_report(cwd, &args.output)?;
             cli::render::json::print_pretty(&report)?;

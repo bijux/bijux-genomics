@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_domain_vcf::{contracts::stage_metrics_contract, VcfDomainStage};
@@ -261,6 +262,27 @@ const CRATE_CYCLE_CATEGORIES: &[CrateCycleCategorySpec] = &[
     CrateCycleCategorySpec { category: "cli", crates: CRATE_CYCLE_CLI_CRATES },
 ];
 
+const DEFAULT_CRATE_DEPENDENCY_MAP_PATH: &str =
+    "benchmarks/readiness/crates/crate-dependency-map.json";
+const DEFAULT_DOMAIN_NO_EXECUTION_PATH: &str =
+    "benchmarks/readiness/crates/domain-no-execution.json";
+const DEFAULT_PARSER_NO_EXECUTION_PATH: &str =
+    "benchmarks/readiness/crates/parser-no-execution.json";
+const DEFAULT_PLANNER_NO_PARSER_PATH: &str = "benchmarks/readiness/crates/planner-no-parser.json";
+const DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH: &str =
+    "benchmarks/readiness/crates/runner-owns-process-execution.json";
+const DEFAULT_METRIC_REGISTRY_PATH: &str = "benchmarks/readiness/crates/metric-registry.tsv";
+const DEFAULT_RESULT_ID_STABILITY_PATH: &str =
+    "benchmarks/readiness/crates/result-id-stability.json";
+const DEFAULT_NO_CRATE_CYCLES_PATH: &str = "benchmarks/readiness/crates/no-crate-cycles.json";
+const DEFAULT_CRATE_SHAPE_GATE_PATH: &str =
+    "benchmarks/readiness/crates/CRATE_SHAPE_FOR_BENCHMARKING_READY.json";
+const DEFAULT_CRATE_SHAPE_GATE_TARGET_DIR: &str = "artifacts/rust/crate-shape-gate-target";
+const TYPED_ARTIFACT_HANDOFF_TEST_COMMAND: &str =
+    "cargo test -p bijux-dna-api typed_artifact_handoff_rejects_wrong_stage_inputs -- --nocapture";
+const METRIC_REGISTRY_PROOF_TEST_COMMAND: &str =
+    "cargo test -p bijux-dna-domain-vcf --test contracts vcf_metric_registry_rejects_unregistered_stage_metrics -- --nocapture";
+
 #[derive(Debug, Serialize)]
 pub struct CrateDependencyMapReport {
     pub schema_version: &'static str,
@@ -360,6 +382,26 @@ pub struct NoCrateCyclesCrateReport {
 #[derive(Debug, Serialize)]
 pub struct NoCrateCyclesComponent {
     pub crates: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CrateShapeGateCheckReport {
+    pub goal_id: String,
+    pub ok: bool,
+    pub command: String,
+    pub detail: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct BenchmarkingReadyCrateShapeGateReport {
+    pub schema_version: &'static str,
+    pub workspace_manifest: String,
+    pub output_path: String,
+    pub cargo_target_dir: String,
+    pub ok: bool,
+    pub checks: Vec<CrateShapeGateCheckReport>,
+    pub passed_goal_ids: Vec<String>,
+    pub failed_goal_ids: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -698,6 +740,70 @@ fn topological_dependency_order(adjacency: &BTreeMap<String, BTreeSet<String>>) 
         order
     } else {
         Vec::new()
+    }
+}
+
+fn gate_cargo_target_dir_with_override(cwd: &Path, override_path: Option<&Path>) -> PathBuf {
+    override_path
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| cwd.join(DEFAULT_CRATE_SHAPE_GATE_TARGET_DIR))
+}
+
+fn gate_cargo_target_dir(cwd: &Path) -> PathBuf {
+    gate_cargo_target_dir_with_override(
+        cwd,
+        std::env::var_os("CARGO_TARGET_DIR").as_deref().map(Path::new),
+    )
+}
+
+fn run_gate_cargo_test(
+    cwd: &Path,
+    cargo_target_dir: &Path,
+    package: &str,
+    subcommand_args: &[&str],
+    command_text: &str,
+) -> Result<()> {
+    let status = Command::new("cargo")
+        .env("CARGO_TARGET_DIR", cargo_target_dir)
+        .arg("test")
+        .arg("-p")
+        .arg(package)
+        .args(subcommand_args)
+        .current_dir(cwd)
+        .status()
+        .with_context(|| format!("run `{command_text}`"))?;
+    if !status.success() {
+        bail!("`{command_text}` exited with status {status}");
+    }
+    Ok(())
+}
+
+fn build_benchmarking_ready_crate_shape_gate_report(
+    cwd: &Path,
+    output_path: &Path,
+    cargo_target_dir: &Path,
+    checks: Vec<CrateShapeGateCheckReport>,
+) -> BenchmarkingReadyCrateShapeGateReport {
+    let passed_goal_ids = checks
+        .iter()
+        .filter(|check| check.ok)
+        .map(|check| check.goal_id.clone())
+        .collect::<Vec<_>>();
+    let failed_goal_ids = checks
+        .iter()
+        .filter(|check| !check.ok)
+        .map(|check| check.goal_id.clone())
+        .collect::<Vec<_>>();
+
+    BenchmarkingReadyCrateShapeGateReport {
+        schema_version: "bijux.crates.benchmarking_ready_gate.v1",
+        workspace_manifest: relative_display(&cwd.join("Cargo.toml"), cwd),
+        output_path: relative_display(output_path, cwd),
+        cargo_target_dir: relative_display(cargo_target_dir, cwd),
+        ok: failed_goal_ids.is_empty(),
+        checks,
+        passed_goal_ids,
+        failed_goal_ids,
     }
 }
 
@@ -1782,6 +1888,260 @@ pub fn write_no_crate_cycles_report(cwd: &Path, output_path: &Path) -> Result<No
 }
 
 /// # Errors
+/// Returns an error if any crate-shape proof for Goals 411-419 fails.
+pub fn write_benchmarking_ready_crate_shape_gate_report(
+    cwd: &Path,
+    output_path: &Path,
+) -> Result<BenchmarkingReadyCrateShapeGateReport> {
+    let cargo_target_dir = gate_cargo_target_dir(cwd);
+
+    let graph_path = cwd.join(DEFAULT_CRATE_DEPENDENCY_MAP_PATH);
+    let goal_411 = match write_dependency_map(cwd, &graph_path) {
+        Ok(report) => CrateShapeGateCheckReport {
+            goal_id: "411".to_string(),
+            ok: true,
+            command: format!(
+                "bijux-dna dev crates graph --output {}",
+                DEFAULT_CRATE_DEPENDENCY_MAP_PATH
+            ),
+            detail: report.output_path,
+        },
+        Err(err) => CrateShapeGateCheckReport {
+            goal_id: "411".to_string(),
+            ok: false,
+            command: format!(
+                "bijux-dna dev crates graph --output {}",
+                DEFAULT_CRATE_DEPENDENCY_MAP_PATH
+            ),
+            detail: err.to_string(),
+        },
+    };
+
+    let domain_no_execution_path = cwd.join(DEFAULT_DOMAIN_NO_EXECUTION_PATH);
+    let goal_412 = match write_domain_no_execution_report(cwd, &domain_no_execution_path) {
+        Ok(report) => CrateShapeGateCheckReport {
+            goal_id: "412".to_string(),
+            ok: true,
+            command: format!(
+                "bijux-dna dev crates domain-no-execution --output {}",
+                DEFAULT_DOMAIN_NO_EXECUTION_PATH
+            ),
+            detail: report.output_path,
+        },
+        Err(err) => CrateShapeGateCheckReport {
+            goal_id: "412".to_string(),
+            ok: false,
+            command: format!(
+                "bijux-dna dev crates domain-no-execution --output {}",
+                DEFAULT_DOMAIN_NO_EXECUTION_PATH
+            ),
+            detail: err.to_string(),
+        },
+    };
+
+    let parser_no_execution_path = cwd.join(DEFAULT_PARSER_NO_EXECUTION_PATH);
+    let goal_413 = match write_parser_no_execution_report(cwd, &parser_no_execution_path) {
+        Ok(report) => CrateShapeGateCheckReport {
+            goal_id: "413".to_string(),
+            ok: true,
+            command: format!(
+                "bijux-dna dev crates parser-no-execution --output {}",
+                DEFAULT_PARSER_NO_EXECUTION_PATH
+            ),
+            detail: report.output_path,
+        },
+        Err(err) => CrateShapeGateCheckReport {
+            goal_id: "413".to_string(),
+            ok: false,
+            command: format!(
+                "bijux-dna dev crates parser-no-execution --output {}",
+                DEFAULT_PARSER_NO_EXECUTION_PATH
+            ),
+            detail: err.to_string(),
+        },
+    };
+
+    let planner_no_parser_path = cwd.join(DEFAULT_PLANNER_NO_PARSER_PATH);
+    let goal_414 = match write_planner_no_parser_report(cwd, &planner_no_parser_path) {
+        Ok(report) => CrateShapeGateCheckReport {
+            goal_id: "414".to_string(),
+            ok: true,
+            command: format!(
+                "bijux-dna dev crates planner-no-parser --output {}",
+                DEFAULT_PLANNER_NO_PARSER_PATH
+            ),
+            detail: report.output_path,
+        },
+        Err(err) => CrateShapeGateCheckReport {
+            goal_id: "414".to_string(),
+            ok: false,
+            command: format!(
+                "bijux-dna dev crates planner-no-parser --output {}",
+                DEFAULT_PLANNER_NO_PARSER_PATH
+            ),
+            detail: err.to_string(),
+        },
+    };
+
+    let runner_process_execution_path = cwd.join(DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH);
+    let goal_415 =
+        match write_runner_owned_process_execution_report(cwd, &runner_process_execution_path) {
+            Ok(report) => CrateShapeGateCheckReport {
+                goal_id: "415".to_string(),
+                ok: true,
+                command: format!(
+                    "bijux-dna dev crates runner-owns-process-execution --output {}",
+                    DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH
+                ),
+                detail: report.output_path,
+            },
+            Err(err) => CrateShapeGateCheckReport {
+                goal_id: "415".to_string(),
+                ok: false,
+                command: format!(
+                    "bijux-dna dev crates runner-owns-process-execution --output {}",
+                    DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH
+                ),
+                detail: err.to_string(),
+            },
+        };
+
+    let goal_416 = match run_gate_cargo_test(
+        cwd,
+        &cargo_target_dir,
+        "bijux-dna-api",
+        &["typed_artifact_handoff_rejects_wrong_stage_inputs", "--", "--nocapture"],
+        TYPED_ARTIFACT_HANDOFF_TEST_COMMAND,
+    ) {
+        Ok(()) => CrateShapeGateCheckReport {
+            goal_id: "416".to_string(),
+            ok: true,
+            command: TYPED_ARTIFACT_HANDOFF_TEST_COMMAND.to_string(),
+            detail: "typed artifact handoff proof passed".to_string(),
+        },
+        Err(err) => CrateShapeGateCheckReport {
+            goal_id: "416".to_string(),
+            ok: false,
+            command: TYPED_ARTIFACT_HANDOFF_TEST_COMMAND.to_string(),
+            detail: err.to_string(),
+        },
+    };
+
+    let metric_registry_path = cwd.join(DEFAULT_METRIC_REGISTRY_PATH);
+    let metric_registry_report = write_metric_registry_report(cwd, &metric_registry_path);
+    let metric_registry_contract = run_gate_cargo_test(
+        cwd,
+        &cargo_target_dir,
+        "bijux-dna-domain-vcf",
+        &[
+            "--test",
+            "contracts",
+            "vcf_metric_registry_rejects_unregistered_stage_metrics",
+            "--",
+            "--nocapture",
+        ],
+        METRIC_REGISTRY_PROOF_TEST_COMMAND,
+    );
+    let goal_417 = match (metric_registry_report, metric_registry_contract) {
+        (Ok(report), Ok(())) => CrateShapeGateCheckReport {
+            goal_id: "417".to_string(),
+            ok: true,
+            command: format!(
+                "bijux-dna dev crates metric-registry --output {} && {}",
+                DEFAULT_METRIC_REGISTRY_PATH, METRIC_REGISTRY_PROOF_TEST_COMMAND
+            ),
+            detail: report.output_path,
+        },
+        (Err(err), Ok(())) => CrateShapeGateCheckReport {
+            goal_id: "417".to_string(),
+            ok: false,
+            command: format!(
+                "bijux-dna dev crates metric-registry --output {} && {}",
+                DEFAULT_METRIC_REGISTRY_PATH, METRIC_REGISTRY_PROOF_TEST_COMMAND
+            ),
+            detail: err.to_string(),
+        },
+        (Ok(_report), Err(err)) => CrateShapeGateCheckReport {
+            goal_id: "417".to_string(),
+            ok: false,
+            command: format!(
+                "bijux-dna dev crates metric-registry --output {} && {}",
+                DEFAULT_METRIC_REGISTRY_PATH, METRIC_REGISTRY_PROOF_TEST_COMMAND
+            ),
+            detail: err.to_string(),
+        },
+        (Err(report_err), Err(test_err)) => CrateShapeGateCheckReport {
+            goal_id: "417".to_string(),
+            ok: false,
+            command: format!(
+                "bijux-dna dev crates metric-registry --output {} && {}",
+                DEFAULT_METRIC_REGISTRY_PATH, METRIC_REGISTRY_PROOF_TEST_COMMAND
+            ),
+            detail: format!("{report_err}; {test_err}"),
+        },
+    };
+
+    let result_id_stability_path = cwd.join(DEFAULT_RESULT_ID_STABILITY_PATH);
+    let goal_418 = match write_result_id_stability_report(cwd, &result_id_stability_path) {
+        Ok(report) => CrateShapeGateCheckReport {
+            goal_id: "418".to_string(),
+            ok: true,
+            command: format!(
+                "bijux-dna dev crates result-id-stability --output {}",
+                DEFAULT_RESULT_ID_STABILITY_PATH
+            ),
+            detail: report.output_path,
+        },
+        Err(err) => CrateShapeGateCheckReport {
+            goal_id: "418".to_string(),
+            ok: false,
+            command: format!(
+                "bijux-dna dev crates result-id-stability --output {}",
+                DEFAULT_RESULT_ID_STABILITY_PATH
+            ),
+            detail: err.to_string(),
+        },
+    };
+
+    let no_crate_cycles_path = cwd.join(DEFAULT_NO_CRATE_CYCLES_PATH);
+    let goal_419 = match write_no_crate_cycles_report(cwd, &no_crate_cycles_path) {
+        Ok(report) => CrateShapeGateCheckReport {
+            goal_id: "419".to_string(),
+            ok: true,
+            command: format!(
+                "bijux-dna dev crates check-cycles --output {}",
+                DEFAULT_NO_CRATE_CYCLES_PATH
+            ),
+            detail: report.output_path,
+        },
+        Err(err) => CrateShapeGateCheckReport {
+            goal_id: "419".to_string(),
+            ok: false,
+            command: format!(
+                "bijux-dna dev crates check-cycles --output {}",
+                DEFAULT_NO_CRATE_CYCLES_PATH
+            ),
+            detail: err.to_string(),
+        },
+    };
+
+    let checks = vec![
+        goal_411, goal_412, goal_413, goal_414, goal_415, goal_416, goal_417, goal_418, goal_419,
+    ];
+    let report =
+        build_benchmarking_ready_crate_shape_gate_report(cwd, output_path, &cargo_target_dir, checks);
+
+    if let Some(parent) = output_path.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    bijux_dna_infra::atomic_write_json(output_path, &report)?;
+    if !report.ok {
+        bail!("benchmarking-ready crate-shape gate failed; see {}", output_path.display());
+    }
+    Ok(report)
+}
+
+/// # Errors
 /// Returns an error if the governed stage metric registry cannot be resolved or written.
 pub fn write_metric_registry_report(
     cwd: &Path,
@@ -2203,10 +2563,13 @@ pub fn write_runner_owned_process_execution_report(
 #[cfg(test)]
 mod tests {
     use super::{
-        cycle_components, topological_dependency_order, CRATE_CYCLE_CATEGORIES,
-        CRATE_CYCLE_CLI_CRATES, CRATE_CYCLE_DOMAIN_CRATES,
+        build_benchmarking_ready_crate_shape_gate_report, cycle_components,
+        gate_cargo_target_dir_with_override, topological_dependency_order, CrateShapeGateCheckReport,
+        CRATE_CYCLE_CATEGORIES, CRATE_CYCLE_CLI_CRATES,
+        CRATE_CYCLE_DOMAIN_CRATES,
     };
     use std::collections::{BTreeMap, BTreeSet};
+    use std::path::Path;
 
     fn graph(nodes: &[&str], edges: &[(&str, &str)]) -> BTreeMap<String, BTreeSet<String>> {
         let mut graph = nodes
@@ -2270,5 +2633,57 @@ mod tests {
             ]
         );
         assert_eq!(CRATE_CYCLE_CLI_CRATES, &["bijux-dna", "bijux-dna-dev"]);
+    }
+
+    #[test]
+    fn benchmarking_ready_gate_report_collects_passed_and_failed_goal_ids() {
+        let report = build_benchmarking_ready_crate_shape_gate_report(
+            Path::new("/workspace"),
+            Path::new("/workspace/benchmarks/readiness/crates/CRATE_SHAPE_FOR_BENCHMARKING_READY.json"),
+            Path::new("/workspace/artifacts/rust/crate-shape-gate-target"),
+            vec![
+                CrateShapeGateCheckReport {
+                    goal_id: "411".to_string(),
+                    ok: true,
+                    command: "graph".to_string(),
+                    detail: "ok".to_string(),
+                },
+                CrateShapeGateCheckReport {
+                    goal_id: "416".to_string(),
+                    ok: false,
+                    command: "typed-proof".to_string(),
+                    detail: "failed".to_string(),
+                },
+            ],
+        );
+
+        assert!(!report.ok);
+        assert_eq!(report.passed_goal_ids, vec!["411".to_string()]);
+        assert_eq!(report.failed_goal_ids, vec!["416".to_string()]);
+        assert_eq!(
+            report.output_path,
+            "benchmarks/readiness/crates/CRATE_SHAPE_FOR_BENCHMARKING_READY.json"
+        );
+        assert_eq!(report.cargo_target_dir, "artifacts/rust/crate-shape-gate-target");
+    }
+
+    #[test]
+    fn benchmarking_ready_gate_target_dir_defaults_to_artifacts_root() {
+        let resolved = gate_cargo_target_dir_with_override(Path::new("/workspace"), None);
+
+        assert_eq!(
+            resolved,
+            Path::new("/workspace").join("artifacts/rust/crate-shape-gate-target")
+        );
+    }
+
+    #[test]
+    fn benchmarking_ready_gate_target_dir_respects_explicit_override() {
+        let resolved = gate_cargo_target_dir_with_override(
+            Path::new("/workspace"),
+            Some(Path::new("/tmp/custom-target")),
+        );
+
+        assert_eq!(resolved, Path::new("/tmp/custom-target"));
     }
 }
