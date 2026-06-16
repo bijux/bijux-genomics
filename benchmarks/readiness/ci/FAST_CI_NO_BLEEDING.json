@@ -1,0 +1,54 @@
+{
+  "schema_version": "bijux.ci.fast_no_bleeding_gate.v1",
+  "ok": true,
+  "workflow_path": ".github/workflows/ci.yml",
+  "budget_file": "benchmarks/readiness/ci/fast-ci-budget.toml",
+  "changed_paths_fixture": "benchmarks/tests/fixtures/ci/changed_paths.txt",
+  "checks": [
+    {
+      "goal_id": "401",
+      "ok": true,
+      "detail": ".github/workflows/ci.yml"
+    },
+    {
+      "goal_id": "402",
+      "ok": true,
+      "detail": "make bench-active-fast"
+    },
+    {
+      "goal_id": "403",
+      "ok": true,
+      "detail": "make bench-parser-fast"
+    },
+    {
+      "goal_id": "404",
+      "ok": true,
+      "detail": "make bench-adapter-fast"
+    },
+    {
+      "goal_id": "405",
+      "ok": true,
+      "detail": "make science-fixtures-fast"
+    },
+    {
+      "goal_id": "406",
+      "ok": true,
+      "detail": "benchmarks/tests/fixtures/ci/changed_paths.txt"
+    },
+    {
+      "goal_id": "407",
+      "ok": true,
+      "detail": "benchmarks/readiness/ci/fast-ci-budget.toml"
+    },
+    {
+      "goal_id": "408",
+      "ok": true,
+      "detail": "benchmarks/readiness/ci/default-feature-audit.json"
+    },
+    {
+      "goal_id": "409",
+      "ok": true,
+      "detail": ".github/workflows/ci.yml"
+    }
+  ]
+}

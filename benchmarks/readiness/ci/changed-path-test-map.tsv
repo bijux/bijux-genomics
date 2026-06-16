@@ -1,0 +1,23 @@
+matcher	command	reason
+.github/workflows/ci.yml	make ci-fast	workflow changes must revalidate the full fast-tier contract
+.github/standards/repo-config.manifest.json	make ci-fast	workflow manifest changes must keep the fast-tier contract intact
+Makefile	make ci-fast	root make entrypoints govern the fast CI surface
+makes/	make ci-fast	make fragments define the fast CI control plane
+crates/bijux-dna-dev/src/commands/ops/tooling/cargo_targets.rs	make ci-fast	cargo target bundles define the governed fast CI lanes
+crates/bijux-dna/src/commands/benchmark/readiness/	make bench-active-fast	readiness command changes must preserve active benchmark coverage
+crates/bijux-dna/tests/bench_readiness_all_domain_	make bench-active-fast	all-domain readiness tests cover the active benchmark surface
+benchmarks/readiness/	make bench-active-fast	tracked readiness outputs must stay aligned with active fast proofs
+crates/bijux-dna/tests/bench_readiness_parser_failure_tests	make bench-parser-fast	parser failure probes must stay governed and explicit
+crates/bijux-dna/tests/bench_readiness_vcf_parser_failure_tests	make bench-parser-fast	VCF parser failure probes must stay governed and explicit
+crates/bijux-dna-domain-bam/tests/contracts/parsers	make bench-parser-fast	BAM parser fixtures map directly to the parser fast lane
+crates/bijux-dna-domain-vcf/tests/contracts/parsers	make bench-parser-fast	VCF parser fixtures map directly to the parser fast lane
+benchmarks/tests/fixtures/bench/parsers/	make bench-parser-fast	bench parser fixture banks are owned by the parser fast lane
+adapter	make bench-adapter-fast	adapter rendering, argv, and missing-input proofs belong to the adapter lane
+rendered_commands	make bench-adapter-fast	rendered command surfaces belong to the adapter lane
+no_placeholder	make bench-adapter-fast	placeholder command regressions belong to the adapter lane
+benchmarks/tests/fixtures/corpora/corpus-01-mini/	make science-fixtures-fast	FASTQ mini corpus truth belongs to the science fixture lane
+benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/	make science-fixtures-fast	aDNA BAM mini corpus truth belongs to the science fixture lane
+benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/	make science-fixtures-fast	eDNA mini corpus truth belongs to the science fixture lane
+benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/	make science-fixtures-fast	amplicon mini corpus truth belongs to the science fixture lane
+crates/bijux-dna/tests/bench_local_vcf_population_structure_smoke	make science-fixtures-fast	population mini-smoke truth belongs to the science fixture lane
+crates/bijux-dna/tests/fixtures_validate_expected_vcf_mini_stdout.rs	make science-fixtures-fast	VCF mini expected outputs belong to the science fixture lane
