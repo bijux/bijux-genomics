@@ -6,7 +6,7 @@ use std::process::Command;
 mod support;
 
 #[test]
-fn bench_readiness_all_domain_harness_ready_writes_gate_file() {
+fn bench_readiness_all_domain_local_harness_complete_writes_gate_file() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
@@ -19,7 +19,7 @@ fn bench_readiness_all_domain_harness_ready_writes_gate_file() {
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["bench", "readiness", "render-all-domain-harness-ready"])
+        .args(["bench", "readiness", "render-all-domain-local-harness-complete"])
         .output()
         .expect("run cli");
 
@@ -32,7 +32,10 @@ fn bench_readiness_all_domain_harness_ready_writes_gate_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/ALL_DOMAIN_HARNESS_READY.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "benchmarks/readiness/all-domains/ALL_DOMAIN_LOCAL_HARNESS_COMPLETE.json"
+    );
 
     let payload: serde_json::Value = serde_json::from_slice(
         &std::fs::read(repo_root.join(rendered_path.trim())).expect("read harness gate"),
@@ -41,7 +44,7 @@ fn bench_readiness_all_domain_harness_ready_writes_gate_file() {
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.all_domain_harness_ready.v1")
+        Some("bijux.bench.readiness.all_domain_local_harness_complete.v1")
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(payload.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(0));

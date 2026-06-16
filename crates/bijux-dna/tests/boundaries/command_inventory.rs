@@ -100,7 +100,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-adapter-missing-input-tests",
     "bijux-dna bench readiness render-expected-benchmark-results",
     "bijux-dna bench readiness render-all-domain-expected-benchmark-results",
-    "bijux-dna bench readiness render-all-domain-harness-ready",
+    "bijux-dna bench readiness render-all-domain-local-harness-complete",
     "bijux-dna bench readiness render-all-domain-failure-classification",
     "bijux-dna bench readiness render-all-domain-completion-check",
     "bijux-dna bench readiness render-all-domain-missing-result-test",

@@ -132,8 +132,8 @@ pub enum BenchReadinessCommand {
     ),
     #[command(name = "render-all-domain-expected-result-coverage")]
     RenderAllDomainExpectedResultCoverage(BenchReadinessRenderAllDomainExpectedResultCoverageArgs),
-    #[command(name = "render-all-domain-harness-ready")]
-    RenderAllDomainHarnessReady(BenchReadinessRenderAllDomainHarnessReadyArgs),
+    #[command(name = "render-all-domain-local-harness-complete")]
+    RenderAllDomainLocalHarnessComplete(BenchReadinessRenderAllDomainLocalHarnessCompleteArgs),
     #[command(name = "render-all-domain-local-job-coverage")]
     RenderAllDomainLocalJobCoverage(BenchReadinessRenderAllDomainLocalJobCoverageArgs),
     #[command(name = "render-all-domain-no-placeholder-command-check")]
@@ -1097,7 +1097,7 @@ pub struct BenchReadinessRenderAllDomainExpectedResultCoverageArgs {
 }
 
 #[derive(Debug, Args)]
-pub struct BenchReadinessRenderAllDomainHarnessReadyArgs {
+pub struct BenchReadinessRenderAllDomainLocalHarnessCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

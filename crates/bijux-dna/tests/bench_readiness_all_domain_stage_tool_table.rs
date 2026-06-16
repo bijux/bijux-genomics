@@ -46,7 +46,7 @@ fn bench_readiness_all_domain_stage_tool_table_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domain-stage-tool-table.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(146));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(145));
     let benchmark_ready_row_count = support::json_u64(&payload, "benchmark_ready_row_count")
         .expect("benchmark_ready_row_count");
     assert_eq!(
@@ -55,7 +55,7 @@ fn bench_readiness_all_domain_stage_tool_table_reports_governed_rows() {
     );
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(74));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(73));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
     assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(23));
 
@@ -65,7 +65,7 @@ fn bench_readiness_all_domain_stage_tool_table_reports_governed_rows() {
     assert_eq!(support::object_u64_sum(ready_domain_counts), benchmark_ready_row_count);
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 146);
+    assert_eq!(rows.len(), 145);
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")

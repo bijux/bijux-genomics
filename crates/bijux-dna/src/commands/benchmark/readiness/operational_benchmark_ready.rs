@@ -8,8 +8,8 @@ use super::all_domain_expected_benchmark_results::{
     render_all_domain_expected_benchmark_results, AllDomainExpectedBenchmarkResultsReport,
     DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH,
 };
-use super::all_domain_harness_ready::{
-    render_all_domain_harness_ready, DEFAULT_ALL_DOMAIN_HARNESS_READY_PATH,
+use super::all_domain_local_harness_complete::{
+    render_all_domain_local_harness_complete, DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH,
 };
 use super::all_domain_output_declarations::{
     render_all_domain_output_declarations, AllDomainOutputDeclarationStatus,
@@ -401,14 +401,14 @@ pub(crate) fn render_operational_benchmark_ready(
         ));
     }
 
-    let all_domain_harness_ready = render_gate_check(
+    let all_domain_local_harness_complete = render_gate_check(
         &mut checks,
-        "all_domain_harness_ready",
-        DEFAULT_ALL_DOMAIN_HARNESS_READY_PATH,
+        "all_domain_local_harness_complete",
+        DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH,
         || {
-            render_all_domain_harness_ready(
+            render_all_domain_local_harness_complete(
                 repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_HARNESS_READY_PATH),
+                PathBuf::from(DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH),
             )
         },
         |report| {
@@ -419,7 +419,7 @@ pub(crate) fn render_operational_benchmark_ready(
         },
         |report| report.ok,
     );
-    if all_domain_harness_ready.is_none() {
+    if all_domain_local_harness_complete.is_none() {
         blockers.insert(global_blocker(
             "cross",
             "benchmark.harness",
@@ -427,8 +427,8 @@ pub(crate) fn render_operational_benchmark_ready(
             "benchmark_ready",
             "benchmark_ready",
             "surface_render_failed",
-            DEFAULT_ALL_DOMAIN_HARNESS_READY_PATH,
-            "All-domain harness readiness failed",
+            DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH,
+            "All-domain local harness completion failed",
         ));
     }
 

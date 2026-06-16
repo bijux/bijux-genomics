@@ -11,7 +11,7 @@ pub(crate) mod all_domain_completion_check;
 pub(crate) mod all_domain_expected_benchmark_results;
 pub(crate) mod all_domain_expected_result_coverage;
 pub(crate) mod all_domain_failure_classification;
-pub(crate) mod all_domain_harness_ready;
+pub(crate) mod all_domain_local_harness_complete;
 pub(crate) mod all_domain_local_job_coverage;
 pub(crate) mod all_domain_missing_result_test;
 pub(crate) mod all_domain_no_declared_only_rows;

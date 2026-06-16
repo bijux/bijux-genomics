@@ -485,8 +485,8 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
-                    cli::BenchReadinessCommand::RenderAllDomainHarnessReady(args) => {
-                        crate::commands::benchmark::readiness::all_domain_harness_ready::run_render_all_domain_harness_ready(
+                    cli::BenchReadinessCommand::RenderAllDomainLocalHarnessComplete(args) => {
+                        crate::commands::benchmark::readiness::all_domain_local_harness_complete::run_render_all_domain_local_harness_complete(
                             args,
                         )?;
                     }

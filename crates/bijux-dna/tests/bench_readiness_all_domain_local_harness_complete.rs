@@ -18,7 +18,7 @@ fn run_cli_json() -> serde_json::Value {
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["bench", "readiness", "render-all-domain-harness-ready", "--json"])
+        .args(["bench", "readiness", "render-all-domain-local-harness-complete", "--json"])
         .output()
         .expect("run cli");
 
@@ -34,16 +34,16 @@ fn run_cli_json() -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_harness_ready_reports_governed_pass_state() {
+fn bench_readiness_all_domain_local_harness_complete_reports_governed_pass_state() {
     let payload = run_cli_json();
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.all_domain_harness_ready.v1")
+        Some("bijux.bench.readiness.all_domain_local_harness_complete.v1")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/ALL_DOMAIN_HARNESS_READY.json")
+        Some("benchmarks/readiness/all-domains/ALL_DOMAIN_LOCAL_HARNESS_COMPLETE.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(12));
     assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(12));

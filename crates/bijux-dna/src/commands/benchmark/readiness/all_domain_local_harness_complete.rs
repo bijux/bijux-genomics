@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 use std::env;
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{bail, Context, Result};
 use serde::Serialize;
 
 use super::all_domain_completion_check::{
@@ -50,13 +50,13 @@ use crate::commands::benchmark::local_stage_result_manifest::path_relative_to_re
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_ALL_DOMAIN_HARNESS_READY_PATH: &str =
-    "benchmarks/readiness/ALL_DOMAIN_HARNESS_READY.json";
-const ALL_DOMAIN_HARNESS_READY_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_harness_ready.v1";
+pub(crate) const DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH: &str =
+    "benchmarks/readiness/all-domains/ALL_DOMAIN_LOCAL_HARNESS_COMPLETE.json";
+const ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_SCHEMA_VERSION: &str =
+    "bijux.bench.readiness.all_domain_local_harness_complete.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainHarnessReadyGoalCheck {
+pub(crate) struct AllDomainLocalHarnessCompleteGoalCheck {
     pub(crate) goal_id: u32,
     pub(crate) surface: String,
     pub(crate) output_path: Option<String>,
@@ -74,7 +74,7 @@ struct HarnessBindingKey {
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainHarnessReadyReport {
+pub(crate) struct AllDomainLocalHarnessCompleteReport {
     pub(crate) schema_version: &'static str,
     pub(crate) output_path: String,
     pub(crate) checked_goal_count: usize,
@@ -96,16 +96,18 @@ pub(crate) struct AllDomainHarnessReadyReport {
     pub(crate) failure_class_count: usize,
     pub(crate) real_smoke_execution_count: usize,
     pub(crate) ok: bool,
-    pub(crate) checks: Vec<AllDomainHarnessReadyGoalCheck>,
+    pub(crate) checks: Vec<AllDomainLocalHarnessCompleteGoalCheck>,
 }
 
-pub(crate) fn run_render_all_domain_harness_ready(
-    args: &parse::BenchReadinessRenderAllDomainHarnessReadyArgs,
+pub(crate) fn run_render_all_domain_local_harness_complete(
+    args: &parse::BenchReadinessRenderAllDomainLocalHarnessCompleteArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let report = render_all_domain_harness_ready(
+    let report = render_all_domain_local_harness_complete(
         &repo_root,
-        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_HARNESS_READY_PATH)),
+        args.output
+            .clone()
+            .unwrap_or_else(|| PathBuf::from(DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH)),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -115,10 +117,10 @@ pub(crate) fn run_render_all_domain_harness_ready(
     Ok(())
 }
 
-pub(crate) fn render_all_domain_harness_ready(
+pub(crate) fn render_all_domain_local_harness_complete(
     repo_root: &Path,
     output_path: PathBuf,
-) -> Result<AllDomainHarnessReadyReport> {
+) -> Result<AllDomainLocalHarnessCompleteReport> {
     let _cwd_guard = CurrentDirGuard::change_to(repo_root);
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
@@ -186,9 +188,9 @@ pub(crate) fn render_all_domain_harness_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH),
             )?;
-            if report.row_count != 146
+            if report.row_count != 145
                 || report.benchmark_ready_row_count != report.benchmark_ready_unique_binding_count
-                || report.domain_counts.get("fastq").copied() != Some(74)
+                || report.domain_counts.get("fastq").copied() != Some(73)
                 || report.domain_counts.get("bam").copied() != Some(49)
                 || report.domain_counts.get("vcf").copied() != Some(23)
                 || report.benchmark_ready_domain_counts.get("fastq").copied().unwrap_or_default()
@@ -221,10 +223,10 @@ pub(crate) fn render_all_domain_harness_ready(
                 .context("goal 279 stage tool table report is required")?;
             if report.row_count != benchmark_ready_binding_count
                 || report.result_id_count != benchmark_ready_binding_count
-                || report.stage_count != 66
-                || report.tool_count != 69
-                || report.corpus_count != 9
-                || report.asset_profile_count != 13
+                || report.stage_count != 67
+                || report.tool_count != 71
+                || report.corpus_count != 10
+                || report.asset_profile_count != 14
                 || report.domain_counts != stage_tool_report.benchmark_ready_domain_counts
             {
                 bail!("all-domain expected benchmark results drifted from the governed slice");
@@ -256,7 +258,7 @@ pub(crate) fn render_all_domain_harness_ready(
                 || report.benchmark_status_counts.get("benchmark_ready").copied()
                     != Some(benchmark_ready_binding_count)
                 || report.command_source_counts.get("fastq_bam_command_adapter").copied()
-                    != Some(116)
+                    != Some(118)
                 || report.command_source_counts.get("vcf_bcftools_adapter").copied() != Some(11)
                 || report.command_source_counts.get("vcf_eigensoft_adapter").copied() != Some(1)
                 || report.command_source_counts.get("vcf_imputation_family_adapter").copied()
@@ -406,7 +408,7 @@ pub(crate) fn render_all_domain_harness_ready(
             if report.row_count != report.fake_run_row_count + report.real_smoke_row_count
                 || report.fake_run_row_count != benchmark_ready_binding_count
                 || report.real_smoke_row_count != 4
-                || report.domain_counts.get("fastq").copied() != Some(68)
+                || report.domain_counts.get("fastq").copied() != Some(70)
                 || report.domain_counts.get("bam").copied() != Some(50)
                 || report.domain_counts.get("vcf").copied() != Some(22)
             {
@@ -501,43 +503,54 @@ pub(crate) fn render_all_domain_harness_ready(
         },
     );
 
-    let stage_tool_report = stage_tool_report
-        .ok_or_else(|| anyhow!("goal 279 stage tool table report was not captured"))?;
-    let expected_results_report = expected_results_report
-        .ok_or_else(|| anyhow!("goal 280 expected benchmark results report was not captured"))?;
-    let rendered_commands_report = rendered_commands_report
-        .ok_or_else(|| anyhow!("goal 281 rendered commands report was not captured"))?;
-    let output_declarations_report = output_declarations_report
-        .ok_or_else(|| anyhow!("goal 282 output declarations report was not captured"))?;
-    let fake_runs_report =
-        fake_runs_report.ok_or_else(|| anyhow!("goal 283 fake-run report was not captured"))?;
-    let fake_failures_report = fake_failures_report
-        .ok_or_else(|| anyhow!("goal 284 fake-failure report was not captured"))?;
-    let completion_check_report = completion_check_report
-        .ok_or_else(|| anyhow!("goal 285 completion report was not captured"))?;
-    let parser_collector_report = parser_collector_report
-        .ok_or_else(|| anyhow!("goal 286 parser collector report was not captured"))?;
-    let missing_result_report = missing_result_report
-        .ok_or_else(|| anyhow!("goal 287 missing-result report was not captured"))?;
-
-    validate_all_domain_harness_alignment(
-        &stage_tool_report,
-        &expected_results_report,
-        &rendered_commands_report,
-        &output_declarations_report,
-        &fake_runs_report,
-        &fake_failures_report,
-        &completion_check_report,
-        &parser_collector_report,
-        &missing_result_report,
-    )?;
+    if let (
+        Some(stage_tool_report),
+        Some(expected_results_report),
+        Some(rendered_commands_report),
+        Some(output_declarations_report),
+        Some(fake_runs_report),
+        Some(fake_failures_report),
+        Some(completion_check_report),
+        Some(parser_collector_report),
+        Some(missing_result_report),
+    ) = (
+        stage_tool_report.as_ref(),
+        expected_results_report.as_ref(),
+        rendered_commands_report.as_ref(),
+        output_declarations_report.as_ref(),
+        fake_runs_report.as_ref(),
+        fake_failures_report.as_ref(),
+        completion_check_report.as_ref(),
+        parser_collector_report.as_ref(),
+        missing_result_report.as_ref(),
+    ) {
+        if let Err(error) = validate_all_domain_harness_alignment(
+            stage_tool_report,
+            expected_results_report,
+            rendered_commands_report,
+            output_declarations_report,
+            fake_runs_report,
+            fake_failures_report,
+            completion_check_report,
+            parser_collector_report,
+            missing_result_report,
+        ) {
+            checks.push(AllDomainLocalHarnessCompleteGoalCheck {
+                goal_id: 398,
+                surface: "all-domain local harness alignment".to_string(),
+                output_path: None,
+                ok: false,
+                detail: error.to_string(),
+            });
+        }
+    }
 
     let passed_goal_count = checks.iter().filter(|check| check.ok).count();
     let failing_goal_ids =
         checks.iter().filter(|check| !check.ok).map(|check| check.goal_id).collect::<Vec<_>>();
     let failed_goal_count = failing_goal_ids.len();
-    let report = AllDomainHarnessReadyReport {
-        schema_version: ALL_DOMAIN_HARNESS_READY_SCHEMA_VERSION,
+    let report = AllDomainLocalHarnessCompleteReport {
+        schema_version: ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_SCHEMA_VERSION,
         output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         checked_goal_count: checks.len(),
         passed_goal_count,
@@ -692,7 +705,7 @@ fn stage_tool_binding_key(
 }
 
 fn record_goal_check<F>(
-    checks: &mut Vec<AllDomainHarnessReadyGoalCheck>,
+    checks: &mut Vec<AllDomainLocalHarnessCompleteGoalCheck>,
     goal_id: u32,
     surface: impl Into<String>,
     output_path: Option<String>,
@@ -702,14 +715,14 @@ fn record_goal_check<F>(
 {
     let surface = surface.into();
     match check() {
-        Ok(detail) => checks.push(AllDomainHarnessReadyGoalCheck {
+        Ok(detail) => checks.push(AllDomainLocalHarnessCompleteGoalCheck {
             goal_id,
             surface,
             output_path,
             ok: true,
             detail,
         }),
-        Err(error) => checks.push(AllDomainHarnessReadyGoalCheck {
+        Err(error) => checks.push(AllDomainLocalHarnessCompleteGoalCheck {
             goal_id,
             surface,
             output_path,
