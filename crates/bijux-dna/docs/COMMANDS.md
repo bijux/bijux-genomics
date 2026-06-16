@@ -558,18 +558,6 @@ Visible aliases are part of the operator surface:
   `parser_coverage`, `parser_status`, `support_status`, `adapter_status`, and `corpus_status`,
   proving that the benchmark-ready FASTQ slice still has full normalized parser coverage instead
   of letting parser drift hide inside the broader readiness summary.
-- `bijux-dna bench readiness render-fastq-parser-fixture-coverage`
-  `render-fastq-parser-fixture-coverage` writes
-  `benchmarks/readiness/fastq/fastq-parser-fixture-coverage.tsv` with one governed row per active
-  FASTQ binding. Each row resolves the exact parser function, schema contract, and governed shared
-  fixture case that proves the parser still accepts canonical FASTQ report payloads for that
-  stage, and the command fails closed unless coverage remains 100%.
-- `bijux-dna bench readiness render-fastq-commands`
-  `render-fastq-commands` writes both `benchmarks/readiness/fastq/fastq-rendered-commands.sh` and
-  `benchmarks/readiness/fastq/fastq-rendered-commands.argv.jsonl` for the active FASTQ slice. The
-  shell script preserves one real command per active FASTQ binding in a `bash -n` parseable form,
-  and the JSONL preserves the same governed rows as structured `command_steps` argv for
-  shell-independent replay.
 - `bijux-dna bench readiness render-fastq-active-stage-tool-matrix`
   `render-fastq-active-stage-tool-matrix` writes
   `benchmarks/readiness/fastq/fastq-active-stage-tool-matrix.tsv` with the governed FASTQ
@@ -658,6 +646,16 @@ Visible aliases are part of the operator surface:
   local-smoke artifacts together so corrected overlap counts, corrected overlap bases, mapped
   reads, total reads, endogenous fractions, and governed report paths stay explicit in the BAM
   benchmark surface.
+- `bijux-dna bench readiness render-bam-damage-authenticity-ready`
+  `render-bam-damage-authenticity-ready` writes
+  `benchmarks/readiness/bam/damage-authenticity-ready.json` with governed rows for
+  `bam.damage` under `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, and
+  `pydamage`, plus `bam.authenticity` under `authenticct`, `damageprofiler`, and `pmdtools`.
+  Each row ties active-scope proof, command adapter coverage, output declarations, parser
+  coverage, expected benchmark results, report-map placement, normalized-schema coverage, and
+  owned local-smoke artifacts together so terminal 5′/3′ damage metrics, damage reports,
+  authenticity score/confidence outputs, upstream evidence paths, and governed report paths stay
+  explicit in the BAM benchmark surface.
 - `bijux-dna bench readiness render-vcf-tool-serving-map`
   `render-vcf-tool-serving-map` writes `benchmarks/readiness/vcf-tool-serving-map.tsv` with one
   governed row per VCF stage-tool matrix binding, carrying `tool_id`, `stage_id`,
