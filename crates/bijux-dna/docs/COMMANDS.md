@@ -687,6 +687,15 @@ Visible aliases are part of the operator surface:
   owned local-smoke artifacts together so terminal 5′/3′ damage metrics, damage reports,
   authenticity score/confidence outputs, upstream evidence paths, and governed report paths stay
   explicit in the BAM benchmark surface.
+- `bijux-dna bench readiness render-bam-local-container-smoke`
+  `render-bam-local-container-smoke` writes
+  `benchmarks/readiness/bam/bam-local-container-smoke.tsv` with one governed row per retained BAM
+  stage-tool binding, resolving each row either to the governed BAM tiny-fixture host smoke
+  contract for that stage or to the registered Docker/Apptainer smoke wrapper for the external
+  binary. Each row keeps `registered_binary`, retained readiness status, selected smoke runtime,
+  the concrete wrapper command, the tracked support path, and any registry-carried minimal-smoke
+  rationale so every retained BAM tool has an explicit local exercise path even when the host
+  smoke contract only covers one governed stage tool.
 - `bijux-dna bench readiness render-vcf-tool-serving-map`
   `render-vcf-tool-serving-map` writes `benchmarks/readiness/vcf-tool-serving-map.tsv` with one
   governed row per VCF stage-tool matrix binding, carrying `tool_id`, `stage_id`,
@@ -1232,6 +1241,12 @@ Visible aliases are part of the operator surface:
   `stage_count`, `tool_pair_count`, and one explicit row per stage-tool pair with deterministic
   `pair_root`, `artifacts_root`, and `result_manifest_path` values so repeated local smoke runs
   cannot drift onto random temp paths.
+- `bijux-dna bench local run-bam-stage-smoke`
+  `run-bam-stage-smoke` materializes the governed BAM tiny-fixture smoke artifact for one
+  smoke-capable stage under `runs/bench/local-smoke/<stage>/`, using the exact stage-level BAM
+  smoke contract checked in under `benchmarks/configs/local/`. JSON-backed BAM smoke stages print
+  the real governed report in `--json` mode, while TSV-backed stages report the artifact path and
+  format without inventing extra metrics.
 - `bijux-dna bench local run-vcf-call-smoke`
   `run-vcf-call-smoke` writes `runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz`,
   `runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz.tbi`, and
