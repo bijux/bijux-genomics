@@ -98,7 +98,9 @@ pub(crate) fn render_executable_resolution(
     })
 }
 
-fn collect_executable_resolution_rows(repo_root: &Path) -> Result<Vec<ExecutableResolutionRow>> {
+pub(crate) fn collect_executable_resolution_rows(
+    repo_root: &Path,
+) -> Result<Vec<ExecutableResolutionRow>> {
     let retained_rows = collect_all_domain_retained_tool_rows(repo_root)?;
     let mut rows = retained_rows
         .iter()

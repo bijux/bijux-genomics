@@ -177,8 +177,8 @@ pub use self::readiness::{
     BenchReadinessRenderVcfPrepareReferencePanelReadyArgs, BenchReadinessRenderVcfQcReadyArgs,
     BenchReadinessRenderVcfReportMapArgs, BenchReadinessRenderVcfShapeit5AdapterArgs,
     BenchReadinessRenderVcfStatsReadyArgs, BenchReadinessRenderVcfToolServingMapArgs,
-    BenchReadinessRenderVcfUndercoveredStagesArgs, BenchReadinessValidateToolExecutionModesArgs,
-    BenchReadinessValidateToolFamiliesArgs,
+    BenchReadinessRenderVcfUndercoveredStagesArgs, BenchReadinessRenderVersionProbesArgs,
+    BenchReadinessValidateToolExecutionModesArgs, BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::schema_validation::{BenchSchemaDomainArg, BenchValidateSchemasArgs};
 pub use self::suite::BenchRunArgs;

@@ -144,3 +144,4 @@ pub(crate) mod vcf_stage_readiness_support;
 pub(crate) mod vcf_stats_ready;
 pub(crate) mod vcf_tool_serving_map;
 pub(crate) mod vcf_undercovered_stages;
+pub(crate) mod version_probes;

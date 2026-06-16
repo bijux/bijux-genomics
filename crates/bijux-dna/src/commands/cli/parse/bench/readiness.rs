@@ -192,6 +192,8 @@ pub enum BenchReadinessCommand {
     RenderAllDomainRetainedTools(BenchReadinessRenderAllDomainRetainedToolsArgs),
     #[command(name = "render-executable-resolution")]
     RenderExecutableResolution(BenchReadinessRenderExecutableResolutionArgs),
+    #[command(name = "render-version-probes")]
+    RenderVersionProbes(BenchReadinessRenderVersionProbesArgs),
     #[command(name = "render-stage-tool-alias-check")]
     RenderStageToolAliasCheck(BenchReadinessRenderStageToolAliasCheckArgs),
     #[command(name = "render-removed-from-scope")]
@@ -1312,6 +1314,14 @@ pub struct BenchReadinessRenderAllDomainRetainedToolsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderExecutableResolutionArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVersionProbesArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

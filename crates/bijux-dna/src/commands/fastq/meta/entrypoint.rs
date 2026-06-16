@@ -620,6 +620,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVersionProbes(args) => {
+                        crate::commands::benchmark::readiness::version_probes::run_render_version_probes(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderStageToolAliasCheck(args) => {
                         crate::commands::benchmark::readiness::stage_tool_alias_check::run_render_stage_tool_alias_check(
                             args,

@@ -396,6 +396,22 @@ impl RuntimeProbe {
             .or_else(|| self.help_cmd.as_deref().and_then(extract_command_token))
             .or_else(|| self.version_cmd.as_deref().and_then(extract_command_token))
     }
+
+    pub(crate) fn version_cmd(&self) -> Option<String> {
+        self.version_cmd
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(ToOwned::to_owned)
+    }
+
+    pub(crate) fn help_cmd(&self) -> Option<String> {
+        self.help_cmd
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(ToOwned::to_owned)
+    }
 }
 
 fn extract_command_token(raw: &str) -> Option<String> {
