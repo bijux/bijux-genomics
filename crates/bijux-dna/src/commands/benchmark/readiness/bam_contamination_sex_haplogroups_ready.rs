@@ -108,6 +108,7 @@ const HAPLOGROUPS_REQUIRED_LOCAL_PROOF_COMMAND_FRAGMENTS: [&str; 5] = [
 ];
 
 fn bam_binding_specs() -> Vec<BamBindingSpec> {
+    #[allow(unused_mut)]
     let mut specs = vec![
         BamBindingSpec {
             stage_id: "bam.contamination",
@@ -371,9 +372,9 @@ fn build_bam_contamination_sex_haplogroups_ready_report(
         repo_root,
         PathBuf::from(DEFAULT_BAM_ADAPTER_OUTPUT_CONTRACT_PATH),
     )?;
-    let parser_report = super::bam_parser_coverage::render_bam_parser_coverage(
+    let parser_report = super::bam_parser_fixture_coverage::render_bam_parser_fixture_coverage(
         repo_root,
-        PathBuf::from(super::bam_parser_coverage::DEFAULT_BAM_PARSER_COVERAGE_PATH),
+        PathBuf::from(super::bam_parser_fixture_coverage::DEFAULT_BAM_PARSER_FIXTURE_COVERAGE_PATH),
     )?;
     let expected_report = render_expected_benchmark_results(
         repo_root,
@@ -566,7 +567,7 @@ fn build_bam_contamination_sex_haplogroups_ready_row(
     active_row: &ToolServingMapRow,
     command_row: &BamCommandAdapterCoverageRow,
     output_row: &BamAdapterOutputContractRow,
-    parser_row: &super::bam_parser_coverage::BamParserCoverageRow,
+    parser_row: &super::bam_parser_fixture_coverage::BamParserFixtureCoverageRow,
     expected_row: &ExpectedBenchmarkResultRow,
     report_map_row: &BamReportMapRow,
     schema_contract: &BamStageSchemaContract,
@@ -590,8 +591,8 @@ fn build_bam_contamination_sex_haplogroups_ready_row(
         && output_row.stdout_path_template.is_some()
         && output_row.stderr_path_template.is_some()
         && output_row.stage_result_manifest_path_template.is_some();
-    let parser_ready =
-        parser_row.parser_coverage == super::bam_parser_coverage::BamParserCoverageKind::Covered;
+    let parser_ready = parser_row.coverage_status
+        == super::bam_parser_fixture_coverage::BamParserFixtureCoverageStatus::Covered;
     let expected_result_ready = expected_row.fixture_id == EXPECTED_FIXTURE_ID
         && expected_row.normalized_metrics_output_id.as_deref()
             == Some(spec.normalized_metrics_output_id)
@@ -721,7 +722,8 @@ fn build_bam_contamination_sex_haplogroups_ready_row(
         active_scope_proof_path: DEFAULT_BAM_TOOL_SERVING_MAP_PATH.to_string(),
         command_proof_path: DEFAULT_BAM_COMMAND_ADAPTER_COVERAGE_PATH.to_string(),
         output_contract_proof_path: DEFAULT_BAM_ADAPTER_OUTPUT_CONTRACT_PATH.to_string(),
-        parser_proof_path: super::bam_parser_coverage::DEFAULT_BAM_PARSER_COVERAGE_PATH.to_string(),
+        parser_proof_path:
+            super::bam_parser_fixture_coverage::DEFAULT_BAM_PARSER_FIXTURE_COVERAGE_PATH.to_string(),
         expected_result_proof_path: DEFAULT_EXPECTED_BENCHMARK_RESULTS_PATH.to_string(),
         report_map_proof_path: DEFAULT_BAM_REPORT_MAP_PATH.to_string(),
         schema_proof_path:
@@ -1115,7 +1117,7 @@ impl BindingRow for BamAdapterOutputContractRow {
     }
 }
 
-impl BindingRow for super::bam_parser_coverage::BamParserCoverageRow {
+impl BindingRow for super::bam_parser_fixture_coverage::BamParserFixtureCoverageRow {
     fn stage_id(&self) -> &str {
         &self.stage_id
     }

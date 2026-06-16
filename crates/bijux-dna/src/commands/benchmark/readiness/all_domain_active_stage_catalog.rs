@@ -7,7 +7,7 @@ use serde::Serialize;
 
 use super::all_domain_active_stage_tool_matrix::collect_all_domain_active_stage_tool_matrix_rows;
 use super::bam_normalized_metrics_schema::collect_bam_normalized_metrics_schema_report_rows;
-use super::bam_parser_coverage::collect_bam_parser_coverage_rows;
+use super::bam_parser_fixture_coverage::collect_bam_parser_fixture_coverage_rows;
 use super::bam_report_map::collect_bam_report_map_rows;
 use super::fastq_normalized_metrics_schema::collect_fastq_normalized_metrics_schema_report_rows;
 use super::fastq_parser_coverage::collect_fastq_parser_coverage_rows;
@@ -242,7 +242,7 @@ fn collect_inventory_readiness_by_stage(
 
 fn collect_parser_stage_rows(repo_root: &Path) -> Result<Vec<ParserStageRow>> {
     let (_, _, fastq_rows) = collect_fastq_parser_coverage_rows(repo_root)?;
-    let (_, _, bam_rows, _) = collect_bam_parser_coverage_rows(repo_root)?;
+    let (_, _, bam_rows, _) = collect_bam_parser_fixture_coverage_rows(repo_root)?;
     let (_, _, vcf_rows) = collect_vcf_parser_fixture_coverage_rows(repo_root)?;
 
     let mut rows = Vec::new();
@@ -255,7 +255,8 @@ fn collect_parser_stage_rows(repo_root: &Path) -> Result<Vec<ParserStageRow>> {
     rows.extend(bam_rows.into_iter().map(|row| ParserStageRow {
         domain: "bam".to_string(),
         stage_id: row.stage_id,
-        covered: row.parser_coverage == super::bam_parser_coverage::BamParserCoverageKind::Covered,
+        covered: row.coverage_status
+            == super::bam_parser_fixture_coverage::BamParserFixtureCoverageStatus::Covered,
     }));
     rows.extend(vcf_rows.into_iter().map(|row| ParserStageRow {
         domain: "vcf".to_string(),

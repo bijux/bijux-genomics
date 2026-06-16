@@ -8,8 +8,9 @@ use serde::Serialize;
 use super::all_domain_active_stage_tool_matrix::{
     collect_all_domain_active_stage_tool_matrix_rows, AllDomainActiveStageToolMatrixRow,
 };
-use super::bam_parser_coverage::{
-    collect_bam_parser_coverage_rows, BamParserCoverageKind, BamParserCoverageRow,
+use super::bam_parser_fixture_coverage::{
+    collect_bam_parser_fixture_coverage_rows, BamParserFixtureCoverageRow,
+    BamParserFixtureCoverageStatus,
 };
 use super::fastq_parser_fixture_coverage::{
     collect_fastq_parser_fixture_coverage_rows, FastqParserFixtureCoverageRow,
@@ -28,13 +29,12 @@ const ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_parser_fixture_coverage.v1";
 const COVERAGE_STATUS_COVERED: &str = "covered";
 const COVERAGE_STATUS_MISSING_ACTIVE_BINDING: &str = "missing_active_binding";
-const FIXTURE_REFERENCE_KIND_CORPUS: &str = "fixture_corpus";
 const FIXTURE_REFERENCE_KIND_ASSET_SCOPE: &str = "asset_scope";
 const FIXTURE_REFERENCE_KIND_FASTQ_CASE: &str = "fixture_case";
 const FIXTURE_REFERENCE_KIND_VCF_FIXTURE_DIRECTORY: &str = "fixture_directory";
 const FIXTURE_REFERENCE_KIND_NONE: &str = "none";
 const PROOF_SOURCE_FASTQ: &str = "fastq_parser_fixture_coverage";
-const PROOF_SOURCE_BAM: &str = "bam_parser_coverage";
+const PROOF_SOURCE_BAM: &str = "bam_parser_fixture_coverage";
 const PROOF_SOURCE_VCF: &str = "vcf_parser_fixture_coverage";
 const NO_VALUE: &str = "none";
 
@@ -276,7 +276,7 @@ fn collect_parser_proof_by_key(repo_root: &Path) -> Result<BTreeMap<CoverageKey,
         )?;
     }
 
-    let (_, _, bam_rows, _) = collect_bam_parser_coverage_rows(repo_root)?;
+    let (_, _, bam_rows, _) = collect_bam_parser_fixture_coverage_rows(repo_root)?;
     for row in bam_rows {
         insert_parser_proof_row(
             &mut rows,
@@ -352,16 +352,16 @@ fn render_fastq_parser_proof_row(row: FastqParserFixtureCoverageRow) -> ParserPr
     }
 }
 
-fn render_bam_parser_proof_row(row: BamParserCoverageRow) -> ParserProofRow {
+fn render_bam_parser_proof_row(row: BamParserFixtureCoverageRow) -> ParserProofRow {
     ParserProofRow {
         parser_fixture_parser_id: NO_VALUE.to_string(),
         parser_fixture_schema_id: NO_VALUE.to_string(),
-        parser_fixture_reference: row.corpus_status,
-        parser_fixture_reference_kind: FIXTURE_REFERENCE_KIND_CORPUS.to_string(),
+        parser_fixture_reference: row.parser_fixture_reference,
+        parser_fixture_reference_kind: row.parser_fixture_reference_kind,
         proof_source: PROOF_SOURCE_BAM.to_string(),
-        coverage_status: match row.parser_coverage {
-            BamParserCoverageKind::Covered => COVERAGE_STATUS_COVERED.to_string(),
-            BamParserCoverageKind::Missing => "missing".to_string(),
+        coverage_status: match row.coverage_status {
+            BamParserFixtureCoverageStatus::Covered => COVERAGE_STATUS_COVERED.to_string(),
+            BamParserFixtureCoverageStatus::Missing => "missing".to_string(),
         },
         reason: row.reason,
     }
@@ -606,7 +606,7 @@ mod tests {
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
         assert_eq!(report.domain_counts.get("vcf"), Some(&20));
         assert_eq!(report.proof_source_counts.get("fastq_parser_fixture_coverage"), Some(&69));
-        assert_eq!(report.proof_source_counts.get("bam_parser_coverage"), Some(&49));
+        assert_eq!(report.proof_source_counts.get("bam_parser_fixture_coverage"), Some(&49));
         assert_eq!(report.proof_source_counts.get("vcf_parser_fixture_coverage"), Some(&20));
         assert_eq!(report.proof_source_counts.values().copied().sum::<usize>(), report.row_count);
         assert_eq!(report.coverage_status_counts.get("covered"), Some(&report.row_count));
@@ -631,7 +631,7 @@ mod tests {
                 && row.tool_id == "schmutzi"
                 && row.parser_fixture_reference_kind == "fixture_corpus"
                 && row.parser_fixture_reference == "fixture:corpus-01-adna-bam-mini"
-                && row.proof_source == "bam_parser_coverage"
+                && row.proof_source == "bam_parser_fixture_coverage"
         }));
         assert!(report.rows.iter().any(|row| {
             row.domain == "vcf"
