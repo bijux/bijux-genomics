@@ -629,6 +629,17 @@ Visible aliases are part of the operator surface:
   matrix. Rows remain visible when a BAM tool binding is governed by stage metadata but lacks a BAM
   tool contract (`missing_contract`) or is admitted by stage metadata but not by the BAM tool YAML
   (`mismatched_contract`).
+- `bijux-dna bench readiness render-bam-contamination-sex-haplogroups-ready`
+  `render-bam-contamination-sex-haplogroups-ready` writes
+  `benchmarks/readiness/bam/contamination-sex-haplogroups-ready.json` with governed rows for
+  `bam.contamination` under `contammix`, `schmutzi`, and `verifybamid2`, `bam.sex` under `angsd`,
+  `rxy`, and `yleaf`, and `bam.haplogroups` under `yleaf` when downstream BAM support is enabled.
+  Each row ties active-scope proof, command adapter coverage, output declarations, parser
+  coverage, expected benchmark results, report-map placement, normalized-schema coverage, and
+  stage-aware local proof together. `bam.sex` is backed by owned local-smoke artifacts, while
+  `bam.contamination` and `bam.haplogroups` are backed by governed local-ready plans, keeping
+  contamination estimates, confidence/status caveats, X/Y/autosome coverage calls, haplogroup
+  panel identity, and governed report paths explicit in the BAM benchmark surface.
 - `bijux-dna bench readiness render-bam-insert-size-gc-bias-ready`
   `render-bam-insert-size-gc-bias-ready` writes
   `benchmarks/readiness/bam/insert-size-gc-bias-ready.json` with one governed row each for
