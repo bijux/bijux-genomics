@@ -446,7 +446,7 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "vcf_production_regression",
             "vcf_cohort_with_panel",
             "phased_vcf",
-            "switch_error_proxy",
+            "phase_set_count",
             "phasing",
         ),
         (
@@ -609,7 +609,7 @@ mod tests {
                 && row.tool_id == "shapeit5"
                 && row.asset_profile_id == "vcf_cohort_with_panel"
                 && row.expected_outputs == vec!["phased_vcf".to_string()]
-                && row.expected_metrics.iter().any(|metric| metric == "switch_error_proxy")
+                && row.expected_metrics.iter().any(|metric| metric == "phase_set_count")
                 && row.report_section == "phasing"
         }));
         assert!(report.rows.iter().any(|row| {

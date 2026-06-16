@@ -151,8 +151,9 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
     );
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(282));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(314));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(228));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(117));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let rows = support::json_array(&payload, "rows");
