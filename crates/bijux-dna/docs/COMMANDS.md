@@ -988,7 +988,7 @@ Visible aliases are part of the operator surface:
   `not_benchmark_ready`.
 - `bijux-dna bench readiness render-all-domain-retained-tools`
   `render-all-domain-retained-tools` writes
-  `benchmarks/readiness/all-domains/retained-tools.tsv` with one governed row per retained
+  `benchmarks/readiness/tools/retained-tool-inventory.tsv` with one governed row per retained
   FASTQ, BAM, and VCF tool across the unified active stage-tool surface. Each row keeps
   `tool_id`, `domains`, `active_stage_count`, `benchmark_ready_stage_count`,
   `active_binding_count`, `benchmark_ready_binding_count`, `benchmark_statuses`,
