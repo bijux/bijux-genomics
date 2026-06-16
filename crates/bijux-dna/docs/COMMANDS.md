@@ -1004,6 +1004,16 @@ Visible aliases are part of the operator surface:
   `install_kind`, `resolution_target`, `command_entrypoint`, `runtime_probe_paths`, and any
   explicit unavailable reason visible. The command fails closed if cross-domain runtime probes
   drift or a retained tool falls outside the governed resolution classes.
+- `bijux-dna bench readiness render-apptainer-map`
+  `render-apptainer-map` writes `benchmarks/readiness/tools/apptainer-map.tsv` with one governed
+  row per retained Docker-backed tool, translating the local Docker image surface into the exact
+  Apptainer conversion contract used by the governed HPC cache layout. Each row keeps `tool_id`,
+  `domains`, `active_stage_ids`, `docker_runtime`, `image_uri`, `local_image_name`, `dockerfile`,
+  `apptainer_def`, `apptainer_cache_key`, `cache_root`, `expected_sif_path`,
+  `conversion_command`, `runtime_probe_paths`, and governed registry source paths explicit. The
+  command fails closed if duplicate registry rows disagree on concrete mapping inputs, if a
+  retained Docker-backed tool falls out of scope, or if the rendered SIF target drifts from the
+  stable cache-key derivation shared with `env ensure`.
 - `bijux-dna bench readiness render-version-probes`
   `render-version-probes` writes `benchmarks/readiness/tools/version-probes.json` with one
   governed row per retained tool, joining executable-resolution coverage to runtime

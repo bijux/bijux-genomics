@@ -114,6 +114,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-all-domain-parser-fixture-coverage",
     "bijux-dna bench readiness render-all-domain-retained-tools",
     "bijux-dna bench readiness render-executable-resolution",
+    "bijux-dna bench readiness render-apptainer-map",
     "bijux-dna bench readiness render-version-probes",
     "bijux-dna bench readiness run-container-tool-smoke",
     "bijux-dna bench readiness run-host-tool-smoke",
