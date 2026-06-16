@@ -620,6 +620,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderApptainerMap(args) => {
+                        crate::commands::benchmark::readiness::apptainer_map::run_render_apptainer_map(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVersionProbes(args) => {
                         crate::commands::benchmark::readiness::version_probes::run_render_version_probes(
                             args,

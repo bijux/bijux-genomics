@@ -192,6 +192,8 @@ pub enum BenchReadinessCommand {
     RenderAllDomainRetainedTools(BenchReadinessRenderAllDomainRetainedToolsArgs),
     #[command(name = "render-executable-resolution")]
     RenderExecutableResolution(BenchReadinessRenderExecutableResolutionArgs),
+    #[command(name = "render-apptainer-map")]
+    RenderApptainerMap(BenchReadinessRenderApptainerMapArgs),
     #[command(name = "render-version-probes")]
     RenderVersionProbes(BenchReadinessRenderVersionProbesArgs),
     #[command(name = "run-container-tool-smoke")]
@@ -1318,6 +1320,14 @@ pub struct BenchReadinessRenderAllDomainRetainedToolsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderExecutableResolutionArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderApptainerMapArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

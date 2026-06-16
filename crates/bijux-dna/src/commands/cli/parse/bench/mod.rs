@@ -100,7 +100,7 @@ pub use self::readiness::{
     BenchReadinessRenderAllDomainParserFixtureCoverageArgs,
     BenchReadinessRenderAllDomainReportMapCoverageArgs,
     BenchReadinessRenderAllDomainRetainedToolsArgs,
-    BenchReadinessRenderAllDomainStageToolTableArgs,
+    BenchReadinessRenderAllDomainStageToolTableArgs, BenchReadinessRenderApptainerMapArgs,
     BenchReadinessRenderBamAdapterOutputContractArgs,
     BenchReadinessRenderBamAllRetainedToolsCompleteArgs,
     BenchReadinessRenderBamCommandAdapterCoverageArgs, BenchReadinessRenderBamCommandsArgs,
