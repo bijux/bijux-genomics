@@ -107,21 +107,16 @@ fn apply_thread_override(
 pub fn write_local_filter_reads_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases = bijux_dna_planner_fastq::stage_api::local_filter_reads_smoke_plans(&repo_root)?;
-    let [case] = cases.as_slice() else {
-        return Err(anyhow!(
-            "local-smoke fastq.filter_reads expects exactly one governed case, found {}",
-            cases.len()
-        ));
-    };
-    if case.r2.is_some() {
-        return Err(anyhow!(
-            "local-smoke fastq.filter_reads currently supports only the governed single-end case"
-        ));
-    }
+    let case = cases
+        .first()
+        .ok_or_else(|| anyhow!("local-smoke fastq.filter_reads requires at least one governed case"))?;
 
     let output_root = repo_root.join("runs/bench/local-smoke/fastq.filter_reads");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let summary = materialize_local_filter_reads_smoke_case(&repo_root, case, &output_root)?;
+    for extra_case in &cases[1..] {
+        let _ = materialize_local_filter_reads_smoke_case(&repo_root, extra_case, &output_root)?;
+    }
     let report_path = output_root.join("report.json");
     bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
     Ok(report_path)
@@ -137,10 +132,13 @@ fn materialize_local_filter_reads_smoke_case(
         serde_json::from_value::<FilterEffectiveParams>(case.plan.effective_params.clone())
             .context("decode filter reads local-smoke effective params")?;
     let input_r1 = repo_root.join(&case.r1);
+    let input_r2 = case.r2.as_ref().map(|path| repo_root.join(path));
     let output_r1 = resolve_output_path(
         repo_root,
         &required_plan_output_path(&case.plan, "filtered_reads_r1")?,
     );
+    let output_r2 = optional_plan_output_path(&case.plan, "filtered_reads_r2")
+        .map(|path| resolve_output_path(repo_root, &path));
     let report_path =
         resolve_output_path(repo_root, &required_plan_output_path(&case.plan, "report_json")?);
     let raw_backend_report = resolve_output_path(
@@ -153,8 +151,17 @@ fn materialize_local_filter_reads_smoke_case(
             bijux_dna_infra::ensure_dir(parent)?;
         }
     }
+    if let Some(output_r2) = output_r2.as_ref() {
+        if let Some(parent) = output_r2.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
 
     let input_records = read_local_fastq_records(&input_r1)?;
+    let mate_records = input_r2
+        .as_ref()
+        .map(|path| read_local_fastq_records(path))
+        .transpose()?;
     let decisions = input_records
         .iter()
         .cloned()
@@ -163,28 +170,75 @@ fn materialize_local_filter_reads_smoke_case(
             record,
         })
         .collect::<Vec<_>>();
+    let mate_decisions = mate_records
+        .as_ref()
+        .map(|records| {
+            records
+                .iter()
+                .cloned()
+                .map(|record| LocalFilterDecision {
+                    drop_reason: local_filter_drop_reason(&record, &effective_params),
+                    record,
+                })
+                .collect::<Vec<_>>()
+        });
+    if let Some(mate_decisions) = mate_decisions.as_ref() {
+        if mate_decisions.len() != decisions.len() {
+            return Err(anyhow!(
+                "local-smoke fastq.filter_reads paired governed case requires synchronized read counts"
+            ));
+        }
+    }
+
     let retained_records = decisions
         .iter()
-        .filter(|decision| decision.drop_reason.is_none())
-        .map(|decision| decision.record.clone())
+        .enumerate()
+        .filter(|(index, decision)| {
+            decision.drop_reason.is_none()
+                && mate_decisions
+                    .as_ref()
+                    .and_then(|mate| mate.get(*index))
+                    .is_none_or(|mate_decision| mate_decision.drop_reason.is_none())
+        })
+        .map(|(_, decision)| decision.record.clone())
         .collect::<Vec<_>>();
     write_local_fastq_records(&output_r1, &retained_records)?;
 
+    let retained_records_r2 = mate_decisions.as_ref().map(|mate| {
+        mate.iter()
+            .enumerate()
+            .filter(|(index, decision)| {
+                decision.drop_reason.is_none() && decisions[*index].drop_reason.is_none()
+            })
+            .map(|(_, decision)| decision.record.clone())
+            .collect::<Vec<_>>()
+    });
+    if let (Some(output_r2), Some(retained_records_r2)) = (output_r2.as_ref(), retained_records_r2.as_ref()) {
+        write_local_fastq_records(output_r2, retained_records_r2)?;
+    }
+
     let reads_removed_by_n = decisions
         .iter()
+        .chain(mate_decisions.as_deref().unwrap_or(&[]).iter())
         .filter(|decision| decision.drop_reason == Some(LocalFilterDropReason::TooManyN))
         .count() as u64;
     let reads_removed_low_complexity = decisions
         .iter()
+        .chain(mate_decisions.as_deref().unwrap_or(&[]).iter())
         .filter(|decision| decision.drop_reason == Some(LocalFilterDropReason::LowComplexity))
         .count() as u64;
-    let reads_in = input_records.len() as u64;
-    let reads_out = retained_records.len() as u64;
+    let reads_in =
+        u64::try_from(input_records.len() + mate_records.as_ref().map_or(0, Vec::len))
+            .context("count local filter input reads")?;
+    let reads_out =
+        u64::try_from(retained_records.len() + retained_records_r2.as_ref().map_or(0, Vec::len))
+            .context("count local filter output reads")?;
     let reads_dropped = reads_in.saturating_sub(reads_out);
-    let bases_in = total_bases(&input_records);
-    let bases_out = total_bases(&retained_records);
-    let mean_q_before = mean_quality(&input_records);
-    let mean_q_after = mean_quality(&retained_records);
+    let bases_in = total_bases(&input_records) + mate_records.as_deref().map_or(0, total_bases);
+    let bases_out =
+        total_bases(&retained_records) + retained_records_r2.as_deref().map_or(0, total_bases);
+    let mean_q_before = combined_mean_quality(&input_records, mate_records.as_deref());
+    let mean_q_after = combined_mean_quality(&retained_records, retained_records_r2.as_deref());
     let backend_metrics = serde_json::json!({
         "passed_filter_reads": reads_out,
         "too_many_n_reads": reads_removed_by_n,
@@ -199,9 +253,9 @@ fn materialize_local_filter_reads_smoke_case(
         paired_mode: effective_params.paired_mode,
         threads: effective_params.threads,
         input_r1: case.r1.display().to_string(),
-        input_r2: None,
+        input_r2: case.r2.as_ref().map(|path| path.display().to_string()),
         output_r1: path_relative_to_repo(repo_root, &output_r1),
-        output_r2: None,
+        output_r2: output_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
         report_json: path_relative_to_repo(repo_root, &report_path),
         max_n: effective_params.max_n,
         max_n_fraction: effective_params.max_n_fraction,
@@ -222,8 +276,8 @@ fn materialize_local_filter_reads_smoke_case(
         reads_removed_by_length: 0,
         bases_in,
         bases_out,
-        pairs_in: None,
-        pairs_out: None,
+        pairs_in: case.r2.as_ref().map(|_| input_records.len() as u64),
+        pairs_out: case.r2.as_ref().map(|_| retained_records.len() as u64),
         mean_q_before,
         mean_q_after,
         runtime_s: None,
@@ -317,18 +371,24 @@ fn total_bases(records: &[LocalFastqRecord]) -> u64 {
     records.iter().map(|record| record.sequence.len() as u64).sum()
 }
 
-#[allow(clippy::cast_precision_loss)]
-fn mean_quality(records: &[LocalFastqRecord]) -> f64 {
-    let total_bases = total_bases(records);
+fn combined_mean_quality(
+    records_r1: &[LocalFastqRecord],
+    records_r2: Option<&[LocalFastqRecord]>,
+) -> f64 {
+    let total_bases = total_bases(records_r1) + records_r2.map_or(0, total_bases);
     if total_bases == 0 {
         return 0.0;
     }
-    let total_quality = records
+    let total_quality = quality_sum(records_r1) + records_r2.map_or(0, quality_sum);
+    total_quality as f64 / total_bases as f64
+}
+
+fn quality_sum(records: &[LocalFastqRecord]) -> u64 {
+    records
         .iter()
         .flat_map(|record| record.quality.bytes())
         .map(|value| u64::from(value.saturating_sub(33)))
-        .sum::<u64>();
-    total_quality as f64 / total_bases as f64
+        .sum::<u64>()
 }
 
 fn read_local_fastq_records(path: &Path) -> Result<Vec<LocalFastqRecord>> {
@@ -454,6 +514,14 @@ fn required_plan_param_path(plan: &StagePlanV1, param_name: &str) -> Result<Path
             )
         },
     )
+}
+
+fn optional_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Option<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| artifact.path.clone())
 }
 
 /// # Errors

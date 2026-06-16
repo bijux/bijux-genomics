@@ -87,17 +87,21 @@ pub fn write_local_filter_low_complexity_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases =
         bijux_dna_planner_fastq::stage_api::local_filter_low_complexity_smoke_plans(&repo_root)?;
-    let [case] = cases.as_slice() else {
-        return Err(anyhow!(
-            "local-smoke fastq.filter_low_complexity expects exactly one governed case, found {}",
-            cases.len()
-        ));
-    };
+    let case = cases
+        .first()
+        .ok_or_else(|| anyhow!("local-smoke fastq.filter_low_complexity requires at least one governed case"))?;
 
     let output_root = repo_root.join("runs/bench/local-smoke/fastq.filter_low_complexity");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let summary =
         materialize_local_filter_low_complexity_smoke_case(&repo_root, case, &output_root)?;
+    for extra_case in &cases[1..] {
+        let _ = materialize_local_filter_low_complexity_smoke_case(
+            &repo_root,
+            extra_case,
+            &output_root,
+        )?;
+    }
     let report_path = output_root.join("report.json");
     bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
     Ok(report_path)

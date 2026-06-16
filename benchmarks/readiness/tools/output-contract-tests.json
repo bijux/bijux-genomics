@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.output_contract_tests.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
   "row_count": 140,
-  "passed_row_count": 90,
-  "failed_row_count": 50,
+  "passed_row_count": 97,
+  "failed_row_count": 43,
   "domain_counts": {
     "bam": 49,
     "fastq": 71,
@@ -30,8 +30,6 @@
     "fastq.deplete_host",
     "fastq.deplete_reference_contaminants",
     "fastq.deplete_rrna",
-    "fastq.filter_low_complexity",
-    "fastq.filter_reads",
     "fastq.index_reference",
     "fastq.normalize_primers",
     "fastq.report_qc",
@@ -64,7 +62,6 @@
     "musket",
     "ngsbriggs",
     "pmdtools",
-    "prinseq",
     "pydamage",
     "rcorrector",
     "rxy",
@@ -3486,7 +3483,8 @@
         "filtered_fastq_r2"
       ],
       "observed_raw_output_ids": [
-        "filtered_fastq_r1"
+        "filtered_fastq_r1",
+        "filtered_fastq_r2"
       ],
       "declared_normalized_metric_ids": [
         "filter_report_json"
@@ -3497,6 +3495,9 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk/R1.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk/R2.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk/low_complexity_report.json",
         "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz",
         "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/low_complexity_report.json"
       ],
@@ -3511,15 +3512,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_low_complexity/sample-set/bbduk/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_low_complexity/sample-set/bbduk/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `fastq.filter_low_complexity` / `bbduk` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:fastp",
@@ -3538,7 +3539,8 @@
         "filtered_fastq_r2"
       ],
       "observed_raw_output_ids": [
-        "filtered_fastq_r1"
+        "filtered_fastq_r1",
+        "filtered_fastq_r2"
       ],
       "declared_normalized_metric_ids": [
         "filter_report_json"
@@ -3549,6 +3551,9 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk/R1.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk/R2.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk/low_complexity_report.json",
         "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz",
         "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/low_complexity_report.json"
       ],
@@ -3563,15 +3568,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_low_complexity/sample-set/fastp/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_low_complexity/sample-set/fastp/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `fastq.filter_low_complexity` / `fastp` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:prinseq",
@@ -3590,7 +3595,8 @@
         "filtered_fastq_r2"
       ],
       "observed_raw_output_ids": [
-        "filtered_fastq_r1"
+        "filtered_fastq_r1",
+        "filtered_fastq_r2"
       ],
       "declared_normalized_metric_ids": [
         "filter_report_json"
@@ -3601,6 +3607,9 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk/R1.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk/R2.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk/low_complexity_report.json",
         "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz",
         "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/low_complexity_report.json"
       ],
@@ -3615,15 +3624,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_low_complexity/sample-set/prinseq/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_low_complexity/sample-set/prinseq/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `fastq.filter_low_complexity` / `prinseq` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.filter_reads:sample-set:bbduk",
@@ -3642,7 +3651,8 @@
         "filtered_reads_r2"
       ],
       "observed_raw_output_ids": [
-        "filtered_reads_r1"
+        "filtered_reads_r1",
+        "filtered_reads_r2"
       ],
       "declared_normalized_metric_ids": [
         "report_json"
@@ -3653,6 +3663,9 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/R1.fastp.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/R2.fastp.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/filter_report.json",
         "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/filter_report.json"
       ],
@@ -3667,15 +3680,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_reads/sample-set/bbduk/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_reads/sample-set/bbduk/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `fastq.filter_reads` / `bbduk` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.filter_reads:sample-set:fastp",
@@ -3694,7 +3707,8 @@
         "filtered_reads_r2"
       ],
       "observed_raw_output_ids": [
-        "filtered_reads_r1"
+        "filtered_reads_r1",
+        "filtered_reads_r2"
       ],
       "declared_normalized_metric_ids": [
         "report_json"
@@ -3705,6 +3719,9 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/R1.fastp.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/R2.fastp.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/filter_report.json",
         "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/filter_report.json"
       ],
@@ -3719,15 +3736,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_reads/sample-set/fastp/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_reads/sample-set/fastp/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `fastq.filter_reads` / `fastp` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.filter_reads:sample-set:prinseq",
@@ -3746,7 +3763,8 @@
         "filtered_reads_r2"
       ],
       "observed_raw_output_ids": [
-        "filtered_reads_r1"
+        "filtered_reads_r1",
+        "filtered_reads_r2"
       ],
       "declared_normalized_metric_ids": [
         "report_json"
@@ -3757,6 +3775,9 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/R1.fastp.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/R2.fastp.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/filter_report.json",
         "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/filter_report.json"
       ],
@@ -3771,15 +3792,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_reads/sample-set/prinseq/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_reads/sample-set/prinseq/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `fastq.filter_reads` / `prinseq` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.filter_reads:sample-set:seqkit",
@@ -3798,7 +3819,8 @@
         "filtered_reads_r2"
       ],
       "observed_raw_output_ids": [
-        "filtered_reads_r1"
+        "filtered_reads_r1",
+        "filtered_reads_r2"
       ],
       "declared_normalized_metric_ids": [
         "report_json"
@@ -3809,6 +3831,9 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/R1.fastp.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/R2.fastp.fastq.gz",
+        "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/filter_report.json",
         "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/filter_report.json"
       ],
@@ -3823,15 +3848,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_reads/sample-set/seqkit/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_reads/sample-set/seqkit/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `fastq.filter_reads` / `seqkit` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",

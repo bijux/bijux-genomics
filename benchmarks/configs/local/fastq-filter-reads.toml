@@ -8,3 +8,8 @@ output_dir = "runs/bench/local-smoke/fastq.filter_reads"
 [[cases]]
 sample_id = "n-and-complexity-se"
 r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz"
+
+[[cases]]
+sample_id = "human-like-pe-layout"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz"
+r2 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz"
