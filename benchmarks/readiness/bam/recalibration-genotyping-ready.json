@@ -1,25 +1,17 @@
 {
   "schema_version": "bijux.bench.readiness.bam_recalibration_genotyping_ready.v1",
   "output_path": "benchmarks/readiness/bam/recalibration-genotyping-ready.json",
-  "active_row_count": 2,
-  "complete_row_count": 2,
+  "active_row_count": 1,
+  "complete_row_count": 1,
   "incomplete_row_count": 0,
   "checked_surface_count": 8,
-  "stage_count": 2,
+  "stage_count": 1,
   "expected_tool_ids_by_stage": {
-    "bam.genotyping": [
-      "angsd"
-    ],
     "bam.recalibration": [
       "gatk"
     ]
   },
   "required_output_ids_by_stage": {
-    "bam.genotyping": [
-      "genotyping_report",
-      "stage_metrics",
-      "summary"
-    ],
     "bam.recalibration": [
       "recal_bai",
       "recal_bam",
@@ -29,21 +21,9 @@
     ]
   },
   "expected_local_proof_kind_by_stage": {
-    "bam.genotyping": "local_ready_plan",
     "bam.recalibration": "local_smoke"
   },
   "required_local_proof_fields_by_stage": {
-    "bam.genotyping": [
-      "caller",
-      "min_call_rate",
-      "min_posterior",
-      "producer_contract",
-      "reference",
-      "regions",
-      "sample_id",
-      "sites",
-      "tool"
-    ],
     "bam.recalibration": [
       "coverage_gate",
       "effective_mode",
@@ -62,182 +42,11 @@
     ]
   },
   "coverage_status_counts": {
-    "complete": 2
+    "complete": 1
   },
   "violation_count": 0,
   "ok": true,
   "rows": [
-    {
-      "result_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd",
-      "stage_id": "bam.genotyping",
-      "tool_id": "angsd",
-      "sample_scope": "human_like_genotyping_candidate_panel",
-      "benchmark_status": "benchmark_ready",
-      "support_status": "supported",
-      "adapter_status": "runnable",
-      "parser_status": "parser_fixture_validated",
-      "corpus_status": "fixture:corpus-01-genotyping-mini",
-      "report_section_id": "downstream_readiness",
-      "summary_table_id": "variant_readiness",
-      "command_readiness_kind": "dry_or_smoke",
-      "required_output_ids": [
-        "genotyping_report",
-        "summary",
-        "stage_metrics"
-      ],
-      "stage_output_ids": [
-        "genotyping_report",
-        "summary",
-        "stage_metrics"
-      ],
-      "expected_normalized_metrics_output_id": "genotyping_report",
-      "normalized_metrics_output_id": "genotyping_report",
-      "expected_schema_extension_id": "bam_genotyping_normalized_v1",
-      "schema_extension_id": "bam_genotyping_normalized_v1",
-      "required_schema_keys": [
-        "schema_version",
-        "stage_id",
-        "tool_id",
-        "tool_version",
-        "execution",
-        "outputs_count",
-        "artifacts",
-        "contracts",
-        "normalized_keys"
-      ],
-      "schema_required_keys": [
-        "schema_version",
-        "stage_id",
-        "tool_id",
-        "tool_version",
-        "execution",
-        "outputs_count",
-        "artifacts",
-        "contracts",
-        "normalized_keys"
-      ],
-      "expected_local_proof_kind": "local_ready_plan",
-      "local_proof_kind": "local_ready_plan",
-      "expected_local_proof_tool_id": "angsd",
-      "local_proof_tool_id": "angsd",
-      "required_local_proof_fields": [
-        "sample_id",
-        "producer_contract",
-        "min_call_rate",
-        "min_posterior",
-        "reference",
-        "regions",
-        "sites",
-        "caller",
-        "tool"
-      ],
-      "local_proof_sample_id": "human_like_genotyping_candidate_panel",
-      "local_proof_artifact_paths": [
-        "benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf",
-        "benchmarks/readiness/local-ready/bam.genotyping/genotyping.gl.json",
-        "benchmarks/readiness/local-ready/bam.genotyping/genotyping.json",
-        "benchmarks/readiness/local-ready/bam.genotyping/genotyping.summary.json",
-        "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz",
-        "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz.tbi",
-        "benchmarks/readiness/local-ready/bam.genotyping/plan.json",
-        "benchmarks/readiness/local-ready/bam.genotyping/stage.metrics.json"
-      ],
-      "local_proof_observed_fields": [
-        "aux_images",
-        "bai",
-        "bam",
-        "bcf",
-        "caller",
-        "canonical_contract",
-        "command",
-        "details",
-        "digest",
-        "effective_params",
-        "gl",
-        "image",
-        "inputs",
-        "io",
-        "kind",
-        "mem_gb",
-        "min_call_rate",
-        "min_posterior",
-        "name",
-        "operating_mode",
-        "optional",
-        "out_dir",
-        "outputs",
-        "params",
-        "path",
-        "producer_contract",
-        "provenance",
-        "reason",
-        "reference",
-        "regions",
-        "resources",
-        "role",
-        "runtime",
-        "sample_id",
-        "sites",
-        "stage_id",
-        "stage_version",
-        "summary",
-        "tbi",
-        "template",
-        "threads",
-        "tmp_gb",
-        "tool",
-        "tool_id",
-        "tool_version",
-        "vcf"
-      ],
-      "required_local_proof_output_ids": [
-        "genotyping_report",
-        "summary",
-        "stage_metrics",
-        "genotyping_bcf",
-        "genotyping_vcf",
-        "genotyping_vcf_tbi",
-        "genotyping_gl"
-      ],
-      "local_proof_declared_output_ids": [
-        "genotyping_bcf",
-        "genotyping_gl",
-        "genotyping_report",
-        "genotyping_vcf",
-        "genotyping_vcf_tbi",
-        "stage_metrics",
-        "summary"
-      ],
-      "required_local_proof_command_fragments": [
-        "human_like_genotyping_candidate_panel.sam.bai",
-        "corpus_01_bam_reference.fasta",
-        "human_like_genotyping_candidate_sites.vcf",
-        "human_like_genotyping_target_regions.txt",
-        "benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf",
-        "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz",
-        "benchmarks/readiness/local-ready/bam.genotyping/genotyping.gl.json"
-      ],
-      "local_proof_command_shell": "/bin/sh -c test -f benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai && test -f benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta && test -f benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf && test -f benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt && angsd -i benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam -sites benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf -rf benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt -doGlf 2 -doMajorMinor 1 -doMaf 1 -out benchmarks/readiness/local-ready/bam.genotyping/genotyping && bcftools view benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf -Oz -o benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz && tabix -f -p vcf benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz && python - <<'PY' > benchmarks/readiness/local-ready/bam.genotyping/genotyping.gl.json\nimport json\nprint(json.dumps({\"producer\": \"angsd\", \"gl_source\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.glf.gz\", \"bcf_source\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf\"}, indent=2))\nPY && python - <<'PY' > benchmarks/readiness/local-ready/bam.genotyping/genotyping.summary.json\nimport json\nprint(json.dumps({\"caller\": \"angsd\", \"reference\": \"benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta\", \"sites\": \"benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf\", \"regions\": \"benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt\", \"bcf\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf\", \"vcf\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz\", \"tbi\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz.tbi\", \"min_posterior\": 0.9, \"min_call_rate\": 0.5}, indent=2))\nPY && python - <<'PY' > benchmarks/readiness/local-ready/bam.genotyping/genotyping.json\nimport json\nprint(json.dumps({\"status\": \"ok\", \"producer\": \"bam.genotyping\", \"reference\": \"benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta\", \"sites\": \"benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf\", \"regions\": \"benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt\", \"output_bcf\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf\", \"output_vcf\": \"benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz\"}, indent=2))\nPY",
-      "active_scope_proof_path": "benchmarks/readiness/bam-tool-serving-map.tsv",
-      "command_proof_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
-      "output_contract_proof_path": "benchmarks/readiness/bam-adapter-output-contract.tsv",
-      "parser_proof_path": "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv",
-      "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/bam-report-map.tsv",
-      "schema_proof_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
-      "local_proof_path": "benchmarks/readiness/local-ready/bam.genotyping/plan.json",
-      "active_scope_ready": true,
-      "command_ready": true,
-      "output_ready": true,
-      "parser_ready": true,
-      "expected_result_ready": true,
-      "report_ready": true,
-      "schema_ready": true,
-      "local_proof_ready": true,
-      "coverage_status": "complete",
-      "missing_surfaces": [],
-      "reason": "binding `bam.genotyping` / `angsd` keeps active scope, command, output, parser, expected-result, report, schema, and local_ready_plan proof via `angsd`"
-    },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.recalibration:sample-set:gatk",
       "stage_id": "bam.recalibration",
@@ -370,7 +179,7 @@
       "output_contract_proof_path": "benchmarks/readiness/bam-adapter-output-contract.tsv",
       "parser_proof_path": "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv",
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/bam-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/bam/bam-report-map.tsv",
       "schema_proof_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "local_proof_path": "runs/bench/local-smoke/bam.recalibration/recalibration.json",
       "active_scope_ready": true,

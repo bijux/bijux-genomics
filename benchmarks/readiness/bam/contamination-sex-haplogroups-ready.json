@@ -1,19 +1,16 @@
 {
   "schema_version": "bijux.bench.readiness.bam_contamination_sex_haplogroups_ready.v1",
   "output_path": "benchmarks/readiness/bam/contamination-sex-haplogroups-ready.json",
-  "active_row_count": 7,
-  "complete_row_count": 7,
+  "active_row_count": 6,
+  "complete_row_count": 6,
   "incomplete_row_count": 0,
   "checked_surface_count": 8,
-  "stage_count": 3,
+  "stage_count": 2,
   "expected_tool_ids_by_stage": {
     "bam.contamination": [
       "contammix",
       "schmutzi",
       "verifybamid2"
-    ],
-    "bam.haplogroups": [
-      "yleaf"
     ],
     "bam.sex": [
       "angsd",
@@ -27,11 +24,6 @@
       "stage_metrics",
       "summary"
     ],
-    "bam.haplogroups": [
-      "haplogroups",
-      "stage_metrics",
-      "summary"
-    ],
     "bam.sex": [
       "sex_report",
       "stage_metrics",
@@ -40,7 +32,6 @@
   },
   "expected_local_proof_kind_by_stage": {
     "bam.contamination": "local_ready_plan",
-    "bam.haplogroups": "local_ready_plan",
     "bam.sex": "local_smoke"
   },
   "required_local_proof_fields_by_stage": {
@@ -49,12 +40,6 @@
       "reference_panels",
       "sample_id",
       "scope"
-    ],
-    "bam.haplogroups": [
-      "coverage_gate",
-      "reference_build",
-      "reference_panel_id",
-      "sample_id"
     ],
     "bam.sex": [
       "autosomal_coverage",
@@ -71,7 +56,7 @@
     ]
   },
   "coverage_status_counts": {
-    "complete": 7
+    "complete": 6
   },
   "violation_count": 0,
   "ok": true,
@@ -212,7 +197,7 @@
       "output_contract_proof_path": "benchmarks/readiness/bam-adapter-output-contract.tsv",
       "parser_proof_path": "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv",
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/bam-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/bam/bam-report-map.tsv",
       "schema_proof_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "local_proof_path": "benchmarks/readiness/local-ready/bam.contamination/plan.json",
       "active_scope_ready": true,
@@ -363,7 +348,7 @@
       "output_contract_proof_path": "benchmarks/readiness/bam-adapter-output-contract.tsv",
       "parser_proof_path": "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv",
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/bam-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/bam/bam-report-map.tsv",
       "schema_proof_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "local_proof_path": "benchmarks/readiness/local-ready/bam.contamination/plan.json",
       "active_scope_ready": true,
@@ -514,7 +499,7 @@
       "output_contract_proof_path": "benchmarks/readiness/bam-adapter-output-contract.tsv",
       "parser_proof_path": "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv",
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/bam-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/bam/bam-report-map.tsv",
       "schema_proof_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "local_proof_path": "benchmarks/readiness/local-ready/bam.contamination/plan.json",
       "active_scope_ready": true,
@@ -528,155 +513,6 @@
       "coverage_status": "complete",
       "missing_surfaces": [],
       "reason": "binding `bam.contamination` / `verifybamid2` keeps active scope, command, output, parser, expected-result, report, schema, and local_ready_plan proof via `verifybamid2`"
-    },
-    {
-      "result_id": "bam:corpus-01-adna-bam-mini:bam.haplogroups:sample-set:yleaf",
-      "stage_id": "bam.haplogroups",
-      "tool_id": "yleaf",
-      "sample_scope": "sample-set",
-      "benchmark_status": "benchmark_ready",
-      "support_status": "supported",
-      "adapter_status": "runnable",
-      "parser_status": "parser_fixture_validated",
-      "corpus_status": "fixture:corpus-01-adna-bam-mini",
-      "report_section_id": "sample_identity",
-      "summary_table_id": "identity_inference",
-      "command_readiness_kind": "dry_or_smoke",
-      "required_output_ids": [
-        "haplogroups",
-        "summary",
-        "stage_metrics"
-      ],
-      "stage_output_ids": [
-        "haplogroups",
-        "summary",
-        "stage_metrics"
-      ],
-      "expected_normalized_metrics_output_id": "haplogroups",
-      "normalized_metrics_output_id": "haplogroups",
-      "expected_schema_extension_id": "bam_haplogroups_normalized_v1",
-      "schema_extension_id": "bam_haplogroups_normalized_v1",
-      "required_schema_keys": [
-        "schema_version",
-        "stage_id",
-        "tool_id",
-        "tool_version",
-        "execution",
-        "outputs_count",
-        "artifacts",
-        "contracts",
-        "normalized_keys"
-      ],
-      "schema_required_keys": [
-        "schema_version",
-        "stage_id",
-        "tool_id",
-        "tool_version",
-        "execution",
-        "outputs_count",
-        "artifacts",
-        "contracts",
-        "normalized_keys"
-      ],
-      "expected_local_proof_kind": "local_ready_plan",
-      "local_proof_kind": "local_ready_plan",
-      "expected_local_proof_tool_id": "yleaf",
-      "local_proof_tool_id": "yleaf",
-      "required_local_proof_fields": [
-        "sample_id",
-        "reference_panel_id",
-        "coverage_gate",
-        "reference_build"
-      ],
-      "local_proof_sample_id": "adna_y_haplogroup_panel",
-      "local_proof_artifact_paths": [
-        "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.json",
-        "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.summary.json",
-        "benchmarks/readiness/local-ready/bam.haplogroups/plan.json",
-        "benchmarks/readiness/local-ready/bam.haplogroups/stage.metrics.json"
-      ],
-      "local_proof_observed_fields": [
-        "aux_images",
-        "bai",
-        "bam",
-        "canonical_contract",
-        "command",
-        "coverage_gate",
-        "details",
-        "digest",
-        "effective_params",
-        "image",
-        "inputs",
-        "io",
-        "kind",
-        "mem_gb",
-        "min_coverage",
-        "name",
-        "operating_mode",
-        "optional",
-        "out_dir",
-        "outputs",
-        "params",
-        "path",
-        "population_scope",
-        "provenance",
-        "reason",
-        "reference_build",
-        "reference_fasta",
-        "reference_panel",
-        "reference_panel_id",
-        "refuse_without_population_context",
-        "resources",
-        "role",
-        "runtime",
-        "sample_id",
-        "stage_id",
-        "stage_version",
-        "summary",
-        "template",
-        "threads",
-        "tmp_gb",
-        "tool",
-        "tool_id",
-        "tool_version"
-      ],
-      "required_local_proof_output_ids": [
-        "haplogroups",
-        "summary",
-        "stage_metrics"
-      ],
-      "local_proof_declared_output_ids": [
-        "haplogroups",
-        "stage_metrics",
-        "summary"
-      ],
-      "required_local_proof_command_fragments": [
-        "adna_y_haplogroup_panel.sam",
-        "adna_y_haplogroup_panel.sam.bai",
-        "adna_y_haplogroup_panel.tsv",
-        "--reference_genome hg38",
-        "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups"
-      ],
-      "local_proof_command_shell": "/bin/sh -c test -f benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai && test -f benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv && yleaf -bam benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam -o benchmarks/readiness/local-ready/bam.haplogroups/haplogroups --reference_genome hg38 && python - <<'PY' > benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.summary.json\nimport json\nprint(json.dumps(json.loads({\"method\":\"yleaf\",\"min_coverage\":2.0,\"population_scope\":\"adna_y_haplogroup_panel\",\"reference_build\":\"hg38\",\"reference_panel\":\"benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv\",\"refuse_without_population_context\":true}), indent=2))\nPY && python - <<'PY' > benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.json\nimport json\nprint(json.dumps(json.loads({\"assignment_output_prefix\":\"benchmarks/readiness/local-ready/bam.haplogroups/haplogroups\",\"classification_scope\":\"y_haplogroup_inference\",\"coverage_gate\":{\"min_coverage\":2.0},\"population_scope\":\"adna_y_haplogroup_panel\",\"reference_build\":\"hg38\",\"reference_panel\":\"benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv\",\"refuse_without_population_context\":true,\"schema_version\":\"bijux.bam.haplogroups.v1\",\"summary_output\":\"benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.summary.json\",\"tool\":\"yleaf\"}), indent=2))\nPY",
-      "active_scope_proof_path": "benchmarks/readiness/bam-tool-serving-map.tsv",
-      "command_proof_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
-      "output_contract_proof_path": "benchmarks/readiness/bam-adapter-output-contract.tsv",
-      "parser_proof_path": "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv",
-      "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/bam-report-map.tsv",
-      "schema_proof_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
-      "local_proof_path": "benchmarks/readiness/local-ready/bam.haplogroups/plan.json",
-      "active_scope_ready": true,
-      "command_ready": true,
-      "output_ready": true,
-      "parser_ready": true,
-      "expected_result_ready": true,
-      "report_ready": true,
-      "schema_ready": true,
-      "local_proof_ready": true,
-      "coverage_status": "complete",
-      "missing_surfaces": [],
-      "reason": "binding `bam.haplogroups` / `yleaf` keeps active scope, command, output, parser, expected-result, report, schema, and local_ready_plan proof via `yleaf`"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
@@ -809,7 +645,7 @@
       "output_contract_proof_path": "benchmarks/readiness/bam-adapter-output-contract.tsv",
       "parser_proof_path": "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv",
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/bam-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/bam/bam-report-map.tsv",
       "schema_proof_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "local_proof_path": "runs/bench/local-smoke/bam.sex/sex.json",
       "active_scope_ready": true,
@@ -955,7 +791,7 @@
       "output_contract_proof_path": "benchmarks/readiness/bam-adapter-output-contract.tsv",
       "parser_proof_path": "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv",
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/bam-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/bam/bam-report-map.tsv",
       "schema_proof_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "local_proof_path": "runs/bench/local-smoke/bam.sex/sex.json",
       "active_scope_ready": true,
@@ -1101,7 +937,7 @@
       "output_contract_proof_path": "benchmarks/readiness/bam-adapter-output-contract.tsv",
       "parser_proof_path": "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv",
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
-      "report_map_proof_path": "benchmarks/readiness/bam-report-map.tsv",
+      "report_map_proof_path": "benchmarks/readiness/bam/bam-report-map.tsv",
       "schema_proof_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "local_proof_path": "runs/bench/local-smoke/bam.sex/sex.json",
       "active_scope_ready": true,
