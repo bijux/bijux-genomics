@@ -641,6 +641,14 @@ Visible aliases are part of the operator surface:
   matrix. Rows remain visible when a BAM tool binding is governed by stage metadata but lacks a BAM
   tool contract (`missing_contract`) or is admitted by stage metadata but not by the BAM tool YAML
   (`mismatched_contract`).
+- `bijux-dna bench readiness render-bam-insert-size-gc-bias-ready`
+  `render-bam-insert-size-gc-bias-ready` writes
+  `benchmarks/readiness/bam/insert-size-gc-bias-ready.json` with one governed row each for
+  `bam.insert_size` and `bam.gc_bias` under Picard. Each row ties active-scope proof, command
+  adapter coverage, output declarations, parser coverage, expected benchmark results, report-map
+  placement, normalized-schema coverage, and owned local-smoke artifacts together so insert-size
+  distribution metrics, pair counts, GC-bin summaries, bias scores, and governed report paths
+  stay explicit in the BAM benchmark surface.
 - `bijux-dna bench readiness render-vcf-tool-serving-map`
   `render-vcf-tool-serving-map` writes `benchmarks/readiness/vcf-tool-serving-map.tsv` with one
   governed row per VCF stage-tool matrix binding, carrying `tool_id`, `stage_id`,
