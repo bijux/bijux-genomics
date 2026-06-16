@@ -121,13 +121,13 @@
     },
     {
       "surface_id": "full_benchmark_report",
-      "output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md",
+      "output_path": "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.md",
       "ok": true,
       "detail": "row_count=139, missing_result_row_count=3, unsupported_pair_row_count=1"
     },
     {
       "surface_id": "full_benchmark_dashboard",
-      "output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md",
+      "output_path": "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md",
       "ok": true,
       "detail": "total_expected_jobs=138, ready_jobs=135, blocked_jobs=3"
     },

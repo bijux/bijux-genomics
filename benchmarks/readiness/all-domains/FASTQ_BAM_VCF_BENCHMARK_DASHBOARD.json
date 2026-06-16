@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.bench.readiness.full_benchmark_dashboard.v1",
-  "markdown_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md",
-  "json_output_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json",
+  "markdown_output_path": "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md",
+  "json_output_path": "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json",
   "total_stages": 71,
   "total_tools": 71,
   "total_expected_jobs": 138,
@@ -38,14 +38,14 @@
     {
       "metric_id": "ready_jobs",
       "count": 135,
-      "source_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+      "source_path": "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
       "source_field": "present_row_count",
       "detail": "expected benchmark jobs with present governed result rows"
     },
     {
       "metric_id": "blocked_jobs",
       "count": 3,
-      "source_path": "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+      "source_path": "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
       "source_field": "missing_result_row_count",
       "detail": "expected benchmark jobs still visible as missing_result rows"
     },
