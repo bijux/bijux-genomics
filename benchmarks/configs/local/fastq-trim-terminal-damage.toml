@@ -9,3 +9,8 @@ output_dir = "runs/bench/local-smoke/fastq.trim_terminal_damage"
 [[cases]]
 sample_id = "adna-like-se"
 r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz"
+
+[[cases]]
+sample_id = "adna-like-pe"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_pe_trim_signals_R1.fastq.gz"
+r2 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_pe_trim_signals_R2.fastq.gz"

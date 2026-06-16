@@ -14,37 +14,61 @@ fn local_trim_terminal_damage_smoke_plans_use_governed_corpus_fixture() -> Resul
     let repo_root = repo_root();
     let plans =
         bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans(&repo_root)?;
-    assert_eq!(plans.len(), 1, "governed terminal-damage smoke should keep one curated case");
+    assert_eq!(plans.len(), 2, "governed terminal-damage smoke should keep SE and PE cases");
 
-    let case = &plans[0];
-    assert_eq!(case.sample_id, "adna-like-se");
-    assert_eq!(case.plan.stage_id.as_str(), "fastq.trim_terminal_damage");
-    assert_eq!(case.plan.tool_id.as_str(), "cutadapt");
+    let se_case = plans
+        .iter()
+        .find(|case| case.sample_id == "adna-like-se")
+        .unwrap_or_else(|| panic!("single-end terminal-damage smoke case missing"));
+    assert_eq!(se_case.plan.stage_id.as_str(), "fastq.trim_terminal_damage");
+    assert_eq!(se_case.plan.tool_id.as_str(), "cutadapt");
     assert_eq!(
-        case.r1,
+        se_case.r1,
         PathBuf::from(
             "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz"
         )
     );
-    assert_eq!(case.r2, None);
+    assert_eq!(se_case.r2, None);
     assert_eq!(
-        case.plan.out_dir,
+        se_case.plan.out_dir,
         PathBuf::from("runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt")
     );
-    assert_eq!(case.plan.resources.threads, 1);
+    assert_eq!(se_case.plan.resources.threads, 1);
     assert_eq!(
-        case.plan.params["report_json"],
+        se_case.plan.params["report_json"],
         serde_json::json!(
             "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage_report.json"
         )
     );
-    assert_eq!(case.plan.effective_params["damage_mode"], serde_json::json!("ancient"));
+    assert_eq!(se_case.plan.effective_params["damage_mode"], serde_json::json!("ancient"));
     assert_eq!(
-        case.plan.effective_params["execution_policy"],
+        se_case.plan.effective_params["execution_policy"],
         serde_json::json!("explicit_terminal_trim")
     );
-    assert_eq!(case.plan.effective_params["trim_5p_bases"], serde_json::json!(2));
-    assert_eq!(case.plan.effective_params["trim_3p_bases"], serde_json::json!(1));
+    assert_eq!(se_case.plan.effective_params["trim_5p_bases"], serde_json::json!(2));
+    assert_eq!(se_case.plan.effective_params["trim_3p_bases"], serde_json::json!(1));
+
+    let pe_case = plans
+        .iter()
+        .find(|case| case.sample_id == "adna-like-pe")
+        .unwrap_or_else(|| panic!("paired-end terminal-damage smoke case missing"));
+    assert_eq!(
+        pe_case.r1,
+        PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_pe_trim_signals_R1.fastq.gz"
+        )
+    );
+    assert_eq!(
+        pe_case.r2,
+        Some(PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_pe_trim_signals_R2.fastq.gz"
+        ))
+    );
+    assert_eq!(
+        pe_case.plan.out_dir,
+        PathBuf::from("runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt")
+    );
+    assert_eq!(pe_case.plan.effective_params["paired_mode"], serde_json::json!("paired_end"));
 
     Ok(())
 }

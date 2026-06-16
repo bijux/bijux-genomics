@@ -104,17 +104,21 @@ pub fn write_local_trim_terminal_damage_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases =
         bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans(&repo_root)?;
-    let [case] = cases.as_slice() else {
-        return Err(anyhow!(
-            "local-smoke fastq.trim_terminal_damage expects exactly one governed case, found {}",
-            cases.len()
-        ));
-    };
+    let case = cases
+        .first()
+        .ok_or_else(|| anyhow!("local-smoke fastq.trim_terminal_damage requires at least one governed case"))?;
 
     let output_root = repo_root.join("runs/bench/local-smoke/fastq.trim_terminal_damage");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let metrics =
         materialize_local_trim_terminal_damage_smoke_case(&repo_root, case, &output_root)?;
+    for extra_case in &cases[1..] {
+        let _ = materialize_local_trim_terminal_damage_smoke_case(
+            &repo_root,
+            extra_case,
+            &output_root,
+        )?;
+    }
     let metrics_path = output_root.join("metrics.json");
     bijux_dna_infra::atomic_write_json(&metrics_path, &metrics)?;
     Ok(metrics_path)
@@ -378,12 +382,32 @@ fn materialize_local_trim_terminal_damage_smoke_case(
         serde_json::from_value::<TrimTerminalDamageParams>(case.plan.effective_params.clone())
             .context("decode trim terminal damage local-smoke effective params")?;
     let input_r1 = repo_root.join(&case.r1);
-    let output_r1 = resolve_output_path(repo_root, &case.plan.io.outputs[0].path);
+    let input_r2 = case.r2.as_ref().map(|path| repo_root.join(path));
+    let output_r1 =
+        resolve_output_path(repo_root, &required_plan_output_path(&case.plan, "trimmed_reads_r1")?);
+    let output_r2 = optional_plan_output_path(&case.plan, "trimmed_reads_r2")
+        .map(|path| resolve_output_path(repo_root, &path));
+    let raw_backend_report = optional_plan_output_path(&case.plan, "raw_backend_report_json")
+        .map(|path| resolve_output_path(repo_root, &path));
     if let Some(parent) = output_r1.parent() {
         bijux_dna_infra::ensure_dir(parent)?;
     }
+    if let Some(output_r2) = output_r2.as_ref() {
+        if let Some(parent) = output_r2.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+    if let Some(raw_backend_report) = raw_backend_report.as_ref() {
+        if let Some(parent) = raw_backend_report.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
 
     let input_records = read_local_fastq_records(&input_r1)?;
+    let input_records_r2 = input_r2
+        .as_ref()
+        .map(|path| read_local_fastq_records(path))
+        .transpose()?;
     let trimmed_records = input_records
         .iter()
         .map(|record| {
@@ -394,16 +418,46 @@ fn materialize_local_trim_terminal_damage_smoke_case(
             )
         })
         .collect::<Vec<_>>();
+    let trimmed_records_r2 = input_records_r2
+        .as_ref()
+        .map(|records| {
+            records
+                .iter()
+                .map(|record| {
+                    trim_local_fastq_record(
+                        record,
+                        effective_params.trim_5p_bases as usize,
+                        effective_params.trim_3p_bases as usize,
+                    )
+                })
+                .collect::<Vec<_>>()
+        });
+    if let Some(input_records_r2) = input_records_r2.as_ref() {
+        if input_records_r2.len() != input_records.len() {
+            return Err(anyhow!(
+                "local-smoke fastq.trim_terminal_damage paired governed case requires synchronized read counts"
+            ));
+        }
+    }
 
     write_local_fastq_records(&output_r1, &trimmed_records)?;
+    if let (Some(output_r2), Some(trimmed_records_r2)) = (output_r2.as_ref(), trimmed_records_r2.as_ref()) {
+        write_local_fastq_records(output_r2, trimmed_records_r2)?;
+    }
 
     let top_level_trimmed = output_root.join("trimmed.fastq.gz");
     write_local_fastq_records(&top_level_trimmed, &trimmed_records)?;
 
-    let input_reads = input_records.len() as u64;
-    let output_reads = trimmed_records.len() as u64;
-    let input_bases = total_bases(&input_records);
-    let output_bases = total_bases(&trimmed_records);
+    let input_reads =
+        u64::try_from(input_records.len() + input_records_r2.as_ref().map_or(0, Vec::len))
+            .context("count terminal-damage local-smoke input reads")?;
+    let output_reads =
+        u64::try_from(trimmed_records.len() + trimmed_records_r2.as_ref().map_or(0, Vec::len))
+            .context("count terminal-damage local-smoke output reads")?;
+    let input_bases =
+        total_bases(&input_records) + input_records_r2.as_deref().map_or(0, total_bases);
+    let output_bases =
+        total_bases(&trimmed_records) + trimmed_records_r2.as_deref().map_or(0, total_bases);
     let report_path =
         resolve_output_path(repo_root, &required_plan_output_path(&case.plan, "report_json")?);
     let report = bijux_dna_domain_fastq::TerminalDamageReportV1 {
@@ -430,13 +484,13 @@ fn materialize_local_trim_terminal_damage_smoke_case(
         input_r1: case.r1.display().to_string(),
         input_r2: case.r2.as_ref().map(|path| path.display().to_string()),
         output_r1: path_relative_to_repo(repo_root, &output_r1),
-        output_r2: None,
+        output_r2: output_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
         reads_in: Some(input_reads),
         reads_out: Some(output_reads),
         bases_in: Some(input_bases),
         bases_out: Some(output_bases),
-        mean_q_before: mean_quality(&input_records),
-        mean_q_after: mean_quality(&trimmed_records),
+        mean_q_before: combined_mean_quality(&input_records, input_records_r2.as_deref()),
+        mean_q_after: combined_mean_quality(&trimmed_records, trimmed_records_r2.as_deref()),
         ct_ga_asymmetry_pre: None,
         ct_ga_asymmetry_post: None,
         ct_ga_asymmetry_pre_r1: None,
@@ -447,8 +501,12 @@ fn materialize_local_trim_terminal_damage_smoke_case(
         terminal_base_composition_post_r1: None,
         terminal_base_composition_pre_r2: None,
         terminal_base_composition_post_r2: None,
-        raw_backend_report: None,
-        raw_backend_report_format: None,
+        raw_backend_report: raw_backend_report
+            .as_ref()
+            .map(|path| path_relative_to_repo(repo_root, path)),
+        raw_backend_report_format: raw_backend_report
+            .as_ref()
+            .map(|_| "cutadapt_json".to_string()),
         runtime_s: None,
         memory_mb: None,
         used_fallback: true,
@@ -458,6 +516,16 @@ fn materialize_local_trim_terminal_damage_smoke_case(
             "smoke_materialization": "repo_harness",
         })),
     };
+    if let Some(raw_backend_report) = raw_backend_report.as_ref() {
+        write_local_terminal_damage_backend_report(
+            raw_backend_report,
+            &report,
+            input_reads,
+            output_reads,
+            input_bases,
+            output_bases,
+        )?;
+    }
     bijux_dna_infra::atomic_write_json(&report_path, &report)?;
 
     Ok(LocalTrimTerminalDamageSmokeMetrics {
@@ -570,17 +638,54 @@ fn total_bases(records: &[LocalFastqRecord]) -> u64 {
     records.iter().map(|record| record.sequence.len() as u64).sum()
 }
 
-fn mean_quality(records: &[LocalFastqRecord]) -> Option<f64> {
-    let total_bases = total_bases(records);
+fn combined_mean_quality(
+    records_r1: &[LocalFastqRecord],
+    records_r2: Option<&[LocalFastqRecord]>,
+) -> Option<f64> {
+    let total_bases = total_bases(records_r1) + records_r2.map_or(0, total_bases);
     if total_bases == 0 {
         return None;
     }
-    let total_quality = records
+    let total_quality = quality_sum(records_r1) + records_r2.map_or(0, quality_sum);
+    Some(u64_to_f64(total_quality) / u64_to_f64(total_bases))
+}
+
+fn quality_sum(records: &[LocalFastqRecord]) -> u64 {
+    records
         .iter()
         .flat_map(|record| record.quality.bytes())
         .map(|value| u64::from(value.saturating_sub(33)))
-        .sum::<u64>();
-    Some(u64_to_f64(total_quality) / u64_to_f64(total_bases))
+        .sum::<u64>()
+}
+
+fn write_local_terminal_damage_backend_report(
+    path: &Path,
+    report: &bijux_dna_domain_fastq::TerminalDamageReportV1,
+    input_reads: u64,
+    output_reads: u64,
+    input_bases: u64,
+    output_bases: u64,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(
+        path,
+        &serde_json::json!({
+            "schema_version": "bijux.fastq.trim_terminal_damage.backend_metrics.v1",
+            "stage_id": STAGE_TRIM_TERMINAL_DAMAGE.as_str(),
+            "tool_id": report.tool_id,
+            "paired_mode": report.paired_mode,
+            "damage_mode": report.damage_mode.as_str(),
+            "execution_policy": terminal_damage_execution_policy_label(Some(report.execution_policy)),
+            "reads_in": input_reads,
+            "reads_out": output_reads,
+            "bases_in": input_bases,
+            "bases_out": output_bases,
+            "bases_removed": input_bases.saturating_sub(output_bases),
+            "trim_5p_bases": report.trim_5p_bases,
+            "trim_3p_bases": report.trim_3p_bases,
+            "smoke_materialization": "repo_harness",
+        }),
+    )
+    .with_context(|| format!("write local terminal-damage backend report {}", path.display()))
 }
 
 fn trim_local_fastq_record(
@@ -690,6 +795,14 @@ fn required_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Result<std:
                 plan.tool_id.as_str()
             )
         })
+}
+
+fn optional_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Option<std::path::PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| artifact.path.clone())
 }
 
 fn read_governed_terminal_damage_report(

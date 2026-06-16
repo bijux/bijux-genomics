@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.output_contract_tests.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
   "row_count": 140,
-  "passed_row_count": 97,
-  "failed_row_count": 43,
+  "passed_row_count": 100,
+  "failed_row_count": 40,
   "domain_counts": {
     "bam": 49,
     "fastq": 71,
@@ -35,11 +35,9 @@
     "fastq.report_qc",
     "fastq.screen_taxonomy",
     "fastq.trim_polyg_tails",
-    "fastq.trim_reads",
-    "fastq.trim_terminal_damage"
+    "fastq.trim_reads"
   ],
   "failed_tool_ids": [
-    "adapterremoval",
     "addeam",
     "angsd",
     "bayeshammer",
@@ -66,7 +64,6 @@
     "rcorrector",
     "rxy",
     "schmutzi",
-    "seqkit",
     "sortmerna",
     "star",
     "verifybamid2",
@@ -6295,7 +6292,9 @@
         "raw_backend_report_json"
       ],
       "observed_raw_output_ids": [
-        "trimmed_reads_r1"
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_json"
       ],
       "declared_normalized_metric_ids": [
         "report_json"
@@ -6306,7 +6305,12 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/R1.trim_terminal_damage.cutadapt.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/R2.trim_terminal_damage.cutadapt.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/trim_terminal_damage.cutadapt.raw.json",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/trim_terminal_damage_report.json",
         "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.raw.json",
         "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage_report.json"
       ],
       "stage_undeclared_output_ids": [],
@@ -6320,15 +6324,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_terminal_damage/sample-set/adapterremoval/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_terminal_damage/sample-set/adapterremoval/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `fastq.trim_terminal_damage` / `adapterremoval` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:cutadapt",
@@ -6348,7 +6352,9 @@
         "raw_backend_report_json"
       ],
       "observed_raw_output_ids": [
-        "trimmed_reads_r1"
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_json"
       ],
       "declared_normalized_metric_ids": [
         "report_json"
@@ -6359,7 +6365,12 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/R1.trim_terminal_damage.cutadapt.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/R2.trim_terminal_damage.cutadapt.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/trim_terminal_damage.cutadapt.raw.json",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/trim_terminal_damage_report.json",
         "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.raw.json",
         "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage_report.json"
       ],
       "stage_undeclared_output_ids": [],
@@ -6373,15 +6384,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_terminal_damage/sample-set/cutadapt/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_terminal_damage/sample-set/cutadapt/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `fastq.trim_terminal_damage` / `cutadapt` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit",
@@ -6400,7 +6411,8 @@
         "trimmed_reads_r2"
       ],
       "observed_raw_output_ids": [
-        "trimmed_reads_r1"
+        "trimmed_reads_r1",
+        "trimmed_reads_r2"
       ],
       "declared_normalized_metric_ids": [
         "report_json"
@@ -6411,6 +6423,9 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/R1.trim_terminal_damage.cutadapt.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/R2.trim_terminal_damage.cutadapt.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/trim_terminal_damage_report.json",
         "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage_report.json"
       ],
@@ -6425,15 +6440,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_terminal_damage/sample-set/seqkit/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_terminal_damage/sample-set/seqkit/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `fastq.trim_terminal_damage` / `seqkit` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastq_scan",
