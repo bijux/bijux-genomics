@@ -66,7 +66,9 @@ fn bench_readiness_essential_pipelines_local_complete_reports_governed_pass_stat
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 93);
-    assert!(rows.iter().all(|row| row.get("ok").and_then(serde_json::Value::as_bool) == Some(true)));
+    assert!(rows
+        .iter()
+        .all(|row| row.get("ok").and_then(serde_json::Value::as_bool) == Some(true)));
     assert!(rows.iter().any(|row| {
         row.get("pipeline_id").and_then(serde_json::Value::as_str)
             == Some("bam-genotyping-to-vcf-downstream")
