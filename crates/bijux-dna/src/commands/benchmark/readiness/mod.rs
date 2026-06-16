@@ -30,6 +30,7 @@ pub(crate) mod bam_adapter_output_contract;
 pub(crate) mod bam_command_adapter_coverage;
 pub(crate) mod bam_comparable_metrics;
 pub(crate) mod bam_corpus_assignment;
+pub(crate) mod bam_damage_authenticity_ready;
 pub(crate) mod bam_insert_size_gc_bias_ready;
 pub(crate) mod bam_normalized_metrics_schema;
 pub(crate) mod bam_overlap_endogenous_ready;
