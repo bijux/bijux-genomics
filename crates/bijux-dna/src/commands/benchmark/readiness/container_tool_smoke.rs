@@ -8,7 +8,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use serde::Serialize;
 
 use super::tool_smoke_support::{
-    now_unix_s, path_relative_to_repo, repo_relative_path, run_command_with_timeout,
+    now_unix_s, path_relative_to_repo, repo_relative_path, run_command_with_timeout_and_env,
     CommandExecution,
 };
 use super::version_probes::{collect_version_probe_rows, VersionProbeRow};
@@ -78,6 +78,7 @@ struct PreparedSmokeCommand {
     smoke_runtime: Option<String>,
     declared_command: Option<String>,
     applied_command: Vec<String>,
+    applied_env: Vec<(String, String)>,
     unavailable_reason: Option<String>,
 }
 
@@ -113,7 +114,9 @@ pub(crate) fn render_container_tool_smoke(
         output_root,
         &rows,
         timeout,
-        |root, argv, limit, label| run_command_with_timeout(root, argv, limit, label),
+        |root, argv, envs, limit, label| {
+            run_command_with_timeout_and_env(root, argv, envs, limit, label)
+        },
     )
 }
 
@@ -125,7 +128,7 @@ fn render_container_tool_smoke_with_executor<F>(
     execute: F,
 ) -> Result<ContainerToolSmokeReport>
 where
-    F: Fn(&Path, &[String], Duration, &str) -> Result<CommandExecution>,
+    F: Fn(&Path, &[String], &[(String, String)], Duration, &str) -> Result<CommandExecution>,
 {
     let output_root = repo_relative_path(repo_root, &output_root);
     let mut report_rows = Vec::with_capacity(rows.len());
@@ -232,7 +235,7 @@ fn build_container_tool_smoke_manifest<F>(
     execute: &F,
 ) -> Result<ContainerToolSmokeManifest>
 where
-    F: Fn(&Path, &[String], Duration, &str) -> Result<CommandExecution>,
+    F: Fn(&Path, &[String], &[(String, String)], Duration, &str) -> Result<CommandExecution>,
 {
     let prepared = prepare_container_smoke_command(repo_root, row)?;
     let (status, exit_code, stdout, stderr, unavailable_reason) = if let Some(reason) =
@@ -249,7 +252,13 @@ where
         let declared = prepared.declared_command.as_deref().ok_or_else(|| {
             anyhow!("container tool `{}` is missing a governed smoke command", row.tool_id)
         })?;
-        let execution = execute(repo_root, &prepared.applied_command, timeout, declared)?;
+        let execution = execute(
+            repo_root,
+            &prepared.applied_command,
+            &prepared.applied_env,
+            timeout,
+            declared,
+        )?;
         let status = if execution.timed_out {
             CONTAINER_TOOL_SMOKE_STATUS_TIMED_OUT
         } else if execution.exit_code == 0 {
@@ -289,9 +298,10 @@ fn prepare_container_smoke_command(
     repo_root: &Path,
     row: &VersionProbeRow,
 ) -> Result<PreparedSmokeCommand> {
-    let Some(current_exe) = current_smoke_executable(repo_root)? else {
-        bail!("container tool smoke could not resolve the current bijux-dna executable");
+    let Some(smoke_executable) = current_smoke_executable(repo_root)? else {
+        bail!("container tool smoke could not resolve a governed smoke executable");
     };
+    let bijux_bin_env = governed_bijux_bin_env(repo_root)?;
 
     match row.resolution_kind.as_str() {
         "docker_image" => {
@@ -299,7 +309,11 @@ fn prepare_container_smoke_command(
                 return Ok(PreparedSmokeCommand {
                     smoke_runtime: Some("docker-arm64".to_string()),
                     declared_command: Some(format!("bijux-dna env smoke docker-arm64 {}", row.tool_id)),
-                    applied_command: current_exe_command(&current_exe, &["env", "smoke", "docker-arm64", &row.tool_id]),
+                    applied_command: smoke_command_argv(
+                        &smoke_executable,
+                        "docker-arm64",
+                    ),
+                    applied_env: smoke_command_env(&row.tool_id, bijux_bin_env.clone()),
                     unavailable_reason: Some(
                         "governed smoke runtime `docker-arm64` requires docker on PATH".to_string(),
                     ),
@@ -308,7 +322,8 @@ fn prepare_container_smoke_command(
             Ok(PreparedSmokeCommand {
                 smoke_runtime: Some("docker-arm64".to_string()),
                 declared_command: Some(format!("bijux-dna env smoke docker-arm64 {}", row.tool_id)),
-                applied_command: current_exe_command(&current_exe, &["env", "smoke", "docker-arm64", &row.tool_id]),
+                applied_command: smoke_command_argv(&smoke_executable, "docker-arm64"),
+                applied_env: smoke_command_env(&row.tool_id, bijux_bin_env.clone()),
                 unavailable_reason: None,
             })
         }
@@ -317,10 +332,8 @@ fn prepare_container_smoke_command(
                 return Ok(PreparedSmokeCommand {
                     smoke_runtime: Some("apptainer".to_string()),
                     declared_command: Some(format!("bijux-dna env smoke apptainer {}", row.tool_id)),
-                    applied_command: current_exe_command(
-                        &current_exe,
-                        &["env", "smoke", "apptainer", &row.tool_id],
-                    ),
+                    applied_command: smoke_command_argv(&smoke_executable, "apptainer"),
+                    applied_env: smoke_command_env(&row.tool_id, bijux_bin_env.clone()),
                     unavailable_reason: Some(
                         "governed smoke runtime `apptainer` is not available on PATH".to_string(),
                     ),
@@ -329,10 +342,8 @@ fn prepare_container_smoke_command(
             Ok(PreparedSmokeCommand {
                 smoke_runtime: Some("apptainer".to_string()),
                 declared_command: Some(format!("bijux-dna env smoke apptainer {}", row.tool_id)),
-                applied_command: current_exe_command(
-                    &current_exe,
-                    &["env", "smoke", "apptainer", &row.tool_id],
-                ),
+                applied_command: smoke_command_argv(&smoke_executable, "apptainer"),
+                applied_env: smoke_command_env(&row.tool_id, bijux_bin_env.clone()),
                 unavailable_reason: None,
             })
         }
@@ -340,6 +351,7 @@ fn prepare_container_smoke_command(
             smoke_runtime: None,
             declared_command: None,
             applied_command: Vec::new(),
+            applied_env: Vec::new(),
             unavailable_reason: Some(row.unavailable_reason.clone().unwrap_or_else(|| {
                 "retained tool is governed as unavailable for local container smoke".to_string()
             })),
@@ -352,14 +364,48 @@ fn prepare_container_smoke_command(
 }
 
 fn current_smoke_executable(repo_root: &Path) -> Result<Option<String>> {
+    let dev_executable = repo_root.join("artifacts/rust/target/debug/bijux-dna-dev");
+    if dev_executable.is_file() {
+        return Ok(Some(path_relative_to_repo(repo_root, &dev_executable)));
+    }
     let executable = std::env::current_exe().context("resolve current executable")?;
     Ok(Some(path_relative_to_repo(repo_root, &executable)))
 }
 
-fn current_exe_command(current_exe: &str, args: &[&str]) -> Vec<String> {
-    let mut command = vec![current_exe.to_string()];
-    command.extend(args.iter().map(|value| (*value).to_string()));
-    command
+fn governed_bijux_bin_env(repo_root: &Path) -> Result<Option<String>> {
+    let built_bijux = repo_root.join("artifacts/rust/target/debug/bijux-dna");
+    if built_bijux.is_file() {
+        return Ok(Some(format!("{} --", path_relative_to_repo(repo_root, &built_bijux))));
+    }
+    let executable = std::env::current_exe().context("resolve current executable")?;
+    let executable_name =
+        executable.file_name().and_then(|value| value.to_str()).unwrap_or_default();
+    if executable_name == "bijux-dna" {
+        return Ok(Some(format!("{} --", path_relative_to_repo(repo_root, &executable))));
+    }
+    Ok(None)
+}
+
+fn smoke_command_argv(smoke_executable: &str, runtime: &str) -> Vec<String> {
+    let smoke_command = match runtime {
+        "docker-arm64" => "smoke-containers-docker-arm64",
+        "apptainer" => "smoke-containers-apptainer",
+        unsupported => unsupported,
+    };
+    vec![
+        smoke_executable.to_string(),
+        "containers".to_string(),
+        "run".to_string(),
+        smoke_command.to_string(),
+    ]
+}
+
+fn smoke_command_env(tool_id: &str, bijux_bin_env: Option<String>) -> Vec<(String, String)> {
+    let mut envs = vec![("TOOLS".to_string(), tool_id.to_string())];
+    if let Some(bijux_bin_env) = bijux_bin_env {
+        envs.push(("BIJUX_BIN".to_string(), bijux_bin_env));
+    }
+    envs
 }
 
 fn command_on_path(program: &str) -> bool {
@@ -428,6 +474,11 @@ mod tests {
     #[test]
     fn render_container_tool_smoke_records_unavailable_and_success_rows() -> Result<()> {
         let repo_root = tempfile::tempdir()?;
+        let dev_binary = repo_root.path().join("artifacts/rust/target/debug/bijux-dna-dev");
+        let bijux_binary = repo_root.path().join("artifacts/rust/target/debug/bijux-dna");
+        std::fs::create_dir_all(dev_binary.parent().expect("dev binary parent"))?;
+        std::fs::write(&dev_binary, b"#!/bin/sh\nexit 0\n")?;
+        std::fs::write(&bijux_binary, b"#!/bin/sh\nexit 0\n")?;
         let output_root = PathBuf::from("runs/bench/tool-smoke/container");
         let rows = vec![
             sample_row("adapterremoval", "docker_image"),
@@ -439,8 +490,26 @@ mod tests {
             output_root,
             &rows,
             Duration::from_secs(5),
-            |_, argv, _, _| {
-                assert_eq!(argv.last().map(String::as_str), Some("adapterremoval"));
+            |_, argv, envs, _, _| {
+                assert_eq!(
+                    argv,
+                    &vec![
+                        "artifacts/rust/target/debug/bijux-dna-dev".to_string(),
+                        "containers".to_string(),
+                        "run".to_string(),
+                        "smoke-containers-docker-arm64".to_string(),
+                    ]
+                );
+                assert_eq!(
+                    envs,
+                    &vec![
+                        ("TOOLS".to_string(), "adapterremoval".to_string()),
+                        (
+                            "BIJUX_BIN".to_string(),
+                            "artifacts/rust/target/debug/bijux-dna --".to_string(),
+                        ),
+                    ]
+                );
                 Ok(CommandExecution {
                     exit_code: 0,
                     stdout: "smoke ok\n".to_string(),
@@ -468,6 +537,12 @@ mod tests {
     #[test]
     fn render_container_tool_smoke_fails_when_execution_fails() {
         let repo_root = tempfile::tempdir().expect("tempdir");
+        let dev_binary = repo_root.path().join("artifacts/rust/target/debug/bijux-dna-dev");
+        let bijux_binary = repo_root.path().join("artifacts/rust/target/debug/bijux-dna");
+        std::fs::create_dir_all(dev_binary.parent().expect("dev binary parent"))
+            .expect("create dev binary parent");
+        std::fs::write(&dev_binary, b"#!/bin/sh\nexit 0\n").expect("seed dev binary");
+        std::fs::write(&bijux_binary, b"#!/bin/sh\nexit 0\n").expect("seed bijux binary");
         let output_root = PathBuf::from("runs/bench/tool-smoke/container");
         let rows = vec![sample_row("adapterremoval", "docker_image")];
 
@@ -476,7 +551,7 @@ mod tests {
             output_root,
             &rows,
             Duration::from_secs(5),
-            |_, _, _, _| {
+            |_, _, _, _, _| {
                 Ok(CommandExecution {
                     exit_code: 19,
                     stdout: String::new(),

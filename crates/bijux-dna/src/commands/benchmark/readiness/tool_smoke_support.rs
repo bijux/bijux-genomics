@@ -19,6 +19,31 @@ pub(crate) fn run_command_with_timeout(
     timeout: Duration,
     context_label: &str,
 ) -> Result<CommandExecution> {
+    let mut child = spawn_command(repo_root, applied_command, &[], context_label)?;
+
+    let (status, stdout, stderr, timed_out) = wait_with_timeout(&mut child, timeout)?;
+    Ok(CommandExecution { exit_code: status.code().unwrap_or(-1), stdout, stderr, timed_out })
+}
+
+pub(crate) fn run_command_with_timeout_and_env(
+    repo_root: &Path,
+    applied_command: &[String],
+    envs: &[(String, String)],
+    timeout: Duration,
+    context_label: &str,
+) -> Result<CommandExecution> {
+    let mut child = spawn_command(repo_root, applied_command, envs, context_label)?;
+
+    let (status, stdout, stderr, timed_out) = wait_with_timeout(&mut child, timeout)?;
+    Ok(CommandExecution { exit_code: status.code().unwrap_or(-1), stdout, stderr, timed_out })
+}
+
+fn spawn_command(
+    repo_root: &Path,
+    applied_command: &[String],
+    envs: &[(String, String)],
+    context_label: &str,
+) -> Result<std::process::Child> {
     let Some(program) = applied_command.first() else {
         bail!("{context_label} attempted to run an empty command");
     };
@@ -29,12 +54,10 @@ pub(crate) fn run_command_with_timeout(
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
-    let mut child = command
-        .spawn()
-        .with_context(|| format!("{context_label} `{}`", applied_command.join(" ")))?;
-
-    let (status, stdout, stderr, timed_out) = wait_with_timeout(&mut child, timeout)?;
-    Ok(CommandExecution { exit_code: status.code().unwrap_or(-1), stdout, stderr, timed_out })
+    for (key, value) in envs {
+        command.env(key, value);
+    }
+    command.spawn().with_context(|| format!("{context_label} `{}`", applied_command.join(" ")))
 }
 
 fn wait_with_timeout(
