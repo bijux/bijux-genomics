@@ -370,6 +370,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna dev ci audit-features",
     "bijux-dna dev ci gate",
     "bijux-dna dev crates graph",
+    "bijux-dna dev crates check-cycles",
     "bijux-dna dev crates metric-registry",
     "bijux-dna dev crates result-id-stability",
     "bijux-dna dev crates domain-no-execution",
