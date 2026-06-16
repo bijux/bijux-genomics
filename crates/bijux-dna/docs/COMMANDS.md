@@ -488,6 +488,15 @@ Visible aliases are part of the operator surface:
   benchmark-ready BAM slice stays fully parser-fixture-validated while keeping the governed
   fixture corpus bound to each active row and surfacing any excluded non-benchmark-ready gaps in
   the JSON summary instead of hiding coverage drift behind aggregate percentages.
+- `bijux-dna bench readiness render-bam-commands`
+  `render-bam-commands` writes `benchmarks/readiness/bam/bam-rendered-commands.sh` and
+  `benchmarks/readiness/bam/bam-rendered-commands.argv.jsonl` with exactly one governed row per
+  active BAM stage-tool binding. Each row carries the owned `corpus_id`, `asset_profile_id`,
+  `adapter_id`, `parser_id`, `schema_id`, `command_source`, and explicit command-step argv so the
+  benchmark-ready BAM slice keeps a durable execution contract instead of relying on ad hoc shell
+  reconstruction. The shell script is emitted from the same governed row set and is validated with
+  `bash -n`, which makes command drift visible as a BAM-owned readiness failure instead of a late
+  execution surprise.
 - `bijux-dna bench readiness render-bam-normalized-metrics-schema`
   `render-bam-normalized-metrics-schema` writes
   `benchmarks/schemas/bam-normalized-metrics.v1.json` with the governed JSON Schema contract for
