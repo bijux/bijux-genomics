@@ -1094,6 +1094,12 @@
           "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened.fastq.gz",
           "role": "reads",
           "optional": false
+        },
+        {
+          "artifact_id": "removed_contaminant_reads_r1",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant.fastq.gz",
+          "role": "reads",
+          "optional": false
         }
       ],
       "threads": 4,
