@@ -20,12 +20,86 @@ const RUNNER_DEPENDENCY_PATTERNS: &[&str] = &["runner"];
 const CONTAINER_DEPENDENCY_PATTERNS: &[&str] =
     &["docker", "apptainer", "singularity", "podman", "container"];
 const SLURM_DEPENDENCY_PATTERNS: &[&str] = &["slurm"];
+const PARSER_ENTRYPOINT_PATTERNS: &[&str] = &["pub fn parse_", "pub(crate) fn parse_"];
+const RAW_INPUT_READ_PATTERNS: &[&str] = &[
+    "fs::read_to_string",
+    "std::fs::read_to_string",
+    "fs::read(",
+    "std::fs::read(",
+    "File::open(",
+    ".read_to_string(",
+];
+const INPUT_MUTATION_PATTERNS: &[&str] = &[
+    "fs::write(",
+    "std::fs::write(",
+    "File::create(",
+    "fs::create_dir(",
+    "fs::create_dir_all(",
+    "std::fs::create_dir(",
+    "std::fs::create_dir_all(",
+    "fs::remove_file(",
+    "fs::remove_dir(",
+    "fs::remove_dir_all(",
+    "std::fs::remove_file(",
+    "std::fs::remove_dir(",
+    "std::fs::remove_dir_all(",
+    "fs::rename(",
+    "std::fs::rename(",
+    "fs::copy(",
+    "std::fs::copy(",
+    "atomic_write",
+    "write_bytes(",
+    "write_json(",
+];
 
 #[derive(Clone, Debug)]
 struct WorkspaceMember {
     crate_name: String,
     manifest_path: PathBuf,
 }
+
+#[derive(Clone, Copy, Debug)]
+struct ParserSurfaceSpec {
+    crate_name: &'static str,
+    parser_root: &'static str,
+    excluded_paths: &'static [ParserSurfaceExclusionSpec],
+}
+
+#[derive(Clone, Copy, Debug)]
+struct ParserSurfaceExclusionSpec {
+    path: &'static str,
+    reason: &'static str,
+}
+
+const PARSER_SURFACES: &[ParserSurfaceSpec] = &[
+    ParserSurfaceSpec {
+        crate_name: "bijux-dna-domain-bam",
+        parser_root: "src/metrics",
+        excluded_paths: &[ParserSurfaceExclusionSpec {
+            path: "src/metrics/raw_parser_contract.rs",
+            reason: "governance helper for malformed raw-fixture probe generation",
+        }],
+    },
+    ParserSurfaceSpec {
+        crate_name: "bijux-dna-domain-fastq",
+        parser_root: "src/observer/parse",
+        excluded_paths: &[
+            ParserSurfaceExclusionSpec {
+                path: "src/observer/parse/parser_contracts",
+                reason: "cfg(test) parser contract fixture-bank suite",
+            },
+            ParserSurfaceExclusionSpec {
+                path: "src/observer/parse/raw_parser_contract.rs",
+                reason: "governance helper for malformed raw-fixture probe generation",
+            },
+        ],
+    },
+    ParserSurfaceSpec {
+        crate_name: "bijux-dna-domain-vcf",
+        parser_root: "src/parsers",
+        excluded_paths: &[],
+    },
+];
 
 #[derive(Debug, Serialize)]
 pub struct CrateDependencyMapReport {
@@ -69,6 +143,33 @@ pub struct DomainNoExecutionCrateReport {
 }
 
 #[derive(Debug, Serialize)]
+pub struct ParserNoExecutionReport {
+    pub schema_version: &'static str,
+    pub workspace_manifest: String,
+    pub output_path: String,
+    pub audited_surface_count: usize,
+    pub ok: bool,
+    pub surfaces: Vec<ParserSurfaceAuditReport>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ParserSurfaceAuditReport {
+    pub crate_name: String,
+    pub manifest_path: String,
+    pub parser_root: String,
+    pub scanned_rust_files: Vec<String>,
+    pub excluded_governance_paths: Vec<ExcludedAuditPath>,
+    pub parser_entrypoints: Vec<SourcePatternHit>,
+    pub raw_input_read_refs: Vec<SourcePatternHit>,
+    pub input_mutation_refs: Vec<SourcePatternHit>,
+    pub forbidden_direct_dependencies: Vec<ForbiddenDependencyHit>,
+    pub process_execution_refs: Vec<SourcePatternHit>,
+    pub container_execution_refs: Vec<SourcePatternHit>,
+    pub slurm_execution_refs: Vec<SourcePatternHit>,
+    pub ok: bool,
+}
+
+#[derive(Debug, Serialize)]
 pub struct CrateDependencyEdge {
     pub from: String,
     pub to: String,
@@ -86,6 +187,12 @@ pub struct SourcePatternHit {
     pub path: String,
     pub line: usize,
     pub pattern: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ExcludedAuditPath {
+    pub path: String,
+    pub reason: String,
 }
 
 fn relative_display(path: &Path, root: &Path) -> String {
@@ -136,6 +243,37 @@ fn collect_rust_sources(dir: &Path, files: &mut Vec<PathBuf>) -> Result<()> {
         }
         if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
             files.push(path);
+        }
+    }
+    Ok(())
+}
+
+fn collect_rust_sources_with_exclusions(
+    root: &Path,
+    current: &Path,
+    excluded_paths: &BTreeMap<PathBuf, String>,
+    files: &mut Vec<PathBuf>,
+) -> Result<()> {
+    if !current.exists() {
+        return Ok(());
+    }
+    if excluded_paths.contains_key(&current.to_path_buf()) {
+        return Ok(());
+    }
+    for entry in
+        std::fs::read_dir(current).with_context(|| format!("read {}", current.display()))?
+    {
+        let entry = entry?;
+        let path = entry.path();
+        if excluded_paths.contains_key(&path) {
+            continue;
+        }
+        if path.is_dir() {
+            collect_rust_sources_with_exclusions(root, &path, excluded_paths, files)?;
+            continue;
+        }
+        if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
+            files.push(path.strip_prefix(root).unwrap_or(&path).to_path_buf());
         }
     }
     Ok(())
@@ -282,6 +420,160 @@ fn audit_domain_crate(
     })
 }
 
+fn parser_surface_spec(crate_name: &str) -> Option<&'static ParserSurfaceSpec> {
+    PARSER_SURFACES.iter().find(|spec| spec.crate_name == crate_name)
+}
+
+fn audit_parser_surface(
+    cwd: &Path,
+    member: &WorkspaceMember,
+    spec: &ParserSurfaceSpec,
+) -> Result<ParserSurfaceAuditReport> {
+    let crate_root = member
+        .manifest_path
+        .parent()
+        .with_context(|| format!("resolve crate root from {}", member.manifest_path.display()))?;
+    let manifest_text = std::fs::read_to_string(&member.manifest_path)
+        .with_context(|| format!("read {}", member.manifest_path.display()))?;
+    let manifest_value: Value = toml::from_str(&manifest_text)
+        .with_context(|| format!("parse {}", member.manifest_path.display()))?;
+
+    let parser_root = crate_root.join(spec.parser_root);
+    let excluded_paths = spec
+        .excluded_paths
+        .iter()
+        .map(|excluded| (crate_root.join(excluded.path), excluded.reason.to_string()))
+        .collect::<BTreeMap<_, _>>();
+
+    let mut rust_files = Vec::new();
+    collect_rust_sources_with_exclusions(
+        crate_root,
+        &parser_root,
+        &excluded_paths,
+        &mut rust_files,
+    )?;
+    rust_files.sort();
+
+    let excluded_governance_paths = spec
+        .excluded_paths
+        .iter()
+        .filter_map(|excluded| {
+            let absolute = crate_root.join(excluded.path);
+            if absolute.exists() {
+                Some(ExcludedAuditPath {
+                    path: relative_display(&absolute, cwd),
+                    reason: excluded.reason.to_string(),
+                })
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let mut parser_entrypoints = Vec::new();
+    let mut raw_input_read_refs = Vec::new();
+    let mut input_mutation_refs = Vec::new();
+    let mut process_execution_refs = Vec::new();
+    let mut container_execution_refs = Vec::new();
+    let mut slurm_execution_refs = Vec::new();
+    for rust_file in &rust_files {
+        let absolute = crate_root.join(rust_file);
+        let content = std::fs::read_to_string(&absolute)
+            .with_context(|| format!("read {}", absolute.display()))?;
+        push_source_hits(
+            &mut parser_entrypoints,
+            &absolute,
+            cwd,
+            &content,
+            PARSER_ENTRYPOINT_PATTERNS,
+        );
+        push_source_hits(
+            &mut raw_input_read_refs,
+            &absolute,
+            cwd,
+            &content,
+            RAW_INPUT_READ_PATTERNS,
+        );
+        push_source_hits(
+            &mut input_mutation_refs,
+            &absolute,
+            cwd,
+            &content,
+            INPUT_MUTATION_PATTERNS,
+        );
+        push_source_hits(
+            &mut process_execution_refs,
+            &absolute,
+            cwd,
+            &content,
+            PROCESS_EXECUTION_PATTERNS,
+        );
+        push_source_hits(
+            &mut container_execution_refs,
+            &absolute,
+            cwd,
+            &content,
+            CONTAINER_EXECUTION_PATTERNS,
+        );
+        push_source_hits(
+            &mut slurm_execution_refs,
+            &absolute,
+            cwd,
+            &content,
+            SLURM_EXECUTION_PATTERNS,
+        );
+    }
+
+    let mut forbidden_direct_dependencies = Vec::new();
+    for (patterns, category) in [
+        (RUNNER_DEPENDENCY_PATTERNS, "runner"),
+        (CONTAINER_DEPENDENCY_PATTERNS, "container"),
+        (SLURM_DEPENDENCY_PATTERNS, "slurm"),
+    ] {
+        for section_name in ["dependencies", "dev-dependencies", "build-dependencies"] {
+            forbidden_direct_dependencies.extend(collect_manifest_dependency_hits(
+                &manifest_value,
+                section_name,
+                patterns,
+                category,
+            ));
+        }
+    }
+    forbidden_direct_dependencies.sort_by(|left, right| {
+        left.category
+            .cmp(&right.category)
+            .then_with(|| left.section.cmp(&right.section))
+            .then_with(|| left.dependency.cmp(&right.dependency))
+    });
+
+    let scanned_rust_files = rust_files
+        .iter()
+        .map(|path| relative_display(&crate_root.join(path), cwd))
+        .collect::<Vec<_>>();
+    let ok = !parser_entrypoints.is_empty()
+        && forbidden_direct_dependencies.is_empty()
+        && input_mutation_refs.is_empty()
+        && process_execution_refs.is_empty()
+        && container_execution_refs.is_empty()
+        && slurm_execution_refs.is_empty();
+
+    Ok(ParserSurfaceAuditReport {
+        crate_name: member.crate_name.clone(),
+        manifest_path: relative_display(&member.manifest_path, cwd),
+        parser_root: relative_display(&parser_root, cwd),
+        scanned_rust_files,
+        excluded_governance_paths,
+        parser_entrypoints,
+        raw_input_read_refs,
+        input_mutation_refs,
+        forbidden_direct_dependencies,
+        process_execution_refs,
+        container_execution_refs,
+        slurm_execution_refs,
+        ok,
+    })
+}
+
 /// # Errors
 /// Returns an error if the workspace crate graph cannot be resolved or written.
 pub fn write_dependency_map(cwd: &Path, output_path: &Path) -> Result<CrateDependencyMapReport> {
@@ -365,6 +657,36 @@ pub fn write_domain_no_execution_report(
         audited_crate_count: crates.len(),
         ok: crates.iter().all(|crate_report| crate_report.ok),
         crates,
+    };
+
+    if let Some(parent) = output_path.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    bijux_dna_infra::atomic_write_json(output_path, &report)?;
+    Ok(report)
+}
+
+/// # Errors
+/// Returns an error if the parser surface execution audit cannot be resolved or written.
+pub fn write_parser_no_execution_report(
+    cwd: &Path,
+    output_path: &Path,
+) -> Result<ParserNoExecutionReport> {
+    let members = workspace_members(cwd)?;
+    let mut surfaces = members
+        .iter()
+        .filter_map(|member| parser_surface_spec(&member.crate_name).map(|spec| (member, spec)))
+        .map(|(member, spec)| audit_parser_surface(cwd, member, spec))
+        .collect::<Result<Vec<_>>>()?;
+    surfaces.sort_by(|left, right| left.crate_name.cmp(&right.crate_name));
+
+    let report = ParserNoExecutionReport {
+        schema_version: "bijux.crates.parser_no_execution.v1",
+        workspace_manifest: relative_display(&cwd.join("Cargo.toml"), cwd),
+        output_path: relative_display(output_path, cwd),
+        audited_surface_count: surfaces.len(),
+        ok: surfaces.iter().all(|surface| surface.ok),
+        surfaces,
     };
 
     if let Some(parent) = output_path.parent() {

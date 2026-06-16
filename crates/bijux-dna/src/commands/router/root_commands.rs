@@ -1025,6 +1025,11 @@ pub(crate) fn handle_crates_root(command: &cli::CratesCommand, cwd: &Path) -> Re
                 crate::commands::crates::write_domain_no_execution_report(cwd, &args.output)?;
             cli::render::json::print_pretty(&report)?;
         }
+        cli::CratesCommand::ParserNoExecution(args) => {
+            let report =
+                crate::commands::crates::write_parser_no_execution_report(cwd, &args.output)?;
+            cli::render::json::print_pretty(&report)?;
+        }
     }
     Ok(())
 }

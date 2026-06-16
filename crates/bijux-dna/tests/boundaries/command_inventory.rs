@@ -371,6 +371,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna dev ci gate",
     "bijux-dna dev crates graph",
     "bijux-dna dev crates domain-no-execution",
+    "bijux-dna dev crates parser-no-execution",
     "bijux-dna debug",
     "bijux-dna collect",
 ];
