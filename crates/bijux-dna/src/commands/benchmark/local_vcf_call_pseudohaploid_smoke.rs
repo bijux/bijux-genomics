@@ -271,7 +271,7 @@ pub(crate) fn run_local_vcf_call_pseudohaploid_smoke(
                 "vcf_output",
             ),
             (
-                "vcf_index",
+                "pseudohaploid_vcf_tbi",
                 format!("{DEFAULT_OUTPUT_VCF_NAME}.tbi"),
                 output_tbi.as_path(),
                 "vcf_index",

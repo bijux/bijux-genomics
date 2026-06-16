@@ -310,7 +310,7 @@ pub(crate) fn run_local_vcf_phasing_smoke(
                 "vcf_output",
             ),
             (
-                "phased_tbi",
+                "phased_vcf_tbi",
                 format!("{DEFAULT_OUTPUT_VCF_NAME}.tbi"),
                 output_tbi_path.as_path(),
                 "index_output",

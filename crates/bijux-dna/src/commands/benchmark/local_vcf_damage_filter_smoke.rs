@@ -275,7 +275,7 @@ pub(crate) fn run_local_vcf_damage_filter_smoke(
                 "vcf_output",
             ),
             (
-                "vcf_index",
+                "damage_filtered_vcf_tbi",
                 format!("{DEFAULT_OUTPUT_VCF_NAME}.tbi"),
                 output_tbi.as_path(),
                 "vcf_index",

@@ -198,7 +198,7 @@ pub(crate) fn run_local_vcf_call_smoke(
         &[
             ("called_vcf", DEFAULT_OUTPUT_VCF_NAME.to_string(), output_vcf.as_path(), "vcf_output"),
             (
-                "vcf_index",
+                "called_vcf_tbi",
                 format!("{DEFAULT_OUTPUT_VCF_NAME}.tbi"),
                 output_tbi.as_path(),
                 "vcf_index",
