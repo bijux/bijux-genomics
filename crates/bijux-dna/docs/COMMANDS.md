@@ -1013,6 +1013,13 @@ Visible aliases are part of the operator surface:
   unresolved tools carry `unavailable_with_reason` from executable resolution. The command fails
   closed if a resolved retained tool lacks a version command, lacks a parser regex, or drifts
   between runtime probes and governed registries.
+- `bijux-dna bench readiness run-host-tool-smoke`
+  `run-host-tool-smoke` executes the governed `version_cmd` for every retained tool that resolves
+  to `host_binary` and writes one manifest per tool at
+  `runs/bench/tool-smoke/host/<tool_id>/manifest.json`. Each manifest records the declared
+  command, applied argv, exit code, stdout, stderr, parsed version, regex match result, runtime
+  probe paths, and registry source paths. The command fails closed if any host tool command fails,
+  does not yield a parseable version, or misses its governed version regex.
 - `bijux-dna bench readiness render-stage-tool-alias-check`
   `render-stage-tool-alias-check` writes
   `benchmarks/readiness/all-domains/stage-tool-alias-check.json` and audits the governed
