@@ -225,6 +225,11 @@ pub(crate) fn handle_meta_commands(
                         args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamInsertSizeGcBiasReady(args) => {
+                        crate::commands::benchmark::readiness::bam_insert_size_gc_bias_ready::run_render_bam_insert_size_gc_bias_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderCorpusIncompatibility(args) => {
                         crate::commands::benchmark::readiness::corpus_incompatibility::run_render_corpus_incompatibility(
                             args,

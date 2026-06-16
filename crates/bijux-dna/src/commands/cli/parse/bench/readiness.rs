@@ -22,6 +22,8 @@ pub enum BenchReadinessCommand {
     RenderBamCommandAdapterCoverage(BenchReadinessRenderBamCommandAdapterCoverageArgs),
     #[command(name = "render-bam-corpus-assignment")]
     RenderBamCorpusAssignment(BenchReadinessRenderBamCorpusAssignmentArgs),
+    #[command(name = "render-bam-insert-size-gc-bias-ready")]
+    RenderBamInsertSizeGcBiasReady(BenchReadinessRenderBamInsertSizeGcBiasReadyArgs),
     #[command(name = "render-corpus-incompatibility")]
     RenderCorpusIncompatibility(BenchReadinessRenderCorpusIncompatibilityArgs),
     #[command(name = "render-corpus-centric-report")]
@@ -346,6 +348,14 @@ pub struct BenchReadinessRenderBamCommandAdapterCoverageArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamCorpusAssignmentArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamInsertSizeGcBiasReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

@@ -102,6 +102,7 @@ pub use self::readiness::{
     BenchReadinessRenderBamAdapterOutputContractArgs,
     BenchReadinessRenderBamCommandAdapterCoverageArgs,
     BenchReadinessRenderBamComparableMetricsArgs, BenchReadinessRenderBamCorpusAssignmentArgs,
+    BenchReadinessRenderBamInsertSizeGcBiasReadyArgs,
     BenchReadinessRenderBamNormalizedMetricsSchemaArgs, BenchReadinessRenderBamParserCoverageArgs,
     BenchReadinessRenderBamReportMapArgs, BenchReadinessRenderBamStageDecisionTableArgs,
     BenchReadinessRenderBamToolServingMapArgs, BenchReadinessRenderBenchmarkReadinessDashboardArgs,
