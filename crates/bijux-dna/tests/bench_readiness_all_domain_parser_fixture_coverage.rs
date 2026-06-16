@@ -86,7 +86,7 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
         Some(69)
     );
     assert_eq!(
-        proof_source_counts.get("bam_parser_coverage").and_then(serde_json::Value::as_u64),
+        proof_source_counts.get("bam_parser_fixture_coverage").and_then(serde_json::Value::as_u64),
         Some(49)
     );
     assert_eq!(
@@ -131,7 +131,7 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
             && row.get("parser_fixture_reference").and_then(serde_json::Value::as_str)
                 == Some("fixture:corpus-01-adna-bam-mini")
             && row.get("proof_source").and_then(serde_json::Value::as_str)
-                == Some("bam_parser_coverage")
+                == Some("bam_parser_fixture_coverage")
     }));
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")

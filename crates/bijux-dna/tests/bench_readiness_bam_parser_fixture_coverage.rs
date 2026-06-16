@@ -36,27 +36,22 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_bam_parser_coverage_reports_governed_rows() {
-    let payload = run_cli_json(&["bench", "readiness", "render-bam-parser-coverage", "--json"]);
+fn bench_readiness_bam_parser_fixture_coverage_reports_governed_rows() {
+    let payload =
+        run_cli_json(&["bench", "readiness", "render-bam-parser-fixture-coverage", "--json"]);
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.bam_parser_coverage.v1")
+        Some("bijux.bench.readiness.bam_parser_fixture_coverage.v1")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam-parser-coverage.tsv")
+        Some("benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(25));
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(
-        payload.get("parser_covered_row_count").and_then(serde_json::Value::as_u64),
-        Some(49)
-    );
-    assert_eq!(
-        payload.get("parser_missing_row_count").and_then(serde_json::Value::as_u64),
-        Some(0)
-    );
+    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(49));
+    assert_eq!(payload.get("missing_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("excluded_non_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
@@ -69,18 +64,20 @@ fn bench_readiness_bam_parser_coverage_reports_governed_rows() {
         Some(0)
     );
     assert_eq!(
-        payload.get("parser_coverage_percent").and_then(serde_json::Value::as_f64),
+        payload.get("parser_fixture_coverage_percent").and_then(serde_json::Value::as_f64),
         Some(100.0)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 49);
     assert!(rows.iter().all(|row| {
-        row.get("parser_coverage").and_then(serde_json::Value::as_str) == Some("covered")
+        row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
             && row.get("parser_status").and_then(serde_json::Value::as_str)
                 == Some("parser_fixture_validated")
+            && row.get("parser_fixture_reference_kind").and_then(serde_json::Value::as_str)
+                == Some("fixture_corpus")
             && row
-                .get("corpus_status")
+                .get("parser_fixture_reference")
                 .and_then(serde_json::Value::as_str)
                 .is_some_and(|value| value.starts_with("fixture:"))
     }));
@@ -99,13 +96,13 @@ fn bench_readiness_bam_parser_coverage_reports_governed_rows() {
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bwa")
             && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
-            && row.get("corpus_status").and_then(serde_json::Value::as_str)
+            && row.get("parser_fixture_reference").and_then(serde_json::Value::as_str)
                 == Some("fixture:corpus-01-mini")
     }));
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2")
             && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
-            && row.get("corpus_status").and_then(serde_json::Value::as_str)
+            && row.get("parser_fixture_reference").and_then(serde_json::Value::as_str)
                 == Some("fixture:corpus-01-mini")
     }));
 }
