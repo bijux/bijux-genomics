@@ -305,6 +305,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamAllRetainedToolsComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_all_retained_tools_complete::run_render_bam_all_retained_tools_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderExpectedBenchmarkResults(args) => {
                         crate::commands::benchmark::readiness::expected_benchmark_results::run_render_expected_benchmark_results(
                             args,

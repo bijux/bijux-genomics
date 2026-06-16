@@ -27,6 +27,7 @@ pub(crate) mod all_domain_report_map_coverage;
 pub(crate) mod all_domain_retained_tools;
 pub(crate) mod all_domain_stage_tool_table;
 pub(crate) mod bam_adapter_output_contract;
+pub(crate) mod bam_all_retained_tools_complete;
 pub(crate) mod bam_command_adapter_coverage;
 pub(crate) mod bam_comparable_metrics;
 pub(crate) mod bam_contamination_sex_haplogroups_ready;

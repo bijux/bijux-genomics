@@ -101,6 +101,7 @@ pub use self::readiness::{
     BenchReadinessRenderAllDomainRetainedToolsArgs,
     BenchReadinessRenderAllDomainStageToolTableArgs,
     BenchReadinessRenderBamAdapterOutputContractArgs,
+    BenchReadinessRenderBamAllRetainedToolsCompleteArgs,
     BenchReadinessRenderBamCommandAdapterCoverageArgs, BenchReadinessRenderBamCommandsArgs,
     BenchReadinessRenderBamComparableMetricsArgs,
     BenchReadinessRenderBamContaminationSexHaplogroupsReadyArgs,

@@ -56,6 +56,8 @@ pub enum BenchReadinessCommand {
     RenderBamParserFixtureCoverage(BenchReadinessRenderBamParserFixtureCoverageArgs),
     #[command(name = "render-bam-report-map")]
     RenderBamReportMap(BenchReadinessRenderBamReportMapArgs),
+    #[command(name = "render-bam-all-retained-tools-complete")]
+    RenderBamAllRetainedToolsComplete(BenchReadinessRenderBamAllRetainedToolsCompleteArgs),
     #[command(name = "render-expected-benchmark-results")]
     RenderExpectedBenchmarkResults(BenchReadinessRenderExpectedBenchmarkResultsArgs),
     #[command(name = "render-missing-result-report")]
@@ -542,6 +544,14 @@ pub struct BenchReadinessRenderBamParserFixtureCoverageArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamReportMapArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamAllRetainedToolsCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
