@@ -230,6 +230,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamKinshipReady(args) => {
+                        crate::commands::benchmark::readiness::bam_kinship_ready::run_render_bam_kinship_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamRecalibrationGenotypingReady(args) => {
                         crate::commands::benchmark::readiness::bam_recalibration_genotyping_ready::run_render_bam_recalibration_genotyping_ready(
                             args,

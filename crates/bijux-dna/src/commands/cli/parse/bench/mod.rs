@@ -105,7 +105,7 @@ pub use self::readiness::{
     BenchReadinessRenderBamContaminationSexHaplogroupsReadyArgs,
     BenchReadinessRenderBamCorpusAssignmentArgs,
     BenchReadinessRenderBamDamageAuthenticityReadyArgs,
-    BenchReadinessRenderBamInsertSizeGcBiasReadyArgs,
+    BenchReadinessRenderBamInsertSizeGcBiasReadyArgs, BenchReadinessRenderBamKinshipReadyArgs,
     BenchReadinessRenderBamNormalizedMetricsSchemaArgs,
     BenchReadinessRenderBamOverlapEndogenousReadyArgs, BenchReadinessRenderBamParserCoverageArgs,
     BenchReadinessRenderBamRecalibrationGenotypingReadyArgs, BenchReadinessRenderBamReportMapArgs,
