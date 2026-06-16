@@ -70,6 +70,7 @@ nested_root_command_args!(AnalyzeRootArgs, AnalyzeCommand);
 nested_root_command_args!(BenchRootArgs, BenchCommand);
 nested_root_command_args!(PoliciesRootArgs, PoliciesCommand);
 nested_root_command_args!(CiRootArgs, CiCommand);
+nested_root_command_args!(DevRootArgs, DevCommand);
 
 #[derive(Debug, Subcommand)]
 pub enum DnaCommand {
@@ -116,6 +117,8 @@ pub enum DnaCommand {
     Policies(PoliciesRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
     Ci(CiRootArgs),
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
+    Dev(DevRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
     Debug(DebugArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]

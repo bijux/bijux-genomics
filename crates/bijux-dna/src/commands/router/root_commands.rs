@@ -894,50 +894,51 @@ pub(crate) fn handle_domain_root(command: &cli::DomainCommand, cwd: &Path) -> Re
 }
 
 pub(crate) fn handle_ci_root(command: &cli::CiCommand, cwd: &Path) -> Result<()> {
-    #[derive(serde::Serialize)]
-    struct Check {
-        name: &'static str,
-        ok: bool,
-        detail: String,
-    }
-    #[derive(serde::Serialize)]
-    struct Summary {
-        schema_version: &'static str,
-        ok: bool,
-        checks: Vec<Check>,
-    }
-
-    let mut checks = Vec::new();
-
-    let workspace_out = cwd.join("artifacts").join("workspace");
-    let workspace_ok = crate::commands::workspace_audit(&workspace_out).is_ok();
-    checks.push(Check {
-        name: "workspace_audit",
-        ok: workspace_ok,
-        detail: workspace_out.display().to_string(),
-    });
-
-    let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
-    let policy_ok = crate::commands::cli::env::policy_clean_report(&registry_path, "fastq")
-        .map(|report| report.ok)
-        .unwrap_or(false);
-    checks.push(Check {
-        name: "registry_policy_clean_fastq",
-        ok: policy_ok,
-        detail: registry_path.display().to_string(),
-    });
-
-    let lint_ok = crate::commands::cli::env::lint_apptainer_defs(cwd).is_ok();
-    checks.push(Check {
-        name: "lint_apptainer_defs",
-        ok: lint_ok,
-        detail: "containers/apptainer".to_string(),
-    });
-
-    let ok = checks.iter().all(|check| check.ok);
-    let summary = Summary { schema_version: "bijux.ci.verify.v1", ok, checks };
     match command {
         cli::CiCommand::Validate { out } => {
+            #[derive(serde::Serialize)]
+            struct Check {
+                name: &'static str,
+                ok: bool,
+                detail: String,
+            }
+            #[derive(serde::Serialize)]
+            struct Summary {
+                schema_version: &'static str,
+                ok: bool,
+                checks: Vec<Check>,
+            }
+
+            let mut checks = Vec::new();
+
+            let workspace_out = cwd.join("artifacts").join("workspace");
+            let workspace_ok = crate::commands::workspace_audit(&workspace_out).is_ok();
+            checks.push(Check {
+                name: "workspace_audit",
+                ok: workspace_ok,
+                detail: workspace_out.display().to_string(),
+            });
+
+            let registry_path =
+                bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
+            let policy_ok = crate::commands::cli::env::policy_clean_report(&registry_path, "fastq")
+                .map(|report| report.ok)
+                .unwrap_or(false);
+            checks.push(Check {
+                name: "registry_policy_clean_fastq",
+                ok: policy_ok,
+                detail: registry_path.display().to_string(),
+            });
+
+            let lint_ok = crate::commands::cli::env::lint_apptainer_defs(cwd).is_ok();
+            checks.push(Check {
+                name: "lint_apptainer_defs",
+                ok: lint_ok,
+                detail: "containers/apptainer".to_string(),
+            });
+
+            let ok = checks.iter().all(|check| check.ok);
+            let summary = Summary { schema_version: "bijux.ci.verify.v1", ok, checks };
             if let Some(parent) = out.parent() {
                 bijux_dna_infra::ensure_dir(parent)?;
             }
@@ -946,6 +947,78 @@ pub(crate) fn handle_ci_root(command: &cli::CiCommand, cwd: &Path) -> Result<()>
             if !ok {
                 return Err(anyhow::anyhow!("ci validate failed; see {}", out.display()));
             }
+        }
+        cli::CiCommand::Audit(args) => {
+            if let Some(target) = &args.no_repeated_target {
+                let report = crate::commands::ci::audit_workflow_no_repeated_target(
+                    cwd,
+                    &args.workflow,
+                    target,
+                    args.out.as_deref(),
+                )?;
+                cli::render::json::print_pretty(&report)?;
+            } else if args.slow_tier_manual_only {
+                let report = crate::commands::ci::audit_workflow_slow_tier_manual_only(
+                    cwd,
+                    &args.workflow,
+                    args.out.as_deref(),
+                )?;
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                return Err(anyhow::anyhow!(
+                    "ci audit requires --no-repeated-target or --slow-tier-manual-only"
+                ));
+            }
+        }
+        cli::CiCommand::ChangedPaths(args) => {
+            let report = crate::commands::ci::changed_path_commands(cwd, &args.from_file)?;
+            for command in report.commands {
+                println!("{command}");
+            }
+        }
+        cli::CiCommand::BudgetCheck(args) => {
+            let report =
+                crate::commands::ci::budget_check(cwd, &args.profile, args.budget_file.as_deref())?;
+            cli::render::json::print_pretty(&report)?;
+        }
+        cli::CiCommand::AuditFeatures(args) => {
+            let report = crate::commands::ci::audit_default_features(
+                cwd,
+                &args.profile,
+                args.out.as_deref(),
+            )?;
+            cli::render::json::print_pretty(&report)?;
+        }
+        cli::CiCommand::Gate(args) => {
+            if !args.fast_no_bleeding {
+                return Err(anyhow::anyhow!("ci gate currently supports only --fast-no-bleeding"));
+            }
+            let report = crate::commands::ci::gate_fast_no_bleeding(
+                cwd,
+                &args.workflow,
+                args.budget_file.as_deref(),
+                args.changed_paths_fixture.as_deref(),
+                args.out.as_deref(),
+            )?;
+            cli::render::json::print_pretty(&report)?;
+        }
+    }
+    Ok(())
+}
+
+pub(crate) fn handle_dev_root(command: &cli::DevCommand, cwd: &Path) -> Result<()> {
+    match command {
+        cli::DevCommand::Ci(args) => handle_ci_root(&args.command, cwd)?,
+        cli::DevCommand::Crates(args) => handle_crates_root(&args.command, cwd)?,
+    }
+    Ok(())
+}
+
+pub(crate) fn handle_crates_root(command: &cli::CratesCommand, cwd: &Path) -> Result<()> {
+    match command {
+        cli::CratesCommand::Graph(args) => {
+            let report = crate::commands::crates::write_dependency_map(cwd, &args.output)?;
+            cli::render::json::print_pretty(&report)?;
         }
     }
     Ok(())

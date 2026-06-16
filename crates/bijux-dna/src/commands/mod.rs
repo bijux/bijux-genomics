@@ -2,8 +2,10 @@
 
 pub(crate) mod bam;
 pub(crate) mod benchmark;
+pub(crate) mod ci;
 pub mod cli;
 pub(crate) mod corpus;
+pub(crate) mod crates;
 pub(crate) mod ena;
 pub(crate) mod fastq;
 pub(crate) mod fixtures;

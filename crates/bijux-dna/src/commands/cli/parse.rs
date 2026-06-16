@@ -7,6 +7,7 @@ include!("parse/parse_env_and_pipeline.rs");
 include!("parse/fixtures.rs");
 mod bench;
 include!("parse/ci.rs");
+include!("parse/dev.rs");
 include!("parse/fastq.rs");
 include!("parse/bam.rs");
 include!("parse/vcf.rs");
