@@ -13,21 +13,19 @@ pub(crate) fn parse_record_fields(line: &str) -> Option<Vec<&str>> {
 
 pub(crate) fn read_vcf_text(path: &Path) -> Result<String> {
     if path.extension().and_then(|x| x.to_str()).is_some_and(|x| x == "gz" || x == "bcf") {
-        let output = std::process::Command::new("bcftools")
-            .args(["view", &path.display().to_string()])
-            .output()?;
-        if output.status.success() {
-            return Ok(String::from_utf8_lossy(&output.stdout).to_string());
+        let output = crate::engine::execution::run_command_output(
+            "bcftools",
+            ["view", &path.display().to_string()],
+            None,
+        )?;
+        if output.exit_code == 0 {
+            return Ok(output.stdout);
         }
         // Compatibility fallback for legacy plain-text payloads mislabeled as `.vcf.gz`.
         if let Ok(raw) = std::fs::read(path) {
             return Ok(String::from_utf8_lossy(&raw).to_string());
         }
-        bail!(
-            "bcftools view failed while reading {}: {}",
-            path.display(),
-            String::from_utf8_lossy(&output.stderr)
-        );
+        bail!("bcftools view failed while reading {}: {}", path.display(), output.stderr);
     }
     Ok(std::fs::read_to_string(path)?)
 }

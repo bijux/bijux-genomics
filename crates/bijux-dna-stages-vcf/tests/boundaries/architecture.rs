@@ -32,6 +32,7 @@ fn stages_vcf_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/engine")),
         btree_set(&[
             "entrypoints.rs",
+            "execution.rs",
             "mod.rs",
             "reporting.rs",
             "request.rs",

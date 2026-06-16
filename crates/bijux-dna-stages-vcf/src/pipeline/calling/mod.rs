@@ -42,18 +42,6 @@ fn ensure_bam_prerequisites(input_bam: &Path, params: &VcfCallParams) -> Result<
     Ok(())
 }
 
-fn run_checked_command(bin: &str, args: &[&str]) -> Result<()> {
-    let output = std::process::Command::new(bin)
-        .args(args)
-        .output()
-        .map_err(|err| anyhow!("{bin} invocation failed: {err}"))?;
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        bail!("{bin} failed: {stderr}");
-    }
-    Ok(())
-}
-
 fn run_bcftools_mpileup_call(
     input_bam: &Path,
     out_vcf: &Path,
@@ -86,12 +74,12 @@ fn run_bcftools_mpileup_call(
             mpileup_out,
             input_bam_s,
         ];
-        run_checked_command("bcftools", &mpileup_args)?;
+        crate::engine::execution::run_checked_command("bcftools", mpileup_args, None)?;
         let call_args = ["call", "-mv", "-Oz", "-o", out_vcf_s, mpileup_out];
-        run_checked_command("bcftools", &call_args)?;
+        crate::engine::execution::run_checked_command("bcftools", call_args, None)?;
     }
     let tabix_args = ["-f", "-p", "vcf", out_vcf_s];
-    run_checked_command("tabix", &tabix_args)?;
+    crate::engine::execution::run_checked_command("tabix", tabix_args, None)?;
     Ok(())
 }
 
@@ -127,9 +115,9 @@ fn run_bcftools_mpileup_likelihood_vcf(
         mpileup_out,
         input_bam_s,
     ];
-    run_checked_command("bcftools", &mpileup_args)?;
+    crate::engine::execution::run_checked_command("bcftools", mpileup_args, None)?;
     let view_args = ["view", "-Ov", "-o", mpileup_vcf_out, mpileup_out];
-    run_checked_command("bcftools", &view_args)?;
+    crate::engine::execution::run_checked_command("bcftools", view_args, None)?;
     let _ = write_vcf_with_best_effort_index(
         out_vcf,
         &std::fs::read_to_string(&mpileup_vcf)?,
@@ -153,8 +141,9 @@ fn run_gatk_haplotype_caller(
         raw_vcf.to_str().ok_or_else(|| anyhow!("non-utf8 temporary gatk output path"))?;
     let reference_s =
         Path::new(&reference).to_str().ok_or_else(|| anyhow!("non-utf8 reference path"))?;
-    let output = std::process::Command::new("gatk")
-        .args([
+    crate::engine::execution::run_checked_command(
+        "gatk",
+        [
             "HaplotypeCaller",
             "-R",
             reference_s,
@@ -166,12 +155,9 @@ fn run_gatk_haplotype_caller(
             "GVCF",
             "--min-base-quality-score",
             &params.min_base_quality.to_string(),
-        ])
-        .output()
-        .map_err(|err| anyhow!("gatk invocation failed: {err}"))?;
-    if !output.status.success() {
-        bail!("gatk HaplotypeCaller failed: {}", String::from_utf8_lossy(&output.stderr));
-    }
+        ],
+        None,
+    )?;
     let _ = crate::vcf_io::vcf_index_bgzip_tabix(&raw_vcf, out_vcf)?;
     let _ = std::fs::remove_file(&raw_vcf);
     Ok(())
@@ -210,29 +196,29 @@ fn try_run_angsd_gl_from_bam(
         "-out",
         out_prefix_s,
     ];
-    let output = std::process::Command::new("angsd").args(args).output();
+    let output = crate::engine::execution::run_command_output("angsd", args, None);
     let log_path = out_dir.join("angsd_call_gl.log");
     match output {
-        Ok(result) if result.status.success() => {
+        Ok(result) if result.exit_code == 0 => {
             let mut log = String::from("status=ok\n");
-            if !result.stdout.is_empty() {
+            if !result.stdout.trim().is_empty() {
                 log.push_str("stdout:\n");
-                log.push_str(&String::from_utf8_lossy(&result.stdout));
+                log.push_str(&result.stdout);
                 log.push('\n');
             }
-            if !result.stderr.is_empty() {
+            if !result.stderr.trim().is_empty() {
                 log.push_str("stderr:\n");
-                log.push_str(&String::from_utf8_lossy(&result.stderr));
+                log.push_str(&result.stderr);
                 log.push('\n');
             }
             atomic_write_bytes(&log_path, log.as_bytes())?;
             Ok(true)
         }
         Ok(result) => {
-            let mut log = format!("status=failed\nexit={}\n", result.status);
-            if !result.stderr.is_empty() {
+            let mut log = format!("status=failed\nexit={}\n", result.exit_code);
+            if !result.stderr.trim().is_empty() {
                 log.push_str("stderr:\n");
-                log.push_str(&String::from_utf8_lossy(&result.stderr));
+                log.push_str(&result.stderr);
                 log.push('\n');
             }
             atomic_write_bytes(&log_path, log.as_bytes())?;

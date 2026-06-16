@@ -1,6 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
@@ -24,15 +23,7 @@ pub struct VcfValidationSummary {
 }
 
 fn run_cmd(bin: &str, args: &[String]) -> Result<String> {
-    let output = Command::new(bin)
-        .args(args)
-        .output()
-        .with_context(|| format!("run command {bin} {}", args.join(" ")))?;
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        bail!("{bin} failed: {stderr}");
-    }
-    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    crate::engine::execution::run_text_command(bin, args.iter().map(String::as_str), None)
 }
 
 fn parse_fields(line: &str) -> Option<Vec<&str>> {
@@ -220,14 +211,19 @@ pub fn vcf_normalize_headers(input: &Path, output: &Path) -> Result<()> {
 pub fn vcf_index_bgzip_tabix(input_vcf: &Path, output_vcfgz: &Path) -> Result<PathBuf> {
     let output_tbi = PathBuf::from(format!("{}.tbi", output_vcfgz.display()));
     let tmp_vcfgz = PathBuf::from(format!("{}.tmp", output_vcfgz.display()));
-    let bgzip_output = Command::new("bgzip")
-        .args(["-c", &input_vcf.display().to_string()])
-        .output()
-        .with_context(|| format!("run command bgzip -c {}", input_vcf.display()))?;
-    if !bgzip_output.status.success() {
-        bail!("bgzip failed: {}", String::from_utf8_lossy(&bgzip_output.stderr));
+    let tmp_plain_vcf = PathBuf::from(format!("{}.bgzip.tmp.vcf", output_vcfgz.display()));
+    std::fs::copy(input_vcf, &tmp_plain_vcf)
+        .with_context(|| format!("copy {} -> {}", input_vcf.display(), tmp_plain_vcf.display()))?;
+    let tmp_plain_vcf_s =
+        tmp_plain_vcf.to_str().ok_or_else(|| anyhow!("non-utf8 bgzip temporary input path"))?;
+    crate::engine::execution::run_checked_command("bgzip", ["-f", tmp_plain_vcf_s], None)?;
+    let tmp_plain_vcfgz = PathBuf::from(format!("{}.gz", tmp_plain_vcf.display()));
+    if !tmp_plain_vcfgz.exists() {
+        bail!("vcf_index_bgzip_tabix: bgzip did not create {}", tmp_plain_vcfgz.display());
     }
-    bijux_dna_infra::atomic_write_bytes(&tmp_vcfgz, &bgzip_output.stdout)?;
+    std::fs::rename(&tmp_plain_vcfgz, &tmp_vcfgz).with_context(|| {
+        format!("rename bgzip output {} -> {}", tmp_plain_vcfgz.display(), tmp_vcfgz.display())
+    })?;
     let tabix_args = vec![
         "-f".to_string(),
         "-p".to_string(),

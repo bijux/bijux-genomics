@@ -23,6 +23,7 @@ use crate::pipeline::{
 };
 
 mod entrypoints;
+pub(crate) mod execution;
 mod reporting;
 mod request;
 mod stage_runner;

@@ -202,8 +202,12 @@ pub fn run_gl_propagation_stage(
         let normalized_vcf_s =
             normalized_vcf.to_str().ok_or_else(|| anyhow!("non-utf8 gl normalized vcf path"))?;
         let bcf_s = bcf.to_str().ok_or_else(|| anyhow!("non-utf8 gl normalized bcf path"))?;
-        run_checked_command("bcftools", &["view", "-Ob", "-o", bcf_s, normalized_vcf_s])?;
-        run_checked_command("bcftools", &["index", "-f", bcf_s])?;
+        crate::engine::execution::run_checked_command(
+            "bcftools",
+            ["view", "-Ob", "-o", bcf_s, normalized_vcf_s],
+            None,
+        )?;
+        crate::engine::execution::run_checked_command("bcftools", ["index", "-f", bcf_s], None)?;
         if !csi.exists() {
             bail!("vcf.gl_propagation contract violation: missing BCF index {}", csi.display());
         }
