@@ -47,14 +47,22 @@ use serde::Serialize;
 
 const STAGE_ID: &str = "fastq.normalize_primers";
 const LOCAL_NORMALIZE_PRIMERS_SMOKE_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.normalize_primers.local_smoke.report.v1";
+    "bijux.fastq.normalize_primers.local_smoke.report.v2";
 
 #[derive(Debug, Clone, Serialize)]
-struct LocalNormalizePrimersSmokeReport {
+#[serde(rename_all = "snake_case")]
+enum LocalNormalizePrimersSmokeLayout {
+    SingleEnd,
+    PairedEnd,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalNormalizePrimersSmokeCaseReport {
     schema_version: String,
     stage_id: String,
     sample_id: String,
     tool_id: String,
+    layout: LocalNormalizePrimersSmokeLayout,
     primer_set_id: String,
     marker_id: Option<String>,
     orientation_policy: String,
@@ -62,11 +70,20 @@ struct LocalNormalizePrimersSmokeReport {
     matched_reads: u64,
     unmatched_reads: u64,
     output_reads: u64,
-    normalized_fastq_gz: String,
+    normalized_reads_r1: String,
+    normalized_reads_r2: Option<String>,
     report_json: String,
     primer_orientation_report: String,
     primer_stats_json: String,
     used_fallback: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalNormalizePrimersSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    case_count: u64,
+    cases: Vec<LocalNormalizePrimersSmokeCaseReport>,
 }
 
 /// Materialize the governed local-smoke `fastq.normalize_primers` artifacts.
@@ -81,16 +98,19 @@ pub fn write_local_normalize_primers_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases =
         bijux_dna_planner_fastq::stage_api::local_normalize_primers_smoke_plans(&repo_root)?;
-    let [case] = cases.as_slice() else {
-        return Err(anyhow!(
-            "local-smoke fastq.normalize_primers expects exactly one governed case, found {}",
-            cases.len()
-        ));
-    };
 
     let output_root = repo_root.join("runs/bench/local-smoke/fastq.normalize_primers");
     bijux_dna_infra::ensure_dir(&output_root)?;
-    let report = materialize_local_normalize_primers_smoke_case(&repo_root, case, &output_root)?;
+    let cases = cases
+        .iter()
+        .map(|case| materialize_local_normalize_primers_smoke_case(&repo_root, case))
+        .collect::<Result<Vec<_>>>()?;
+    let report = LocalNormalizePrimersSmokeReport {
+        schema_version: LOCAL_NORMALIZE_PRIMERS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        case_count: cases.len() as u64,
+        cases,
+    };
     let report_path = output_root.join("report.json");
     bijux_dna_infra::atomic_write_json(&report_path, &report)?;
     Ok(report_path)
@@ -839,34 +859,48 @@ fn select_normalize_primers_benchmark_tools(
 fn materialize_local_normalize_primers_smoke_case(
     repo_root: &Path,
     case: &bijux_dna_planner_fastq::LocalNormalizePrimersSmokeCasePlan,
-    output_root: &Path,
-) -> Result<LocalNormalizePrimersSmokeReport> {
+) -> Result<LocalNormalizePrimersSmokeCaseReport> {
     let effective_params = serde_json::from_value::<PrimerNormalizationEffectiveParams>(
         case.plan.effective_params.clone(),
     )
     .context("decode normalize primers local-smoke effective params")?;
     let input_r1 = repo_root.join(&case.r1);
+    let input_r2 = case.r2.as_ref().map(|path| repo_root.join(path));
     let output_r1 =
         resolve_repo_path(repo_root, &artifact_path(&case.plan, "normalized_reads_r1")?);
+    let output_r2 = case
+        .r2
+        .as_ref()
+        .map(|_| artifact_path(&case.plan, "normalized_reads_r2"))
+        .transpose()?
+        .map(|path| resolve_repo_path(repo_root, &path));
     let report_json = resolve_repo_path(repo_root, &artifact_path(&case.plan, "report_json")?);
     let orientation_report =
         resolve_repo_path(repo_root, &artifact_path(&case.plan, "primer_orientation_report")?);
     let primer_stats_json =
         resolve_repo_path(repo_root, &artifact_path(&case.plan, "primer_stats_json")?);
 
-    for path in [&output_r1, &report_json, &orientation_report, &primer_stats_json] {
+    for path in [
+        Some(&output_r1),
+        output_r2.as_ref(),
+        Some(&report_json),
+        Some(&orientation_report),
+        Some(&primer_stats_json),
+    ]
+    .into_iter()
+    .flatten()
+    {
         if let Some(parent) = path.parent() {
             bijux_dna_infra::ensure_dir(parent)?;
         }
     }
 
-    let input_reads = observe_fastq_record_count(&input_r1)?;
     let mut report = run_normalize_primers(
         &input_r1,
-        None,
+        input_r2.as_deref(),
         &effective_params,
         &output_r1,
-        None,
+        output_r2.as_deref(),
         &orientation_report,
         &primer_stats_json,
         Some(&primer_stats_json),
@@ -875,7 +909,7 @@ fn materialize_local_normalize_primers_smoke_case(
     report.input_r1 = case.r1.display().to_string();
     report.input_r2 = case.r2.as_ref().map(|path| path.display().to_string());
     report.output_r1 = path_relative_to_repo(repo_root, &output_r1);
-    report.output_r2 = None;
+    report.output_r2 = output_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path));
     report.primer_orientation_report = path_relative_to_repo(repo_root, &orientation_report);
     report.primer_stats_json = path_relative_to_repo(repo_root, &primer_stats_json);
     report.raw_backend_report = Some(report.primer_stats_json.clone());
@@ -883,24 +917,22 @@ fn materialize_local_normalize_primers_smoke_case(
     report.used_fallback = true;
     bijux_dna_infra::atomic_write_json(&report_json, &report)?;
 
-    let top_level_output = output_root.join("normalized.fastq.gz");
-    std::fs::copy(&output_r1, &top_level_output).with_context(|| {
-        format!(
-            "copy normalize primers smoke output {} -> {}",
-            output_r1.display(),
-            top_level_output.display()
-        )
-    })?;
-
+    let input_reads =
+        report.reads_in.unwrap_or_else(|| observe_fastq_record_count(&input_r1).unwrap_or(0));
     let matched_reads = report.primer_trimmed_reads.unwrap_or(0);
     let output_reads = report.reads_out.unwrap_or(input_reads);
     let unmatched_reads = input_reads.saturating_sub(matched_reads);
 
-    Ok(LocalNormalizePrimersSmokeReport {
+    Ok(LocalNormalizePrimersSmokeCaseReport {
         schema_version: LOCAL_NORMALIZE_PRIMERS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
         stage_id: STAGE_ID.to_string(),
         sample_id: case.sample_id.clone(),
         tool_id: case.plan.tool_id.as_str().to_string(),
+        layout: if case.r2.is_some() {
+            LocalNormalizePrimersSmokeLayout::PairedEnd
+        } else {
+            LocalNormalizePrimersSmokeLayout::SingleEnd
+        },
         primer_set_id: report.primer_set_id.clone(),
         marker_id: report.marker_id.clone(),
         orientation_policy: report.orientation_policy.clone(),
@@ -908,7 +940,8 @@ fn materialize_local_normalize_primers_smoke_case(
         matched_reads,
         unmatched_reads,
         output_reads,
-        normalized_fastq_gz: path_relative_to_repo(repo_root, &top_level_output),
+        normalized_reads_r1: path_relative_to_repo(repo_root, &output_r1),
+        normalized_reads_r2: output_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
         report_json: path_relative_to_repo(repo_root, &report_json),
         primer_orientation_report: report.primer_orientation_report.clone(),
         primer_stats_json: report.primer_stats_json.clone(),

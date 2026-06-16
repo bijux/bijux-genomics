@@ -13,4 +13,9 @@ output_dir = "runs/bench/local-smoke/fastq.normalize_primers"
 
 [[cases]]
 sample_id = "amplicon-16s-se"
-r1 = "assets/toy/core-v1/fastq/reads_with_primers.fastq"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-se.fastq.gz"
+
+[[cases]]
+sample_id = "amplicon-16s-pe"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-pe_R1.fastq.gz"
+r2 = "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-pe_R2.fastq.gz"
