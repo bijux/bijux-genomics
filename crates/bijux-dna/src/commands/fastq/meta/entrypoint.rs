@@ -630,6 +630,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderOutputContractTests(args) => {
+                        crate::commands::benchmark::readiness::output_contract_tests::run_render_output_contract_tests(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVersionProbes(args) => {
                         crate::commands::benchmark::readiness::version_probes::run_render_version_probes(
                             args,

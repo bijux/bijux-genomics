@@ -85,6 +85,7 @@ pub(crate) mod missing_benchmark_pairs;
 pub(crate) mod missing_result_report;
 pub(crate) mod operational_benchmark_ready;
 pub(crate) mod orphan_tools;
+pub(crate) mod output_contract_tests;
 pub(crate) mod pair_readiness;
 pub(crate) mod parser_completeness_gate;
 pub(crate) mod parser_failure_tests;
