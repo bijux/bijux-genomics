@@ -355,9 +355,12 @@ Visible aliases are part of the operator surface:
   summary table that downstream benchmark reporting must use while preserving exact tool-level
   coverage for every retained FASTQ result row.
 - `bijux-dna bench readiness render-bam-report-map`
-  `render-bam-report-map` writes `benchmarks/readiness/bam-report-map.tsv` with one governed
-  row per BAM benchmark-ready stage, fixing the report section, summary table, workflow branch,
-  and benchmark anchor tool that downstream BAM stage reporting must use.
+  `render-bam-report-map` writes `benchmarks/readiness/bam/bam-report-map.tsv` with one governed
+  row per BAM benchmark-ready expected-result binding. Each row carries the owned
+  `result_row_id`, `tool_id`, `corpus_family_id`, `fixture_id`, `sample_scope`, tool
+  `support_status`, stage anchor tool, report section, summary table, optional workflow branch,
+  and any scientific context required to interpret the result, so every retained BAM result stays
+  mapped into reporting instead of relying on stage-only placeholders.
 - `bijux-dna bench readiness render-corpus-asset-coverage-gate`
   `render-corpus-asset-coverage-gate` writes
   `benchmarks/readiness/gate-corpus-assets-complete.json` with one governed row per FASTQ or
