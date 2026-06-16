@@ -363,6 +363,13 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna compare",
     "bijux-dna policies audit",
     "bijux-dna ci validate",
+    "bijux-dna dev ci validate",
+    "bijux-dna dev ci audit",
+    "bijux-dna dev ci changed-paths",
+    "bijux-dna dev ci budget-check",
+    "bijux-dna dev ci audit-features",
+    "bijux-dna dev ci gate",
+    "bijux-dna dev crates graph",
     "bijux-dna debug",
     "bijux-dna collect",
 ];
