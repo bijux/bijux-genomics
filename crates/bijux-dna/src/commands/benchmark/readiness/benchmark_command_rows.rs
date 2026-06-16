@@ -40,13 +40,7 @@ struct CanonicalStagePlan {
 
 pub(crate) fn collect_benchmark_command_rows(repo_root: &Path) -> Result<Vec<BenchmarkCommandRow>> {
     let fastq_base_plans = canonical_stage_plan_map(repo_root, BenchLocalDomain::Fastq)?;
-    let bam_readiness_by_stage = load_local_stage_inventory(repo_root, BenchLocalDomain::Bam)?
-        .stages
-        .into_iter()
-        .map(|stage| (stage.stage_id, stage.readiness_kind))
-        .collect::<BTreeMap<_, _>>();
     let (_, _, fastq_rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;
-    let (_, _, bam_rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;
 
     let mut rows = Vec::new();
 
@@ -70,6 +64,26 @@ pub(crate) fn collect_benchmark_command_rows(repo_root: &Path) -> Result<Vec<Ben
             argv,
         });
     }
+
+    rows.extend(collect_bam_benchmark_command_rows(repo_root)?);
+
+    rows.sort_by(|left, right| {
+        left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
+    });
+    ensure_unique_rows(&rows)?;
+    Ok(rows)
+}
+
+pub(crate) fn collect_bam_benchmark_command_rows(
+    repo_root: &Path,
+) -> Result<Vec<BenchmarkCommandRow>> {
+    let bam_readiness_by_stage = load_local_stage_inventory(repo_root, BenchLocalDomain::Bam)?
+        .stages
+        .into_iter()
+        .map(|stage| (stage.stage_id, stage.readiness_kind))
+        .collect::<BTreeMap<_, _>>();
+    let (_, _, bam_rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;
+    let mut rows = Vec::new();
 
     for row in bam_rows
         .into_iter()
