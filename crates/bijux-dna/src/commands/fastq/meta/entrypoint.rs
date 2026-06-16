@@ -217,12 +217,17 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchReadinessCommand::RenderBamCommandAdapterCoverage(args) => {
                         crate::commands::benchmark::readiness::bam_command_adapter_coverage::run_render_bam_command_adapter_coverage(
-                        args,
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamLocalContainerSmoke(args) => {
+                        crate::commands::benchmark::readiness::bam_local_container_smoke::run_render_bam_local_container_smoke(
+                            args,
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderBamCorpusAssignment(args) => {
                         crate::commands::benchmark::readiness::bam_corpus_assignment::run_render_bam_corpus_assignment(
-                        args,
+                            args,
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderBamContaminationSexHaplogroupsReady(args) => {
@@ -926,6 +931,11 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchLocalCommand::RenderVcfSmokeRoot(args) => {
                         crate::commands::benchmark::local_vcf_smoke_root::run_render_vcf_smoke_root(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RunBamStageSmoke(args) => {
+                        crate::commands::benchmark::local_stage_commands::run_bam_stage_smoke(
                             args,
                         )?;
                     }

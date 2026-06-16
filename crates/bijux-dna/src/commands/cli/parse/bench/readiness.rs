@@ -20,6 +20,8 @@ pub enum BenchReadinessCommand {
     RenderBamStageDecisionTable(BenchReadinessRenderBamStageDecisionTableArgs),
     #[command(name = "render-bam-command-adapter-coverage")]
     RenderBamCommandAdapterCoverage(BenchReadinessRenderBamCommandAdapterCoverageArgs),
+    #[command(name = "render-bam-local-container-smoke")]
+    RenderBamLocalContainerSmoke(BenchReadinessRenderBamLocalContainerSmokeArgs),
     #[command(name = "render-bam-corpus-assignment")]
     RenderBamCorpusAssignment(BenchReadinessRenderBamCorpusAssignmentArgs),
     #[command(name = "render-bam-contamination-sex-haplogroups-ready")]
@@ -586,6 +588,14 @@ pub struct BenchReadinessRenderVcfActiveStageToolMatrixArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfLocalContainerSmokeArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamLocalContainerSmokeArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

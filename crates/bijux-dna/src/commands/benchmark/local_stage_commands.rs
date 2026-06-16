@@ -106,6 +106,10 @@ pub(crate) fn run_materialize_stage(args: &parse::BenchLocalMaterializeStageArgs
     Ok(())
 }
 
+pub(crate) fn run_bam_stage_smoke(args: &parse::BenchLocalRunBamStageSmokeArgs) -> Result<()> {
+    super::local_bam_stage_smoke::run_bam_stage_smoke(args)
+}
+
 pub(crate) fn run_render_stage_commands(
     args: &parse::BenchLocalRenderStageCommandsArgs,
 ) -> Result<()> {
@@ -240,6 +244,28 @@ pub(crate) fn materialize_local_stage(repo_root: &Path, stage_id: &str) -> Resul
         "bam.validate" => bijux_dna_api::v1::api::bam::write_local_validate_smoke_report(),
         other => materialize_feature_gated_stage(other),
     }
+}
+
+pub(crate) fn bam_stage_smoke_command(stage_id: &str) -> Result<String> {
+    super::local_bam_stage_smoke::bam_stage_smoke_command(stage_id)
+}
+
+pub(crate) fn bam_stage_smoke_support_path(
+    repo_root: &Path,
+    stage_id: &str,
+) -> Result<Option<String>> {
+    super::local_bam_stage_smoke::bam_stage_smoke_support_path(repo_root, stage_id)
+}
+
+pub(crate) fn governed_bam_local_smoke_tool_id(
+    repo_root: &Path,
+    stage_id: &str,
+) -> Result<Option<String>> {
+    super::local_bam_stage_smoke::governed_bam_local_smoke_tool_id(repo_root, stage_id)
+}
+
+pub(crate) fn has_bam_local_ready_only_contract(stage_id: &str) -> bool {
+    super::local_bam_stage_smoke::has_bam_local_ready_only_contract(stage_id)
 }
 
 #[cfg(feature = "bam_downstream")]

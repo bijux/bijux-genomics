@@ -31,6 +31,8 @@ pub enum BenchLocalCommand {
     RenderVcfStageMatrix(BenchLocalRenderVcfStageMatrixArgs),
     #[command(name = "render-vcf-smoke-root")]
     RenderVcfSmokeRoot(BenchLocalRenderVcfSmokeRootArgs),
+    #[command(name = "run-bam-stage-smoke")]
+    RunBamStageSmoke(BenchLocalRunBamStageSmokeArgs),
     #[command(name = "run-vcf-call-smoke")]
     RunVcfCallSmoke(BenchLocalRunVcfCallSmokeArgs),
     #[command(name = "run-vcf-call-diploid-smoke")]
@@ -177,6 +179,14 @@ pub struct BenchLocalRenderVcfStageMatrixArgs {
 pub struct BenchLocalRenderVcfSmokeRootArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunBamStageSmokeArgs {
+    #[arg(long)]
+    pub stage_id: String,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
