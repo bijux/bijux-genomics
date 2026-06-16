@@ -1013,6 +1013,17 @@ Visible aliases are part of the operator surface:
   unresolved tools carry `unavailable_with_reason` from executable resolution. The command fails
   closed if a resolved retained tool lacks a version command, lacks a parser regex, or drifts
   between runtime probes and governed registries.
+- `bijux-dna bench readiness run-container-tool-smoke`
+  `run-container-tool-smoke` executes the governed local container smoke wrapper for every
+  retained tool that resolves to a non-host runtime and writes one manifest per tool at
+  `runs/bench/tool-smoke/container/<tool_id>/manifest.json`. Docker-backed tools run through the
+  governed `docker-arm64` smoke surface when Docker is available; Apptainer-backed tools run
+  through the governed `apptainer` smoke surface when Apptainer is available; explicitly
+  unresolved retained tools record `unavailable_with_reason` instead of pretending local support.
+  Each manifest records the smoke runtime, declared wrapper command, applied argv, exit code,
+  stdout, stderr, unavailable reason when present, runtime probe paths, and registry source
+  paths. The command fails closed if any attempted container smoke command exits non-zero or times
+  out.
 - `bijux-dna bench readiness run-host-tool-smoke`
   `run-host-tool-smoke` executes the governed `version_cmd` for every retained tool that resolves
   to `host_binary` and writes one manifest per tool at
