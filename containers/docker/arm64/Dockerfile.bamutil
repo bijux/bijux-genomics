@@ -33,5 +33,5 @@ RUN printf '#!/bin/sh\n' > /usr/local/bin/bamutil && \
     chmod +x /usr/local/bin/bamutil
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "bamutil \"$@\"", "--"]
+ENTRYPOINT ["bamutil"]
 CMD ["--help"]

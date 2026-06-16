@@ -43,5 +43,5 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "bowtie2-build \"$@\""]
+ENTRYPOINT ["bowtie2-build"]
 CMD []

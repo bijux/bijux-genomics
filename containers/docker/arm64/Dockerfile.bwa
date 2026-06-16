@@ -50,5 +50,5 @@ RUN echo '#!/bin/sh' > /usr/local/bin/bwa && \
     chmod +x /usr/local/bin/bwa
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "bwa \"$@\""]
+ENTRYPOINT ["bwa"]
 CMD ["--help"]

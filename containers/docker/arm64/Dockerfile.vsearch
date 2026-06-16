@@ -64,5 +64,5 @@ RUN echo '#!/bin/sh' > /usr/local/bin/vsearch && \
     chmod +x /usr/local/bin/vsearch
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "vsearch \"$@\""]
+ENTRYPOINT ["vsearch"]
 CMD ["--help"]
