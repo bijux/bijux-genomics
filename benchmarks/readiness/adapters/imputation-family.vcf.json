@@ -10,7 +10,7 @@
   "rows": [
     {
       "tool_id": "beagle",
-      "tool_status": "experimental",
+      "tool_status": "production",
       "stage_id": "vcf.imputation_metrics",
       "stage_status": "supported",
       "benchmark_status": "benchmark_ready",
@@ -174,7 +174,7 @@
     },
     {
       "tool_id": "beagle",
-      "tool_status": "experimental",
+      "tool_status": "production",
       "stage_id": "vcf.impute",
       "stage_status": "supported",
       "benchmark_status": "benchmark_ready",

@@ -23,7 +23,7 @@
       "surface": "vcf orphan tools",
       "output_path": "benchmarks/readiness/vcf-orphan-tools.tsv",
       "ok": true,
-      "detail": "validated 9 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
+      "detail": "validated 8 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
     },
     {
       "goal_id": 233,
