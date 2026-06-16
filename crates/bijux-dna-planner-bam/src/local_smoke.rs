@@ -408,6 +408,8 @@ struct LocalQcPreSmokeConfig {
     schema_version: String,
     tool_id: String,
     #[serde(default)]
+    supplemental_tool_ids: Vec<String>,
+    #[serde(default)]
     threads: Option<u32>,
     #[serde(default)]
     output_dir: Option<PathBuf>,
@@ -629,7 +631,7 @@ struct LocalValidateSmokeCase {
     required_refusal_codes: Vec<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct LocalQcPreSmokeCase {
     sample_id: String,
     bam: PathBuf,
@@ -922,25 +924,41 @@ pub fn local_qc_pre_smoke_plans(repo_root: &Path) -> Result<Vec<LocalQcPreSmokeC
 
     let stage = BamStage::QcPre;
     let stage_id = StageId::new(stage.as_str().to_string());
-    let tool_id = ToolId::try_from(config.tool_id.as_str())
-        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
-    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
-        return Err(anyhow!(
-            "local-smoke bam.qc_pre tool `{}` is not admitted by the BAM stage contract",
-            tool_id.as_str()
-        ));
+    let requested_tool_ids = std::iter::once(config.tool_id.clone())
+        .chain(config.supplemental_tool_ids.iter().cloned())
+        .collect::<Vec<_>>();
+    let mut tool_specs = Vec::new();
+    for raw_tool_id in requested_tool_ids {
+        let tool_id = ToolId::try_from(raw_tool_id.as_str())
+            .map_err(|error| anyhow!("invalid local-smoke tool_id `{raw_tool_id}`: {error}"))?;
+        if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+            return Err(anyhow!(
+                "local-smoke bam.qc_pre tool `{}` is not admitted by the BAM stage contract",
+                tool_id.as_str()
+            ));
+        }
+        if tool_specs.iter().any(|tool_spec: &ToolExecutionSpecV1| tool_spec.tool_id == tool_id) {
+            continue;
+        }
+        let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+        hydrate_smoke_threads(&mut tool_spec, config.threads);
+        tool_specs.push(tool_spec);
     }
-
-    let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
-    hydrate_smoke_threads(&mut tool_spec, config.threads);
     let output_root =
         config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_QC_PRE_OUTPUT_DIR));
-
-    config
-        .cases
-        .into_iter()
-        .map(|case| build_local_qc_pre_smoke_case(repo_root, &tool_spec, &output_root, case))
-        .collect()
+    let cases = config.cases;
+    let mut plans = Vec::new();
+    for tool_spec in &tool_specs {
+        for case in &cases {
+            plans.push(build_local_qc_pre_smoke_case(
+                repo_root,
+                tool_spec,
+                &output_root,
+                case.clone(),
+            )?);
+        }
+    }
+    Ok(plans)
 }
 
 /// # Errors

@@ -14,11 +14,18 @@ fn repo_root() -> PathBuf {
 fn local_qc_pre_smoke_plans_use_governed_bam_metrics_fixture() -> Result<()> {
     let repo_root = repo_root();
     let plans = bijux_dna_planner_bam::stage_api::local_qc_pre_smoke_plans(&repo_root)?;
-    assert_eq!(plans.len(), 1, "governed local-smoke config must keep exactly one BAM qc_pre case");
+    assert_eq!(
+        plans.len(),
+        2,
+        "governed local-smoke config must keep one BAM qc_pre case across retained proof tools"
+    );
 
     let case = plans
         .iter()
-        .find(|case| case.sample_id == "human_like_duplicate_flagged_multicontig")
+        .find(|case| {
+            case.sample_id == "human_like_duplicate_flagged_multicontig"
+                && case.plan.tool_id.as_str() == "samtools"
+        })
         .unwrap_or_else(|| panic!("governed BAM qc_pre case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "bam.qc_pre");
     assert_eq!(case.plan.tool_id.as_str(), "samtools");
@@ -61,6 +68,37 @@ fn local_qc_pre_smoke_plans_use_governed_bam_metrics_fixture() -> Result<()> {
         idxstats_output.path,
         PathBuf::from(
             "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/idxstats.txt"
+        )
+    );
+
+    let multiqc_case = plans
+        .iter()
+        .find(|case| {
+            case.sample_id == "human_like_duplicate_flagged_multicontig"
+                && case.plan.tool_id.as_str() == "multiqc"
+        })
+        .unwrap_or_else(|| panic!("governed BAM qc_pre multiqc case missing"));
+    let multiqc_outputs = multiqc_case
+        .plan
+        .io
+        .outputs
+        .iter()
+        .map(|artifact| artifact.name.as_str().to_string())
+        .collect::<Vec<_>>();
+    assert_eq!(
+        multiqc_outputs,
+        vec![
+            "report_json",
+            "multiqc_report",
+            "multiqc_data",
+            "governed_qc_inputs_manifest",
+            "stage_metrics",
+        ]
+    );
+    assert_eq!(
+        multiqc_case.plan.out_dir,
+        PathBuf::from(
+            "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc"
         )
     );
 

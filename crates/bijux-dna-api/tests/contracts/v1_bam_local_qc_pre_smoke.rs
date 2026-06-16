@@ -44,12 +44,15 @@ fn write_local_qc_pre_smoke_report_materializes_governed_outputs() -> Result<()>
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
     assert_eq!(payload["stage_id"], serde_json::json!("bam.qc_pre"));
-    assert_eq!(payload["case_count"], serde_json::json!(1));
+    assert_eq!(payload["case_count"], serde_json::json!(2));
     assert_eq!(payload["all_cases_matched"], serde_json::json!(true));
 
     let cases = payload["cases"].as_array().unwrap_or_else(|| panic!("cases array missing"));
-    assert_eq!(cases.len(), 1);
-    let case = &cases[0];
+    assert_eq!(cases.len(), 2);
+    let case = cases
+        .iter()
+        .find(|case| case["tool_id"] == serde_json::json!("samtools"))
+        .unwrap_or_else(|| panic!("samtools qc_pre case missing"));
     assert_eq!(case["sample_id"], serde_json::json!("human_like_duplicate_flagged_multicontig"));
     assert_eq!(case["expectation_matched"], serde_json::json!(true));
     assert_eq!(case["total_reads"], serde_json::json!(3));
@@ -143,6 +146,35 @@ fn write_local_qc_pre_smoke_report_materializes_governed_outputs() -> Result<()>
             }
         ])
     );
+
+    let multiqc_case = cases
+        .iter()
+        .find(|case| case["tool_id"] == serde_json::json!("multiqc"))
+        .unwrap_or_else(|| panic!("multiqc qc_pre case missing"));
+    let multiqc_report = repo_root.join(
+        multiqc_case["multiqc_report"]
+            .as_str()
+            .unwrap_or_else(|| panic!("multiqc_report path missing")),
+    );
+    let multiqc_data = repo_root.join(
+        multiqc_case["multiqc_data"]
+            .as_str()
+            .unwrap_or_else(|| panic!("multiqc_data path missing")),
+    );
+    let governed_qc_inputs_manifest = repo_root.join(
+        multiqc_case["governed_qc_inputs_manifest"]
+            .as_str()
+            .unwrap_or_else(|| panic!("governed_qc_inputs_manifest path missing")),
+    );
+    let multiqc_report_json = repo_root.join(
+        multiqc_case["report_json"]
+            .as_str()
+            .unwrap_or_else(|| panic!("multiqc report_json path missing")),
+    );
+    assert!(multiqc_report.is_file(), "multiqc companion report must exist");
+    assert!(multiqc_data.join("multiqc_general_stats.json").is_file(), "multiqc data must exist");
+    assert!(governed_qc_inputs_manifest.is_file(), "governed qc inputs manifest must exist");
+    assert!(multiqc_report_json.is_file(), "multiqc report json must exist");
 
     Ok(())
 }

@@ -259,6 +259,17 @@ pub mod qc_pre {
         bam: &Path,
         out_dir: &Path,
     ) -> anyhow::Result<StagePlanV1> {
+        match tool.tool_id.as_str() {
+            "multiqc" => plan_multiqc(tool, bam, out_dir),
+            _ => plan_samtools(tool, bam, out_dir),
+        }
+    }
+
+    fn plan_samtools(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+    ) -> anyhow::Result<StagePlanV1> {
         let effective_params = QcPreEffectiveParams { regions: None };
         let outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::QcPre,
@@ -311,6 +322,87 @@ pub mod qc_pre {
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
             &["flagstat", "idxstats", "stats", "stage_metrics"],
+        )
+    }
+
+    fn plan_multiqc(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+    ) -> anyhow::Result<StagePlanV1> {
+        let inputs = vec![bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("bam"),
+            bam.to_path_buf(),
+            ArtifactRole::Bam,
+        )];
+        let outputs = vec![
+            bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("report_json"),
+                out_dir.join("qc_pre_report.json"),
+                ArtifactRole::ReportJson,
+            ),
+            bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("multiqc_report"),
+                out_dir.join("multiqc_report.html"),
+                ArtifactRole::ReportHtml,
+            ),
+            bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("multiqc_data"),
+                out_dir.join("multiqc_data"),
+                ArtifactRole::Unknown,
+            ),
+            bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("governed_qc_inputs_manifest"),
+                out_dir.join("governed_qc_inputs_manifest.json"),
+                ArtifactRole::ReportJson,
+            ),
+            bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("stage_metrics"),
+                out_dir.join("stage.metrics.json"),
+                ArtifactRole::MetricsJson,
+            ),
+        ];
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static(STAGE_ID),
+            stage_instance_id: None,
+            stage_version: STAGE_VERSION,
+            tool_id: tool.tool_id.clone(),
+            tool_version: tool.tool_version.clone(),
+            image: tool.image.clone(),
+            command: CommandSpecV1 {
+                template: vec![
+                    "sh".to_string(),
+                    "-lc".to_string(),
+                    "set -eu\nprintf '%s\\n' 'bam.qc_pre local multiqc smoke'\n".to_string(),
+                ],
+            },
+            resources: tool.resources.clone(),
+            io: StageIO { inputs, outputs },
+            out_dir: out_dir.to_path_buf(),
+            params: serde_json::json!({
+                "bam": bam,
+                "aggregation_engine": "multiqc",
+            }),
+            effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
+                serde_json::to_value(QcPreEffectiveParams { regions: None }).map_err(|error| {
+                    anyhow::anyhow!("BAM stage effective params must serialize: {error}")
+                })?,
+            )?,
+            aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
+            reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+        };
+        crate::tool_adapters::stages_support::ensure_required_outputs(
+            plan,
+            &[
+                "report_json",
+                "multiqc_report",
+                "multiqc_data",
+                "governed_qc_inputs_manifest",
+                "stage_metrics",
+            ],
         )
     }
 }

@@ -7,6 +7,7 @@
 
 schema_version = "bijux.bench.bam.local_qc_pre.v1"
 tool_id = "samtools"
+supplemental_tool_ids = ["multiqc"]
 threads = 4
 output_dir = "runs/bench/local-smoke/bam.qc_pre"
 
