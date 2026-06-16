@@ -1023,6 +1023,16 @@ Visible aliases are part of the operator surface:
   unresolved tools carry `unavailable_with_reason` from executable resolution. The command fails
   closed if a resolved retained tool lacks a version command, lacks a parser regex, or drifts
   between runtime probes and governed registries.
+- `bijux-dna bench readiness render-input-preflight-tests`
+  `render-input-preflight-tests` writes
+  `benchmarks/readiness/tools/input-preflight-tests.json` with one governed missing-input probe
+  row per retained-tool readiness binding plus explicit fixture-support coverage where the owned
+  adapter surface does not consume the asset directly. Each row keeps `domain`, `stage_id`,
+  `tool_id`, `contract_surface`, `missing_input_role`, `missing_input_class`, the governed
+  `artifact_path`, expected and observed missing-input error fragments, and an explicit reason.
+  The command fails closed unless every retained tool is covered, every required input class
+  retains governed probe coverage, and every probe fails before external execution through the
+  real runtime-validation or adapter-contract surface.
 - `bijux-dna bench readiness run-container-tool-smoke`
   `run-container-tool-smoke` executes the governed local container smoke wrapper for every
   retained tool that resolves to a non-host runtime and writes one manifest per tool at
