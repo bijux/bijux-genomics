@@ -2128,8 +2128,12 @@ pub fn write_benchmarking_ready_crate_shape_gate_report(
     let checks = vec![
         goal_411, goal_412, goal_413, goal_414, goal_415, goal_416, goal_417, goal_418, goal_419,
     ];
-    let report =
-        build_benchmarking_ready_crate_shape_gate_report(cwd, output_path, &cargo_target_dir, checks);
+    let report = build_benchmarking_ready_crate_shape_gate_report(
+        cwd,
+        output_path,
+        &cargo_target_dir,
+        checks,
+    );
 
     if let Some(parent) = output_path.parent() {
         bijux_dna_infra::ensure_dir(parent)?;
@@ -2564,8 +2568,8 @@ pub fn write_runner_owned_process_execution_report(
 mod tests {
     use super::{
         build_benchmarking_ready_crate_shape_gate_report, cycle_components,
-        gate_cargo_target_dir_with_override, topological_dependency_order, CrateShapeGateCheckReport,
-        CRATE_CYCLE_CATEGORIES, CRATE_CYCLE_CLI_CRATES,
+        gate_cargo_target_dir_with_override, topological_dependency_order,
+        CrateShapeGateCheckReport, CRATE_CYCLE_CATEGORIES, CRATE_CYCLE_CLI_CRATES,
         CRATE_CYCLE_DOMAIN_CRATES,
     };
     use std::collections::{BTreeMap, BTreeSet};
@@ -2639,7 +2643,9 @@ mod tests {
     fn benchmarking_ready_gate_report_collects_passed_and_failed_goal_ids() {
         let report = build_benchmarking_ready_crate_shape_gate_report(
             Path::new("/workspace"),
-            Path::new("/workspace/benchmarks/readiness/crates/CRATE_SHAPE_FOR_BENCHMARKING_READY.json"),
+            Path::new(
+                "/workspace/benchmarks/readiness/crates/CRATE_SHAPE_FOR_BENCHMARKING_READY.json",
+            ),
             Path::new("/workspace/artifacts/rust/crate-shape-gate-target"),
             vec![
                 CrateShapeGateCheckReport {
