@@ -328,7 +328,7 @@ fn validate_mode_definition(mode: &ToolExecutionModeDefinition) -> Result<()> {
     Ok(())
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 pub(crate) struct RuntimeProbe {
     #[serde(default)]
     install_kind: Option<String>,
@@ -342,7 +342,7 @@ pub(crate) struct RuntimeProbe {
     command_template: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 pub(crate) struct RuntimeProbeContainer {
     image: String,
     #[serde(default)]
@@ -411,6 +411,19 @@ pub(crate) fn load_runtime_probe(
     domain: &str,
     tool_id: &str,
 ) -> Result<RuntimeProbe> {
+    Ok(load_runtime_probe_with_source(repo_root, domain, tool_id)?.probe)
+}
+
+pub(crate) struct LoadedRuntimeProbe {
+    pub(crate) path: PathBuf,
+    pub(crate) probe: RuntimeProbe,
+}
+
+pub(crate) fn load_runtime_probe_with_source(
+    repo_root: &Path,
+    domain: &str,
+    tool_id: &str,
+) -> Result<LoadedRuntimeProbe> {
     let mut probe_domains = vec![domain.to_string()];
     for fallback in ["fastq", "bam", "vcf"] {
         if !probe_domains.iter().any(|candidate| candidate == fallback) {
@@ -433,7 +446,7 @@ pub(crate) fn load_runtime_probe(
             .with_context(|| format!("read {}", yaml_path.display()))?;
         let probe = bijux_dna_infra::formats::parse_yaml(&raw)
             .with_context(|| format!("parse {}", yaml_path.display()))?;
-        return Ok(probe);
+        return Ok(LoadedRuntimeProbe { path: yaml_path, probe });
     }
 
     Err(anyhow!(

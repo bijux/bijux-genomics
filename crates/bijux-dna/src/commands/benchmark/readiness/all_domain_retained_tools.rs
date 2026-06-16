@@ -77,8 +77,7 @@ pub(crate) fn render_all_domain_retained_tools(
     output_path: PathBuf,
 ) -> Result<AllDomainRetainedToolsReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
-    let source_rows = collect_all_domain_active_stage_tool_matrix_rows(repo_root)?;
-    let rows = collect_all_domain_retained_tool_rows(&source_rows)?;
+    let rows = collect_all_domain_retained_tool_rows(repo_root)?;
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -113,7 +112,14 @@ pub(crate) fn render_all_domain_retained_tools(
     })
 }
 
-fn collect_all_domain_retained_tool_rows(
+pub(crate) fn collect_all_domain_retained_tool_rows(
+    repo_root: &Path,
+) -> Result<Vec<AllDomainRetainedToolRow>> {
+    let source_rows = collect_all_domain_active_stage_tool_matrix_rows(repo_root)?;
+    build_all_domain_retained_tool_rows(&source_rows)
+}
+
+fn build_all_domain_retained_tool_rows(
     source_rows: &[AllDomainActiveStageToolMatrixRow],
 ) -> Result<Vec<AllDomainRetainedToolRow>> {
     let mut by_tool = BTreeMap::<String, ToolAccumulator>::new();

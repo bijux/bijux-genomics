@@ -615,6 +615,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderExecutableResolution(args) => {
+                        crate::commands::benchmark::readiness::executable_resolution::run_render_executable_resolution(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderStageToolAliasCheck(args) => {
                         crate::commands::benchmark::readiness::stage_tool_alias_check::run_render_stage_tool_alias_check(
                             args,
