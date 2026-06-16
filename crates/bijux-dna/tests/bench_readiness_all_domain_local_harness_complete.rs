@@ -94,7 +94,7 @@ fn bench_readiness_all_domain_local_harness_complete_reports_governed_pass_state
     );
     assert_eq!(
         payload.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(benchmark_ready_binding_count)
+        Some(3)
     );
     assert_eq!(payload.get("failure_class_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(

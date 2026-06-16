@@ -188,9 +188,9 @@ pub(crate) fn render_all_domain_local_harness_complete(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH),
             )?;
-            if report.row_count != 145
+            if report.row_count != 143
                 || report.benchmark_ready_row_count != report.benchmark_ready_unique_binding_count
-                || report.domain_counts.get("fastq").copied() != Some(73)
+                || report.domain_counts.get("fastq").copied() != Some(71)
                 || report.domain_counts.get("bam").copied() != Some(49)
                 || report.domain_counts.get("vcf").copied() != Some(23)
                 || report.benchmark_ready_domain_counts.get("fastq").copied().unwrap_or_default()
@@ -223,7 +223,7 @@ pub(crate) fn render_all_domain_local_harness_complete(
                 .context("goal 279 stage tool table report is required")?;
             if report.row_count != benchmark_ready_binding_count
                 || report.result_id_count != benchmark_ready_binding_count
-                || report.stage_count != 67
+                || report.stage_count != 68
                 || report.tool_count != 71
                 || report.corpus_count != 10
                 || report.asset_profile_count != 14
@@ -258,7 +258,7 @@ pub(crate) fn render_all_domain_local_harness_complete(
                 || report.benchmark_status_counts.get("benchmark_ready").copied()
                     != Some(benchmark_ready_binding_count)
                 || report.command_source_counts.get("fastq_bam_command_adapter").copied()
-                    != Some(118)
+                    != Some(120)
                 || report.command_source_counts.get("vcf_bcftools_adapter").copied() != Some(11)
                 || report.command_source_counts.get("vcf_eigensoft_adapter").copied() != Some(1)
                 || report.command_source_counts.get("vcf_imputation_family_adapter").copied()
@@ -408,7 +408,7 @@ pub(crate) fn render_all_domain_local_harness_complete(
             if report.row_count != report.fake_run_row_count + report.real_smoke_row_count
                 || report.fake_run_row_count != benchmark_ready_binding_count
                 || report.real_smoke_row_count != 4
-                || report.domain_counts.get("fastq").copied() != Some(70)
+                || report.domain_counts.get("fastq").copied() != Some(72)
                 || report.domain_counts.get("bam").copied() != Some(50)
                 || report.domain_counts.get("vcf").copied() != Some(22)
             {
@@ -446,10 +446,10 @@ pub(crate) fn render_all_domain_local_harness_complete(
             {
                 bail!("all-domain missing-result behavior drifted from the governed 3-row probe");
             }
-            missing_result_row_count = report.expected_row_count;
+            missing_result_row_count = report.missing_result_row_count;
             missing_result_report = Some(report);
             Ok(format!(
-                "validated one explicit missing result row per domain across the {missing_result_row_count}-result slice"
+                "validated one explicit missing result row per domain across the {benchmark_ready_binding_count}-result slice"
             ))
         },
     );

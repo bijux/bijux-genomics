@@ -61,6 +61,7 @@ fastq	fastq.detect_duplicates_premerge	bijux_dna	corpus-01-mini	corpus_only	fast
 fastq	fastq.estimate_library_complexity_prealign	bijux_dna	corpus-01-mini	corpus_only	fastq.adapter.estimate_library_complexity_prealign	fastq.parser.estimate_library_complexity_prealign	fastq_estimate_library_complexity_prealign_v1	benchmark_ready
 fastq	fastq.extract_umis	umi_tools	corpus-01-mini	corpus_only	fastq.adapter.extract_umis	fastq.parser.extract_umis	fastq_extract_umis_v1	benchmark_ready
 fastq	fastq.filter_low_complexity	bbduk	corpus-01-mini	corpus_only	fastq.adapter.filter_low_complexity	fastq.parser.filter_low_complexity	fastq_low_complexity_v1	benchmark_ready
+fastq	fastq.filter_low_complexity	fastp	corpus-01-mini	corpus_only	fastq.adapter.filter_low_complexity	fastq.parser.filter_low_complexity	fastq_low_complexity_v1	benchmark_ready
 fastq	fastq.filter_low_complexity	prinseq	corpus-01-mini	corpus_only	fastq.adapter.filter_low_complexity	fastq.parser.filter_low_complexity	fastq_low_complexity_v1	benchmark_ready
 fastq	fastq.filter_reads	bbduk	corpus-01-mini	corpus_only	fastq.adapter.filter_reads	fastq.parser.filter_reads	fastq_filter_reads_v2	benchmark_ready
 fastq	fastq.filter_reads	fastp	corpus-01-mini	corpus_only	fastq.adapter.filter_reads	fastq.parser.filter_reads	fastq_filter_reads_v2	benchmark_ready
@@ -90,6 +91,7 @@ fastq	fastq.profile_reads	seqkit_stats	corpus-01-mini	corpus_only	fastq.adapter.
 fastq	fastq.remove_chimeras	vsearch	corpus-03-amplicon-mini	corpus_only	fastq.adapter.remove_chimeras	fastq.parser.remove_chimeras	fastq_remove_chimeras_v1	benchmark_ready
 fastq	fastq.remove_duplicates	clumpify	corpus-01-mini	corpus_only	fastq.adapter.remove_duplicates	fastq.parser.remove_duplicates	fastq_deduplicate_v1	benchmark_ready
 fastq	fastq.remove_duplicates	fastuniq	corpus-01-mini	corpus_only	fastq.adapter.remove_duplicates	fastq.parser.remove_duplicates	fastq_deduplicate_v1	benchmark_ready
+fastq	fastq.report_qc	multiqc	corpus-01-mini	corpus_only	fastq.adapter.report_qc	fastq.parser.report_qc	fastq_report_qc_v1	benchmark_ready
 fastq	fastq.screen_taxonomy	centrifuge	corpus-02-edna-mini	database_artifact_id+taxonomy_database_root	fastq.adapter.screen_taxonomy	fastq.parser.screen_taxonomy	fastq_screen_taxonomy_v1	benchmark_ready
 fastq	fastq.screen_taxonomy	kaiju	corpus-02-edna-mini	database_artifact_id+taxonomy_database_root	fastq.adapter.screen_taxonomy	fastq.parser.screen_taxonomy	fastq_screen_taxonomy_v1	benchmark_ready
 fastq	fastq.screen_taxonomy	kraken2	corpus-02-edna-mini	database_artifact_id+taxonomy_database_root	fastq.adapter.screen_taxonomy	fastq.parser.screen_taxonomy	fastq_screen_taxonomy_v1	benchmark_ready

@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.all_domain_missing_result_test.v1",
   "output_path": "benchmarks/readiness/missing-result-test-all-domains.json",
   "fake_result_root": "runs/bench/readiness-probes/all-domains/missing-result-test",
-  "expected_row_count": 138,
-  "present_result_row_count": 135,
+  "expected_row_count": 140,
+  "present_result_row_count": 137,
   "missing_result_row_count": 3,
   "passes_behavior_test": true,
   "removed_result_ids": [
@@ -18,7 +18,7 @@
   ],
   "domain_counts": {
     "bam": 49,
-    "fastq": 69,
+    "fastq": 71,
     "vcf": 20
   },
   "rows": [
@@ -2044,6 +2044,33 @@
       "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:bbduk` remains present with a validated fake-run manifest"
     },
     {
+      "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:fastp",
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "fastp",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/fastp/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/fastp/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_fastq_r1",
+        "filtered_fastq_r2",
+        "filter_report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_fastq_r1",
+        "filtered_fastq_r2",
+        "filter_report_json"
+      ],
+      "expected_metrics": [
+        "filter_report_json",
+        "reads_removed_low_complexity"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:fastp` remains present with a validated fake-run manifest"
+    },
+    {
       "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:prinseq",
       "domain": "fastq",
       "stage_id": "fastq.filter_low_complexity",
@@ -2872,6 +2899,36 @@
       ],
       "report_section": "read_cleanup",
       "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc",
+      "domain": "fastq",
+      "stage_id": "fastq.report_qc",
+      "tool_id": "multiqc",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.report_qc/corpus_only/multiqc/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.report_qc/corpus_only/multiqc/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "multiqc_report",
+        "multiqc_data",
+        "governed_qc_inputs_manifest",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "multiqc_report",
+        "multiqc_data",
+        "governed_qc_inputs_manifest",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "qc_fail_count",
+        "qc_warn_count",
+        "report_json"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc` remains present with a validated fake-run manifest"
     },
     {
       "result_id": "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:centrifuge",

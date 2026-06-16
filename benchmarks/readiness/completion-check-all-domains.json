@@ -2,12 +2,12 @@
   "schema_version": "bijux.bench.readiness.all_domain_completion_check.v1",
   "output_path": "benchmarks/readiness/completion-check-all-domains.json",
   "fixture_root": "runs/bench/readiness-probes/all-domains/completion-check",
-  "row_count": 138,
-  "complete_row_count": 133,
+  "row_count": 140,
+  "complete_row_count": 135,
   "incomplete_row_count": 5,
   "domain_counts": {
     "bam": 49,
-    "fastq": 69,
+    "fastq": 71,
     "vcf": 20
   },
   "failure_reason_counts": {
@@ -3461,6 +3461,61 @@
       "failure_reasons": []
     },
     {
+      "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:fastp",
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "fastp",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "command_script_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/fastp/command.sh",
+      "stdout_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/fastp/stdout.txt",
+      "stderr_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/fastp/stderr.txt",
+      "metrics_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/fastp/metrics.json",
+      "stage_result_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/fastp/stage-result.json",
+      "manifest_exists": true,
+      "manifest_valid": true,
+      "manifest_output_match": true,
+      "exit_code_zero": true,
+      "runtime_status": "succeeded",
+      "exit_code": 0,
+      "declared_output_count": 3,
+      "present_declared_output_count": 3,
+      "missing_declared_output_ids": [],
+      "normalized_metrics_count": 1,
+      "present_normalized_metrics_count": 1,
+      "missing_normalized_metric_ids": [],
+      "required_file_count": 4,
+      "ready_required_file_count": 4,
+      "required_files": [
+        {
+          "file_id": "command_script",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/fastp/command.sh",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stdout",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/fastp/stdout.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stderr",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/fastp/stderr.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "metrics",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/fastp/metrics.json",
+          "exists": true,
+          "non_empty": true
+        }
+      ],
+      "completion_status": "complete",
+      "failure_reasons": []
+    },
+    {
       "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:prinseq",
       "domain": "fastq",
       "stage_id": "fastq.filter_low_complexity",
@@ -5052,6 +5107,61 @@
         {
           "file_id": "metrics",
           "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/fastuniq/metrics.json",
+          "exists": true,
+          "non_empty": true
+        }
+      ],
+      "completion_status": "complete",
+      "failure_reasons": []
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc",
+      "domain": "fastq",
+      "stage_id": "fastq.report_qc",
+      "tool_id": "multiqc",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "command_script_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.report_qc/corpus_only/multiqc/command.sh",
+      "stdout_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.report_qc/corpus_only/multiqc/stdout.txt",
+      "stderr_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.report_qc/corpus_only/multiqc/stderr.txt",
+      "metrics_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.report_qc/corpus_only/multiqc/metrics.json",
+      "stage_result_path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.report_qc/corpus_only/multiqc/stage-result.json",
+      "manifest_exists": true,
+      "manifest_valid": true,
+      "manifest_output_match": true,
+      "exit_code_zero": true,
+      "runtime_status": "succeeded",
+      "exit_code": 0,
+      "declared_output_count": 4,
+      "present_declared_output_count": 4,
+      "missing_declared_output_ids": [],
+      "normalized_metrics_count": 1,
+      "present_normalized_metrics_count": 1,
+      "missing_normalized_metric_ids": [],
+      "required_file_count": 4,
+      "ready_required_file_count": 4,
+      "required_files": [
+        {
+          "file_id": "command_script",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.report_qc/corpus_only/multiqc/command.sh",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stdout",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.report_qc/corpus_only/multiqc/stdout.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "stderr",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.report_qc/corpus_only/multiqc/stderr.txt",
+          "exists": true,
+          "non_empty": true
+        },
+        {
+          "file_id": "metrics",
+          "path": "runs/bench/readiness-probes/all-domains/completion-check/fastq/corpus-01-mini/fastq.report_qc/corpus_only/multiqc/metrics.json",
           "exists": true,
           "non_empty": true
         }

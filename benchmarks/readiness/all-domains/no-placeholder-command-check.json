@@ -3,22 +3,22 @@
   "output_path": "benchmarks/readiness/all-domains/no-placeholder-command-check.json",
   "script_output_path": "benchmarks/readiness/rendered-commands-all-domains.sh",
   "argv_output_path": "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl",
-  "row_count": 138,
-  "result_id_count": 138,
-  "stage_count": 67,
+  "row_count": 140,
+  "result_id_count": 140,
+  "stage_count": 68,
   "tool_count": 71,
-  "command_step_count": 160,
-  "shell_wrapped_step_count": 93,
-  "direct_step_count": 67,
-  "valid_row_count": 138,
+  "command_step_count": 162,
+  "shell_wrapped_step_count": 94,
+  "direct_step_count": 68,
+  "valid_row_count": 140,
   "invalid_row_count": 0,
   "domain_counts": {
     "bam": 49,
-    "fastq": 69,
+    "fastq": 71,
     "vcf": 20
   },
   "command_source_counts": {
-    "fastq_bam_command_adapter": 118,
+    "fastq_bam_command_adapter": 120,
     "vcf_bcftools_adapter": 11,
     "vcf_eigensoft_adapter": 1,
     "vcf_imputation_family_adapter": 2,
@@ -2281,6 +2281,33 @@
       ]
     },
     {
+      "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:fastp",
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "fastp",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "command_source": "fastq_bam_command_adapter",
+      "command_step_count": 1,
+      "script_command_count": 1,
+      "has_real_invocation": true,
+      "finding_count": 0,
+      "finding_types": [],
+      "ok": true,
+      "step_audits": [
+        {
+          "step_id": "invoke",
+          "step_kind": "exec",
+          "executable": "fastp",
+          "is_shell_wrapper": false,
+          "command_heads": [],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        }
+      ]
+    },
+    {
       "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:prinseq",
       "domain": "fastq",
       "stage_id": "fastq.filter_low_complexity",
@@ -3425,6 +3452,38 @@
             "printf",
             "printf",
             "printf",
+            "printf"
+          ],
+          "has_real_invocation": true,
+          "finding_types": [],
+          "ok": true
+        }
+      ]
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc",
+      "domain": "fastq",
+      "stage_id": "fastq.report_qc",
+      "tool_id": "multiqc",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "command_source": "fastq_bam_command_adapter",
+      "command_step_count": 1,
+      "script_command_count": 1,
+      "has_real_invocation": true,
+      "finding_count": 0,
+      "finding_types": [],
+      "ok": true,
+      "step_audits": [
+        {
+          "step_id": "invoke",
+          "step_kind": "exec",
+          "executable": "sh",
+          "is_shell_wrapper": true,
+          "command_heads": [
+            "set",
+            "printf",
+            "multiqc",
             "printf"
           ],
           "has_real_invocation": true,

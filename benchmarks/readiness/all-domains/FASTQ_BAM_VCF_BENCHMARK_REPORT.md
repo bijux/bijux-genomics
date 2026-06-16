@@ -1,12 +1,12 @@
 # FASTQ + BAM + VCF Benchmark Report
 
-- Report rows: 139
-- Expected-result rows: 138
+- Report rows: 141
+- Expected-result rows: 140
 - Explicit unsupported rows: 1
-- Present rows: 135
+- Present rows: 137
 - Missing-result rows: 3
 - Unsupported-pair rows: 1
-- Failure rows: 138
+- Failure rows: 140
 - Comparable metric rows: 105
 
 ## Stage-Centric
@@ -24,7 +24,7 @@
 | bam | bam.endogenous_content | 1 | 1 | 0 | 0 | samtools |  |
 | bam | bam.filter | 3 | 3 | 0 | 0 | bamtools, bedtools, samtools | bam-genotyping-to-vcf-downstream, diploid-small-fastq-bam-vcf |
 | bam | bam.gc_bias | 1 | 1 | 0 | 0 | picard |  |
-| bam | bam.genotyping | 1 | 1 | 0 | 0 | angsd |  |
+| bam | bam.genotyping | 1 | 1 | 0 | 0 | angsd | bam-genotyping-to-vcf-downstream |
 | bam | bam.haplogroups | 1 | 1 | 0 | 0 | yleaf |  |
 | bam | bam.insert_size | 1 | 1 | 0 | 0 | picard |  |
 | bam | bam.kinship | 2 | 2 | 0 | 0 | angsd, king |  |
@@ -46,7 +46,7 @@
 | fastq | fastq.detect_duplicates_premerge | 1 | 1 | 0 | 0 | bijux_dna |  |
 | fastq | fastq.estimate_library_complexity_prealign | 1 | 1 | 0 | 0 | bijux_dna |  |
 | fastq | fastq.extract_umis | 1 | 1 | 0 | 0 | umi_tools |  |
-| fastq | fastq.filter_low_complexity | 2 | 2 | 0 | 0 | bbduk, prinseq |  |
+| fastq | fastq.filter_low_complexity | 3 | 3 | 0 | 0 | bbduk, fastp, prinseq |  |
 | fastq | fastq.filter_reads | 4 | 4 | 0 | 0 | bbduk, fastp, prinseq, seqkit | adna-gl-fastq-bam-vcf, adna-pseudohaploid-fastq-bam-vcf, core-germline-fastq-bam-vcf, diploid-small-fastq-bam-vcf, edna-taxonomy-no-vcf |
 | fastq | fastq.index_reference | 2 | 2 | 0 | 0 | bowtie2_build, star |  |
 | fastq | fastq.infer_asvs | 1 | 1 | 0 | 0 | dada2 | amplicon-asv-otu-no-vcf |
@@ -58,6 +58,7 @@
 | fastq | fastq.profile_reads | 3 | 3 | 0 | 0 | seqfu, seqkit, seqkit_stats | core-germline-fastq-bam-vcf, diploid-small-fastq-bam-vcf |
 | fastq | fastq.remove_chimeras | 1 | 1 | 0 | 0 | vsearch | amplicon-asv-otu-no-vcf |
 | fastq | fastq.remove_duplicates | 2 | 2 | 0 | 0 | clumpify, fastuniq | adna-gl-fastq-bam-vcf, adna-pseudohaploid-fastq-bam-vcf |
+| fastq | fastq.report_qc | 1 | 1 | 0 | 0 | multiqc | amplicon-asv-otu-no-vcf, edna-taxonomy-no-vcf |
 | fastq | fastq.screen_taxonomy | 4 | 3 | 1 | 0 | centrifuge, kaiju, kraken2, krakenuniq | edna-taxonomy-no-vcf |
 | fastq | fastq.trim_polyg_tails | 2 | 2 | 0 | 0 | bbduk, fastp |  |
 | fastq | fastq.trim_reads | 13 | 13 | 0 | 0 | adapterremoval, alientrimmer, atropos, bbduk, cutadapt, fastp, fastx_clipper, leehom, prinseq, seqkit, skewer, trim_galore, trimmomatic | core-germline-fastq-bam-vcf, diploid-small-fastq-bam-vcf, edna-taxonomy-no-vcf |
@@ -110,7 +111,7 @@
 | dada2 | 1 | 1 | 0 | 0 | fastq | fastq.infer_asvs |
 | damageprofiler | 2 | 2 | 0 | 0 | bam | bam.authenticity, bam.damage |
 | eigensoft | 1 | 1 | 0 | 0 | vcf | vcf.pca |
-| fastp | 4 | 4 | 0 | 0 | fastq | fastq.filter_reads, fastq.profile_read_lengths, fastq.trim_polyg_tails, fastq.trim_reads |
+| fastp | 5 | 5 | 0 | 0 | fastq | fastq.filter_low_complexity, fastq.filter_reads, fastq.profile_read_lengths, fastq.trim_polyg_tails, fastq.trim_reads |
 | fastq_scan | 2 | 2 | 0 | 0 | fastq | fastq.profile_overrepresented_sequences, fastq.validate_reads |
 | fastqc | 3 | 3 | 0 | 0 | fastq | fastq.detect_adapters, fastq.profile_overrepresented_sequences, fastq.validate_reads |
 | fastqvalidator | 1 | 1 | 0 | 0 | fastq | fastq.validate_reads |
@@ -127,7 +128,7 @@
 | lighter | 1 | 1 | 0 | 0 | fastq | fastq.correct_errors |
 | mapdamage2 | 2 | 2 | 0 | 0 | bam | bam.bias_mitigation, bam.damage |
 | mosdepth | 1 | 1 | 0 | 0 | bam | bam.coverage |
-| multiqc | 1 | 1 | 0 | 0 | bam | bam.qc_pre |
+| multiqc | 2 | 2 | 0 | 0 | bam, fastq | bam.qc_pre, fastq.report_qc |
 | musket | 1 | 1 | 0 | 0 | fastq | fastq.correct_errors |
 | ngsbriggs | 1 | 1 | 0 | 0 | bam | bam.damage |
 | pear | 1 | 1 | 0 | 0 | fastq | fastq.merge_pairs |
@@ -166,7 +167,7 @@
 | corpus-01-bam-mini | 28 | 27 | 1 | 0 | bam | bam.bias_mitigation, bam.complexity, bam.coverage, bam.duplication_metrics, bam.endogenous_content, bam.filter, bam.gc_bias, bam.insert_size, bam.length_filter, bam.mapping_summary, bam.mapq_filter, bam.markdup, bam.overlap_correction, bam.qc_pre, bam.recalibration, bam.validate |
 | corpus-01-genotyping-mini | 1 | 1 | 0 | 0 | bam | bam.genotyping |
 | corpus-01-kinship-mini | 2 | 2 | 0 | 0 | bam | bam.kinship |
-| corpus-01-mini | 60 | 60 | 0 | 0 | bam, fastq | bam.align, fastq.correct_errors, fastq.deplete_host, fastq.deplete_reference_contaminants, fastq.deplete_rrna, fastq.detect_adapters, fastq.detect_duplicates_premerge, fastq.estimate_library_complexity_prealign, fastq.extract_umis, fastq.filter_low_complexity, fastq.filter_reads, fastq.merge_pairs, fastq.profile_overrepresented_sequences, fastq.profile_read_lengths, fastq.profile_reads, fastq.remove_duplicates, fastq.trim_polyg_tails, fastq.trim_reads, fastq.trim_terminal_damage, fastq.validate_reads |
+| corpus-01-mini | 62 | 62 | 0 | 0 | bam, fastq | bam.align, fastq.correct_errors, fastq.deplete_host, fastq.deplete_reference_contaminants, fastq.deplete_rrna, fastq.detect_adapters, fastq.detect_duplicates_premerge, fastq.estimate_library_complexity_prealign, fastq.extract_umis, fastq.filter_low_complexity, fastq.filter_reads, fastq.merge_pairs, fastq.profile_overrepresented_sequences, fastq.profile_read_lengths, fastq.profile_reads, fastq.remove_duplicates, fastq.report_qc, fastq.trim_polyg_tails, fastq.trim_reads, fastq.trim_terminal_damage, fastq.validate_reads |
 | corpus-02-edna-mini | 4 | 3 | 1 | 0 | fastq | fastq.screen_taxonomy |
 | corpus-03-amplicon-mini | 5 | 5 | 0 | 0 | fastq | fastq.cluster_otus, fastq.infer_asvs, fastq.normalize_abundance, fastq.normalize_primers, fastq.remove_chimeras |
 | not_applicable | 1 | 0 | 0 | 1 | vcf | vcf.filter |
@@ -182,11 +183,11 @@
 | --- | ---: | ---: | ---: | ---: | --- | --- |
 | adna-gl-fastq-bam-vcf | 15 | 14 | 1 | 0 | bam, fastq, vcf | bam.align, bam.authenticity, bam.complexity, bam.contamination, bam.coverage, bam.damage, bam.mapping_summary, bam.validate, fastq.filter_reads, fastq.remove_duplicates, fastq.trim_terminal_damage, fastq.validate_reads, vcf.call_gl, vcf.gl_propagation, vcf.qc |
 | adna-pseudohaploid-fastq-bam-vcf | 15 | 13 | 2 | 0 | bam, fastq, vcf | bam.align, bam.authenticity, bam.complexity, bam.contamination, bam.coverage, bam.damage, bam.mapping_summary, bam.validate, fastq.filter_reads, fastq.remove_duplicates, fastq.trim_terminal_damage, fastq.validate_reads, vcf.call_pseudohaploid, vcf.damage_filter, vcf.stats |
-| amplicon-asv-otu-no-vcf | 6 | 6 | 0 | 0 | fastq | fastq.cluster_otus, fastq.infer_asvs, fastq.normalize_abundance, fastq.normalize_primers, fastq.remove_chimeras, fastq.validate_reads |
-| bam-genotyping-to-vcf-downstream | 7 | 5 | 2 | 0 | bam, vcf | bam.coverage, bam.filter, bam.recalibration, vcf.filter, vcf.pca, vcf.qc, vcf.stats |
+| amplicon-asv-otu-no-vcf | 7 | 7 | 0 | 0 | fastq | fastq.cluster_otus, fastq.infer_asvs, fastq.normalize_abundance, fastq.normalize_primers, fastq.remove_chimeras, fastq.report_qc, fastq.validate_reads |
+| bam-genotyping-to-vcf-downstream | 8 | 6 | 2 | 0 | bam, vcf | bam.coverage, bam.filter, bam.genotyping, bam.recalibration, vcf.filter, vcf.pca, vcf.qc, vcf.stats |
 | core-germline-fastq-bam-vcf | 12 | 10 | 2 | 0 | bam, fastq, vcf | bam.align, bam.coverage, bam.qc_pre, bam.validate, fastq.filter_reads, fastq.profile_reads, fastq.trim_reads, fastq.validate_reads, vcf.call, vcf.filter, vcf.qc, vcf.stats |
 | diploid-small-fastq-bam-vcf | 16 | 14 | 2 | 0 | bam, fastq, vcf | bam.align, bam.coverage, bam.filter, bam.mapping_summary, bam.qc_pre, bam.recalibration, bam.validate, fastq.filter_reads, fastq.profile_reads, fastq.trim_reads, fastq.validate_reads, vcf.call_diploid, vcf.filter, vcf.phasing, vcf.qc, vcf.stats |
-| edna-taxonomy-no-vcf | 5 | 4 | 1 | 0 | fastq | fastq.detect_adapters, fastq.filter_reads, fastq.screen_taxonomy, fastq.trim_reads, fastq.validate_reads |
+| edna-taxonomy-no-vcf | 6 | 5 | 1 | 0 | fastq | fastq.detect_adapters, fastq.filter_reads, fastq.report_qc, fastq.screen_taxonomy, fastq.trim_reads, fastq.validate_reads |
 | popgen-structure-vcf | 4 | 4 | 0 | 0 | vcf | vcf.admixture, vcf.pca, vcf.population_structure, vcf.qc |
 | reference-panel-imputation | 5 | 5 | 0 | 0 | vcf | vcf.imputation_metrics, vcf.impute, vcf.phasing, vcf.prepare_reference_panel, vcf.qc |
 | relatedness-segments-vcf | 1 | 1 | 0 | 0 | vcf | vcf.qc |
@@ -257,6 +258,7 @@
 | fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna | fastq | fastq.estimate_library_complexity_prealign | bijux_dna | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools | fastq | fastq.extract_umis | umi_tools | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:bbduk | fastq | fastq.filter_low_complexity | bbduk | present | 1.250 |  | fake_run_simulated |
+| fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:fastp | fastq | fastq.filter_low_complexity | fastp | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:prinseq | fastq | fastq.filter_low_complexity | prinseq | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.filter_reads:sample-set:bbduk | fastq | fastq.filter_reads | bbduk | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.filter_reads:sample-set:fastp | fastq | fastq.filter_reads | fastp | present | 1.250 |  | fake_run_simulated |
@@ -286,6 +288,7 @@
 | fastq:corpus-03-amplicon-mini:fastq.remove_chimeras:sample-set:vsearch | fastq | fastq.remove_chimeras | vsearch | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:clumpify | fastq | fastq.remove_duplicates | clumpify | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq | fastq | fastq.remove_duplicates | fastuniq | present | 1.250 |  | fake_run_simulated |
+| fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc | fastq | fastq.report_qc | multiqc | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:centrifuge | fastq | fastq.screen_taxonomy | centrifuge | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kaiju | fastq | fastq.screen_taxonomy | kaiju | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2 | fastq | fastq.screen_taxonomy | kraken2 | missing_result | 1.250 |  | fake_run_simulated |
@@ -314,7 +317,7 @@
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:fqtools | fastq | fastq.validate_reads | fqtools | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:seqtk | fastq | fastq.validate_reads | seqtk | present | 1.250 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2 | vcf | vcf.admixture | plink2 | present | 1.250 |  | fake_run_simulated |
-| vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools | vcf | vcf.call | bcftools | present | 1.750 | 0.165 | fake_run_and_real_smoke |
+| vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools | vcf | vcf.call | bcftools | present | 1.750 | 0.184 | fake_run_and_real_smoke |
 | vcf:vcf_production_regression:vcf.call_diploid:bam_bundle:bcftools | vcf | vcf.call_diploid | bcftools | present | 1.750 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.call_gl:bam_bundle:bcftools | vcf | vcf.call_gl | bcftools | present | 1.750 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.call_pseudohaploid:bam_bundle:bcftools | vcf | vcf.call_pseudohaploid | bcftools | present | 1.750 |  | fake_run_simulated |
@@ -333,7 +336,7 @@
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools | vcf | vcf.qc | bcftools | present | 1.500 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink | vcf | vcf.qc | plink | present | 1.250 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2 | vcf | vcf.qc | plink2 | present | 1.250 |  | fake_run_simulated |
-| vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools | vcf | vcf.stats | bcftools | missing_result | 1.250 | 0.039 | fake_run_and_real_smoke |
+| vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools | vcf | vcf.stats | bcftools | missing_result | 1.250 | 0.044 | fake_run_and_real_smoke |
 
 ## Memory
 
@@ -401,6 +404,7 @@
 | fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna | fastq | fastq.estimate_library_complexity_prealign | bijux_dna | present | 1024.000 | 1 |  |  | declared_stage_tool_resource |
 | fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools | fastq | fastq.extract_umis | umi_tools | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:bbduk | fastq | fastq.filter_low_complexity | bbduk | present | 8192.000 | 4 |  |  | declared_stage_tool_resource |
+| fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:fastp | fastq | fastq.filter_low_complexity | fastp | present | 8192.000 | 4 |  |  | declared_stage_tool_resource |
 | fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:prinseq | fastq | fastq.filter_low_complexity | prinseq | present | 8192.000 | 4 |  |  | declared_stage_tool_resource |
 | fastq:corpus-01-mini:fastq.filter_reads:sample-set:bbduk | fastq | fastq.filter_reads | bbduk | present | 8192.000 | 4 |  |  | declared_stage_tool_resource |
 | fastq:corpus-01-mini:fastq.filter_reads:sample-set:fastp | fastq | fastq.filter_reads | fastp | present | 8192.000 | 4 |  |  | declared_stage_tool_resource |
@@ -430,6 +434,7 @@
 | fastq:corpus-03-amplicon-mini:fastq.remove_chimeras:sample-set:vsearch | fastq | fastq.remove_chimeras | vsearch | present | 8192.000 | 2 |  |  | declared_stage_tool_resource |
 | fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:clumpify | fastq | fastq.remove_duplicates | clumpify | present | 8192.000 | 4 |  |  | declared_stage_tool_resource |
 | fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq | fastq | fastq.remove_duplicates | fastuniq | present | 8192.000 | 4 |  |  | declared_stage_tool_resource |
+| fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc | fastq | fastq.report_qc | multiqc | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:centrifuge | fastq | fastq.screen_taxonomy | centrifuge | present | 16384.000 | 4 |  |  | declared_stage_tool_resource |
 | fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kaiju | fastq | fastq.screen_taxonomy | kaiju | present | 16384.000 | 4 |  |  | declared_stage_tool_resource |
 | fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2 | fastq | fastq.screen_taxonomy | kraken2 | missing_result | 16384.000 | 4 |  |  | declared_stage_tool_resource |
@@ -481,7 +486,7 @@
 
 ## Failures
 
-- Simulated failure rows: 138
+- Simulated failure rows: 140
 - Failure classification rows: 7
 
 | Failure Class | Domain | Stage | Tool | Source Surface | Status | Detail |

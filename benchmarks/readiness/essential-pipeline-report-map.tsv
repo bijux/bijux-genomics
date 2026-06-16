@@ -88,7 +88,7 @@ amplicon-asv-otu-no-vcf	fastq.normalize_primers	cutadapt	normalized_amplicon_rea
 amplicon-asv-otu-no-vcf	fastq.normalize_primers	cutadapt	primer_normalization_metrics	amplicon_interpretation	failure_reason
 amplicon-asv-otu-no-vcf	fastq.remove_chimeras	vsearch	chimera_report	amplicon_interpretation	failure_reason
 amplicon-asv-otu-no-vcf	fastq.remove_chimeras	vsearch	non_chimeric_representatives	amplicon_interpretation	failure_reason
-amplicon-asv-otu-no-vcf	fastq.report_qc	bijux-dna	qc_bundle	quality_profiling	failure_reason
+amplicon-asv-otu-no-vcf	fastq.report_qc	multiqc	qc_bundle	quality_profiling	failure_reason
 amplicon-asv-otu-no-vcf	fastq.validate_reads	fastqvalidator	validated_amplicon_reads	input_readiness	failure_reason
 amplicon-asv-otu-no-vcf	fastq.validate_reads	fastqvalidator	validation_report	input_readiness	failure_reason
 bam-genotyping-to-vcf-downstream	bam.coverage	samtools	coverage_report_json	coverage_quality	failure_reason
@@ -97,12 +97,12 @@ bam-genotyping-to-vcf-downstream	bam.filter	samtools	bam_filter_report_json	alig
 bam-genotyping-to-vcf-downstream	bam.filter	samtools	bam_filter_stage_metrics	alignment_refinement	failure_reason
 bam-genotyping-to-vcf-downstream	bam.filter	samtools	filtered_bai	alignment_refinement	failure_reason
 bam-genotyping-to-vcf-downstream	bam.filter	samtools	filtered_bam	alignment_refinement	failure_reason
-bam-genotyping-to-vcf-downstream	bam.genotyping	bijux-dna	genotyping_bcf	downstream_readiness	failure_reason
-bam-genotyping-to-vcf-downstream	bam.genotyping	bijux-dna	genotyping_gl_json	downstream_readiness	failure_reason
-bam-genotyping-to-vcf-downstream	bam.genotyping	bijux-dna	genotyping_report_json	downstream_readiness	failure_reason
-bam-genotyping-to-vcf-downstream	bam.genotyping	bijux-dna	genotyping_stage_metrics	downstream_readiness	failure_reason
-bam-genotyping-to-vcf-downstream	bam.genotyping	bijux-dna	genotyping_vcf_gz	downstream_readiness	failure_reason
-bam-genotyping-to-vcf-downstream	bam.genotyping	bijux-dna	genotyping_vcf_tbi	downstream_readiness	failure_reason
+bam-genotyping-to-vcf-downstream	bam.genotyping	angsd	genotyping_bcf	downstream_readiness	failure_reason
+bam-genotyping-to-vcf-downstream	bam.genotyping	angsd	genotyping_gl_json	downstream_readiness	failure_reason
+bam-genotyping-to-vcf-downstream	bam.genotyping	angsd	genotyping_report_json	downstream_readiness	failure_reason
+bam-genotyping-to-vcf-downstream	bam.genotyping	angsd	genotyping_stage_metrics	downstream_readiness	failure_reason
+bam-genotyping-to-vcf-downstream	bam.genotyping	angsd	genotyping_vcf_gz	downstream_readiness	failure_reason
+bam-genotyping-to-vcf-downstream	bam.genotyping	angsd	genotyping_vcf_tbi	downstream_readiness	failure_reason
 bam-genotyping-to-vcf-downstream	bam.recalibration	gatk	recalibrated_bai	downstream_readiness	failure_reason
 bam-genotyping-to-vcf-downstream	bam.recalibration	gatk	recalibrated_bam	downstream_readiness	failure_reason
 bam-genotyping-to-vcf-downstream	bam.recalibration	gatk	recalibration_report_text	downstream_readiness	failure_reason
@@ -205,7 +205,7 @@ diploid-small-fastq-bam-vcf	vcf.stats	bcftools	stats_stage_metrics	quality_contr
 edna-taxonomy-no-vcf	fastq.detect_adapters	fastqc	adapter_report	quality_profiling	failure_reason
 edna-taxonomy-no-vcf	fastq.filter_reads	fastp	filter_metrics	read_cleanup	failure_reason
 edna-taxonomy-no-vcf	fastq.filter_reads	fastp	filtered_reads	read_cleanup	failure_reason
-edna-taxonomy-no-vcf	fastq.report_qc	bijux-dna	qc_bundle	quality_profiling	failure_reason
+edna-taxonomy-no-vcf	fastq.report_qc	multiqc	qc_bundle	quality_profiling	failure_reason
 edna-taxonomy-no-vcf	fastq.screen_taxonomy	kraken2	taxonomy_classification	contamination_screening	failure_reason
 edna-taxonomy-no-vcf	fastq.screen_taxonomy	kraken2	taxonomy_summary	contamination_screening	failure_reason
 edna-taxonomy-no-vcf	fastq.screen_taxonomy	kraken2	unclassified_reads	contamination_screening	failure_reason
