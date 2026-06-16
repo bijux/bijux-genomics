@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.output_contract_tests.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
   "row_count": 140,
-  "passed_row_count": 78,
-  "failed_row_count": 62,
+  "passed_row_count": 89,
+  "failed_row_count": 51,
   "domain_counts": {
     "bam": 49,
     "fastq": 71,
@@ -40,15 +40,7 @@
     "fastq.trim_polyg_tails",
     "fastq.trim_reads",
     "fastq.trim_terminal_damage",
-    "vcf.admixture",
-    "vcf.imputation_metrics",
-    "vcf.impute",
-    "vcf.pca",
-    "vcf.phasing",
-    "vcf.population_structure",
-    "vcf.postprocess",
-    "vcf.prepare_reference_panel",
-    "vcf.qc"
+    "vcf.postprocess"
   ],
   "failed_tool_ids": [
     "adapterremoval",
@@ -57,7 +49,6 @@
     "bayeshammer",
     "bbduk",
     "bcftools",
-    "beagle",
     "bowtie2",
     "bowtie2_build",
     "bwa",
@@ -65,7 +56,6 @@
     "contammix",
     "cutadapt",
     "damageprofiler",
-    "eigensoft",
     "fastp",
     "kaiju",
     "king",
@@ -76,8 +66,6 @@
     "multiqc",
     "musket",
     "ngsbriggs",
-    "plink",
-    "plink2",
     "pmdtools",
     "prinseq",
     "pydamage",
@@ -85,7 +73,6 @@
     "rxy",
     "schmutzi",
     "seqkit",
-    "shapeit5",
     "sortmerna",
     "star",
     "verifybamid2",
@@ -6708,14 +6695,25 @@
         "admixture_proxy_eigenval",
         "plink2_log"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "admixture_proxy_eigenvec",
+        "admixture_proxy_eigenval",
+        "plink2_log"
+      ],
       "declared_normalized_metric_ids": [
         "admixture_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "admixture_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/vcf.admixture/plink2/admixture.json",
+        "runs/bench/local-smoke/vcf.admixture/plink2/artifacts/stage/admixture_proxy_eigenval.tsv",
+        "runs/bench/local-smoke/vcf.admixture/plink2/source_admixture_q_matrix.tsv",
+        "runs/bench/local-smoke/vcf.admixture/plink2/source_logs.txt"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.admixture/vcf_cohort/plink2/stdout.log",
@@ -6727,15 +6725,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.admixture/vcf_cohort/plink2/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.admixture/vcf_cohort/plink2/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.admixture` / `plink2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
@@ -7144,7 +7142,13 @@
         "orchestration_manifest_json"
       ],
       "observed_raw_output_ids": [
-        "imputation_metrics_json"
+        "imputed_vcf",
+        "imputation_qc_json",
+        "imputation_accept_json",
+        "imputation_manifest_json",
+        "logs_txt",
+        "imputation_metrics_json",
+        "orchestration_manifest_json"
       ],
       "declared_normalized_metric_ids": [
         "imputation_metrics_json"
@@ -7155,9 +7159,18 @@
       "declared_index_output_ids": [
         "imputed_tbi"
       ],
-      "observed_index_output_ids": [],
+      "observed_index_output_ids": [
+        "imputed_tbi"
+      ],
       "observed_output_paths": [
-        "runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json"
+        "runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json",
+        "runs/bench/local-smoke/vcf.imputation_metrics/beagle/orchestration_manifest.json",
+        "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_imputation_accept.json",
+        "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_imputation_manifest.json",
+        "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_imputation_qc.json",
+        "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_imputed.vcf.gz",
+        "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_imputed.vcf.gz.tbi",
+        "runs/bench/local-smoke/vcf.imputation_metrics/beagle/source_logs.txt"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -7170,15 +7183,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
-      "index_outputs_matched": false,
+      "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed; declared index outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.imputation_metrics` / `beagle` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.impute:vcf_cohort_with_panel:beagle",
@@ -7212,6 +7225,8 @@
         "imputation_manifest_json",
         "logs_txt",
         "imputation_qc_tsv",
+        "maf_bin_quality_tsv",
+        "info_hist_json",
         "warnings_json",
         "overlap_stats_json",
         "panel_mismatch_diagnostics_json"
@@ -7235,7 +7250,9 @@
         "runs/bench/local-smoke/vcf.impute/beagle/imputation_qc.tsv",
         "runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz",
         "runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz.tbi",
+        "runs/bench/local-smoke/vcf.impute/beagle/info_hist.json",
         "runs/bench/local-smoke/vcf.impute/beagle/logs.txt",
+        "runs/bench/local-smoke/vcf.impute/beagle/maf_bins.tsv",
         "runs/bench/local-smoke/vcf.impute/beagle/overlap_stats.json",
         "runs/bench/local-smoke/vcf.impute/beagle/panel_mismatch_diagnostics.json",
         "runs/bench/local-smoke/vcf.impute/beagle/warnings.json"
@@ -7251,15 +7268,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.impute/vcf_cohort_with_panel/beagle/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.impute/vcf_cohort_with_panel/beagle/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.impute` / `beagle` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft",
@@ -7283,14 +7300,35 @@
         "smartpca_eigenval",
         "smartpca_log"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "convertf_par",
+        "smartpca_par",
+        "eigensoft_geno",
+        "eigensoft_snp",
+        "eigensoft_ind",
+        "smartpca_eigenvec",
+        "smartpca_eigenval",
+        "smartpca_log"
+      ],
       "declared_normalized_metric_ids": [
         "pca_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "pca_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/vcf.pca/eigensoft/artifacts/stage/pca.convertf.par",
+        "runs/bench/local-smoke/vcf.pca/eigensoft/artifacts/stage/pca.geno",
+        "runs/bench/local-smoke/vcf.pca/eigensoft/artifacts/stage/pca.ind",
+        "runs/bench/local-smoke/vcf.pca/eigensoft/artifacts/stage/pca.smartpca.par",
+        "runs/bench/local-smoke/vcf.pca/eigensoft/artifacts/stage/pca.snp",
+        "runs/bench/local-smoke/vcf.pca/eigensoft/pca.json",
+        "runs/bench/local-smoke/vcf.pca/eigensoft/source_eigenval.tsv",
+        "runs/bench/local-smoke/vcf.pca/eigensoft/source_eigenvec.tsv",
+        "runs/bench/local-smoke/vcf.pca/eigensoft/source_logs.txt"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/stdout.log",
@@ -7302,15 +7340,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.pca` / `eigensoft` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2",
@@ -7329,14 +7367,25 @@
         "pca_eigenval",
         "plink2_log"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "pca_eigenvec",
+        "pca_eigenval",
+        "plink2_log"
+      ],
       "declared_normalized_metric_ids": [
         "pca_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "pca_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/vcf.pca/plink2/pca.json",
+        "runs/bench/local-smoke/vcf.pca/plink2/source_eigenval.tsv",
+        "runs/bench/local-smoke/vcf.pca/plink2/source_eigenvec.tsv",
+        "runs/bench/local-smoke/vcf.pca/plink2/source_logs.txt"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.pca/vcf_cohort/plink2/stdout.log",
@@ -7348,15 +7397,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.pca/vcf_cohort/plink2/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.pca/vcf_cohort/plink2/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.pca` / `plink2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5",
@@ -7377,7 +7426,10 @@
         "phasing_log"
       ],
       "observed_raw_output_ids": [
-        "phased_vcf"
+        "phased_vcf",
+        "phase_block_stats",
+        "switch_error_proxy",
+        "phasing_log"
       ],
       "declared_normalized_metric_ids": [
         "phased_vcf"
@@ -7392,8 +7444,11 @@
         "phased_vcf_tbi"
       ],
       "observed_output_paths": [
+        "runs/bench/local-smoke/vcf.phasing/shapeit5/logs.txt",
+        "runs/bench/local-smoke/vcf.phasing/shapeit5/phase_block_stats.tsv",
         "runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz",
-        "runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz.tbi"
+        "runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz.tbi",
+        "runs/bench/local-smoke/vcf.phasing/shapeit5/switch_error_proxy.tsv"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -7406,15 +7461,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.phasing/vcf_cohort_with_panel/shapeit5/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.phasing/vcf_cohort_with_panel/shapeit5/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.phasing` / `shapeit5` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2",
@@ -7436,14 +7491,30 @@
         "prune_log",
         "pca_log"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "ld_prune_in",
+        "ld_prune_out",
+        "population_pca_eigenvec",
+        "population_pca_eigenval",
+        "prune_log",
+        "pca_log"
+      ],
       "declared_normalized_metric_ids": [
         "population_structure_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "population_structure_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenval.tsv",
+        "runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenvec.tsv",
+        "runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/ld_prune_out.tsv",
+        "runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json",
+        "runs/bench/local-smoke/vcf.population_structure/plink2/source_logs.txt",
+        "runs/bench/local-smoke/vcf.population_structure/plink2/source_pruned_variants.tsv"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stdout.log",
@@ -7455,15 +7526,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.population_structure` / `plink2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools",
@@ -7526,12 +7597,15 @@
       "declared_raw_output_ids": [
         "prepared_panel"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "prepared_panel"
+      ],
       "declared_normalized_metric_ids": [
         "prepared_panel",
         "chunks_json"
       ],
       "observed_normalized_metric_ids": [
+        "prepared_panel",
         "chunks_json"
       ],
       "declared_index_output_ids": [
@@ -7542,6 +7616,7 @@
       ],
       "observed_output_paths": [
         "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/chunks.json",
+        "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz",
         "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi"
       ],
       "stage_undeclared_output_ids": [],
@@ -7555,15 +7630,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.prepare_reference_panel/vcf_reference_panel/bcftools/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.prepare_reference_panel` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools",
@@ -7585,14 +7660,31 @@
         "hardy_weinberg_report",
         "qc_thresholds"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "sample_missingness_report",
+        "variant_missingness_report",
+        "allele_frequency_report",
+        "heterozygosity_report",
+        "hardy_weinberg_report",
+        "qc_thresholds"
+      ],
       "declared_normalized_metric_ids": [
         "qc_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "qc_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/vcf.qc/bcftools/allele_frequency_report.tsv",
+        "runs/bench/local-smoke/vcf.qc/bcftools/hardy_weinberg_report.tsv",
+        "runs/bench/local-smoke/vcf.qc/bcftools/heterozygosity_report.tsv",
+        "runs/bench/local-smoke/vcf.qc/bcftools/qc.json",
+        "runs/bench/local-smoke/vcf.qc/bcftools/qc_thresholds.json",
+        "runs/bench/local-smoke/vcf.qc/bcftools/sample_missingness_report.tsv",
+        "runs/bench/local-smoke/vcf.qc/bcftools/variant_missingness_report.tsv"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stdout.log",
@@ -7604,15 +7696,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.qc/vcf_cohort/bcftools/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.qc` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink",
@@ -7634,14 +7726,31 @@
         "hardy_weinberg_hwe",
         "plink_log"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "sample_missingness_imiss",
+        "variant_missingness_lmiss",
+        "allele_frequency_frq",
+        "heterozygosity_het",
+        "hardy_weinberg_hwe",
+        "plink_log"
+      ],
       "declared_normalized_metric_ids": [
         "qc_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "qc_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/vcf.qc/plink/plink.frq",
+        "runs/bench/local-smoke/vcf.qc/plink/plink.het",
+        "runs/bench/local-smoke/vcf.qc/plink/plink.hwe",
+        "runs/bench/local-smoke/vcf.qc/plink/plink.imiss",
+        "runs/bench/local-smoke/vcf.qc/plink/plink.lmiss",
+        "runs/bench/local-smoke/vcf.qc/plink/plink.log",
+        "runs/bench/local-smoke/vcf.qc/plink/qc.json"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.qc/vcf_cohort/plink/stdout.log",
@@ -7653,15 +7762,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.qc/vcf_cohort/plink/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.qc/vcf_cohort/plink/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.qc` / `plink` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
@@ -7683,14 +7792,31 @@
         "hardy_weinberg_hardy",
         "plink2_log"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "sample_missingness_smiss",
+        "variant_missingness_vmiss",
+        "allele_frequency_afreq",
+        "heterozygosity_het",
+        "hardy_weinberg_hardy",
+        "plink2_log"
+      ],
       "declared_normalized_metric_ids": [
         "qc_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "qc_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/vcf.qc/plink2/plink2.afreq",
+        "runs/bench/local-smoke/vcf.qc/plink2/plink2.hardy",
+        "runs/bench/local-smoke/vcf.qc/plink2/plink2.het",
+        "runs/bench/local-smoke/vcf.qc/plink2/plink2.log",
+        "runs/bench/local-smoke/vcf.qc/plink2/plink2.smiss",
+        "runs/bench/local-smoke/vcf.qc/plink2/plink2.vmiss",
+        "runs/bench/local-smoke/vcf.qc/plink2/qc.json"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stdout.log",
@@ -7702,15 +7828,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.qc/vcf_cohort/plink2/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.qc` / `plink2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
