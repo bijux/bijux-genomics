@@ -220,6 +220,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamCommands(args) => {
+                        crate::commands::benchmark::readiness::bam_rendered_commands::run_render_bam_commands(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamLocalContainerSmoke(args) => {
                         crate::commands::benchmark::readiness::bam_local_container_smoke::run_render_bam_local_container_smoke(
                             args,
