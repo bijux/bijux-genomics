@@ -1033,6 +1033,16 @@ Visible aliases are part of the operator surface:
   The command fails closed unless every retained tool is covered, every required input class
   retains governed probe coverage, and every probe fails before external execution through the
   real runtime-validation or adapter-contract surface.
+- `bijux-dna bench readiness render-output-contract-tests`
+  `render-output-contract-tests` writes
+  `benchmarks/readiness/tools/output-contract-tests.json` with one governed row per retained-tool
+  readiness binding, joining output declarations to independent execution proof and governed
+  runtime-path proof. Each row keeps `domain`, `stage_id`, `tool_id`, declared raw outputs,
+  normalized metrics, index outputs, governed stdout/stderr plus stage-result manifest paths, the
+  proof surface that observed those artifacts, and an explicit pass or blocker reason. The
+  command fails closed unless every retained binding keeps complete declarations, matching runtime
+  paths, and independent execution proof through a governed local smoke surface rather than a
+  declaration-only or fake-only contract.
 - `bijux-dna bench readiness run-container-tool-smoke`
   `run-container-tool-smoke` executes the governed local container smoke wrapper for every
   retained tool that resolves to a non-host runtime and writes one manifest per tool at
