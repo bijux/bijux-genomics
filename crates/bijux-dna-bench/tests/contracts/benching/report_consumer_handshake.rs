@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use bijux_dna_analyze::report::write_run_report_from_facts;
 use bijux_dna_bench::{
     summarize, AnalysisRequirements, BenchRunOptions, BenchmarkObservation, BenchmarkSuiteSpec,
@@ -5,7 +7,6 @@ use bijux_dna_bench::{
     StratificationRequirement,
 };
 use bijux_dna_runtime::*;
-use std::collections::BTreeMap;
 
 #[test]
 #[allow(clippy::too_many_lines)]
@@ -28,8 +29,16 @@ fn analyze_consumes_bench_summary() -> anyhow::Result<()> {
         &["fastq.trim_reads".to_string()],
         &["fastp".to_string()],
         &["params-a".to_string()],
-        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
-        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
+        ReplicatePolicy {
+            count: 3,
+            warmup: 0,
+            seeds: vec![1, 2, 3],
+        },
+        DiversityRequirements {
+            min_dataset_count: 1,
+            min_classes: 1,
+            min_read_layouts: 1,
+        },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string()],
@@ -74,7 +83,11 @@ fn analyze_consumes_bench_summary() -> anyhow::Result<()> {
         threads: 4,
         io_mode: "local".to_string(),
     };
-    let summary = summarize(&suite, &[obs.clone(), obs.clone(), obs], &BenchRunOptions::default())?;
+    let summary = summarize(
+        &suite,
+        &[obs.clone(), obs.clone(), obs],
+        &BenchRunOptions::default(),
+    )?;
     let summary_path = bench_dir.join("summary.json");
     bijux_dna_infra::write_bytes(&summary_path, serde_json::to_vec_pretty(&summary)?)?;
 
@@ -128,6 +141,9 @@ fn analyze_consumes_bench_summary() -> anyhow::Result<()> {
         .and_then(|sections| sections.get("bench_summary"))
         .cloned()
         .unwrap_or_else(|| serde_json::json!({}));
-    assert_eq!(bench_section.get("suite_id").and_then(|v| v.as_str()), Some("suite-1"));
+    assert_eq!(
+        bench_section.get("suite_id").and_then(|value| value.as_str()),
+        Some("suite-1")
+    );
     Ok(())
 }

@@ -265,7 +265,6 @@ name = "bijux-dna-analyze"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-bench",
  "bijux-dna-core",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
@@ -353,7 +352,6 @@ name = "bijux-dna-bench-model"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-analyze",
  "bijux-dna-core",
  "bijux-dna-domain-fastq",
  "bijux-dna-policies",

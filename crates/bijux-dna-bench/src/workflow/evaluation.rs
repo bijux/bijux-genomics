@@ -42,7 +42,7 @@ pub fn compare(
 mod tests {
     use std::collections::BTreeMap;
 
-    use bijux_dna_analyze::MetricDirection;
+    use bijux_dna_core::metrics::MetricDirection;
     use bijux_dna_bench_model::{
         robust_stats, BenchmarkSummary, GatePolicy, MetricSummary, SummaryRow,
     };

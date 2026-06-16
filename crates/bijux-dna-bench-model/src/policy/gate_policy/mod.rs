@@ -7,7 +7,7 @@
 mod config;
 mod evaluation;
 
-use bijux_dna_analyze::metric_semantics;
+use bijux_dna_core::metrics::metric_semantics;
 
 use crate::diagnostics::BenchError;
 pub use config::{GatePolicy, GatePolicyOverrides};

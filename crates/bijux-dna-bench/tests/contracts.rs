@@ -7,6 +7,8 @@ mod mod_contracts_bam_local_stage_matrix_rs;
 mod mod_contracts_bench_contract_rs;
 #[path = "contracts/benching/bench_paths.rs"]
 mod mod_contracts_bench_paths_rs;
+#[path = "contracts/benching/report_consumer_handshake.rs"]
+mod mod_contracts_report_consumer_handshake_rs;
 #[path = "contracts/benching/contract_handshake.rs"]
 mod mod_contracts_contract_handshake_rs;
 #[path = "contracts/docs/docs_fixtures.rs"]

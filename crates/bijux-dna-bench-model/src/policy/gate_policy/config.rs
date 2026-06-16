@@ -3,7 +3,7 @@
 
 use std::collections::BTreeMap;
 
-use bijux_dna_analyze::MetricDirection;
+use bijux_dna_core::metrics::MetricDirection;
 
 #[derive(Debug, Clone)]
 pub struct GatePolicy {
