@@ -1,0 +1,705 @@
+{
+  "schema_version": "bijux.crates.parser_no_execution.v1",
+  "workspace_manifest": "Cargo.toml",
+  "output_path": "benchmarks/readiness/crates/parser-no-execution.json",
+  "audited_surface_count": 3,
+  "ok": true,
+  "surfaces": [
+    {
+      "crate_name": "bijux-dna-domain-bam",
+      "manifest_path": "crates/bijux-dna-domain-bam/Cargo.toml",
+      "parser_root": "crates/bijux-dna-domain-bam/src/metrics",
+      "scanned_rust_files": [
+        "crates/bijux-dna-domain-bam/src/metrics/catalog.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/core/bundle.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/core/complexity.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/core/coverage.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/core/mod.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/core/picard.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/downstream/authenticity.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/downstream/contamination.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/downstream/genotyping.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/downstream/mod.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/downstream/sex.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/downstream/sufficiency.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/downstream/verdict.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/mod.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/pre/alignment.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/pre/fragment.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/pre/idxstats.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/pre/mapq.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/pre/mod.rs"
+      ],
+      "excluded_governance_paths": [
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/raw_parser_contract.rs",
+          "reason": "governance helper for malformed raw-fixture probe generation"
+        }
+      ],
+      "parser_entrypoints": [
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/complexity.rs",
+          "line": 28,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/coverage.rs",
+          "line": 70,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/coverage.rs",
+          "line": 105,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/coverage.rs",
+          "line": 111,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 122,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 130,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 138,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 146,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 154,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 162,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/picard.rs",
+          "line": 76,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/picard.rs",
+          "line": 97,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/downstream/contamination.rs",
+          "line": 103,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/downstream/sex.rs",
+          "line": 42,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/pre/alignment.rs",
+          "line": 35,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/pre/alignment.rs",
+          "line": 70,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/pre/idxstats.rs",
+          "line": 35,
+          "pattern": "pub fn parse_"
+        }
+      ],
+      "raw_input_read_refs": [
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/complexity.rs",
+          "line": 29,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/complexity.rs",
+          "line": 29,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/coverage.rs",
+          "line": 71,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/coverage.rs",
+          "line": 71,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/coverage.rs",
+          "line": 114,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/coverage.rs",
+          "line": 114,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 123,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 123,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 131,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 131,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 139,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 139,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 147,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 147,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 155,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 155,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 165,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/damage.rs",
+          "line": 165,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/picard.rs",
+          "line": 79,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/picard.rs",
+          "line": 79,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/picard.rs",
+          "line": 98,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/core/picard.rs",
+          "line": 98,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/downstream/contamination.rs",
+          "line": 104,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/downstream/contamination.rs",
+          "line": 104,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/downstream/sex.rs",
+          "line": 43,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/downstream/sex.rs",
+          "line": 43,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/pre/alignment.rs",
+          "line": 36,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/pre/alignment.rs",
+          "line": 36,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/pre/alignment.rs",
+          "line": 73,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/pre/alignment.rs",
+          "line": 73,
+          "pattern": "std::fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-bam/src/metrics/pre/idxstats.rs",
+          "line": 36,
+          "pattern": "fs::read_to_string"
+        }
+      ],
+      "input_mutation_refs": [],
+      "forbidden_direct_dependencies": [],
+      "process_execution_refs": [],
+      "container_execution_refs": [],
+      "slurm_execution_refs": [],
+      "ok": true
+    },
+    {
+      "crate_name": "bijux-dna-domain-fastq",
+      "manifest_path": "crates/bijux-dna-domain-fastq/Cargo.toml",
+      "parser_root": "crates/bijux-dna-domain-fastq/src/observer/parse",
+      "scanned_rust_files": [
+        "crates/bijux-dna-domain-fastq/src/observer/parse/adapter_taxonomy.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/correct_errors.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/depletion/host.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/depletion/mod.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/depletion/reference_contaminants.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/depletion/rrna.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/duplicates.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/filtering.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/mod.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/profiles/mod.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/profiles/overrepresented.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/profiles/read_lengths.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/profiles/reads.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/sequence.rs",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/tool_metrics.rs"
+      ],
+      "excluded_governance_paths": [
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/parser_contracts",
+          "reason": "cfg(test) parser contract fixture-bank suite"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/raw_parser_contract.rs",
+          "reason": "governance helper for malformed raw-fixture probe generation"
+        }
+      ],
+      "parser_entrypoints": [
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/adapter_taxonomy.rs",
+          "line": 91,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/adapter_taxonomy.rs",
+          "line": 99,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/correct_errors.rs",
+          "line": 91,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/depletion/host.rs",
+          "line": 75,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/depletion/reference_contaminants.rs",
+          "line": 76,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/depletion/rrna.rs",
+          "line": 74,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/duplicates.rs",
+          "line": 10,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/duplicates.rs",
+          "line": 18,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/duplicates.rs",
+          "line": 25,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/duplicates.rs",
+          "line": 41,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/duplicates.rs",
+          "line": 49,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/filtering.rs",
+          "line": 142,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/filtering.rs",
+          "line": 150,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/filtering.rs",
+          "line": 160,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/filtering.rs",
+          "line": 171,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/profiles/overrepresented.rs",
+          "line": 7,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/profiles/read_lengths.rs",
+          "line": 7,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/profiles/reads.rs",
+          "line": 7,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 14,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 20,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 26,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 35,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 43,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 49,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 55,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 61,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 67,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 73,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 79,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 85,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 91,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 97,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 103,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/reports.rs",
+          "line": 109,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/sequence.rs",
+          "line": 8,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/sequence.rs",
+          "line": 58,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/sequence.rs",
+          "line": 78,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/tool_metrics.rs",
+          "line": 10,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/tool_metrics.rs",
+          "line": 40,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/tool_metrics.rs",
+          "line": 60,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/tool_metrics.rs",
+          "line": 75,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/tool_metrics.rs",
+          "line": 92,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-fastq/src/observer/parse/tool_metrics.rs",
+          "line": 115,
+          "pattern": "pub fn parse_"
+        }
+      ],
+      "raw_input_read_refs": [],
+      "input_mutation_refs": [],
+      "forbidden_direct_dependencies": [],
+      "process_execution_refs": [],
+      "container_execution_refs": [],
+      "slurm_execution_refs": [],
+      "ok": true
+    },
+    {
+      "crate_name": "bijux-dna-domain-vcf",
+      "manifest_path": "crates/bijux-dna-domain-vcf/Cargo.toml",
+      "parser_root": "crates/bijux-dna-domain-vcf/src/parsers",
+      "scanned_rust_files": [
+        "crates/bijux-dna-domain-vcf/src/parsers/angsd.rs",
+        "crates/bijux-dna-domain-vcf/src/parsers/bcftools.rs",
+        "crates/bijux-dna-domain-vcf/src/parsers/eigensoft.rs",
+        "crates/bijux-dna-domain-vcf/src/parsers/imputation.rs",
+        "crates/bijux-dna-domain-vcf/src/parsers/mod.rs",
+        "crates/bijux-dna-domain-vcf/src/parsers/phasing.rs",
+        "crates/bijux-dna-domain-vcf/src/parsers/plink_family.rs",
+        "crates/bijux-dna-domain-vcf/src/parsers/segments.rs"
+      ],
+      "excluded_governance_paths": [],
+      "parser_entrypoints": [
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/angsd.rs",
+          "line": 52,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/bcftools.rs",
+          "line": 108,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/eigensoft.rs",
+          "line": 44,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/imputation.rs",
+          "line": 35,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/phasing.rs",
+          "line": 30,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/plink_family.rs",
+          "line": 67,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/plink_family.rs",
+          "line": 82,
+          "pattern": "pub fn parse_"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/segments.rs",
+          "line": 53,
+          "pattern": "pub fn parse_"
+        }
+      ],
+      "raw_input_read_refs": [
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/angsd.rs",
+          "line": 409,
+          "pattern": "File::open("
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/angsd.rs",
+          "line": 412,
+          "pattern": ".read_to_string("
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/angsd.rs",
+          "line": 416,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/angsd.rs",
+          "line": 420,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/bcftools.rs",
+          "line": 569,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/bcftools.rs",
+          "line": 1011,
+          "pattern": "File::open("
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/bcftools.rs",
+          "line": 1014,
+          "pattern": ".read_to_string("
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/bcftools.rs",
+          "line": 1018,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/bcftools.rs",
+          "line": 1022,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/eigensoft.rs",
+          "line": 374,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/imputation.rs",
+          "line": 408,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/phasing.rs",
+          "line": 238,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/plink_family.rs",
+          "line": 866,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/segments.rs",
+          "line": 400,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/segments.rs",
+          "line": 446,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/segments.rs",
+          "line": 497,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/segments.rs",
+          "line": 550,
+          "pattern": "fs::read_to_string"
+        },
+        {
+          "path": "crates/bijux-dna-domain-vcf/src/parsers/segments.rs",
+          "line": 558,
+          "pattern": "fs::read_to_string"
+        }
+      ],
+      "input_mutation_refs": [],
+      "forbidden_direct_dependencies": [],
+      "process_execution_refs": [],
+      "container_execution_refs": [],
+      "slurm_execution_refs": [],
+      "ok": true
+    }
+  ]
+}
