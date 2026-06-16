@@ -70,7 +70,7 @@
     "benchmarks/readiness/bam-command-adapter-coverage.tsv",
     "benchmarks/readiness/bam-comparable-metrics.tsv",
     "benchmarks/readiness/bam-corpus-assignment.tsv",
-    "benchmarks/readiness/bam-parser-coverage.tsv",
+    "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv",
     "benchmarks/readiness/bam-report-map.tsv",
     "benchmarks/readiness/bam-schema-validation.json",
     "benchmarks/readiness/bam-stage-decision-table.tsv",
