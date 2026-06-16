@@ -1,1 +1,2 @@
 domain	stage_id	tool_id	support_status	registered_tool_ids	reason
+bam	bam.genotyping	gatk	planned	angsd	domain-compatible pair `bam.genotyping` / `gatk` is admitted by governed contracts but absent from the benchmark matrix; current registered tools: angsd
