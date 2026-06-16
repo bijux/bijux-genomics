@@ -35,12 +35,16 @@ fn bench_readiness_full_benchmark_dashboard_writes_markdown_and_json_outputs() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md");
+    assert_eq!(
+        rendered_path.trim(),
+        "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md"
+    );
 
     let repo_root = support::repo_root().expect("repo root");
     let markdown = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read dashboard markdown");
-    let json_path = repo_root.join("benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json");
+    let json_path =
+        repo_root.join("benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json");
     let json_payload = std::fs::read_to_string(&json_path).expect("read dashboard json");
     let json_value: serde_json::Value =
         serde_json::from_str(&json_payload).expect("parse dashboard json");

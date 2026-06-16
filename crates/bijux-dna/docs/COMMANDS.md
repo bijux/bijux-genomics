@@ -273,13 +273,13 @@ Visible aliases are part of the operator surface:
   distinct from unsupported pairs.
 - `bijux-dna bench readiness render-full-benchmark-dashboard`
   `render-full-benchmark-dashboard` writes
-  `benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md` and
-  `benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json`. It derives the required
-  summary counts for total stages, total tools, total expected jobs, ready jobs, blocked jobs,
-  missing parsers, missing adapters, missing assets, and failed real smokes directly from the
-  governed all-domain stage inventory, expected-result, rendered-command, parser-collector,
-  full-report, and real-smoke surfaces. The command fail-closes unless every dashboard number
-  matches those machine-readable source surfaces exactly.
+  `benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md` and
+  `benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json`. It derives the
+  required summary counts for total stages, total tools, total expected jobs, ready jobs,
+  blocked jobs, missing parsers, missing adapters, missing assets, and failed real smokes
+  directly from the governed all-domain stage inventory, expected-result, rendered-command,
+  parser-collector, full-report, and real-smoke surfaces. The command fail-closes unless every
+  dashboard number matches those machine-readable source surfaces exactly.
 - `bijux-dna bench readiness render-full-benchmark-report`
   `render-full-benchmark-report` writes
   `benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.md` and

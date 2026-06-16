@@ -45,11 +45,11 @@ fn bench_readiness_full_benchmark_dashboard_tracks_governed_summary_counts() {
     );
     assert_eq!(
         payload.get("markdown_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md")
+        Some("benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md")
     );
     assert_eq!(
         payload.get("json_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json")
+        Some("benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json")
     );
     assert_eq!(
         payload.get("passes_behavior_test").and_then(serde_json::Value::as_bool),
