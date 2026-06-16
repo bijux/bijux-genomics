@@ -1,15 +1,16 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::time::{Duration, SystemTime};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::env::{
-    available_runners, cache_dir, docker_image_exists, resolve_image, run_shell_capture,
-    run_smoke_script, run_smoke_script_batch, PlatformSpec, RuntimeKind, ToolImageSpec,
+    available_runners, cache_dir, docker_image_exists, load_image_catalog, load_platform,
+    resolve_image, run_shell_capture, PlatformSpec, RuntimeKind, ToolImageSpec,
 };
 use regex::Regex;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 /// # Errors
@@ -52,8 +53,8 @@ pub fn print_env_registry_list(registry_path: &Path) -> Result<()> {
 /// Returns an error if smoke script execution fails.
 pub fn run_env_smoke(runtime: &str, tool: &str) -> Result<()> {
     let tools = selected_tools(tool);
+    let registry_path = current_registry_path()?;
     if runtime == "apptainer" {
-        let registry_path = current_registry_path()?;
         ensure_apptainer_tools(
             &registry_path,
             &resolved_apptainer_hpc_root()?,
@@ -63,10 +64,7 @@ pub fn run_env_smoke(runtime: &str, tool: &str) -> Result<()> {
         )?;
         return Ok(());
     }
-    if tools.len() == 1 {
-        return run_smoke_script(runtime, &tools[0]);
-    }
-    run_env_with_tools(runtime, &tools, "contract")
+    run_env_with_tools(&registry_path, runtime, &tools, "contract")
 }
 
 fn normalize_stage_id(stage: &str) -> String {
@@ -144,7 +142,7 @@ pub fn run_env_smoke_for_stage(registry_path: &Path, runtime: &str, stage: &str)
         )?;
         return Ok(());
     }
-    run_env_with_tools(runtime, &tools, "contract")
+    run_env_with_tools(registry_path, runtime, &tools, "contract")
 }
 
 /// # Errors
@@ -164,10 +162,10 @@ pub fn run_env_prep(
                 &tools,
                 false,
                 false,
-            )?;
+        )?;
             return Ok(());
         }
-        return run_env_with_tools(runtime, &tools, "version");
+        return run_env_with_tools(registry_path, runtime, &tools, "version");
     }
     if let Some(stage) = stage {
         let tools = registry_tools_for_stage(registry_path, stage, None, "all")?;
@@ -181,16 +179,26 @@ pub fn run_env_prep(
                 &tools,
                 false,
                 false,
-            )?;
+        )?;
             return Ok(());
         }
-        return run_env_with_tools(runtime, &tools, "version");
+        return run_env_with_tools(registry_path, runtime, &tools, "version");
     }
-    run_env_with_tools(runtime, &[], "version")
+    run_env_with_tools(registry_path, runtime, &[], "version")
 }
 
-fn run_env_with_tools(runtime: &str, tools: &[String], smoke_level: &str) -> Result<()> {
-    run_smoke_script_batch(runtime, tools, smoke_level)
+fn run_env_with_tools(
+    registry_path: &Path,
+    runtime: &str,
+    tools: &[String],
+    smoke_level: &str,
+) -> Result<()> {
+    if matches!(runtime, "docker-arm64" | "docker-amd64") {
+        return run_docker_env_with_tools(registry_path, runtime, tools, smoke_level);
+    }
+    Err(anyhow!(
+        "unsupported runtime `{runtime}`; expected docker-arm64 | docker-amd64 | apptainer"
+    ))
 }
 
 fn selected_tools(value: &str) -> Vec<String> {
@@ -212,6 +220,305 @@ fn current_registry_path() -> Result<PathBuf> {
     Ok(bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml"))
 }
 
+fn run_docker_env_with_tools(
+    registry_path: &Path,
+    runtime: &str,
+    tools: &[String],
+    smoke_level: &str,
+) -> Result<()> {
+    let repo_root = std::env::current_dir().context("resolve current working directory")?;
+    let platform = docker_platform_for_runtime(runtime)?;
+    let catalog = load_image_catalog().context("load docker image catalog")?;
+    let raw = parse_registry(registry_path)?;
+    let mut registry_rows = parse_tools_registry_rows(&raw)?
+        .into_iter()
+        .map(|row| (row.id.clone(), row))
+        .collect::<HashMap<_, _>>();
+    let requested = if tools.is_empty() {
+        registry_rows
+            .values()
+            .filter(|row| {
+                row.runtimes.iter().any(|item| item == "docker")
+                    && row.dockerfile.as_deref().is_some_and(|value| !value.trim().is_empty())
+                    && !matches!(row.status.as_str(), "planned" | "experimental" | "dropped")
+            })
+            .map(|row| row.id.clone())
+            .collect::<Vec<_>>()
+    } else {
+        tools.to_vec()
+    };
+    if requested.is_empty() {
+        return Err(anyhow!("no docker-backed tools selected for runtime {runtime}"));
+    }
+
+    for tool_id in requested {
+        let row = registry_rows
+            .remove(&tool_id)
+            .ok_or_else(|| anyhow!("tool not found in registry: {tool_id}"))?;
+        let image_name =
+            ensure_local_docker_image(&repo_root, runtime, &platform, &catalog, &row)?;
+        for probe in docker_probe_commands(&row, smoke_level) {
+            run_docker_probe(&image_name, &probe, row.expected_bin.as_deref())
+                .with_context(|| format!("docker smoke {runtime} {tool_id}: `{probe}`"))?;
+        }
+    }
+    Ok(())
+}
+
+fn docker_platform_for_runtime(runtime: &str) -> Result<PlatformSpec> {
+    let platform = load_platform(None).context("load default docker platform")?;
+    if platform.runner != RuntimeKind::Docker {
+        return Err(anyhow!(
+            "default platform must resolve to docker for runtime {runtime}, got {}",
+            platform.runner
+        ));
+    }
+    match runtime {
+        "docker-arm64" if platform.arch == "arm64" => Ok(platform),
+        "docker-amd64" if platform.arch == "amd64" => Ok(platform),
+        "docker-arm64" | "docker-amd64" => Err(anyhow!(
+            "runtime {runtime} is unsupported on configured docker platform arch `{}`",
+            platform.arch
+        )),
+        other => Err(anyhow!("unsupported docker runtime `{other}`")),
+    }
+}
+
+fn ensure_local_docker_image<S: ::std::hash::BuildHasher>(
+    repo_root: &Path,
+    runtime: &str,
+    platform: &PlatformSpec,
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    row: &RegistryRow,
+) -> Result<String> {
+    let dockerfile_rel = row
+        .dockerfile
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| anyhow!("tool `{}` is missing dockerfile", row.id))?;
+    let dockerfile_path = repo_root.join(dockerfile_rel);
+    if !dockerfile_path.is_file() {
+        return Err(anyhow!("missing dockerfile {}", dockerfile_path.display()));
+    }
+    let container_dir = repo_root.join(&platform.container_dir);
+    if !container_dir.is_dir() {
+        return Err(anyhow!(
+            "missing docker container dir {}",
+            container_dir.display()
+        ));
+    }
+    let spec = catalog
+        .get(&row.id)
+        .ok_or_else(|| anyhow!("missing image catalog entry for {}", row.id))?;
+    let local_image_name = buildable_docker_image_name(&row.id, &spec.version, platform)?;
+    let git_revision = capture_optional_shell("git rev-parse HEAD");
+    let dockerfile_sha256 = dockerfile_sha256(&dockerfile_path)?;
+    let build_state_path = docker_build_state_path(repo_root, runtime, &row.id);
+    if local_docker_image_exists(&local_image_name)
+        && docker_build_state_matches(
+            &build_state_path,
+            &local_image_name,
+            &git_revision,
+            &dockerfile_sha256,
+        )
+    {
+        return Ok(local_image_name);
+    }
+
+    let oci_created = capture_optional_shell("date -u +%Y-%m-%dT%H:%M:%SZ");
+    let version = spec.version.trim();
+    let output = Command::new("docker")
+        .arg("build")
+        .arg("-t")
+        .arg(&local_image_name)
+        .arg("--build-arg")
+        .arg(format!("OCI_REVISION={git_revision}"))
+        .arg("--build-arg")
+        .arg(format!("OCI_CREATED={oci_created}"))
+        .arg("--build-arg")
+        .arg(format!("TOOL_VERSION={version}"))
+        .arg("-f")
+        .arg(&dockerfile_path)
+        .arg(&container_dir)
+        .output()
+        .with_context(|| format!("docker build {}", local_image_name))?;
+    if output.status.success() {
+        if let Some(parent) = build_state_path.parent() {
+            std::fs::create_dir_all(parent)
+                .with_context(|| format!("create {}", parent.display()))?;
+        }
+        let state = DockerBuildState {
+            image_name: local_image_name.clone(),
+            git_revision,
+            dockerfile_sha256,
+        };
+        bijux_dna_infra::atomic_write_json(&build_state_path, &state)
+            .with_context(|| format!("write {}", build_state_path.display()))?;
+        return Ok(local_image_name);
+    }
+    Err(anyhow!(
+        "docker build failed for {}:\n{}",
+        local_image_name,
+        merge_command_output(&output.stdout, &output.stderr)
+    ))
+}
+
+fn buildable_docker_image_name(
+    tool_id: &str,
+    version: &str,
+    platform: &PlatformSpec,
+) -> Result<String> {
+    let version = version.trim();
+    if version.is_empty() {
+        return Err(anyhow!("tool `{tool_id}` is missing docker image version"));
+    }
+    Ok(format!(
+        "{}/{}:{}-{}",
+        platform.image_prefix, tool_id, version, platform.arch
+    ))
+}
+
+fn docker_build_state_path(repo_root: &Path, runtime: &str, tool_id: &str) -> PathBuf {
+    repo_root.join("artifacts/containers").join(runtime).join(format!("{tool_id}.build.json"))
+}
+
+fn local_docker_image_exists(image_name: &str) -> bool {
+    Command::new("docker")
+        .arg("image")
+        .arg("inspect")
+        .arg(image_name)
+        .output()
+        .is_ok_and(|output| output.status.success())
+}
+
+fn docker_build_state_matches(
+    path: &Path,
+    image_name: &str,
+    git_revision: &str,
+    dockerfile_sha256: &str,
+) -> bool {
+    let Ok(raw) = std::fs::read_to_string(path) else {
+        return false;
+    };
+    let Ok(state) = serde_json::from_str::<DockerBuildState>(&raw) else {
+        return false;
+    };
+    state.image_name == image_name
+        && state.git_revision == git_revision
+        && state.dockerfile_sha256 == dockerfile_sha256
+}
+
+fn dockerfile_sha256(path: &Path) -> Result<String> {
+    let bytes = std::fs::read(path).with_context(|| format!("read {}", path.display()))?;
+    Ok(sha256_hex(&Sha256::digest(&bytes)))
+}
+
+fn capture_optional_shell(command: &str) -> String {
+    run_shell_capture(command)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| "unknown".to_string())
+}
+
+fn docker_probe_commands(row: &RegistryRow, smoke_level: &str) -> Vec<String> {
+    let version = resolved_probe_command(
+        row.smoke_version_cmd.as_deref(),
+        row.version_cmd.as_deref(),
+        &format!("{} --version", row.id),
+    );
+    if smoke_level == "version" {
+        return vec![version];
+    }
+    if !row.smoke_probes.is_empty() {
+        return row.smoke_probes.clone();
+    }
+    let mut probes = vec![version];
+    if row.smoke_require_help.unwrap_or(true) {
+        probes.push(resolved_probe_command(
+            row.smoke_help_cmd.as_deref(),
+            row.help_cmd.as_deref(),
+            &format!("{} --help", row.id),
+        ));
+    }
+    probes
+}
+
+fn resolved_probe_command(primary: Option<&str>, fallback: Option<&str>, default: &str) -> String {
+    primary
+        .or(fallback)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| default.to_string())
+}
+
+fn run_docker_probe(image_name: &str, probe: &str, expected_bin: Option<&str>) -> Result<String> {
+    let output = match docker_probe_invocation(probe, expected_bin) {
+        DockerProbeInvocation::EntrypointArgs(args) => Command::new("docker")
+            .arg("run")
+            .arg("--rm")
+            .arg("--network")
+            .arg("none")
+            .arg(image_name)
+            .args(args)
+            .output()
+            .with_context(|| format!("docker run {}", image_name))?,
+        DockerProbeInvocation::Shell(command) => Command::new("docker")
+            .arg("run")
+            .arg("--rm")
+            .arg("--network")
+            .arg("none")
+            .arg("--entrypoint")
+            .arg("/bin/sh")
+            .arg(image_name)
+            .arg("-lc")
+            .arg(command)
+            .output()
+            .with_context(|| format!("docker run {}", image_name))?,
+    };
+    let merged = merge_command_output(&output.stdout, &output.stderr);
+    if output.status.success() {
+        return Ok(merged);
+    }
+    Err(anyhow!(merged))
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum DockerProbeInvocation {
+    EntrypointArgs(Vec<String>),
+    Shell(String),
+}
+
+fn docker_probe_invocation(probe: &str, expected_bin: Option<&str>) -> DockerProbeInvocation {
+    let trimmed = probe.trim();
+    let Some(expected_bin) = expected_bin
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    else {
+        return DockerProbeInvocation::Shell(trimmed.to_string());
+    };
+    let mut tokens = trimmed.split_whitespace().map(ToOwned::to_owned).collect::<Vec<_>>();
+    if tokens.first().is_some_and(|token| token == expected_bin) {
+        tokens.remove(0);
+        DockerProbeInvocation::EntrypointArgs(tokens)
+    } else {
+        DockerProbeInvocation::Shell(trimmed.to_string())
+    }
+}
+
+fn merge_command_output(stdout: &[u8], stderr: &[u8]) -> String {
+    let stdout = String::from_utf8_lossy(stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(stderr).trim().to_string();
+    match (stdout.is_empty(), stderr.is_empty()) {
+        (true, true) => String::new(),
+        (false, true) => stdout,
+        (true, false) => stderr,
+        (false, false) => format!("{stdout}\n{stderr}"),
+    }
+}
+
 fn resolved_apptainer_hpc_root() -> Result<PathBuf> {
     if let Ok(config) = crate::commands::hpc::load_hpc_config() {
         return Ok(config.resolve_paths().root);
@@ -222,7 +529,10 @@ fn resolved_apptainer_hpc_root() -> Result<PathBuf> {
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod env_registry_query_tests {
-    use super::{registry_tools_for_stage, selected_tools};
+    use super::{
+        docker_probe_commands, docker_probe_invocation, registry_tools_for_stage, selected_tools,
+        DockerProbeInvocation, RegistryRow,
+    };
 
     fn registry_path() -> std::path::PathBuf {
         crate::commands::support::workspace_root::resolve_repo_root()
@@ -291,6 +601,42 @@ mod env_registry_query_tests {
     fn selected_tools_preserves_single_tool_input() {
         assert_eq!(selected_tools("fastp"), vec!["fastp"]);
     }
+
+    #[test]
+    fn docker_probe_invocation_uses_image_entrypoint_when_probe_matches_expected_bin() {
+        let invocation = docker_probe_invocation("adapterremoval --help", Some("adapterremoval"));
+        assert_eq!(
+            invocation,
+            DockerProbeInvocation::EntrypointArgs(vec!["--help".to_string()])
+        );
+    }
+
+    #[test]
+    fn docker_probe_invocation_falls_back_to_shell_when_probe_uses_wrapper_command() {
+        let invocation = docker_probe_invocation("sh -lc 'adapterremoval --help'", Some("adapterremoval"));
+        assert_eq!(
+            invocation,
+            DockerProbeInvocation::Shell("sh -lc 'adapterremoval --help'".to_string())
+        );
+    }
+
+    #[test]
+    fn contract_probe_commands_default_to_version_and_help() {
+        let row = RegistryRow {
+            id: "adapterremoval".to_string(),
+            version_cmd: Some("adapterremoval --version".to_string()),
+            help_cmd: Some("adapterremoval --help".to_string()),
+            smoke_require_help: Some(true),
+            ..RegistryRow::default()
+        };
+        assert_eq!(
+            docker_probe_commands(&row, "contract"),
+            vec![
+                "adapterremoval --version".to_string(),
+                "adapterremoval --help".to_string()
+            ]
+        );
+    }
 }
 
 #[derive(Default, Serialize)]
@@ -319,6 +665,13 @@ struct RegistryRow {
     smoke_require_help: Option<bool>,
     smoke_probes: Vec<String>,
     java_heap_mb: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct DockerBuildState {
+    image_name: String,
+    git_revision: String,
+    dockerfile_sha256: String,
 }
 
 #[derive(Debug, Serialize)]
