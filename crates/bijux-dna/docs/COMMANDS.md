@@ -406,6 +406,12 @@ Visible aliases are part of the operator surface:
   reruns the governed essential pipeline DAG, corpus/assets, command rendering, fake-run,
   partial-resume, failure-isolation, and report-map surfaces, then cross-checks that the shared
   node and output counts still agree.
+- `bijux-dna bench readiness render-essential-pipelines-local-complete`
+  `render-essential-pipelines-local-complete` writes
+  `benchmarks/readiness/pipelines/ESSENTIAL_PIPELINES_LOCAL_COMPLETE.json`, proving the ten
+  essential local pipelines keep exact node-level corpus bindings, asset-profile bindings,
+  declared input and output symbols, rendered command or structured-skip coverage, and report-map
+  output rows before the Goal 397 local-completion gate can pass.
 - `bijux-dna bench readiness render-essential-pipeline-commands`
   `render-essential-pipeline-commands` writes
   `benchmarks/readiness/essential-pipelines-rendered-commands.sh` plus
