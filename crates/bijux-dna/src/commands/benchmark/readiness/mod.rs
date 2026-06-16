@@ -33,6 +33,7 @@ pub(crate) mod bam_contamination_sex_haplogroups_ready;
 pub(crate) mod bam_corpus_assignment;
 pub(crate) mod bam_damage_authenticity_ready;
 pub(crate) mod bam_insert_size_gc_bias_ready;
+pub(crate) mod bam_kinship_ready;
 pub(crate) mod bam_normalized_metrics_schema;
 pub(crate) mod bam_overlap_endogenous_ready;
 pub(crate) mod bam_parser_coverage;
