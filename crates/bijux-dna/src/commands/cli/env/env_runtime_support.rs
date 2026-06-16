@@ -27,12 +27,18 @@ fn concrete_sha256_digest(value: &str) -> Option<String> {
     Some(digest.to_ascii_lowercase())
 }
 
-fn expected_registry_digest(tool: &RegistryRow) -> Option<String> {
-    let pin = declared_value(tool.pinned_commit.as_deref());
+pub(crate) fn expected_registry_digest_from_parts(
+    tool_id: &str,
+    version: Option<&str>,
+    pinned_commit: Option<&str>,
+    container_ref: Option<&str>,
+    apptainer_def: Option<&str>,
+) -> Option<String> {
+    let pin = declared_value(pinned_commit);
     if let Some(digest) = pin.as_deref().and_then(concrete_sha256_digest) {
         return Some(digest);
     }
-    let container_ref = declared_value(tool.container_ref.as_deref());
+    let container_ref = declared_value(container_ref);
     if let Some(digest) = container_ref
         .as_deref()
         .and_then(|value| value.split("@sha256:").nth(1))
@@ -41,13 +47,22 @@ fn expected_registry_digest(tool: &RegistryRow) -> Option<String> {
         return Some(digest);
     }
 
-    let version = declared_value(tool.version.as_deref())?;
+    let version = declared_value(version)?;
     let pin = pin?;
     let container_ref = container_ref?;
-    let apptainer_def = declared_value(tool.apptainer_def.as_deref())?;
-    let stable_material =
-        [tool.id.as_str(), &version, &pin, &container_ref, &apptainer_def].join("\n");
+    let apptainer_def = declared_value(apptainer_def)?;
+    let stable_material = [tool_id, &version, &pin, &container_ref, &apptainer_def].join("\n");
     Some(sha256_hex(&Sha256::digest(stable_material.as_bytes())))
+}
+
+fn expected_registry_digest(tool: &RegistryRow) -> Option<String> {
+    expected_registry_digest_from_parts(
+        tool.id.as_str(),
+        tool.version.as_deref(),
+        tool.pinned_commit.as_deref(),
+        tool.container_ref.as_deref(),
+        tool.apptainer_def.as_deref(),
+    )
 }
 
 fn build_apptainer_image(def_path: &Path, sif_path: &Path) -> Result<()> {
