@@ -1863,6 +1863,7 @@ These commands are hidden in non-debug builds or exist for repository control-pl
 - `bijux-dna dev crates domain-no-execution`
 - `bijux-dna dev crates parser-no-execution`
 - `bijux-dna dev crates planner-no-parser`
+- `bijux-dna dev crates runner-owns-process-execution`
 - `bijux-dna debug`
 - `bijux-dna collect`
 

@@ -9,14 +9,48 @@ const DOMAIN_CRATES: &[&str] =
     &["bijux-dna-domain-bam", "bijux-dna-domain-fastq", "bijux-dna-domain-vcf"];
 const PLANNER_CRATES: &[&str] =
     &["bijux-dna-planner-bam", "bijux-dna-planner-fastq", "bijux-dna-planner-vcf"];
+const RUNNER_OWNED_PROCESS_EXECUTION_REPORT_CRATES: &[&str] = &[
+    "bijux-dna-analyze",
+    "bijux-dna-bench-model",
+    "bijux-dna-domain-bam",
+    "bijux-dna-domain-compiler",
+    "bijux-dna-domain-fastq",
+    "bijux-dna-domain-vcf",
+    "bijux-dna-stages-bam",
+    "bijux-dna-stages-fastq",
+    "bijux-dna-stages-vcf",
+];
 
 const PROCESS_EXECUTION_PATTERNS: &[&str] = &[
     concat!("Command", "::new"),
     concat!("std::process::", "Command"),
     concat!("tokio::process::", "Command"),
 ];
-const CONTAINER_EXECUTION_PATTERNS: &[&str] = &["docker", "apptainer", "singularity", "podman"];
-const SLURM_EXECUTION_PATTERNS: &[&str] = &["slurm", "sbatch", "srun"];
+const CONTAINER_EXECUTION_PATTERNS: &[&str] = &[
+    "Command::new(\"docker\")",
+    "Command::new(\"apptainer\")",
+    "Command::new(\"singularity\")",
+    "Command::new(\"podman\")",
+    "std::process::Command::new(\"docker\")",
+    "std::process::Command::new(\"apptainer\")",
+    "std::process::Command::new(\"singularity\")",
+    "std::process::Command::new(\"podman\")",
+    "tokio::process::Command::new(\"docker\")",
+    "tokio::process::Command::new(\"apptainer\")",
+    "tokio::process::Command::new(\"singularity\")",
+    "tokio::process::Command::new(\"podman\")",
+];
+const SLURM_EXECUTION_PATTERNS: &[&str] = &[
+    "Command::new(\"sbatch\")",
+    "Command::new(\"srun\")",
+    "Command::new(\"salloc\")",
+    "std::process::Command::new(\"sbatch\")",
+    "std::process::Command::new(\"srun\")",
+    "std::process::Command::new(\"salloc\")",
+    "tokio::process::Command::new(\"sbatch\")",
+    "tokio::process::Command::new(\"srun\")",
+    "tokio::process::Command::new(\"salloc\")",
+];
 
 const RUNNER_DEPENDENCY_PATTERNS: &[&str] = &["runner"];
 const CONTAINER_DEPENDENCY_PATTERNS: &[&str] =
@@ -257,6 +291,16 @@ pub struct PlannerNoParserReport {
 }
 
 #[derive(Debug, Serialize)]
+pub struct RunnerOwnedProcessExecutionReport {
+    pub schema_version: &'static str,
+    pub workspace_manifest: String,
+    pub output_path: String,
+    pub audited_crate_count: usize,
+    pub ok: bool,
+    pub crates: Vec<RunnerOwnedProcessExecutionCrateReport>,
+}
+
+#[derive(Debug, Serialize)]
 pub struct PlannerNoParserCrateReport {
     pub crate_name: String,
     pub manifest_path: String,
@@ -265,6 +309,19 @@ pub struct PlannerNoParserCrateReport {
     pub planner_input_read_refs: Vec<SourcePatternHit>,
     pub unexpected_input_read_refs: Vec<SourcePatternHit>,
     pub forbidden_parser_api_refs: Vec<SourcePatternHit>,
+    pub ok: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RunnerOwnedProcessExecutionCrateReport {
+    pub crate_name: String,
+    pub category: String,
+    pub manifest_path: String,
+    pub scanned_rust_files: Vec<String>,
+    pub execution_owner_dependencies: Vec<ExecutionOwnerDependencyHit>,
+    pub process_execution_refs: Vec<SourcePatternHit>,
+    pub container_execution_refs: Vec<SourcePatternHit>,
+    pub slurm_execution_refs: Vec<SourcePatternHit>,
     pub ok: bool,
 }
 
@@ -315,6 +372,12 @@ pub struct ExcludedAuditPath {
 pub struct AllowedAuditPath {
     pub path: String,
     pub reason: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ExecutionOwnerDependencyHit {
+    pub section: String,
+    pub dependency: String,
 }
 
 fn relative_display(path: &Path, root: &Path) -> String {
@@ -550,6 +613,19 @@ fn planner_audit_spec(crate_name: &str) -> Option<&'static PlannerCrateAuditSpec
     PLANNER_AUDIT_SPECS.iter().find(|spec| spec.crate_name == crate_name)
 }
 
+fn runner_owned_process_execution_category(crate_name: &str) -> Option<&'static str> {
+    if crate_name.starts_with("bijux-dna-domain-") {
+        return Some("domain");
+    }
+    if crate_name.starts_with("bijux-dna-stages-") {
+        return Some("stage");
+    }
+    if matches!(crate_name, "bijux-dna-analyze" | "bijux-dna-bench-model") {
+        return Some("report");
+    }
+    None
+}
+
 fn audit_parser_surface(
     cwd: &Path,
     member: &WorkspaceMember,
@@ -765,6 +841,109 @@ fn audit_planner_crate(
     })
 }
 
+fn collect_execution_owner_dependency_hits(
+    manifest: &Value,
+    section_name: &str,
+) -> Vec<ExecutionOwnerDependencyHit> {
+    let Some(table) = manifest.get(section_name).and_then(Value::as_table) else {
+        return Vec::new();
+    };
+    let mut hits = table
+        .keys()
+        .filter(|dependency| {
+            matches!(dependency.as_str(), "bijux-dna-runner" | "bijux-dna-runtime")
+        })
+        .map(|dependency| ExecutionOwnerDependencyHit {
+            section: section_name.to_string(),
+            dependency: dependency.to_string(),
+        })
+        .collect::<Vec<_>>();
+    hits.sort_by(|left, right| {
+        left.section.cmp(&right.section).then_with(|| left.dependency.cmp(&right.dependency))
+    });
+    hits
+}
+
+fn audit_runner_owned_process_execution_crate(
+    cwd: &Path,
+    member: &WorkspaceMember,
+) -> Result<RunnerOwnedProcessExecutionCrateReport> {
+    let crate_root = member
+        .manifest_path
+        .parent()
+        .with_context(|| format!("resolve crate root from {}", member.manifest_path.display()))?;
+    let manifest_text = std::fs::read_to_string(&member.manifest_path)
+        .with_context(|| format!("read {}", member.manifest_path.display()))?;
+    let manifest_value: Value = toml::from_str(&manifest_text)
+        .with_context(|| format!("parse {}", member.manifest_path.display()))?;
+
+    let mut rust_files = Vec::new();
+    collect_rust_sources(&crate_root.join("src"), &mut rust_files)?;
+    let build_rs = crate_root.join("build.rs");
+    if build_rs.is_file() {
+        rust_files.push(build_rs);
+    }
+    rust_files.sort();
+
+    let mut process_execution_refs = Vec::new();
+    let mut container_execution_refs = Vec::new();
+    let mut slurm_execution_refs = Vec::new();
+    for rust_file in &rust_files {
+        let content = std::fs::read_to_string(rust_file)
+            .with_context(|| format!("read {}", rust_file.display()))?;
+        push_source_hits(
+            &mut process_execution_refs,
+            rust_file,
+            cwd,
+            &content,
+            PROCESS_EXECUTION_PATTERNS,
+        );
+        push_source_hits(
+            &mut container_execution_refs,
+            rust_file,
+            cwd,
+            &content,
+            CONTAINER_EXECUTION_PATTERNS,
+        );
+        push_source_hits(
+            &mut slurm_execution_refs,
+            rust_file,
+            cwd,
+            &content,
+            SLURM_EXECUTION_PATTERNS,
+        );
+    }
+
+    let mut execution_owner_dependencies = Vec::new();
+    for section_name in ["dependencies", "dev-dependencies", "build-dependencies"] {
+        execution_owner_dependencies
+            .extend(collect_execution_owner_dependency_hits(&manifest_value, section_name));
+    }
+    execution_owner_dependencies.sort_by(|left, right| {
+        left.section.cmp(&right.section).then_with(|| left.dependency.cmp(&right.dependency))
+    });
+
+    let scanned_rust_files =
+        rust_files.iter().map(|path| relative_display(path, cwd)).collect::<Vec<_>>();
+    let ok = process_execution_refs.is_empty()
+        && container_execution_refs.is_empty()
+        && slurm_execution_refs.is_empty();
+
+    Ok(RunnerOwnedProcessExecutionCrateReport {
+        crate_name: member.crate_name.clone(),
+        category: runner_owned_process_execution_category(&member.crate_name)
+            .unwrap_or("unclassified")
+            .to_string(),
+        manifest_path: relative_display(&member.manifest_path, cwd),
+        scanned_rust_files,
+        execution_owner_dependencies,
+        process_execution_refs,
+        container_execution_refs,
+        slurm_execution_refs,
+        ok,
+    })
+}
+
 /// # Errors
 /// Returns an error if the workspace crate graph cannot be resolved or written.
 pub fn write_dependency_map(cwd: &Path, output_path: &Path) -> Result<CrateDependencyMapReport> {
@@ -904,6 +1083,39 @@ pub fn write_planner_no_parser_report(
 
     let report = PlannerNoParserReport {
         schema_version: "bijux.crates.planner_no_parser.v1",
+        workspace_manifest: relative_display(&cwd.join("Cargo.toml"), cwd),
+        output_path: relative_display(output_path, cwd),
+        audited_crate_count: crates.len(),
+        ok: crates.iter().all(|crate_report| crate_report.ok),
+        crates,
+    };
+
+    if let Some(parent) = output_path.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    bijux_dna_infra::atomic_write_json(output_path, &report)?;
+    Ok(report)
+}
+
+/// # Errors
+/// Returns an error if the runner-owned execution audit cannot be resolved or written.
+pub fn write_runner_owned_process_execution_report(
+    cwd: &Path,
+    output_path: &Path,
+) -> Result<RunnerOwnedProcessExecutionReport> {
+    let members = workspace_members(cwd)?;
+    let mut crates = members
+        .iter()
+        .filter(|member| {
+            RUNNER_OWNED_PROCESS_EXECUTION_REPORT_CRATES.contains(&member.crate_name.as_str())
+        })
+        .filter(|member| runner_owned_process_execution_category(&member.crate_name).is_some())
+        .map(|member| audit_runner_owned_process_execution_crate(cwd, member))
+        .collect::<Result<Vec<_>>>()?;
+    crates.sort_by(|left, right| left.crate_name.cmp(&right.crate_name));
+
+    let report = RunnerOwnedProcessExecutionReport {
+        schema_version: "bijux.crates.runner_owned_process_execution.v1",
         workspace_manifest: relative_display(&cwd.join("Cargo.toml"), cwd),
         output_path: relative_display(output_path, cwd),
         audited_crate_count: crates.len(),

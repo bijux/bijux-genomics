@@ -1035,6 +1035,13 @@ pub(crate) fn handle_crates_root(command: &cli::CratesCommand, cwd: &Path) -> Re
                 crate::commands::crates::write_planner_no_parser_report(cwd, &args.output)?;
             cli::render::json::print_pretty(&report)?;
         }
+        cli::CratesCommand::RunnerOwnsProcessExecution(args) => {
+            let report = crate::commands::crates::write_runner_owned_process_execution_report(
+                cwd,
+                &args.output,
+            )?;
+            cli::render::json::print_pretty(&report)?;
+        }
     }
     Ok(())
 }
