@@ -59,13 +59,33 @@ fn write_local_sex_smoke_report_materializes_governed_outputs() -> Result<()> {
 
     let sex_report = repo_root
         .join(payload["sex_report"].as_str().unwrap_or_else(|| panic!("sex_report path missing")));
+    let sex_estimate = repo_root.join(
+        payload["sex_estimate"].as_str().unwrap_or_else(|| panic!("sex_estimate path missing")),
+    );
+    let population_metrics = repo_root.join(
+        payload["population_metrics"]
+            .as_str()
+            .unwrap_or_else(|| panic!("population_metrics path missing")),
+    );
+    let haplogroup_report = repo_root.join(
+        payload["haplogroup_report"]
+            .as_str()
+            .unwrap_or_else(|| panic!("haplogroup_report path missing")),
+    );
     let sex_summary = repo_root.join(
         payload["sex_summary"].as_str().unwrap_or_else(|| panic!("sex_summary path missing")),
     );
     let stage_metrics = repo_root.join(
         payload["stage_metrics"].as_str().unwrap_or_else(|| panic!("stage_metrics path missing")),
     );
-    for path in [&sex_report, &sex_summary, &stage_metrics] {
+    for path in [
+        &sex_report,
+        &sex_estimate,
+        &population_metrics,
+        &haplogroup_report,
+        &sex_summary,
+        &stage_metrics,
+    ] {
         assert!(path.is_file(), "governed BAM sex artifact must exist: {}", path.display());
     }
 

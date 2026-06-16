@@ -132,6 +132,9 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
         ],
         BamStage::Sex => &[
             AuditArtifact { name: "sex_report", filename: "sex.json" },
+            AuditArtifact { name: "sex_estimate", filename: "sex_estimate.json" },
+            AuditArtifact { name: "population_metrics", filename: "population_metrics.json" },
+            AuditArtifact { name: "haplogroup_report", filename: "haplogroup_report.json" },
             AuditArtifact { name: "summary", filename: "sex.summary.json" },
             AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],

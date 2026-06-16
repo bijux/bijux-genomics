@@ -27,6 +27,9 @@ struct LocalSexSmokeReport {
     status: String,
     insufficiency_reason: Option<String>,
     sex_report: String,
+    sex_estimate: String,
+    population_metrics: String,
+    haplogroup_report: String,
     sex_summary: String,
     stage_metrics: String,
 }
@@ -93,6 +96,11 @@ fn materialize_local_sex_smoke_case(
     bijux_dna_infra::ensure_dir(&case_out_dir)?;
 
     let sex_report_path = resolve_output_path(repo_root, &case.plan, "sex_report")?;
+    let sex_estimate_path = resolve_output_path(repo_root, &case.plan, "sex_estimate")?;
+    let population_metrics_path =
+        resolve_output_path(repo_root, &case.plan, "population_metrics")?;
+    let haplogroup_report_path =
+        resolve_output_path(repo_root, &case.plan, "haplogroup_report")?;
     let sex_summary_path = resolve_output_path(repo_root, &case.plan, "summary")?;
     let stage_metrics_path = resolve_output_path(repo_root, &case.plan, "stage_metrics")?;
     let input_bam = repo_root.join(&case.bam);
@@ -119,6 +127,41 @@ fn materialize_local_sex_smoke_case(
     let y_coverage_delta = summary.y_coverage - case.expected_y_coverage;
     let autosomal_coverage_delta = summary.autosomal_coverage - case.expected_autosomal_coverage;
     let confidence_delta = summary.confidence - case.expected_confidence;
+
+    bijux_dna_infra::atomic_write_json(
+        &sex_estimate_path,
+        &serde_json::json!({
+            "artifact_id": "sex_estimate",
+            "stage_id": "bam.sex",
+            "tool_id": case.plan.tool_id.as_str(),
+            "call": summary.call,
+            "confidence": summary.confidence,
+            "status": summary.status,
+            "x_to_y_ratio": summary.x_to_y_ratio,
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &population_metrics_path,
+        &serde_json::json!({
+            "artifact_id": "population_metrics",
+            "stage_id": "bam.sex",
+            "tool_id": case.plan.tool_id.as_str(),
+            "chromosome_system": summary.chromosome_system,
+            "x_coverage": summary.x_coverage,
+            "y_coverage": summary.y_coverage,
+            "autosomal_coverage": summary.autosomal_coverage,
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &haplogroup_report_path,
+        &serde_json::json!({
+            "artifact_id": "haplogroup_report",
+            "stage_id": "bam.sex",
+            "tool_id": case.plan.tool_id.as_str(),
+            "status": "not_applicable_for_local_rxy_smoke",
+            "chromosome_system": summary.chromosome_system,
+        }),
+    )?;
 
     bijux_dna_infra::atomic_write_json(
         &stage_metrics_path,
@@ -173,6 +216,9 @@ fn materialize_local_sex_smoke_case(
         status: summary.status.clone(),
         insufficiency_reason: summary.insufficiency_reason.clone(),
         sex_report: path_relative_to_repo(repo_root, &sex_report_path),
+        sex_estimate: path_relative_to_repo(repo_root, &sex_estimate_path),
+        population_metrics: path_relative_to_repo(repo_root, &population_metrics_path),
+        haplogroup_report: path_relative_to_repo(repo_root, &haplogroup_report_path),
         sex_summary: path_relative_to_repo(repo_root, &sex_summary_path),
         stage_metrics: path_relative_to_repo(repo_root, &stage_metrics_path),
     })

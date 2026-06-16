@@ -95,7 +95,17 @@ fn local_sex_smoke_plans_use_governed_bam_reference_and_expectations() -> Result
         .iter()
         .map(|artifact| artifact.name.as_str().to_string())
         .collect::<Vec<_>>();
-    assert_eq!(output_names, vec!["sex_report", "summary", "stage_metrics"]);
+    assert_eq!(
+        output_names,
+        vec![
+            "sex_report",
+            "sex_estimate",
+            "population_metrics",
+            "haplogroup_report",
+            "summary",
+            "stage_metrics",
+        ]
+    );
 
     let summary_output = case
         .plan

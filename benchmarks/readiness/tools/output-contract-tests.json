@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.output_contract_tests.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
   "row_count": 140,
-  "passed_row_count": 100,
-  "failed_row_count": 40,
+  "passed_row_count": 103,
+  "failed_row_count": 37,
   "domain_counts": {
     "bam": 49,
     "fastq": 71,
@@ -25,7 +25,6 @@
     "bam.haplogroups",
     "bam.kinship",
     "bam.qc_pre",
-    "bam.sex",
     "fastq.correct_errors",
     "fastq.deplete_host",
     "fastq.deplete_reference_contaminants",
@@ -62,7 +61,6 @@
     "pmdtools",
     "pydamage",
     "rcorrector",
-    "rxy",
     "schmutzi",
     "sortmerna",
     "star",
@@ -2555,7 +2553,8 @@
       ],
       "observed_raw_output_ids": [
         "summary",
-        "stage_metrics"
+        "stage_metrics",
+        "population_metrics"
       ],
       "declared_normalized_metric_ids": [
         "sex_report"
@@ -2566,6 +2565,7 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/population_metrics.json",
         "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.json",
         "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.summary.json",
         "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/stage.metrics.json"
@@ -2581,15 +2581,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `bam.sex` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:rxy",
@@ -2610,7 +2610,8 @@
       ],
       "observed_raw_output_ids": [
         "summary",
-        "stage_metrics"
+        "stage_metrics",
+        "sex_estimate"
       ],
       "declared_normalized_metric_ids": [
         "sex_report"
@@ -2623,6 +2624,7 @@
       "observed_output_paths": [
         "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.json",
         "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.summary.json",
+        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex_estimate.json",
         "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
@@ -2636,15 +2638,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/rxy/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/rxy/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `bam.sex` / `rxy` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:yleaf",
@@ -2665,7 +2667,8 @@
       ],
       "observed_raw_output_ids": [
         "summary",
-        "stage_metrics"
+        "stage_metrics",
+        "haplogroup_report"
       ],
       "declared_normalized_metric_ids": [
         "sex_report"
@@ -2676,6 +2679,7 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/haplogroup_report.json",
         "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.json",
         "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.summary.json",
         "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/stage.metrics.json"
@@ -2691,15 +2695,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/yleaf/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/yleaf/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `bam.sex` / `yleaf` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.validate:sample-set:bamtools",
