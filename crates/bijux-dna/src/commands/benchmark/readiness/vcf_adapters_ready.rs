@@ -153,9 +153,9 @@ pub(crate) fn render_vcf_adapters_ready(
         || {
             let report =
                 render_vcf_orphan_tools(repo_root, PathBuf::from(DEFAULT_VCF_ORPHAN_TOOLS_PATH))?;
-            if report.orphan_count != 9
-                || report.required_tool_count != 17
-                || report.registered_tool_count != 17
+            if report.orphan_count != 8
+                || report.required_tool_count != 16
+                || report.registered_tool_count != 16
                 || report.served_tool_count != 8
                 || report.rows.iter().any(|row| {
                     row.served_stage_count != 0 || row.decision != "future_not_benchmark_ready"
@@ -164,7 +164,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 bail!("VCF orphan-tool report drifted from the governed orphan tool slice");
             }
             Ok(
-                "validated 9 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
+                "validated 8 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
                     .to_string(),
             )
         },
@@ -218,11 +218,11 @@ pub(crate) fn render_vcf_adapters_ready(
             if report.get("passes_gate").and_then(serde_json::Value::as_bool) != Some(true)
                 || report.get("stage_count").and_then(serde_json::Value::as_u64) != Some(20)
                 || report.get("matrix_row_count").and_then(serde_json::Value::as_u64) != Some(23)
-                || report.get("registry_pair_count").and_then(serde_json::Value::as_u64) != Some(44)
+                || report.get("registry_pair_count").and_then(serde_json::Value::as_u64) != Some(42)
                 || report
                     .get("benchmark_ready_registry_pair_count")
                     .and_then(serde_json::Value::as_u64)
-                    != Some(17)
+                    != Some(16)
                 || report.get("unregistered_matrix_pair_count").and_then(serde_json::Value::as_u64)
                     != Some(0)
                 || report

@@ -86,6 +86,18 @@ fn bench_readiness_vcf_adapters_ready_reports_governed_pass_state() {
         "goal 234 detail must keep matrix/registry agreement explicit"
     );
 
+    let orphan_check = checks
+        .iter()
+        .find(|check| check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(232))
+        .expect("goal 232 check");
+    assert!(
+        orphan_check
+            .get("detail")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|detail| detail.contains("8 governed orphan VCF tools")),
+        "goal 232 detail must keep the governed orphan tool count explicit"
+    );
+
     let output_check = checks
         .iter()
         .find(|check| check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(242))
