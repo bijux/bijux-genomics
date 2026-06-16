@@ -290,8 +290,8 @@ pub(crate) fn handle_meta_commands(
                         args,
                         )?;
                     }
-                    cli::BenchReadinessCommand::RenderBamParserCoverage(args) => {
-                        crate::commands::benchmark::readiness::bam_parser_coverage::run_render_bam_parser_coverage(
+                    cli::BenchReadinessCommand::RenderBamParserFixtureCoverage(args) => {
+                        crate::commands::benchmark::readiness::bam_parser_fixture_coverage::run_render_bam_parser_fixture_coverage(
                         args,
                         )?;
                     }

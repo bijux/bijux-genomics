@@ -50,8 +50,8 @@ pub enum BenchReadinessCommand {
     RenderBamComparableMetrics(BenchReadinessRenderBamComparableMetricsArgs),
     #[command(name = "render-bam-normalized-metrics-schema")]
     RenderBamNormalizedMetricsSchema(BenchReadinessRenderBamNormalizedMetricsSchemaArgs),
-    #[command(name = "render-bam-parser-coverage")]
-    RenderBamParserCoverage(BenchReadinessRenderBamParserCoverageArgs),
+    #[command(name = "render-bam-parser-fixture-coverage", alias = "render-bam-parser-coverage")]
+    RenderBamParserFixtureCoverage(BenchReadinessRenderBamParserFixtureCoverageArgs),
     #[command(name = "render-bam-report-map")]
     RenderBamReportMap(BenchReadinessRenderBamReportMapArgs),
     #[command(name = "render-expected-benchmark-results")]
@@ -523,7 +523,7 @@ pub struct BenchReadinessRenderVcfParserFailureTestsArgs {
 }
 
 #[derive(Debug, Args)]
-pub struct BenchReadinessRenderBamParserCoverageArgs {
+pub struct BenchReadinessRenderBamParserFixtureCoverageArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

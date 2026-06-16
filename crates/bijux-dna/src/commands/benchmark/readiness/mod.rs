@@ -37,7 +37,7 @@ pub(crate) mod bam_kinship_ready;
 pub(crate) mod bam_local_container_smoke;
 pub(crate) mod bam_normalized_metrics_schema;
 pub(crate) mod bam_overlap_endogenous_ready;
-pub(crate) mod bam_parser_coverage;
+pub(crate) mod bam_parser_fixture_coverage;
 pub(crate) mod bam_recalibration_genotyping_ready;
 pub(crate) mod bam_report_map;
 pub(crate) mod bam_stage_decision_table;
