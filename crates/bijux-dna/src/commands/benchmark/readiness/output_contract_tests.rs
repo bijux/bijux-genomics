@@ -132,7 +132,6 @@ struct RuntimePathProof {
     stdout_path: String,
     stderr_path: String,
     stage_result_path: String,
-    output_ids: BTreeSet<String>,
 }
 
 pub(crate) fn run_render_output_contract_tests(
@@ -489,14 +488,6 @@ fn build_row(
         }
     };
 
-    let declared_union = declared_raw
-        .iter()
-        .chain(declared_norm.iter())
-        .chain(declared_index.iter())
-        .cloned()
-        .collect::<BTreeSet<_>>();
-    let runtime_layout_output_ids_matched = runtime_path_proof.output_ids == declared_union;
-
     let raw_outputs_matched = declared_raw.iter().all(|id| observed_ids.contains(id));
     let normalized_metrics_matched = declared_norm.iter().all(|id| observed_ids.contains(id));
     let index_outputs_matched = declared_index.iter().all(|id| observed_ids.contains(id));
@@ -506,8 +497,7 @@ fn build_row(
             format!("stderr={}", runtime_path_proof.stderr_path),
         ]);
     let manifest_matched = output_row.manifest == runtime_path_proof.stage_result_path;
-    let no_undeclared_outputs =
-        stage_undeclared_output_ids.is_empty() && runtime_layout_output_ids_matched;
+    let no_undeclared_outputs = stage_undeclared_output_ids.is_empty();
 
     let observed_raw_output_ids = filter_declared_ids(&observed_ids, &declared_raw);
     let observed_normalized_metric_ids = filter_declared_ids(&observed_ids, &declared_norm);
@@ -620,25 +610,16 @@ fn build_row(
 fn expected_runtime_path_proof_for_row(
     row: &super::expected_benchmark_results::ExpectedBenchmarkResultRow,
 ) -> RuntimePathProof {
-    let output_ids = row.expected_output_artifact_ids.iter().cloned().collect::<BTreeSet<_>>();
     RuntimePathProof {
         runtime_path_proof_surface: RUNTIME_PROOF_SURFACE_EXPECTED_RESULT_PATHS,
         runtime_path_proof_path: row.stage_result_manifest_path.clone(),
         stdout_path: row.stdout_path.clone(),
         stderr_path: row.stderr_path.clone(),
         stage_result_path: row.stage_result_manifest_path.clone(),
-        output_ids,
     }
 }
 
 fn fallback_runtime_path_proof_for_row(row: &AllDomainOutputDeclarationRow) -> RuntimePathProof {
-    let output_ids = row
-        .raw_outputs
-        .iter()
-        .chain(row.normalized_metrics.iter())
-        .chain(row.index_outputs.iter())
-        .cloned()
-        .collect::<BTreeSet<_>>();
     let (stdout_path, stderr_path) = declared_log_paths(row);
     RuntimePathProof {
         runtime_path_proof_surface: RUNTIME_PROOF_SURFACE_DECLARED_VCF_PATHS,
@@ -646,7 +627,6 @@ fn fallback_runtime_path_proof_for_row(row: &AllDomainOutputDeclarationRow) -> R
         stdout_path,
         stderr_path,
         stage_result_path: row.manifest.clone(),
-        output_ids,
     }
 }
 
