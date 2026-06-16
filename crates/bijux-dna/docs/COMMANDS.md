@@ -1860,6 +1860,7 @@ These commands are hidden in non-debug builds or exist for repository control-pl
 - `bijux-dna dev ci audit-features`
 - `bijux-dna dev ci gate`
 - `bijux-dna dev crates graph`
+- `bijux-dna dev crates metric-registry`
 - `bijux-dna dev crates domain-no-execution`
 - `bijux-dna dev crates parser-no-execution`
 - `bijux-dna dev crates planner-no-parser`
