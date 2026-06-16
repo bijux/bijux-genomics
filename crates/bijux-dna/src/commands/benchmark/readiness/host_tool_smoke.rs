@@ -1,12 +1,11 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
-use std::time::SystemTime;
 
 use anyhow::{anyhow, bail, Context, Result};
 use regex::Regex;
 use serde::Serialize;
 
+use super::tool_smoke_support::{now_unix_s, path_relative_to_repo, repo_relative_path};
 use super::version_probes::{collect_version_probe_rows, VersionProbeRow};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -244,7 +243,7 @@ fn run_host_command(repo_root: &Path, applied_command: &[String]) -> Result<std:
     let Some(program) = applied_command.first() else {
         bail!("host smoke attempted to run an empty command");
     };
-    let mut command = Command::new(program);
+    let mut command = std::process::Command::new(program);
     command.args(applied_command.iter().skip(1));
     command.current_dir(repo_root);
     command
@@ -283,22 +282,4 @@ fn parse_first_version(output: &str) -> Option<String> {
         }
     }
     None
-}
-
-fn now_unix_s() -> u64 {
-    SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .map_or(0, |duration| duration.as_secs())
-}
-
-fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        repo_root.join(path)
-    }
-}
-
-fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
