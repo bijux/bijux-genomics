@@ -361,6 +361,13 @@ Visible aliases are part of the operator surface:
   `support_status`, stage anchor tool, report section, summary table, optional workflow branch,
   and any scientific context required to interpret the result, so every retained BAM result stays
   mapped into reporting instead of relying on stage-only placeholders.
+- `bijux-dna bench readiness render-bam-all-retained-tools-complete`
+  `render-bam-all-retained-tools-complete` writes
+  `benchmarks/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json`, re-checking Goal 379 through
+  Goal 395 against the governed BAM retained-tool slice. The report proves the 49 retained BAM
+  bindings stay synchronized across the BAM serving map, command-adapter coverage, parser
+  fixtures, local/container smoke paths, expected-result rows, rendered commands, and report-map
+  placements before the BAM local-completeness gate can pass.
 - `bijux-dna bench readiness render-corpus-asset-coverage-gate`
   `render-corpus-asset-coverage-gate` writes
   `benchmarks/readiness/gate-corpus-assets-complete.json` with one governed row per FASTQ or
