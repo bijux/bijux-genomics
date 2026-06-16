@@ -24,6 +24,8 @@ pub enum BenchReadinessCommand {
     RenderBamCorpusAssignment(BenchReadinessRenderBamCorpusAssignmentArgs),
     #[command(name = "render-bam-insert-size-gc-bias-ready")]
     RenderBamInsertSizeGcBiasReady(BenchReadinessRenderBamInsertSizeGcBiasReadyArgs),
+    #[command(name = "render-bam-overlap-endogenous-ready")]
+    RenderBamOverlapEndogenousReady(BenchReadinessRenderBamOverlapEndogenousReadyArgs),
     #[command(name = "render-corpus-incompatibility")]
     RenderCorpusIncompatibility(BenchReadinessRenderCorpusIncompatibilityArgs),
     #[command(name = "render-corpus-centric-report")]
@@ -622,6 +624,14 @@ pub struct BenchReadinessRenderVcfPopulationStructureReadyArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfAllRetainedToolsCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamOverlapEndogenousReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
