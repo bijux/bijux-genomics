@@ -793,6 +793,7 @@ dependencies = [
  "bijux-dna-domain-vcf",
  "bijux-dna-infra",
  "bijux-dna-policies",
+ "bijux-dna-runner",
  "bijux-dna-testkit",
  "regex",
  "serde",

@@ -14,6 +14,7 @@ bijux-dna-domain-vcf = { path = "../bijux-dna-domain-vcf" }
 bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-db-ref = { path = "../bijux-dna-db-ref" }
 bijux-dna-infra = { path = "../bijux-dna-infra" }
+bijux-dna-runner.workspace = true
 sha2.workspace = true
 
 [lints]

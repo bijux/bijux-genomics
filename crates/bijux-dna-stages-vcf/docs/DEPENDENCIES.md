@@ -13,6 +13,7 @@ spec crates because it owns executable VCF stage helpers.
 - `bijux-dna-domain-vcf`: VCF domain IDs, params, metrics, and taxonomy.
 - `bijux-dna-db-ref`: reference panel, map, and bundle lookup.
 - `bijux-dna-infra`: atomic writes, directory helpers, and hashing utilities.
+- `bijux-dna-runner`: governed external process execution for VCF stage helpers.
 
 ## Dev Dependencies
 
@@ -22,9 +23,11 @@ spec crates because it owns executable VCF stage helpers.
 
 ## Forbidden Edges
 
-This crate must not depend on API, planner, runtime, runner, or environment
-crates. Those crates may consume the VCF stage surface, but the ownership arrow
-must not point back from this crate into orchestration surfaces.
+This crate must not depend on API, planner, runtime, or environment crates.
+`bijux-dna-runner` is the only allowed orchestration-edge dependency because it
+owns external process spawning for VCF stage helpers. Stage code may assemble
+VCF-specific arguments, but process execution itself must route through runner
+helpers instead of `std::process::Command`.
 
 ## Validation
 
