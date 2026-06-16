@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.output_contract_tests.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
   "row_count": 140,
-  "passed_row_count": 71,
-  "failed_row_count": 69,
+  "passed_row_count": 78,
+  "failed_row_count": 62,
   "domain_counts": {
     "bam": 49,
     "fastq": 71,
@@ -41,13 +41,6 @@
     "fastq.trim_reads",
     "fastq.trim_terminal_damage",
     "vcf.admixture",
-    "vcf.call",
-    "vcf.call_diploid",
-    "vcf.call_gl",
-    "vcf.call_pseudohaploid",
-    "vcf.damage_filter",
-    "vcf.filter",
-    "vcf.gl_propagation",
     "vcf.imputation_metrics",
     "vcf.impute",
     "vcf.pca",
@@ -6771,9 +6764,12 @@
       "declared_index_output_ids": [
         "called_vcf_tbi"
       ],
-      "observed_index_output_ids": [],
+      "observed_index_output_ids": [
+        "called_vcf_tbi"
+      ],
       "observed_output_paths": [
-        "runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz"
+        "runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz",
+        "runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz.tbi"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6788,13 +6784,13 @@
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json",
       "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
-      "index_outputs_matched": false,
+      "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared index outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.call` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.call_diploid:bam_bundle:bcftools",
@@ -6823,9 +6819,12 @@
       "declared_index_output_ids": [
         "diploid_vcf_tbi"
       ],
-      "observed_index_output_ids": [],
+      "observed_index_output_ids": [
+        "diploid_vcf_tbi"
+      ],
       "observed_output_paths": [
-        "runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz"
+        "runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz",
+        "runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz.tbi"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6840,13 +6839,13 @@
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call_diploid/bam_bundle/bcftools/stage-result.json",
       "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
-      "index_outputs_matched": false,
+      "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared index outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.call_diploid` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.call_gl:bam_bundle:bcftools",
@@ -6875,9 +6874,12 @@
       "declared_index_output_ids": [
         "gl_sites_vcf_tbi"
       ],
-      "observed_index_output_ids": [],
+      "observed_index_output_ids": [
+        "gl_sites_vcf_tbi"
+      ],
       "observed_output_paths": [
-        "runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz"
+        "runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz",
+        "runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz.tbi"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6892,13 +6894,13 @@
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call_gl/bam_bundle/bcftools/stage-result.json",
       "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
-      "index_outputs_matched": false,
+      "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared index outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.call_gl` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.call_pseudohaploid:bam_bundle:bcftools",
@@ -6927,9 +6929,12 @@
       "declared_index_output_ids": [
         "pseudohaploid_vcf_tbi"
       ],
-      "observed_index_output_ids": [],
+      "observed_index_output_ids": [
+        "pseudohaploid_vcf_tbi"
+      ],
       "observed_output_paths": [
-        "runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz"
+        "runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz",
+        "runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz.tbi"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6944,13 +6949,13 @@
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call_pseudohaploid/bam_bundle/bcftools/stage-result.json",
       "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
-      "index_outputs_matched": false,
+      "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared index outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.call_pseudohaploid` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.damage_filter:vcf_single_sample:bcftools",
@@ -6979,9 +6984,12 @@
       "declared_index_output_ids": [
         "damage_filtered_vcf_tbi"
       ],
-      "observed_index_output_ids": [],
+      "observed_index_output_ids": [
+        "damage_filtered_vcf_tbi"
+      ],
       "observed_output_paths": [
-        "runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz"
+        "runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz",
+        "runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz.tbi"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6996,13 +7004,13 @@
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.damage_filter/vcf_single_sample/bcftools/stage-result.json",
       "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
-      "index_outputs_matched": false,
+      "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared index outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.damage_filter` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools",
@@ -7031,9 +7039,12 @@
       "declared_index_output_ids": [
         "filtered_vcf_tbi"
       ],
-      "observed_index_output_ids": [],
+      "observed_index_output_ids": [
+        "filtered_vcf_tbi"
+      ],
       "observed_output_paths": [
-        "runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz"
+        "runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz",
+        "runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz.tbi"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -7048,13 +7059,13 @@
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.filter/vcf_single_sample/bcftools/stage-result.json",
       "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
-      "index_outputs_matched": false,
+      "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared index outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.filter` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.gl_propagation:vcf_single_sample:bcftools",
@@ -7083,9 +7094,12 @@
       "declared_index_output_ids": [
         "gl_propagated_vcf_tbi"
       ],
-      "observed_index_output_ids": [],
+      "observed_index_output_ids": [
+        "gl_propagated_vcf_tbi"
+      ],
       "observed_output_paths": [
-        "runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz"
+        "runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz",
+        "runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz.tbi"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -7100,13 +7114,13 @@
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.gl_propagation/vcf_single_sample/bcftools/stage-result.json",
       "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
-      "index_outputs_matched": false,
+      "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared index outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `vcf.gl_propagation` / `bcftools` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
@@ -7374,9 +7388,12 @@
       "declared_index_output_ids": [
         "phased_vcf_tbi"
       ],
-      "observed_index_output_ids": [],
+      "observed_index_output_ids": [
+        "phased_vcf_tbi"
+      ],
       "observed_output_paths": [
-        "runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz"
+        "runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz",
+        "runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz.tbi"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -7391,13 +7408,13 @@
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.phasing/vcf_cohort_with_panel/shapeit5/stage-result.json",
       "raw_outputs_matched": false,
       "normalized_metrics_matched": true,
-      "index_outputs_matched": false,
+      "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": false,
-      "reason": "declared raw outputs are not fully observed; declared index outputs are not fully observed"
+      "reason": "declared raw outputs are not fully observed"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2",
