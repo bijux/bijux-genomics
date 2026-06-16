@@ -625,6 +625,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderInputPreflightTests(args) => {
+                        crate::commands::benchmark::readiness::input_preflight_tests::run_render_input_preflight_tests(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVersionProbes(args) => {
                         crate::commands::benchmark::readiness::version_probes::run_render_version_probes(
                             args,

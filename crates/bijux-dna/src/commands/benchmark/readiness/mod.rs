@@ -80,6 +80,7 @@ pub(crate) mod full_benchmark_dashboard;
 pub(crate) mod full_benchmark_report;
 pub(crate) mod full_benchmark_result_collector;
 pub(crate) mod host_tool_smoke;
+pub(crate) mod input_preflight_tests;
 pub(crate) mod missing_benchmark_pairs;
 pub(crate) mod missing_result_report;
 pub(crate) mod operational_benchmark_ready;
