@@ -625,6 +625,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RunHostToolSmoke(args) => {
+                        crate::commands::benchmark::readiness::host_tool_smoke::run_host_tool_smoke(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderStageToolAliasCheck(args) => {
                         crate::commands::benchmark::readiness::stage_tool_alias_check::run_render_stage_tool_alias_check(
                             args,

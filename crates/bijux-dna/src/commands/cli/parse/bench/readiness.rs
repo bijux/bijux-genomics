@@ -194,6 +194,8 @@ pub enum BenchReadinessCommand {
     RenderExecutableResolution(BenchReadinessRenderExecutableResolutionArgs),
     #[command(name = "render-version-probes")]
     RenderVersionProbes(BenchReadinessRenderVersionProbesArgs),
+    #[command(name = "run-host-tool-smoke")]
+    RunHostToolSmoke(BenchReadinessRunHostToolSmokeArgs),
     #[command(name = "render-stage-tool-alias-check")]
     RenderStageToolAliasCheck(BenchReadinessRenderStageToolAliasCheckArgs),
     #[command(name = "render-removed-from-scope")]
@@ -1324,6 +1326,14 @@ pub struct BenchReadinessRenderExecutableResolutionArgs {
 pub struct BenchReadinessRenderVersionProbesArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRunHostToolSmokeArgs {
+    #[arg(long)]
+    pub output_root: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

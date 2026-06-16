@@ -167,7 +167,7 @@ impl VersionProbesReport {
     }
 }
 
-fn collect_version_probe_rows(repo_root: &Path) -> Result<Vec<VersionProbeRow>> {
+pub(crate) fn collect_version_probe_rows(repo_root: &Path) -> Result<Vec<VersionProbeRow>> {
     let executable_rows = collect_executable_resolution_rows(repo_root)?;
     let registry_contracts = load_registry_version_contracts(repo_root)?;
     let mut rows = executable_rows
