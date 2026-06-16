@@ -60,7 +60,14 @@ impl ReadinessToolContract {
         }
     }
 
-    pub(crate) fn admitted_stage_ids(&self) -> Vec<String> {
+    pub(crate) fn benchmark_stage_ids(&self) -> Vec<String> {
+        let mut stage_ids =
+            self.stage_ids.iter().cloned().collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
+        stage_ids.sort();
+        stage_ids
+    }
+
+    pub(crate) fn declared_stage_ids(&self) -> Vec<String> {
         let mut stage_ids = self
             .stage_ids
             .iter()
@@ -77,7 +84,7 @@ impl ReadinessToolContract {
         &self,
         benchmark_stage_ids: &BTreeSet<String>,
     ) -> Vec<String> {
-        self.admitted_stage_ids()
+        self.benchmark_stage_ids()
             .into_iter()
             .filter(|stage_id| benchmark_stage_ids.contains(stage_id))
             .collect()

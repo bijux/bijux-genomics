@@ -84,7 +84,7 @@ pub(crate) fn render_orphan_tools(
             if covered.contains(&contract.tool_id) {
                 continue;
             }
-            let declared_stage_ids = contract.admitted_stage_ids();
+            let declared_stage_ids = contract.declared_stage_ids();
             if domain == ReadinessDomain::Fastq
                 && !declared_stage_ids.iter().any(|stage_id| {
                     include_fastq_active_benchmark_pair(stage_id, &contract.tool_id)
