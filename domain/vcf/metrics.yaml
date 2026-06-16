@@ -101,6 +101,7 @@ metrics:
 - id: imputed_genotypes
 - id: indels_normalized
 - id: input_likelihood_fields
+- id: input_genotypes
 - id: input_variants
 - id: invalid_records_removed
 - id: left_align_applied
@@ -120,9 +121,12 @@ metrics:
 - id: normalization_status
 - id: not_imputable_reasons
 - id: output_likelihood_fields
+- id: output_variant_count
 - id: output_variants
 - id: parseable
 - id: pass_variants
+- id: phased_genotypes
+- id: phase_set_count
 - id: phase_block_n50
 - id: ploidy
 - id: quality_threshold
@@ -143,4 +147,5 @@ metrics:
 - id: terminal_context_count
 - id: terminal_damage_filtered_variants
 - id: unresolved_count
+- id: unphased_genotypes
 - id: variant_ids_normalized

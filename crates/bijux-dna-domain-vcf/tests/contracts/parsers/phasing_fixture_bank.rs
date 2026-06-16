@@ -5,6 +5,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use anyhow::{Context, Result};
 use bijux_dna_domain_vcf::parse_phasing_stage_metrics;
 
+use super::metric_registry::ensure_registered_stage_metrics;
+
 const VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION: &str = "bijux.fixture.vcf_raw_parser.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -112,13 +114,15 @@ fn vcf_phasing_fixture_bank_rejects_all_unphased_output() -> Result<()> {
 fn render_case(case: &VcfPhasingFixtureCase) -> Result<serde_json::Value> {
     let normalized = parse_phasing_stage_metrics(case.tool_id, &fixture_dir(case))
         .with_context(|| format!("parse phasing fixture for `{}`", case.tool_id))?;
-    Ok(serde_json::json!({
+    let observed = serde_json::json!({
         "schema_version": VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION,
         "stage_id": "vcf.phasing",
         "tool_id": case.tool_id,
         "parser_id": case.parser_id,
         "normalized": normalized,
-    }))
+    });
+    ensure_registered_stage_metrics(bijux_dna_domain_vcf::VcfDomainStage::Phasing, &observed)?;
+    Ok(observed)
 }
 
 fn read_expected_json(case: &VcfPhasingFixtureCase) -> Result<serde_json::Value> {

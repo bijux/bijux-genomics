@@ -8,6 +8,8 @@ mod bcftools_fixture_bank;
 mod eigensoft_fixture_bank;
 #[path = "parsers/imputation_fixture_bank.rs"]
 mod imputation_fixture_bank;
+#[path = "parsers/metric_registry.rs"]
+mod metric_registry;
 #[path = "parsers/phasing_fixture_bank.rs"]
 mod phasing_fixture_bank;
 #[path = "parsers/plink2_fixture_bank.rs"]

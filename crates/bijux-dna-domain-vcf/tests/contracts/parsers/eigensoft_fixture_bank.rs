@@ -3,6 +3,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use bijux_dna_domain_vcf::{parse_eigensoft_stage_metrics, VcfDomainStage};
 
+use super::metric_registry::ensure_registered_stage_metrics;
+
 const VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION: &str = "bijux.fixture.vcf_raw_parser.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -80,13 +82,15 @@ fn vcf_eigensoft_fixture_bank_matches_expected_normalized_json() -> Result<()> {
 fn render_case(case: &VcfEigensoftFixtureCase) -> Result<serde_json::Value> {
     let normalized = parse_eigensoft_stage_metrics(case.stage, &fixture_dir(case))
         .with_context(|| format!("parse fixture stage `{}`", case.stage.as_str()))?;
-    Ok(serde_json::json!({
+    let observed = serde_json::json!({
         "schema_version": VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION,
         "stage_id": case.stage.as_str(),
         "tool_id": "eigensoft",
         "parser_id": case.parser_id,
         "normalized": normalized,
-    }))
+    });
+    ensure_registered_stage_metrics(case.stage, &observed)?;
+    Ok(observed)
 }
 
 fn read_expected_json(case: &VcfEigensoftFixtureCase) -> Result<serde_json::Value> {

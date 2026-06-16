@@ -67,7 +67,16 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
         "site_count_after",
         "sample_count",
     ];
-    const PHASING_METRICS: &[&str] = &["switch_error_proxy", "phase_block_n50"];
+    const PHASING_METRICS: &[&str] = &[
+        "input_genotypes",
+        "phased_genotypes",
+        "unphased_genotypes",
+        "phase_set_count",
+        "sample_count",
+        "sample_ids",
+        "output_variant_count",
+        "status",
+    ];
     const IMPUTATION_METRICS: &[&str] = &[
         "status",
         "concordance",

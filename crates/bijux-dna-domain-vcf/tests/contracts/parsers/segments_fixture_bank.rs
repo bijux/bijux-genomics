@@ -3,6 +3,10 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use bijux_dna_domain_vcf::{parse_segment_stage_metrics, VcfDomainStage};
 
+use super::metric_registry::{
+    ensure_registered_normalized_metrics, ensure_registered_stage_metrics,
+};
+
 const VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION: &str = "bijux.fixture.vcf_raw_parser.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -156,6 +160,7 @@ fn vcf_segment_fixture_bank_parses_insufficient_cases_as_structured_reports() ->
                     case.case_id
                 )
             })?;
+        ensure_registered_normalized_metrics(case.stage, &normalized)?;
         let status =
             normalized.get("status").and_then(serde_json::Value::as_str).unwrap_or_default();
         assert_eq!(
@@ -174,6 +179,7 @@ fn vcf_roh_fixture_bank_keeps_normalized_segment_fields() -> Result<()> {
         .copied()
         .unwrap_or_else(|| panic!("plink2 roh fixture case"));
     let normalized = parse_segment_stage_metrics(case.tool_id, case.stage, &fixture_dir(&case))?;
+    ensure_registered_normalized_metrics(case.stage, &normalized)?;
 
     assert_eq!(normalized.get("segment_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(normalized.get("sample_count").and_then(serde_json::Value::as_u64), Some(4));
@@ -206,6 +212,7 @@ fn vcf_ibd_fixture_bank_keeps_normalized_pair_fields() -> Result<()> {
         .copied()
         .unwrap_or_else(|| panic!("germline ibd fixture case"));
     let normalized = parse_segment_stage_metrics(case.tool_id, case.stage, &fixture_dir(&case))?;
+    ensure_registered_normalized_metrics(case.stage, &normalized)?;
 
     assert_eq!(normalized.get("pair_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(normalized.get("status").and_then(serde_json::Value::as_str), Some("complete"));
@@ -237,6 +244,7 @@ fn vcf_demography_fixture_bank_keeps_normalized_ne_fields() -> Result<()> {
         .copied()
         .unwrap_or_else(|| panic!("ibdne demography fixture case"));
     let normalized = parse_segment_stage_metrics(case.tool_id, case.stage, &fixture_dir(&case))?;
+    ensure_registered_normalized_metrics(case.stage, &normalized)?;
 
     assert_eq!(normalized.get("method").and_then(serde_json::Value::as_str), Some("ibdne"));
     assert_eq!(
@@ -273,13 +281,15 @@ fn render_case(case: &VcfSegmentFixtureCase) -> Result<serde_json::Value> {
                 case.case_id
             )
         })?;
-    Ok(serde_json::json!({
+    let observed = serde_json::json!({
         "schema_version": VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION,
         "stage_id": case.stage.as_str(),
         "tool_id": case.tool_id,
         "parser_id": case.parser_id,
         "normalized": normalized,
-    }))
+    });
+    ensure_registered_stage_metrics(case.stage, &observed)?;
+    Ok(observed)
 }
 
 fn read_expected_json(case: &VcfSegmentFixtureCase) -> Result<serde_json::Value> {
