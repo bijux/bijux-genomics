@@ -1004,6 +1004,15 @@ Visible aliases are part of the operator surface:
   `install_kind`, `resolution_target`, `command_entrypoint`, `runtime_probe_paths`, and any
   explicit unavailable reason visible. The command fails closed if cross-domain runtime probes
   drift or a retained tool falls outside the governed resolution classes.
+- `bijux-dna bench readiness render-version-probes`
+  `render-version-probes` writes `benchmarks/readiness/tools/version-probes.json` with one
+  governed row per retained tool, joining executable-resolution coverage to runtime
+  `version_cmd` declarations and governed registry `expected_version_regex` contracts. Ready rows
+  keep `version_cmd`, `help_cmd`, parser kind `first_dotted_numeric_token`,
+  `expected_version_regex`, declared version, runtime probe paths, and registry source paths;
+  unresolved tools carry `unavailable_with_reason` from executable resolution. The command fails
+  closed if a resolved retained tool lacks a version command, lacks a parser regex, or drifts
+  between runtime probes and governed registries.
 - `bijux-dna bench readiness render-stage-tool-alias-check`
   `render-stage-tool-alias-check` writes
   `benchmarks/readiness/all-domains/stage-tool-alias-check.json` and audits the governed
