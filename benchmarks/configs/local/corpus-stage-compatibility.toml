@@ -203,8 +203,10 @@ compatibility_note = "The general FASTQ corpus owns a governed repeated-sequence
 
 [[mappings]]
 stage_id = "fastq.report_qc"
-compatibility_kind = "planner_only"
-compatibility_note = "The governed MultiQC bundle used for local QC reporting is not yet owned by any corpus fixture manifest."
+compatibility_kind = "fixture"
+corpus_family_id = "corpus-01"
+fixture_id = "corpus-01-mini"
+compatibility_note = "The general FASTQ corpus owns the governed contributor artifacts that feed local MultiQC report aggregation."
 
 [[mappings]]
 stage_id = "fastq.remove_chimeras"

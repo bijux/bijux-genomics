@@ -292,14 +292,20 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain the governed filter-low-complexity row for {tool_id}"
         );
     }
-    for tool_id in ["dustmasker", "fastp"] {
+    assert!(
+        !rows
+            .iter()
+            .any(|row| row.starts_with("dustmasker\tfastq.filter_low_complexity\t")),
+        "TSV must not retain the retired dustmasker low-complexity placeholder row"
+    );
+    for tool_id in ["bbduk", "fastp", "prinseq"] {
         assert!(
             rows.iter().any(|row| {
                 row == &format!(
-                    "{tool_id}\tfastq.filter_low_complexity\tplanned_contract\tdeclared_only\tnot_normalized\tfixture:corpus-01-mini"
+                    "{tool_id}\tfastq.filter_low_complexity\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-01-mini"
                 )
             }),
-            "TSV must retain the planned filter-low-complexity row for {tool_id}"
+            "TSV must retain the governed filter-low-complexity row for {tool_id}"
         );
     }
     for tool_id in ["bbduk", "fastp"] {
@@ -333,9 +339,7 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
         );
     }
     assert!(
-        rows.iter().any(|row| {
-            row == &"seqpurge\tfastq.trim_reads\tplanned_contract\tdeclared_only\tnot_normalized\tfixture:corpus-01-mini"
-        }),
-        "TSV must retain the planned seqpurge trim-reads row"
+        !rows.iter().any(|row| row.starts_with("seqpurge\tfastq.trim_reads\t")),
+        "TSV must not retain the retired seqpurge trim placeholder row"
     );
 }

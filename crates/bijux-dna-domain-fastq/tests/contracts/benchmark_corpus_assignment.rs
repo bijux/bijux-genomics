@@ -115,5 +115,5 @@ fn benchmark_corpus_assignment_preserves_precise_exclusion_reasons() {
         &ToolId::new("multiqc".to_string()),
     )
     .unwrap_or_else(|| panic!("report-qc assignment"));
-    assert_eq!(report_qc.exclusion_reason_code(), Some("governed_multiqc_bundle_fixture_missing"));
+    assert_eq!(report_qc.assigned_family(), Some(BenchmarkCorpusFamily::Corpus01));
 }

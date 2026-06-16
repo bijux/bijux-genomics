@@ -127,8 +127,14 @@ fn bench_readiness_fastq_corpus_assignment_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"multiqc\tfastq.report_qc\tnot_benchmark_ready\tobserver_specialized_benchmark\trunnable\tcomparable\texcluded\t\t\t\tgoverned_multiqc_bundle_fixture_missing\trow `fastq.report_qc` / `multiqc` is not_benchmark_ready and remains excluded from governed corpus assignment: The governed QC-report bundle is not yet owned by a corpus fixture with reviewer-stable benchmark expectations."
+            row == &"fastp\tfastq.filter_low_complexity\tbenchmark_ready\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tassigned\tcorpus-01\tcorpus-01-mini\t\t\trow `fastq.filter_low_complexity` / `fastp` is benchmark_ready and maps to `corpus-01` via fixture `corpus-01-mini`: General FASTQ preprocessing and screening stages stay on the governed corpus-01 slice for local benchmark comparability."
         }),
-        "TSV must retain the explicit report-qc exclusion"
+        "TSV must retain the governed fastp low-complexity corpus assignment"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"multiqc\tfastq.report_qc\tbenchmark_ready\tobserver_specialized_benchmark\trunnable\tcomparable\tassigned\tcorpus-01\tcorpus-01-mini\t\t\trow `fastq.report_qc` / `multiqc` is benchmark_ready and maps to `corpus-01` via fixture `corpus-01-mini`: QC aggregation reuses governed corpus-01 contributor artifacts, so the benchmark row remains anchored to the general FASTQ corpus family rather than a planner-only bundle."
+        }),
+        "TSV must retain the governed report-qc corpus assignment"
     );
 }

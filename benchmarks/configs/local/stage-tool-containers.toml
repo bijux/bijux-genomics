@@ -639,6 +639,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
 domain = "fastq"
+stage_id = "fastq.filter_low_complexity"
+tool_id = "fastp"
+execution_mode = "containerized"
+install_kind = "container"
+container_id = "bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10"
+command_entrypoint = "fastp"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
 stage_id = "fastq.filter_reads"
 tool_id = "bbduk"
 execution_mode = "containerized"

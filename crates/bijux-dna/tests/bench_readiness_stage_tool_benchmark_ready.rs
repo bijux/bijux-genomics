@@ -37,7 +37,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_stage_tool_benchmark_ready_tracks_ready_slice_and_excluded_pairs() {
+fn bench_readiness_stage_tool_benchmark_ready_tracks_a_fully_governed_ready_slice() {
     let payload =
         run_cli_json(&["bench", "readiness", "render-stage-tool-benchmark-ready", "--json"]);
 
@@ -50,29 +50,26 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_ready_slice_and_excluded_pa
         Some("benchmarks/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json")
     );
     assert_eq!(payload.get("passes_gate").and_then(serde_json::Value::as_bool), Some(true));
-    assert_eq!(payload.get("expected_pair_count").and_then(serde_json::Value::as_u64), Some(122));
+    assert_eq!(payload.get("expected_pair_count").and_then(serde_json::Value::as_u64), Some(120));
     assert_eq!(
         payload.get("benchmark_ready_pair_count").and_then(serde_json::Value::as_u64),
-        Some(118)
+        Some(120)
     );
-    assert_eq!(payload.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("failing_pair_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("generated_job_pair_count").and_then(serde_json::Value::as_u64),
-        Some(118)
+        Some(120)
     );
     assert_eq!(
         payload.get("expected_result_pair_count").and_then(serde_json::Value::as_u64),
-        Some(118)
+        Some(120)
     );
     assert_eq!(
         payload.get("benchmark_ready_stage_count").and_then(serde_json::Value::as_u64),
-        Some(50)
+        Some(51)
     );
-    assert_eq!(
-        payload.get("excluded_registry_gap_count").and_then(serde_json::Value::as_u64),
-        Some(3)
-    );
+    assert_eq!(payload.get("excluded_registry_gap_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let surfaces = payload
         .get("surface_summaries")
@@ -83,13 +80,13 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_ready_slice_and_excluded_pa
         surface.get("surface_id").and_then(serde_json::Value::as_str) == Some("tool_registry")
             && surface.get("surface_status").and_then(serde_json::Value::as_str)
                 == Some("ready_slice_complete")
-            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(3)
+            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(0)
             && surface.get("failing_count").and_then(serde_json::Value::as_u64) == Some(0)
     }));
     assert!(surfaces.iter().any(|surface| {
         surface.get("surface_id").and_then(serde_json::Value::as_str) == Some("command_adapters")
-            && surface.get("covered_count").and_then(serde_json::Value::as_u64) == Some(118)
-            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(4)
+            && surface.get("covered_count").and_then(serde_json::Value::as_u64) == Some(120)
+            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(0)
     }));
 
     let failing_pairs =
@@ -103,23 +100,5 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_ready_slice_and_excluded_pa
         .get("excluded_pairs")
         .and_then(serde_json::Value::as_array)
         .expect("excluded pairs");
-    assert_eq!(excluded_pairs.len(), 4);
-    assert!(excluded_pairs.iter().any(|row| {
-        row.get("row_id").and_then(serde_json::Value::as_str)
-            == Some("fastq:fastq.trim_reads:seqpurge")
-            && row.get("registry_status").and_then(serde_json::Value::as_str)
-                == Some("tool_missing")
-            && row.get("excluded_from_generated_jobs").and_then(serde_json::Value::as_bool)
-                == Some(true)
-            && row.get("excluded_from_expected_results").and_then(serde_json::Value::as_bool)
-                == Some(true)
-    }));
-    assert!(
-        excluded_pairs.iter().all(|row| {
-            row.get("row_id")
-                .and_then(serde_json::Value::as_str)
-                .is_none_or(|row_id| !row_id.starts_with("fastq:fastq.index_reference:"))
-        }),
-        "asset-backed index-reference pairs must stay out of the excluded slice once corpus assignments are governed"
-    );
+    assert!(excluded_pairs.is_empty(), "fully governed ready slice must not retain excluded pairs");
 }

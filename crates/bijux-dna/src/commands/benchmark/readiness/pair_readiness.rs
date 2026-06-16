@@ -392,17 +392,17 @@ fn build_pair_reason(
 }
 
 fn ensure_pair_readiness_contract(rows: &[PairReadinessRow]) -> Result<()> {
-    if rows.len() != 122 {
+    if rows.len() != 120 {
         return Err(anyhow!(
-            "pair readiness report must retain exactly 122 FASTQ/BAM rows, found {}",
+            "pair readiness report must retain exactly 120 FASTQ/BAM rows, found {}",
             rows.len()
         ));
     }
     let benchmark_ready_row_count =
         rows.iter().filter(|row| row.benchmark_status == "benchmark_ready").count();
-    if benchmark_ready_row_count != 118 {
+    if benchmark_ready_row_count != 120 {
         return Err(anyhow!(
-            "pair readiness report must retain exactly 118 benchmark_ready rows, found {benchmark_ready_row_count}"
+            "pair readiness report must retain exactly 120 benchmark_ready rows, found {benchmark_ready_row_count}"
         ));
     }
     ensure_row(

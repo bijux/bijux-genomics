@@ -258,6 +258,57 @@ fn render_fastq_stage_tool_argv(
         &tool_id_value,
     )
     .with_context(|| format!("load FASTQ execution spec for `{stage_id}` / `{tool_id}`"))?;
+    if stage_id == "fastq.report_qc" {
+        let qc_inputs = base_plan
+            .io
+            .inputs
+            .iter()
+            .map(|artifact| {
+                let mut artifact = artifact.clone();
+                artifact.path = resolve_repo_input_path(repo_root, &artifact.path);
+                artifact
+            })
+            .collect::<Vec<_>>();
+        let paired_mode = if find_fastq_input(base_plan, "reads_r2").is_some() {
+            bijux_dna_domain_fastq::params::PairedMode::PairedEnd
+        } else {
+            bijux_dna_domain_fastq::params::PairedMode::SingleEnd
+        };
+        let report_qc_params = match fastq_stage_params_from_plan(stage_id, base_plan)? {
+            Some(bijux_dna_planner_fastq::FastqStageParameters::ReportQc(params)) => params,
+            _ => bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams {
+                schema_version:
+                    bijux_dna_domain_fastq::params::qc_post::REPORT_QC_SCHEMA_VERSION.to_string(),
+                paired_mode,
+                aggregation_engine:
+                    bijux_dna_domain_fastq::params::qc_post::QcAggregationEngine::Multiqc,
+                aggregation_scope:
+                    bijux_dna_domain_fastq::params::qc_post::QcAggregationScope::GovernedQcArtifacts,
+            },
+        };
+        let out_dir =
+            benchmark_command_out_dir("fastq", stage_id, tool_id).with_context(|| {
+                format!("build benchmark command output dir for `{stage_id}` / `{tool_id}`")
+            })?;
+        let plan =
+            bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_with_qc_inputs(
+                &tool,
+                &qc_inputs,
+                &out_dir,
+                std::collections::BTreeMap::new(),
+                report_qc_params.paired_mode,
+                report_qc_params.aggregation_engine,
+                report_qc_params.aggregation_scope,
+                find_fastq_input(base_plan, "reads_r1")
+                    .map(|path| resolve_repo_input_path(repo_root, path))
+                    .as_deref(),
+                find_fastq_input(base_plan, "reads_r2")
+                    .map(|path| resolve_repo_input_path(repo_root, path))
+                    .as_deref(),
+            )
+            .with_context(|| format!("plan FASTQ benchmark command row `{stage_id}` / `{tool_id}`"))?;
+        return Ok(plan.command.template);
+    }
     let params = project_fastq_benchmark_params_for_tool(
         stage_id,
         tool_id,
@@ -486,6 +537,11 @@ fn fastq_stage_params_from_plan(
             ))
         }
         "fastq.detect_duplicates_premerge" | "fastq.estimate_library_complexity_prealign" => None,
+        "fastq.report_qc" => Some(bijux_dna_planner_fastq::FastqStageParameters::ReportQc(
+            serde_json::from_value(effective_params.clone()).with_context(|| {
+                format!("decode effective params for `{stage_id}` as QcPostEffectiveParams")
+            })?,
+        )),
         "fastq.extract_umis" => Some(bijux_dna_planner_fastq::FastqStageParameters::ExtractUmis(
             bijux_dna_planner_fastq::ExtractUmisStageParams {
                 threads: json_u32(params, "threads"),

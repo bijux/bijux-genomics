@@ -355,21 +355,21 @@ fn collect_missing_result_report_rows(
 fn ensure_missing_result_report_contract(
     mut report: MissingResultReport,
 ) -> Result<MissingResultReport> {
-    if report.rows.len() != 118 {
+    if report.rows.len() != 120 {
         return Err(anyhow!(
-            "missing-result report must retain exactly 118 expected benchmark rows, found {}",
+            "missing-result report must retain exactly 120 expected benchmark rows, found {}",
             report.rows.len()
         ));
     }
-    if report.expected_row_count != 118 {
+    if report.expected_row_count != 120 {
         return Err(anyhow!(
-            "missing-result report must track exactly 118 expected rows, found {}",
+            "missing-result report must track exactly 120 expected rows, found {}",
             report.expected_row_count
         ));
     }
-    if report.present_result_row_count != 117 {
+    if report.present_result_row_count != 119 {
         return Err(anyhow!(
-            "missing-result report must retain exactly 117 present benchmark rows after removing one result, found {}",
+            "missing-result report must retain exactly 119 present benchmark rows after removing one result, found {}",
             report.present_result_row_count
         ));
     }

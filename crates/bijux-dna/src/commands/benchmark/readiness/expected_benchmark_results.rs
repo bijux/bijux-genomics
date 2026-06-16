@@ -398,9 +398,9 @@ fn build_fastq_asset_backed_expected_result_row(
 }
 
 fn ensure_expected_result_contract(rows: &[ExpectedBenchmarkResultRow]) -> Result<()> {
-    if rows.len() != 118 {
+    if rows.len() != 120 {
         return Err(anyhow!(
-            "expected benchmark result table must retain exactly 118 benchmark-ready rows, found {}",
+            "expected benchmark result table must retain exactly 120 benchmark-ready rows, found {}",
             rows.len()
         ));
     }

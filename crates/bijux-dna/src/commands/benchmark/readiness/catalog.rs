@@ -61,6 +61,9 @@ impl ReadinessToolContract {
     }
 
     pub(crate) fn benchmark_stage_ids(&self) -> Vec<String> {
+        if self.support_status == "planned" {
+            return Vec::new();
+        }
         let mut stage_ids =
             self.stage_ids.iter().cloned().collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
         stage_ids.sort();
