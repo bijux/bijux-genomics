@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.output_contract_tests.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
   "row_count": 140,
-  "passed_row_count": 111,
-  "failed_row_count": 29,
+  "passed_row_count": 114,
+  "failed_row_count": 26,
   "domain_counts": {
     "bam": 49,
     "fastq": 71,
@@ -30,21 +30,17 @@
     "fastq.index_reference",
     "fastq.normalize_primers",
     "fastq.report_qc",
-    "fastq.screen_taxonomy",
-    "fastq.trim_polyg_tails",
-    "fastq.trim_reads"
+    "fastq.screen_taxonomy"
   ],
   "failed_tool_ids": [
     "angsd",
     "bayeshammer",
-    "bbduk",
     "bowtie2",
     "bowtie2_build",
     "bwa",
     "centrifuge",
     "contammix",
     "cutadapt",
-    "fastp",
     "kaiju",
     "king",
     "kraken2",
@@ -5474,7 +5470,9 @@
         "raw_backend_report_txt"
       ],
       "observed_raw_output_ids": [
-        "trimmed_reads_r1"
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "raw_backend_report_txt"
       ],
       "declared_normalized_metric_ids": [
         "report_json"
@@ -5485,6 +5483,16 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/bbduk/R1.polyg.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/bbduk/R2.polyg.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/bbduk/trim_polyg_tails_report.json",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/bbduk/trim_polyg_tails_report.stats.txt",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/R1.polyg.fastp.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/R2.polyg.fastp.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/trim_polyg_tails_report.json",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/bbduk/polyg.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/bbduk/trim_polyg_tails_report.json",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/bbduk/trim_polyg_tails_report.stats.txt",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/polyg.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.json"
       ],
@@ -5499,15 +5507,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_polyg_tails/sample-set/bbduk/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_polyg_tails/sample-set/bbduk/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `fastq.trim_polyg_tails` / `bbduk` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_polyg_tails:sample-set:fastp",
@@ -5528,6 +5536,7 @@
       ],
       "observed_raw_output_ids": [
         "trimmed_reads_r1",
+        "trimmed_reads_r2",
         "raw_backend_report_json"
       ],
       "declared_normalized_metric_ids": [
@@ -5539,6 +5548,15 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/bbduk/R1.polyg.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/bbduk/R2.polyg.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/bbduk/trim_polyg_tails_report.json",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/R1.polyg.fastp.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/R2.polyg.fastp.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/trim_polyg_tails_report.fastp.json",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/trim_polyg_tails_report.json",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/bbduk/polyg.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/bbduk/trim_polyg_tails_report.json",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/polyg.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.fastp.json",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.json"
@@ -5554,15 +5572,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_polyg_tails/sample-set/fastp/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_polyg_tails/sample-set/fastp/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `fastq.trim_polyg_tails` / `fastp` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:adapterremoval",
@@ -5573,7 +5591,7 @@
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
       "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "fastp",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/adapterremoval/stage-result.json",
       "declared_raw_output_ids": [
@@ -5596,6 +5614,8 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
       ],
@@ -5629,7 +5649,7 @@
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
       "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "fastp",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/alientrimmer/stage-result.json",
       "declared_raw_output_ids": [
@@ -5652,6 +5672,8 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
       ],
@@ -5685,7 +5707,7 @@
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
       "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "fastp",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/atropos/stage-result.json",
       "declared_raw_output_ids": [
@@ -5708,6 +5730,8 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
       ],
@@ -5741,7 +5765,7 @@
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
       "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "fastp",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/bbduk/stage-result.json",
       "declared_raw_output_ids": [
@@ -5751,7 +5775,8 @@
       ],
       "observed_raw_output_ids": [
         "trimmed_reads_r1",
-        "trimmed_reads_r2"
+        "trimmed_reads_r2",
+        "raw_backend_report_txt"
       ],
       "declared_normalized_metric_ids": [
         "report_json"
@@ -5765,6 +5790,9 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.bbduk.stats.txt",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
       ],
@@ -5779,15 +5807,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/bbduk/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/bbduk/stage-result.json",
-      "raw_outputs_matched": false,
+      "raw_outputs_matched": true,
       "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
-      "passed": false,
-      "reason": "declared raw outputs are not fully observed"
+      "passed": true,
+      "reason": "binding `fastq.trim_reads` / `bbduk` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:cutadapt",
@@ -5798,7 +5826,7 @@
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
       "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "fastp",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/cutadapt/stage-result.json",
       "declared_raw_output_ids": [
@@ -5824,6 +5852,8 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.fastp.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.fastp.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
@@ -5858,7 +5888,7 @@
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
       "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "fastp",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/fastp/stage-result.json",
       "declared_raw_output_ids": [
@@ -5884,6 +5914,8 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.fastp.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.fastp.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
@@ -5918,7 +5950,7 @@
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
       "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "fastp",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/fastx_clipper/stage-result.json",
       "declared_raw_output_ids": [
@@ -5941,6 +5973,8 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
       ],
@@ -5974,7 +6008,7 @@
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
       "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "fastp",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/leehom/stage-result.json",
       "declared_raw_output_ids": [
@@ -5997,6 +6031,8 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
       ],
@@ -6030,7 +6066,7 @@
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
       "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "fastp",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/prinseq/stage-result.json",
       "declared_raw_output_ids": [
@@ -6053,6 +6089,8 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
       ],
@@ -6086,7 +6124,7 @@
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
       "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "fastp",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/seqkit/stage-result.json",
       "declared_raw_output_ids": [
@@ -6109,6 +6147,8 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
       ],
@@ -6142,7 +6182,7 @@
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
       "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "fastp",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/skewer/stage-result.json",
       "declared_raw_output_ids": [
@@ -6165,6 +6205,8 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
       ],
@@ -6198,7 +6240,7 @@
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
       "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "fastp",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/trim_galore/stage-result.json",
       "declared_raw_output_ids": [
@@ -6221,6 +6263,8 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
       ],
@@ -6254,7 +6298,7 @@
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
       "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "fastp",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/trimmomatic/stage-result.json",
       "declared_raw_output_ids": [
@@ -6277,6 +6321,8 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
       ],

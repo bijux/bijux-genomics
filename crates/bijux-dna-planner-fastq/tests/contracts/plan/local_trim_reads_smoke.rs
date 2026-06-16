@@ -13,11 +13,13 @@ fn repo_root() -> PathBuf {
 fn local_trim_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
     let repo_root = repo_root();
     let plans = bijux_dna_planner_fastq::stage_api::local_trim_reads_smoke_plans(&repo_root)?;
-    assert_eq!(plans.len(), 2, "governed trim smoke should keep curated SE and PE cases");
+    assert_eq!(plans.len(), 3, "governed trim smoke should keep curated fastp SE/PE proofs plus single-end bbduk backend-report coverage");
 
     let se_case = plans
         .iter()
-        .find(|case| case.sample_id == "adapter-quality-se")
+        .find(|case| {
+            case.sample_id == "adapter-quality-se" && case.plan.tool_id.as_str() == "fastp"
+        })
         .unwrap_or_else(|| panic!("single-end trim smoke case missing"));
     assert_eq!(se_case.plan.stage_id.as_str(), "fastq.trim_reads");
     assert_eq!(se_case.plan.tool_id.as_str(), "fastp");
@@ -35,7 +37,9 @@ fn local_trim_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
 
     let pe_case = plans
         .iter()
-        .find(|case| case.sample_id == "adapter-quality-pe")
+        .find(|case| {
+            case.sample_id == "adapter-quality-pe" && case.plan.tool_id.as_str() == "fastp"
+        })
         .unwrap_or_else(|| panic!("paired-end trim smoke case missing"));
     assert_eq!(
         pe_case.r1,
@@ -50,6 +54,15 @@ fn local_trim_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
         PathBuf::from("runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp")
     );
     assert_eq!(pe_case.plan.effective_params["paired_mode"], serde_json::json!("paired_end"));
+
+    let bbduk_case = plans
+        .iter()
+        .find(|case| {
+            case.sample_id == "adapter-quality-se" && case.plan.tool_id.as_str() == "bbduk"
+        })
+        .unwrap_or_else(|| panic!("bbduk single-end trim smoke case missing"));
+    assert_eq!(bbduk_case.plan.stage_id.as_str(), "fastq.trim_reads");
+    assert_eq!(bbduk_case.plan.tool_id.as_str(), "bbduk");
 
     Ok(())
 }

@@ -664,6 +664,8 @@ struct LocalTrimPolygTailsSmokeConfig {
     schema_version: String,
     tool_id: String,
     #[serde(default)]
+    supplemental_tool_ids: Vec<String>,
+    #[serde(default)]
     threads: Option<u32>,
     #[serde(default)]
     trim_polyg: Option<bool>,
@@ -678,6 +680,8 @@ struct LocalTrimPolygTailsSmokeConfig {
 struct LocalTrimReadsSmokeConfig {
     schema_version: String,
     tool_id: String,
+    #[serde(default)]
+    supplemental_tool_ids: Vec<String>,
     #[serde(default)]
     threads: Option<u32>,
     #[serde(default)]
@@ -793,7 +797,7 @@ struct LocalRemoveChimerasSmokeCase {
     reads: PathBuf,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct LocalNormalizePrimersSmokeCase {
     sample_id: String,
     r1: PathBuf,
@@ -825,7 +829,7 @@ struct LocalTrimTerminalDamageSmokeCase {
     r2: Option<PathBuf>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct LocalTrimPolygTailsSmokeCase {
     sample_id: String,
     r1: PathBuf,
@@ -833,7 +837,7 @@ struct LocalTrimPolygTailsSmokeCase {
     r2: Option<PathBuf>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct LocalTrimReadsSmokeCase {
     sample_id: String,
     r1: PathBuf,
@@ -1582,42 +1586,52 @@ pub fn local_trim_polyg_tails_smoke_plans(
     ensure_unique_trim_polyg_tails_sample_ids(&config.cases)?;
 
     let stage_id = StageId::new(STAGE_TRIM_POLYG_TAILS.as_str().to_string());
-    let tool_id = ToolId::try_from(config.tool_id.as_str())
-        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
-    if !allowed_tools_for_stage(&stage_id).iter().any(|candidate| candidate == &tool_id) {
-        return Err(anyhow!(
-            "local-smoke fastq.trim_polyg_tails tool_id `{}` is not admitted for {}",
-            tool_id.as_str(),
-            stage_id.as_str()
-        ));
+    let requested_tool_ids = std::iter::once(config.tool_id.clone())
+        .chain(config.supplemental_tool_ids.iter().cloned())
+        .collect::<Vec<_>>();
+    let mut tool_specs = Vec::new();
+    for raw_tool_id in requested_tool_ids {
+        let tool_id = ToolId::try_from(raw_tool_id.as_str())
+            .map_err(|error| anyhow!("invalid local-smoke tool_id `{raw_tool_id}`: {error}"))?;
+        if !allowed_tools_for_stage(&stage_id).iter().any(|candidate| candidate == &tool_id) {
+            return Err(anyhow!(
+                "local-smoke fastq.trim_polyg_tails tool_id `{}` is not admitted for {}",
+                tool_id.as_str(),
+                stage_id.as_str()
+            ));
+        }
+        if tool_specs.iter().any(|tool_spec: &ToolExecutionSpecV1| tool_spec.tool_id == tool_id) {
+            continue;
+        }
+        let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+        hydrate_smoke_threads(&mut tool_spec, config.threads);
+        tool_specs.push(tool_spec);
     }
-
-    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
-    hydrate_smoke_threads(&mut tool_spec, config.threads);
     let output_root = config
         .output_dir
         .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_TRIM_POLYG_TAILS_OUTPUT_DIR));
     let trim_polyg = config.trim_polyg.unwrap_or(true);
     let min_polyg_run = config.min_polyg_run.unwrap_or(10).max(1);
     let plan_options = TrimPolygPlanOptions {
-        threads: Some(tool_spec.resources.threads.max(1)),
+        threads: Some(config.threads.unwrap_or(1).max(1)),
         trim_polyg,
         min_polyg_run,
     };
 
-    config
-        .cases
-        .into_iter()
-        .map(|case| {
-            build_local_trim_polyg_tails_smoke_case(
+    let cases = config.cases;
+    let mut plans = Vec::new();
+    for tool_spec in &tool_specs {
+        for case in &cases {
+            plans.push(build_local_trim_polyg_tails_smoke_case(
                 repo_root,
-                &tool_spec,
+                tool_spec,
                 &plan_options,
                 &output_root,
-                case,
-            )
-        })
-        .collect()
+                case.clone(),
+            )?);
+        }
+    }
+    Ok(plans)
 }
 
 /// # Errors
@@ -1628,12 +1642,13 @@ pub fn local_trim_reads_smoke_plans(repo_root: &Path) -> Result<Vec<LocalTrimRea
     ensure_unique_trim_reads_sample_ids(&config.cases)?;
 
     let stage_id = StageId::new(STAGE_TRIM_READS.as_str().to_string());
-    let tool_id = ToolId::try_from(config.tool_id.as_str())
-        .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
-    let normalized_tools = select_trim_tools(std::slice::from_ref(&config.tool_id), false)?;
-    if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
+    let requested_tool_ids = std::iter::once(config.tool_id.clone())
+        .chain(config.supplemental_tool_ids.iter().cloned())
+        .collect::<Vec<_>>();
+    let normalized_tools = select_trim_tools(&requested_tool_ids, false)?;
+    if normalized_tools.is_empty() {
         return Err(anyhow!(
-            "local-smoke fastq.trim_reads tool selection normalized unexpectedly: {normalized_tools:?}"
+            "local-smoke fastq.trim_reads must retain at least one admitted trim tool"
         ));
     }
 
@@ -1647,12 +1662,19 @@ pub fn local_trim_reads_smoke_plans(repo_root: &Path) -> Result<Vec<LocalTrimRea
         None
     };
 
-    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
-    hydrate_smoke_threads(&mut tool_spec, config.threads);
+    let mut tool_specs = Vec::new();
+    for normalized_tool_id in normalized_tools {
+        let tool_id = ToolId::try_from(normalized_tool_id.as_str()).map_err(|error| {
+            anyhow!("invalid normalized local-smoke tool_id `{normalized_tool_id}`: {error}")
+        })?;
+        let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+        hydrate_smoke_threads(&mut tool_spec, config.threads);
+        tool_specs.push(tool_spec);
+    }
     let output_root =
         config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_TRIM_READS_OUTPUT_DIR));
     let plan_options = TrimPlanOptions {
-        threads: Some(tool_spec.resources.threads.max(1)),
+        threads: Some(config.threads.unwrap_or(1).max(1)),
         min_length: Some(config.min_length.unwrap_or(30).max(1)),
         quality_cutoff: config.quality_cutoff,
         n_policy: config.n_policy,
@@ -1661,20 +1683,34 @@ pub fn local_trim_reads_smoke_plans(repo_root: &Path) -> Result<Vec<LocalTrimRea
         contaminant_policy: config.contaminant_policy,
     };
 
-    config
-        .cases
-        .into_iter()
-        .map(|case| {
-            build_local_trim_reads_smoke_case(
+    let cases = config.cases;
+    let mut plans = Vec::new();
+    for tool_spec in &tool_specs {
+        let mut tool_options = plan_options.clone();
+        let tool_adapter_bank = if tool_spec.tool_id.as_str() == "bbduk"
+            && matches!(tool_options.adapter_policy.as_deref(), Some("bank" | "ancient_strict"))
+        {
+            tool_options.adapter_policy = Some("none".to_string());
+            tool_options.quality_cutoff = None;
+            None
+        } else {
+            adapter_bank.as_ref()
+        };
+        for case in &cases {
+            if tool_spec.tool_id.as_str() == "bbduk" && case.r2.is_some() {
+                continue;
+            }
+            plans.push(build_local_trim_reads_smoke_case(
                 repo_root,
-                &tool_spec,
-                adapter_bank.as_ref(),
-                &plan_options,
+                tool_spec,
+                tool_adapter_bank,
+                &tool_options,
                 &output_root,
-                case,
-            )
-        })
-        .collect()
+                case.clone(),
+            )?);
+        }
+    }
+    Ok(plans)
 }
 
 fn build_local_detect_adapters_smoke_case(

@@ -60,6 +60,7 @@ enum LocalTrimReadsSmokeLayout {
 #[derive(Debug, Clone, Serialize)]
 struct LocalTrimReadsSmokeCaseReport {
     sample_id: String,
+    tool_id: String,
     layout: LocalTrimReadsSmokeLayout,
     input_r1: String,
     input_r2: Option<String>,
@@ -228,6 +229,7 @@ fn materialize_local_trim_reads_smoke_case(
 
     Ok(LocalTrimReadsSmokeCaseReport {
         sample_id: case.sample_id.clone(),
+        tool_id: case.plan.tool_id.as_str().to_string(),
         layout: if case.r2.is_some() {
             LocalTrimReadsSmokeLayout::PairedEnd
         } else {
@@ -296,6 +298,21 @@ fn write_local_trim_backend_report(
             .to_string(),
         )
         .with_context(|| format!("write local trim backend report {}", path.display())),
+        "bbduk" => {
+            let reads_in = report.reads_in.unwrap_or(0);
+            let reads_out = report.reads_out.unwrap_or(0);
+            let reads_removed = reads_in.saturating_sub(reads_out);
+            let bases_in = report.bases_in.unwrap_or(0);
+            let bases_out = report.bases_out.unwrap_or(0);
+            let bases_removed = bases_in.saturating_sub(bases_out);
+            bijux_dna_infra::write_bytes(
+                path,
+                format!(
+                    "Input:\t{reads_in} reads\t{bases_in} bases\nResult:\t{reads_out} reads\t{bases_out} bases\nReads Removed:\t{reads_removed}\nBases Removed:\t{bases_removed}\n"
+                ),
+            )
+            .with_context(|| format!("write local trim backend report {}", path.display()))
+        }
         _ => Err(anyhow!(
             "local-smoke fastq.trim_reads does not support backend report materialization for tool `{tool_id}`"
         )),

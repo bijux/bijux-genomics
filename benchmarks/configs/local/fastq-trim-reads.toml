@@ -1,5 +1,6 @@
 schema_version = "bijux.bench.fastq.local_trim_reads.v1"
 tool_id = "fastp"
+supplemental_tool_ids = ["bbduk"]
 threads = 1
 min_length = 4
 quality_cutoff = 20
