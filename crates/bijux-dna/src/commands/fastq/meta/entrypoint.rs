@@ -635,6 +635,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderRealOutputParserSmoke(args) => {
+                        crate::commands::benchmark::readiness::real_output_parser_smoke::run_render_real_output_parser_smoke(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVersionProbes(args) => {
                         crate::commands::benchmark::readiness::version_probes::run_render_version_probes(
                             args,

@@ -89,6 +89,7 @@ pub(crate) mod output_contract_tests;
 pub(crate) mod pair_readiness;
 pub(crate) mod parser_completeness_gate;
 pub(crate) mod parser_failure_tests;
+pub(crate) mod real_output_parser_smoke;
 pub(crate) mod removed_from_scope;
 pub(crate) mod rendered_command_argv;
 pub(crate) mod rendered_commands;
