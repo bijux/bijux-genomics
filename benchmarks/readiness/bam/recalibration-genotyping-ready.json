@@ -136,11 +136,13 @@
         "expected_coverage_gate",
         "expected_effective_mode",
         "expected_known_sites",
+        "expected_known_sites_asset_ids",
         "expected_reason",
         "expected_requested_mode",
         "expected_status",
         "input_bam",
         "known_sites",
+        "known_sites_asset_ids",
         "mean_coverage_margin",
         "min_breadth_1x",
         "min_mean_coverage",
@@ -158,7 +160,8 @@
         "schema_version",
         "stage_id",
         "stage_metrics",
-        "status"
+        "status",
+        "tool_id"
       ],
       "required_local_proof_output_ids": [
         "recalibrated_bam",

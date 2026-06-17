@@ -1,0 +1,102 @@
+{
+  "schema_version": "bijux.bench.readiness.bam_recalibration_complete.v1",
+  "output_path": "benchmarks/readiness/bam/stages/bam.recalibration.complete.json",
+  "active_row_count": 1,
+  "complete_row_count": 1,
+  "incomplete_row_count": 0,
+  "checked_surface_count": 13,
+  "expected_tool_ids": [
+    "gatk"
+  ],
+  "required_output_ids": [
+    "recal_bam",
+    "recal_bai",
+    "recal_report",
+    "summary",
+    "stage_metrics"
+  ],
+  "local_smoke_sample_id": "human_like_recalibration_low_coverage",
+  "toolset_ready": true,
+  "violation_count": 0,
+  "ok": true,
+  "rows": [
+    {
+      "result_id": "bam:corpus-01-bam-mini:bam.recalibration:sample-set:gatk",
+      "stage_id": "bam.recalibration",
+      "tool_id": "gatk",
+      "sample_scope": "sample-set",
+      "benchmark_status": "benchmark_ready",
+      "support_status": "supported",
+      "adapter_status": "runnable",
+      "parser_status": "parser_fixture_validated",
+      "corpus_status": "fixture:corpus-01-bam-mini",
+      "report_section_id": "downstream_readiness",
+      "summary_table_id": "variant_readiness",
+      "command_readiness_kind": "smoke",
+      "required_output_ids": [
+        "recal_bam",
+        "recal_bai",
+        "recal_report",
+        "summary",
+        "stage_metrics"
+      ],
+      "stage_output_ids": [
+        "recal_bam",
+        "recal_bai",
+        "recal_report",
+        "summary",
+        "stage_metrics"
+      ],
+      "expected_schema_extension_id": "bam_recalibration_normalized_v1",
+      "schema_extension_id": "bam_recalibration_normalized_v1",
+      "active_scope_proof_path": "benchmarks/readiness/bam-tool-serving-map.tsv",
+      "command_proof_path": "benchmarks/readiness/bam-command-adapter-coverage.tsv",
+      "output_contract_proof_path": "benchmarks/readiness/bam-adapter-output-contract.tsv",
+      "parser_proof_path": "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv",
+      "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
+      "report_map_proof_path": "benchmarks/readiness/bam/bam-report-map.tsv",
+      "schema_proof_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
+      "local_smoke_proof_path": "runs/bench/local-smoke/bam.recalibration/recalibration.json",
+      "local_smoke_summary_path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.summary.json",
+      "local_smoke_stage_metrics_path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/stage.metrics.json",
+      "local_smoke_recalibration_report_path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.report.txt",
+      "local_smoke_recalibrated_bam_path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.bam",
+      "local_smoke_summary_schema_version": "bijux.bam.recalibration.v1",
+      "local_smoke_stage_metrics_schema_version": "bijux.bam.recalibration.local_smoke.metrics.v1",
+      "local_smoke_sample_id": "human_like_recalibration_low_coverage",
+      "local_smoke_input_bam": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_recalibration_low_coverage.sam",
+      "local_smoke_reference_fasta": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+      "local_smoke_known_sites": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"
+      ],
+      "local_smoke_known_sites_asset_ids": [
+        "human_like_recalibration_known_sites"
+      ],
+      "local_smoke_requested_mode": "standard",
+      "local_smoke_effective_mode": "skip",
+      "local_smoke_status": "skipped",
+      "local_smoke_reason": "coverage_below_gate",
+      "local_smoke_min_mean_coverage": 0.2,
+      "local_smoke_min_breadth_1x": 0.2,
+      "local_smoke_observed_mean_coverage": 0.192,
+      "local_smoke_observed_breadth_1x": 0.192,
+      "active_scope_ready": true,
+      "command_ready": true,
+      "output_ready": true,
+      "parser_ready": true,
+      "expected_result_ready": true,
+      "report_ready": true,
+      "schema_ready": true,
+      "local_smoke_ready": true,
+      "summary_ready": true,
+      "stage_metrics_ready": true,
+      "skip_behavior_ready": true,
+      "known_sites_identity_ready": true,
+      "recalibration_report_ready": true,
+      "coverage_status": "complete",
+      "missing_surfaces": [],
+      "reason": "binding `bam.recalibration` / `gatk` keeps retained readiness plus deterministic recalibration skip proof"
+    }
+  ],
+  "violations": []
+}
