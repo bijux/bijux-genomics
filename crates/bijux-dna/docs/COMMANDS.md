@@ -733,6 +733,17 @@ Visible aliases are part of the operator surface:
   The gate fails closed unless the retained damage toolset is complete and the shared local-smoke
   proof preserves terminal 5′/3′ damage metrics, short-fragment fraction, governed damage
   signal, and normalized per-sample deltas without drift.
+- `bijux-dna bench readiness render-bam-authenticity-complete`
+  `render-bam-authenticity-complete` writes
+  `benchmarks/readiness/bam/stages/bam.authenticity.complete.json` with every retained
+  `bam.authenticity` binding promoted into a stage-owned completion gate. The report keeps
+  active-scope, command, output, parser, expected-result, report-map, schema, and local-smoke
+  proofs explicit for `authenticct`, `damageprofiler`, and `pmdtools`, while also locking the
+  governed authenticity advisory contract across the typed `authenticity.json`,
+  `authenticity.summary.json`, `authenticity_composite.json`, and `stage.metrics.json`
+  artifacts. The gate fails closed unless the shared local-smoke proof preserves authenticity
+  score, status, confidence, and all five upstream evidence paths for damage, contamination,
+  complexity, coverage, and mapping without drift.
 - `bijux-dna bench readiness render-bam-damage-authenticity-ready`
   `render-bam-damage-authenticity-ready` writes
   `benchmarks/readiness/bam/damage-authenticity-ready.json` with governed rows for
