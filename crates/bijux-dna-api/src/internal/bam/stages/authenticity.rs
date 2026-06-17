@@ -22,6 +22,7 @@ struct LocalAuthenticitySmokeReport {
     method: String,
     score: f64,
     confidence: f64,
+    status: String,
     pmd_like_signal_present: bool,
     #[serde(default)]
     contamination_estimate: Option<f64>,
@@ -325,6 +326,8 @@ fn materialize_local_authenticity_smoke_case(
     let missing_metrics = missing_metric_ids(&composition);
     let expectation_matched = float_matches(authenticity_summary.score, case.expected_score)
         && float_matches(authenticity_summary.confidence, case.expected_confidence)
+        && authenticity_summary.status
+            == bijux_dna_domain_bam::metrics::authenticity_status(case.expected_score)
         && authenticity_summary.pmd_like_signal_present == case.expected_pmd_like_signal_present
         && consumed_metrics == case.expected_consumed_metrics;
     let score_delta = authenticity_summary.score - case.expected_score;
@@ -385,6 +388,8 @@ fn materialize_local_authenticity_smoke_case(
             "expected_confidence": case.expected_confidence,
             "confidence": authenticity_summary.confidence,
             "confidence_delta": confidence_delta,
+            "expected_status": bijux_dna_domain_bam::metrics::authenticity_status(case.expected_score),
+            "status": authenticity_summary.status,
             "expected_pmd_like_signal_present": case.expected_pmd_like_signal_present,
             "pmd_like_signal_present": authenticity_summary.pmd_like_signal_present,
             "contamination_estimate": contamination_estimate,
@@ -404,6 +409,7 @@ fn materialize_local_authenticity_smoke_case(
         method: case.plan.tool_id.as_str().to_string(),
         score: authenticity_summary.score,
         confidence: authenticity_summary.confidence,
+        status: authenticity_summary.status.clone(),
         pmd_like_signal_present: authenticity_summary.pmd_like_signal_present,
         contamination_estimate,
         consumed_metrics,

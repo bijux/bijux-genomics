@@ -35,6 +35,8 @@ metrics:
     meaning: "Governed authenticity evidence score preserved across admitted BAM authenticity tools"
   - name: "confidence"
     meaning: "Confidence assigned to the governed BAM authenticity evidence score"
+  - name: "status"
+    meaning: "Threshold-derived authenticity evidence status emitted alongside score and confidence"
   - name: "pmd_like_signal_present"
     meaning: "PMD-like authenticity signal retained in the governed BAM authenticity comparison surface"
   - name: "consumed_metric_ids"

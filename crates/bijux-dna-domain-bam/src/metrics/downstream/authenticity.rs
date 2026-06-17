@@ -42,6 +42,7 @@ pub struct TrimSuggestionV1 {
 pub struct AuthenticityScoreV1 {
     pub score: f64,
     pub confidence: f64,
+    pub status: String,
     pub evidence: AuthenticityEvidenceV1,
     #[serde(default)]
     pub library_type_inference: Option<LibraryTypeInferenceV1>,
@@ -57,6 +58,7 @@ impl AuthenticityScoreV1 {
         Self {
             score: 0.0,
             confidence: 0.0,
+            status: "fail".to_string(),
             evidence: AuthenticityEvidenceV1::empty(),
             library_type_inference: None,
             trim_suggestion: None,
@@ -105,6 +107,17 @@ pub fn suggest_trim_from_damage(damage_5p: f64, damage_3p: f64) -> Option<TrimSu
 }
 
 #[must_use]
+pub fn authenticity_status(score: f64) -> &'static str {
+    if score < 0.10 {
+        "fail"
+    } else if score < 0.20 {
+        "warn"
+    } else {
+        "pass"
+    }
+}
+
+#[must_use]
 pub fn authenticity_score(metrics: &BamMetricsV1) -> AuthenticityScoreV1 {
     let damage = metrics.damage.c_to_t_5p.max(metrics.damage.g_to_a_3p);
     let damage_score = (damage / 0.3).min(1.0);
@@ -138,6 +151,7 @@ pub fn authenticity_score(metrics: &BamMetricsV1) -> AuthenticityScoreV1 {
     AuthenticityScoreV1 {
         score,
         confidence: 0.6 + 0.4 * score,
+        status: authenticity_status(score).to_string(),
         evidence,
         library_type_inference,
         trim_suggestion,

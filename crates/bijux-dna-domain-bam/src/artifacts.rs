@@ -741,6 +741,7 @@ pub struct BamAuthenticityAdvisoryV1 {
     pub stage_id: String,
     pub score: f64,
     pub confidence: f64,
+    pub status: String,
     pub pmd_like_signal_present: bool,
     pub advisory_boundary: BamAdvisoryBoundaryV1,
     #[serde(default)]
@@ -3991,6 +3992,7 @@ pub fn execute_pmd_authenticity_advisory(metrics: &BamMetricsV1) -> BamAuthentic
         stage_id: "bam.authenticity".to_string(),
         score: authenticity.score,
         confidence: authenticity.confidence,
+        status: authenticity.status,
         pmd_like_signal_present: authenticity.evidence.damage_high,
         advisory_boundary,
         assumptions,
@@ -7031,6 +7033,7 @@ r04\t0\tchranc\t89\t25\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFF
         assert_eq!(advisory.stage_id, "bam.authenticity");
         assert!((advisory.score - 0.866_666_666_666_666_7).abs() <= 1e-12);
         assert!((advisory.confidence - 0.946_666_666_666_666_8).abs() <= 1e-12);
+        assert_eq!(advisory.status, "pass");
         assert!(advisory.pmd_like_signal_present);
         assert!(advisory.advisory_boundary.advisory_only);
         assert_eq!(advisory.advisory_boundary.stage_id, "bam.authenticity");
