@@ -107,7 +107,7 @@ pub use self::readiness::{
     BenchReadinessRenderBamComparableMetricsArgs,
     BenchReadinessRenderBamContaminationSexHaplogroupsReadyArgs,
     BenchReadinessRenderBamCorpusAssignmentArgs,
-    BenchReadinessRenderBamDamageAuthenticityReadyArgs,
+    BenchReadinessRenderBamDamageAuthenticityReadyArgs, BenchReadinessRenderBamDamageCompleteArgs,
     BenchReadinessRenderBamEndogenousContentCompleteArgs,
     BenchReadinessRenderBamInsertSizeGcBiasReadyArgs, BenchReadinessRenderBamKinshipReadyArgs,
     BenchReadinessRenderBamLocalContainerSmokeArgs,

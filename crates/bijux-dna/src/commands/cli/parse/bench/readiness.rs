@@ -34,6 +34,8 @@ pub enum BenchReadinessCommand {
     RenderBamKinshipReady(BenchReadinessRenderBamKinshipReadyArgs),
     #[command(name = "render-bam-recalibration-genotyping-ready")]
     RenderBamRecalibrationGenotypingReady(BenchReadinessRenderBamRecalibrationGenotypingReadyArgs),
+    #[command(name = "render-bam-damage-complete")]
+    RenderBamDamageComplete(BenchReadinessRenderBamDamageCompleteArgs),
     #[command(name = "render-bam-damage-authenticity-ready")]
     RenderBamDamageAuthenticityReady(BenchReadinessRenderBamDamageAuthenticityReadyArgs),
     #[command(name = "render-bam-insert-size-gc-bias-ready")]
@@ -426,6 +428,14 @@ pub struct BenchReadinessRenderBamKinshipReadyArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamRecalibrationGenotypingReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamDamageCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

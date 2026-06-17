@@ -250,6 +250,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamDamageComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_damage_complete::run_render_bam_damage_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamDamageAuthenticityReady(args) => {
                         crate::commands::benchmark::readiness::bam_damage_authenticity_ready::run_render_bam_damage_authenticity_ready(
                             args,
