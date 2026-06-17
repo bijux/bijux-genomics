@@ -1043,6 +1043,14 @@ Visible aliases are part of the operator surface:
   command fails closed unless every retained binding keeps complete declarations, matching runtime
   paths, and independent execution proof through a governed local smoke surface rather than a
   declaration-only or fake-only contract.
+- `bijux-dna bench readiness render-real-output-parser-smoke`
+  `render-real-output-parser-smoke` writes
+  `benchmarks/readiness/tools/real-output-parser-smoke.json` with one governed real-output parser
+  probe per retained tool family. Each row keeps the family id and summary, representative stage
+  and tool, proof path, parser surface, parsed schema version, top-level key audit, normalized
+  snapshot, and an explicit pass reason. The command fails closed unless every retained family has
+  a real tiny output parsed through the owned normalization surface or governed BAM summary schema
+  instead of relying on handcrafted parser fixtures alone.
 - `bijux-dna bench readiness run-container-tool-smoke`
   `run-container-tool-smoke` executes the governed local container smoke wrapper for every
   retained tool that resolves to a non-host runtime and writes one manifest per tool at
