@@ -12,9 +12,15 @@ use serde_json::Value;
 
 use super::expected_benchmark_results::collect_expected_benchmark_result_rows;
 use super::tool_families::{validate_tool_families_path, DEFAULT_TOOL_FAMILIES_PATH};
+use super::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result_rows;
 use crate::commands::benchmark::local_stage_commands::{
     local_stage_plans, materialize_local_stage,
 };
+use crate::commands::benchmark::local_vcf_call_smoke::run_local_vcf_call_smoke;
+use crate::commands::benchmark::local_vcf_impute_smoke::run_local_vcf_impute_smoke;
+use crate::commands::benchmark::local_vcf_phasing_smoke::run_local_vcf_phasing_smoke;
+use crate::commands::benchmark::local_vcf_population_structure_smoke::run_local_vcf_population_structure_smoke;
+use crate::commands::benchmark::local_vcf_qc_smoke::run_local_vcf_qc_smoke;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -79,6 +85,11 @@ enum ProbeKind {
     GeneratedBamGenotyping,
     GeneratedBamKinship,
     GeneratedBamSex,
+    GeneratedVcfCall,
+    GeneratedVcfImpute,
+    GeneratedVcfPhasing,
+    GeneratedVcfPopulationStructure,
+    GeneratedVcfQc,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -109,6 +120,11 @@ enum ParseKind {
     BamKinshipSummary,
     BamSexJson,
     BamGenotypingJson,
+    VcfCallMetrics,
+    VcfImputeMetrics,
+    VcfPhasingMetrics,
+    VcfPopulationStructureReport,
+    VcfQcMetrics,
 }
 
 #[derive(Debug, Clone)]
@@ -275,8 +291,12 @@ fn collect_active_families(repo_root: &Path) -> Result<Vec<(String, String)>> {
     let family_report = validate_tool_families_path(repo_root, &config_path)?;
     let active_tool_ids = collect_expected_benchmark_result_rows(repo_root)?
         .into_iter()
-        .filter(|row| row.domain == "fastq" || row.domain == "bam")
         .map(|row| row.tool_id)
+        .chain(
+            collect_vcf_expected_benchmark_result_rows(repo_root)?
+                .into_iter()
+                .map(|row| row.tool_id),
+        )
         .collect::<BTreeSet<_>>();
 
     let mut families = BTreeMap::<String, String>::new();
@@ -513,6 +533,59 @@ fn family_probe_specs() -> Vec<FamilyProbeSpec> {
             parse_kind: ParseKind::BamSexJson,
             snapshot_keys: &["method", "x_to_y_ratio", "confidence", "status"],
         },
+        FamilyProbeSpec {
+            family_id: "vcf_calling_and_curation",
+            representative_stage_id: "vcf.call",
+            probe_kind: ProbeKind::GeneratedVcfCall,
+            parse_kind: ParseKind::VcfCallMetrics,
+            snapshot_keys: &["stage_id", "tool_id", "variant_count", "snp_count", "sample_count"],
+        },
+        FamilyProbeSpec {
+            family_id: "vcf_imputation",
+            representative_stage_id: "vcf.impute",
+            probe_kind: ProbeKind::GeneratedVcfImpute,
+            parse_kind: ParseKind::VcfImputeMetrics,
+            snapshot_keys: &[
+                "stage_id",
+                "tool_id",
+                "variant_count",
+                "imputed_genotypes",
+                "masked_truth_match_count",
+            ],
+        },
+        FamilyProbeSpec {
+            family_id: "vcf_ordination_and_population_structure",
+            representative_stage_id: "vcf.population_structure",
+            probe_kind: ProbeKind::GeneratedVcfPopulationStructure,
+            parse_kind: ParseKind::VcfPopulationStructureReport,
+            snapshot_keys: &["tool_id", "status", "sample_groups", "distance_summary"],
+        },
+        FamilyProbeSpec {
+            family_id: "vcf_phasing",
+            representative_stage_id: "vcf.phasing",
+            probe_kind: ProbeKind::GeneratedVcfPhasing,
+            parse_kind: ParseKind::VcfPhasingMetrics,
+            snapshot_keys: &[
+                "stage_id",
+                "tool_id",
+                "input_genotypes",
+                "phased_genotypes",
+                "phase_set_count",
+            ],
+        },
+        FamilyProbeSpec {
+            family_id: "vcf_quality_control",
+            representative_stage_id: "vcf.qc",
+            probe_kind: ProbeKind::GeneratedVcfQc,
+            parse_kind: ParseKind::VcfQcMetrics,
+            snapshot_keys: &[
+                "tool_id",
+                "sample_missingness",
+                "variant_missingness",
+                "heterozygosity",
+                "hwe_summary",
+            ],
+        },
     ];
     specs.push(FamilyProbeSpec {
         family_id: "kinship_relatedness",
@@ -573,6 +646,13 @@ fn materialize_family_proof(
         ProbeKind::GeneratedBamGenotyping => generate_bam_genotyping_probe(repo_root, probe_root),
         ProbeKind::GeneratedBamKinship => generate_bam_kinship_probe(repo_root, probe_root),
         ProbeKind::GeneratedBamSex => generate_bam_sex_probe(repo_root, probe_root),
+        ProbeKind::GeneratedVcfCall => generate_vcf_call_probe(repo_root),
+        ProbeKind::GeneratedVcfImpute => generate_vcf_impute_probe(repo_root),
+        ProbeKind::GeneratedVcfPhasing => generate_vcf_phasing_probe(repo_root),
+        ProbeKind::GeneratedVcfPopulationStructure => {
+            generate_vcf_population_structure_probe(repo_root)
+        }
+        ProbeKind::GeneratedVcfQc => generate_vcf_qc_probe(repo_root),
     }
 }
 
@@ -746,6 +826,52 @@ fn parse_proof(
                 return Err(anyhow!("{} is missing `producer`", proof_path.display()));
             }
         }
+        ParseKind::VcfCallMetrics => {
+            let value = read_json_document(proof_path)?;
+            ensure_governed_keys_present(
+                &value,
+                proof_path,
+                &["schema_version", "stage_id", "tool_id", "variant_count", "sample_count"],
+            )?;
+        }
+        ParseKind::VcfImputeMetrics => {
+            let value = read_json_document(proof_path)?;
+            ensure_governed_keys_present(
+                &value,
+                proof_path,
+                &["schema_version", "stage_id", "tool_id", "variant_count", "imputed_genotypes"],
+            )?;
+        }
+        ParseKind::VcfPhasingMetrics => {
+            let value = read_json_document(proof_path)?;
+            ensure_governed_keys_present(
+                &value,
+                proof_path,
+                &["schema_version", "stage_id", "tool_id", "phased_genotypes", "phase_set_count"],
+            )?;
+        }
+        ParseKind::VcfPopulationStructureReport => {
+            let value = read_json_document(proof_path)?;
+            ensure_governed_keys_present(
+                &value,
+                proof_path,
+                &["schema_version", "tool_id", "status", "sample_groups", "distance_summary"],
+            )?;
+        }
+        ParseKind::VcfQcMetrics => {
+            let value = read_json_document(proof_path)?;
+            ensure_governed_keys_present(
+                &value,
+                proof_path,
+                &[
+                    "schema_version",
+                    "tool_id",
+                    "sample_missingness",
+                    "heterozygosity",
+                    "hwe_summary",
+                ],
+            )?;
+        }
     }
 
     let value = read_json_document(proof_path)?;
@@ -782,6 +908,13 @@ fn parse_surface_label(parse_kind: ParseKind) -> &'static str {
         ParseKind::BamKinshipSummary => "serde_json::<BamKinshipSummaryV1>",
         ParseKind::BamSexJson => "bam::parse_sex_json",
         ParseKind::BamGenotypingJson => "serde_json::<Value> + governed keys",
+        ParseKind::VcfCallMetrics => "serde_json::<Value> + governed vcf call metric keys",
+        ParseKind::VcfImputeMetrics => "serde_json::<Value> + governed vcf impute metric keys",
+        ParseKind::VcfPhasingMetrics => "serde_json::<Value> + governed vcf phasing metric keys",
+        ParseKind::VcfPopulationStructureReport => {
+            "serde_json::<Value> + governed vcf population-structure keys"
+        }
+        ParseKind::VcfQcMetrics => "serde_json::<Value> + governed vcf qc metric keys",
     }
 }
 
@@ -1459,6 +1592,46 @@ fn generate_bam_sex_probe(repo_root: &Path, probe_root: &Path) -> Result<Materia
     Ok(MaterializedProof { proof_path: report_path, observed_tool_id: config.tool_id })
 }
 
+fn generate_vcf_call_probe(repo_root: &Path) -> Result<MaterializedProof> {
+    let report = run_local_vcf_call_smoke(repo_root, "bcftools")?;
+    Ok(MaterializedProof {
+        proof_path: repo_root.join(&report.metrics_path),
+        observed_tool_id: report.tool_id,
+    })
+}
+
+fn generate_vcf_impute_probe(repo_root: &Path) -> Result<MaterializedProof> {
+    let report = run_local_vcf_impute_smoke(repo_root, "beagle")?;
+    Ok(MaterializedProof {
+        proof_path: repo_root.join(&report.metrics_path),
+        observed_tool_id: report.tool_id,
+    })
+}
+
+fn generate_vcf_phasing_probe(repo_root: &Path) -> Result<MaterializedProof> {
+    let report = run_local_vcf_phasing_smoke(repo_root, "shapeit5")?;
+    Ok(MaterializedProof {
+        proof_path: repo_root.join(&report.metrics_path),
+        observed_tool_id: report.tool_id,
+    })
+}
+
+fn generate_vcf_population_structure_probe(repo_root: &Path) -> Result<MaterializedProof> {
+    let report = run_local_vcf_population_structure_smoke(repo_root, "plink2")?;
+    Ok(MaterializedProof {
+        proof_path: repo_root.join(&report.population_structure_json_path),
+        observed_tool_id: report.tool_id,
+    })
+}
+
+fn generate_vcf_qc_probe(repo_root: &Path) -> Result<MaterializedProof> {
+    let report = run_local_vcf_qc_smoke(repo_root, "plink")?;
+    Ok(MaterializedProof {
+        proof_path: repo_root.join(&report.metrics_path),
+        observed_tool_id: report.tool_id,
+    })
+}
+
 fn observe_tool_id(repo_root: &Path, proof_path: &Path, stage_id: &str) -> Result<String> {
     let value = read_json_document(proof_path)?;
     if let Some(tool_id) = value
@@ -1546,6 +1719,15 @@ fn copy_file(source: &Path, destination: &Path) -> Result<()> {
     }
     fs::copy(source, destination)
         .with_context(|| format!("copy {} -> {}", source.display(), destination.display()))?;
+    Ok(())
+}
+
+fn ensure_governed_keys_present(value: &Value, proof_path: &Path, keys: &[&str]) -> Result<()> {
+    for key in keys {
+        if value.get(*key).is_none() {
+            return Err(anyhow!("{} is missing `{key}`", proof_path.display()));
+        }
+    }
     Ok(())
 }
 
