@@ -29,7 +29,6 @@ tool_ids = [
   "fastp",
   "fastx_clipper",
   "leehom",
-  "seqpurge",
   "skewer",
   "trim_galore",
   "trimmomatic",
@@ -43,7 +42,7 @@ tool_ids = ["bbmerge", "flash2", "pear"]
 [[families]]
 family_id = "read_filtering_and_low_complexity"
 summary = "Tools whose primary benchmark role is filtering reads by complexity, content, or lightweight sequence constraints."
-tool_ids = ["bbduk", "dustmasker", "prinseq", "seqkit"]
+tool_ids = ["bbduk", "prinseq", "seqkit"]
 
 [[families]]
 family_id = "read_validation_and_profiling"

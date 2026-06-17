@@ -51,7 +51,7 @@ fn bench_readiness_tool_families_report_governs_all_benchmark_tools() {
         Some("primary_benchmark_function")
     );
     assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(25));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(67));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(65));
     assert_eq!(payload.get("valid").and_then(serde_json::Value::as_bool), Some(true));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");

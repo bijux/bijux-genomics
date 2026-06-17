@@ -313,7 +313,7 @@ mod tests {
         assert_eq!(report.schema_version, TOOL_FAMILIES_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.classification_scope, "primary_benchmark_function");
         assert_eq!(report.family_count, 25);
-        assert_eq!(report.tool_count, 67);
+        assert_eq!(report.tool_count, 65);
         assert!(report.valid, "governed tool family config must validate cleanly");
 
         let bowtie2_build = report
