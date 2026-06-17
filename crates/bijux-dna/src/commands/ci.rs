@@ -271,6 +271,16 @@ const CHANGED_PATH_RULES: &[ChangedPathRule] = &[
         reason: "population mini-smoke truth belongs to the science fixture lane",
     },
     ChangedPathRule {
+        matcher: "benchmarks/tests/fixtures/science/fastq-trimming-truth/",
+        command: "make science-fixtures-fast",
+        reason: "FASTQ trimming truth belongs to the science fixture lane",
+    },
+    ChangedPathRule {
+        matcher: "crates/bijux-dna/tests/fixtures_validate_expected_fastq_trimming_truth",
+        command: "make science-fixtures-fast",
+        reason: "FASTQ trimming expected outputs belong to the science fixture lane",
+    },
+    ChangedPathRule {
         matcher: "crates/bijux-dna/tests/fixtures_validate_expected_vcf_mini_stdout.rs",
         command: "make science-fixtures-fast",
         reason: "VCF mini expected outputs belong to the science fixture lane",
