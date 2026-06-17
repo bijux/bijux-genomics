@@ -14,13 +14,12 @@ fn bench_local_judge_taxonomy_output_json_reports_governed_corpus_02_match() {
     let home = tempfile::tempdir().expect("tempdir");
     let output_path = home.path().join("taxonomy-judgment.json");
 
-    let output = Command::new("cargo")
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["run", "-q", "-p", "bijux-dna", "--"])
         .args([
             "bench",
             "local",
@@ -83,6 +82,16 @@ fn bench_local_judge_taxonomy_output_json_reports_governed_corpus_02_match() {
             && samples.iter().any(|sample| {
                 sample.get("sample_id").and_then(serde_json::Value::as_str)
                     == Some("mock_community_sample_b")
+                    && sample
+                        .get("observed_unclassified_percent")
+                        .and_then(serde_json::Value::as_f64)
+                        == Some(0.0)
+                    && sample
+                        .get("observed_unclassified_read_count")
+                        .and_then(serde_json::Value::as_u64)
+                        == Some(0)
+                    && sample.get("false_positive_count").and_then(serde_json::Value::as_u64)
+                        == Some(0)
                     && sample
                         .get("observed_taxa")
                         .and_then(serde_json::Value::as_array)
