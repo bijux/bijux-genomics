@@ -42,4 +42,5 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /data
-CMD ["fastqc", "--help"]
+ENTRYPOINT ["fastqc"]
+CMD ["--help"]

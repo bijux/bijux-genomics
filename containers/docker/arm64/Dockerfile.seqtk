@@ -51,4 +51,5 @@ RUN echo '#!/bin/sh' > /usr/local/bin/seqtk && \
     chmod +x /usr/local/bin/seqtk
 
 WORKDIR /data
-CMD ["seqtk", "--help"]
+ENTRYPOINT ["seqtk"]
+CMD ["--help"]

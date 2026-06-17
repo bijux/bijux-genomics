@@ -29,27 +29,26 @@ RUN apt-get update && \
       curl && \
     curl -fsSL "https://sourceforge.net/projects/fastuniq/files/FastUniq-${VERSION_FASTUNIQ}.tar.gz/download" -o /tmp/FastUniq.tar.gz && \
     tar -xzf /tmp/FastUniq.tar.gz -C /tmp && \
+    sed -i 's/[[:space:]]-m64//g' /tmp/FastUniq/source/Makefile && \
     make -C /tmp/FastUniq/source && \
     install -d /usr/local/libexec && \
     install -m 0755 /tmp/FastUniq/source/fastuniq /usr/local/libexec/fastuniq.real && \
-    cat <<'EOF' > /usr/local/bin/fastuniq && \
-#!/bin/sh
-set -eu
-case "${1:-}" in
-  --version)
-    echo "${VERSION_FASTUNIQ}"
-    exit 0
-    ;;
-  --help|-h|"")
-    cat <<'EOH'
-FastUniq 1.1
-Usage: fastuniq -i <input_list.txt> -t <q|f|p> -o <out1> [-p <out2>] [-c <0|1>]
-EOH
-    exit 0
-    ;;
-esac
-exec /usr/local/libexec/fastuniq.real "$@"
-EOF
+    printf '%s\n' \
+    '#!/bin/sh' \
+    'set -eu' \
+    'case "${1:-}" in' \
+    '  --version)' \
+    '    echo "${VERSION_FASTUNIQ}"' \
+    '    exit 0' \
+    '    ;;' \
+    '  --help|-h|"")' \
+    '    echo "FastUniq 1.1"' \
+    '    echo "Usage: fastuniq -i <input_list.txt> -t <q|f|p> -o <out1> [-p <out2>] [-c <0|1>]"' \
+    '    exit 0' \
+    '    ;;' \
+    'esac' \
+    'exec /usr/local/libexec/fastuniq.real "$@"' \
+    > /usr/local/bin/fastuniq && \
     chmod +x /usr/local/bin/fastuniq && \
     rm -rf /tmp/FastUniq /tmp/FastUniq.tar.gz && \
     rm -rf /var/lib/apt/lists/*

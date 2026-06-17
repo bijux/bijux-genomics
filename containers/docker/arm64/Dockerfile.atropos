@@ -90,8 +90,7 @@ RUN CFLAGS="-include /tmp/pygensend.h" CPPFLAGS="-include /tmp/pygensend.h" \
     ln -s /opt/atropos-venv/bin/atropos /usr/local/bin/atropos
 
 WORKDIR /data
-
 LABEL org.opencontainers.image.source="https://github.com/jdidion/atropos" \
       org.opencontainers.image.version="${VERSION_ATROPOS}"
-
-CMD ["atropos", "--version"]
+ENTRYPOINT ["atropos"]
+CMD ["--help"]
