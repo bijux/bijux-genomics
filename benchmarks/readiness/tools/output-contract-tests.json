@@ -10,8 +10,9 @@
     "vcf": 20
   },
   "output_proof_surface_counts": {
+    "direct_declared_output_proof": 5,
     "direct_tool_smoke": 20,
-    "shared_stage_smoke": 120
+    "shared_stage_smoke": 115
   },
   "failed_stage_ids": [],
   "failed_tool_ids": [],
@@ -329,8 +330,8 @@
       "tool_id": "mapdamage2",
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
-      "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.json",
+      "output_proof_surface": "direct_declared_output_proof",
+      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.bias_mitigation/mapdamage2 (result ids: bam:corpus-01-bam-mini:bam.bias_mitigation:sample-set:mapdamage2)",
       "proof_tool_id": "mapdamage2",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.bias_mitigation/sample-set/mapdamage2/stage-result.json",
@@ -355,11 +356,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.json",
-        "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.summary.json",
-        "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/damage_plot.json",
-        "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/damage_profile.json",
-        "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/stage.metrics.json"
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.bias_mitigation/mapdamage2/bias_report/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.bias_mitigation/mapdamage2/damage_plot/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.bias_mitigation/mapdamage2/damage_profile/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.bias_mitigation/mapdamage2/stage_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.bias_mitigation/mapdamage2/summary/proof.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -380,7 +381,7 @@
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": true,
-      "reason": "binding `bam.bias_mitigation` / `mapdamage2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
+      "reason": "binding `bam.bias_mitigation` / `mapdamage2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.complexity:sample-set:preseq",
@@ -1592,8 +1593,8 @@
       "tool_id": "angsd",
       "corpus_id": "corpus-01-genotyping-mini",
       "asset_profile_id": "reference_fasta+regions+sites_vcf",
-      "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.json",
+      "output_proof_surface": "direct_declared_output_proof",
+      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/angsd (result ids: bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd)",
       "proof_tool_id": "angsd",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/angsd/stage-result.json",
@@ -1616,10 +1617,10 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "benchmarks/readiness/local-ready/bam.genotyping/genotyping.json",
-        "benchmarks/readiness/local-ready/bam.genotyping/genotyping.summary.json",
-        "benchmarks/readiness/local-ready/bam.genotyping/population_metrics.json",
-        "benchmarks/readiness/local-ready/bam.genotyping/stage.metrics.json"
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/angsd/genotyping_report/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/angsd/population_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/angsd/stage_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.genotyping/angsd/summary/proof.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -1640,7 +1641,7 @@
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": true,
-      "reason": "binding `bam.genotyping` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
+      "reason": "binding `bam.genotyping` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.haplogroups:sample-set:yleaf",
@@ -1649,8 +1650,8 @@
       "tool_id": "yleaf",
       "corpus_id": "corpus-01-adna-bam-mini",
       "asset_profile_id": "reference_fasta+reference_panel",
-      "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.json",
+      "output_proof_surface": "direct_declared_output_proof",
+      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.haplogroups/yleaf (result ids: bam:corpus-01-adna-bam-mini:bam.haplogroups:sample-set:yleaf)",
       "proof_tool_id": "yleaf",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.haplogroups/sample-set/yleaf/stage-result.json",
@@ -1673,10 +1674,10 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "benchmarks/readiness/local-ready/bam.haplogroups/haplogroup_report.json",
-        "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.json",
-        "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.summary.json",
-        "benchmarks/readiness/local-ready/bam.haplogroups/stage.metrics.json"
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.haplogroups/yleaf/haplogroup_report/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.haplogroups/yleaf/haplogroups/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.haplogroups/yleaf/stage_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.haplogroups/yleaf/summary/proof.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -1697,7 +1698,7 @@
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": true,
-      "reason": "binding `bam.haplogroups` / `yleaf` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
+      "reason": "binding `bam.haplogroups` / `yleaf` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.insert_size:sample-set:picard",
@@ -1763,8 +1764,8 @@
       "tool_id": "angsd",
       "corpus_id": "corpus-01-kinship-mini",
       "asset_profile_id": "reference_fasta+reference_panel",
-      "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/angsd/kinship.json",
+      "output_proof_surface": "direct_declared_output_proof",
+      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd (result ids: bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd)",
       "proof_tool_id": "angsd",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stage-result.json",
@@ -1787,14 +1788,10 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/angsd/kinship.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/angsd/kinship.summary.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/angsd/population_metrics.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/angsd/stage.metrics.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/angsd/kinship.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/angsd/kinship.summary.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/angsd/population_metrics.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/angsd/stage.metrics.json"
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd/kinship_report/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd/population_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd/stage_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/angsd/summary/proof.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -1815,7 +1812,7 @@
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": true,
-      "reason": "binding `bam.kinship` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
+      "reason": "binding `bam.kinship` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
@@ -1824,8 +1821,8 @@
       "tool_id": "king",
       "corpus_id": "corpus-01-kinship-mini",
       "asset_profile_id": "reference_fasta+reference_panel",
-      "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.json",
+      "output_proof_surface": "direct_declared_output_proof",
+      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/king (result ids: bam:corpus-01-kinship-mini:bam.kinship:sample-set:king)",
       "proof_tool_id": "king",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king/stage-result.json",
@@ -1846,12 +1843,9 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.summary.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/stage.metrics.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.summary.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/stage.metrics.json"
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/king/kinship_report/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/king/stage_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.kinship/king/summary/proof.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -1872,7 +1866,7 @@
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": true,
-      "reason": "binding `bam.kinship` / `king` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
+      "reason": "binding `bam.kinship` / `king` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.length_filter:sample-set:picard",
