@@ -28,6 +28,7 @@ pub(crate) mod all_domain_report_map_coverage;
 pub(crate) mod all_domain_retained_tools;
 pub(crate) mod all_domain_stage_tool_table;
 pub(crate) mod apptainer_map;
+pub(crate) mod bam_active_row_consistency;
 pub(crate) mod bam_adapter_output_contract;
 pub(crate) mod bam_all_retained_tools_complete;
 pub(crate) mod bam_authenticity_complete;

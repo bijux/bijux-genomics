@@ -101,6 +101,7 @@ pub use self::readiness::{
     BenchReadinessRenderAllDomainReportMapCoverageArgs,
     BenchReadinessRenderAllDomainRetainedToolsArgs,
     BenchReadinessRenderAllDomainStageToolTableArgs, BenchReadinessRenderApptainerMapArgs,
+    BenchReadinessRenderBamActiveRowConsistencyArgs,
     BenchReadinessRenderBamAdapterOutputContractArgs,
     BenchReadinessRenderBamAllRetainedToolsCompleteArgs,
     BenchReadinessRenderBamAuthenticityCompleteArgs,

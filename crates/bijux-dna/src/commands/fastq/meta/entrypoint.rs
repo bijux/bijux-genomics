@@ -250,6 +250,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamActiveRowConsistency(args) => {
+                        crate::commands::benchmark::readiness::bam_active_row_consistency::run_render_bam_active_row_consistency(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamKinshipComplete(args) => {
                         crate::commands::benchmark::readiness::bam_kinship_complete::run_render_bam_kinship_complete(
                             args,
