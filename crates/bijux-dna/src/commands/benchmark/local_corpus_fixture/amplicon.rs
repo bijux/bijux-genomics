@@ -214,6 +214,38 @@ struct AmpliconAbundanceTableMetrics {
     feature_count: u64,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub(crate) struct AmpliconPrimerTruthRow {
+    pub(crate) primer_id: String,
+    pub(crate) forward_sequence: String,
+    pub(crate) reverse_sequence: String,
+    pub(crate) target: String,
+    pub(crate) orientation: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub(crate) struct AmpliconExpectedAsvTruthRow {
+    pub(crate) asv_id: String,
+    pub(crate) sequence: String,
+    pub(crate) sample_id: String,
+    pub(crate) expected_presence: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub(crate) struct AmpliconExpectedChimeraTruthRow {
+    pub(crate) chimera_id: String,
+    pub(crate) sequence: String,
+    pub(crate) sample_id: String,
+    pub(crate) expected_presence: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub(crate) struct AmpliconAbundanceTruthRow {
+    pub(crate) sample_id: String,
+    pub(crate) feature_id: String,
+    pub(crate) abundance: u64,
+}
+
 pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
     repo_root: &Path,
     manifest_path: &Path,
@@ -354,7 +386,239 @@ pub(crate) fn validate_amplicon_corpus_fixture_manifest_path(
     })
 }
 
-fn load_amplicon_corpus_fixture_manifest_path(
+pub(crate) fn load_amplicon_corpus_fixture_manifest_path(
+    manifest_path: &Path,
+) -> Result<AmpliconCorpusFixtureManifest> {
+    load_amplicon_corpus_fixture_manifest_path_impl(manifest_path)
+}
+
+pub(crate) fn validate_amplicon_corpus_fixture_manifest_contract(
+    manifest: &AmpliconCorpusFixtureManifest,
+) -> Result<()> {
+    validate_amplicon_corpus_fixture_manifest_contract_impl(manifest)
+}
+
+pub(crate) fn load_validated_amplicon_primer_rows(
+    repo_root: &Path,
+    manifest_path: &Path,
+    manifest: &AmpliconCorpusFixtureManifest,
+) -> Result<Vec<AmpliconPrimerTruthRow>> {
+    let manifest_dir = manifest_path.parent().ok_or_else(|| {
+        anyhow!("fixture manifest has no parent directory: {}", manifest_path.display())
+    })?;
+    let primer_fasta_path = resolve_manifest_relative_path(manifest_dir, &manifest.primer_fasta);
+    let primers_tsv_path = resolve_manifest_relative_path(manifest_dir, &manifest.primers_tsv_path);
+    let primer_fasta_records = validate_primer_fasta_headers(manifest, &primer_fasta_path)?;
+    let rows = validate_primer_table_contract(
+        repo_root,
+        manifest,
+        &primers_tsv_path,
+        &primer_fasta_records,
+    )?;
+    Ok(rows
+        .into_iter()
+        .map(|row| AmpliconPrimerTruthRow {
+            primer_id: row.primer_id,
+            forward_sequence: row.forward_sequence,
+            reverse_sequence: row.reverse_sequence,
+            target: row.target,
+            orientation: row.orientation,
+        })
+        .collect())
+}
+
+pub(crate) fn load_validated_amplicon_expected_asv_rows(
+    repo_root: &Path,
+    manifest_path: &Path,
+    manifest: &AmpliconCorpusFixtureManifest,
+) -> Result<Vec<AmpliconExpectedAsvTruthRow>> {
+    let manifest_dir = manifest_path.parent().ok_or_else(|| {
+        anyhow!("fixture manifest has no parent directory: {}", manifest_path.display())
+    })?;
+    let expected_asvs_path =
+        resolve_manifest_relative_path(manifest_dir, &manifest.expected_asvs_path);
+    let rows = validate_expected_asvs_contract(repo_root, manifest, &expected_asvs_path)?;
+    Ok(rows
+        .into_iter()
+        .map(|row| AmpliconExpectedAsvTruthRow {
+            asv_id: row.asv_id,
+            sequence: row.sequence,
+            sample_id: row.sample_id,
+            expected_presence: match row.expected_presence {
+                AmpliconExpectedPresence::Present => "present".to_string(),
+                AmpliconExpectedPresence::Absent => "absent".to_string(),
+            },
+        })
+        .collect())
+}
+
+pub(crate) fn load_validated_amplicon_expected_chimera_rows(
+    repo_root: &Path,
+    manifest_path: &Path,
+    manifest: &AmpliconCorpusFixtureManifest,
+) -> Result<Vec<AmpliconExpectedChimeraTruthRow>> {
+    let manifest_dir = manifest_path.parent().ok_or_else(|| {
+        anyhow!("fixture manifest has no parent directory: {}", manifest_path.display())
+    })?;
+    let chimera_controls_fasta_path =
+        resolve_manifest_relative_path(manifest_dir, &manifest.chimera_controls_fasta_path);
+    let chimera_expectations_path =
+        resolve_manifest_relative_path(manifest_dir, &manifest.chimera_expectations_path);
+    let chimera_control_records = load_fasta_records(&chimera_controls_fasta_path)?;
+    let rows = validate_chimera_expectations_contract(
+        repo_root,
+        manifest,
+        &chimera_controls_fasta_path,
+        &chimera_expectations_path,
+        &chimera_control_records,
+    )?;
+    Ok(rows
+        .into_iter()
+        .map(|row| AmpliconExpectedChimeraTruthRow {
+            chimera_id: row.chimera_id,
+            sequence: row.sequence,
+            sample_id: row.sample_id,
+            expected_presence: match row.expected_presence {
+                AmpliconExpectedPresence::Present => "present".to_string(),
+                AmpliconExpectedPresence::Absent => "absent".to_string(),
+            },
+        })
+        .collect())
+}
+
+pub(crate) fn load_validated_amplicon_abundance_rows(
+    repo_root: &Path,
+    manifest_path: &Path,
+    manifest: &AmpliconCorpusFixtureManifest,
+    table_kind: &str,
+) -> Result<Vec<AmpliconAbundanceTruthRow>> {
+    let manifest_dir = manifest_path.parent().ok_or_else(|| {
+        anyhow!("fixture manifest has no parent directory: {}", manifest_path.display())
+    })?;
+    let table =
+        manifest.abundance_tables.iter().find(|table| table.table_kind == table_kind).ok_or_else(
+            || {
+                anyhow!(
+                    "amplicon corpus fixture `{}` does not declare abundance table kind `{}`",
+                    manifest.corpus_id,
+                    table_kind
+                )
+            },
+        )?;
+    validate_amplicon_abundance_table(repo_root, manifest_dir, manifest, table)?;
+    load_amplicon_abundance_rows(repo_root, manifest_dir, manifest, table)
+}
+
+fn load_amplicon_abundance_rows(
+    repo_root: &Path,
+    manifest_dir: &Path,
+    manifest: &AmpliconCorpusFixtureManifest,
+    table: &AmpliconCorpusAbundanceTable,
+) -> Result<Vec<AmpliconAbundanceTruthRow>> {
+    let table_path = resolve_manifest_relative_path(manifest_dir, &table.table_path);
+    let raw = fs::read_to_string(&table_path)
+        .with_context(|| format!("read {}", table_path.display()))?;
+    let mut lines = raw.lines();
+    let header = lines.next().ok_or_else(|| {
+        anyhow!(
+            "amplicon corpus abundance table `{}` is empty: {}",
+            table.sample_id,
+            table_path.display()
+        )
+    })?;
+    if header != "sample_id\tfeature_id\tabundance" {
+        return Err(anyhow!(
+            "amplicon corpus abundance table `{}` header is unexpected in {}",
+            table.sample_id,
+            table_path.display()
+        ));
+    }
+
+    let biological_sample_ids = manifest
+        .samples
+        .iter()
+        .filter(|sample| matches!(sample.sample_kind, AmpliconCorpusSampleKind::Biological))
+        .map(|sample| sample.sample_id.as_str())
+        .collect::<BTreeSet<_>>();
+    let manifest_relative_path = path_relative_to_repo(repo_root, &table_path);
+    let mut sample_feature_pairs = BTreeSet::new();
+    let mut rows = Vec::new();
+    for line in lines {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let mut fields = line.split('\t');
+        let sample_id = fields.next().ok_or_else(|| {
+            anyhow!(
+                "amplicon corpus abundance table `{}` row is missing `sample_id` in {}",
+                table.sample_id,
+                manifest_relative_path
+            )
+        })?;
+        let feature_id = fields.next().ok_or_else(|| {
+            anyhow!(
+                "amplicon corpus abundance table `{}` row is missing `feature_id` in {}",
+                table.sample_id,
+                manifest_relative_path
+            )
+        })?;
+        let abundance = fields.next().ok_or_else(|| {
+            anyhow!(
+                "amplicon corpus abundance table `{}` row is missing `abundance` in {}",
+                table.sample_id,
+                manifest_relative_path
+            )
+        })?;
+        if fields.next().is_some() {
+            return Err(anyhow!(
+                "amplicon corpus abundance table `{}` row has too many columns in {}",
+                table.sample_id,
+                manifest_relative_path
+            ));
+        }
+        if sample_id.trim().is_empty() || feature_id.trim().is_empty() {
+            return Err(anyhow!(
+                "amplicon corpus abundance table `{}` must not contain empty identifiers in {}",
+                table.sample_id,
+                manifest_relative_path
+            ));
+        }
+        if !biological_sample_ids.contains(sample_id) {
+            return Err(anyhow!(
+                "amplicon corpus abundance table `{}` references undeclared biological sample `{sample_id}` in {}",
+                table.sample_id,
+                manifest_relative_path
+            ));
+        }
+        let abundance_value = abundance.parse::<u64>().with_context(|| {
+            format!(
+                "parse abundance value for sample `{sample_id}` feature `{feature_id}` in {manifest_relative_path}"
+            )
+        })?;
+        if !sample_feature_pairs.insert((sample_id.to_string(), feature_id.to_string())) {
+            return Err(anyhow!(
+                "amplicon corpus abundance table `{}` repeats (`{sample_id}`, `{feature_id}`) in {}",
+                table.sample_id,
+                manifest_relative_path
+            ));
+        }
+        rows.push(AmpliconAbundanceTruthRow {
+            sample_id: sample_id.to_string(),
+            feature_id: feature_id.to_string(),
+            abundance: abundance_value,
+        });
+    }
+    if rows.is_empty() {
+        return Err(anyhow!(
+            "amplicon corpus abundance table `{}` must declare at least one row in {}",
+            table.sample_id,
+            manifest_relative_path
+        ));
+    }
+    Ok(rows)
+}
+
+fn load_amplicon_corpus_fixture_manifest_path_impl(
     manifest_path: &Path,
 ) -> Result<AmpliconCorpusFixtureManifest> {
     let raw = fs::read_to_string(manifest_path)
@@ -362,7 +626,7 @@ fn load_amplicon_corpus_fixture_manifest_path(
     toml::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))
 }
 
-fn validate_amplicon_corpus_fixture_manifest_contract(
+fn validate_amplicon_corpus_fixture_manifest_contract_impl(
     manifest: &AmpliconCorpusFixtureManifest,
 ) -> Result<()> {
     if manifest.schema_version != AMPLICON_CORPUS_FIXTURE_SCHEMA_VERSION {
