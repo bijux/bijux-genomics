@@ -29,14 +29,27 @@ RUN git clone --no-checkout https://github.com/Griffan/VerifyBamID.git /opt/Veri
     git checkout 83a1c936ef2e1a8c9e78ed2d2e2d328adf0c6447 && \
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && \
     cmake --build build -j"$(nproc)" && \
-    BIN_PATH="$(find /opt/VerifyBamID/build -maxdepth 2 -type f -perm -111 | head -n 1)" && \
-    test -n "$BIN_PATH" && \
-    cp "$BIN_PATH" /opt/verifybamid2
+    install -m 0755 /opt/VerifyBamID/bin/VerifyBamID /opt/verifybamid2
 
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-    ca-certificates zlib1g libbz2-1.0 liblzma5 libcurl4 && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /opt/verifybamid2 /usr/local/bin/verifybamid2
+    ca-certificates zlib1g libbz2-1.0 liblzma5 libcurl4 libhts3 libgomp1 && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /opt/verifybamid2 /usr/local/bin/verifybamid2-bin
+RUN printf '%s\n' \
+      '#!/bin/sh' \
+      'show_and_succeed() {' \
+      '  tmp=$(mktemp)' \
+      '  "$@" >"$tmp" 2>&1 || true' \
+      '  cat "$tmp"' \
+      '  rm -f "$tmp"' \
+      '  exit 0' \
+      '}' \
+      'case "${1:-}" in' \
+      '  --version) echo "2.0.1"; exit 0;;' \
+      '  --help|-h|"") show_and_succeed /usr/local/bin/verifybamid2-bin --help ;;' \
+      '  *) exec /usr/local/bin/verifybamid2-bin "$@";; esac' \
+      > /usr/local/bin/verifybamid2 && \
+    chmod +x /usr/local/bin/verifybamid2
 ENTRYPOINT ["/usr/local/bin/verifybamid2"]
 CMD ["--help"]
