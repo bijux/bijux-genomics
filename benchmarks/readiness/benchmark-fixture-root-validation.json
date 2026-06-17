@@ -4,8 +4,8 @@
   "root_path": "benchmarks/tests/fixtures",
   "required_subroot_count": 4,
   "parser_domain_count": 3,
-  "checked_fixture_count": 20,
-  "valid_fixture_count": 20,
+  "checked_fixture_count": 22,
+  "valid_fixture_count": 22,
   "invalid_fixture_count": 0,
   "ok": true,
   "rows": [
@@ -101,6 +101,15 @@
     },
     {
       "fixture_kind": "expected_truth",
+      "fixture_id": "fastq-duplicates-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/fastq-duplicates-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/fastq-duplicates-truth/expected.json",
+      "schema_version": "bijux.bench.fastq_duplicates_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=3"
+    },
+    {
+      "fixture_kind": "expected_truth",
       "fixture_id": "fastq-trimming-truth",
       "manifest_path": "benchmarks/tests/fixtures/science/fastq-trimming-truth/manifest.toml",
       "detail_path": "benchmarks/tests/fixtures/science/fastq-trimming-truth/expected.json",
@@ -179,6 +188,15 @@
       "schema_version": null,
       "valid": true,
       "detail": "present"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "fastq-duplicates-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/fastq-duplicates-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.fastq_duplicates_truth.v1",
+      "valid": true,
+      "detail": "valid"
     },
     {
       "fixture_kind": "science_fixture",
