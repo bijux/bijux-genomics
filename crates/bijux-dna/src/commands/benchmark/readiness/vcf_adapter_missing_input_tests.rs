@@ -157,7 +157,6 @@ fn collect_vcf_adapter_missing_input_test_rows(
     let rows = vec![
         build_adapter_probe_row(
             repo_root,
-            "bam",
             "vcf.call",
             "bcftools",
             &bcftools_call.benchmark_status,
@@ -175,7 +174,6 @@ fn collect_vcf_adapter_missing_input_test_rows(
         )?,
         build_adapter_probe_row(
             repo_root,
-            "bai",
             "vcf.call",
             "bcftools",
             &bcftools_call.benchmark_status,
@@ -193,7 +191,6 @@ fn collect_vcf_adapter_missing_input_test_rows(
         )?,
         build_adapter_probe_row(
             repo_root,
-            "fasta",
             "vcf.call",
             "bcftools",
             &bcftools_call.benchmark_status,
@@ -211,7 +208,6 @@ fn collect_vcf_adapter_missing_input_test_rows(
         )?,
         build_adapter_probe_row(
             repo_root,
-            "fai",
             "vcf.call",
             "bcftools",
             &bcftools_call.benchmark_status,
@@ -229,7 +225,6 @@ fn collect_vcf_adapter_missing_input_test_rows(
         )?,
         build_adapter_probe_row(
             repo_root,
-            "vcf",
             "vcf.phasing",
             "shapeit5",
             &shapeit5.benchmark_status,
@@ -247,7 +242,6 @@ fn collect_vcf_adapter_missing_input_test_rows(
         )?,
         build_adapter_probe_row(
             repo_root,
-            "vcf_index",
             "vcf.phasing",
             "shapeit5",
             &shapeit5.benchmark_status,
@@ -265,7 +259,6 @@ fn collect_vcf_adapter_missing_input_test_rows(
         )?,
         build_adapter_probe_row(
             repo_root,
-            "panel_vcf",
             "vcf.phasing",
             "shapeit5",
             &shapeit5.benchmark_status,
@@ -283,7 +276,6 @@ fn collect_vcf_adapter_missing_input_test_rows(
         )?,
         build_adapter_probe_row(
             repo_root,
-            "map_file",
             "vcf.phasing",
             "shapeit5",
             &shapeit5.benchmark_status,
@@ -301,7 +293,6 @@ fn collect_vcf_adapter_missing_input_test_rows(
         )?,
         build_adapter_probe_row(
             repo_root,
-            "sample_metadata",
             "vcf.pca",
             "plink2",
             &plink2_pca.benchmark_status,
@@ -319,7 +310,6 @@ fn collect_vcf_adapter_missing_input_test_rows(
         )?,
         build_support_probe_row(
             repo_root,
-            "sites_bed",
             "target_sites_bed",
             &fixture_inputs.target_sites_bed_path,
             "VCF target-sites BED is governed by the owned corpus fixture contract because no retained VCF adapter consumes it directly",
@@ -330,7 +320,6 @@ fn collect_vcf_adapter_missing_input_test_rows(
 
 fn build_adapter_probe_row(
     repo_root: &Path,
-    missing_input_role: &str,
     stage_id: &str,
     tool_id: &str,
     benchmark_status: &str,
@@ -350,7 +339,7 @@ fn build_adapter_probe_row(
         stage_id: stage_id.to_string(),
         tool_id: tool_id.to_string(),
         benchmark_status: benchmark_status.to_string(),
-        missing_input_role: missing_input_role.to_string(),
+        missing_input_role: artifact_id.to_string(),
         artifact_id: probe.artifact_id,
         artifact_path: probe.path,
         expected_error_fragment,
@@ -364,14 +353,13 @@ fn build_adapter_probe_row(
 
 fn build_support_probe_row(
     repo_root: &Path,
-    missing_input_role: &str,
     artifact_id: &str,
     artifact_path: &str,
     reason: &str,
 ) -> VcfAdapterMissingInputTestRow {
     let inputs = vec![ProbeInput {
         artifact_id: artifact_id.to_string(),
-        role: missing_input_role.to_string(),
+        role: artifact_id.to_string(),
         path: artifact_path.to_string(),
     }];
     let (expected_error_fragment, observed_error, passed) =
@@ -381,7 +369,7 @@ fn build_support_probe_row(
         stage_id: "vcf.corpus_fixture".to_string(),
         tool_id: "fixture_contract".to_string(),
         benchmark_status: "support_required".to_string(),
-        missing_input_role: missing_input_role.to_string(),
+        missing_input_role: artifact_id.to_string(),
         artifact_id: artifact_id.to_string(),
         artifact_path: artifact_path.to_string(),
         expected_error_fragment,
@@ -432,16 +420,16 @@ fn validate_required_inputs(repo_root: &Path, stage_id: &str, inputs: &[ProbeInp
 
 fn ensure_required_role_coverage(rows: &[VcfAdapterMissingInputTestRow]) -> Result<()> {
     let expected_roles = [
-        "bam",
-        "bai",
-        "fasta",
-        "fai",
+        "input_bam",
+        "input_bam_index",
+        "reference_fasta",
+        "reference_fai",
         "vcf",
         "vcf_index",
-        "sites_bed",
-        "panel_vcf",
-        "map_file",
-        "sample_metadata",
+        "target_sites_bed",
+        "reference_panel_vcf",
+        "genetic_map_tsv",
+        "sample_metadata_manifest",
     ];
     let observed_roles =
         rows.iter().map(|row| row.missing_input_role.as_str()).collect::<BTreeSet<_>>();
@@ -498,7 +486,7 @@ mod tests {
         assert_eq!(report.adapter_row_count, 9);
         assert_eq!(report.support_row_count, 1);
         assert!(report.rows.iter().any(|row| {
-            row.missing_input_role == "sites_bed"
+            row.missing_input_role == "target_sites_bed"
                 && row.contract_surface == "fixture_support"
                 && row.passed
         }));
