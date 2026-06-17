@@ -753,6 +753,15 @@ Visible aliases are part of the operator surface:
   `haplogroups.summary.json`, typed `stage.metrics.json`, and tool-specific
   `haplogroup_report.json` keep the panel asset path, marker support, haplogroup call,
   confidence, coverage gate, and explicit `coverage_gate_not_met` behavior coherent.
+- `bijux-dna bench readiness render-bam-recalibration-complete`
+  `render-bam-recalibration-complete` writes
+  `benchmarks/readiness/bam/stages/bam.recalibration.complete.json` with the retained
+  `bam.recalibration` binding promoted into a stage-owned completion gate. The report keeps
+  active-scope, command, output, parser, expected-result, report-map, and schema proofs explicit
+  for `gatk`, then proves the governed local-smoke skip path stays deterministic. The gate fails
+  closed unless the typed `recal.summary.json`, typed `stage.metrics.json`, raw
+  `recal.report.txt`, recalibrated BAM output, known-sites asset identity, coverage gate, and
+  explicit `coverage_below_gate` behavior all remain coherent.
 - `bijux-dna bench readiness render-bam-sex-complete`
   `render-bam-sex-complete` writes
   `benchmarks/readiness/bam/stages/bam.sex.complete.json` with every retained `bam.sex`
