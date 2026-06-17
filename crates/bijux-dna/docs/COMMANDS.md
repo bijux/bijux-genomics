@@ -1029,7 +1029,10 @@ Visible aliases are part of the operator surface:
   row per retained-tool readiness binding plus explicit fixture-support coverage where the owned
   adapter surface does not consume the asset directly. Each row keeps `domain`, `stage_id`,
   `tool_id`, `contract_surface`, `missing_input_role`, `missing_input_class`, the governed
-  `artifact_path`, expected and observed missing-input error fragments, and an explicit reason.
+  `artifact_path`, exact expected and observed missing-input role fragments, and an explicit
+  reason. The report must not degrade ancillary governed inputs into an ambiguous `other` class;
+  ancillary probes are classified explicitly so reviewers can tell whether a failure came from a
+  panel/interval support file, metadata manifest, report input, table input, or segment input.
   The command fails closed unless every retained tool is covered, every required input class
   retains governed probe coverage, and every probe fails before external execution through the
   real runtime-validation or adapter-contract surface.
