@@ -345,6 +345,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamScienceThresholdsReady(args) => {
+                        crate::commands::benchmark::readiness::bam_science_thresholds_ready::run_render_bam_science_thresholds_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamNormalizedMetricsSchema(args) => {
                         crate::commands::benchmark::readiness::bam_normalized_metrics_schema::run_render_bam_normalized_metrics_schema(
                         args,
