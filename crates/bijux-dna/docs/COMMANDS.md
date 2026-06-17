@@ -722,6 +722,17 @@ Visible aliases are part of the operator surface:
   local-smoke artifacts together so corrected overlap counts, corrected overlap bases, mapped
   reads, total reads, endogenous fractions, and governed report paths stay explicit in the BAM
   benchmark surface.
+- `bijux-dna bench readiness render-bam-damage-complete`
+  `render-bam-damage-complete` writes
+  `benchmarks/readiness/bam/stages/bam.damage.complete.json` with every retained
+  `bam.damage` binding promoted into a stage-owned completion gate. The report keeps active-scope,
+  command, output, parser, expected-result, report-map, schema, and local-smoke proofs explicit
+  for `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, and `pydamage`, while
+  also locking the governed damage evidence contract across the typed `damage.summary.json`,
+  `damage.unified_metrics.json`, `damage.parser_output.json`, and `stage.metrics.json` artifacts.
+  The gate fails closed unless the retained damage toolset is complete and the shared local-smoke
+  proof preserves terminal 5′/3′ damage metrics, short-fragment fraction, governed damage
+  signal, and normalized per-sample deltas without drift.
 - `bijux-dna bench readiness render-bam-damage-authenticity-ready`
   `render-bam-damage-authenticity-ready` writes
   `benchmarks/readiness/bam/damage-authenticity-ready.json` with governed rows for
