@@ -1,29 +1,35 @@
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "bam_downstream")]
 use super::bam_recalibration_genotyping_ready::{
     render_bam_recalibration_genotyping_ready, BamRecalibrationGenotypingReadyRow,
     DEFAULT_BAM_RECALIBRATION_GENOTYPING_READY_PATH,
 };
+#[cfg(feature = "bam_downstream")]
 use super::real_output_parser_smoke::{
     render_real_output_parser_smoke, RealOutputParserSmokeReport,
     DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH,
 };
+#[cfg(feature = "bam_downstream")]
 use super::vcf_qc_ready::{
     render_vcf_qc_ready, VcfQcReadyReport, VcfQcReadyRow, DEFAULT_VCF_QC_READY_PATH,
 };
+#[cfg(feature = "bam_downstream")]
 use super::vcf_stats_ready::{
     render_vcf_stats_ready, VcfStatsReadyReport, VcfStatsReadyRow, DEFAULT_VCF_STATS_READY_PATH,
 };
+#[cfg(feature = "bam_downstream")]
 use crate::commands::benchmark::local_pipeline_dag::{
     benchmark_local_pipeline_config_path, validate_pipeline_dag_path,
     LocalPipelineDagValidationNodeReport,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
+#[cfg(feature = "bam_downstream")]
+use std::fs;
 
 pub(crate) const DEFAULT_BAM_GENOTYPING_COMPLETE_PATH: &str =
     "benchmarks/readiness/bam/stages/bam.genotyping.complete.json";
