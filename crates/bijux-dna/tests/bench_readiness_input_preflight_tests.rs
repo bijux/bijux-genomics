@@ -122,8 +122,7 @@ fn bench_readiness_input_preflight_tests_report_governed_retained_tool_coverage(
             && row.get("stage_id").and_then(serde_json::Value::as_str)
                 == Some("fastq.screen_taxonomy")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("kraken2")
-            && row.get("missing_input_role").and_then(serde_json::Value::as_str)
-                == Some("reads_r2")
+            && row.get("missing_input_role").and_then(serde_json::Value::as_str) == Some("reads_r2")
             && row
                 .get("artifact_path")
                 .and_then(serde_json::Value::as_str)

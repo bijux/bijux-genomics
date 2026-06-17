@@ -56,15 +56,11 @@ fn bench_readiness_output_contract_tests_report_governs_all_retained_bindings() 
         .and_then(serde_json::Value::as_object)
         .expect("proof surface counts");
     assert_eq!(
-        proof_surface_counts
-            .get("shared_stage_smoke")
-            .and_then(serde_json::Value::as_u64),
+        proof_surface_counts.get("shared_stage_smoke").and_then(serde_json::Value::as_u64),
         Some(115)
     );
     assert_eq!(
-        proof_surface_counts
-            .get("direct_tool_smoke")
-            .and_then(serde_json::Value::as_u64),
+        proof_surface_counts.get("direct_tool_smoke").and_then(serde_json::Value::as_u64),
         Some(20)
     );
     assert_eq!(
@@ -79,8 +75,7 @@ fn bench_readiness_output_contract_tests_report_governs_all_retained_bindings() 
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-            && row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("bam.genotyping")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
             && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
                 == Some("direct_declared_output_proof")
@@ -91,20 +86,19 @@ fn bench_readiness_output_contract_tests_report_governs_all_retained_bindings() 
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-            && row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("bam.haplogroups")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.haplogroups")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("yleaf")
             && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
                 == Some("direct_declared_output_proof")
-            && row.get("observed_normalized_metric_ids")
+            && row
+                .get("observed_normalized_metric_ids")
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|ids| ids.iter().any(|id| id.as_str() == Some("haplogroups")))
     }));
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
-            && row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("vcf.postprocess")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.postprocess")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
             && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
                 == Some("direct_tool_smoke")
