@@ -55,16 +55,16 @@ fn bench_readiness_vcf_adapter_missing_input_tests_report_governed_roles() {
     assert_eq!(rows.len(), 10);
 
     for role in [
-        "bam",
-        "bai",
-        "fasta",
-        "fai",
+        "input_bam",
+        "input_bam_index",
+        "reference_fasta",
+        "reference_fai",
         "vcf",
         "vcf_index",
-        "sites_bed",
-        "panel_vcf",
-        "map_file",
-        "sample_metadata",
+        "target_sites_bed",
+        "reference_panel_vcf",
+        "genetic_map_tsv",
+        "sample_metadata_manifest",
     ] {
         assert!(
             rows.iter().any(|row| {
@@ -102,7 +102,8 @@ fn bench_readiness_vcf_adapter_missing_input_tests_report_governed_roles() {
     let sites_bed = rows
         .iter()
         .find(|row| {
-            row.get("missing_input_role").and_then(serde_json::Value::as_str) == Some("sites_bed")
+            row.get("missing_input_role").and_then(serde_json::Value::as_str)
+                == Some("target_sites_bed")
         })
         .expect("sites bed row");
     assert_eq!(
