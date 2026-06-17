@@ -1,0 +1,87 @@
+{
+  "schema_version": "bijux.bench.readiness.bam_active_row_consistency.v1",
+  "output_path": "benchmarks/readiness/bam/BAM_ACTIVE_ROW_CONSISTENCY.json",
+  "active_matrix_output_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+  "active_row_count": 49,
+  "active_stage_count": 24,
+  "active_tool_count": 25,
+  "checked_surface_count": 6,
+  "passed_surface_count": 6,
+  "failed_surface_count": 0,
+  "ok": true,
+  "surfaces": [
+    {
+      "surface_id": "bam_rendered_commands",
+      "output_path": "benchmarks/readiness/bam/bam-rendered-commands.sh",
+      "row_count": 49,
+      "stage_count": 24,
+      "tool_count": 25,
+      "binding_count": 49,
+      "ok": true,
+      "missing_bindings": [],
+      "extra_bindings": [],
+      "detail": "validated one BAM rendered command row per active BAM binding"
+    },
+    {
+      "surface_id": "bam_output_declarations",
+      "output_path": "benchmarks/readiness/bam-adapter-output-contract.tsv",
+      "row_count": 49,
+      "stage_count": 24,
+      "tool_count": 25,
+      "binding_count": 49,
+      "ok": true,
+      "missing_bindings": [],
+      "extra_bindings": [],
+      "detail": "validated one BAM output-declaration row per active BAM binding"
+    },
+    {
+      "surface_id": "bam_expected_results",
+      "output_path": "benchmarks/readiness/expected-benchmark-results.tsv",
+      "row_count": 49,
+      "stage_count": 24,
+      "tool_count": 25,
+      "binding_count": 49,
+      "ok": true,
+      "missing_bindings": [],
+      "extra_bindings": [],
+      "detail": "validated one BAM expected-result row per active BAM binding"
+    },
+    {
+      "surface_id": "bam_parser_fixtures",
+      "output_path": "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv",
+      "row_count": 49,
+      "stage_count": 24,
+      "tool_count": 25,
+      "binding_count": 49,
+      "ok": true,
+      "missing_bindings": [],
+      "extra_bindings": [],
+      "detail": "validated one BAM parser-fixture row per active BAM binding"
+    },
+    {
+      "surface_id": "bam_local_jobs",
+      "output_path": "benchmarks/readiness/all-domains/local-job-coverage.tsv",
+      "row_count": 49,
+      "stage_count": 24,
+      "tool_count": 25,
+      "binding_count": 49,
+      "ok": true,
+      "missing_bindings": [],
+      "extra_bindings": [],
+      "detail": "validated one BAM local-job row per active BAM binding"
+    },
+    {
+      "surface_id": "bam_report_map",
+      "output_path": "benchmarks/readiness/bam/bam-report-map.tsv",
+      "row_count": 49,
+      "stage_count": 24,
+      "tool_count": 25,
+      "binding_count": 49,
+      "ok": true,
+      "missing_bindings": [],
+      "extra_bindings": [],
+      "detail": "validated one BAM report-map row per active BAM binding"
+    }
+  ],
+  "failed_surfaces": []
+}
