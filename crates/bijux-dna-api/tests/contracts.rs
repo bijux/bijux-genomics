@@ -38,6 +38,8 @@ mod mod_contracts_v1_bam_local_gc_bias_smoke_rs;
 mod mod_contracts_v1_bam_local_genotyping_plan_rs;
 #[path = "contracts/v1_bam_local_haplogroups_plan.rs"]
 mod mod_contracts_v1_bam_local_haplogroups_plan_rs;
+#[path = "contracts/v1_bam_local_haplogroups_smoke.rs"]
+mod mod_contracts_v1_bam_local_haplogroups_smoke_rs;
 #[path = "contracts/v1_bam_local_insert_size_smoke.rs"]
 mod mod_contracts_v1_bam_local_insert_size_smoke_rs;
 #[path = "contracts/v1_bam_local_kinship_smoke.rs"]
