@@ -733,6 +733,16 @@ Visible aliases are part of the operator surface:
   The gate fails closed unless the retained damage toolset is complete and the shared local-smoke
   proof preserves terminal 5′/3′ damage metrics, short-fragment fraction, governed damage
   signal, and normalized per-sample deltas without drift.
+- `bijux-dna bench readiness render-bam-contamination-complete`
+  `render-bam-contamination-complete` writes
+  `benchmarks/readiness/bam/stages/bam.contamination.complete.json` with every retained
+  `bam.contamination` binding promoted into a stage-owned completion gate. The report keeps
+  active-scope, command, output, parser, expected-result, report-map, and schema proofs explicit
+  for `contammix`, `schmutzi`, and `verifybamid2`, while adding owned local-smoke proof for both
+  ready and insufficient contamination cases per tool. The gate fails closed unless the shared
+  contamination parser contract, typed `contamination.summary.json`, typed `stage.metrics.json`,
+  and tool-specific governed outputs such as `contammix.report.txt`, `contamination.estimate.json`,
+  and `mt_consensus.fasta` stay present and the insufficiency path keeps explicit refusal codes.
 - `bijux-dna bench readiness render-bam-authenticity-complete`
   `render-bam-authenticity-complete` writes
   `benchmarks/readiness/bam/stages/bam.authenticity.complete.json` with every retained
