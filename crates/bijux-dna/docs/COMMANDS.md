@@ -695,6 +695,14 @@ Visible aliases are part of the operator surface:
   placement, normalized-schema coverage, and owned local-smoke artifacts together so insert-size
   distribution metrics, pair counts, GC-bin summaries, bias scores, and governed report paths
   stay explicit in the BAM benchmark surface.
+- `bijux-dna bench readiness render-bam-overlap-correction-complete`
+  `render-bam-overlap-correction-complete` writes
+  `benchmarks/readiness/bam/stages/bam.overlap_correction.complete.json` with the admitted
+  `bam.overlap_correction` / `bamutil` binding promoted into a stage-owned completion gate. The
+  report keeps active-scope, command, output, parser, expected-result, report-map, schema, and
+  local-smoke proofs explicit while also locking the governed corrected-overlap metrics contract:
+  `pair_count`, `corrected_pairs`, `corrected_overlap_bases`, their expected-vs-observed deltas,
+  and the typed `overlap_correction.summary.json` plus `stage.metrics.json` artifacts.
 - `bijux-dna bench readiness render-bam-overlap-endogenous-ready`
   `render-bam-overlap-endogenous-ready` writes
   `benchmarks/readiness/bam/overlap-endogenous-ready.json` with one governed row each for
