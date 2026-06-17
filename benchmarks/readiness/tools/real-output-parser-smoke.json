@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.real_output_parser_smoke.v1",
   "output_path": "benchmarks/readiness/tools/real-output-parser-smoke.json",
   "probe_root": "runs/bench/readiness-probes/tools/real-output-parser-smoke",
-  "family_count": 25,
-  "passed_family_count": 25,
+  "family_count": 30,
+  "passed_family_count": 30,
   "failed_family_count": 0,
   "parser_surface_counts": {
     "bam::parse_contamination_json": 1,
@@ -30,7 +30,12 @@
     "serde_json::<BamOverlapCorrectionSummaryV1>": 1,
     "serde_json::<BamRecalibrationSummaryV1>": 1,
     "serde_json::<BamValidationSummaryV1>": 1,
-    "serde_json::<Value> + governed keys": 1
+    "serde_json::<Value> + governed keys": 1,
+    "serde_json::<Value> + governed vcf call metric keys": 1,
+    "serde_json::<Value> + governed vcf impute metric keys": 1,
+    "serde_json::<Value> + governed vcf phasing metric keys": 1,
+    "serde_json::<Value> + governed vcf population-structure keys": 1,
+    "serde_json::<Value> + governed vcf qc metric keys": 1
   },
   "rows": [
     {
@@ -1074,6 +1079,315 @@
       },
       "passed": true,
       "reason": "validated variant_analysis_and_recalibration family output through serde_json::<BamRecalibrationSummaryV1>"
+    },
+    {
+      "family_id": "vcf_calling_and_curation",
+      "family_summary": "Tools whose primary benchmark role is calling, filtering, normalizing, or summarizing cohort VCF outputs.",
+      "representative_stage_id": "vcf.call",
+      "representative_tool_id": "bcftools",
+      "proof_path": "runs/bench/local-smoke/vcf.call/bcftools/metrics.json",
+      "parser_surface": "serde_json::<Value> + governed vcf call metric keys",
+      "parsed_schema_version": "bijux.bench.local_vcf_call_smoke.metrics.v1",
+      "parsed_top_level_key_count": 13,
+      "parsed_top_level_keys": [
+        "corpus_id",
+        "exit_code",
+        "indel_count",
+        "input_bam",
+        "reference",
+        "resolved_stage_id",
+        "sample_count",
+        "sample_id",
+        "schema_version",
+        "snp_count",
+        "stage_id",
+        "tool_id",
+        "variant_count"
+      ],
+      "normalized_snapshot": {
+        "sample_count": 1,
+        "snp_count": 3,
+        "stage_id": "vcf.call",
+        "tool_id": "bcftools",
+        "variant_count": 3
+      },
+      "passed": true,
+      "reason": "validated vcf_calling_and_curation family output through serde_json::<Value> + governed vcf call metric keys"
+    },
+    {
+      "family_id": "vcf_imputation",
+      "family_summary": "Tools whose primary benchmark role is imputing missing VCF genotypes from reference panels and genetic maps.",
+      "representative_stage_id": "vcf.impute",
+      "representative_tool_id": "beagle",
+      "proof_path": "runs/bench/local-smoke/vcf.impute/beagle/metrics.json",
+      "parser_surface": "serde_json::<Value> + governed vcf impute metric keys",
+      "parsed_schema_version": "bijux.bench.local_vcf_impute_smoke.metrics.v1",
+      "parsed_top_level_key_count": 19,
+      "parsed_top_level_keys": [
+        "corpus_id",
+        "exit_code",
+        "imputed_genotypes",
+        "input_fixture_id",
+        "low_confidence_count",
+        "map_id",
+        "masked_truth_match_count",
+        "masked_truth_site_count",
+        "missing_after",
+        "missing_before",
+        "not_imputable_reasons",
+        "panel_id",
+        "sample_count",
+        "sample_ids",
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "unresolved_count",
+        "variant_count"
+      ],
+      "normalized_snapshot": {
+        "imputed_genotypes": 1,
+        "masked_truth_match_count": 1,
+        "stage_id": "vcf.impute",
+        "tool_id": "beagle",
+        "variant_count": 2
+      },
+      "passed": true,
+      "reason": "validated vcf_imputation family output through serde_json::<Value> + governed vcf impute metric keys"
+    },
+    {
+      "family_id": "vcf_ordination_and_population_structure",
+      "family_summary": "Tools whose primary benchmark role is PCA, admixture, ordination, or related population-structure inference from VCF cohorts.",
+      "representative_stage_id": "vcf.population_structure",
+      "representative_tool_id": "plink2",
+      "proof_path": "runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json",
+      "parser_surface": "serde_json::<Value> + governed vcf population-structure keys",
+      "parsed_schema_version": "bijux.bench.local_vcf_population_structure_smoke.v1",
+      "parsed_top_level_key_count": 23,
+      "parsed_top_level_keys": [
+        "command",
+        "consumed_admixture",
+        "consumed_pca",
+        "corpus_id",
+        "distance_summary",
+        "elapsed_seconds",
+        "exit_code",
+        "finished_at",
+        "input_fixture_id",
+        "output_root",
+        "population_structure_json_path",
+        "sample_groups",
+        "schema_version",
+        "source_admixture_report_path",
+        "source_logs_path",
+        "source_pca_report_path",
+        "source_population_structure_path",
+        "source_pruned_variants_path",
+        "stage_id",
+        "stage_result_manifest_path",
+        "started_at",
+        "status",
+        "tool_id"
+      ],
+      "normalized_snapshot": {
+        "distance_summary": {
+          "cross_population_pair_count": 4,
+          "max_pc_distance": 0.042426406871192854,
+          "mean_pc_distance": 0.023570226039551587,
+          "min_pc_distance": 0.01414213562373095,
+          "pair_count": 6,
+          "sample_count": 4,
+          "within_population_pair_count": 2
+        },
+        "sample_groups": [
+          {
+            "dominant_cluster": "cluster_1",
+            "dominant_fraction": 1.0,
+            "pc1": 0.01,
+            "pc2": 0.02,
+            "population_id": "cohort_alpha",
+            "population_label": "Cohort Alpha",
+            "sample_id": "sample_a",
+            "sex": "female",
+            "status": "complete"
+          },
+          {
+            "dominant_cluster": "cluster_1",
+            "dominant_fraction": 1.0,
+            "pc1": 0.02,
+            "pc2": 0.03,
+            "population_id": "cohort_alpha",
+            "population_label": "Cohort Alpha",
+            "sample_id": "sample_b",
+            "sex": "male",
+            "status": "complete"
+          },
+          {
+            "dominant_cluster": "cluster_2",
+            "dominant_fraction": 1.0,
+            "pc1": 0.03,
+            "pc2": 0.04,
+            "population_id": "cohort_beta",
+            "population_label": "Cohort Beta",
+            "sample_id": "sample_c",
+            "sex": "female",
+            "status": "complete"
+          },
+          {
+            "dominant_cluster": "cluster_2",
+            "dominant_fraction": 1.0,
+            "pc1": 0.04,
+            "pc2": 0.05,
+            "population_id": "cohort_beta",
+            "population_label": "Cohort Beta",
+            "sample_id": "sample_d",
+            "sex": "male",
+            "status": "complete"
+          }
+        ],
+        "status": "complete",
+        "tool_id": "plink2"
+      },
+      "passed": true,
+      "reason": "validated vcf_ordination_and_population_structure family output through serde_json::<Value> + governed vcf population-structure keys"
+    },
+    {
+      "family_id": "vcf_phasing",
+      "family_summary": "Tools whose primary benchmark role is resolving haplotype phase across VCF cohorts.",
+      "representative_stage_id": "vcf.phasing",
+      "representative_tool_id": "shapeit5",
+      "proof_path": "runs/bench/local-smoke/vcf.phasing/shapeit5/metrics.json",
+      "parser_surface": "serde_json::<Value> + governed vcf phasing metric keys",
+      "parsed_schema_version": "bijux.bench.local_vcf_phasing_smoke.metrics.v1",
+      "parsed_top_level_key_count": 14,
+      "parsed_top_level_keys": [
+        "corpus_id",
+        "exit_code",
+        "input_fixture_id",
+        "input_genotypes",
+        "map_id",
+        "panel_id",
+        "phase_set_count",
+        "phased_genotypes",
+        "sample_count",
+        "sample_ids",
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "unphased_genotypes"
+      ],
+      "normalized_snapshot": {
+        "input_genotypes": 8,
+        "phase_set_count": 2,
+        "phased_genotypes": 8,
+        "stage_id": "vcf.phasing",
+        "tool_id": "shapeit5"
+      },
+      "passed": true,
+      "reason": "validated vcf_phasing family output through serde_json::<Value> + governed vcf phasing metric keys"
+    },
+    {
+      "family_id": "vcf_quality_control",
+      "family_summary": "Tools whose primary benchmark role is genotype missingness, heterozygosity, Hardy-Weinberg, and related VCF cohort quality control.",
+      "representative_stage_id": "vcf.qc",
+      "representative_tool_id": "plink",
+      "proof_path": "runs/bench/local-smoke/vcf.qc/plink/metrics.json",
+      "parser_surface": "serde_json::<Value> + governed vcf qc metric keys",
+      "parsed_schema_version": "bijux.bench.local_vcf_qc_smoke.metrics.v1",
+      "parsed_top_level_key_count": 15,
+      "parsed_top_level_keys": [
+        "corpus_id",
+        "excluded_samples",
+        "excluded_variants",
+        "exit_code",
+        "heterozygosity",
+        "hwe_summary",
+        "input_fixture_id",
+        "maf_summary",
+        "sample_missingness",
+        "sample_missingness_exclusion_threshold",
+        "schema_version",
+        "stage_id",
+        "tool_id",
+        "variant_missingness",
+        "variant_missingness_exclusion_threshold"
+      ],
+      "normalized_snapshot": {
+        "heterozygosity": {
+          "het_hom_ratio": 2.0,
+          "heterozygous_call_count": 4,
+          "homozygous_alt_call_count": 2
+        },
+        "hwe_summary": {
+          "pvalue_mean": 0.825656,
+          "status": "computed_modern",
+          "tested_variant_count": 3
+        },
+        "sample_missingness": [
+          {
+            "missing_genotype_count": 1,
+            "missingness": 0.25,
+            "sample_id": "qc_balanced",
+            "total_genotype_count": 4
+          },
+          {
+            "missing_genotype_count": 0,
+            "missingness": 0.0,
+            "sample_id": "qc_ref",
+            "total_genotype_count": 4
+          },
+          {
+            "missing_genotype_count": 3,
+            "missingness": 0.75,
+            "sample_id": "qc_sparse",
+            "total_genotype_count": 4
+          }
+        ],
+        "tool_id": "plink",
+        "variant_missingness": [
+          {
+            "alternate": "G",
+            "contig": "chr1",
+            "missing_sample_count": 1,
+            "missingness": 0.3333333333333333,
+            "position": 10,
+            "reference": "A",
+            "total_sample_count": 3,
+            "variant_id": "chr1:10:A:G"
+          },
+          {
+            "alternate": "T",
+            "contig": "chr1",
+            "missing_sample_count": 1,
+            "missingness": 0.3333333333333333,
+            "position": 20,
+            "reference": "C",
+            "total_sample_count": 3,
+            "variant_id": "chr1:20:C:T"
+          },
+          {
+            "alternate": "A",
+            "contig": "chr1",
+            "missing_sample_count": 2,
+            "missingness": 0.6666666666666666,
+            "position": 30,
+            "reference": "G",
+            "total_sample_count": 3,
+            "variant_id": "chr1:30:G:A"
+          },
+          {
+            "alternate": "G",
+            "contig": "chr1",
+            "missing_sample_count": 0,
+            "missingness": 0.0,
+            "position": 40,
+            "reference": "T",
+            "total_sample_count": 3,
+            "variant_id": "chr1:40:T:G"
+          }
+        ]
+      },
+      "passed": true,
+      "reason": "validated vcf_quality_control family output through serde_json::<Value> + governed vcf qc metric keys"
     }
   ]
 }

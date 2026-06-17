@@ -10,7 +10,7 @@
   "version_probe_row_count": 71,
   "host_smoke_tool_count": 1,
   "container_smoke_tool_count": 70,
-  "parser_family_count": 25,
+  "parser_family_count": 30,
   "ok": true,
   "checks": [
     {
@@ -74,7 +74,7 @@
       "surface": "retained_tool_real_output_parser_smoke",
       "output_path": "benchmarks/readiness/tools/real-output-parser-smoke.json",
       "ok": true,
-      "detail": "family_count=25, passed_family_count=25, failed_family_count=0"
+      "detail": "family_count=30, passed_family_count=30, failed_family_count=0"
     }
   ]
 }
