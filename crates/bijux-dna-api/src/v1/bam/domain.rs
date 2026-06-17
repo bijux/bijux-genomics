@@ -328,6 +328,18 @@ pub fn write_local_sex_smoke_report() -> Result<PathBuf> {
     crate::internal::bam::stages::sex::write_local_sex_smoke_report()
 }
 
+/// Materialize governed `bam.sex` tool-smoke outputs for all retained tools.
+///
+/// The written report artifact lives at `runs/bench/local-smoke/bam.sex/tool_smoke.json`
+/// under the active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, governed plans are invalid, or the
+/// proof artifacts cannot be written.
+pub fn write_local_sex_tool_smoke_report() -> Result<PathBuf> {
+    crate::internal::bam::stages::sex::write_local_sex_tool_smoke_report()
+}
+
 /// Materialize the governed local-smoke `bam.kinship` report bundle.
 ///
 /// The written report artifact lives at `runs/bench/local-smoke/bam.kinship/kinship.json`

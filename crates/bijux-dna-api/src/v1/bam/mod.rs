@@ -29,6 +29,6 @@ pub use domain::{
     write_local_mapq_filter_smoke_report, write_local_markdup_smoke_report,
     write_local_overlap_correction_smoke_report, write_local_qc_pre_smoke_report,
     write_local_recalibration_smoke_report, write_local_sex_smoke_report,
-    write_local_validate_smoke_report,
+    write_local_sex_tool_smoke_report, write_local_validate_smoke_report,
 };
 pub use feature_flags::downstream_enabled;
