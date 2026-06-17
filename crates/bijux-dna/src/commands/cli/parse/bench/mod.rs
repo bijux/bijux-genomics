@@ -117,6 +117,7 @@ pub use self::readiness::{
     BenchReadinessRenderBamOverlapCorrectionCompleteArgs,
     BenchReadinessRenderBamOverlapEndogenousReadyArgs,
     BenchReadinessRenderBamParserFixtureCoverageArgs,
+    BenchReadinessRenderBamRecalibrationCompleteArgs,
     BenchReadinessRenderBamRecalibrationGenotypingReadyArgs, BenchReadinessRenderBamReportMapArgs,
     BenchReadinessRenderBamSexCompleteArgs, BenchReadinessRenderBamStageDecisionTableArgs,
     BenchReadinessRenderBamToolServingMapArgs, BenchReadinessRenderBenchmarkReadinessDashboardArgs,

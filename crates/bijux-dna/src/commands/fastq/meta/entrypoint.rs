@@ -265,6 +265,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamRecalibrationComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_recalibration_complete::run_render_bam_recalibration_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamSexComplete(args) => {
                         crate::commands::benchmark::readiness::bam_sex_complete::run_render_bam_sex_complete(
                             args,

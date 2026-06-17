@@ -40,6 +40,8 @@ pub enum BenchReadinessCommand {
     RenderBamContaminationComplete(BenchReadinessRenderBamContaminationCompleteArgs),
     #[command(name = "render-bam-haplogroups-complete")]
     RenderBamHaplogroupsComplete(BenchReadinessRenderBamHaplogroupsCompleteArgs),
+    #[command(name = "render-bam-recalibration-complete")]
+    RenderBamRecalibrationComplete(BenchReadinessRenderBamRecalibrationCompleteArgs),
     #[command(name = "render-bam-sex-complete")]
     RenderBamSexComplete(BenchReadinessRenderBamSexCompleteArgs),
     #[command(name = "render-bam-damage-complete")]
@@ -460,6 +462,14 @@ pub struct BenchReadinessRenderBamContaminationCompleteArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamHaplogroupsCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamRecalibrationCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
