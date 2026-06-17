@@ -36,12 +36,25 @@ parameters: []
 metrics:
   - name: "mapq_threshold"
     meaning: "Mapping-quality threshold preserved in the governed BAM MAPQ-filter benchmark row"
+    scientific_threshold:
+      pass_direction: "exact_match"
+      tolerance_kind: "exact_match"
+      tolerance_value: 0.0
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "kept_reads"
     meaning: "Read count retained after applying the governed BAM MAPQ threshold"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "removed_reads"
     meaning: "Read count removed by the governed BAM MAPQ threshold"
-  - name: "filtered_bam"
-    meaning: "Filtered BAM artifact emitted for the governed BAM MAPQ-filter benchmark row"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
 description: "BAM MAPQ-filter contract for governed threshold-count benchmarking and deterministic filtered-BAM reporting."
 required_inputs:
   - bam

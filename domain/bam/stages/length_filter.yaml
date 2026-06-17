@@ -36,12 +36,25 @@ parameters: []
 metrics:
   - name: "min_length_threshold"
     meaning: "Minimum retained read length preserved in the governed BAM length-filter benchmark row"
+    scientific_threshold:
+      pass_direction: "exact_match"
+      tolerance_kind: "exact_match"
+      tolerance_value: 0.0
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "kept_reads"
     meaning: "Read count retained after applying the governed BAM length threshold"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "removed_reads"
     meaning: "Read count removed by the governed BAM length threshold"
-  - name: "filtered_bam"
-    meaning: "Filtered BAM artifact emitted for the governed BAM length-filter benchmark row"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
 description: "BAM read-length filtering contract for governed threshold-count benchmarking and deterministic filtered-BAM reporting."
 required_inputs:
   - bam

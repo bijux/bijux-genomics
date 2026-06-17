@@ -27,14 +27,39 @@ parameters: []
 metrics:
   - name: "mapping_fraction"
     meaning: "Fraction of reads reported as mapped for the governed BAM input"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "mapped_reads"
     meaning: "Mapped reads reported by the governed BAM mapping summary row"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "unmapped_reads"
     meaning: "Unmapped reads preserved in the governed BAM mapping summary row"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "secondary_reads"
     meaning: "Secondary alignment count preserved in the governed BAM mapping summary row"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.05
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "supplementary_reads"
     meaning: "Supplementary alignment count preserved in the governed BAM mapping summary row"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.05
+      insufficiency_policy: "refuse_stage_comparison"
 description: "BAM mapping-summary contract for governed alignment-rate reporting and canonical mapping-count comparisons."
 required_inputs:
   - bam

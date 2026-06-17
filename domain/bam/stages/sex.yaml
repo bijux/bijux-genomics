@@ -33,16 +33,46 @@ parameters: []
 metrics:
   - name: "x_coverage"
     meaning: "Observed X-chromosome coverage preserved in the governed BAM sex-inference comparison surface"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.15
+      insufficiency_policy: "warn_and_exclude_stage"
   - name: "y_coverage"
     meaning: "Observed Y-chromosome coverage preserved in the governed BAM sex-inference comparison surface"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.15
+      insufficiency_policy: "warn_and_exclude_stage"
   - name: "autosomal_coverage"
     meaning: "Observed autosomal coverage preserved in the governed BAM sex-inference comparison surface"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.1
+      insufficiency_policy: "warn_and_exclude_stage"
   - name: "call"
     meaning: "Governed sex-inference call preserved across admitted BAM sex-inference tools"
+    scientific_threshold:
+      pass_direction: "exact_match"
+      tolerance_kind: "exact_match"
+      tolerance_value: 0.0
+      insufficiency_policy: "warn_and_exclude_stage"
   - name: "confidence"
     meaning: "Confidence assigned to the governed BAM sex-inference call"
+    scientific_threshold:
+      pass_direction: "minimum"
+      tolerance_kind: "absolute_delta"
+      tolerance_value: 0.1
+      insufficiency_policy: "warn_and_exclude_stage"
   - name: "status"
     meaning: "Governed BAM sex-inference status preserved when admitted tools cannot emit a final call"
+    scientific_threshold:
+      pass_direction: "exact_match"
+      tolerance_kind: "exact_match"
+      tolerance_value: 0.0
+      insufficiency_policy: "warn_and_exclude_stage"
 description: "BAM sex stage contract."
 required_inputs:
   - bam

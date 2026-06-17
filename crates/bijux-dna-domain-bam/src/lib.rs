@@ -109,7 +109,9 @@ pub use benchmark_corpus_assignment::{
 pub use comparison_contract::{
     comparable_benchmark_stage_contract_for_stage, comparable_benchmark_stage_contracts,
     comparable_benchmark_stage_ids, comparable_tool_ids_for_stage,
-    stage_comparable_metric_fields_for_stage, BamComparableStageContract,
+    stage_comparable_metric_contracts_for_stage, stage_comparable_metric_fields_for_stage,
+    BamComparableMetricContract, BamComparableStageContract, BamScientificInsufficiencyPolicy,
+    BamScientificPassDirection, BamScientificThresholdContract, BamScientificToleranceKind,
 };
 pub use invariants::bam_invariant_specs;
 pub use stage_specs::{

@@ -34,14 +34,20 @@ outputs:
     cardinality: "One"
 parameters: []
 metrics:
-  - name: "marked_bam"
-    meaning: "Duplicate-marked BAM artifact emitted for the governed BAM markdup benchmark row"
-  - name: "duplicate_metrics"
-    meaning: "Governed duplicate-marking summary artifact that carries comparable duplicate burden outputs"
   - name: "duplicate_count"
     meaning: "Duplicate-read count preserved in the governed BAM markdup benchmark row"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.05
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "duplicate_fraction"
     meaning: "Duplicate-read fraction preserved in the governed BAM markdup benchmark row"
+    scientific_threshold:
+      pass_direction: "maximum"
+      tolerance_kind: "absolute_delta"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
 description: "BAM duplicate-marking contract for governed marked-BAM, duplicate-metric, and duplicate-burden benchmarking."
 required_inputs:
   - bam

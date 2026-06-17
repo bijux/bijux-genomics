@@ -31,16 +31,27 @@ outputs:
     cardinality: "One"
 parameters: []
 metrics:
-  - name: "scope"
-    meaning: "Contamination scope preserved for the governed BAM contamination benchmark row"
-  - name: "prerequisites_passed"
-    meaning: "Whether the admitted BAM contamination tool satisfied the governed prerequisite checks"
   - name: "estimate"
     meaning: "Contamination estimate preserved across admitted BAM contamination tools when prerequisites pass"
+    scientific_threshold:
+      pass_direction: "maximum"
+      tolerance_kind: "absolute_delta"
+      tolerance_value: 0.01
+      insufficiency_policy: "warn_and_exclude_stage"
   - name: "ci_low"
     meaning: "Lower confidence interval bound preserved for the governed BAM contamination estimate"
+    scientific_threshold:
+      pass_direction: "maximum"
+      tolerance_kind: "absolute_delta"
+      tolerance_value: 0.02
+      insufficiency_policy: "warn_and_exclude_stage"
   - name: "ci_high"
     meaning: "Upper confidence interval bound preserved for the governed BAM contamination estimate"
+    scientific_threshold:
+      pass_direction: "maximum"
+      tolerance_kind: "absolute_delta"
+      tolerance_value: 0.02
+      insufficiency_policy: "warn_and_exclude_stage"
 description: "BAM contamination stage contract."
 required_inputs:
   - bam
