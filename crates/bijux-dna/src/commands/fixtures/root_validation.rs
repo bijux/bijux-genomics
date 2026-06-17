@@ -6,6 +6,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::commands::benchmark::local_corpus_fixture::{amplicon, bam, damage, edna, fastq, vcf};
 use crate::commands::benchmark::local_taxonomy_database_fixture::TAXONOMY_DATABASE_FIXTURE_SCHEMA_VERSION;
+use crate::commands::fixtures::expected::fastq_trimming::{
+    validate_fastq_trimming_truth_manifest_path, FASTQ_TRIMMING_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
 use crate::commands::fixtures::expected::vcf::validate_vcf_expected_truth_manifest_path;
 
 pub(crate) const DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH: &str =
@@ -54,6 +57,7 @@ pub(crate) fn validate_benchmark_fixture_root(
     let parser_root = absolute_root.join("bench").join("parsers");
     let corpora_root = absolute_root.join("corpora");
     let databases_root = absolute_root.join("databases");
+    let science_root = absolute_root.join("science");
 
     let mut rows = Vec::new();
     rows.extend(validate_required_subroots(repo_root, &absolute_root));
@@ -61,6 +65,7 @@ pub(crate) fn validate_benchmark_fixture_root(
 
     let corpus_manifests = discover_fixture_manifests(&corpora_root)?;
     let database_manifests = discover_fixture_manifests(&databases_root)?;
+    let science_manifests = discover_fixture_manifests(&science_root)?;
 
     for manifest_path in corpus_manifests {
         rows.push(validate_manifest_row(repo_root, &manifest_path));
@@ -70,6 +75,12 @@ pub(crate) fn validate_benchmark_fixture_root(
     }
     for manifest_path in database_manifests {
         rows.push(validate_manifest_row(repo_root, &manifest_path));
+    }
+    for manifest_path in science_manifests {
+        rows.push(validate_manifest_row(repo_root, &manifest_path));
+        if manifest_path.ends_with("fastq-trimming-truth/manifest.toml") {
+            rows.push(validate_fastq_trimming_truth_row(repo_root, &manifest_path));
+        }
     }
 
     rows.sort_by(|left, right| {
@@ -86,7 +97,7 @@ pub(crate) fn validate_benchmark_fixture_root(
         schema_version: BENCHMARK_FIXTURE_ROOT_VALIDATION_SCHEMA_VERSION,
         output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         root_path: path_relative_to_repo(repo_root, &absolute_root),
-        required_subroot_count: 3,
+        required_subroot_count: 4,
         parser_domain_count: PARSER_FIXTURE_DOMAINS.len(),
         checked_fixture_count,
         valid_fixture_count,
@@ -115,6 +126,7 @@ fn validate_required_subroots(
         ("fixture_subroot", "bench", fixture_root.join("bench")),
         ("fixture_subroot", "corpora", fixture_root.join("corpora")),
         ("fixture_subroot", "databases", fixture_root.join("databases")),
+        ("fixture_subroot", "science", fixture_root.join("science")),
     ]
     .into_iter()
     .map(|(fixture_kind, fixture_id, path)| BenchmarkFixtureRootValidationRow {
@@ -210,6 +222,10 @@ fn validate_manifest_row(
             )
             .map(|_| ("database".to_string(), fixture_id_from_manifest_path(manifest_path)))
         }
+        FASTQ_TRIMMING_TRUTH_MANIFEST_SCHEMA_VERSION => {
+            validate_fastq_trimming_truth_manifest_path(repo_root, manifest_path)
+                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
+        }
         other => Err(anyhow!(
             "unsupported benchmark fixture schema `{other}` in {}",
             manifest_path.display()
@@ -232,6 +248,32 @@ fn validate_manifest_row(
             manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
             detail_path: None,
             schema_version: Some(schema_version),
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_fastq_trimming_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_fastq_trimming_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!("validated_cases={}", report.validated_case_count),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
             valid: false,
             detail: error.to_string(),
         },

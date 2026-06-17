@@ -6,6 +6,7 @@ pub(crate) const DEFAULT_BENCHMARK_FIXTURE_ROOT: &str = "benchmarks/tests/fixtur
 pub(crate) const DEFAULT_BENCHMARK_PARSER_FIXTURE_ROOT: &str = "benchmarks/tests/fixtures/bench";
 pub(crate) const DEFAULT_BENCHMARK_CORPORA_ROOT: &str = "benchmarks/tests/fixtures/corpora";
 pub(crate) const DEFAULT_BENCHMARK_DATABASES_ROOT: &str = "benchmarks/tests/fixtures/databases";
+pub(crate) const DEFAULT_BENCHMARK_SCIENCE_ROOT: &str = "benchmarks/tests/fixtures/science";
 
 pub(crate) fn benchmark_fixture_root_path(cwd: &Path, explicit_root: Option<&Path>) -> PathBuf {
     match explicit_root {
@@ -21,4 +22,8 @@ pub(crate) fn benchmark_corpus_manifest_path(fixture_root: &Path, corpus_id: &st
 
 pub(crate) fn benchmark_database_manifest_path(fixture_root: &Path, database_id: &str) -> PathBuf {
     fixture_root.join("databases").join(database_id).join("manifest.toml")
+}
+
+pub(crate) fn benchmark_science_manifest_path(fixture_root: &Path, fixture_id: &str) -> PathBuf {
+    fixture_root.join("science").join(fixture_id).join("manifest.toml")
 }

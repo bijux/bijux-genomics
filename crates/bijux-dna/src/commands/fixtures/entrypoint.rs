@@ -7,9 +7,12 @@ use crate::commands::cli;
 use crate::commands::fixtures::build::vcf::{
     build_vcf_mini_fixture, DEFAULT_VCF_MINI_REGENERATION_ROOT,
 };
+use crate::commands::fixtures::expected::fastq_trimming::{
+    validate_fastq_trimming_truth_manifest_path, FASTQ_TRIMMING_TRUTH_FIXTURE_ID,
+};
 use crate::commands::fixtures::expected::vcf::validate_vcf_expected_truth;
 use crate::commands::fixtures::paths::{
-    benchmark_corpus_manifest_path, benchmark_fixture_root_path,
+    benchmark_corpus_manifest_path, benchmark_fixture_root_path, benchmark_science_manifest_path,
 };
 use crate::commands::fixtures::root_validation::{
     validate_benchmark_fixture_root, DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH,
@@ -87,6 +90,17 @@ pub(crate) fn validate_fixture(cwd: &Path, args: &cli::FixturesValidateArgs) -> 
             }
             Ok(())
         }
+        FASTQ_TRIMMING_TRUTH_FIXTURE_ID => {
+            let manifest_path =
+                benchmark_science_manifest_path(&fixture_root, FASTQ_TRIMMING_TRUTH_FIXTURE_ID);
+            let report = validate_fastq_trimming_truth_manifest_path(cwd, &manifest_path)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.manifest_path);
+            }
+            Ok(())
+        }
         _ => Err(anyhow!("unsupported governed fixture corpus `{corpus}`")),
     }
 }
@@ -111,6 +125,18 @@ pub(crate) fn validate_expected_fixture(
                 cli::render::json::print_pretty(&report)?;
             } else {
                 println!("{}", report.expected_dir);
+            }
+            Ok(())
+        }
+        FASTQ_TRIMMING_TRUTH_FIXTURE_ID => {
+            let report = validate_fastq_trimming_truth_manifest_path(
+                cwd,
+                &benchmark_science_manifest_path(&fixture_root, FASTQ_TRIMMING_TRUTH_FIXTURE_ID),
+            )?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.expected_path);
             }
             Ok(())
         }

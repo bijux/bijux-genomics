@@ -2,10 +2,10 @@
   "schema_version": "bijux.bench.fixture_root_validation.v1",
   "output_path": "benchmarks/readiness/benchmark-fixture-root-validation.json",
   "root_path": "benchmarks/tests/fixtures",
-  "required_subroot_count": 3,
+  "required_subroot_count": 4,
   "parser_domain_count": 3,
-  "checked_fixture_count": 17,
-  "valid_fixture_count": 17,
+  "checked_fixture_count": 20,
+  "valid_fixture_count": 20,
   "invalid_fixture_count": 0,
   "ok": true,
   "rows": [
@@ -101,6 +101,15 @@
     },
     {
       "fixture_kind": "expected_truth",
+      "fixture_id": "fastq-trimming-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/fastq-trimming-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/fastq-trimming-truth/expected.json",
+      "schema_version": "bijux.bench.fastq_trimming_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=7"
+    },
+    {
+      "fixture_kind": "expected_truth",
       "fixture_id": "vcf-mini",
       "manifest_path": "benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml",
       "detail_path": "benchmarks/tests/fixtures/corpora/vcf-mini/expected",
@@ -136,6 +145,15 @@
       "detail": "present"
     },
     {
+      "fixture_kind": "fixture_subroot",
+      "fixture_id": "science",
+      "manifest_path": null,
+      "detail_path": "benchmarks/tests/fixtures/science",
+      "schema_version": null,
+      "valid": true,
+      "detail": "present"
+    },
+    {
       "fixture_kind": "parser_fixture_domain",
       "fixture_id": "bam",
       "manifest_path": null,
@@ -161,6 +179,15 @@
       "schema_version": null,
       "valid": true,
       "detail": "present"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "fastq-trimming-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/fastq-trimming-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.fastq_trimming_truth.v1",
+      "valid": true,
+      "detail": "valid"
     }
   ]
 }
