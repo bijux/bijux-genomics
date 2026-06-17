@@ -265,6 +265,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamGenotypingComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_genotyping_complete::run_render_bam_genotyping_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamRecalibrationComplete(args) => {
                         crate::commands::benchmark::readiness::bam_recalibration_complete::run_render_bam_recalibration_complete(
                             args,

@@ -39,6 +39,7 @@ pub(crate) mod bam_corpus_assignment;
 pub(crate) mod bam_damage_authenticity_ready;
 pub(crate) mod bam_damage_complete;
 pub(crate) mod bam_endogenous_content_complete;
+pub(crate) mod bam_genotyping_complete;
 pub(crate) mod bam_haplogroups_complete;
 pub(crate) mod bam_insert_size_gc_bias_ready;
 pub(crate) mod bam_kinship_ready;
