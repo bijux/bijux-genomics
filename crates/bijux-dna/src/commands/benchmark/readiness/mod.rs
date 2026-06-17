@@ -33,6 +33,7 @@ pub(crate) mod bam_all_retained_tools_complete;
 pub(crate) mod bam_authenticity_complete;
 pub(crate) mod bam_command_adapter_coverage;
 pub(crate) mod bam_comparable_metrics;
+pub(crate) mod bam_contamination_complete;
 pub(crate) mod bam_contamination_sex_haplogroups_ready;
 pub(crate) mod bam_corpus_assignment;
 pub(crate) mod bam_damage_authenticity_ready;

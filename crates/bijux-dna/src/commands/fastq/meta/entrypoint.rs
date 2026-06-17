@@ -255,6 +255,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamContaminationComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_contamination_complete::run_render_bam_contamination_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamDamageComplete(args) => {
                         crate::commands::benchmark::readiness::bam_damage_complete::run_render_bam_damage_complete(
                             args,
