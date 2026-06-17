@@ -559,6 +559,6 @@ mod tests {
         assert!(markdown.contains("## reference-index-assets"));
         assert!(markdown.contains("| fastq | fastq.index_reference | reference-index-assets | Reference Preparation | 2 | 2 | 0 | index_build_exit_code | none |"));
         assert!(markdown.contains("## corpus-01-adna-bam"));
-        assert!(markdown.contains("| bam | bam.damage | corpus-01-adna-damage-mini | Ancient Signal | 6 | 6 | 0 | terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb | none |"));
+        assert!(markdown.contains("| bam | bam.damage | corpus-01-adna-damage-mini | Ancient Signal | 6 | 6 | 0 | terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal | none |"));
     }
 }

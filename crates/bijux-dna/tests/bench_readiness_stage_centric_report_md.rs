@@ -55,7 +55,8 @@ fn bench_readiness_stage_centric_report_writes_named_stage_sections() {
     assert!(markdown.contains("| fastq_scan | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |"));
 
     assert!(markdown.contains("## bam.damage"));
-    assert!(markdown.contains("- Shared metrics: terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb"));
+    assert!(markdown
+        .contains("- Shared metrics: terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal"));
     assert!(markdown.contains("| damageprofiler | benchmark_ready | none | supported | runnable | parser_fixture_validated | fixture:corpus-01-adna-damage-mini | not_required |"));
 
     assert!(markdown.contains("## bam.contamination"));

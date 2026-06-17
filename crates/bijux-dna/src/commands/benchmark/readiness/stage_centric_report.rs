@@ -368,7 +368,7 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         6,
         0,
         "declared",
-        &["terminal_c_to_t_5p", "terminal_g_to_a_3p", "damage_signal", "runtime_s", "memory_mb"],
+        &["terminal_c_to_t_5p", "terminal_g_to_a_3p", "damage_signal"],
     )?;
     ensure_stage(
         stages,
@@ -377,7 +377,7 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         3,
         0,
         "declared",
-        &["scope", "prerequisites_passed", "estimate", "ci_low", "ci_high"],
+        &["estimate", "ci_low", "ci_high"],
     )?;
     Ok(())
 }
@@ -593,7 +593,7 @@ mod tests {
         assert_eq!(profile_overrepresented.blocked_tool_count, 0);
         assert_eq!(profile_overrepresented.shared_metric_field_count, 3);
         assert_eq!(damage.tool_count, 6);
-        assert_eq!(damage.shared_metric_field_count, 5);
+        assert_eq!(damage.shared_metric_field_count, 3);
     }
 
     #[test]

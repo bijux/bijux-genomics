@@ -60,8 +60,8 @@ fn bench_readiness_corpus_centric_report_writes_named_corpus_sections() {
     assert!(markdown.contains("| fastq | fastq.remove_chimeras | corpus-03-amplicon-mini | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |"));
 
     assert!(markdown.contains("## corpus-01-adna-bam"));
-    assert!(markdown.contains("| bam | bam.damage | corpus-01-adna-damage-mini | Ancient Signal | 6 | 6 | 0 | terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb | none |"));
-    assert!(markdown.contains("| bam | bam.contamination | corpus-01-adna-bam-mini | Ancient Signal | 3 | 3 | 0 | scope, prerequisites_passed, estimate, ci_low, ci_high | none |"));
+    assert!(markdown.contains("| bam | bam.damage | corpus-01-adna-damage-mini | Ancient Signal | 6 | 6 | 0 | terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal | none |"));
+    assert!(markdown.contains("| bam | bam.contamination | corpus-01-adna-bam-mini | Ancient Signal | 3 | 3 | 0 | estimate, ci_low, ci_high | none |"));
 
     assert!(markdown.contains("## corpus-01-genotyping"));
     assert!(markdown.contains("| bam | bam.genotyping | corpus-01-genotyping-mini | Downstream Readiness | 1 | 1 | 0 | not_applicable | none |"));

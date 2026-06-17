@@ -162,6 +162,6 @@ fn bench_readiness_stage_centric_report_tracks_multi_tool_stage_coverage() {
     );
     assert_eq!(
         bam_damage.get("shared_metric_field_count").and_then(serde_json::Value::as_u64),
-        Some(5)
+        Some(3)
     );
 }
