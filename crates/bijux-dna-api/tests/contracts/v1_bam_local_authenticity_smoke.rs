@@ -68,14 +68,6 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
             .as_str()
             .unwrap_or_else(|| panic!("authenticity_report path missing")),
     );
-    let damage_profile = repo_root.join(
-        payload["damage_profile"].as_str().unwrap_or_else(|| panic!("damage_profile path missing")),
-    );
-    let damage_plot = repo_root.join(
-        payload["damage_plot"].as_str().unwrap_or_else(|| panic!("damage_plot path missing")),
-    );
-    let pmd_scores = repo_root
-        .join(payload["pmd_scores"].as_str().unwrap_or_else(|| panic!("pmd_scores path missing")));
     let authenticity_summary = repo_root.join(
         payload["authenticity_summary"]
             .as_str()
@@ -121,9 +113,6 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
     );
     for path in [
         &authenticity_report,
-        &damage_profile,
-        &damage_plot,
-        &pmd_scores,
         &authenticity_summary,
         &authenticity_composite,
         &advisory_boundary,
@@ -140,6 +129,18 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
             path.display()
         );
     }
+    assert!(
+        payload.get("damage_profile").is_none(),
+        "authenticct local-smoke proof must not claim undeclared damage_profile output"
+    );
+    assert!(
+        payload.get("damage_plot").is_none(),
+        "authenticct local-smoke proof must not claim undeclared damage_plot output"
+    );
+    assert!(
+        payload.get("pmd_scores").is_none(),
+        "authenticct local-smoke proof must not claim undeclared pmd_scores output"
+    );
 
     let summary_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&authenticity_summary)?)?;
