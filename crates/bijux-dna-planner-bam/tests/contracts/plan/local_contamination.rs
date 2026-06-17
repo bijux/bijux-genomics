@@ -131,6 +131,18 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         stage_metrics.path,
         PathBuf::from("benchmarks/readiness/local-ready/bam.contamination/stage.metrics.json")
     );
+    let contamination_estimate = plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "contamination_estimate")
+        .unwrap_or_else(|| panic!("contamination_estimate output missing from local-ready plan"));
+    assert_eq!(
+        contamination_estimate.path,
+        PathBuf::from(
+            "benchmarks/readiness/local-ready/bam.contamination/contamination.estimate.json"
+        )
+    );
     assert_eq!(plan.params["scope"], serde_json::json!("nuclear"));
     assert_eq!(plan.params["prior"], serde_json::json!(0.02));
     assert_eq!(plan.params["sex_specific"], serde_json::json!(false));
@@ -194,6 +206,43 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
 fn local_contamination_plan_stage_api_surface_stays_callable() {
     let _: fn(&std::path::Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
         bijux_dna_planner_bam::stage_api::local_contamination_plan;
+}
+
+#[test]
+fn local_contamination_smoke_plans_cover_all_governed_tools() -> Result<()> {
+    let repo_root = repo_root();
+    let plans = bijux_dna_planner_bam::stage_api::local_contamination_smoke_plans(&repo_root)?;
+
+    let tool_ids = plans.iter().map(|plan| plan.tool_id.as_str()).collect::<Vec<_>>();
+    assert_eq!(tool_ids, vec!["contammix", "schmutzi", "verifybamid2"]);
+
+    let contammix = plans
+        .iter()
+        .find(|plan| plan.tool_id.as_str() == "contammix")
+        .unwrap_or_else(|| panic!("contammix plan missing from contamination smoke plans"));
+    assert!(contammix
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "contammix_report"));
+
+    let schmutzi = plans
+        .iter()
+        .find(|plan| plan.tool_id.as_str() == "schmutzi")
+        .unwrap_or_else(|| panic!("schmutzi plan missing from contamination smoke plans"));
+    assert!(schmutzi.io.outputs.iter().any(|artifact| artifact.name.as_str() == "mt_consensus"));
+
+    let verifybamid2 = plans
+        .iter()
+        .find(|plan| plan.tool_id.as_str() == "verifybamid2")
+        .unwrap_or_else(|| panic!("verifybamid2 plan missing from contamination smoke plans"));
+    assert!(verifybamid2
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "contamination_estimate"));
+
+    Ok(())
 }
 
 #[test]

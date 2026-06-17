@@ -21,10 +21,15 @@ pub mod haplogroups {
         out_dir: &Path,
         params: &HaplogroupEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
-        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+        let mut outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::Haplogroups,
             out_dir,
         );
+        outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("haplogroup_report"),
+            out_dir.join("haplogroup_report.json"),
+            ArtifactRole::ReportJson,
+        ));
         let report = out_dir.join("haplogroups.json");
         let summary = out_dir.join("haplogroups.summary.json");
         let command = crate::tool_adapters::tools::downstream::haplogroups::args_with_outputs(
@@ -80,7 +85,7 @@ pub mod haplogroups {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &["haplogroups", "summary", "stage_metrics"],
+            &["haplogroups", "summary", "stage_metrics", "haplogroup_report"],
         )
     }
 }
@@ -129,34 +134,17 @@ pub mod genotyping {
             bijux_dna_domain_bam::BamStage::Genotyping,
             out_dir,
         );
+        outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("population_metrics"),
+            out_dir.join("population_metrics.json"),
+            ArtifactRole::ReportJson,
+        ));
         let bcf = out_dir.join("genotyping.bcf");
         let vcf_gz = out_dir.join("genotyping.vcf.gz");
         let tbi = out_dir.join("genotyping.vcf.gz.tbi");
         let gl_json = out_dir.join("genotyping.gl.json");
         let emit_bcf_contract =
             context.reference.is_some() || context.sites.is_some() || context.regions.is_some();
-        if emit_bcf_contract {
-            outputs.push(bijux_dna_stage_contract::ArtifactRef::optional(
-                ArtifactId::from_static("genotyping_bcf"),
-                bcf.clone(),
-                ArtifactRole::Variant,
-            ));
-        }
-        outputs.push(bijux_dna_stage_contract::ArtifactRef::optional(
-            ArtifactId::from_static("genotyping_vcf"),
-            vcf_gz.clone(),
-            ArtifactRole::Variant,
-        ));
-        outputs.push(bijux_dna_stage_contract::ArtifactRef::optional(
-            ArtifactId::from_static("genotyping_vcf_tbi"),
-            tbi.clone(),
-            ArtifactRole::Index,
-        ));
-        outputs.push(bijux_dna_stage_contract::ArtifactRef::optional(
-            ArtifactId::from_static("genotyping_gl"),
-            gl_json.clone(),
-            ArtifactRole::ReportJson,
-        ));
         let report = out_dir.join("genotyping.json");
         let summary = out_dir.join("genotyping.summary.json");
         let mut inputs = vec![bijux_dna_stage_contract::ArtifactRef::required(
@@ -252,7 +240,7 @@ pub mod genotyping {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &["genotyping_report", "summary", "stage_metrics"],
+            &["genotyping_report", "summary", "stage_metrics", "population_metrics"],
         )
     }
 }
@@ -283,10 +271,17 @@ pub mod kinship {
         if params.min_overlap_snps == 0 {
             return Err(anyhow::anyhow!("bam.kinship requires min_overlap_snps > 0"));
         }
-        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+        let mut outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::Kinship,
             out_dir,
         );
+        if tool.tool_id.as_str() == "angsd" {
+            outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("population_metrics"),
+                out_dir.join("population_metrics.json"),
+                ArtifactRole::ReportJson,
+            ));
+        }
         let report = out_dir.join("kinship.json");
         let summary = out_dir.join("kinship.summary.json");
         let segments = out_dir.join("kinship.segments.tsv");
@@ -338,10 +333,12 @@ pub mod kinship {
             provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
-        crate::tool_adapters::stages_support::ensure_required_outputs(
-            plan,
-            &["kinship_report", "summary", "stage_metrics"],
-        )
+        let required_outputs = if tool.tool_id.as_str() == "angsd" {
+            vec!["kinship_report", "summary", "stage_metrics", "population_metrics"]
+        } else {
+            vec!["kinship_report", "summary", "stage_metrics"]
+        };
+        crate::tool_adapters::stages_support::ensure_required_outputs(plan, &required_outputs)
     }
 }
 
@@ -365,10 +362,20 @@ pub mod bias_mitigation {
         out_dir: &Path,
         params: &BiasMitigationEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
-        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+        let mut outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::BiasMitigation,
             out_dir,
         );
+        outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("damage_profile"),
+            out_dir.join("damage_profile.json"),
+            ArtifactRole::ReportJson,
+        ));
+        outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("damage_plot"),
+            out_dir.join("damage_plot.json"),
+            ArtifactRole::ReportJson,
+        ));
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_instance_id: None,
@@ -407,7 +414,7 @@ pub mod bias_mitigation {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &["bias_report", "summary", "stage_metrics"],
+            &["bias_report", "summary", "stage_metrics", "damage_profile", "damage_plot"],
         )
     }
 }

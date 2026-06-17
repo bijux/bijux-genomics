@@ -142,6 +142,38 @@ fn local_kinship_smoke_stage_api_surface_stays_callable() {
     )
         -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalKinshipSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_kinship_smoke_plans;
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalKinshipSmokeCasePlan>> =
+        bijux_dna_planner_bam::stage_api::local_kinship_output_contract_plans;
+}
+
+#[test]
+fn local_kinship_output_contract_plans_cover_all_governed_tools() -> Result<()> {
+    let repo_root = repo_root();
+    let plans = bijux_dna_planner_bam::stage_api::local_kinship_output_contract_plans(&repo_root)?;
+    let tool_ids = plans
+        .iter()
+        .map(|case| case.plan.tool_id.as_str().to_string())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        tool_ids,
+        std::collections::BTreeSet::from(["angsd".to_string(), "king".to_string(),])
+    );
+    assert!(
+        plans.iter().any(|case| {
+            case.plan.tool_id.as_str() == "angsd"
+                && case
+                    .plan
+                    .io
+                    .outputs
+                    .iter()
+                    .any(|artifact| artifact.name.as_str() == "population_metrics")
+        }),
+        "ANGSD kinship proof plans must retain population_metrics for the governed output contract"
+    );
+    Ok(())
 }
 
 #[test]
