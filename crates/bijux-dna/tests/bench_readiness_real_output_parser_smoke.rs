@@ -37,7 +37,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parsers() {
-    let payload = run_cli_json(&["bench", "readiness", "render-real-output-parser-smoke", "--json"]);
+    let payload =
+        run_cli_json(&["bench", "readiness", "render-real-output-parser-smoke", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -47,15 +48,9 @@ fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parse
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/tools/real-output-parser-smoke.json")
     );
-    assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(25));
-    assert_eq!(
-        payload.get("passed_family_count").and_then(serde_json::Value::as_u64),
-        Some(25)
-    );
-    assert_eq!(
-        payload.get("failed_family_count").and_then(serde_json::Value::as_u64),
-        Some(0)
-    );
+    assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(30));
+    assert_eq!(payload.get("passed_family_count").and_then(serde_json::Value::as_u64), Some(30));
+    assert_eq!(payload.get("failed_family_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let parser_surface_counts = payload
         .get("parser_surface_counts")
@@ -81,13 +76,31 @@ fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parse
     );
     assert_eq!(
         parser_surface_counts
+            .get("serde_json::<Value> + governed vcf call metric keys")
+            .and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    assert_eq!(
+        parser_surface_counts
+            .get("serde_json::<Value> + governed vcf population-structure keys")
+            .and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    assert_eq!(
+        parser_surface_counts
+            .get("serde_json::<Value> + governed vcf qc metric keys")
+            .and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
+    assert_eq!(
+        parser_surface_counts
             .get("serde_json::<Value> + governed keys")
             .and_then(serde_json::Value::as_u64),
         Some(1)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 25);
+    assert_eq!(rows.len(), 30);
 
     assert!(rows.iter().any(|row| {
         row.get("family_id").and_then(serde_json::Value::as_str) == Some("alignment")
@@ -101,15 +114,15 @@ fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parse
     }));
 
     assert!(rows.iter().any(|row| {
-        row.get("family_id").and_then(serde_json::Value::as_str)
-            == Some("authenticity_assessment")
+        row.get("family_id").and_then(serde_json::Value::as_str) == Some("authenticity_assessment")
             && row.get("representative_tool_id").and_then(serde_json::Value::as_str)
                 == Some("authenticct")
             && row.get("parser_surface").and_then(serde_json::Value::as_str)
                 == Some("serde_json::<BamAuthenticityAdvisoryV1>")
             && row.get("parsed_schema_version").and_then(serde_json::Value::as_str)
                 == Some("bijux.bam.authenticity_advisory.v1")
-            && row.get("normalized_snapshot")
+            && row
+                .get("normalized_snapshot")
                 .and_then(|value| value.get("pmd_like_signal_present"))
                 .and_then(serde_json::Value::as_bool)
                 == Some(true)
@@ -117,10 +130,8 @@ fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parse
     }));
 
     assert!(rows.iter().any(|row| {
-        row.get("family_id").and_then(serde_json::Value::as_str)
-            == Some("kinship_relatedness")
-            && row.get("representative_tool_id").and_then(serde_json::Value::as_str)
-                == Some("king")
+        row.get("family_id").and_then(serde_json::Value::as_str) == Some("kinship_relatedness")
+            && row.get("representative_tool_id").and_then(serde_json::Value::as_str) == Some("king")
             && row.get("parser_surface").and_then(serde_json::Value::as_str)
                 == Some("serde_json::<BamKinshipSummaryV1>")
             && row.get("parsed_schema_version").and_then(serde_json::Value::as_str)
@@ -147,6 +158,55 @@ fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parse
                 .and_then(|value| value.get("producer"))
                 .and_then(serde_json::Value::as_str)
                 == Some("bam.genotyping")
+            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+    }));
+
+    assert!(rows.iter().any(|row| {
+        row.get("family_id").and_then(serde_json::Value::as_str) == Some("vcf_calling_and_curation")
+            && row.get("representative_tool_id").and_then(serde_json::Value::as_str)
+                == Some("bcftools")
+            && row.get("parser_surface").and_then(serde_json::Value::as_str)
+                == Some("serde_json::<Value> + governed vcf call metric keys")
+            && row.get("parsed_schema_version").and_then(serde_json::Value::as_str)
+                == Some("bijux.bench.local_vcf_call_smoke.metrics.v1")
+            && row
+                .get("normalized_snapshot")
+                .and_then(|value| value.get("sample_count"))
+                .and_then(serde_json::Value::as_u64)
+                == Some(1)
+            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+    }));
+
+    assert!(rows.iter().any(|row| {
+        row.get("family_id").and_then(serde_json::Value::as_str)
+            == Some("vcf_ordination_and_population_structure")
+            && row.get("representative_tool_id").and_then(serde_json::Value::as_str)
+                == Some("plink2")
+            && row.get("parser_surface").and_then(serde_json::Value::as_str)
+                == Some("serde_json::<Value> + governed vcf population-structure keys")
+            && row.get("parsed_schema_version").and_then(serde_json::Value::as_str)
+                == Some("bijux.bench.local_vcf_population_structure_smoke.v1")
+            && row
+                .get("normalized_snapshot")
+                .and_then(|value| value.get("status"))
+                .and_then(serde_json::Value::as_str)
+                == Some("complete")
+            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+    }));
+
+    assert!(rows.iter().any(|row| {
+        row.get("family_id").and_then(serde_json::Value::as_str) == Some("vcf_phasing")
+            && row.get("representative_tool_id").and_then(serde_json::Value::as_str)
+                == Some("shapeit5")
+            && row.get("parser_surface").and_then(serde_json::Value::as_str)
+                == Some("serde_json::<Value> + governed vcf phasing metric keys")
+            && row.get("parsed_schema_version").and_then(serde_json::Value::as_str)
+                == Some("bijux.bench.local_vcf_phasing_smoke.metrics.v1")
+            && row
+                .get("normalized_snapshot")
+                .and_then(|value| value.get("phase_set_count"))
+                .and_then(serde_json::Value::as_u64)
+                == Some(2)
             && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
     }));
 }
@@ -176,11 +236,8 @@ fn bench_readiness_real_output_parser_smoke_writes_governed_json_file() {
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.real_output_parser_smoke.v1")
     );
-    assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(25));
-    assert_eq!(
-        payload.get("passed_family_count").and_then(serde_json::Value::as_u64),
-        Some(25)
-    );
+    assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(30));
+    assert_eq!(payload.get("passed_family_count").and_then(serde_json::Value::as_u64), Some(30));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert!(
@@ -208,5 +265,16 @@ fn bench_readiness_real_output_parser_smoke_writes_governed_json_file() {
                     == Some("rxy")
         }),
         "report file must retain governed BAM sex parser coverage"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row.get("family_id").and_then(serde_json::Value::as_str) == Some("vcf_quality_control")
+                && row.get("parser_surface").and_then(serde_json::Value::as_str)
+                    == Some("serde_json::<Value> + governed vcf qc metric keys")
+                && row.get("proof_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
+                    path.ends_with("runs/bench/local-smoke/vcf.qc/plink/metrics.json")
+                })
+        }),
+        "report file must retain governed VCF QC parser coverage"
     );
 }

@@ -189,7 +189,7 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
         payload.get("container_smoke_tool_count").and_then(serde_json::Value::as_u64),
         Some(70)
     );
-    assert_eq!(payload.get("parser_family_count").and_then(serde_json::Value::as_u64), Some(25));
+    assert_eq!(payload.get("parser_family_count").and_then(serde_json::Value::as_u64), Some(30));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let checks = payload.get("checks").and_then(serde_json::Value::as_array).expect("checks");
