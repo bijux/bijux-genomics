@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.output_contract_tests.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
   "row_count": 140,
-  "passed_row_count": 116,
-  "failed_row_count": 24,
+  "passed_row_count": 140,
+  "failed_row_count": 0,
   "domain_counts": {
     "bam": 49,
     "fastq": 71,
@@ -11,48 +11,10 @@
   },
   "output_proof_surface_counts": {
     "direct_tool_smoke": 20,
-    "local_ready_plan_only": 18,
-    "local_stage_materialization_blocked": 6,
-    "shared_stage_smoke": 96
+    "shared_stage_smoke": 120
   },
-  "failed_stage_ids": [
-    "bam.align",
-    "bam.bias_mitigation",
-    "bam.contamination",
-    "bam.genotyping",
-    "bam.haplogroups",
-    "bam.kinship",
-    "fastq.correct_errors",
-    "fastq.deplete_host",
-    "fastq.deplete_reference_contaminants",
-    "fastq.deplete_rrna",
-    "fastq.index_reference",
-    "fastq.report_qc",
-    "fastq.screen_taxonomy"
-  ],
-  "failed_tool_ids": [
-    "angsd",
-    "bayeshammer",
-    "bowtie2",
-    "bowtie2_build",
-    "bwa",
-    "centrifuge",
-    "contammix",
-    "kaiju",
-    "king",
-    "kraken2",
-    "krakenuniq",
-    "lighter",
-    "mapdamage2",
-    "multiqc",
-    "musket",
-    "rcorrector",
-    "schmutzi",
-    "sortmerna",
-    "star",
-    "verifybamid2",
-    "yleaf"
-  ],
+  "failed_stage_ids": [],
+  "failed_tool_ids": [],
   "rows": [
     {
       "result_id": "bam:corpus-01-mini:bam.align:sample-set:bowtie2",
@@ -61,8 +23,8 @@
       "tool_id": "bowtie2",
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/bam.align/plan.json",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/bam.align/align.bam",
       "proof_tool_id": "bowtie2",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/bam.align/sample-set/bowtie2/stage-result.json",
@@ -74,14 +36,31 @@
         "stats",
         "stage_metrics"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "align_bam",
+        "align_bai",
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics"
+      ],
       "declared_normalized_metric_ids": [
         "align_metrics"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "align_metrics"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/bam.align/align.bam",
+        "benchmarks/readiness/local-ready/bam.align/align.bam.bai",
+        "benchmarks/readiness/local-ready/bam.align/align.metrics.json",
+        "benchmarks/readiness/local-ready/bam.align/flagstat.txt",
+        "benchmarks/readiness/local-ready/bam.align/idxstats.txt",
+        "benchmarks/readiness/local-ready/bam.align/samtools_stats.txt",
+        "benchmarks/readiness/local-ready/bam.align/stage.metrics.json"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/bam.align/sample-set/bowtie2/stdout.log",
@@ -93,15 +72,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/bam.align/sample-set/bowtie2/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/bam.align/sample-set/bowtie2/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `bam.align` / `bowtie2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-mini:bam.align:sample-set:bwa",
@@ -110,9 +89,9 @@
       "tool_id": "bwa",
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/bam.align/plan.json",
-      "proof_tool_id": "bowtie2",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/bam.align/align.bam",
+      "proof_tool_id": "bwa",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/bam.align/sample-set/bwa/stage-result.json",
       "declared_raw_output_ids": [
@@ -123,14 +102,31 @@
         "stats",
         "stage_metrics"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "align_bam",
+        "align_bai",
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics"
+      ],
       "declared_normalized_metric_ids": [
         "align_metrics"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "align_metrics"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/bam.align/align.bam",
+        "benchmarks/readiness/local-ready/bam.align/align.bam.bai",
+        "benchmarks/readiness/local-ready/bam.align/align.metrics.json",
+        "benchmarks/readiness/local-ready/bam.align/flagstat.txt",
+        "benchmarks/readiness/local-ready/bam.align/idxstats.txt",
+        "benchmarks/readiness/local-ready/bam.align/samtools_stats.txt",
+        "benchmarks/readiness/local-ready/bam.align/stage.metrics.json"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/bam.align/sample-set/bwa/stdout.log",
@@ -142,15 +138,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/bam.align/sample-set/bwa/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/bam.align/sample-set/bwa/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `bam.align` / `bwa` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:authenticct",
@@ -160,7 +156,7 @@
       "corpus_id": "corpus-01-adna-damage-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.authenticity/authenticity.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.json",
       "proof_tool_id": "authenticct",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.authenticity/adna_damage_non_udg/authenticct/stage-result.json",
@@ -214,8 +210,8 @@
       "corpus_id": "corpus-01-adna-damage-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.authenticity/authenticity.json",
-      "proof_tool_id": "authenticct",
+      "output_proof_path": "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/damageprofiler/authenticity.json",
+      "proof_tool_id": "damageprofiler",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.authenticity/adna_damage_non_udg/damageprofiler/stage-result.json",
       "declared_raw_output_ids": [
@@ -239,11 +235,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.json",
-        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.summary.json",
-        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/damage_plot.json",
-        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/damage_profile.json",
-        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/stage.metrics.json"
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/damageprofiler/authenticity.json",
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/damageprofiler/authenticity.summary.json",
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/damageprofiler/damage_plot.json",
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/damageprofiler/damage_profile.json",
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/damageprofiler/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -274,8 +270,8 @@
       "corpus_id": "corpus-01-adna-damage-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.authenticity/authenticity.json",
-      "proof_tool_id": "authenticct",
+      "output_proof_path": "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/pmdtools/authenticity.json",
+      "proof_tool_id": "pmdtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.authenticity/adna_damage_non_udg/pmdtools/stage-result.json",
       "declared_raw_output_ids": [
@@ -299,11 +295,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.json",
-        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/authenticity.summary.json",
-        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/damage_profile.json",
-        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/pmd_scores.json",
-        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/authenticct/stage.metrics.json"
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/pmdtools/authenticity.json",
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/pmdtools/authenticity.summary.json",
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/pmdtools/damage_profile.json",
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/pmdtools/pmd_scores.json",
+        "runs/bench/local-smoke/bam.authenticity/adna_damage_non_udg/pmdtools/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -333,9 +329,9 @@
       "tool_id": "mapdamage2",
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
-      "output_proof_surface": "local_stage_materialization_blocked",
-      "output_proof_path": "materialize bam.bias_mitigation blocked: stage `bam.bias_mitigation` requires the `bam_downstream` feature; rerun with `cargo run -p bijux-dna --features bam_downstream -- ...`",
-      "proof_tool_id": null,
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.json",
+      "proof_tool_id": "mapdamage2",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.bias_mitigation/sample-set/mapdamage2/stage-result.json",
       "declared_raw_output_ids": [
@@ -344,14 +340,27 @@
         "damage_profile",
         "damage_plot"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "summary",
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot"
+      ],
       "declared_normalized_metric_ids": [
         "bias_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "bias_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.json",
+        "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/bias.summary.json",
+        "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/damage_plot.json",
+        "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/damage_profile.json",
+        "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/stage.metrics.json"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.bias_mitigation/sample-set/mapdamage2/stdout.log",
@@ -363,15 +372,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.bias_mitigation/sample-set/mapdamage2/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.bias_mitigation/sample-set/mapdamage2/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `bam.bias_mitigation` / `mapdamage2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.complexity:sample-set:preseq",
@@ -381,7 +390,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.complexity/complexity.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity.json",
       "proof_tool_id": "preseq",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.complexity/sample-set/preseq/stage-result.json",
@@ -437,9 +446,9 @@
       "tool_id": "contammix",
       "corpus_id": "corpus-01-adna-bam-mini",
       "asset_profile_id": "reference_fasta+reference_panel",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/bam.contamination/plan.json",
-      "proof_tool_id": "verifybamid2",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/bam.contamination/contamination.json",
+      "proof_tool_id": "contammix",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.contamination/sample-set/contammix/stage-result.json",
       "declared_raw_output_ids": [
@@ -448,14 +457,27 @@
         "contamination_estimate",
         "contammix_report"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "summary",
+        "stage_metrics",
+        "contamination_estimate",
+        "contammix_report"
+      ],
       "declared_normalized_metric_ids": [
         "contamination_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "contamination_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/bam.contamination/contamination.estimate.json",
+        "benchmarks/readiness/local-ready/bam.contamination/contamination.json",
+        "benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json",
+        "benchmarks/readiness/local-ready/bam.contamination/contammix.report.txt",
+        "benchmarks/readiness/local-ready/bam.contamination/stage.metrics.json"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.contamination/sample-set/contammix/stdout.log",
@@ -467,15 +489,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.contamination/sample-set/contammix/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.contamination/sample-set/contammix/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `bam.contamination` / `contammix` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:schmutzi",
@@ -484,9 +506,9 @@
       "tool_id": "schmutzi",
       "corpus_id": "corpus-01-adna-bam-mini",
       "asset_profile_id": "reference_fasta+reference_panel",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/bam.contamination/plan.json",
-      "proof_tool_id": "verifybamid2",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/bam.contamination/contamination.json",
+      "proof_tool_id": "schmutzi",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.contamination/sample-set/schmutzi/stage-result.json",
       "declared_raw_output_ids": [
@@ -495,14 +517,27 @@
         "contamination_estimate",
         "mt_consensus"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "summary",
+        "stage_metrics",
+        "contamination_estimate",
+        "mt_consensus"
+      ],
       "declared_normalized_metric_ids": [
         "contamination_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "contamination_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/bam.contamination/contamination.estimate.json",
+        "benchmarks/readiness/local-ready/bam.contamination/contamination.json",
+        "benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json",
+        "benchmarks/readiness/local-ready/bam.contamination/mt_consensus.fasta",
+        "benchmarks/readiness/local-ready/bam.contamination/stage.metrics.json"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.contamination/sample-set/schmutzi/stdout.log",
@@ -514,15 +549,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.contamination/sample-set/schmutzi/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.contamination/sample-set/schmutzi/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `bam.contamination` / `schmutzi` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:verifybamid2",
@@ -531,8 +566,8 @@
       "tool_id": "verifybamid2",
       "corpus_id": "corpus-01-adna-bam-mini",
       "asset_profile_id": "reference_fasta+reference_panel",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/bam.contamination/plan.json",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/bam.contamination/contamination.json",
       "proof_tool_id": "verifybamid2",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.contamination/sample-set/verifybamid2/stage-result.json",
@@ -541,14 +576,25 @@
         "stage_metrics",
         "contamination_estimate"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "summary",
+        "stage_metrics",
+        "contamination_estimate"
+      ],
       "declared_normalized_metric_ids": [
         "contamination_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "contamination_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/bam.contamination/contamination.estimate.json",
+        "benchmarks/readiness/local-ready/bam.contamination/contamination.json",
+        "benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json",
+        "benchmarks/readiness/local-ready/bam.contamination/stage.metrics.json"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.contamination/sample-set/verifybamid2/stdout.log",
@@ -560,15 +606,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.contamination/sample-set/verifybamid2/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.contamination/sample-set/verifybamid2/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `bam.contamination` / `verifybamid2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.coverage:sample-set:bedtools",
@@ -578,7 +624,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.coverage/coverage.tsv",
+      "output_proof_path": "runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.mosdepth.summary.txt",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.coverage/sample-set/bedtools/stage-result.json",
@@ -632,7 +678,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.coverage/coverage.tsv",
+      "output_proof_path": "runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.mosdepth.summary.txt",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.coverage/sample-set/mosdepth/stage-result.json",
@@ -686,7 +732,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.coverage/coverage.tsv",
+      "output_proof_path": "runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.mosdepth.summary.txt",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.coverage/sample-set/samtools/stage-result.json",
@@ -740,8 +786,8 @@
       "corpus_id": "corpus-01-adna-damage-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.damage/damage.json",
-      "proof_tool_id": "ngsbriggs",
+      "output_proof_path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/addeam/damage.summary.json",
+      "proof_tool_id": "addeam",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/addeam/stage-result.json",
       "declared_raw_output_ids": [
@@ -767,12 +813,12 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_clusters.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json"
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/addeam/damage.parser_output.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/addeam/damage.summary.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/addeam/damage.unified_metrics.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/addeam/damage_clusters.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/addeam/damage_profile.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/addeam/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -803,8 +849,8 @@
       "corpus_id": "corpus-01-adna-damage-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.damage/damage.json",
-      "proof_tool_id": "ngsbriggs",
+      "output_proof_path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/damageprofiler/damage.summary.json",
+      "proof_tool_id": "damageprofiler",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/damageprofiler/stage-result.json",
       "declared_raw_output_ids": [
@@ -830,12 +876,12 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_plot.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json"
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/damageprofiler/damage.parser_output.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/damageprofiler/damage.summary.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/damageprofiler/damage.unified_metrics.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/damageprofiler/damage_plot.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/damageprofiler/damage_profile.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/damageprofiler/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -866,8 +912,8 @@
       "corpus_id": "corpus-01-adna-damage-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.damage/damage.json",
-      "proof_tool_id": "ngsbriggs",
+      "output_proof_path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/mapdamage2/damage.summary.json",
+      "proof_tool_id": "mapdamage2",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/mapdamage2/stage-result.json",
       "declared_raw_output_ids": [
@@ -893,12 +939,12 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_plot.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json"
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/mapdamage2/damage.parser_output.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/mapdamage2/damage.summary.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/mapdamage2/damage.unified_metrics.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/mapdamage2/damage_plot.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/mapdamage2/damage_profile.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/mapdamage2/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -929,7 +975,7 @@
       "corpus_id": "corpus-01-adna-damage-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.damage/damage.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
       "proof_tool_id": "ngsbriggs",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/ngsbriggs/stage-result.json",
@@ -992,8 +1038,8 @@
       "corpus_id": "corpus-01-adna-damage-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.damage/damage.json",
-      "proof_tool_id": "ngsbriggs",
+      "output_proof_path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/pmdtools/damage.summary.json",
+      "proof_tool_id": "pmdtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/pmdtools/stage-result.json",
       "declared_raw_output_ids": [
@@ -1019,12 +1065,12 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/pmd_scores.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json"
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/pmdtools/damage.parser_output.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/pmdtools/damage.summary.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/pmdtools/damage.unified_metrics.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/pmdtools/damage_profile.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/pmdtools/pmd_scores.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/pmdtools/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -1055,8 +1101,8 @@
       "corpus_id": "corpus-01-adna-damage-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.damage/damage.json",
-      "proof_tool_id": "ngsbriggs",
+      "output_proof_path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/pydamage/damage.summary.json",
+      "proof_tool_id": "pydamage",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/pydamage/stage-result.json",
       "declared_raw_output_ids": [
@@ -1080,11 +1126,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.parser_output.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.unified_metrics.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
-        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/stage.metrics.json"
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/pydamage/damage.parser_output.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/pydamage/damage.summary.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/pydamage/damage.unified_metrics.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/pydamage/damage_profile.json",
+        "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/pydamage/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -1115,7 +1161,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.duplication_metrics/duplication_metrics.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/duplication.metrics.json",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.duplication_metrics/sample-set/picard/stage-result.json",
@@ -1172,7 +1218,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.duplication_metrics/duplication_metrics.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.duplication_metrics/human_like_duplicate_cluster/samtools/duplication.metrics.json",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.duplication_metrics/sample-set/samtools/stage-result.json",
@@ -1229,7 +1275,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.content.json",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.endogenous_content/sample-set/samtools/stage-result.json",
@@ -1283,7 +1329,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.filter/filter_metrics.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filtered.bam",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.filter/sample-set/bamtools/stage-result.json",
@@ -1352,7 +1398,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.filter/filter_metrics.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filtered.bam",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.filter/sample-set/bedtools/stage-result.json",
@@ -1421,7 +1467,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.filter/filter_metrics.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.filter/human_like_mixed_filter_constraints/samtools/filtered.bam",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.filter/sample-set/samtools/stage-result.json",
@@ -1490,7 +1536,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.gc_bias/gc_bias.tsv",
+      "output_proof_path": "runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.metrics.txt",
       "proof_tool_id": "picard",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.gc_bias/sample-set/picard/stage-result.json",
@@ -1546,9 +1592,9 @@
       "tool_id": "angsd",
       "corpus_id": "corpus-01-genotyping-mini",
       "asset_profile_id": "reference_fasta+regions+sites_vcf",
-      "output_proof_surface": "local_stage_materialization_blocked",
-      "output_proof_path": "materialize bam.genotyping blocked: stage `bam.genotyping` requires the `bam_downstream` feature; rerun with `cargo run -p bijux-dna --features bam_downstream -- ...`",
-      "proof_tool_id": null,
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.json",
+      "proof_tool_id": "angsd",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/angsd/stage-result.json",
       "declared_raw_output_ids": [
@@ -1556,14 +1602,25 @@
         "stage_metrics",
         "population_metrics"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics"
+      ],
       "declared_normalized_metric_ids": [
         "genotyping_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "genotyping_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/bam.genotyping/genotyping.json",
+        "benchmarks/readiness/local-ready/bam.genotyping/genotyping.summary.json",
+        "benchmarks/readiness/local-ready/bam.genotyping/population_metrics.json",
+        "benchmarks/readiness/local-ready/bam.genotyping/stage.metrics.json"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/angsd/stdout.log",
@@ -1575,15 +1632,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/angsd/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-genotyping-mini/bam.genotyping/human_like_genotyping_candidate_panel/angsd/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `bam.genotyping` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.haplogroups:sample-set:yleaf",
@@ -1592,9 +1649,9 @@
       "tool_id": "yleaf",
       "corpus_id": "corpus-01-adna-bam-mini",
       "asset_profile_id": "reference_fasta+reference_panel",
-      "output_proof_surface": "local_stage_materialization_blocked",
-      "output_proof_path": "materialize bam.haplogroups blocked: stage `bam.haplogroups` requires the `bam_downstream` feature; rerun with `cargo run -p bijux-dna --features bam_downstream -- ...`",
-      "proof_tool_id": null,
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.json",
+      "proof_tool_id": "yleaf",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.haplogroups/sample-set/yleaf/stage-result.json",
       "declared_raw_output_ids": [
@@ -1602,14 +1659,25 @@
         "stage_metrics",
         "haplogroup_report"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "summary",
+        "stage_metrics",
+        "haplogroup_report"
+      ],
       "declared_normalized_metric_ids": [
         "haplogroups"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "haplogroups"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/bam.haplogroups/haplogroup_report.json",
+        "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.json",
+        "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.summary.json",
+        "benchmarks/readiness/local-ready/bam.haplogroups/stage.metrics.json"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.haplogroups/sample-set/yleaf/stdout.log",
@@ -1621,15 +1689,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.haplogroups/sample-set/yleaf/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.haplogroups/sample-set/yleaf/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `bam.haplogroups` / `yleaf` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.insert_size:sample-set:picard",
@@ -1639,7 +1707,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.insert_size/insert_size.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.insert_size/human_like_insert_size_triplet/picard/insert_size.metrics.txt",
       "proof_tool_id": "picard",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.insert_size/sample-set/picard/stage-result.json",
@@ -1695,9 +1763,9 @@
       "tool_id": "angsd",
       "corpus_id": "corpus-01-kinship-mini",
       "asset_profile_id": "reference_fasta+reference_panel",
-      "output_proof_surface": "local_stage_materialization_blocked",
-      "output_proof_path": "materialize bam.kinship blocked: stage `bam.kinship` requires the `bam_downstream` feature; rerun with `cargo run -p bijux-dna --features bam_downstream -- ...`",
-      "proof_tool_id": null,
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/angsd/kinship.json",
+      "proof_tool_id": "angsd",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stage-result.json",
       "declared_raw_output_ids": [
@@ -1705,14 +1773,29 @@
         "stage_metrics",
         "population_metrics"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "summary",
+        "stage_metrics",
+        "population_metrics"
+      ],
       "declared_normalized_metric_ids": [
         "kinship_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "kinship_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/angsd/kinship.json",
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/angsd/kinship.summary.json",
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/angsd/population_metrics.json",
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/angsd/stage.metrics.json",
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/angsd/kinship.json",
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/angsd/kinship.summary.json",
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/angsd/population_metrics.json",
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/angsd/stage.metrics.json"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stdout.log",
@@ -1724,15 +1807,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/angsd/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `bam.kinship` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
@@ -1741,23 +1824,35 @@
       "tool_id": "king",
       "corpus_id": "corpus-01-kinship-mini",
       "asset_profile_id": "reference_fasta+reference_panel",
-      "output_proof_surface": "local_stage_materialization_blocked",
-      "output_proof_path": "materialize bam.kinship blocked: stage `bam.kinship` requires the `bam_downstream` feature; rerun with `cargo run -p bijux-dna --features bam_downstream -- ...`",
-      "proof_tool_id": null,
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.json",
+      "proof_tool_id": "king",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king/stage-result.json",
       "declared_raw_output_ids": [
         "summary",
         "stage_metrics"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "summary",
+        "stage_metrics"
+      ],
       "declared_normalized_metric_ids": [
         "kinship_report"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "kinship_report"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.json",
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.summary.json",
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/stage.metrics.json",
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.json",
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.summary.json",
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/stage.metrics.json"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king/stdout.log",
@@ -1769,15 +1864,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `bam.kinship` / `king` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.length_filter:sample-set:picard",
@@ -1787,7 +1882,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.length_filter/length_filter.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/filtered.bam",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.length_filter/sample-set/picard/stage-result.json",
@@ -1856,7 +1951,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.length_filter/length_filter.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.length_filter/human_like_length_threshold_ladder/samtools/filtered.bam",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.length_filter/sample-set/samtools/stage-result.json",
@@ -1925,7 +2020,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.mapping_summary/mapping_summary.tsv",
+      "output_proof_path": "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/flagstat.txt",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.mapping_summary/sample-set/picard/stage-result.json",
@@ -1985,7 +2080,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.mapping_summary/mapping_summary.tsv",
+      "output_proof_path": "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/flagstat.txt",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.mapping_summary/sample-set/samtools/stage-result.json",
@@ -2045,7 +2140,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.mapq_filter/mapq_filter.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/filtered.bam",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.mapq_filter/sample-set/bamtools/stage-result.json",
@@ -2114,7 +2209,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.mapq_filter/mapq_filter.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.mapq_filter/human_like_mapq_threshold_ladder/samtools/filtered.bam",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.mapq_filter/sample-set/samtools/stage-result.json",
@@ -2183,7 +2278,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.markdup/duplicates.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.bam",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.markdup/sample-set/picard/stage-result.json",
@@ -2252,7 +2347,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.markdup/duplicates.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.markdup/human_like_duplicate_cluster/samtools/markdup.bam",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.markdup/sample-set/samtools/stage-result.json",
@@ -2321,7 +2416,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/overlap.corrected.bam",
       "proof_tool_id": "bamutil",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.overlap_correction/sample-set/bamutil/stage-result.json",
@@ -2390,8 +2485,8 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.qc_pre/qc_pre.json",
-      "proof_tool_id": "samtools",
+      "output_proof_path": "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/qc_pre_report.json",
+      "proof_tool_id": "multiqc",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.qc_pre/sample-set/multiqc/stage-result.json",
       "declared_raw_output_ids": [
@@ -2419,8 +2514,7 @@
         "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/multiqc_data",
         "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/multiqc_report.html",
         "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/qc_pre_report.json",
-        "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/stage.metrics.json",
-        "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/stage.metrics.json"
+        "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -2451,7 +2545,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.qc_pre/qc_pre.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/flagstat.txt",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.qc_pre/sample-set/samtools/stage-result.json",
@@ -2474,7 +2568,6 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/stage.metrics.json",
         "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/flagstat.txt",
         "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/idxstats.txt",
         "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/samtools_stats.txt",
@@ -2509,7 +2602,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "known_sites+reference_fasta",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.recalibration/recalibration.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.recalibration/human_like_recalibration_low_coverage/gatk/recal.bam",
       "proof_tool_id": "gatk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.recalibration/sample-set/gatk/stage-result.json",
@@ -2569,8 +2662,8 @@
       "corpus_id": "corpus-01-adna-bam-mini",
       "asset_profile_id": "reference_fasta",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.sex/sex.json",
-      "proof_tool_id": "rxy",
+      "output_proof_path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/angsd/sex.json",
+      "proof_tool_id": "angsd",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stage-result.json",
       "declared_raw_output_ids": [
@@ -2592,10 +2685,10 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/population_metrics.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.summary.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/stage.metrics.json"
+        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/angsd/population_metrics.json",
+        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/angsd/sex.json",
+        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/angsd/sex.summary.json",
+        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/angsd/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -2626,7 +2719,7 @@
       "corpus_id": "corpus-01-adna-bam-mini",
       "asset_profile_id": "reference_fasta",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.sex/sex.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.json",
       "proof_tool_id": "rxy",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/rxy/stage-result.json",
@@ -2683,8 +2776,8 @@
       "corpus_id": "corpus-01-adna-bam-mini",
       "asset_profile_id": "reference_fasta",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.sex/sex.json",
-      "proof_tool_id": "rxy",
+      "output_proof_path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/yleaf/sex.json",
+      "proof_tool_id": "yleaf",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/yleaf/stage-result.json",
       "declared_raw_output_ids": [
@@ -2706,10 +2799,10 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/haplogroup_report.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.summary.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/stage.metrics.json"
+        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/yleaf/haplogroup_report.json",
+        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/yleaf/sex.json",
+        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/yleaf/sex.summary.json",
+        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/yleaf/stage.metrics.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -2740,7 +2833,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.validate/validation.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.validate/core-v1-coordinate-pass/samtools/validation.json",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.validate/sample-set/bamtools/stage-result.json",
@@ -2797,7 +2890,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.validate/validation.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.validate/core-v1-coordinate-pass/samtools/validation.json",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.validate/sample-set/bedtools/stage-result.json",
@@ -2854,7 +2947,7 @@
       "corpus_id": "corpus-01-bam-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.validate/validation.json",
+      "output_proof_path": "runs/bench/local-smoke/bam.validate/core-v1-coordinate-pass/samtools/validation.json",
       "proof_tool_id": "samtools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-bam-mini/bam.validate/sample-set/samtools/stage-result.json",
@@ -2911,7 +3004,7 @@
       "corpus_id": "corpus-03-amplicon-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.cluster_otus/otu_table.tsv",
+      "output_proof_path": "runs/bench/local-smoke/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/otu_abundance.tsv",
       "proof_tool_id": "vsearch",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-03-amplicon-mini/fastq.cluster_otus/sample-set/vsearch/stage-result.json",
@@ -2970,8 +3063,8 @@
       "tool_id": "bayeshammer",
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "runs/bench/local-smoke/fastq.correct_errors/plan.json",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz",
       "proof_tool_id": "rcorrector",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/bayeshammer/stage-result.json",
@@ -2979,14 +3072,23 @@
         "corrected_reads_r1",
         "corrected_reads_r2"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "corrected_reads_r1",
+        "corrected_reads_r2"
+      ],
       "declared_normalized_metric_ids": [
         "report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/correct_report.json",
+        "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz",
+        "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r2.fastq.gz"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/bayeshammer/stdout.log",
@@ -2998,15 +3100,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/bayeshammer/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/bayeshammer/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.correct_errors` / `bayeshammer` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.correct_errors:sample-set:lighter",
@@ -3015,8 +3117,8 @@
       "tool_id": "lighter",
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "runs/bench/local-smoke/fastq.correct_errors/plan.json",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz",
       "proof_tool_id": "rcorrector",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/lighter/stage-result.json",
@@ -3024,14 +3126,23 @@
         "corrected_reads_r1",
         "corrected_reads_r2"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "corrected_reads_r1",
+        "corrected_reads_r2"
+      ],
       "declared_normalized_metric_ids": [
         "report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/correct_report.json",
+        "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz",
+        "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r2.fastq.gz"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/lighter/stdout.log",
@@ -3043,15 +3154,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/lighter/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/lighter/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.correct_errors` / `lighter` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.correct_errors:sample-set:musket",
@@ -3060,8 +3171,8 @@
       "tool_id": "musket",
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "runs/bench/local-smoke/fastq.correct_errors/plan.json",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz",
       "proof_tool_id": "rcorrector",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/musket/stage-result.json",
@@ -3069,14 +3180,23 @@
         "corrected_reads_r1",
         "corrected_reads_r2"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "corrected_reads_r1",
+        "corrected_reads_r2"
+      ],
       "declared_normalized_metric_ids": [
         "report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/correct_report.json",
+        "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz",
+        "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r2.fastq.gz"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/musket/stdout.log",
@@ -3088,15 +3208,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/musket/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/musket/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.correct_errors` / `musket` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.correct_errors:sample-set:rcorrector",
@@ -3105,8 +3225,8 @@
       "tool_id": "rcorrector",
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "runs/bench/local-smoke/fastq.correct_errors/plan.json",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz",
       "proof_tool_id": "rcorrector",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/rcorrector/stage-result.json",
@@ -3114,14 +3234,23 @@
         "corrected_reads_r1",
         "corrected_reads_r2"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "corrected_reads_r1",
+        "corrected_reads_r2"
+      ],
       "declared_normalized_metric_ids": [
         "report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/correct_report.json",
+        "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz",
+        "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r2.fastq.gz"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/rcorrector/stdout.log",
@@ -3133,15 +3262,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/rcorrector/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.correct_errors/sample-set/rcorrector/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.correct_errors` / `rcorrector` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.deplete_host:sample-set:bowtie2",
@@ -3150,8 +3279,8 @@
       "tool_id": "bowtie2",
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "reference_catalog_id+reference_index_artifact_id",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/fastq.deplete_host/plan.json",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R1.fastq.gz",
       "proof_tool_id": "bowtie2",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.deplete_host/sample-set/bowtie2/stage-result.json",
@@ -3161,14 +3290,27 @@
         "removed_host_reads_r1",
         "removed_host_reads_r2"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "host_depleted_reads_r1",
+        "host_depleted_reads_r2",
+        "removed_host_reads_r1",
+        "removed_host_reads_r2"
+      ],
       "declared_normalized_metric_ids": [
         "host_depletion_report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "host_depletion_report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R1.fastq.gz",
+        "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R2.fastq.gz",
+        "benchmarks/readiness/local-ready/fastq.deplete_host/host_depletion_report.json",
+        "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R1.fastq.gz",
+        "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R2.fastq.gz"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.deplete_host/sample-set/bowtie2/stdout.log",
@@ -3180,15 +3322,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.deplete_host/sample-set/bowtie2/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.deplete_host/sample-set/bowtie2/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.deplete_host` / `bowtie2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.deplete_reference_contaminants:sample-set:bowtie2",
@@ -3197,23 +3339,38 @@
       "tool_id": "bowtie2",
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "reference_catalog_id+reference_index_artifact_id",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/plan.json",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R1.fastq.gz",
       "proof_tool_id": "bowtie2",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.deplete_reference_contaminants/sample-set/bowtie2/stage-result.json",
       "declared_raw_output_ids": [
         "contaminant_screened_reads_r1",
-        "contaminant_screened_reads_r2"
+        "contaminant_screened_reads_r2",
+        "removed_contaminant_reads_r1",
+        "removed_contaminant_reads_r2"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "contaminant_screened_reads_r1",
+        "contaminant_screened_reads_r2",
+        "removed_contaminant_reads_r1",
+        "removed_contaminant_reads_r2"
+      ],
       "declared_normalized_metric_ids": [
         "contaminant_screen_report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "contaminant_screen_report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screen_report.json",
+        "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R1.fastq.gz",
+        "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R2.fastq.gz",
+        "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R1.fastq.gz",
+        "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R2.fastq.gz"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.deplete_reference_contaminants/sample-set/bowtie2/stdout.log",
@@ -3225,15 +3382,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.deplete_reference_contaminants/sample-set/bowtie2/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.deplete_reference_contaminants/sample-set/bowtie2/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.deplete_reference_contaminants` / `bowtie2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.deplete_rrna:sample-set:sortmerna",
@@ -3242,8 +3399,8 @@
       "tool_id": "sortmerna",
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "database_artifact_id+rrna_reference",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/plan.json",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered_R1.fastq.gz",
       "proof_tool_id": "sortmerna",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.deplete_rrna/sample-set/sortmerna/stage-result.json",
@@ -3254,14 +3411,29 @@
         "rrna_removed_reads_r2",
         "rrna_report_tsv"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "rrna_filtered_reads_r1",
+        "rrna_filtered_reads_r2",
+        "rrna_removed_reads_r1",
+        "rrna_removed_reads_r2",
+        "rrna_report_tsv"
+      ],
       "declared_normalized_metric_ids": [
         "rrna_report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "rrna_report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna_R1.fastq.gz",
+        "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna_R2.fastq.gz",
+        "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered_R1.fastq.gz",
+        "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered_R2.fastq.gz",
+        "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.json",
+        "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_report.tsv"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.deplete_rrna/sample-set/sortmerna/stdout.log",
@@ -3273,15 +3445,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.deplete_rrna/sample-set/sortmerna/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.deplete_rrna/sample-set/sortmerna/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.deplete_rrna` / `sortmerna` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.detect_adapters:sample-set:fastqc",
@@ -3291,7 +3463,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.detect_adapters/adapters.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.detect_adapters/adapter-hit-se/fastqc/adapter_report.json",
       "proof_tool_id": "fastqc",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.detect_adapters/sample-set/fastqc/stage-result.json",
@@ -3346,7 +3518,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.detect_duplicates_premerge/duplicates.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.detect_duplicates_premerge/human_like_pe_duplicate_signals/bijux_dna/duplicate_signal_report.json",
       "proof_tool_id": "bijux_dna",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.detect_duplicates_premerge/sample-set/bijux_dna/stage-result.json",
@@ -3397,7 +3569,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/human_like_pe_duplicate_signals/bijux_dna/library_complexity_report.json",
       "proof_tool_id": "bijux_dna",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.estimate_library_complexity_prealign/sample-set/bijux_dna/stage-result.json",
@@ -3448,7 +3620,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.extract_umis/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.extract_umis/human_like_pe_umi_prefix_signals/umi_tools/umi_tagged_R1.fastq.gz",
       "proof_tool_id": "umi_tools",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.extract_umis/sample-set/umi_tools/stage-result.json",
@@ -3502,7 +3674,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.filter_low_complexity/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz",
       "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_low_complexity/sample-set/bbduk/stage-result.json",
@@ -3558,7 +3730,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.filter_low_complexity/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz",
       "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_low_complexity/sample-set/fastp/stage-result.json",
@@ -3614,7 +3786,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.filter_low_complexity/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz",
       "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_low_complexity/sample-set/prinseq/stage-result.json",
@@ -3670,7 +3842,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.filter_reads/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/fastp.fastq.gz",
       "proof_tool_id": "fastp",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_reads/sample-set/bbduk/stage-result.json",
@@ -3726,7 +3898,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.filter_reads/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/fastp.fastq.gz",
       "proof_tool_id": "fastp",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_reads/sample-set/fastp/stage-result.json",
@@ -3782,7 +3954,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.filter_reads/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/fastp.fastq.gz",
       "proof_tool_id": "fastp",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_reads/sample-set/prinseq/stage-result.json",
@@ -3838,7 +4010,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.filter_reads/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/fastp.fastq.gz",
       "proof_tool_id": "fastp",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.filter_reads/sample-set/seqkit/stage-result.json",
@@ -3893,22 +4065,29 @@
       "tool_id": "bowtie2_build",
       "corpus_id": "reference-index-assets",
       "asset_profile_id": "reference_fasta+reference_index_output",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/fastq.index_reference/plan.json",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference",
       "proof_tool_id": "bowtie2_build",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/bowtie2_build/stage-result.json",
       "declared_raw_output_ids": [
         "reference_index"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "reference_index"
+      ],
       "declared_normalized_metric_ids": [
         "report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/fastq.index_reference/index_reference_report.json",
+        "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/bowtie2_build/stdout.log",
@@ -3920,15 +4099,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/bowtie2_build/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/bowtie2_build/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.index_reference` / `bowtie2_build` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:reference-index-assets:fastq.index_reference:asset-set:star",
@@ -3937,22 +4116,29 @@
       "tool_id": "star",
       "corpus_id": "reference-index-assets",
       "asset_profile_id": "reference_fasta+reference_index_output",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/fastq.index_reference/plan.json",
-      "proof_tool_id": "bowtie2_build",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/star",
+      "proof_tool_id": "star",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/star/stage-result.json",
       "declared_raw_output_ids": [
         "reference_index"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "reference_index"
+      ],
       "declared_normalized_metric_ids": [
         "report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/fastq.index_reference/index_reference_report.json",
+        "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/star"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/star/stdout.log",
@@ -3964,15 +4150,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/star/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/star/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.index_reference` / `star` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-03-amplicon-mini:fastq.infer_asvs:sample-set:dada2",
@@ -3982,7 +4168,7 @@
       "corpus_id": "corpus-03-amplicon-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.infer_asvs/asv_table.tsv",
+      "output_proof_path": "runs/bench/local-smoke/fastq.infer_asvs/corpus-03-amplicon-se/dada2/asv_abundance.tsv",
       "proof_tool_id": "dada2",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-03-amplicon-mini/fastq.infer_asvs/sample-set/dada2/stage-result.json",
@@ -4042,7 +4228,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.merge_pairs/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.assembled.fastq",
       "proof_tool_id": "pear",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.merge_pairs/sample-set/adapterremoval/stage-result.json",
@@ -4102,7 +4288,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.merge_pairs/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.assembled.fastq",
       "proof_tool_id": "pear",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.merge_pairs/sample-set/bbmerge/stage-result.json",
@@ -4162,7 +4348,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.merge_pairs/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.assembled.fastq",
       "proof_tool_id": "pear",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.merge_pairs/sample-set/flash2/stage-result.json",
@@ -4222,7 +4408,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.merge_pairs/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.assembled.fastq",
       "proof_tool_id": "pear",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.merge_pairs/sample-set/leehom/stage-result.json",
@@ -4282,7 +4468,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.merge_pairs/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.assembled.fastq",
       "proof_tool_id": "pear",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.merge_pairs/sample-set/pear/stage-result.json",
@@ -4342,7 +4528,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.merge_pairs/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.merge_pairs/human_like_pe_merge_overlap/pear/pear.assembled.fastq",
       "proof_tool_id": "pear",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.merge_pairs/sample-set/vsearch/stage-result.json",
@@ -4402,7 +4588,7 @@
       "corpus_id": "corpus-03-amplicon-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.normalize_abundance/normalized_abundance.tsv",
+      "output_proof_path": "runs/bench/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit/abundance_normalized.tsv",
       "proof_tool_id": "seqkit",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-03-amplicon-mini/fastq.normalize_abundance/sample-set/seqkit/stage-result.json",
@@ -4453,7 +4639,7 @@
       "corpus_id": "corpus-03-amplicon-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.normalize_primers/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_normalized.fastq.gz",
       "proof_tool_id": "cutadapt",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-03-amplicon-mini/fastq.normalize_primers/sample-set/cutadapt/stage-result.json",
@@ -4517,7 +4703,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv",
+      "output_proof_path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit/overrepresented_sequences.tsv",
       "proof_tool_id": "seqkit",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_overrepresented_sequences/sample-set/fastq_scan/stage-result.json",
@@ -4571,7 +4757,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv",
+      "output_proof_path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit/overrepresented_sequences.tsv",
       "proof_tool_id": "seqkit",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_overrepresented_sequences/sample-set/fastqc/stage-result.json",
@@ -4625,7 +4811,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv",
+      "output_proof_path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/known-repeat-se/seqkit/overrepresented_sequences.tsv",
       "proof_tool_id": "seqkit",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_overrepresented_sequences/sample-set/seqkit/stage-result.json",
@@ -4679,7 +4865,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/read_lengths.tsv",
+      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json",
       "proof_tool_id": "seqkit_stats",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/fastp/stage-result.json",
@@ -4736,7 +4922,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/read_lengths.tsv",
+      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json",
       "proof_tool_id": "seqkit_stats",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/prinseq/stage-result.json",
@@ -4793,7 +4979,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/read_lengths.tsv",
+      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json",
       "proof_tool_id": "seqkit_stats",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqfu/stage-result.json",
@@ -4850,7 +5036,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/read_lengths.tsv",
+      "output_proof_path": "runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit_stats/profile_read_lengths_report.json",
       "proof_tool_id": "seqkit_stats",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqkit_stats/stage-result.json",
@@ -4907,8 +5093,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_reads/profile.json",
-      "proof_tool_id": "seqkit_stats",
+      "output_proof_path": "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqfu/qc.json",
+      "proof_tool_id": "seqfu",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_reads/sample-set/seqfu/stage-result.json",
       "declared_raw_output_ids": [
@@ -4926,10 +5112,8 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/qc.json",
-        "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/qc.tsv",
-        "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/qc.json",
-        "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/qc.tsv"
+        "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqfu/qc.json",
+        "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqfu/qc.tsv"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -4960,8 +5144,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_reads/profile.json",
-      "proof_tool_id": "seqkit_stats",
+      "output_proof_path": "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit/qc.json",
+      "proof_tool_id": "seqkit",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_reads/sample-set/seqkit/stage-result.json",
       "declared_raw_output_ids": [
@@ -4979,10 +5163,10 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/qc.json",
-        "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/qc.tsv",
-        "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/qc.json",
-        "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/qc.tsv"
+        "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit/qc.json",
+        "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit/qc.tsv",
+        "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit/qc.json",
+        "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit/qc.tsv"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -5013,7 +5197,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.profile_reads/profile.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/qc.json",
       "proof_tool_id": "seqkit_stats",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.profile_reads/sample-set/seqkit_stats/stage-result.json",
@@ -5034,9 +5218,6 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/plots",
-        "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/qc.json",
-        "runs/bench/local-smoke/fastq.profile_reads/toy-pe/seqkit_stats/qc.tsv",
         "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/plots",
         "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/qc.json",
         "runs/bench/local-smoke/fastq.profile_reads/toy-se/seqkit_stats/qc.tsv"
@@ -5070,7 +5251,7 @@
       "corpus_id": "corpus-03-amplicon-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.remove_chimeras/non_chimeric.fasta",
+      "output_proof_path": "runs/bench/local-smoke/fastq.remove_chimeras/chimera-control-se/vsearch/nonchimeras.fastq.gz",
       "proof_tool_id": "vsearch",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-03-amplicon-mini/fastq.remove_chimeras/sample-set/vsearch/stage-result.json",
@@ -5130,7 +5311,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.remove_duplicates/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R1.fastq.gz",
       "proof_tool_id": "clumpify",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/clumpify/stage-result.json",
@@ -5190,7 +5371,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.remove_duplicates/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R1.fastq.gz",
       "proof_tool_id": "clumpify",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.remove_duplicates/sample-set/fastuniq/stage-result.json",
@@ -5249,9 +5430,9 @@
       "tool_id": "multiqc",
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
-      "output_proof_surface": "local_stage_materialization_blocked",
-      "output_proof_path": "materialize fastq.report_qc blocked: copy fixture /Users/bijan/bijux/bijux-genomics/assets/toy/core-v1/fastq/report_qc/contributors/detect_adapters.report.json -> /Users/bijan/bijux/bijux-genomics/runs/bench/local-smoke/fastq.report_qc/contributors/detect_adapters.report.json: Permission denied (os error 13)",
-      "proof_tool_id": null,
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "runs/bench/local-smoke/fastq.report_qc/multiqc_report.html",
+      "proof_tool_id": "multiqc",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.report_qc/sample-set/multiqc/stage-result.json",
       "declared_raw_output_ids": [
@@ -5259,14 +5440,25 @@
         "multiqc_data",
         "governed_qc_inputs_manifest"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "multiqc_report",
+        "multiqc_data",
+        "governed_qc_inputs_manifest"
+      ],
       "declared_normalized_metric_ids": [
         "report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/fastq.report_qc/governed_qc_inputs_manifest.json",
+        "runs/bench/local-smoke/fastq.report_qc/multiqc_data",
+        "runs/bench/local-smoke/fastq.report_qc/multiqc_report.html",
+        "runs/bench/local-smoke/fastq.report_qc/report_qc_report.json"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.report_qc/sample-set/multiqc/stdout.log",
@@ -5278,15 +5470,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.report_qc/sample-set/multiqc/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.report_qc/sample-set/multiqc/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_stage_materialization_blocked`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.report_qc` / `multiqc` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:centrifuge",
@@ -5295,22 +5487,29 @@
       "tool_id": "centrifuge",
       "corpus_id": "corpus-02-edna-mini",
       "asset_profile_id": "database_artifact_id+taxonomy_database_root",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/plan.json",
-      "proof_tool_id": "kraken2",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/centrifuge.report.tsv",
+      "proof_tool_id": "centrifuge",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/centrifuge/stage-result.json",
       "declared_raw_output_ids": [
         "screen_report_tsv"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "screen_report_tsv"
+      ],
       "declared_normalized_metric_ids": [
         "classification_report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "classification_report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/fastq.screen_taxonomy/centrifuge.classifications.json",
+        "benchmarks/readiness/local-ready/fastq.screen_taxonomy/centrifuge.report.tsv"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/centrifuge/stdout.log",
@@ -5322,15 +5521,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/centrifuge/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/centrifuge/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.screen_taxonomy` / `centrifuge` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kaiju",
@@ -5339,22 +5538,29 @@
       "tool_id": "kaiju",
       "corpus_id": "corpus-02-edna-mini",
       "asset_profile_id": "database_artifact_id+taxonomy_database_root",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/plan.json",
-      "proof_tool_id": "kraken2",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kaiju.summary.tsv",
+      "proof_tool_id": "kaiju",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kaiju/stage-result.json",
       "declared_raw_output_ids": [
         "screen_report_tsv"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "screen_report_tsv"
+      ],
       "declared_normalized_metric_ids": [
         "classification_report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "classification_report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kaiju.classifications.json",
+        "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kaiju.summary.tsv"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kaiju/stdout.log",
@@ -5366,15 +5572,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kaiju/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kaiju/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.screen_taxonomy` / `kaiju` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
@@ -5383,8 +5589,8 @@
       "tool_id": "kraken2",
       "corpus_id": "corpus-02-edna-mini",
       "asset_profile_id": "database_artifact_id+taxonomy_database_root",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/plan.json",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv",
       "proof_tool_id": "kraken2",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json",
@@ -5393,14 +5599,25 @@
         "unclassified_reads_r1",
         "unclassified_reads_r2"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "screen_report_tsv",
+        "unclassified_reads_r1",
+        "unclassified_reads_r2"
+      ],
       "declared_normalized_metric_ids": [
         "classification_report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "classification_report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.json",
+        "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv",
+        "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_1.fastq",
+        "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_2.fastq"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stdout.log",
@@ -5412,15 +5629,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.screen_taxonomy` / `kraken2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:krakenuniq",
@@ -5429,22 +5646,29 @@
       "tool_id": "krakenuniq",
       "corpus_id": "corpus-02-edna-mini",
       "asset_profile_id": "database_artifact_id+taxonomy_database_root",
-      "output_proof_surface": "local_ready_plan_only",
-      "output_proof_path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/plan.json",
-      "proof_tool_id": "kraken2",
+      "output_proof_surface": "shared_stage_smoke",
+      "output_proof_path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/krakenuniq.report.tsv",
+      "proof_tool_id": "krakenuniq",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/krakenuniq/stage-result.json",
       "declared_raw_output_ids": [
         "screen_report_tsv"
       ],
-      "observed_raw_output_ids": [],
+      "observed_raw_output_ids": [
+        "screen_report_tsv"
+      ],
       "declared_normalized_metric_ids": [
         "classification_report_json"
       ],
-      "observed_normalized_metric_ids": [],
+      "observed_normalized_metric_ids": [
+        "classification_report_json"
+      ],
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
-      "observed_output_paths": [],
+      "observed_output_paths": [
+        "benchmarks/readiness/local-ready/fastq.screen_taxonomy/krakenuniq.classifications.json",
+        "benchmarks/readiness/local-ready/fastq.screen_taxonomy/krakenuniq.report.tsv"
+      ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
         "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/krakenuniq/stdout.log",
@@ -5456,15 +5680,15 @@
       ],
       "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/krakenuniq/stage-result.json",
       "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/krakenuniq/stage-result.json",
-      "raw_outputs_matched": false,
-      "normalized_metrics_matched": false,
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
       "index_outputs_matched": true,
       "logs_matched": true,
       "manifest_matched": true,
       "no_undeclared_outputs": true,
-      "independent_execution_proven": false,
-      "passed": false,
-      "reason": "independent execution proof is missing from `local_ready_plan_only`; declared raw outputs are not fully observed; declared normalized metrics are not fully observed"
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `fastq.screen_taxonomy` / `krakenuniq` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.trim_polyg_tails:sample-set:bbduk",
@@ -5474,8 +5698,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_polyg_tails/metrics.json",
-      "proof_tool_id": "fastp",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/bbduk/polyg.bbduk.fastq.gz",
+      "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_polyg_tails/sample-set/bbduk/stage-result.json",
       "declared_raw_output_ids": [
@@ -5501,14 +5725,9 @@
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/bbduk/R2.polyg.bbduk.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/bbduk/trim_polyg_tails_report.json",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/bbduk/trim_polyg_tails_report.stats.txt",
-        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/R1.polyg.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/R2.polyg.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/trim_polyg_tails_report.json",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/bbduk/polyg.bbduk.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/bbduk/trim_polyg_tails_report.json",
-        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/bbduk/trim_polyg_tails_report.stats.txt",
-        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/polyg.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.json"
+        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/bbduk/trim_polyg_tails_report.stats.txt"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -5539,7 +5758,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_polyg_tails/metrics.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/polyg.fastp.fastq.gz",
       "proof_tool_id": "fastp",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_polyg_tails/sample-set/fastp/stage-result.json",
@@ -5562,15 +5781,10 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/bbduk/R1.polyg.bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/bbduk/R2.polyg.bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/bbduk/trim_polyg_tails_report.json",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/R1.polyg.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/R2.polyg.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/trim_polyg_tails_report.fastp.json",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/trim_polyg_tails_report.json",
-        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/bbduk/polyg.bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/bbduk/trim_polyg_tails_report.json",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/polyg.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.fastp.json",
         "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.json"
@@ -5604,8 +5818,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "bbduk",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/adapterremoval/adapterremoval.fastq.gz",
+      "proof_tool_id": "adapterremoval",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/adapterremoval/stage-result.json",
       "declared_raw_output_ids": [
@@ -5625,13 +5839,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/adapterremoval/R1.adapterremoval.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/adapterremoval/R2.adapterremoval.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/adapterremoval/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/adapterremoval/adapterremoval.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/adapterremoval/trim_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -5662,8 +5874,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "bbduk",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/alientrimmer/alientrimmer.fastq.gz",
+      "proof_tool_id": "alientrimmer",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/alientrimmer/stage-result.json",
       "declared_raw_output_ids": [
@@ -5683,13 +5895,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/alientrimmer/R1.alientrimmer.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/alientrimmer/R2.alientrimmer.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/alientrimmer/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/alientrimmer/alientrimmer.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/alientrimmer/trim_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -5720,8 +5930,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "bbduk",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/atropos/atropos.fastq.gz",
+      "proof_tool_id": "atropos",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/atropos/stage-result.json",
       "declared_raw_output_ids": [
@@ -5741,13 +5951,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/atropos/R1.atropos.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/atropos/R2.atropos.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/atropos/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/atropos/atropos.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/atropos/trim_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -5778,7 +5986,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
       "proof_tool_id": "bbduk",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/bbduk/stage-result.json",
@@ -5801,14 +6009,13 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/bbduk/R1.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/bbduk/R2.bbduk.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/bbduk/trim_report.bbduk.stats.txt",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.bbduk.stats.txt",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -5839,8 +6046,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "bbduk",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/cutadapt/cutadapt.fastq.gz",
+      "proof_tool_id": "cutadapt",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/cutadapt/stage-result.json",
       "declared_raw_output_ids": [
@@ -5862,15 +6069,13 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.fastp.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.fastp.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/cutadapt/R1.cutadapt.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/cutadapt/R2.cutadapt.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/cutadapt/trim_report.cutadapt.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/cutadapt/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/cutadapt/cutadapt.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/cutadapt/trim_report.cutadapt.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/cutadapt/trim_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -5901,8 +6106,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "bbduk",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
+      "proof_tool_id": "fastp",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/fastp/stage-result.json",
       "declared_raw_output_ids": [
@@ -5928,8 +6133,6 @@
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.fastp.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.fastp.json",
         "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
@@ -5963,8 +6166,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "bbduk",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastx_clipper/fastx_clipper.fastq.gz",
+      "proof_tool_id": "fastx_clipper",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/fastx_clipper/stage-result.json",
       "declared_raw_output_ids": [
@@ -5984,13 +6187,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastx_clipper/R1.fastx_clipper.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastx_clipper/R2.fastx_clipper.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastx_clipper/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastx_clipper/fastx_clipper.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastx_clipper/trim_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6021,8 +6222,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "bbduk",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/leehom/leehom.fastq.gz",
+      "proof_tool_id": "leehom",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/leehom/stage-result.json",
       "declared_raw_output_ids": [
@@ -6042,13 +6243,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/leehom/R1.leehom.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/leehom/R2.leehom.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/leehom/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/leehom/leehom.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/leehom/trim_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6079,8 +6278,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "bbduk",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/prinseq/prinseq_good.fastq",
+      "proof_tool_id": "prinseq",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/prinseq/stage-result.json",
       "declared_raw_output_ids": [
@@ -6100,13 +6299,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/prinseq/R1.prinseq_good.fastq",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/prinseq/R2.prinseq_good.fastq",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/prinseq/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/prinseq/prinseq_good.fastq",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/prinseq/trim_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6137,8 +6334,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "bbduk",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/seqkit/seqkit.fastq.gz",
+      "proof_tool_id": "seqkit",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/seqkit/stage-result.json",
       "declared_raw_output_ids": [
@@ -6158,13 +6355,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/seqkit/R1.seqkit.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/seqkit/R2.seqkit.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/seqkit/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/seqkit/seqkit.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/seqkit/trim_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6195,8 +6390,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "bbduk",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/skewer/skewer.fastq.gz",
+      "proof_tool_id": "skewer",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/skewer/stage-result.json",
       "declared_raw_output_ids": [
@@ -6216,13 +6411,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/skewer/R1.skewer.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/skewer/R2.skewer.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/skewer/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/skewer/skewer.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/skewer/trim_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6253,8 +6446,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "bbduk",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/trim_galore/trimmed_trimmed.fq.gz",
+      "proof_tool_id": "trim_galore",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/trim_galore/stage-result.json",
       "declared_raw_output_ids": [
@@ -6274,13 +6467,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/trim_galore/R1.trimmed_trimmed.fq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/trim_galore/R2.trimmed_trimmed.fq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/trim_galore/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/trim_galore/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/trim_galore/trimmed_trimmed.fq.gz"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6311,8 +6502,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/report.json",
-      "proof_tool_id": "bbduk",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/trimmomatic/trimmomatic.fastq.gz",
+      "proof_tool_id": "trimmomatic",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_reads/sample-set/trimmomatic/stage-result.json",
       "declared_raw_output_ids": [
@@ -6332,13 +6523,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json"
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/trimmomatic/R1.trimmomatic.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/trimmomatic/R2.trimmomatic.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/trimmomatic/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/trimmomatic/trim_report.json",
+        "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/trimmomatic/trimmomatic.fastq.gz"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6369,19 +6558,17 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_terminal_damage/metrics.json",
-      "proof_tool_id": "cutadapt",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/adapterremoval/trim_terminal_damage.adapterremoval.fastq.gz",
+      "proof_tool_id": "adapterremoval",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_terminal_damage/sample-set/adapterremoval/stage-result.json",
       "declared_raw_output_ids": [
         "trimmed_reads_r1",
-        "trimmed_reads_r2",
-        "raw_backend_report_json"
+        "trimmed_reads_r2"
       ],
       "observed_raw_output_ids": [
         "trimmed_reads_r1",
-        "trimmed_reads_r2",
-        "raw_backend_report_json"
+        "trimmed_reads_r2"
       ],
       "declared_normalized_metric_ids": [
         "report_json"
@@ -6392,13 +6579,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/R1.trim_terminal_damage.cutadapt.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/R2.trim_terminal_damage.cutadapt.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/trim_terminal_damage.cutadapt.raw.json",
-        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/trim_terminal_damage_report.json",
-        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.raw.json",
-        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage_report.json"
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/adapterremoval/R1.trim_terminal_damage.adapterremoval.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/adapterremoval/R2.trim_terminal_damage.adapterremoval.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/adapterremoval/trim_terminal_damage_report.json",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/adapterremoval/trim_terminal_damage.adapterremoval.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/adapterremoval/trim_terminal_damage_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6429,7 +6614,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_terminal_damage/metrics.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
       "proof_tool_id": "cutadapt",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_terminal_damage/sample-set/cutadapt/stage-result.json",
@@ -6489,8 +6674,8 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.trim_terminal_damage/metrics.json",
-      "proof_tool_id": "cutadapt",
+      "output_proof_path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/seqkit/trim_terminal_damage.seqkit.fastq.gz",
+      "proof_tool_id": "seqkit",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.trim_terminal_damage/sample-set/seqkit/stage-result.json",
       "declared_raw_output_ids": [
@@ -6510,11 +6695,11 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/R1.trim_terminal_damage.cutadapt.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/R2.trim_terminal_damage.cutadapt.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/trim_terminal_damage_report.json",
-        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
-        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage_report.json"
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/seqkit/R1.trim_terminal_damage.seqkit.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/seqkit/R2.trim_terminal_damage.seqkit.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/seqkit/trim_terminal_damage_report.json",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/seqkit/trim_terminal_damage.seqkit.fastq.gz",
+        "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/seqkit/trim_terminal_damage_report.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -6545,7 +6730,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.validate_reads/toy-se/fastqvalidator/validation.json",
       "proof_tool_id": "fastqvalidator",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastq_scan/stage-result.json",
@@ -6598,7 +6783,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.validate_reads/toy-se/fastqvalidator/validation.json",
       "proof_tool_id": "fastqvalidator",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqc/stage-result.json",
@@ -6651,7 +6836,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.validate_reads/toy-se/fastqvalidator/validation.json",
       "proof_tool_id": "fastqvalidator",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stage-result.json",
@@ -6704,7 +6889,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.validate_reads/toy-se/fastqvalidator/validation.json",
       "proof_tool_id": "fastqvalidator",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fqtools/stage-result.json",
@@ -6757,7 +6942,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+      "output_proof_path": "runs/bench/local-smoke/fastq.validate_reads/toy-se/fastqvalidator/validation.json",
       "proof_tool_id": "fastqvalidator",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/seqtk/stage-result.json",

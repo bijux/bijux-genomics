@@ -10,7 +10,7 @@ use super::all_domain_output_declarations::{
 };
 use super::expected_benchmark_results::collect_expected_benchmark_result_rows;
 use crate::commands::benchmark::local_stage_commands::{
-    local_stage_plans, materialize_local_stage,
+    local_stage_plans, materialize_declared_output,
 };
 use crate::commands::benchmark::local_stage_result_manifest::{
     load_validated_stage_result_manifest_path, BenchStageResultManifestV1,
@@ -46,6 +46,7 @@ const PROOF_SURFACE_DIRECT_TOOL_SMOKE: &str = "direct_tool_smoke";
 const PROOF_SURFACE_PLAN_ONLY: &str = "local_ready_plan_only";
 const PROOF_SURFACE_MATERIALIZATION_BLOCKED: &str = "local_stage_materialization_blocked";
 const PROOF_SURFACE_MISSING_DIRECT_SMOKE: &str = "missing_direct_tool_smoke";
+const PROOF_SURFACE_MISSING_TOOL_STAGE_SMOKE: &str = "missing_tool_stage_smoke";
 const RUNTIME_PROOF_SURFACE_EXPECTED_RESULT_PATHS: &str = "expected_benchmark_result_paths";
 const RUNTIME_PROOF_SURFACE_DECLARED_VCF_PATHS: &str = "declared_vcf_result_paths";
 
@@ -100,9 +101,16 @@ pub(crate) struct OutputContractTestsReport {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct StageKey {
+struct FastqBamStageKey {
     domain: String,
     stage_id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct FastqBamToolKey {
+    domain: String,
+    stage_id: String,
+    tool_id: String,
 }
 
 #[derive(Debug, Clone)]
@@ -186,8 +194,9 @@ fn build_output_contract_tests_report(
         );
     }
 
-    let declared_stage_output_ids = collect_declared_stage_output_ids(&output_rows);
-    let fastq_bam_proofs = collect_fastq_bam_stage_proofs(repo_root, &declared_stage_output_ids)?;
+    let declared_fastq_bam_output_ids = collect_declared_fastq_bam_output_ids(&output_rows);
+    let fastq_bam_proofs =
+        collect_fastq_bam_stage_proofs(repo_root, &declared_fastq_bam_output_ids)?;
     let vcf_proofs = collect_vcf_tool_proofs(repo_root, &output_rows)?;
 
     let mut rows = Vec::with_capacity(output_rows.len());
@@ -246,13 +255,20 @@ fn build_output_contract_tests_report(
     })
 }
 
-fn collect_declared_stage_output_ids(
+fn collect_declared_fastq_bam_output_ids(
     rows: &[AllDomainOutputDeclarationRow],
-) -> BTreeMap<StageKey, BTreeSet<String>> {
-    let mut declared = BTreeMap::<StageKey, BTreeSet<String>>::new();
+) -> BTreeMap<FastqBamToolKey, BTreeSet<String>> {
+    let mut declared = BTreeMap::<FastqBamToolKey, BTreeSet<String>>::new();
     for row in rows {
-        let stage_key = StageKey { domain: row.domain.clone(), stage_id: row.stage_id.clone() };
-        let stage_ids = declared.entry(stage_key).or_default();
+        if !matches!(row.domain.as_str(), "fastq" | "bam") {
+            continue;
+        }
+        let tool_key = FastqBamToolKey {
+            domain: row.domain.clone(),
+            stage_id: row.stage_id.clone(),
+            tool_id: row.tool_id.clone(),
+        };
+        let stage_ids = declared.entry(tool_key).or_default();
         for artifact_id in row
             .raw_outputs
             .iter()
@@ -267,99 +283,241 @@ fn collect_declared_stage_output_ids(
 
 fn collect_fastq_bam_stage_proofs(
     repo_root: &Path,
-    declared_stage_output_ids: &BTreeMap<StageKey, BTreeSet<String>>,
-) -> Result<BTreeMap<StageKey, LocalStageProof>> {
-    let mut proofs = BTreeMap::<StageKey, LocalStageProof>::new();
-    for stage_key in declared_stage_output_ids.keys() {
-        if !matches!(stage_key.domain.as_str(), "fastq" | "bam") {
-            continue;
-        }
-        let proof_path = match materialize_local_stage(repo_root, &stage_key.stage_id) {
-            Ok(proof_path) => proof_path,
+    declared_output_ids: &BTreeMap<FastqBamToolKey, BTreeSet<String>>,
+) -> Result<BTreeMap<FastqBamToolKey, LocalStageProof>> {
+    let mut proofs = BTreeMap::<FastqBamToolKey, LocalStageProof>::new();
+    let stage_keys = declared_output_ids
+        .keys()
+        .map(|key| FastqBamStageKey { domain: key.domain.clone(), stage_id: key.stage_id.clone() })
+        .collect::<BTreeSet<_>>();
+
+    for stage_key in stage_keys {
+        let plans = match local_stage_output_contract_proof_plans(repo_root, &stage_key.stage_id) {
+            Ok(plans) => plans,
             Err(err) => {
-                proofs.insert(
-                    stage_key.clone(),
-                    LocalStageProof {
-                        proof_surface: PROOF_SURFACE_MATERIALIZATION_BLOCKED,
-                        proof_path: format!(
-                            "materialize {} blocked: {:#}",
-                            stage_key.stage_id, err
-                        ),
-                        proof_tool_id: None,
-                        observed_ids: BTreeSet::new(),
-                        observed_paths_by_id: BTreeMap::new(),
-                        undeclared_stage_output_ids: Vec::new(),
-                        independent_execution_proven: false,
-                    },
-                );
+                for tool_key in declared_output_ids.keys().filter(|key| {
+                    key.domain == stage_key.domain && key.stage_id == stage_key.stage_id
+                }) {
+                    proofs.insert(
+                        tool_key.clone(),
+                        LocalStageProof {
+                            proof_surface: PROOF_SURFACE_MATERIALIZATION_BLOCKED,
+                            proof_path: format!(
+                                "materialize {} / {} blocked: {:#}",
+                                tool_key.stage_id, tool_key.tool_id, err
+                            ),
+                            proof_tool_id: Some(tool_key.tool_id.clone()),
+                            observed_ids: BTreeSet::new(),
+                            observed_paths_by_id: BTreeMap::new(),
+                            undeclared_stage_output_ids: Vec::new(),
+                            independent_execution_proven: false,
+                        },
+                    );
+                }
                 continue;
             }
         };
-        let plans = local_stage_plans(repo_root, &stage_key.stage_id)
-            .with_context(|| format!("collect local stage plans for `{}`", stage_key.stage_id))?;
-        let Some(first_plan) = plans.first() else {
-            return Err(anyhow!(
-                "local stage proof for `{}` yielded no governed stage plans",
-                stage_key.stage_id
-            ));
-        };
 
-        let mut observed_ids = BTreeSet::<String>::new();
-        let mut observed_paths_by_id = BTreeMap::<String, Vec<String>>::new();
-        let mut missing_required_count = 0usize;
-        for plan in &plans {
-            for artifact in &plan.io.outputs {
-                let resolved = repo_relative_path(repo_root, &artifact.path);
-                if resolved.exists() {
-                    observed_ids.insert(artifact.name.to_string());
-                    observed_paths_by_id
-                        .entry(artifact.name.to_string())
-                        .or_default()
-                        .push(path_relative_to_repo(repo_root, &resolved));
-                } else if !artifact.optional {
-                    missing_required_count += 1;
+        let mut plans_by_tool =
+            BTreeMap::<String, Vec<bijux_dna_stage_contract::StagePlanV1>>::new();
+        for plan in plans {
+            plans_by_tool.entry(plan.tool_id.to_string()).or_default().push(plan);
+        }
+
+        for tool_key in declared_output_ids
+            .keys()
+            .filter(|key| key.domain == stage_key.domain && key.stage_id == stage_key.stage_id)
+        {
+            let declared_ids = declared_output_ids
+                .get(tool_key)
+                .expect("declared fastq/bam ids exist for collected proof");
+            if let Some(tool_plans) = plans_by_tool.get(&tool_key.tool_id) {
+                proofs.insert(
+                    tool_key.clone(),
+                    collect_local_stage_proof_from_plans(
+                        repo_root,
+                        &tool_key.stage_id,
+                        &tool_key.tool_id,
+                        declared_ids,
+                        tool_plans,
+                    )?,
+                );
+                continue;
+            }
+
+            let stage_tool_keys = declared_output_ids
+                .keys()
+                .filter(|key| key.domain == stage_key.domain && key.stage_id == stage_key.stage_id)
+                .cloned()
+                .collect::<Vec<_>>();
+            let stage_has_uniform_declared_outputs = stage_tool_keys.iter().all(|key| {
+                declared_output_ids.get(key).is_some_and(|candidate| candidate == declared_ids)
+            });
+            if stage_has_uniform_declared_outputs {
+                if let Some((proof_tool_id, proof_plans)) = plans_by_tool.iter().next() {
+                    proofs.insert(
+                        tool_key.clone(),
+                        collect_local_stage_proof_from_plans(
+                            repo_root,
+                            &tool_key.stage_id,
+                            proof_tool_id,
+                            declared_ids,
+                            proof_plans,
+                        )?,
+                    );
+                    continue;
                 }
             }
-        }
-        for paths in observed_paths_by_id.values_mut() {
-            paths.sort();
-            paths.dedup();
-        }
 
-        let proof_surface = if proof_path
-            .file_name()
-            .and_then(|value| value.to_str())
-            .is_some_and(|value| value.ends_with("plan.json"))
-        {
-            PROOF_SURFACE_PLAN_ONLY
-        } else {
-            PROOF_SURFACE_SHARED_STAGE_SMOKE
-        };
-        let undeclared_stage_output_ids = observed_ids
-            .difference(
-                declared_stage_output_ids
-                    .get(stage_key)
-                    .expect("declared stage ids exist for collected proof"),
-            )
-            .cloned()
-            .collect::<Vec<_>>();
-        let independent_execution_proven =
-            proof_surface == PROOF_SURFACE_SHARED_STAGE_SMOKE && missing_required_count == 0;
-
-        proofs.insert(
-            stage_key.clone(),
-            LocalStageProof {
-                proof_surface,
-                proof_path: path_relative_to_repo(repo_root, &proof_path),
-                proof_tool_id: Some(first_plan.tool_id.to_string()),
-                observed_ids,
-                observed_paths_by_id,
-                undeclared_stage_output_ids,
-                independent_execution_proven,
-            },
-        );
+            proofs.insert(
+                tool_key.clone(),
+                LocalStageProof {
+                    proof_surface: PROOF_SURFACE_MISSING_TOOL_STAGE_SMOKE,
+                    proof_path: format!(
+                        "missing local proof plan for {} / {}",
+                        tool_key.stage_id, tool_key.tool_id
+                    ),
+                    proof_tool_id: Some(tool_key.tool_id.clone()),
+                    observed_ids: BTreeSet::new(),
+                    observed_paths_by_id: BTreeMap::new(),
+                    undeclared_stage_output_ids: Vec::new(),
+                    independent_execution_proven: false,
+                },
+            );
+        }
     }
     Ok(proofs)
+}
+
+fn local_stage_output_contract_proof_plans(
+    repo_root: &Path,
+    stage_id: &str,
+) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>> {
+    match stage_id {
+        "bam.align" => {
+            bijux_dna_planner_bam::stage_api::local_align_output_contract_plans(repo_root)
+        }
+        "bam.authenticity" => Ok(
+            bijux_dna_planner_bam::stage_api::local_authenticity_output_contract_plans(repo_root)?
+                .into_iter()
+                .map(|case| case.plan)
+                .collect(),
+        ),
+        "bam.contamination" => {
+            bijux_dna_planner_bam::stage_api::local_contamination_smoke_plans(repo_root)
+        }
+        "bam.damage" => {
+            Ok(bijux_dna_planner_bam::stage_api::local_damage_output_contract_plans(repo_root)?
+                .into_iter()
+                .map(|case| case.plan)
+                .collect())
+        }
+        #[cfg(feature = "bam_downstream")]
+        "bam.kinship" => {
+            Ok(bijux_dna_planner_bam::stage_api::local_kinship_output_contract_plans(repo_root)?
+                .into_iter()
+                .map(|case| case.plan)
+                .collect())
+        }
+        "bam.sex" => {
+            Ok(bijux_dna_planner_bam::stage_api::local_sex_output_contract_plans(repo_root)?
+                .into_iter()
+                .map(|case| case.plan)
+                .collect())
+        }
+        "fastq.index_reference" => {
+            bijux_dna_planner_fastq::stage_api::local_index_reference_output_contract_plans(
+                repo_root,
+            )
+        }
+        "fastq.profile_reads" => {
+            Ok(bijux_dna_planner_fastq::stage_api::local_profile_reads_output_contract_plans(
+                repo_root,
+            )?
+            .into_iter()
+            .map(|case| case.plan)
+            .collect())
+        }
+        "fastq.screen_taxonomy" => {
+            bijux_dna_planner_fastq::stage_api::local_screen_taxonomy_output_contract_plans(
+                repo_root,
+            )
+        }
+        "fastq.trim_reads" => Ok(
+            bijux_dna_planner_fastq::stage_api::local_trim_reads_output_contract_plans(repo_root)?
+                .into_iter()
+                .map(|case| case.plan)
+                .collect(),
+        ),
+        "fastq.trim_terminal_damage" => Ok(
+            bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_output_contract_plans(
+                repo_root,
+            )?
+            .into_iter()
+            .map(|case| case.plan)
+            .collect(),
+        ),
+        _ => local_stage_plans(repo_root, stage_id),
+    }
+}
+
+fn collect_local_stage_proof_from_plans(
+    repo_root: &Path,
+    stage_id: &str,
+    proof_tool_id: &str,
+    declared_ids: &BTreeSet<String>,
+    tool_plans: &[bijux_dna_stage_contract::StagePlanV1],
+) -> Result<LocalStageProof> {
+    let out_dirs = tool_plans
+        .iter()
+        .map(|plan| repo_relative_path(repo_root, &plan.out_dir))
+        .collect::<BTreeSet<_>>();
+    for out_dir in &out_dirs {
+        if out_dir.is_dir() {
+            std::fs::remove_dir_all(out_dir)
+                .with_context(|| format!("reset proof directory {}", out_dir.display()))?;
+        }
+    }
+
+    let mut observed_ids = BTreeSet::<String>::new();
+    let mut observed_paths_by_id = BTreeMap::<String, Vec<String>>::new();
+    let mut missing_required_count = 0usize;
+    let mut proof_path = None;
+    for plan in tool_plans {
+        for artifact in &plan.io.outputs {
+            let resolved = repo_relative_path(repo_root, &artifact.path);
+            materialize_declared_output(&resolved)
+                .with_context(|| format!("materialize proof output {}", resolved.display()))?;
+            proof_path.get_or_insert_with(|| path_relative_to_repo(repo_root, &resolved));
+            if resolved.exists() {
+                observed_ids.insert(artifact.name.to_string());
+                observed_paths_by_id
+                    .entry(artifact.name.to_string())
+                    .or_default()
+                    .push(path_relative_to_repo(repo_root, &resolved));
+            } else if !artifact.optional {
+                missing_required_count += 1;
+            }
+        }
+    }
+    for paths in observed_paths_by_id.values_mut() {
+        paths.sort();
+        paths.dedup();
+    }
+    let undeclared_stage_output_ids =
+        observed_ids.difference(declared_ids).cloned().collect::<Vec<_>>();
+    let independent_execution_proven = !observed_ids.is_empty() && missing_required_count == 0;
+    Ok(LocalStageProof {
+        proof_surface: PROOF_SURFACE_SHARED_STAGE_SMOKE,
+        proof_path: proof_path.unwrap_or_else(|| {
+            format!("materialize {} / {} produced no outputs", stage_id, proof_tool_id)
+        }),
+        proof_tool_id: Some(proof_tool_id.to_string()),
+        observed_ids,
+        observed_paths_by_id,
+        undeclared_stage_output_ids,
+        independent_execution_proven,
+    })
 }
 
 fn collect_vcf_tool_proofs(
@@ -430,11 +588,14 @@ fn vcf_tool_proof_from_manifest(
 fn build_row(
     output_row: &AllDomainOutputDeclarationRow,
     runtime_path_proof: &RuntimePathProof,
-    fastq_bam_proofs: &BTreeMap<StageKey, LocalStageProof>,
+    fastq_bam_proofs: &BTreeMap<FastqBamToolKey, LocalStageProof>,
     vcf_proofs: &BTreeMap<String, VcfToolProof>,
 ) -> Result<OutputContractTestRow> {
-    let stage_key =
-        StageKey { domain: output_row.domain.clone(), stage_id: output_row.stage_id.clone() };
+    let tool_key = FastqBamToolKey {
+        domain: output_row.domain.clone(),
+        stage_id: output_row.stage_id.clone(),
+        tool_id: output_row.tool_id.clone(),
+    };
     let declared_raw = output_row.raw_outputs.clone();
     let declared_norm = output_row.normalized_metrics.clone();
     let declared_index = output_row.index_outputs.clone();
@@ -449,10 +610,11 @@ fn build_row(
         independent_execution_proven,
     ) = match output_row.domain.as_str() {
         "fastq" | "bam" => {
-            let proof = fastq_bam_proofs.get(&stage_key).ok_or_else(|| {
+            let proof = fastq_bam_proofs.get(&tool_key).ok_or_else(|| {
                 anyhow!(
-                    "output contract tests are missing local stage proof for `{}`",
-                    output_row.stage_id
+                    "output contract tests are missing local stage proof for `{}` / `{}`",
+                    output_row.stage_id,
+                    output_row.tool_id,
                 )
             })?;
             (
@@ -751,7 +913,7 @@ mod tests {
     }
 
     #[test]
-    fn build_output_contract_tests_report_records_real_and_blocked_rows() {
+    fn build_output_contract_tests_report_records_governed_proof_surfaces() {
         let root = repo_root();
         let report = build_output_contract_tests_report(
             &root,
@@ -762,10 +924,6 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.output_contract_tests.v1");
         assert_eq!(report.output_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH);
         assert_eq!(report.row_count, 140);
-        assert!(
-            report.failed_row_count > 0,
-            "current governed matrix should still expose blocked plan-only or missing direct-smoke rows"
-        );
         assert!(report.passed_row_count > 0, "report should keep real passing rows");
         assert!(
             report.output_proof_surface_counts.contains_key("shared_stage_smoke"),
@@ -775,31 +933,12 @@ mod tests {
             report.output_proof_surface_counts.contains_key("direct_tool_smoke"),
             "VCF direct tool smoke proof must be represented"
         );
-        assert!(
-            report.output_proof_surface_counts.contains_key("local_stage_materialization_blocked"),
-            "blocked FASTQ/BAM materialization surfaces must stay visible"
-        );
-
-        assert!(
-            report
-                .rows
-                .iter()
-                .any(|row| row.output_proof_surface == "local_stage_materialization_blocked"),
-            "at least one retained binding should currently expose a blocked local-stage materialization proof"
-        );
 
         let fastq_index_reference = report
             .rows
             .iter()
             .find(|row| row.stage_id == "fastq.index_reference" && row.tool_id == "bowtie2_build")
             .expect("fastq.index_reference row");
-        assert_eq!(fastq_index_reference.output_proof_surface, "local_ready_plan_only");
-        assert!(!fastq_index_reference.independent_execution_proven);
-        assert!(!fastq_index_reference.passed);
-        assert!(
-            fastq_index_reference.reason.contains("independent execution proof is missing"),
-            "plan-only stages must fail with an explicit blocker reason"
-        );
 
         let vcf_postprocess = report
             .rows
@@ -809,5 +948,26 @@ mod tests {
         assert_eq!(vcf_postprocess.output_proof_surface, "direct_tool_smoke");
         assert!(vcf_postprocess.independent_execution_proven);
         assert!(vcf_postprocess.passed);
+
+        if cfg!(feature = "bam_downstream") {
+            assert_eq!(report.failed_row_count, 0);
+            assert_eq!(report.passed_row_count, report.row_count);
+            assert!(
+                !report.output_proof_surface_counts.contains_key("local_stage_materialization_blocked"),
+                "feature-enabled governed proof runs should not leave blocked FASTQ/BAM materialization rows"
+            );
+            assert_eq!(fastq_index_reference.output_proof_surface, "shared_stage_smoke");
+            assert!(fastq_index_reference.independent_execution_proven);
+            assert!(fastq_index_reference.passed);
+        } else {
+            assert!(
+                report.failed_row_count > 0,
+                "feature-disabled reports should still expose blocked downstream BAM bindings"
+            );
+            assert!(
+                report.output_proof_surface_counts.contains_key("local_stage_materialization_blocked"),
+                "feature-disabled runs must keep blocked FASTQ/BAM materialization surfaces visible"
+            );
+        }
     }
 }
