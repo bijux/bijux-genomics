@@ -762,6 +762,16 @@ Visible aliases are part of the operator surface:
   closed unless the typed `recal.summary.json`, typed `stage.metrics.json`, raw
   `recal.report.txt`, recalibrated BAM output, known-sites asset identity, coverage gate, and
   explicit `coverage_below_gate` behavior all remain coherent.
+- `bijux-dna bench readiness render-bam-genotyping-complete`
+  `render-bam-genotyping-complete` writes
+  `benchmarks/readiness/bam/stages/bam.genotyping.complete.json` with the retained
+  `bam.genotyping` binding promoted into a stage-owned completion gate. The report keeps
+  active-scope, command, output, parser, expected-result, report-map, and schema proofs explicit
+  for `angsd`, then proves the governed local-ready producer contract stays compatible with VCF
+  downstream stages. The gate fails closed unless the local-ready plan preserves the governed
+  BCF/VCF/TBI/GL outputs, parser-smoke proof preserves call-rate and posterior metrics, the exact
+  `bam.genotyping -> vcf.filter` handoff stays stable, and downstream VCF readiness keeps explicit
+  variant-count, sample-count, and missingness evidence.
 - `bijux-dna bench readiness render-bam-sex-complete`
   `render-bam-sex-complete` writes
   `benchmarks/readiness/bam/stages/bam.sex.complete.json` with every retained `bam.sex`

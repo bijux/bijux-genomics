@@ -19,7 +19,7 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 ## Local Benchmark Readiness Contracts
 - `benchmarks/configs/local/tool-execution-modes.toml` classifies every governed FASTQ and BAM benchmark tool by its primary operator runtime and required runtime fields so readiness validation can prove the current execution surface is explicit and complete.
 - `benchmarks/configs/local/tool-families.toml` classifies every governed FASTQ, BAM, and VCF benchmark tool by its primary benchmark function so readiness reports can group tools consistently across domains.
-- `benchmarks/readiness/bam/stages/` holds stage-owned BAM completion gates when a single stage needs an explicit governed completion artifact beyond broader BAM slice reports, including the owned `bam.overlap_correction`, `bam.endogenous_content`, `bam.damage`, `bam.contamination`, `bam.haplogroups`, `bam.recalibration`, `bam.sex`, and `bam.authenticity` completion JSON artifacts.
+- `benchmarks/readiness/bam/stages/` holds stage-owned BAM completion gates when a single stage needs an explicit governed completion artifact beyond broader BAM slice reports, including the owned `bam.overlap_correction`, `bam.endogenous_content`, `bam.damage`, `bam.contamination`, `bam.haplogroups`, `bam.recalibration`, `bam.genotyping`, `bam.sex`, and `bam.authenticity` completion JSON artifacts.
 
 ## Control Plane Contract
 - `bijux-dna` is the primary benchmark control plane for workspace lookups, dossier refresh, publication audits, and corpus benchmark execution.
