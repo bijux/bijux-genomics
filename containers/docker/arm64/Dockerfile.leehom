@@ -24,11 +24,8 @@ RUN git clone https://github.com/grenaud/leeHom.git /opt/leeHom && cd /opt/leeHo
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends zlib1g=1:1.3.dfsg-3.1ubuntu2.1 ca-certificates=20240203 && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /opt/leeHom/leeHom* /usr/local/bin/
+COPY --from=builder /opt/leeHom/src/leeHom /usr/local/bin/leeHom-bin
 RUN set -eu; \
-    bin="$(ls /usr/local/bin/leeHom* 2>/dev/null | head -n 1)"; \
-    test -n "$bin"; \
-    mv "$bin" /usr/local/bin/leeHom-bin; \
     printf '%s\n' \
       '#!/bin/sh' \
       'set -eu' \
