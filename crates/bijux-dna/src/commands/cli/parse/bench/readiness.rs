@@ -38,6 +38,8 @@ pub enum BenchReadinessCommand {
     RenderBamAuthenticityComplete(BenchReadinessRenderBamAuthenticityCompleteArgs),
     #[command(name = "render-bam-contamination-complete")]
     RenderBamContaminationComplete(BenchReadinessRenderBamContaminationCompleteArgs),
+    #[command(name = "render-bam-sex-complete")]
+    RenderBamSexComplete(BenchReadinessRenderBamSexCompleteArgs),
     #[command(name = "render-bam-damage-complete")]
     RenderBamDamageComplete(BenchReadinessRenderBamDamageCompleteArgs),
     #[command(name = "render-bam-damage-authenticity-ready")]
@@ -448,6 +450,14 @@ pub struct BenchReadinessRenderBamAuthenticityCompleteArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamContaminationCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamSexCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
