@@ -8,6 +8,7 @@ pub(crate) mod duplication_metrics;
 pub(crate) mod endogenous_content;
 pub(crate) mod filter;
 pub(crate) mod gc_bias;
+pub(crate) mod haplogroups;
 pub(crate) mod insert_size;
 pub(crate) mod kinship;
 pub(crate) mod length_filter;

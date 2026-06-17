@@ -16,6 +16,7 @@ pub use domain::write_local_bias_mitigation_smoke_report;
 pub use domain::write_local_genotyping_plan;
 #[cfg(feature = "bam_downstream")]
 pub use domain::write_local_haplogroups_plan;
+pub use domain::write_local_haplogroups_smoke_report;
 #[cfg(feature = "bam_downstream")]
 pub use domain::write_local_kinship_smoke_report;
 pub use domain::{

@@ -71,6 +71,28 @@ pub fn write_local_haplogroups_plan() -> Result<PathBuf> {
     Ok(plan_path)
 }
 
+/// Materialize the governed local-smoke `bam.haplogroups` proof bundle.
+///
+/// The written report artifact lives at `runs/bench/local-smoke/bam.haplogroups/haplogroups.json`
+/// under the active repository root.
+///
+/// # Errors
+/// Returns an error if the repository root cannot be resolved, the governed local-ready plan is
+/// invalid, or the proof artifacts cannot be written.
+#[cfg(feature = "bam_downstream")]
+pub fn write_local_haplogroups_smoke_report() -> Result<PathBuf> {
+    crate::internal::bam::stages::haplogroups::write_local_haplogroups_smoke_report()
+}
+
+/// Materialize the governed local-smoke `bam.haplogroups` proof bundle.
+///
+/// # Errors
+/// Returns an error when the downstream BAM surface is not enabled in this build.
+#[cfg(not(feature = "bam_downstream"))]
+pub fn write_local_haplogroups_smoke_report() -> Result<PathBuf> {
+    Err(anyhow::anyhow!("bam.haplogroups local-smoke proof requires the `bam_downstream` feature"))
+}
+
 /// Materialize the governed local-ready `bam.genotyping` dry-run plan.
 ///
 /// The written artifact lives at `benchmarks/readiness/local-ready/bam.genotyping/plan.json` under the active
