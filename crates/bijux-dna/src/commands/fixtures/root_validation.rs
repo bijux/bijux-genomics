@@ -9,6 +9,9 @@ use crate::commands::benchmark::local_taxonomy_database_fixture::TAXONOMY_DATABA
 use crate::commands::fixtures::expected::fastq_duplicates::{
     validate_fastq_duplicates_truth_manifest_path, FASTQ_DUPLICATES_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
+use crate::commands::fixtures::expected::fastq_taxonomy::{
+    validate_fastq_taxonomy_truth_manifest_path, FASTQ_TAXONOMY_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
 use crate::commands::fixtures::expected::fastq_trimming::{
     validate_fastq_trimming_truth_manifest_path, FASTQ_TRIMMING_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
@@ -86,6 +89,9 @@ pub(crate) fn validate_benchmark_fixture_root(
         }
         if manifest_path.ends_with("fastq-duplicates-truth/manifest.toml") {
             rows.push(validate_fastq_duplicates_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("fastq-taxonomy-truth/manifest.toml") {
+            rows.push(validate_fastq_taxonomy_truth_row(repo_root, &manifest_path));
         }
     }
 
@@ -236,6 +242,10 @@ fn validate_manifest_row(
             validate_fastq_duplicates_truth_manifest_path(repo_root, manifest_path)
                 .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
         }
+        FASTQ_TAXONOMY_TRUTH_MANIFEST_SCHEMA_VERSION => {
+            validate_fastq_taxonomy_truth_manifest_path(repo_root, manifest_path)
+                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
+        }
         other => Err(anyhow!(
             "unsupported benchmark fixture schema `{other}` in {}",
             manifest_path.display()
@@ -303,6 +313,35 @@ fn validate_fastq_duplicates_truth_row(
             schema_version: Some(report.schema_version.to_string()),
             valid: report.valid,
             detail: format!("validated_cases={}", report.validated_case_count),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_fastq_taxonomy_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_fastq_taxonomy_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_taxa_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_samples={},validated_taxa_rows={}",
+                report.validated_sample_count, report.validated_taxa_row_count
+            ),
         },
         Err(error) => BenchmarkFixtureRootValidationRow {
             fixture_kind: "expected_truth".to_string(),
