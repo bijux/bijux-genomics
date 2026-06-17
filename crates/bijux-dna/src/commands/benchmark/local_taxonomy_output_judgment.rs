@@ -46,9 +46,13 @@ pub(crate) struct LocalTaxonomySampleJudgment {
     pub(crate) sample_id: String,
     pub(crate) report_path: String,
     pub(crate) observed_taxa: Vec<LocalTaxonomyObservedTaxon>,
+    pub(crate) observed_unclassified_percent: f64,
+    pub(crate) observed_unclassified_read_count: u64,
     pub(crate) expectation_count: usize,
     pub(crate) matched_expectation_count: usize,
     pub(crate) mismatched_expectation_count: usize,
+    pub(crate) false_positive_count: usize,
+    pub(crate) unexpected_taxa: Vec<LocalTaxonomyObservedTaxon>,
     pub(crate) valid: bool,
     pub(crate) rows: Vec<LocalTaxonomyExpectationRowJudgment>,
 }
@@ -69,6 +73,7 @@ pub(crate) struct LocalTaxonomyOutputJudgmentReport {
 #[derive(Debug, Clone)]
 struct ObservedTaxonomyReport {
     taxa: Vec<LocalTaxonomyObservedTaxon>,
+    unclassified_percent: f64,
 }
 
 pub(crate) fn judge_edna_taxonomy_outputs(
@@ -80,7 +85,24 @@ pub(crate) fn judge_edna_taxonomy_outputs(
     validate_edna_corpus_fixture_manifest_contract(&manifest)?;
     let expected_taxa_path = resolve_edna_expected_taxa_path(manifest_path, &manifest)?;
     let expected_rows = load_validated_edna_expected_taxa_rows(&manifest, &expected_taxa_path)?;
+    judge_edna_taxonomy_outputs_with_expected_rows(
+        repo_root,
+        manifest_path,
+        &manifest,
+        &expected_taxa_path,
+        &expected_rows,
+        reports,
+    )
+}
 
+pub(crate) fn judge_edna_taxonomy_outputs_with_expected_rows(
+    repo_root: &Path,
+    manifest_path: &Path,
+    manifest: &crate::commands::benchmark::local_corpus_fixture::edna::EdnaCorpusFixtureManifest,
+    expected_taxa_path: &Path,
+    expected_rows: &[EdnaExpectedTaxonRow],
+    reports: &[LocalTaxonomyObservedReportArg],
+) -> Result<LocalTaxonomyOutputJudgmentReport> {
     if reports.is_empty() {
         return Err(anyhow!("taxonomy output judgment requires at least one observed report"));
     }
@@ -146,23 +168,47 @@ pub(crate) fn judge_edna_taxonomy_outputs(
             .filter(|entry| entry.percent > 0.0)
             .map(|entry| entry.name.as_str())
             .collect::<BTreeSet<_>>();
+        let expected_present_taxa = expected_rows
+            .iter()
+            .filter(|row| {
+                row.sample_id == sample.sample_id
+                    && matches!(row.expected_presence, EdnaExpectedPresence::Present)
+            })
+            .map(|row| row.name.as_str())
+            .collect::<BTreeSet<_>>();
         let rows = expected_rows
             .iter()
             .filter(|row| row.sample_id == sample.sample_id)
             .map(|row| row_judgment(row, &observed_presence))
             .collect::<Vec<_>>();
+        let unexpected_taxa = observed
+            .taxa
+            .iter()
+            .filter(|entry| {
+                entry.percent > 0.0 && !expected_present_taxa.contains(entry.name.as_str())
+            })
+            .cloned()
+            .collect::<Vec<_>>();
         let sample_matched = rows.iter().filter(|row| row.matched).count();
         let sample_mismatched = rows.len().saturating_sub(sample_matched);
+        let false_positive_count = unexpected_taxa.len();
+        let observed_unclassified_read_count =
+            ((sample.expected_read_count as f64 * observed.unclassified_percent) / 100.0).round()
+                as u64;
         matched_expectation_count += sample_matched;
         mismatched_expectation_count += sample_mismatched;
         samples.push(LocalTaxonomySampleJudgment {
             sample_id: sample.sample_id.clone(),
             report_path: path_relative_to_repo(repo_root, &report_path),
             observed_taxa: observed.taxa,
+            observed_unclassified_percent: observed.unclassified_percent,
+            observed_unclassified_read_count,
             expectation_count: rows.len(),
             matched_expectation_count: sample_matched,
             mismatched_expectation_count: sample_mismatched,
-            valid: sample_mismatched == 0,
+            false_positive_count,
+            unexpected_taxa,
+            valid: sample_mismatched == 0 && false_positive_count == 0,
             rows,
         });
     }
@@ -264,7 +310,8 @@ fn load_observed_taxonomy_report(report_path: &Path) -> Result<ObservedTaxonomyR
         })?;
 
     let mut seen_names = BTreeSet::new();
-    let mut taxa = entries
+    let mut unclassified_percent = None::<f64>;
+    let taxa = entries
         .iter()
         .map(|entry| {
             let name = entry
@@ -302,6 +349,15 @@ fn load_observed_taxonomy_report(report_path: &Path) -> Result<ObservedTaxonomyR
                     percent
                 ));
             }
+            if name.eq_ignore_ascii_case("unclassified") {
+                if unclassified_percent.replace(percent).is_some() {
+                    return Err(anyhow!(
+                        "taxonomy output judgment report {} repeats `unclassified`",
+                        report_path.display()
+                    ));
+                }
+                return Ok(None);
+            }
             if !seen_names.insert(name.to_string()) {
                 return Err(anyhow!(
                     "taxonomy output judgment report {} repeats taxon `{}`",
@@ -309,15 +365,15 @@ fn load_observed_taxonomy_report(report_path: &Path) -> Result<ObservedTaxonomyR
                     name
                 ));
             }
-            Ok(LocalTaxonomyObservedTaxon { name: name.to_string(), percent })
+            Ok(Some(LocalTaxonomyObservedTaxon { name: name.to_string(), percent }))
         })
         .collect::<Result<Vec<_>>>()?;
-    taxa.retain(|entry| !entry.name.eq_ignore_ascii_case("unclassified"));
+    let mut taxa = taxa.into_iter().flatten().collect::<Vec<_>>();
     taxa.sort_by(|left, right| {
         right.percent.total_cmp(&left.percent).then_with(|| left.name.cmp(&right.name))
     });
 
-    Ok(ObservedTaxonomyReport { taxa })
+    Ok(ObservedTaxonomyReport { taxa, unclassified_percent: unclassified_percent.unwrap_or(0.0) })
 }
 
 fn parse_report_args(values: &[String]) -> Result<Vec<LocalTaxonomyObservedReportArg>> {
@@ -418,7 +474,12 @@ mod tests {
         assert_eq!(report.matched_expectation_count, 6);
         assert_eq!(report.mismatched_expectation_count, 0);
         assert!(report.valid);
-        assert!(report.samples.iter().all(|sample| sample.valid));
+        assert!(report.samples.iter().all(|sample| {
+            sample.valid
+                && sample.false_positive_count == 0
+                && sample.observed_unclassified_percent == 0.0
+                && sample.observed_unclassified_read_count == 0
+        }));
     }
 
     #[test]
@@ -451,5 +512,61 @@ mod tests {
             error.to_string().contains("taxonomy output judgment is missing an observed report"),
             "validation error should explain the missing sample report: {error:#}"
         );
+    }
+
+    #[test]
+    fn taxonomy_output_judgment_reports_false_positive_taxa() {
+        let root = repo_root();
+        let temp = tempfile::tempdir().expect("tempdir");
+        let sample_a = temp.path().join("sample-a.json");
+        let sample_b = temp.path().join("sample-b.json");
+        std::fs::write(
+            &sample_a,
+            serde_json::to_string_pretty(&serde_json::json!({
+                "summary_entries": [
+                    {"label": "Escherichia coli", "percent": 50.0},
+                    {"label": "Salmonella enterica", "percent": 40.0},
+                    {"label": "Halobacterium salinarum", "percent": 10.0}
+                ]
+            }))
+            .expect("encode sample a"),
+        )
+        .expect("write sample a");
+        std::fs::write(
+            &sample_b,
+            serde_json::to_string_pretty(&serde_json::json!({
+                "summary_entries": [
+                    {"label": "Halobacterium salinarum", "percent": 100.0}
+                ]
+            }))
+            .expect("encode sample b"),
+        )
+        .expect("write sample b");
+
+        let report = judge_edna_taxonomy_outputs(
+            &root,
+            &root.join("benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml"),
+            &[
+                LocalTaxonomyObservedReportArg {
+                    sample_id: "mock_community_sample_a".to_string(),
+                    report_path: sample_a,
+                },
+                LocalTaxonomyObservedReportArg {
+                    sample_id: "mock_community_sample_b".to_string(),
+                    report_path: sample_b,
+                },
+            ],
+        )
+        .expect("judge observed taxonomy outputs");
+
+        let sample_a = report
+            .samples
+            .iter()
+            .find(|sample| sample.sample_id == "mock_community_sample_a")
+            .expect("sample a judgment");
+        assert_eq!(sample_a.false_positive_count, 1);
+        assert!(!sample_a.valid);
+        assert_eq!(sample_a.unexpected_taxa.len(), 1);
+        assert_eq!(sample_a.unexpected_taxa[0].name, "Halobacterium salinarum");
     }
 }
