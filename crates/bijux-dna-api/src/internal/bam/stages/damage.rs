@@ -25,10 +25,14 @@ struct LocalDamageSmokeReport {
     terminal_position_metrics: String,
     parser_output: String,
     damage_profile: String,
-    damage_plot: String,
-    damage_clusters: String,
-    damage_parameters: String,
-    pmd_scores: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    damage_plot: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    damage_clusters: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    damage_parameters: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pmd_scores: Option<String>,
     advisory_boundary: String,
     udg_regime: String,
     stage_metrics: String,
@@ -206,10 +210,12 @@ fn materialize_local_damage_smoke_case(
         resolve_output_path(repo_root, &case.plan, "terminal_position_metrics")?;
     let parser_output_path = resolve_output_path(repo_root, &case.plan, "parser_output")?;
     let damage_profile_path = resolve_output_path(repo_root, &case.plan, "damage_profile")?;
-    let damage_plot_path = resolve_output_path(repo_root, &case.plan, "damage_plot")?;
-    let damage_clusters_path = resolve_output_path(repo_root, &case.plan, "damage_clusters")?;
-    let damage_parameters_path = resolve_output_path(repo_root, &case.plan, "damage_parameters")?;
-    let pmd_scores_path = resolve_output_path(repo_root, &case.plan, "pmd_scores")?;
+    let damage_plot_path = resolve_optional_output_path(repo_root, &case.plan, "damage_plot");
+    let damage_clusters_path =
+        resolve_optional_output_path(repo_root, &case.plan, "damage_clusters");
+    let damage_parameters_path =
+        resolve_optional_output_path(repo_root, &case.plan, "damage_parameters");
+    let pmd_scores_path = resolve_optional_output_path(repo_root, &case.plan, "pmd_scores");
     let advisory_boundary_path = case_out_dir.join("advisory_boundary.json");
     let udg_regime_path = case_out_dir.join("udg_regime.json");
     let stage_metrics_path = resolve_output_path(repo_root, &case.plan, "stage_metrics")?;
@@ -241,10 +247,10 @@ fn materialize_local_damage_smoke_case(
         &summary,
         &tools_seen,
         &damage_profile_path,
-        &damage_plot_path,
-        &damage_clusters_path,
-        &damage_parameters_path,
-        &pmd_scores_path,
+        damage_plot_path.as_deref(),
+        damage_clusters_path.as_deref(),
+        damage_parameters_path.as_deref(),
+        pmd_scores_path.as_deref(),
     )?;
 
     bijux_dna_infra::atomic_write_json(
@@ -252,6 +258,7 @@ fn materialize_local_damage_smoke_case(
         &serde_json::json!({
             "schema_version": DAMAGE_STAGE_METRICS_SCHEMA_VERSION,
             "stage_id": "bam.damage",
+            "sample_id": case.sample_id,
             "tool_id": case.plan.tool_id.as_str(),
             "tools_seen": tools_seen,
             "expected_terminal_c_to_t_5p": case.expected_terminal_c_to_t_5p,
@@ -291,10 +298,14 @@ fn materialize_local_damage_smoke_case(
         ),
         parser_output: path_relative_to_repo(repo_root, &parser_output_path),
         damage_profile: path_relative_to_repo(repo_root, &damage_profile_path),
-        damage_plot: path_relative_to_repo(repo_root, &damage_plot_path),
-        damage_clusters: path_relative_to_repo(repo_root, &damage_clusters_path),
-        damage_parameters: path_relative_to_repo(repo_root, &damage_parameters_path),
-        pmd_scores: path_relative_to_repo(repo_root, &pmd_scores_path),
+        damage_plot: damage_plot_path.as_deref().map(|path| path_relative_to_repo(repo_root, path)),
+        damage_clusters: damage_clusters_path
+            .as_deref()
+            .map(|path| path_relative_to_repo(repo_root, path)),
+        damage_parameters: damage_parameters_path
+            .as_deref()
+            .map(|path| path_relative_to_repo(repo_root, path)),
+        pmd_scores: pmd_scores_path.as_deref().map(|path| path_relative_to_repo(repo_root, path)),
         advisory_boundary: path_relative_to_repo(repo_root, &advisory_boundary_path),
         udg_regime: path_relative_to_repo(repo_root, &udg_regime_path),
         stage_metrics: path_relative_to_repo(repo_root, &stage_metrics_path),
@@ -441,10 +452,10 @@ fn write_local_damage_extra_artifacts(
     summary: &bijux_dna_domain_bam::BamDamageEvidenceV1,
     tools_seen: &[String],
     damage_profile_path: &Path,
-    damage_plot_path: &Path,
-    damage_clusters_path: &Path,
-    damage_parameters_path: &Path,
-    pmd_scores_path: &Path,
+    damage_plot_path: Option<&Path>,
+    damage_clusters_path: Option<&Path>,
+    damage_parameters_path: Option<&Path>,
+    pmd_scores_path: Option<&Path>,
 ) -> Result<()> {
     let tool_id = plan.tool_id.as_str();
     bijux_dna_infra::atomic_write_json(
@@ -458,57 +469,65 @@ fn write_local_damage_extra_artifacts(
             "damage_signal": summary.damage_signal,
         }),
     )?;
-    bijux_dna_infra::atomic_write_json(
-        damage_plot_path,
-        &serde_json::json!({
-            "artifact_id": "damage_plot",
-            "stage_id": "bam.damage",
-            "tool_id": tool_id,
-            "status": "local_smoke_placeholder",
-            "tools_seen": tools_seen,
-        }),
-    )?;
-    bijux_dna_infra::atomic_write_json(
-        damage_clusters_path,
-        &serde_json::json!({
-            "artifact_id": "damage_clusters",
-            "stage_id": "bam.damage",
-            "tool_id": tool_id,
-            "clusters": [
-                {
-                    "label": summary.damage_signal,
-                    "terminal_c_to_t_5p": summary.terminal_c_to_t_5p,
-                    "terminal_g_to_a_3p": summary.terminal_g_to_a_3p,
-                }
-            ],
-        }),
-    )?;
-    bijux_dna_infra::atomic_write_json(
-        damage_parameters_path,
-        &serde_json::json!({
-            "artifact_id": "damage_parameters",
-            "stage_id": "bam.damage",
-            "tool_id": tool_id,
-            "damage_tool_profile": plan
-                .params
-                .get("damage_tool_profile")
-                .and_then(serde_json::Value::as_str),
-            "evidence_only": plan
-                .params
-                .get("evidence_only")
-                .and_then(serde_json::Value::as_bool),
-            "udg_model": plan.params.get("udg_model").and_then(serde_json::Value::as_str),
-        }),
-    )?;
-    bijux_dna_infra::atomic_write_json(
-        pmd_scores_path,
-        &serde_json::json!({
-            "artifact_id": "pmd_scores",
-            "stage_id": "bam.damage",
-            "tool_id": tool_id,
-            "scores": [0, 1, 2, 3],
-        }),
-    )?;
+    if let Some(damage_plot_path) = damage_plot_path {
+        bijux_dna_infra::atomic_write_json(
+            damage_plot_path,
+            &serde_json::json!({
+                "artifact_id": "damage_plot",
+                "stage_id": "bam.damage",
+                "tool_id": tool_id,
+                "status": "local_smoke_placeholder",
+                "tools_seen": tools_seen,
+            }),
+        )?;
+    }
+    if let Some(damage_clusters_path) = damage_clusters_path {
+        bijux_dna_infra::atomic_write_json(
+            damage_clusters_path,
+            &serde_json::json!({
+                "artifact_id": "damage_clusters",
+                "stage_id": "bam.damage",
+                "tool_id": tool_id,
+                "clusters": [
+                    {
+                        "label": summary.damage_signal,
+                        "terminal_c_to_t_5p": summary.terminal_c_to_t_5p,
+                        "terminal_g_to_a_3p": summary.terminal_g_to_a_3p,
+                    }
+                ],
+            }),
+        )?;
+    }
+    if let Some(damage_parameters_path) = damage_parameters_path {
+        bijux_dna_infra::atomic_write_json(
+            damage_parameters_path,
+            &serde_json::json!({
+                "artifact_id": "damage_parameters",
+                "stage_id": "bam.damage",
+                "tool_id": tool_id,
+                "damage_tool_profile": plan
+                    .params
+                    .get("damage_tool_profile")
+                    .and_then(serde_json::Value::as_str),
+                "evidence_only": plan
+                    .params
+                    .get("evidence_only")
+                    .and_then(serde_json::Value::as_bool),
+                "udg_model": plan.params.get("udg_model").and_then(serde_json::Value::as_str),
+            }),
+        )?;
+    }
+    if let Some(pmd_scores_path) = pmd_scores_path {
+        bijux_dna_infra::atomic_write_json(
+            pmd_scores_path,
+            &serde_json::json!({
+                "artifact_id": "pmd_scores",
+                "stage_id": "bam.damage",
+                "tool_id": tool_id,
+                "scores": [0, 1, 2, 3],
+            }),
+        )?;
+    }
     Ok(())
 }
 
@@ -555,6 +574,18 @@ fn resolve_output_path(
             anyhow!("bam.damage local-smoke plan is missing governed output `{output_id}`")
         })?;
     Ok(resolve_plan_path(repo_root, &path))
+}
+
+fn resolve_optional_output_path(
+    repo_root: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    output_id: &str,
+) -> Option<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| resolve_plan_path(repo_root, &artifact.path))
 }
 
 fn resolve_plan_path(repo_root: &Path, path: &Path) -> PathBuf {
