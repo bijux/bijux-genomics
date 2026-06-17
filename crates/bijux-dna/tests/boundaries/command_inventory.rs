@@ -151,6 +151,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-bam-recalibration-complete",
     "bijux-dna bench readiness render-bam-sex-complete",
     "bijux-dna bench readiness render-bam-kinship-ready",
+    "bijux-dna bench readiness render-bam-active-row-consistency",
     "bijux-dna bench readiness render-bam-kinship-complete",
     "bijux-dna bench readiness render-bam-recalibration-genotyping-ready",
     "bijux-dna bench readiness render-bam-authenticity-complete",
