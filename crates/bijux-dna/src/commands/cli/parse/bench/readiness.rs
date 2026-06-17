@@ -38,6 +38,8 @@ pub enum BenchReadinessCommand {
     RenderBamDamageAuthenticityReady(BenchReadinessRenderBamDamageAuthenticityReadyArgs),
     #[command(name = "render-bam-insert-size-gc-bias-ready")]
     RenderBamInsertSizeGcBiasReady(BenchReadinessRenderBamInsertSizeGcBiasReadyArgs),
+    #[command(name = "render-bam-endogenous-content-complete")]
+    RenderBamEndogenousContentComplete(BenchReadinessRenderBamEndogenousContentCompleteArgs),
     #[command(name = "render-bam-overlap-correction-complete")]
     RenderBamOverlapCorrectionComplete(BenchReadinessRenderBamOverlapCorrectionCompleteArgs),
     #[command(name = "render-bam-overlap-endogenous-ready")]
@@ -730,6 +732,14 @@ pub struct BenchReadinessRenderVcfAllRetainedToolsCompleteArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamOverlapEndogenousReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamEndogenousContentCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
