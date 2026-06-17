@@ -1462,6 +1462,14 @@ Visible aliases are part of the operator surface:
   `stage_count`, `tool_pair_count`, and one explicit row per stage-tool pair with deterministic
   `pair_root`, `artifacts_root`, and `result_manifest_path` values so repeated local smoke runs
   cannot drift onto random temp paths.
+- `bijux-dna bench local run-bam-micro-smoke-subset`
+  `run-bam-micro-smoke-subset` writes `runs/bench/micro/bam/BAM_MICRO_SMOKE_SUMMARY.json`, choosing
+  one governed retained BAM binding per family from the canonical local-smoke matrix. Host-backed
+  families materialize the real tiny-fixture artifact under `runs/bench/local-smoke/<stage>/`,
+  while container-backed families record the exact smoke command and checked-in support path
+  instead of inventing a fake host success. The summary keeps the family slice, representative
+  stage/tool, execution status, smoke metadata, and any parsed evidence schema so BAM readiness
+  stays grounded in one honest local-or-container verdict per family.
 - `bijux-dna bench local run-bam-stage-smoke`
   `run-bam-stage-smoke` materializes the governed BAM tiny-fixture smoke artifact for one
   smoke-capable stage under `runs/bench/local-smoke/<stage>/`, using the exact stage-level BAM
@@ -1876,7 +1884,7 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local materialize-stage`
 - `bijux-dna bench local run-real-smoke-core-subset`
   `run-real-smoke-core-subset` writes
-  `target/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json` and records one governed real
+  `artifacts/benchmarks/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json` and records one governed real
   FASTQ smoke stage, one governed real BAM smoke stage, one governed real `vcf.stats` smoke
   stage, and one governed BAM-to-VCF bridge execution through `vcf.call`. Each row keeps the
   parsed evidence path, normalized metrics, and validated `stage-result.json` identity where a
