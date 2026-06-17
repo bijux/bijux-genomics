@@ -260,6 +260,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamHaplogroupsComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_haplogroups_complete::run_render_bam_haplogroups_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamSexComplete(args) => {
                         crate::commands::benchmark::readiness::bam_sex_complete::run_render_bam_sex_complete(
                             args,
