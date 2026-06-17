@@ -7,6 +7,7 @@
 
 schema_version = "bijux.bench.fastq.local_screen_taxonomy.v1"
 input_r1 = "assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq"
+input_r2 = "assets/toy/corpus-02-edna-mini/fastq/mock_community_reads_R2.fastq"
 database_root = "assets/reference/taxonomy/references/mock_community_taxonomy"
 tool_id = "kraken2"
 threads = 4

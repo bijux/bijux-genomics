@@ -27,6 +27,13 @@ fn local_deplete_rrna_plan_uses_governed_repo_inputs() -> Result<()> {
         .find(|artifact| artifact.name.as_str() == "reads_r1")
         .unwrap_or_else(|| panic!("reads_r1 input missing from local-ready plan"));
     assert_eq!(input_r1.path, PathBuf::from("assets/toy/core-v1/fastq/reads_1.fastq"));
+    let input_r2 = plan
+        .io
+        .inputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "reads_r2")
+        .unwrap_or_else(|| panic!("reads_r2 input missing from local-ready plan"));
+    assert_eq!(input_r2.path, PathBuf::from("assets/toy/core-v1/fastq/reads_2.fastq"));
 
     let rrna_reference = plan
         .io
@@ -47,7 +54,21 @@ fn local_deplete_rrna_plan_uses_governed_repo_inputs() -> Result<()> {
         .unwrap_or_else(|| panic!("rrna_filtered_reads_r1 output missing from local-ready plan"));
     assert_eq!(
         retained_reads.path,
-        PathBuf::from("benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered.fastq.gz")
+        PathBuf::from(
+            "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered_R1.fastq.gz"
+        )
+    );
+    let retained_reads_r2 = plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "rrna_filtered_reads_r2")
+        .unwrap_or_else(|| panic!("rrna_filtered_reads_r2 output missing from local-ready plan"));
+    assert_eq!(
+        retained_reads_r2.path,
+        PathBuf::from(
+            "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered_R2.fastq.gz"
+        )
     );
 
     let removed_reads = plan
@@ -58,7 +79,21 @@ fn local_deplete_rrna_plan_uses_governed_repo_inputs() -> Result<()> {
         .unwrap_or_else(|| panic!("rrna_removed_reads_r1 output missing from local-ready plan"));
     assert_eq!(
         removed_reads.path,
-        PathBuf::from("benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz")
+        PathBuf::from(
+            "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna_R1.fastq.gz"
+        )
+    );
+    let removed_reads_r2 = plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "rrna_removed_reads_r2")
+        .unwrap_or_else(|| panic!("rrna_removed_reads_r2 output missing from local-ready plan"));
+    assert_eq!(
+        removed_reads_r2.path,
+        PathBuf::from(
+            "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna_R2.fastq.gz"
+        )
     );
 
     assert_eq!(
@@ -66,9 +101,19 @@ fn local_deplete_rrna_plan_uses_governed_repo_inputs() -> Result<()> {
         serde_json::json!("assets/reference/rrna/references/sortmerna_common_rrna_reference.fasta")
     );
     assert_eq!(
+        plan.params["input_r2"],
+        serde_json::json!("assets/toy/core-v1/fastq/reads_2.fastq")
+    );
+    assert_eq!(
         plan.params["removed_reads_r1"],
         serde_json::json!(
-            "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz"
+            "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna_R1.fastq.gz"
+        )
+    );
+    assert_eq!(
+        plan.params["removed_reads_r2"],
+        serde_json::json!(
+            "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna_R2.fastq.gz"
         )
     );
     assert_eq!(plan.params["tool"], serde_json::json!("sortmerna"));
@@ -77,7 +122,13 @@ fn local_deplete_rrna_plan_uses_governed_repo_inputs() -> Result<()> {
     assert!(
         plan.command.template[2].contains("sortmerna")
             && plan.command.template[2]
-                .contains("assets/reference/rrna/references/sortmerna_common_rrna_reference.fasta"),
+                .contains("assets/reference/rrna/references/sortmerna_common_rrna_reference.fasta")
+            && plan.command.template[2].contains(
+                "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered_R1.fastq.gz"
+            )
+            && plan.command.template[2].contains(
+                "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered_R2.fastq.gz"
+            ),
         "local-ready plan command must materialize the governed SortMeRNA reference path"
     );
     Ok(())

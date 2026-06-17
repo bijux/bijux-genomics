@@ -7,6 +7,7 @@
 
 schema_version = "bijux.bench.fastq.local_deplete_host.v1"
 input_r1 = "assets/toy/core-v1/fastq/reads_1.fastq"
+input_r2 = "assets/toy/core-v1/fastq/reads_2.fastq"
 reference_index = "assets/reference/host/references/toy_host_reference"
 tool_id = "bowtie2"
 threads = 4

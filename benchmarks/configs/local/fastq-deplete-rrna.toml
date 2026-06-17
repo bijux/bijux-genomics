@@ -7,6 +7,7 @@
 
 schema_version = "bijux.bench.fastq.local_deplete_rrna.v1"
 input_r1 = "assets/toy/core-v1/fastq/reads_1.fastq"
+input_r2 = "assets/toy/core-v1/fastq/reads_2.fastq"
 rrna_db = "assets/reference/rrna/references/sortmerna_common_rrna_reference.fasta"
 tool_id = "sortmerna"
 threads = 4

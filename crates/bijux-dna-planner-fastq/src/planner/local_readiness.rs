@@ -7,7 +7,7 @@ use bijux_dna_domain_fastq::{STAGE_DEPLETE_RRNA, STAGE_SCREEN_TAXONOMY};
 use serde::Deserialize;
 
 use crate::selection::{
-    load_fastq_domain_tool_execution_spec, select_deplete_host_tools,
+    allowed_tools_for_stage, load_fastq_domain_tool_execution_spec, select_deplete_host_tools,
     select_deplete_reference_contaminants_tools, select_deplete_rrna_tools,
     select_index_reference_tools, select_screen_tools,
 };
@@ -53,6 +53,8 @@ struct LocalIndexReferencePlanConfig {
 struct LocalDepleteRrnaPlanConfig {
     schema_version: String,
     input_r1: PathBuf,
+    #[serde(default)]
+    input_r2: Option<PathBuf>,
     rrna_db: PathBuf,
     tool_id: String,
     #[serde(default)]
@@ -65,6 +67,8 @@ struct LocalDepleteRrnaPlanConfig {
 struct LocalDepleteHostPlanConfig {
     schema_version: String,
     input_r1: PathBuf,
+    #[serde(default)]
+    input_r2: Option<PathBuf>,
     reference_index: PathBuf,
     tool_id: String,
     #[serde(default)]
@@ -77,6 +81,8 @@ struct LocalDepleteHostPlanConfig {
 struct LocalDepleteReferenceContaminantsPlanConfig {
     schema_version: String,
     input_r1: PathBuf,
+    #[serde(default)]
+    input_r2: Option<PathBuf>,
     reference_index: PathBuf,
     tool_id: String,
     #[serde(default)]
@@ -89,6 +95,8 @@ struct LocalDepleteReferenceContaminantsPlanConfig {
 struct LocalScreenTaxonomyPlanConfig {
     schema_version: String,
     input_r1: PathBuf,
+    #[serde(default)]
+    input_r2: Option<PathBuf>,
     database_root: PathBuf,
     tool_id: String,
     #[serde(default)]
@@ -111,11 +119,40 @@ pub fn local_index_reference_plan(
 ) -> Result<bijux_dna_stage_contract::StagePlanV1> {
     let config = load_local_index_reference_plan_config(repo_root)?;
     let local_profile = load_local_runtime_profile(repo_root)?;
-    let stage_id = StageId::new(STAGE_INDEX_REFERENCE.as_str().to_string());
     let tool_id = ToolId::try_from(config.tool_id.as_str())
         .map_err(|error| anyhow!("invalid local-ready tool_id `{}`: {error}", config.tool_id))?;
+    local_index_reference_plan_with_tool(repo_root, &config, &local_profile, &tool_id)
+}
 
-    let normalized_tools = select_index_reference_tools(std::slice::from_ref(&config.tool_id))?;
+/// # Errors
+/// Returns an error if the governed local-ready config or runtime profile cannot be read or if one
+/// of the admitted `fastq.index_reference` tool plans cannot be built for output-contract
+/// coverage.
+pub fn local_index_reference_output_contract_plans(
+    repo_root: &Path,
+) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>> {
+    let config = load_local_index_reference_plan_config(repo_root)?;
+    let local_profile = load_local_runtime_profile(repo_root)?;
+    let stage_id = StageId::new(STAGE_INDEX_REFERENCE.as_str().to_string());
+    let mut tool_ids = allowed_tools_for_stage(&stage_id);
+    tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    tool_ids
+        .into_iter()
+        .map(|tool_id| {
+            local_index_reference_plan_with_tool(repo_root, &config, &local_profile, &tool_id)
+        })
+        .collect()
+}
+
+fn local_index_reference_plan_with_tool(
+    repo_root: &Path,
+    config: &LocalIndexReferencePlanConfig,
+    local_profile: &LocalRuntimeProfile,
+    tool_id: &ToolId,
+) -> Result<bijux_dna_stage_contract::StagePlanV1> {
+    let stage_id = StageId::new(STAGE_INDEX_REFERENCE.as_str().to_string());
+    let requested_tool_id = tool_id.as_str().to_string();
+    let normalized_tools = select_index_reference_tools(std::slice::from_ref(&requested_tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
             "local-ready fastq.index_reference tool selection normalized unexpectedly: {normalized_tools:?}"
@@ -134,6 +171,7 @@ pub fn local_index_reference_plan(
     hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
     let out_dir = config
         .output_dir
+        .clone()
         .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_INDEX_REFERENCE_OUTPUT_DIR));
 
     plan_with_options(
@@ -169,6 +207,15 @@ pub fn local_deplete_host_plan(repo_root: &Path) -> Result<bijux_dna_stage_contr
             input_r1_abs.display()
         ));
     }
+    let input_r2_abs = config.input_r2.as_ref().map(|path| repo_root.join(path));
+    if let Some(input_r2_abs) = input_r2_abs.as_ref() {
+        if !input_r2_abs.is_file() {
+            return Err(anyhow!(
+                "local-ready fastq.deplete_host mate FASTQ is missing: {}",
+                input_r2_abs.display()
+            ));
+        }
+    }
 
     let reference_index_abs = repo_root.join(&config.reference_index);
     ensure_bowtie2_index_prefix_exists(&reference_index_abs, "local-ready fastq.deplete_host")?;
@@ -181,7 +228,7 @@ pub fn local_deplete_host_plan(repo_root: &Path) -> Result<bijux_dna_stage_contr
     plan_host_depletion_with_options(
         &tool_spec,
         &config.input_r1,
-        None,
+        config.input_r2.as_deref(),
         &config.reference_index,
         &out_dir,
         &DepleteHostStageParams {
@@ -224,6 +271,15 @@ pub fn local_deplete_reference_contaminants_plan(
             input_r1_abs.display()
         ));
     }
+    let input_r2_abs = config.input_r2.as_ref().map(|path| repo_root.join(path));
+    if let Some(input_r2_abs) = input_r2_abs.as_ref() {
+        if !input_r2_abs.is_file() {
+            return Err(anyhow!(
+                "local-ready fastq.deplete_reference_contaminants mate FASTQ is missing: {}",
+                input_r2_abs.display()
+            ));
+        }
+    }
 
     let reference_index_abs = repo_root.join(&config.reference_index);
     ensure_bowtie2_index_prefix_exists(
@@ -240,7 +296,7 @@ pub fn local_deplete_reference_contaminants_plan(
     plan_contaminant_screen_with_options(
         &tool_spec,
         &config.input_r1,
-        None,
+        config.input_r2.as_deref(),
         &config.reference_index,
         &out_dir,
         &crate::DepleteReferenceContaminantsStageParams {
@@ -274,6 +330,15 @@ pub fn local_deplete_rrna_plan(repo_root: &Path) -> Result<bijux_dna_stage_contr
             input_r1_abs.display()
         ));
     }
+    let input_r2_abs = config.input_r2.as_ref().map(|path| repo_root.join(path));
+    if let Some(input_r2_abs) = input_r2_abs.as_ref() {
+        if !input_r2_abs.is_file() {
+            return Err(anyhow!(
+                "local-ready fastq.deplete_rrna mate FASTQ is missing: {}",
+                input_r2_abs.display()
+            ));
+        }
+    }
 
     let rrna_db_abs = repo_root.join(&config.rrna_db);
     if !rrna_db_abs.is_file() {
@@ -291,7 +356,7 @@ pub fn local_deplete_rrna_plan(repo_root: &Path) -> Result<bijux_dna_stage_contr
     plan_rrna_with_options(
         &tool_spec,
         &config.input_r1,
-        None,
+        config.input_r2.as_deref(),
         &out_dir,
         &DepleteRrnaStageParams {
             rrna_db: config.rrna_db.display().to_string(),
@@ -310,11 +375,40 @@ pub fn local_screen_taxonomy_plan(
 ) -> Result<bijux_dna_stage_contract::StagePlanV1> {
     let config = load_local_screen_taxonomy_plan_config(repo_root)?;
     let local_profile = load_local_runtime_profile(repo_root)?;
-    let stage_id = StageId::new(STAGE_SCREEN_TAXONOMY.as_str().to_string());
     let tool_id = ToolId::try_from(config.tool_id.as_str())
         .map_err(|error| anyhow!("invalid local-ready tool_id `{}`: {error}", config.tool_id))?;
+    local_screen_taxonomy_plan_with_tool(repo_root, &config, &local_profile, &tool_id)
+}
 
-    let normalized_tools = select_screen_tools(std::slice::from_ref(&config.tool_id))?;
+/// # Errors
+/// Returns an error if the governed local-ready config or runtime profile cannot be read or if one
+/// of the admitted `fastq.screen_taxonomy` tool plans cannot be built for output-contract
+/// coverage.
+pub fn local_screen_taxonomy_output_contract_plans(
+    repo_root: &Path,
+) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>> {
+    let config = load_local_screen_taxonomy_plan_config(repo_root)?;
+    let local_profile = load_local_runtime_profile(repo_root)?;
+    let stage_id = StageId::new(STAGE_SCREEN_TAXONOMY.as_str().to_string());
+    let mut tool_ids = allowed_tools_for_stage(&stage_id);
+    tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    tool_ids
+        .into_iter()
+        .map(|tool_id| {
+            local_screen_taxonomy_plan_with_tool(repo_root, &config, &local_profile, &tool_id)
+        })
+        .collect()
+}
+
+fn local_screen_taxonomy_plan_with_tool(
+    repo_root: &Path,
+    config: &LocalScreenTaxonomyPlanConfig,
+    local_profile: &LocalRuntimeProfile,
+    tool_id: &ToolId,
+) -> Result<bijux_dna_stage_contract::StagePlanV1> {
+    let stage_id = StageId::new(STAGE_SCREEN_TAXONOMY.as_str().to_string());
+    let requested_tool_id = tool_id.as_str().to_string();
+    let normalized_tools = select_screen_tools(std::slice::from_ref(&requested_tool_id))?;
     if normalized_tools.len() != 1 || normalized_tools[0] != tool_id.as_str() {
         return Err(anyhow!(
             "local-ready fastq.screen_taxonomy tool selection normalized unexpectedly: {normalized_tools:?}"
@@ -328,6 +422,15 @@ pub fn local_screen_taxonomy_plan(
             input_r1_abs.display()
         ));
     }
+    let input_r2_abs = config.input_r2.as_ref().map(|path| repo_root.join(path));
+    if let Some(input_r2_abs) = input_r2_abs.as_ref() {
+        if !input_r2_abs.is_file() {
+            return Err(anyhow!(
+                "local-ready fastq.screen_taxonomy mate FASTQ is missing: {}",
+                input_r2_abs.display()
+            ));
+        }
+    }
 
     let database_root_abs = repo_root.join(&config.database_root);
     ensure_taxonomy_database_root_exists(
@@ -340,15 +443,16 @@ pub fn local_screen_taxonomy_plan(
     hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
     let out_dir = config
         .output_dir
+        .clone()
         .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_SCREEN_TAXONOMY_OUTPUT_DIR));
 
     plan_screen_with_options(
         &tool_spec,
         &config.input_r1,
-        None,
+        config.input_r2.as_deref(),
         &out_dir,
         &ScreenPlanOptions {
-            database_root: Some(config.database_root),
+            database_root: Some(config.database_root.clone()),
             threads: Some(tool_spec.resources.threads.max(1)),
         },
     )

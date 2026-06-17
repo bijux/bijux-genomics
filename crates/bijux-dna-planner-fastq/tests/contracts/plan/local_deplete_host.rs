@@ -27,6 +27,13 @@ fn local_deplete_host_plan_uses_governed_repo_inputs() -> Result<()> {
         .find(|artifact| artifact.name.as_str() == "reads_r1")
         .unwrap_or_else(|| panic!("reads_r1 input missing from local-ready plan"));
     assert_eq!(input_r1.path, PathBuf::from("assets/toy/core-v1/fastq/reads_1.fastq"));
+    let input_r2 = plan
+        .io
+        .inputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "reads_r2")
+        .unwrap_or_else(|| panic!("reads_r2 input missing from local-ready plan"));
+    assert_eq!(input_r2.path, PathBuf::from("assets/toy/core-v1/fastq/reads_2.fastq"));
 
     let reference_index = plan
         .io
@@ -47,7 +54,21 @@ fn local_deplete_host_plan_uses_governed_repo_inputs() -> Result<()> {
         .unwrap_or_else(|| panic!("host_depleted_reads_r1 output missing from local-ready plan"));
     assert_eq!(
         retained_reads.path,
-        PathBuf::from("benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted.fastq.gz")
+        PathBuf::from(
+            "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R1.fastq.gz"
+        )
+    );
+    let retained_reads_r2 = plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "host_depleted_reads_r2")
+        .unwrap_or_else(|| panic!("host_depleted_reads_r2 output missing from local-ready plan"));
+    assert_eq!(
+        retained_reads_r2.path,
+        PathBuf::from(
+            "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R2.fastq.gz"
+        )
     );
 
     let removed_reads = plan
@@ -58,7 +79,21 @@ fn local_deplete_host_plan_uses_governed_repo_inputs() -> Result<()> {
         .unwrap_or_else(|| panic!("removed_host_reads_r1 output missing from local-ready plan"));
     assert_eq!(
         removed_reads.path,
-        PathBuf::from("benchmarks/readiness/local-ready/fastq.deplete_host/removed_host.fastq.gz")
+        PathBuf::from(
+            "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R1.fastq.gz"
+        )
+    );
+    let removed_reads_r2 = plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "removed_host_reads_r2")
+        .unwrap_or_else(|| panic!("removed_host_reads_r2 output missing from local-ready plan"));
+    assert_eq!(
+        removed_reads_r2.path,
+        PathBuf::from(
+            "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R2.fastq.gz"
+        )
     );
 
     let report_json = plan
@@ -80,12 +115,22 @@ fn local_deplete_host_plan_uses_governed_repo_inputs() -> Result<()> {
         plan.params["reference_index"],
         serde_json::json!("assets/reference/host/references/toy_host_reference")
     );
+    assert_eq!(
+        plan.params["input_r2"],
+        serde_json::json!("assets/toy/core-v1/fastq/reads_2.fastq")
+    );
     assert_eq!(plan.params["tool"], serde_json::json!("bowtie2"));
     assert_eq!(plan.params["threads"], serde_json::json!(4));
     assert_eq!(
-        plan.params["removed_host_reads"],
+        plan.params["removed_host_r1"],
         serde_json::json!(
-            "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host.fastq.gz"
+            "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R1.fastq.gz"
+        )
+    );
+    assert_eq!(
+        plan.params["removed_host_r2"],
+        serde_json::json!(
+            "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R2.fastq.gz"
         )
     );
     assert_eq!(plan.effective_params["emit_removed_reads"], serde_json::json!(true));
@@ -95,6 +140,10 @@ fn local_deplete_host_plan_uses_governed_repo_inputs() -> Result<()> {
             part == "assets/reference/host/references/toy_host_reference"
         }) && plan.command.template.iter().any(|part| {
             part == "benchmarks/readiness/local-ready/fastq.deplete_host/bowtie2.host.metrics.txt"
+        }) && plan.command.template.iter().any(|part| {
+            part == "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R%.fastq.gz"
+        }) && plan.command.template.iter().any(|part| {
+            part == "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R%.fastq.gz"
         }),
         "local-ready plan command must materialize the governed Bowtie2 host index and metrics path"
     );

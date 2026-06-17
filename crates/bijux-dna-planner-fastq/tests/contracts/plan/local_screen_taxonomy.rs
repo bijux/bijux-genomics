@@ -33,6 +33,16 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
         input_r1.path,
         PathBuf::from("assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq")
     );
+    let input_r2 = plan
+        .io
+        .inputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "reads_r2")
+        .unwrap_or_else(|| panic!("reads_r2 input missing from local-ready taxonomy plan"));
+    assert_eq!(
+        input_r2.path,
+        PathBuf::from("assets/toy/corpus-02-edna-mini/fastq/mock_community_reads_R2.fastq")
+    );
 
     let taxonomy_root = plan
         .io
@@ -85,12 +95,32 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
         });
     assert_eq!(
         unclassified_r1_output.path,
-        PathBuf::from("benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq")
+        PathBuf::from(
+            "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_1.fastq"
+        )
+    );
+    let unclassified_r2_output = plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "unclassified_reads_r2")
+        .unwrap_or_else(|| {
+            panic!("unclassified_reads_r2 output missing from local-ready taxonomy plan")
+        });
+    assert_eq!(
+        unclassified_r2_output.path,
+        PathBuf::from(
+            "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_2.fastq"
+        )
     );
 
     assert_eq!(
         plan.params["database_root"],
         serde_json::json!("assets/reference/taxonomy/references/mock_community_taxonomy")
+    );
+    assert_eq!(
+        plan.params["input_r2"],
+        serde_json::json!("assets/toy/corpus-02-edna-mini/fastq/mock_community_reads_R2.fastq")
     );
     assert_eq!(plan.params["tool"], serde_json::json!("kraken2"));
     assert_eq!(plan.params["threads"], serde_json::json!(4));
@@ -103,7 +133,8 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
         plan.command.template[2].contains("--db 'assets/reference/taxonomy/references/mock_community_taxonomy/kraken2'")
             && plan.command.template[2].contains("'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv'")
             && plan.command.template[2].contains("'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.native.tsv'")
-            && plan.command.template[2].contains("--unclassified-out 'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq'"),
+            && plan.command.template[2].contains("--paired 'assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq' 'assets/toy/corpus-02-edna-mini/fastq/mock_community_reads_R2.fastq'")
+            && plan.command.template[2].contains("--unclassified-out 'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_#.fastq'"),
         "local-ready taxonomy plan command must carry the governed database root and output paths"
     );
     Ok(())
@@ -113,4 +144,28 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
 fn local_screen_taxonomy_plan_stage_api_surface_stays_callable() {
     let _: fn(&std::path::Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
         bijux_dna_planner_fastq::stage_api::local_screen_taxonomy_plan;
+    let _: fn(&std::path::Path) -> anyhow::Result<Vec<bijux_dna_stage_contract::StagePlanV1>> =
+        bijux_dna_planner_fastq::stage_api::local_screen_taxonomy_output_contract_plans;
+}
+
+#[test]
+fn local_screen_taxonomy_output_contract_plans_cover_all_governed_tools() -> Result<()> {
+    let repo_root = repo_root();
+    let plans = bijux_dna_planner_fastq::stage_api::local_screen_taxonomy_output_contract_plans(
+        &repo_root,
+    )?;
+    let tool_ids = plans.iter().map(|plan| plan.tool_id.as_str()).collect::<Vec<_>>();
+    assert_eq!(tool_ids, vec!["centrifuge", "kaiju", "kraken2", "krakenuniq"]);
+    assert!(
+        plans.iter().any(|plan| {
+            plan.tool_id.as_str() == "centrifuge"
+                && plan
+                    .io
+                    .inputs
+                    .iter()
+                    .any(|artifact| artifact.name.as_str() == "taxonomy_database_root")
+        }),
+        "Centrifuge proof plans must keep the governed taxonomy database root input"
+    );
+    Ok(())
 }
