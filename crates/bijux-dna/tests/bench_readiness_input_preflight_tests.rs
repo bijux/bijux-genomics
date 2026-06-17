@@ -45,15 +45,15 @@ fn bench_readiness_input_preflight_tests_report_governed_retained_tool_coverage(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/tools/input-preflight-tests.json")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(251));
-    assert_eq!(payload.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(251));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(258));
+    assert_eq!(payload.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(258));
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("retained_tool_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(payload.get("covered_tool_count").and_then(serde_json::Value::as_u64), Some(71));
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(105));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(112));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(96));
     assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(50));
 
@@ -69,7 +69,7 @@ fn bench_readiness_input_preflight_tests_report_governed_retained_tool_coverage(
     }
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 251);
+    assert_eq!(rows.len(), 258);
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -97,6 +97,20 @@ fn bench_readiness_input_preflight_tests_report_governed_retained_tool_coverage(
                 error.contains("missing required input reads_r1")
                     && error.contains("reads_r1.fastq.gz")
             })
+            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+    }));
+
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+            && row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.screen_taxonomy")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("kraken2")
+            && row.get("missing_input_role").and_then(serde_json::Value::as_str)
+                == Some("reads_r2")
+            && row
+                .get("artifact_path")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|path| path.ends_with("mock_community_reads_R2.fastq"))
             && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
     }));
 
@@ -155,7 +169,7 @@ fn bench_readiness_input_preflight_tests_write_governed_json_file() {
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.input_preflight_tests.v1")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(251));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(258));
     assert_eq!(payload.get("covered_tool_count").and_then(serde_json::Value::as_u64), Some(71));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");

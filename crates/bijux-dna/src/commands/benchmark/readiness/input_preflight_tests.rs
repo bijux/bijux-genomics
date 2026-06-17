@@ -261,7 +261,7 @@ fn collect_plan_probe_artifacts(
     repo_root: &Path,
     row: &AllDomainActiveStageToolMatrixRow,
 ) -> Result<Vec<ProbeArtifact>> {
-    let plans = local_stage_plans(repo_root, &row.stage_id)?;
+    let plans = input_preflight_stage_plans(repo_root, &row.stage_id)?;
     let plan = if let Some(plan) = plans.iter().find(|plan| plan.tool_id.as_str() == row.tool_id) {
         plan
     } else if plans.len() == 1
@@ -289,6 +289,44 @@ fn collect_plan_probe_artifacts(
             role: artifact.role,
         })
         .collect())
+}
+
+fn input_preflight_stage_plans(repo_root: &Path, stage_id: &str) -> Result<Vec<StagePlanV1>> {
+    match stage_id {
+        "fastq.index_reference" => {
+            bijux_dna_planner_fastq::stage_api::local_index_reference_output_contract_plans(
+                repo_root,
+            )
+        }
+        "fastq.profile_reads" => {
+            Ok(bijux_dna_planner_fastq::stage_api::local_profile_reads_output_contract_plans(
+                repo_root,
+            )?
+            .into_iter()
+            .map(|case| case.plan)
+            .collect())
+        }
+        "fastq.screen_taxonomy" => {
+            bijux_dna_planner_fastq::stage_api::local_screen_taxonomy_output_contract_plans(
+                repo_root,
+            )
+        }
+        "fastq.trim_reads" => Ok(
+            bijux_dna_planner_fastq::stage_api::local_trim_reads_output_contract_plans(repo_root)?
+                .into_iter()
+                .map(|case| case.plan)
+                .collect(),
+        ),
+        "fastq.trim_terminal_damage" => Ok(
+            bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_output_contract_plans(
+                repo_root,
+            )?
+            .into_iter()
+            .map(|case| case.plan)
+            .collect(),
+        ),
+        _ => local_stage_plans(repo_root, stage_id),
+    }
 }
 
 fn all_plans_share_required_inputs(plans: &[StagePlanV1]) -> bool {
