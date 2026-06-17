@@ -168,6 +168,7 @@
         "expected_consumed_metric_ids",
         "expected_pmd_like_signal_present",
         "expected_score",
+        "expected_status",
         "input_bam",
         "mapping_summary",
         "method",
@@ -180,6 +181,7 @@
         "score_delta",
         "stage_id",
         "stage_metrics",
+        "status",
         "summary"
       ],
       "active_scope_proof_path": "benchmarks/readiness/bam-tool-serving-map.tsv",
@@ -303,6 +305,7 @@
         "expected_consumed_metric_ids",
         "expected_pmd_like_signal_present",
         "expected_score",
+        "expected_status",
         "input_bam",
         "mapping_summary",
         "method",
@@ -315,6 +318,7 @@
         "score_delta",
         "stage_id",
         "stage_metrics",
+        "status",
         "summary"
       ],
       "active_scope_proof_path": "benchmarks/readiness/bam-tool-serving-map.tsv",
@@ -438,6 +442,7 @@
         "expected_consumed_metric_ids",
         "expected_pmd_like_signal_present",
         "expected_score",
+        "expected_status",
         "input_bam",
         "mapping_summary",
         "method",
@@ -450,6 +455,7 @@
         "score_delta",
         "stage_id",
         "stage_metrics",
+        "status",
         "summary"
       ],
       "active_scope_proof_path": "benchmarks/readiness/bam-tool-serving-map.tsv",
