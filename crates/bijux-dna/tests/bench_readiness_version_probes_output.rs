@@ -43,8 +43,8 @@ fn bench_readiness_version_probes_writes_governed_json_file() {
         Some("bijux.bench.readiness.version_probes.v1")
     );
     assert_eq!(parsed.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(parsed.get("ready_count").and_then(serde_json::Value::as_u64), Some(70));
-    assert_eq!(parsed.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(parsed.get("ready_count").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(parsed.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(2));
 
     let rows = parsed.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     assert!(rows.iter().any(|row| {
@@ -59,5 +59,14 @@ fn bench_readiness_version_probes_writes_governed_json_file() {
                 == Some("unavailable_with_reason")
             && row.get("resolution_kind").and_then(serde_json::Value::as_str)
                 == Some("unavailable_with_reason")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink")
+            && row.get("version_probe_status").and_then(serde_json::Value::as_str)
+                == Some("unavailable_with_reason")
+            && row
+                .get("unavailable_reason")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|reason| reason.contains("planned container source"))
     }));
 }

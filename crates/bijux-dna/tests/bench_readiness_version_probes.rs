@@ -46,8 +46,8 @@ fn bench_readiness_version_probes_report_governed_probe_contracts() {
         Some("benchmarks/readiness/tools/version-probes.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("ready_count").and_then(serde_json::Value::as_u64), Some(70));
-    assert_eq!(payload.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(payload.get("ready_count").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(payload.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(2));
 
     let parser_kind_counts = payload
         .get("parser_kind_counts")
@@ -55,7 +55,7 @@ fn bench_readiness_version_probes_report_governed_probe_contracts() {
         .expect("parser kind counts");
     assert_eq!(
         parser_kind_counts.get("first_dotted_numeric_token").and_then(serde_json::Value::as_u64),
-        Some(70)
+        Some(69)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
@@ -89,5 +89,14 @@ fn bench_readiness_version_probes_report_governed_probe_contracts() {
                 .get("unavailable_reason")
                 .and_then(serde_json::Value::as_str)
                 .is_some_and(|reason| reason.contains("external container source"))
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink")
+            && row.get("version_probe_status").and_then(serde_json::Value::as_str)
+                == Some("unavailable_with_reason")
+            && row
+                .get("unavailable_reason")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|reason| reason.contains("planned container source"))
     }));
 }

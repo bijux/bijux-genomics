@@ -46,7 +46,7 @@ musket	fastq	fastq.correct_errors	container	docker_image	bijuxdna/musket@sha256:
 ngsbriggs	bam	bam.damage	container	docker_image	bijuxdna/ngsbriggs:0.1.3	ngsbriggs	domain/bam/tools/ngsbriggs.yaml	
 pear	fastq	fastq.merge_pairs	container	docker_image	bijuxdna/pear@sha256:4e00e9ffabc5ed46115efab5b6bae946913f1713bb314fd4acb7c379c37efae6	pear	domain/fastq/tools/pear.yaml	
 picard	bam	bam.duplication_metrics,bam.gc_bias,bam.insert_size,bam.length_filter,bam.mapping_summary,bam.markdup	container	docker_image	bijuxdna/picard:3.3.0	picard	domain/bam/tools/picard.yaml	
-plink	vcf	vcf.qc	container	docker_image	containers/docker/arm64/Dockerfile.plink@planned	plink	domain/vcf/tools/plink.yaml	
+plink	vcf	vcf.qc	container	unavailable_with_reason		plink	domain/vcf/tools/plink.yaml	runtime probe declares a planned container source without a governed local image
 plink2	vcf	vcf.admixture,vcf.pca,vcf.population_structure,vcf.qc	container	docker_image	containers/docker/arm64/Dockerfile.plink2@sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec	plink2	domain/vcf/tools/plink2.yaml	
 pmdtools	bam	bam.authenticity,bam.damage	container	docker_image	bijuxdna/pmdtools:0.60	pmdtools	domain/bam/tools/pmdtools.yaml	
 preseq	bam	bam.complexity	container	docker_image	bijuxdna/preseq	preseq	domain/bam/tools/preseq.yaml	

@@ -303,6 +303,8 @@ fn prepare_container_smoke_command(
     };
     let bijux_bin_env = governed_bijux_bin_env(repo_root)?;
 
+    let registry_path = row.registry_paths.first().map(String::as_str);
+
     match row.resolution_kind.as_str() {
         "docker_image" => {
             if !command_on_path("docker") {
@@ -313,7 +315,11 @@ fn prepare_container_smoke_command(
                         &smoke_executable,
                         "docker-arm64",
                     ),
-                    applied_env: smoke_command_env(&row.tool_id, bijux_bin_env.clone()),
+                    applied_env: smoke_command_env(
+                        &row.tool_id,
+                        bijux_bin_env.clone(),
+                        registry_path,
+                    ),
                     unavailable_reason: Some(
                         "governed smoke runtime `docker-arm64` requires docker on PATH".to_string(),
                     ),
@@ -323,7 +329,11 @@ fn prepare_container_smoke_command(
                 smoke_runtime: Some("docker-arm64".to_string()),
                 declared_command: Some(format!("bijux-dna env smoke docker-arm64 {}", row.tool_id)),
                 applied_command: smoke_command_argv(&smoke_executable, "docker-arm64"),
-                applied_env: smoke_command_env(&row.tool_id, bijux_bin_env.clone()),
+                applied_env: smoke_command_env(
+                    &row.tool_id,
+                    bijux_bin_env.clone(),
+                    registry_path,
+                ),
                 unavailable_reason: None,
             })
         }
@@ -333,7 +343,11 @@ fn prepare_container_smoke_command(
                     smoke_runtime: Some("apptainer".to_string()),
                     declared_command: Some(format!("bijux-dna env smoke apptainer {}", row.tool_id)),
                     applied_command: smoke_command_argv(&smoke_executable, "apptainer"),
-                    applied_env: smoke_command_env(&row.tool_id, bijux_bin_env.clone()),
+                    applied_env: smoke_command_env(
+                        &row.tool_id,
+                        bijux_bin_env.clone(),
+                        registry_path,
+                    ),
                     unavailable_reason: Some(
                         "governed smoke runtime `apptainer` is not available on PATH".to_string(),
                     ),
@@ -343,7 +357,11 @@ fn prepare_container_smoke_command(
                 smoke_runtime: Some("apptainer".to_string()),
                 declared_command: Some(format!("bijux-dna env smoke apptainer {}", row.tool_id)),
                 applied_command: smoke_command_argv(&smoke_executable, "apptainer"),
-                applied_env: smoke_command_env(&row.tool_id, bijux_bin_env.clone()),
+                applied_env: smoke_command_env(
+                    &row.tool_id,
+                    bijux_bin_env.clone(),
+                    registry_path,
+                ),
                 unavailable_reason: None,
             })
         }
@@ -400,10 +418,20 @@ fn smoke_command_argv(smoke_executable: &str, runtime: &str) -> Vec<String> {
     ]
 }
 
-fn smoke_command_env(tool_id: &str, bijux_bin_env: Option<String>) -> Vec<(String, String)> {
+fn smoke_command_env(
+    tool_id: &str,
+    bijux_bin_env: Option<String>,
+    registry_path: Option<&str>,
+) -> Vec<(String, String)> {
     let mut envs = vec![("TOOLS".to_string(), tool_id.to_string())];
     if let Some(bijux_bin_env) = bijux_bin_env {
         envs.push(("BIJUX_BIN".to_string(), bijux_bin_env));
+    }
+    if let Some(registry_path) = registry_path.map(str::trim).filter(|path| !path.is_empty()) {
+        envs.push((
+            "BIJUX_TOOL_REGISTRY_PATH".to_string(),
+            registry_path.to_string(),
+        ));
     }
     envs
 }
@@ -507,6 +535,10 @@ mod tests {
                         (
                             "BIJUX_BIN".to_string(),
                             "artifacts/rust/target/debug/bijux-dna".to_string(),
+                        ),
+                        (
+                            "BIJUX_TOOL_REGISTRY_PATH".to_string(),
+                            "configs/ci/registry/tool_registry_vcf.toml".to_string(),
                         ),
                     ]
                 );

@@ -217,6 +217,17 @@ fn selected_tools(value: &str) -> Vec<String> {
 
 fn current_registry_path() -> Result<PathBuf> {
     let cwd = std::env::current_dir().context("resolve current working directory")?;
+    if let Ok(configured) = std::env::var("BIJUX_TOOL_REGISTRY_PATH") {
+        let trimmed = configured.trim();
+        if !trimmed.is_empty() {
+            let configured_path = PathBuf::from(trimmed);
+            return Ok(if configured_path.is_absolute() {
+                configured_path
+            } else {
+                cwd.join(configured_path)
+            });
+        }
+    }
     Ok(bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml"))
 }
 

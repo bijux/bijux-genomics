@@ -193,6 +193,16 @@ fn resolve_runtime_probe_signature(
                         .to_string(),
                 ),
             },
+            Some(container_id) if is_planned_reference(&container_id) => ExecutableResolutionSignature {
+                install_kind,
+                resolution_kind: RESOLUTION_KIND_UNAVAILABLE.to_string(),
+                resolution_target: String::new(),
+                command_entrypoint,
+                unavailable_reason: Some(
+                    "runtime probe declares a planned container source without a governed local image"
+                        .to_string(),
+                ),
+            },
             Some(container_id) if is_apptainer_reference(&container_id) => ExecutableResolutionSignature {
                 install_kind,
                 resolution_kind: RESOLUTION_KIND_APPTAINER_IMAGE.to_string(),
@@ -250,6 +260,14 @@ fn is_external_reference(container_id: &str) -> bool {
     container_id == "external"
         || container_id.starts_with("external@")
         || container_id.ends_with("@external")
+}
+
+fn is_planned_reference(container_id: &str) -> bool {
+    let trimmed = container_id.trim();
+    trimmed == "planned"
+        || trimmed == "pending"
+        || trimmed.ends_with("@planned")
+        || trimmed.ends_with("@pending")
 }
 
 fn is_docker_reference(container_id: &str) -> bool {

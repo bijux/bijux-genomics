@@ -2,10 +2,10 @@
   "schema_version": "bijux.bench.readiness.version_probes.v1",
   "output_path": "benchmarks/readiness/tools/version-probes.json",
   "row_count": 71,
-  "ready_count": 70,
-  "unavailable_count": 1,
+  "ready_count": 69,
+  "unavailable_count": 2,
   "parser_kind_counts": {
-    "first_dotted_numeric_token": 70
+    "first_dotted_numeric_token": 69
   },
   "rows": [
     {
@@ -1285,13 +1285,13 @@
       "active_stage_ids": [
         "vcf.qc"
       ],
-      "resolution_kind": "docker_image",
-      "resolution_target": "containers/docker/arm64/Dockerfile.plink@planned",
-      "version_probe_status": "ready",
+      "resolution_kind": "unavailable_with_reason",
+      "resolution_target": "",
+      "version_probe_status": "unavailable_with_reason",
       "command_entrypoint": "plink",
       "version_cmd": "plink --version",
       "help_cmd": "plink --help",
-      "version_parser_kind": "first_dotted_numeric_token",
+      "version_parser_kind": null,
       "expected_version_regex": "plink [0-9]+([.][0-9]+)?",
       "expected_bin": "plink",
       "declared_version": "planned",
@@ -1301,7 +1301,7 @@
       "registry_paths": [
         "configs/ci/registry/tool_registry_vcf.toml"
       ],
-      "unavailable_reason": null
+      "unavailable_reason": "runtime probe declares a planned container source without a governed local image"
     },
     {
       "tool_id": "plink2",

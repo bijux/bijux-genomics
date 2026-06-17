@@ -58,4 +58,7 @@ fn bench_readiness_executable_resolution_writes_governed_tsv_file() {
     assert!(rows.iter().any(|row| {
         row == &"shapeit5\tvcf\tvcf.phasing\tcontainer\tunavailable_with_reason\t\tshapeit5\tdomain/vcf/tools/shapeit5.yaml\truntime probe declares an external container source without a governed local image"
     }));
+    assert!(rows.iter().any(|row| {
+        row == &"plink\tvcf\tvcf.qc\tcontainer\tunavailable_with_reason\t\tplink\tdomain/vcf/tools/plink.yaml\truntime probe declares a planned container source without a governed local image"
+    }));
 }
