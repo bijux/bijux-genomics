@@ -1,6 +1,6 @@
 # schema_version = 1
 # owner = bijux-dna-bench
-# purpose = Governed primary-function family classification for local FASTQ and BAM benchmark tools.
+# purpose = Governed primary-function family classification for local FASTQ, BAM, and VCF benchmark tools.
 # authority = bijux-dna-bench
 # stability = evolving
 # last_updated = 2026-06-02
@@ -143,3 +143,38 @@ tool_ids = ["king"]
 family_id = "sex_and_haplogroup_inference"
 summary = "Tools whose primary benchmark role is inferring sex-chromosome state or haplogroup identity."
 tool_ids = ["rxy", "yleaf"]
+
+[[families]]
+family_id = "vcf_calling_and_curation"
+summary = "Tools whose primary benchmark role is calling, filtering, normalizing, or summarizing cohort VCF outputs."
+tool_ids = ["bcftools"]
+
+[[families]]
+family_id = "vcf_demographic_history"
+summary = "Tools whose primary benchmark role is inferring demographic history trajectories from derived VCF cohort evidence."
+tool_ids = ["ibdne"]
+
+[[families]]
+family_id = "vcf_identity_by_descent"
+summary = "Tools whose primary benchmark role is identifying identity-by-descent or related shared-haplotype segments across VCF cohorts."
+tool_ids = ["germline"]
+
+[[families]]
+family_id = "vcf_imputation"
+summary = "Tools whose primary benchmark role is imputing missing VCF genotypes from reference panels and genetic maps."
+tool_ids = ["beagle"]
+
+[[families]]
+family_id = "vcf_ordination_and_population_structure"
+summary = "Tools whose primary benchmark role is PCA, admixture, ordination, or related population-structure inference from VCF cohorts."
+tool_ids = ["eigensoft", "plink2"]
+
+[[families]]
+family_id = "vcf_phasing"
+summary = "Tools whose primary benchmark role is resolving haplotype phase across VCF cohorts."
+tool_ids = ["shapeit5"]
+
+[[families]]
+family_id = "vcf_quality_control"
+summary = "Tools whose primary benchmark role is genotype missingness, heterozygosity, Hardy-Weinberg, and related VCF cohort quality control."
+tool_ids = ["plink"]

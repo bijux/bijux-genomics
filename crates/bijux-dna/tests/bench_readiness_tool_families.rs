@@ -50,8 +50,8 @@ fn bench_readiness_tool_families_report_governs_all_benchmark_tools() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("primary_benchmark_function")
     );
-    assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(25));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(65));
+    assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(32));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(73));
     assert_eq!(payload.get("valid").and_then(serde_json::Value::as_bool), Some(true));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -72,4 +72,19 @@ fn bench_readiness_tool_families_report_governs_all_benchmark_tools() {
         addeam.get("family_id").and_then(serde_json::Value::as_str),
         Some("damage_and_postmortem_bias")
     );
+
+    let bcftools = rows
+        .iter()
+        .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools"))
+        .expect("bcftools row");
+    assert_eq!(
+        bcftools.get("family_id").and_then(serde_json::Value::as_str),
+        Some("vcf_calling_and_curation")
+    );
+
+    let shapeit5 = rows
+        .iter()
+        .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit5"))
+        .expect("shapeit5 row");
+    assert_eq!(shapeit5.get("family_id").and_then(serde_json::Value::as_str), Some("vcf_phasing"));
 }

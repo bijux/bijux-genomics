@@ -9,6 +9,7 @@ use super::tool_serving_map::{
     render_bam_tool_serving_map, render_fastq_tool_serving_map, ToolServingMapRow,
     DEFAULT_BAM_TOOL_SERVING_MAP_PATH, DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH,
 };
+use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -87,7 +88,9 @@ pub(crate) fn validate_tool_families_path(
     )?;
     let bam_map =
         render_bam_tool_serving_map(repo_root, PathBuf::from(DEFAULT_BAM_TOOL_SERVING_MAP_PATH))?;
-    let benchmark_tool_index = build_benchmark_tool_index(&fastq_map.rows, &bam_map.rows);
+    let vcf_rows = collect_vcf_tool_serving_map_rows()?;
+    let benchmark_tool_index =
+        build_benchmark_tool_index(&fastq_map.rows, &bam_map.rows, &vcf_rows);
     let assignment_index = build_assignment_index(&config)?;
 
     let configured_tool_ids = assignment_index.keys().cloned().collect::<BTreeSet<_>>();
@@ -258,6 +261,7 @@ struct BenchmarkToolEntry {
 fn build_benchmark_tool_index(
     fastq_rows: &[ToolServingMapRow],
     bam_rows: &[ToolServingMapRow],
+    vcf_rows: &[super::vcf_tool_serving_map::VcfToolServingMapRow],
 ) -> BTreeMap<String, BenchmarkToolEntry> {
     let mut domains_by_tool = BTreeMap::<String, BTreeSet<String>>::new();
     let mut stages_by_tool = BTreeMap::<String, BTreeSet<String>>::new();
@@ -268,6 +272,10 @@ fn build_benchmark_tool_index(
     }
     for row in bam_rows {
         domains_by_tool.entry(row.tool_id.clone()).or_default().insert("bam".to_string());
+        stages_by_tool.entry(row.tool_id.clone()).or_default().insert(row.stage_id.clone());
+    }
+    for row in vcf_rows {
+        domains_by_tool.entry(row.tool_id.clone()).or_default().insert("vcf".to_string());
         stages_by_tool.entry(row.tool_id.clone()).or_default().insert(row.stage_id.clone());
     }
 
@@ -312,8 +320,8 @@ mod tests {
 
         assert_eq!(report.schema_version, TOOL_FAMILIES_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.classification_scope, "primary_benchmark_function");
-        assert_eq!(report.family_count, 25);
-        assert_eq!(report.tool_count, 65);
+        assert_eq!(report.family_count, 32);
+        assert_eq!(report.tool_count, 73);
         assert!(report.valid, "governed tool family config must validate cleanly");
 
         let bowtie2_build = report
@@ -332,6 +340,14 @@ mod tests {
 
         let addeam = report.rows.iter().find(|row| row.tool_id == "addeam").expect("addeam row");
         assert_eq!(addeam.family_id, "damage_and_postmortem_bias");
+
+        let bcftools =
+            report.rows.iter().find(|row| row.tool_id == "bcftools").expect("bcftools row");
+        assert_eq!(bcftools.family_id, "vcf_calling_and_curation");
+
+        let shapeit5 =
+            report.rows.iter().find(|row| row.tool_id == "shapeit5").expect("shapeit5 row");
+        assert_eq!(shapeit5.family_id, "vcf_phasing");
     }
 
     #[test]
@@ -351,5 +367,13 @@ mod tests {
         let multiqc = report.rows.iter().find(|row| row.tool_id == "multiqc").expect("multiqc row");
         assert_eq!(multiqc.family_id, "report_aggregation");
         assert_eq!(multiqc.domains, vec!["bam".to_string(), "fastq".to_string()]);
+
+        let plink2 = report.rows.iter().find(|row| row.tool_id == "plink2").expect("plink2 row");
+        assert_eq!(plink2.domains, vec!["vcf".to_string()]);
+        assert!(
+            plink2.stage_ids.contains(&"vcf.population_structure".to_string())
+                && plink2.stage_ids.contains(&"vcf.pca".to_string()),
+            "VCF tool-family rows must preserve governed VCF stage scope"
+        );
     }
 }
