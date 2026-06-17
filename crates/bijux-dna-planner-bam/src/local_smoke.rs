@@ -817,7 +817,7 @@ struct LocalOverlapCorrectionSmokeCase {
     expected_corrected_overlap_bases: u64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct LocalDamageSmokeCase {
     sample_id: String,
     bam: PathBuf,
@@ -828,7 +828,7 @@ struct LocalDamageSmokeCase {
     expected_strict_profile_upgraded: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct LocalAuthenticitySmokeCase {
     sample_id: String,
     bam: PathBuf,
@@ -847,7 +847,7 @@ struct LocalAuthenticitySmokeCase {
     expected_consumed_metrics: Vec<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct LocalSexSmokeCase {
     sample_id: String,
     bam: PathBuf,
@@ -864,7 +864,7 @@ struct LocalSexSmokeCase {
 }
 
 #[cfg(feature = "bam_downstream")]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct LocalKinshipSmokeCase {
     sample_id: String,
     bam: PathBuf,
@@ -1446,6 +1446,39 @@ pub fn local_damage_smoke_plans(repo_root: &Path) -> Result<Vec<LocalDamageSmoke
 }
 
 /// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or one of
+/// the admitted `bam.damage` tool plans cannot be built for output-contract proof coverage.
+pub fn local_damage_output_contract_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalDamageSmokeCasePlan>> {
+    let config = load_local_damage_smoke_config(repo_root)?;
+    ensure_unique_damage_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Damage;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let mut tool_ids = allowed_tools_for_stage(stage);
+    tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DAMAGE_OUTPUT_DIR));
+    let cases = config.cases;
+
+    let mut plans = Vec::new();
+    for tool_id in tool_ids {
+        let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+        hydrate_smoke_threads(&mut tool_spec, config.threads);
+        for case in &cases {
+            plans.push(build_local_damage_smoke_case(
+                repo_root,
+                &tool_spec,
+                &output_root,
+                case.clone(),
+            )?);
+        }
+    }
+    Ok(plans)
+}
+
+/// # Errors
 /// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
 /// governed `bam.authenticity` plans cannot be built.
 pub fn local_authenticity_smoke_plans(
@@ -1478,6 +1511,39 @@ pub fn local_authenticity_smoke_plans(
 }
 
 /// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or one of
+/// the admitted `bam.authenticity` tool plans cannot be built for output-contract proof coverage.
+pub fn local_authenticity_output_contract_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalAuthenticitySmokeCasePlan>> {
+    let config = load_local_authenticity_smoke_config(repo_root)?;
+    ensure_unique_authenticity_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Authenticity;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let mut tool_ids = allowed_tools_for_stage(stage);
+    tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_AUTHENTICITY_OUTPUT_DIR));
+    let cases = config.cases;
+
+    let mut plans = Vec::new();
+    for tool_id in tool_ids {
+        let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+        hydrate_smoke_threads(&mut tool_spec, config.threads);
+        for case in &cases {
+            plans.push(build_local_authenticity_smoke_case(
+                repo_root,
+                &tool_spec,
+                &output_root,
+                case.clone(),
+            )?);
+        }
+    }
+    Ok(plans)
+}
+
+/// # Errors
 /// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or the
 /// governed `bam.sex` plans cannot be built.
 pub fn local_sex_smoke_plans(repo_root: &Path) -> Result<Vec<LocalSexSmokeCasePlan>> {
@@ -1505,6 +1571,54 @@ pub fn local_sex_smoke_plans(repo_root: &Path) -> Result<Vec<LocalSexSmokeCasePl
         .into_iter()
         .map(|case| build_local_sex_smoke_case(repo_root, &tool_spec, &output_root, case))
         .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or one of
+/// the admitted `bam.sex` tool plans cannot be built for output-contract proof coverage.
+pub fn local_sex_output_contract_plans(repo_root: &Path) -> Result<Vec<LocalSexSmokeCasePlan>> {
+    let config = load_local_sex_smoke_config(repo_root)?;
+    ensure_unique_sex_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Sex;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let mut tool_ids = allowed_tools_for_stage(stage);
+    tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_SEX_OUTPUT_DIR));
+    let cases = config.cases;
+
+    let mut plans = Vec::new();
+    for tool_id in tool_ids {
+        let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+        hydrate_smoke_threads(&mut tool_spec, config.threads);
+        for case in &cases {
+            let bam_abs = repo_root.join(&case.bam);
+            let reference_abs = repo_root.join(&case.reference);
+            let governed_summary = bijux_dna_domain_bam::summarize_tiny_bam_sex(
+                &bam_abs,
+                &reference_abs,
+                tool_id.as_str(),
+                Some(case.chromosome_system.as_str()),
+                Some(case.minimum_y_sites),
+            )?;
+            let mut governed_case = case.clone();
+            governed_case.expected_method = tool_id.as_str().to_string();
+            governed_case.expected_x_coverage = governed_summary.x_coverage;
+            governed_case.expected_y_coverage = governed_summary.y_coverage;
+            governed_case.expected_autosomal_coverage = governed_summary.autosomal_coverage;
+            governed_case.expected_call = governed_summary.call;
+            governed_case.expected_confidence = governed_summary.confidence;
+            governed_case.expected_status = governed_summary.status;
+            plans.push(build_local_sex_smoke_case(
+                repo_root,
+                &tool_spec,
+                &output_root,
+                governed_case,
+            )?);
+        }
+    }
+    Ok(plans)
 }
 
 #[cfg(feature = "bam_downstream")]
@@ -1536,6 +1650,42 @@ pub fn local_kinship_smoke_plans(repo_root: &Path) -> Result<Vec<LocalKinshipSmo
         .into_iter()
         .map(|case| build_local_kinship_smoke_case(repo_root, &tool_spec, &output_root, case))
         .collect()
+}
+
+#[cfg(feature = "bam_downstream")]
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, fixtures are missing, or one of
+/// the admitted `bam.kinship` tool plans cannot be built for output-contract proof coverage.
+pub fn local_kinship_output_contract_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalKinshipSmokeCasePlan>> {
+    let config = load_local_kinship_smoke_config(repo_root)?;
+    ensure_unique_kinship_sample_ids(&config.cases)?;
+
+    let stage = BamStage::Kinship;
+    let stage_id = StageId::new(stage.as_str().to_string());
+    let mut tool_ids = allowed_tools_for_stage(stage);
+    tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    let output_root = config
+        .output_dir
+        .clone()
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_KINSHIP_OUTPUT_DIR));
+    let cases = config.cases;
+
+    let mut plans = Vec::new();
+    for tool_id in tool_ids {
+        let mut tool_spec = load_bam_domain_tool_planning_spec(repo_root, &stage_id, &tool_id)?;
+        hydrate_smoke_threads(&mut tool_spec, config.threads);
+        for case in &cases {
+            plans.push(build_local_kinship_smoke_case(
+                repo_root,
+                &tool_spec,
+                &output_root,
+                case.clone(),
+            )?);
+        }
+    }
+    Ok(plans)
 }
 
 fn build_local_validate_smoke_case(

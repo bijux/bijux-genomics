@@ -63,10 +63,7 @@ fn local_damage_smoke_plans_use_governed_bam_fixture() -> Result<()> {
             "parser_output",
             "stage_metrics",
             "damage_profile",
-            "damage_plot",
-            "damage_clusters",
             "damage_parameters",
-            "pmd_scores",
         ]
     );
 
@@ -94,6 +91,45 @@ fn local_damage_smoke_stage_api_surface_stays_callable() {
     )
         -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalDamageSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_damage_smoke_plans;
+    let _: fn(
+        &Path,
+    )
+        -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalDamageSmokeCasePlan>> =
+        bijux_dna_planner_bam::stage_api::local_damage_output_contract_plans;
+}
+
+#[test]
+fn local_damage_output_contract_plans_cover_all_governed_tools() -> Result<()> {
+    let repo_root = repo_root();
+    let plans = bijux_dna_planner_bam::stage_api::local_damage_output_contract_plans(&repo_root)?;
+    let tool_ids = plans
+        .iter()
+        .map(|case| case.plan.tool_id.as_str().to_string())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        tool_ids,
+        std::collections::BTreeSet::from([
+            "addeam".to_string(),
+            "damageprofiler".to_string(),
+            "mapdamage2".to_string(),
+            "ngsbriggs".to_string(),
+            "pmdtools".to_string(),
+            "pydamage".to_string(),
+        ])
+    );
+    assert!(
+        plans.iter().any(|case| {
+            case.plan.tool_id.as_str() == "addeam"
+                && case
+                    .plan
+                    .io
+                    .outputs
+                    .iter()
+                    .any(|artifact| artifact.name.as_str() == "damage_clusters")
+        }),
+        "ADDeam damage proof plans must retain damage_clusters"
+    );
+    Ok(())
 }
 
 fn write_local_damage_config(root: &Path, body: &str) -> Result<()> {
