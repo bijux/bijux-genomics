@@ -149,6 +149,8 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench readiness render-bam-recalibration-genotyping-ready",
     "bijux-dna bench readiness render-bam-damage-authenticity-ready",
     "bijux-dna bench readiness render-bam-insert-size-gc-bias-ready",
+    "bijux-dna bench readiness render-bam-endogenous-content-complete",
+    "bijux-dna bench readiness render-bam-overlap-correction-complete",
     "bijux-dna bench readiness render-bam-overlap-endogenous-ready",
     "bijux-dna bench readiness render-corpus-incompatibility",
     "bijux-dna bench readiness render-bam-comparable-metrics",
