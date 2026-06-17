@@ -13,6 +13,10 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_PROFILE_READS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+fn tool_emits_qc_plots_dir(tool_id: &str) -> bool {
+    matches!(tool_id, "seqkit_stats")
+}
+
 /// Build a read profiling plan.
 ///
 /// # Errors
@@ -58,6 +62,25 @@ pub fn plan_stats_with_threads(
             ArtifactRole::Reads,
         ));
     }
+    let mut outputs = vec![
+        ArtifactRef::required(
+            ArtifactId::from_static("qc_json"),
+            out_dir.join("qc.json"),
+            ArtifactRole::MetricsJson,
+        ),
+        ArtifactRef::required(
+            ArtifactId::from_static("qc_tsv"),
+            out_dir.join("qc.tsv"),
+            ArtifactRole::SummaryTsv,
+        ),
+    ];
+    if tool_emits_qc_plots_dir(tool.tool_id.as_str()) {
+        outputs.push(ArtifactRef::optional(
+            ArtifactId::from_static("qc_plots_dir"),
+            out_dir.join("plots"),
+            ArtifactRole::Index,
+        ));
+    }
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -70,26 +93,7 @@ pub fn plan_stats_with_threads(
         image: tool.image.clone(),
         command: CommandSpecV1 { template: command_template },
         resources,
-        io: StageIO {
-            inputs,
-            outputs: vec![
-                ArtifactRef::required(
-                    ArtifactId::from_static("qc_json"),
-                    out_dir.join("qc.json"),
-                    ArtifactRole::MetricsJson,
-                ),
-                ArtifactRef::required(
-                    ArtifactId::from_static("qc_tsv"),
-                    out_dir.join("qc.tsv"),
-                    ArtifactRole::SummaryTsv,
-                ),
-                ArtifactRef::optional(
-                    ArtifactId::from_static("qc_plots_dir"),
-                    out_dir.join("plots"),
-                    ArtifactRole::Index,
-                ),
-            ],
-        },
+        io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
             "tool": tool.tool_id.0,
@@ -236,6 +240,7 @@ mod tests {
             plan.command.template,
             vec!["seqkit_stats", "-a", "-T", "-j", "8", "reads_R1.fastq.gz", "reads_R2.fastq.gz",]
         );
+        assert!(plan.io.outputs.iter().any(|artifact| artifact.name.as_str() == "qc_plots_dir"));
     }
 
     #[test]
@@ -263,6 +268,7 @@ mod tests {
                 "reads_R2.fastq.gz",
             ]
         );
+        assert!(!plan.io.outputs.iter().any(|artifact| artifact.name.as_str() == "qc_plots_dir"));
     }
 
     #[test]
@@ -281,5 +287,6 @@ mod tests {
             plan.command.template,
             vec!["seqfu", "stats", "-a", "-T", "-j", "5", "reads_R1.fastq.gz",]
         );
+        assert!(!plan.io.outputs.iter().any(|artifact| artifact.name.as_str() == "qc_plots_dir"));
     }
 }

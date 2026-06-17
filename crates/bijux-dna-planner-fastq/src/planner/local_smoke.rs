@@ -805,7 +805,7 @@ struct LocalNormalizePrimersSmokeCase {
     r2: Option<PathBuf>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct LocalProfileReadsSmokeCase {
     sample_id: String,
     r1: PathBuf,
@@ -821,7 +821,7 @@ struct LocalProfileOverrepresentedSequencesSmokeCase {
     r2: Option<PathBuf>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct LocalTrimTerminalDamageSmokeCase {
     sample_id: String,
     r1: PathBuf,
@@ -1578,6 +1578,78 @@ pub fn local_trim_terminal_damage_smoke_plans(
 
 /// # Errors
 /// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or one of the admitted tool plans cannot be built for output-contract proof coverage.
+pub fn local_trim_terminal_damage_output_contract_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalTrimTerminalDamageSmokeCasePlan>> {
+    let config = load_local_trim_terminal_damage_smoke_config(repo_root)?;
+    ensure_unique_trim_terminal_damage_sample_ids(&config.cases)?;
+
+    let stage_id = StageId::new(STAGE_TRIM_TERMINAL_DAMAGE.as_str().to_string());
+    let mut tool_ids = allowed_tools_for_stage(&stage_id);
+    tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    let output_root = config
+        .output_dir
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_TRIM_TERMINAL_DAMAGE_OUTPUT_DIR));
+    let damage_mode = config.damage_mode.parse().map_err(|error: String| {
+        anyhow!(
+            "invalid local-smoke fastq.trim_terminal_damage damage_mode `{}`: {error}",
+            config.damage_mode
+        )
+    })?;
+    let execution_policy =
+        bijux_dna_domain_fastq::params::trim::parse_terminal_damage_execution_policy(
+            config.execution_policy.as_deref().unwrap_or("policy_derived"),
+        )
+        .ok_or_else(|| {
+            anyhow!(
+                "invalid local-smoke fastq.trim_terminal_damage execution_policy `{:?}`",
+                config.execution_policy
+            )
+        })?;
+    let cases = config.cases;
+
+    let mut plans = Vec::new();
+    for tool_id in tool_ids {
+        let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+        hydrate_smoke_threads(&mut tool_spec, config.threads);
+        let plan_options = TrimTerminalDamagePlanOptions {
+            threads: Some(tool_spec.resources.threads.max(1)),
+            damage_mode,
+            execution_policy,
+            trim_5p_bases: config.trim_5p_bases,
+            trim_3p_bases: config.trim_3p_bases,
+        };
+        let mut matched_cases = 0usize;
+        for case in &cases {
+            if !bijux_dna_domain_fastq::tool_supports_input_layout(
+                &stage_id,
+                &tool_spec.tool_id,
+                case.r2.is_some(),
+            ) {
+                continue;
+            }
+            matched_cases += 1;
+            plans.push(build_local_trim_terminal_damage_smoke_case(
+                repo_root,
+                &tool_spec,
+                &plan_options,
+                &output_root,
+                case.clone(),
+            )?);
+        }
+        if matched_cases == 0 {
+            return Err(anyhow!(
+                "local-smoke fastq.trim_terminal_damage tool_id `{}` has no governed smoke case for its admitted input layouts",
+                tool_spec.tool_id.as_str()
+            ));
+        }
+    }
+    Ok(plans)
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
 /// exist, or stage plans cannot be built for the governed smoke cases.
 pub fn local_trim_polyg_tails_smoke_plans(
     repo_root: &Path,
@@ -1708,6 +1780,102 @@ pub fn local_trim_reads_smoke_plans(repo_root: &Path) -> Result<Vec<LocalTrimRea
                 &output_root,
                 case.clone(),
             )?);
+        }
+    }
+    Ok(plans)
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or one of the admitted tool plans cannot be built for output-contract proof coverage.
+pub fn local_trim_reads_output_contract_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalTrimReadsSmokeCasePlan>> {
+    let config = load_local_trim_reads_smoke_config(repo_root)?;
+    ensure_unique_trim_reads_sample_ids(&config.cases)?;
+
+    let stage_id = StageId::new(STAGE_TRIM_READS.as_str().to_string());
+    let mut tool_ids = allowed_tools_for_stage(&stage_id);
+    tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    let adapter_policy = config.adapter_policy.clone().unwrap_or_else(|| "none".to_string());
+    let adapter_bank = if matches!(adapter_policy.as_str(), "bank" | "ancient_strict") {
+        Some(load_local_trim_reads_adapter_bank_context(
+            repo_root,
+            config.adapter_preset.as_deref().unwrap_or(DEFAULT_ADAPTER_PRESET),
+        )?)
+    } else {
+        None
+    };
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_TRIM_READS_OUTPUT_DIR));
+    let cases = config.cases;
+    let base_options = TrimPlanOptions {
+        threads: Some(config.threads.unwrap_or(1).max(1)),
+        min_length: Some(config.min_length.unwrap_or(30).max(1)),
+        quality_cutoff: config.quality_cutoff,
+        n_policy: config.n_policy,
+        adapter_policy: Some(adapter_policy),
+        polyx_policy: config.polyx_policy,
+        contaminant_policy: config.contaminant_policy,
+    };
+
+    let mut plans = Vec::new();
+    for tool_id in tool_ids {
+        let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+        hydrate_smoke_threads(&mut tool_spec, config.threads);
+        let mut tool_options = base_options.clone();
+        let tool_adapter_bank = if tool_spec.tool_id.as_str() == "bbduk"
+            && matches!(tool_options.adapter_policy.as_deref(), Some("bank" | "ancient_strict"))
+        {
+            tool_options.adapter_policy = Some("none".to_string());
+            tool_options.quality_cutoff = None;
+            None
+        } else if matches!(
+            tool_spec.tool_id.as_str(),
+            "trimmomatic" | "prinseq" | "seqkit" | "seqpurge"
+        ) && matches!(
+            tool_options.adapter_policy.as_deref(),
+            Some("bank" | "ancient_strict")
+        ) {
+            tool_options.adapter_policy = Some("none".to_string());
+            None
+        } else {
+            adapter_bank.as_ref()
+        };
+        match tool_spec.tool_id.as_str() {
+            "seqkit" | "seqpurge" => {
+                tool_options.quality_cutoff = None;
+            }
+            "fastx_clipper" | "leehom" => {
+                tool_options.min_length = None;
+                tool_options.quality_cutoff = None;
+            }
+            _ => {}
+        }
+        let mut matched_cases = 0usize;
+        for case in &cases {
+            if !bijux_dna_domain_fastq::tool_supports_input_layout(
+                &stage_id,
+                &tool_spec.tool_id,
+                case.r2.is_some(),
+            ) {
+                continue;
+            }
+            matched_cases += 1;
+            plans.push(build_local_trim_reads_smoke_case(
+                repo_root,
+                &tool_spec,
+                tool_adapter_bank,
+                &tool_options,
+                &output_root,
+                case.clone(),
+            )?);
+        }
+        if matched_cases == 0 {
+            return Err(anyhow!(
+                "local-smoke fastq.trim_reads tool_id `{}` has no governed smoke case for its admitted input layouts",
+                tool_spec.tool_id.as_str()
+            ));
         }
     }
     Ok(plans)
@@ -2489,6 +2657,53 @@ pub fn local_profile_reads_smoke_plans(
         .into_iter()
         .map(|case| build_local_profile_reads_smoke_case(repo_root, &tool_spec, &output_root, case))
         .collect()
+}
+
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or one of the admitted tool plans cannot be built for output-contract proof coverage.
+pub fn local_profile_reads_output_contract_plans(
+    repo_root: &Path,
+) -> Result<Vec<LocalProfileReadsSmokeCasePlan>> {
+    let config = load_local_profile_reads_smoke_config(repo_root)?;
+    ensure_unique_profile_reads_sample_ids(&config.cases)?;
+
+    let stage_id = StageId::new(STAGE_PROFILE_READS.as_str().to_string());
+    let mut tool_ids = allowed_tools_for_stage(&stage_id);
+    tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    let output_root =
+        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_PROFILE_READS_OUTPUT_DIR));
+    let cases = config.cases;
+
+    let mut plans = Vec::new();
+    for tool_id in tool_ids {
+        let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
+        hydrate_smoke_threads(&mut tool_spec, config.threads);
+        let mut matched_cases = 0usize;
+        for case in &cases {
+            if !bijux_dna_domain_fastq::tool_supports_input_layout(
+                &stage_id,
+                &tool_spec.tool_id,
+                case.r2.is_some(),
+            ) {
+                continue;
+            }
+            matched_cases += 1;
+            plans.push(build_local_profile_reads_smoke_case(
+                repo_root,
+                &tool_spec,
+                &output_root,
+                case.clone(),
+            )?);
+        }
+        if matched_cases == 0 {
+            return Err(anyhow!(
+                "local-smoke fastq.profile_reads tool_id `{}` has no governed smoke case for its admitted input layouts",
+                tool_spec.tool_id.as_str()
+            ));
+        }
+    }
+    Ok(plans)
 }
 
 /// # Errors

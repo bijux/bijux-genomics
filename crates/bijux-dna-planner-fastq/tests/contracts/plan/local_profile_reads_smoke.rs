@@ -54,4 +54,28 @@ fn local_profile_reads_smoke_stage_api_surface_stays_callable() {
         &Path,
     ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalProfileReadsSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_profile_reads_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalProfileReadsSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_profile_reads_output_contract_plans;
+}
+
+#[test]
+fn local_profile_reads_output_contract_plans_cover_all_governed_tools() -> Result<()> {
+    let repo_root = repo_root();
+    let plans =
+        bijux_dna_planner_fastq::stage_api::local_profile_reads_output_contract_plans(&repo_root)?;
+    let tool_ids = plans
+        .iter()
+        .map(|case| case.plan.tool_id.as_str().to_string())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        tool_ids,
+        std::collections::BTreeSet::from([
+            "seqfu".to_string(),
+            "seqkit".to_string(),
+            "seqkit_stats".to_string(),
+        ])
+    );
+    Ok(())
 }

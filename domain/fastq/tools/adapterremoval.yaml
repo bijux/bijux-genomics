@@ -85,12 +85,17 @@ stage_contracts:
       - "reads_r1"
     optional_inputs:
       - "reads_r2"
+    execution_contract:
+      expected_outputs:
+        - "trimmed_reads_r1"
+        - "report_json"
+      optional_outputs:
+        - "trimmed_reads_r2"
     expected_artifacts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
-      - "raw_backend_report_json"
-    notes: "AdapterRemoval terminal-damage trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, emits a governed damage-trim report, and preserves the backend-native JSON report."
+    notes: "AdapterRemoval terminal-damage trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits the governed damage-trim report without a backend-native retained raw-report artifact."
   fastq.merge_pairs:
     required_inputs:
       - "reads_r1"

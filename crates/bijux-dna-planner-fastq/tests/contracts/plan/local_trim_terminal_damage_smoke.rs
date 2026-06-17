@@ -80,4 +80,37 @@ fn local_trim_terminal_damage_smoke_stage_api_surface_stays_callable() {
     ) -> anyhow::Result<
         Vec<bijux_dna_planner_fastq::LocalTrimTerminalDamageSmokeCasePlan>,
     > = bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_fastq::LocalTrimTerminalDamageSmokeCasePlan>,
+    > = bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_output_contract_plans;
+}
+
+#[test]
+fn local_trim_terminal_damage_output_contract_plans_cover_all_governed_tools() -> Result<()> {
+    let repo_root = repo_root();
+    let plans =
+        bijux_dna_planner_fastq::stage_api::local_trim_terminal_damage_output_contract_plans(
+            &repo_root,
+        )?;
+    let tool_ids = plans
+        .iter()
+        .map(|case| case.plan.tool_id.as_str().to_string())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        tool_ids,
+        std::collections::BTreeSet::from([
+            "adapterremoval".to_string(),
+            "cutadapt".to_string(),
+            "seqkit".to_string(),
+        ])
+    );
+    assert!(
+        plans
+            .iter()
+            .any(|case| { case.plan.tool_id.as_str() == "adapterremoval" && case.r2.is_some() }),
+        "AdapterRemoval terminal-damage proof plans must keep paired-end coverage"
+    );
+    Ok(())
 }

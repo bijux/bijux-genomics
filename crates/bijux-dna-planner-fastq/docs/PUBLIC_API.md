@@ -60,6 +60,7 @@ The `stage_api` module is the curated compatibility surface for downstream stage
 - `local_deplete_reference_contaminants_plan`
 - `local_deplete_rrna_plan`
 - `local_screen_taxonomy_plan`
+- `local_screen_taxonomy_output_contract_plans`
 - `local_detect_adapters_smoke_plans`
 - `local_detect_duplicates_premerge_smoke_plans`
 - `local_estimate_library_complexity_prealign_smoke_plans`
@@ -68,17 +69,21 @@ The `stage_api` module is the curated compatibility surface for downstream stage
 - `local_cluster_otus_smoke_plans`
 - `local_infer_asvs_smoke_plans`
 - `local_index_reference_plan`
+- `local_index_reference_output_contract_plans`
 - `local_merge_pairs_smoke_plans`
 - `local_normalize_abundance_smoke_plans`
 - `local_normalize_primers_smoke_plans`
 - `local_profile_overrepresented_sequences_smoke_plans`
 - `local_profile_read_lengths_smoke_plans`
 - `local_profile_reads_smoke_plans`
+- `local_profile_reads_output_contract_plans`
 - `local_remove_chimeras_smoke_plans`
 - `local_remove_duplicates_smoke_plans`
 - `local_trim_polyg_tails_smoke_plans`
 - `local_trim_reads_smoke_plans`
+- `local_trim_reads_output_contract_plans`
 - `local_trim_terminal_damage_smoke_plans`
+- `local_trim_terminal_damage_output_contract_plans`
 - `local_validate_reads_smoke_plans`
 
 ## Stability Rules
