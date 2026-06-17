@@ -132,6 +132,25 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         PathBuf::from("benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz")
     );
 
+    let output_ids = plan
+        .io
+        .outputs
+        .iter()
+        .map(|artifact| artifact.name.as_str().to_string())
+        .collect::<Vec<_>>();
+    assert_eq!(
+        output_ids,
+        vec![
+            "genotyping_report".to_string(),
+            "summary".to_string(),
+            "stage_metrics".to_string(),
+            "genotyping_bcf".to_string(),
+            "genotyping_vcf".to_string(),
+            "genotyping_vcf_tbi".to_string(),
+            "genotyping_gl".to_string(),
+        ]
+    );
+
     assert_eq!(
         plan.params["reference"],
         serde_json::json!(

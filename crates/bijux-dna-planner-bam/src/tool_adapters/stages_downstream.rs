@@ -134,17 +134,34 @@ pub mod genotyping {
             bijux_dna_domain_bam::BamStage::Genotyping,
             out_dir,
         );
-        outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
-            ArtifactId::from_static("population_metrics"),
-            out_dir.join("population_metrics.json"),
-            ArtifactRole::ReportJson,
-        ));
         let bcf = out_dir.join("genotyping.bcf");
         let vcf_gz = out_dir.join("genotyping.vcf.gz");
         let tbi = out_dir.join("genotyping.vcf.gz.tbi");
         let gl_json = out_dir.join("genotyping.gl.json");
         let emit_bcf_contract =
             context.reference.is_some() || context.sites.is_some() || context.regions.is_some();
+        if emit_bcf_contract {
+            outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("genotyping_bcf"),
+                bcf.clone(),
+                ArtifactRole::Variant,
+            ));
+            outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("genotyping_vcf"),
+                vcf_gz.clone(),
+                ArtifactRole::Variant,
+            ));
+            outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("genotyping_vcf_tbi"),
+                tbi.clone(),
+                ArtifactRole::Index,
+            ));
+            outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("genotyping_gl"),
+                gl_json.clone(),
+                ArtifactRole::ReportJson,
+            ));
+        }
         let report = out_dir.join("genotyping.json");
         let summary = out_dir.join("genotyping.summary.json");
         let mut inputs = vec![bijux_dna_stage_contract::ArtifactRef::required(
@@ -240,7 +257,15 @@ pub mod genotyping {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &["genotyping_report", "summary", "stage_metrics", "population_metrics"],
+            &[
+                "genotyping_report",
+                "summary",
+                "stage_metrics",
+                "genotyping_bcf",
+                "genotyping_vcf",
+                "genotyping_vcf_tbi",
+                "genotyping_gl",
+            ],
         )
     }
 }
