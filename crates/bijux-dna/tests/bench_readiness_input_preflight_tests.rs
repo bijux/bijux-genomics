@@ -67,9 +67,26 @@ fn bench_readiness_input_preflight_tests_report_governed_retained_tool_coverage(
             "governed report must retain coverage for {required_class}"
         );
     }
+    assert!(
+        !missing_input_class_counts.contains_key("other"),
+        "governed report must not keep ambiguous `other` input classes"
+    );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 258);
+    assert!(rows.iter().all(|row| {
+        let missing_input_role = row
+            .get("missing_input_role")
+            .and_then(serde_json::Value::as_str)
+            .expect("missing input role");
+        row.get("expected_error_fragment")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|fragment| fragment.contains(missing_input_role))
+            && row
+                .get("observed_error")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|error| error.contains(missing_input_role))
+    }));
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -177,7 +194,7 @@ fn bench_readiness_input_preflight_tests_write_governed_json_file() {
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fixture_contract")
                 && row.get("missing_input_role").and_then(serde_json::Value::as_str)
-                    == Some("sites_bed")
+                    == Some("target_sites_bed")
                 && row.get("contract_surface").and_then(serde_json::Value::as_str)
                     == Some("fixture_support")
                 && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
