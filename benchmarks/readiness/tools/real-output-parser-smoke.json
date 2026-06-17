@@ -228,7 +228,7 @@
       "proof_path": "runs/bench/readiness-probes/tools/real-output-parser-smoke/bam_authenticity/authenticity.summary.json",
       "parser_surface": "serde_json::<BamAuthenticityAdvisoryV1>",
       "parsed_schema_version": "bijux.bam.authenticity_advisory.v1",
-      "parsed_top_level_key_count": 8,
+      "parsed_top_level_key_count": 9,
       "parsed_top_level_keys": [
         "advisory_boundary",
         "assumptions",
@@ -237,7 +237,8 @@
         "pmd_like_signal_present",
         "schema_version",
         "score",
-        "stage_id"
+        "stage_id",
+        "status"
       ],
       "normalized_snapshot": {
         "confidence": 0.8133333333333334,
