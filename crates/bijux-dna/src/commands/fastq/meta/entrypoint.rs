@@ -260,6 +260,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamOverlapCorrectionComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_overlap_correction_complete::run_render_bam_overlap_correction_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamOverlapEndogenousReady(args) => {
                         crate::commands::benchmark::readiness::bam_overlap_endogenous_ready::run_render_bam_overlap_endogenous_ready(
                             args,

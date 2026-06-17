@@ -39,6 +39,7 @@ pub(crate) mod bam_insert_size_gc_bias_ready;
 pub(crate) mod bam_kinship_ready;
 pub(crate) mod bam_local_container_smoke;
 pub(crate) mod bam_normalized_metrics_schema;
+pub(crate) mod bam_overlap_correction_complete;
 pub(crate) mod bam_overlap_endogenous_ready;
 pub(crate) mod bam_parser_fixture_coverage;
 pub(crate) mod bam_recalibration_genotyping_ready;

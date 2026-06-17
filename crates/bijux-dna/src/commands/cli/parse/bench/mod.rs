@@ -111,6 +111,7 @@ pub use self::readiness::{
     BenchReadinessRenderBamInsertSizeGcBiasReadyArgs, BenchReadinessRenderBamKinshipReadyArgs,
     BenchReadinessRenderBamLocalContainerSmokeArgs,
     BenchReadinessRenderBamNormalizedMetricsSchemaArgs,
+    BenchReadinessRenderBamOverlapCorrectionCompleteArgs,
     BenchReadinessRenderBamOverlapEndogenousReadyArgs,
     BenchReadinessRenderBamParserFixtureCoverageArgs,
     BenchReadinessRenderBamRecalibrationGenotypingReadyArgs, BenchReadinessRenderBamReportMapArgs,
