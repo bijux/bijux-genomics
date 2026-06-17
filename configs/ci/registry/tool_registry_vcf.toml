@@ -52,9 +52,9 @@ upstream = "https://github.com/samtools/bcftools"
 version_rule = "pinned"
 license = "MIT"
 citation = "DOI:10.1093/gigascience/giab008"
-pinned_commit = "sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+pinned_commit = "sha256:badc3a0c7af72a83e5761ab0e881aa84204694bdead003b47552cb283958f78d"
 pin_strategy = "container_digest"
-container_ref = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+container_ref = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:badc3a0c7af72a83e5761ab0e881aa84204694bdead003b47552cb283958f78d"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "bcftools --version"
@@ -665,4 +665,3 @@ planned_out_of_scope = []
 default_rationale = "minimal required metrics for quality gating."
 requires_validation = false
 requires_reporting = false
-
