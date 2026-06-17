@@ -55,6 +55,15 @@ fn bench_local_vcf_population_structure_smoke_writes_governed_files() {
         .join("runs/bench/local-smoke/vcf.population_structure/plink2/source_admixture.json");
     let stage_result_path =
         repo_root.join("runs/bench/local-smoke/vcf.population_structure/plink2/stage-result.json");
+    let ld_prune_out_path = repo_root.join(
+        "runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/ld_prune_out.tsv",
+    );
+    let eigenvec_path = repo_root.join(
+        "runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenvec.tsv",
+    );
+    let eigenval_path = repo_root.join(
+        "runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenval.tsv",
+    );
 
     for path in [
         &report_path,
@@ -64,6 +73,9 @@ fn bench_local_vcf_population_structure_smoke_writes_governed_files() {
         &source_pca_report_path,
         &source_admixture_report_path,
         &stage_result_path,
+        &ld_prune_out_path,
+        &eigenvec_path,
+        &eigenval_path,
     ] {
         assert!(path.is_file(), "expected file at {}", path.display());
     }
@@ -131,13 +143,27 @@ fn bench_local_vcf_population_structure_smoke_writes_governed_files() {
         Some("plink2")
     );
     let outputs = manifest.get("outputs").and_then(serde_json::Value::as_array).expect("outputs");
-    assert_eq!(outputs.len(), 6);
+    assert_eq!(outputs.len(), 13);
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str)
             == Some("population_structure_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
                 == Some(
                     "runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json",
+                )
+    }));
+    assert!(outputs.iter().any(|row| {
+        row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("population_pca_eigenvec")
+            && row.get("realized_path").and_then(serde_json::Value::as_str)
+                == Some(
+                    "runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenvec.tsv",
+                )
+    }));
+    assert!(outputs.iter().any(|row| {
+        row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("population_pca_eigenval")
+            && row.get("realized_path").and_then(serde_json::Value::as_str)
+                == Some(
+                    "runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenval.tsv",
                 )
     }));
 }
