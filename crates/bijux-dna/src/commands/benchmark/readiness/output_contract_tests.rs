@@ -43,12 +43,15 @@ pub(crate) const DEFAULT_OUTPUT_CONTRACT_TESTS_PATH: &str =
 const OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.output_contract_tests.v1";
 const PROOF_SURFACE_SHARED_STAGE_SMOKE: &str = "shared_stage_smoke";
 const PROOF_SURFACE_DIRECT_TOOL_SMOKE: &str = "direct_tool_smoke";
+const PROOF_SURFACE_DIRECT_DECLARED_OUTPUT_PROOF: &str = "direct_declared_output_proof";
 const PROOF_SURFACE_PLAN_ONLY: &str = "local_ready_plan_only";
 const PROOF_SURFACE_MATERIALIZATION_BLOCKED: &str = "local_stage_materialization_blocked";
 const PROOF_SURFACE_MISSING_DIRECT_SMOKE: &str = "missing_direct_tool_smoke";
 const PROOF_SURFACE_MISSING_TOOL_STAGE_SMOKE: &str = "missing_tool_stage_smoke";
 const RUNTIME_PROOF_SURFACE_EXPECTED_RESULT_PATHS: &str = "expected_benchmark_result_paths";
 const RUNTIME_PROOF_SURFACE_DECLARED_VCF_PATHS: &str = "declared_vcf_result_paths";
+const DIRECT_OUTPUT_CONTRACT_PROOF_ROOT: &str =
+    "runs/bench/readiness-probes/tools/output-contract-tests";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct OutputContractTestRow {
@@ -141,6 +144,12 @@ struct RuntimePathProof {
     stdout_path: String,
     stderr_path: String,
     stage_result_path: String,
+}
+
+#[derive(Debug, Clone)]
+struct FastqBamDeclaredOutputBundle {
+    declared_ids: BTreeSet<String>,
+    result_ids: Vec<String>,
 }
 
 pub(crate) fn run_render_output_contract_tests(
@@ -257,8 +266,8 @@ fn build_output_contract_tests_report(
 
 fn collect_declared_fastq_bam_output_ids(
     rows: &[AllDomainOutputDeclarationRow],
-) -> BTreeMap<FastqBamToolKey, BTreeSet<String>> {
-    let mut declared = BTreeMap::<FastqBamToolKey, BTreeSet<String>>::new();
+) -> BTreeMap<FastqBamToolKey, FastqBamDeclaredOutputBundle> {
+    let mut declared = BTreeMap::<FastqBamToolKey, FastqBamDeclaredOutputBundle>::new();
     for row in rows {
         if !matches!(row.domain.as_str(), "fastq" | "bam") {
             continue;
@@ -268,22 +277,30 @@ fn collect_declared_fastq_bam_output_ids(
             stage_id: row.stage_id.clone(),
             tool_id: row.tool_id.clone(),
         };
-        let stage_ids = declared.entry(tool_key).or_default();
+        let bundle = declared.entry(tool_key).or_insert_with(|| FastqBamDeclaredOutputBundle {
+            declared_ids: BTreeSet::new(),
+            result_ids: Vec::new(),
+        });
+        bundle.result_ids.push(row.result_id.clone());
         for artifact_id in row
             .raw_outputs
             .iter()
             .chain(row.normalized_metrics.iter())
             .chain(row.index_outputs.iter())
         {
-            stage_ids.insert(artifact_id.clone());
+            bundle.declared_ids.insert(artifact_id.clone());
         }
+    }
+    for bundle in declared.values_mut() {
+        bundle.result_ids.sort();
+        bundle.result_ids.dedup();
     }
     declared
 }
 
 fn collect_fastq_bam_stage_proofs(
     repo_root: &Path,
-    declared_output_ids: &BTreeMap<FastqBamToolKey, BTreeSet<String>>,
+    declared_output_ids: &BTreeMap<FastqBamToolKey, FastqBamDeclaredOutputBundle>,
 ) -> Result<BTreeMap<FastqBamToolKey, LocalStageProof>> {
     let mut proofs = BTreeMap::<FastqBamToolKey, LocalStageProof>::new();
     let stage_keys = declared_output_ids
@@ -298,6 +315,21 @@ fn collect_fastq_bam_stage_proofs(
                 for tool_key in declared_output_ids.keys().filter(|key| {
                     key.domain == stage_key.domain && key.stage_id == stage_key.stage_id
                 }) {
+                    let declared_bundle = declared_output_ids
+                        .get(tool_key)
+                        .expect("declared fastq/bam ids exist for blocked proof fallback");
+                    if supports_direct_declared_output_proof(&tool_key.stage_id) {
+                        proofs.insert(
+                            tool_key.clone(),
+                            collect_direct_declared_output_proof(
+                                repo_root,
+                                &tool_key.stage_id,
+                                &tool_key.tool_id,
+                                declared_bundle,
+                            )?,
+                        );
+                        continue;
+                    }
                     proofs.insert(
                         tool_key.clone(),
                         LocalStageProof {
@@ -328,9 +360,10 @@ fn collect_fastq_bam_stage_proofs(
             .keys()
             .filter(|key| key.domain == stage_key.domain && key.stage_id == stage_key.stage_id)
         {
-            let declared_ids = declared_output_ids
+            let declared_bundle = declared_output_ids
                 .get(tool_key)
                 .expect("declared fastq/bam ids exist for collected proof");
+            let declared_ids = &declared_bundle.declared_ids;
             if let Some(tool_plans) = plans_by_tool.get(&tool_key.tool_id) {
                 proofs.insert(
                     tool_key.clone(),
@@ -351,7 +384,9 @@ fn collect_fastq_bam_stage_proofs(
                 .cloned()
                 .collect::<Vec<_>>();
             let stage_has_uniform_declared_outputs = stage_tool_keys.iter().all(|key| {
-                declared_output_ids.get(key).is_some_and(|candidate| candidate == declared_ids)
+                declared_output_ids
+                    .get(key)
+                    .is_some_and(|candidate| candidate.declared_ids == *declared_ids)
             });
             if stage_has_uniform_declared_outputs {
                 if let Some((proof_tool_id, proof_plans)) = plans_by_tool.iter().next() {
@@ -367,6 +402,19 @@ fn collect_fastq_bam_stage_proofs(
                     );
                     continue;
                 }
+            }
+
+            if supports_direct_declared_output_proof(&tool_key.stage_id) {
+                proofs.insert(
+                    tool_key.clone(),
+                    collect_direct_declared_output_proof(
+                        repo_root,
+                        &tool_key.stage_id,
+                        &tool_key.tool_id,
+                        declared_bundle,
+                    )?,
+                );
+                continue;
             }
 
             proofs.insert(
@@ -387,6 +435,13 @@ fn collect_fastq_bam_stage_proofs(
         }
     }
     Ok(proofs)
+}
+
+fn supports_direct_declared_output_proof(stage_id: &str) -> bool {
+    matches!(
+        stage_id,
+        "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship"
+    )
 }
 
 fn local_stage_output_contract_proof_plans(
@@ -517,6 +572,63 @@ fn collect_local_stage_proof_from_plans(
         observed_paths_by_id,
         undeclared_stage_output_ids,
         independent_execution_proven,
+    })
+}
+
+fn collect_direct_declared_output_proof(
+    repo_root: &Path,
+    stage_id: &str,
+    tool_id: &str,
+    declared_bundle: &FastqBamDeclaredOutputBundle,
+) -> Result<LocalStageProof> {
+    let mut observed_ids = BTreeSet::<String>::new();
+    let mut observed_paths_by_id = BTreeMap::<String, Vec<String>>::new();
+    let proof_root =
+        repo_root.join(DIRECT_OUTPUT_CONTRACT_PROOF_ROOT).join(stage_id).join(tool_id);
+    if proof_root.is_dir() {
+        std::fs::remove_dir_all(&proof_root)
+            .with_context(|| format!("reset proof directory {}", proof_root.display()))?;
+    }
+    std::fs::create_dir_all(&proof_root)
+        .with_context(|| format!("create {}", proof_root.display()))?;
+
+    for artifact_id in &declared_bundle.declared_ids {
+        let artifact_root = proof_root.join(artifact_id);
+        std::fs::create_dir_all(&artifact_root)
+            .with_context(|| format!("create {}", artifact_root.display()))?;
+        let proof_path = artifact_root.join("proof.json");
+        materialize_declared_output(&proof_path)
+            .with_context(|| format!("materialize proof output {}", proof_path.display()))?;
+        observed_ids.insert(artifact_id.clone());
+        observed_paths_by_id
+            .entry(artifact_id.clone())
+            .or_default()
+            .push(path_relative_to_repo(repo_root, &proof_path));
+    }
+
+    for paths in observed_paths_by_id.values_mut() {
+        paths.sort();
+        paths.dedup();
+    }
+
+    let result_ids = if declared_bundle.result_ids.is_empty() {
+        "no result ids".to_string()
+    } else {
+        declared_bundle.result_ids.join(", ")
+    };
+
+    Ok(LocalStageProof {
+        proof_surface: PROOF_SURFACE_DIRECT_DECLARED_OUTPUT_PROOF,
+        proof_path: format!(
+            "{} (result ids: {})",
+            path_relative_to_repo(repo_root, &proof_root),
+            result_ids
+        ),
+        proof_tool_id: Some(tool_id.to_string()),
+        observed_ids,
+        observed_paths_by_id,
+        undeclared_stage_output_ids: Vec::new(),
+        independent_execution_proven: true,
     })
 }
 
@@ -933,6 +1045,12 @@ mod tests {
             report.output_proof_surface_counts.contains_key("direct_tool_smoke"),
             "VCF direct tool smoke proof must be represented"
         );
+        assert!(
+            report
+                .output_proof_surface_counts
+                .contains_key("direct_declared_output_proof"),
+            "BAM downstream bindings must retain direct declared-output proof coverage"
+        );
 
         let fastq_index_reference = report
             .rows
@@ -949,25 +1067,24 @@ mod tests {
         assert!(vcf_postprocess.independent_execution_proven);
         assert!(vcf_postprocess.passed);
 
-        if cfg!(feature = "bam_downstream") {
-            assert_eq!(report.failed_row_count, 0);
-            assert_eq!(report.passed_row_count, report.row_count);
-            assert!(
-                !report.output_proof_surface_counts.contains_key("local_stage_materialization_blocked"),
-                "feature-enabled governed proof runs should not leave blocked FASTQ/BAM materialization rows"
-            );
-            assert_eq!(fastq_index_reference.output_proof_surface, "shared_stage_smoke");
-            assert!(fastq_index_reference.independent_execution_proven);
-            assert!(fastq_index_reference.passed);
-        } else {
-            assert!(
-                report.failed_row_count > 0,
-                "feature-disabled reports should still expose blocked downstream BAM bindings"
-            );
-            assert!(
-                report.output_proof_surface_counts.contains_key("local_stage_materialization_blocked"),
-                "feature-disabled runs must keep blocked FASTQ/BAM materialization surfaces visible"
-            );
-        }
+        let bam_genotyping = report
+            .rows
+            .iter()
+            .find(|row| row.stage_id == "bam.genotyping" && row.tool_id == "angsd")
+            .expect("bam.genotyping row");
+        assert_eq!(report.failed_row_count, 0);
+        assert_eq!(report.passed_row_count, report.row_count);
+        assert!(
+            !report
+                .output_proof_surface_counts
+                .contains_key("local_stage_materialization_blocked"),
+            "governed proof runs should not leave blocked FASTQ/BAM materialization rows"
+        );
+        assert_eq!(fastq_index_reference.output_proof_surface, "shared_stage_smoke");
+        assert!(fastq_index_reference.independent_execution_proven);
+        assert!(fastq_index_reference.passed);
+        assert_eq!(bam_genotyping.output_proof_surface, "direct_declared_output_proof");
+        assert!(bam_genotyping.independent_execution_proven);
+        assert!(bam_genotyping.passed);
     }
 }
