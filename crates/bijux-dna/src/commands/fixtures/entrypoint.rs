@@ -10,6 +10,9 @@ use crate::commands::fixtures::build::vcf::{
 use crate::commands::fixtures::expected::fastq_duplicates::{
     validate_fastq_duplicates_truth_manifest_path, FASTQ_DUPLICATES_TRUTH_FIXTURE_ID,
 };
+use crate::commands::fixtures::expected::fastq_taxonomy::{
+    validate_fastq_taxonomy_truth_manifest_path, FASTQ_TAXONOMY_TRUTH_FIXTURE_ID,
+};
 use crate::commands::fixtures::expected::fastq_trimming::{
     validate_fastq_trimming_truth_manifest_path, FASTQ_TRIMMING_TRUTH_FIXTURE_ID,
 };
@@ -115,6 +118,17 @@ pub(crate) fn validate_fixture(cwd: &Path, args: &cli::FixturesValidateArgs) -> 
             }
             Ok(())
         }
+        FASTQ_TAXONOMY_TRUTH_FIXTURE_ID => {
+            let manifest_path =
+                benchmark_science_manifest_path(&fixture_root, FASTQ_TAXONOMY_TRUTH_FIXTURE_ID);
+            let report = validate_fastq_taxonomy_truth_manifest_path(cwd, &manifest_path)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.manifest_path);
+            }
+            Ok(())
+        }
         _ => Err(anyhow!("unsupported governed fixture corpus `{corpus}`")),
     }
 }
@@ -163,6 +177,18 @@ pub(crate) fn validate_expected_fixture(
                 cli::render::json::print_pretty(&report)?;
             } else {
                 println!("{}", report.expected_path);
+            }
+            Ok(())
+        }
+        FASTQ_TAXONOMY_TRUTH_FIXTURE_ID => {
+            let report = validate_fastq_taxonomy_truth_manifest_path(
+                cwd,
+                &benchmark_science_manifest_path(&fixture_root, FASTQ_TAXONOMY_TRUTH_FIXTURE_ID),
+            )?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.expected_taxa_path);
             }
             Ok(())
         }
