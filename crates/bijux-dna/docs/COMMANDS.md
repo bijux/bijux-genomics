@@ -676,6 +676,14 @@ Visible aliases are part of the operator surface:
   artifacts under `king`, keeping pairwise kinship rows, overlap SNP counts, kinship
   coefficients, insufficient-data status, and governed report paths explicit in the BAM benchmark
   surface.
+- `bijux-dna bench readiness render-bam-active-row-consistency`
+  `render-bam-active-row-consistency` writes
+  `benchmarks/readiness/bam/BAM_ACTIVE_ROW_CONSISTENCY.json` with the active BAM stage/tool
+  bindings from the all-domain active matrix used as the governed source of truth. The report
+  compares those active BAM bindings against rendered commands, output declarations, expected
+  benchmark results, parser-fixture coverage, local-job coverage, and the BAM report map, then
+  fails if any surface is missing a retained binding, carries an extra binding, or drifts from the
+  active BAM row count.
 - `bijux-dna bench readiness render-bam-kinship-complete`
   `render-bam-kinship-complete` writes
   `benchmarks/readiness/bam/stages/bam.kinship.complete.json` with every retained
