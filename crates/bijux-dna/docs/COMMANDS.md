@@ -703,6 +703,16 @@ Visible aliases are part of the operator surface:
   local-smoke proofs explicit while also locking the governed corrected-overlap metrics contract:
   `pair_count`, `corrected_pairs`, `corrected_overlap_bases`, their expected-vs-observed deltas,
   and the typed `overlap_correction.summary.json` plus `stage.metrics.json` artifacts.
+- `bijux-dna bench readiness render-bam-endogenous-content-complete`
+  `render-bam-endogenous-content-complete` writes
+  `benchmarks/readiness/bam/stages/bam.endogenous_content.complete.json` with the admitted
+  `bam.endogenous_content` / `samtools` binding promoted into a stage-owned completion gate. The
+  report keeps active-scope, command, output, parser, expected-result, report-map, schema, and
+  local-smoke proofs explicit while also locking the governed endogenous metric contract:
+  `mapped_reads`, `endogenous_reads`, `total_reads`, `endogenous_fraction`, method,
+  `host_reference_scope`, the typed `endogenous.summary.json` plus `stage.metrics.json`
+  artifacts, and an explicit `contaminant_reads` placeholder that remains null until the BAM
+  endogenous-content contract grows a governed contaminant-read field.
 - `bijux-dna bench readiness render-bam-overlap-endogenous-ready`
   `render-bam-overlap-endogenous-ready` writes
   `benchmarks/readiness/bam/overlap-endogenous-ready.json` with one governed row each for
