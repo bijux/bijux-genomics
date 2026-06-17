@@ -527,6 +527,13 @@ Visible aliases are part of the operator surface:
   the admitted comparable tools, the default tool, the current corpus-routing status, and the
   governed shared metric fields that make same-stage BAM tool comparisons interpretable without
   relying on tool-private report details.
+- `bijux-dna bench readiness render-bam-science-thresholds-ready`
+  `render-bam-science-thresholds-ready` writes
+  `benchmarks/readiness/bam/BAM_SCIENCE_THRESHOLDS_READY.json` with one governed row per
+  comparable BAM stage and one governed contract entry per shared BAM comparison metric. Each
+  metric entry records the scientific pass direction, tolerance kind and value, and insufficiency
+  policy so same-stage BAM tool comparisons carry explicit acceptance semantics instead of relying
+  on implicit reviewer judgment.
 - `bijux-dna bench readiness render-bam-adapter-output-contract`
   `render-bam-adapter-output-contract` writes
   `benchmarks/readiness/bam-adapter-output-contract.tsv` with one governed row per BAM
