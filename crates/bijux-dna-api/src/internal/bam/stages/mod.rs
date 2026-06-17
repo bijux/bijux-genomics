@@ -1,6 +1,7 @@
 pub(crate) mod authenticity;
 pub(crate) mod bias_mitigation;
 pub(crate) mod complexity;
+pub(crate) mod contamination;
 pub(crate) mod coverage;
 pub(crate) mod damage;
 pub(crate) mod duplication_metrics;
