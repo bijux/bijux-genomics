@@ -405,12 +405,15 @@ pub mod sex {
     pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::Sex.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
-    fn retained_output_ids(tool_id: &str) -> &'static [&'static str] {
-        match tool_id {
-            "angsd" => &["sex_report", "summary", "stage_metrics", "population_metrics"],
-            "yleaf" => &["sex_report", "summary", "stage_metrics", "haplogroup_report"],
-            _ => &["sex_report", "summary", "stage_metrics", "sex_estimate"],
-        }
+    fn retained_output_ids(_tool_id: &str) -> &'static [&'static str] {
+        &[
+            "sex_report",
+            "sex_estimate",
+            "population_metrics",
+            "haplogroup_report",
+            "summary",
+            "stage_metrics",
+        ]
     }
 
     /// # Errors
