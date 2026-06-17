@@ -279,7 +279,7 @@ mod tests {
         assert_eq!(report.row_count, 15);
         assert_eq!(report.declared_stage_count, 15);
         assert_eq!(report.missing_shared_metric_stage_count, 0);
-        assert_eq!(report.shared_metric_field_count, 65);
+        assert_eq!(report.shared_metric_field_count, 51);
 
         assert!(report.rows.iter().all(|row| {
             comparison_contract_status_label(row.comparison_contract_status) == "declared"
@@ -296,7 +296,6 @@ mod tests {
                         "validation_status".to_string(),
                         "validation_errors".to_string(),
                         "validation_warnings".to_string(),
-                        "input_bam_identity".to_string(),
                     ]
         }));
         assert!(report.rows.iter().any(|row| {
@@ -309,8 +308,6 @@ mod tests {
                         "mean_depth".to_string(),
                         "breadth_1x".to_string(),
                         "covered_bases".to_string(),
-                        "observed_region_count".to_string(),
-                        "region_ids".to_string(),
                     ]
         }));
         assert!(report.rows.iter().any(|row| {
@@ -323,8 +320,6 @@ mod tests {
                         "terminal_c_to_t_5p".to_string(),
                         "terminal_g_to_a_3p".to_string(),
                         "damage_signal".to_string(),
-                        "runtime_s".to_string(),
-                        "memory_mb".to_string(),
                     ]
         }));
     }

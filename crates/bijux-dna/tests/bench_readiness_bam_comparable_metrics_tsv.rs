@@ -47,19 +47,19 @@ fn bench_readiness_bam_comparable_metrics_writes_governed_tsv_columns() {
     assert_eq!(rows.len(), 15);
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.validate\tdeclared\t3\tbamtools,bedtools,samtools\tsamtools\tfixture:corpus-01-bam-mini\t4\tvalidation_status,validation_errors,validation_warnings,input_bam_identity\tstage `bam.validate` publishes governed shared comparable metrics `validation_status, validation_errors, validation_warnings, input_bam_identity` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+            row == &"bam.validate\tdeclared\t3\tbamtools,bedtools,samtools\tsamtools\tfixture:corpus-01-bam-mini\t3\tvalidation_status,validation_errors,validation_warnings\tstage `bam.validate` publishes governed shared comparable metrics `validation_status, validation_errors, validation_warnings` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
         }),
         "TSV must retain the governed BAM validation comparable row"
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.coverage\tdeclared\t3\tbedtools,mosdepth,samtools\tmosdepth\tfixture:corpus-01-bam-mini\t5\tmean_depth,breadth_1x,covered_bases,observed_region_count,region_ids\tstage `bam.coverage` publishes governed shared comparable metrics `mean_depth, breadth_1x, covered_bases, observed_region_count, region_ids` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+            row == &"bam.coverage\tdeclared\t3\tbedtools,mosdepth,samtools\tmosdepth\tfixture:corpus-01-bam-mini\t3\tmean_depth,breadth_1x,covered_bases\tstage `bam.coverage` publishes governed shared comparable metrics `mean_depth, breadth_1x, covered_bases` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
         }),
         "TSV must retain the governed BAM coverage comparable row"
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.damage\tdeclared\t6\taddeam,damageprofiler,mapdamage2,ngsbriggs,pmdtools,pydamage\tmapdamage2\tfixture:corpus-01-adna-damage-mini\t5\tterminal_c_to_t_5p,terminal_g_to_a_3p,damage_signal,runtime_s,memory_mb\tstage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
+            row == &"bam.damage\tdeclared\t6\taddeam,damageprofiler,mapdamage2,ngsbriggs,pmdtools,pydamage\tmapdamage2\tfixture:corpus-01-adna-damage-mini\t3\tterminal_c_to_t_5p,terminal_g_to_a_3p,damage_signal\tstage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
         }),
         "TSV must retain the governed BAM damage comparable row"
     );

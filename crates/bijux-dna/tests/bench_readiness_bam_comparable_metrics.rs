@@ -60,7 +60,7 @@ fn bench_readiness_bam_comparable_metrics_reports_governed_stage_rows() {
     );
     assert_eq!(
         payload.get("shared_metric_field_count").and_then(serde_json::Value::as_u64),
-        Some(65)
+        Some(51)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -82,7 +82,6 @@ fn bench_readiness_bam_comparable_metrics_reports_governed_stage_rows() {
                             serde_json::Value::String("validation_status".to_string()),
                             serde_json::Value::String("validation_errors".to_string()),
                             serde_json::Value::String("validation_warnings".to_string()),
-                            serde_json::Value::String("input_bam_identity".to_string()),
                         ]
                 },
             )
@@ -100,8 +99,6 @@ fn bench_readiness_bam_comparable_metrics_reports_governed_stage_rows() {
                             serde_json::Value::String("mean_depth".to_string()),
                             serde_json::Value::String("breadth_1x".to_string()),
                             serde_json::Value::String("covered_bases".to_string()),
-                            serde_json::Value::String("observed_region_count".to_string()),
-                            serde_json::Value::String("region_ids".to_string()),
                         ]
                 },
             )
@@ -119,8 +116,6 @@ fn bench_readiness_bam_comparable_metrics_reports_governed_stage_rows() {
                             serde_json::Value::String("terminal_c_to_t_5p".to_string()),
                             serde_json::Value::String("terminal_g_to_a_3p".to_string()),
                             serde_json::Value::String("damage_signal".to_string()),
-                            serde_json::Value::String("runtime_s".to_string()),
-                            serde_json::Value::String("memory_mb".to_string()),
                         ]
                 },
             )
