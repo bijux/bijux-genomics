@@ -7,16 +7,22 @@ const LOCAL_RECALIBRATION_SMOKE_REPORT_SCHEMA_VERSION: &str =
     "bijux.bam.recalibration.local_smoke.report.v1";
 const LOCAL_RECALIBRATION_SMOKE_METRICS_SCHEMA_VERSION: &str =
     "bijux.bam.recalibration.local_smoke.metrics.v1";
+const EXPECTED_TOOL_ID: &str = "gatk";
+const HUMAN_LIKE_RECALIBRATION_KNOWN_SITES_PATH: &str =
+    "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf";
+const HUMAN_LIKE_RECALIBRATION_KNOWN_SITES_ASSET_ID: &str = "human_like_recalibration_known_sites";
 
 #[derive(Debug, Clone, Serialize)]
 struct LocalRecalibrationSmokeReport {
     schema_version: String,
     stage_id: String,
+    tool_id: String,
     sample_id: String,
     expectation_matched: bool,
     input_bam: String,
     reference_fasta: String,
     known_sites: Vec<String>,
+    known_sites_asset_ids: Vec<String>,
     requested_mode: bijux_dna_domain_bam::params::BqsrMode,
     effective_mode: bijux_dna_domain_bam::params::BqsrMode,
     status: String,
@@ -150,6 +156,11 @@ fn materialize_local_recalibration_smoke_case(
         && summary.reason == case.expected_reason
         && summary.requested_mode == case.requested_mode
         && summary.effective_mode == case.effective_mode;
+    let known_sites_asset_ids = summary
+        .known_sites
+        .iter()
+        .map(|path| known_sites_asset_id(repo_root, path))
+        .collect::<Result<Vec<_>>>()?;
     let mean_coverage_margin = summary.observed_mean_coverage - case.min_mean_coverage;
     let breadth_1x_margin = summary.observed_breadth_1x - case.min_breadth_1x;
 
@@ -172,11 +183,13 @@ fn materialize_local_recalibration_smoke_case(
                 .iter()
                 .map(|path| path_relative_to_repo(repo_root, &repo_root.join(path)))
                 .collect::<Vec<_>>(),
+            "expected_known_sites_asset_ids": known_sites_asset_ids.clone(),
             "known_sites": summary
                 .known_sites
                 .iter()
                 .map(|path| path_relative_to_repo(repo_root, path))
                 .collect::<Vec<_>>(),
+            "known_sites_asset_ids": known_sites_asset_ids.clone(),
             "expected_coverage_gate": {
                 "min_mean_coverage": case.min_mean_coverage,
                 "min_breadth_1x": case.min_breadth_1x,
@@ -195,6 +208,7 @@ fn materialize_local_recalibration_smoke_case(
     Ok(LocalRecalibrationSmokeReport {
         schema_version: LOCAL_RECALIBRATION_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
         stage_id: "bam.recalibration".to_string(),
+        tool_id: EXPECTED_TOOL_ID.to_string(),
         sample_id: case.sample_id.clone(),
         expectation_matched,
         input_bam: path_relative_to_repo(repo_root, &input_bam),
@@ -204,6 +218,7 @@ fn materialize_local_recalibration_smoke_case(
             .iter()
             .map(|path| path_relative_to_repo(repo_root, path))
             .collect(),
+        known_sites_asset_ids,
         requested_mode: summary.requested_mode,
         effective_mode: summary.effective_mode,
         status: summary.status.clone(),
@@ -281,4 +296,16 @@ fn relative_path(repo_root: &Path, path: &Path) -> PathBuf {
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     relative_path(repo_root, path).display().to_string()
+}
+
+fn known_sites_asset_id(repo_root: &Path, path: &Path) -> Result<String> {
+    let relative = path_relative_to_repo(repo_root, path);
+    match relative.as_str() {
+        HUMAN_LIKE_RECALIBRATION_KNOWN_SITES_PATH => {
+            Ok(HUMAN_LIKE_RECALIBRATION_KNOWN_SITES_ASSET_ID.to_string())
+        }
+        _ => Err(anyhow!(
+            "bam.recalibration local-smoke known-sites asset id is not governed for `{relative}`"
+        )),
+    }
 }
