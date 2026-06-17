@@ -144,6 +144,7 @@ pub(crate) fn render_input_preflight_tests(
 
     ensure_tool_coverage(&retained_tool_ids, &covered_tool_ids)?;
     ensure_required_class_coverage(&missing_input_class_counts)?;
+    ensure_no_ambiguous_input_classes(&missing_input_class_counts)?;
     if failed_row_count != 0 {
         let failed_rows = rows
             .iter()
@@ -810,10 +811,29 @@ fn ensure_required_class_coverage(counts: &BTreeMap<String, usize>) -> Result<()
     Ok(())
 }
 
+fn ensure_no_ambiguous_input_classes(counts: &BTreeMap<String, usize>) -> Result<()> {
+    if let Some(other_count) = counts.get("other") {
+        return Err(anyhow!(
+            "retained-tool input preflight tests must not emit ambiguous `other` input classes, found {other_count}"
+        ));
+    }
+    Ok(())
+}
+
 fn infer_missing_input_class(role: &str, path: &Path) -> String {
     let role = role.to_ascii_lowercase();
     let path_text = path.to_string_lossy().to_ascii_lowercase();
+    if role.contains("metadata") {
+        return "metadata".to_string();
+    }
     if role.contains("panel") {
+        return "panel".to_string();
+    }
+    if role.contains("regions")
+        || role.contains("sites_bed")
+        || path_text.ends_with(".bed")
+        || path_text.contains("/regions/")
+    {
         return "panel".to_string();
     }
     if role.contains("database")
@@ -863,6 +883,15 @@ fn infer_missing_input_class(role: &str, path: &Path) -> String {
     }
     if role.contains("index") {
         return "index".to_string();
+    }
+    if role.contains("segment") {
+        return "segments".to_string();
+    }
+    if role.contains("table") || path_text.contains("/tables/") {
+        return "table".to_string();
+    }
+    if role.contains("report") || path_text.ends_with(".json") {
+        return "report".to_string();
     }
     "other".to_string()
 }
