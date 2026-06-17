@@ -250,6 +250,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamKinshipComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_kinship_complete::run_render_bam_kinship_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamAuthenticityComplete(args) => {
                         crate::commands::benchmark::readiness::bam_authenticity_complete::run_render_bam_authenticity_complete(
                             args,

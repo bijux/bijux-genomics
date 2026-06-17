@@ -42,6 +42,7 @@ pub(crate) mod bam_endogenous_content_complete;
 pub(crate) mod bam_genotyping_complete;
 pub(crate) mod bam_haplogroups_complete;
 pub(crate) mod bam_insert_size_gc_bias_ready;
+pub(crate) mod bam_kinship_complete;
 pub(crate) mod bam_kinship_ready;
 pub(crate) mod bam_local_container_smoke;
 pub(crate) mod bam_normalized_metrics_schema;

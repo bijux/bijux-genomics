@@ -34,6 +34,8 @@ pub enum BenchReadinessCommand {
     RenderBamKinshipReady(BenchReadinessRenderBamKinshipReadyArgs),
     #[command(name = "render-bam-recalibration-genotyping-ready")]
     RenderBamRecalibrationGenotypingReady(BenchReadinessRenderBamRecalibrationGenotypingReadyArgs),
+    #[command(name = "render-bam-kinship-complete")]
+    RenderBamKinshipComplete(BenchReadinessRenderBamKinshipCompleteArgs),
     #[command(name = "render-bam-authenticity-complete")]
     RenderBamAuthenticityComplete(BenchReadinessRenderBamAuthenticityCompleteArgs),
     #[command(name = "render-bam-contamination-complete")]
@@ -440,6 +442,14 @@ pub struct BenchReadinessRenderBamKinshipReadyArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamRecalibrationGenotypingReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamKinshipCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
