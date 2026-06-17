@@ -676,6 +676,15 @@ Visible aliases are part of the operator surface:
   artifacts under `king`, keeping pairwise kinship rows, overlap SNP counts, kinship
   coefficients, insufficient-data status, and governed report paths explicit in the BAM benchmark
   surface.
+- `bijux-dna bench readiness render-bam-kinship-complete`
+  `render-bam-kinship-complete` writes
+  `benchmarks/readiness/bam/stages/bam.kinship.complete.json` with every retained
+  `bam.kinship` binding promoted into a stage-owned completion gate. The report keeps active-scope,
+  command, output, parser, expected-result, report-map, and schema proofs explicit for `angsd`
+  and `king`, while adding owned ready and insufficient-overlap kinship smoke evidence, parser-smoke
+  proof for the governed `kinship.summary.json` contract, and pipeline-locality proof that
+  overlap insufficiency remains scoped to `bam.kinship` instead of blocking unrelated BAM or VCF
+  downstream stages.
 - `bijux-dna bench readiness render-bam-recalibration-genotyping-ready`
   `render-bam-recalibration-genotyping-ready` writes
   `benchmarks/readiness/bam/recalibration-genotyping-ready.json` with one governed row for
