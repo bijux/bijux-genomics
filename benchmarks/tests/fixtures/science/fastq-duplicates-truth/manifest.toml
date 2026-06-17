@@ -1,0 +1,11 @@
+schema_version = "bijux.bench.fastq_duplicates_truth.v1"
+fixture_id = "fastq-duplicates-truth"
+description = "Governed FASTQ duplicate detection and deduplication truth bundle for exact duplicate metrics and retained-read checks."
+expected_path = "expected.json"
+stage_ids = ["fastq.detect_duplicates_premerge", "fastq.remove_duplicates"]
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz",
+  "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz",
+  "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz",
+  "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz",
+]
