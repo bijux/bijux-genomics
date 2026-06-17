@@ -265,9 +265,11 @@ pub(crate) fn has_bam_local_ready_only_contract(stage_id: &str) -> bool {
 #[cfg(feature = "bam_downstream")]
 fn materialize_feature_gated_stage(repo_root: &Path, stage_id: &str) -> Result<PathBuf> {
     match stage_id {
-        "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship" => {
+        "bam.bias_mitigation" | "bam.kinship" => {
             materialize_local_stage_from_plans(repo_root, stage_id)
         }
+        "bam.genotyping" => bijux_dna_api::v1::api::bam::write_local_genotyping_plan(),
+        "bam.haplogroups" => bijux_dna_api::v1::api::bam::write_local_haplogroups_plan(),
         other => Err(anyhow!("unsupported local benchmark stage `{other}`")),
     }
 }
