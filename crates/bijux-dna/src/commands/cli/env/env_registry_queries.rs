@@ -162,7 +162,7 @@ pub fn run_env_prep(
                 &tools,
                 false,
                 false,
-        )?;
+            )?;
             return Ok(());
         }
         return run_env_with_tools(registry_path, runtime, &tools, "version");
@@ -179,7 +179,7 @@ pub fn run_env_prep(
                 &tools,
                 false,
                 false,
-        )?;
+            )?;
             return Ok(());
         }
         return run_env_with_tools(registry_path, runtime, &tools, "version");
@@ -215,7 +215,7 @@ fn selected_tools(value: &str) -> Vec<String> {
     }
 }
 
-fn current_registry_path() -> Result<PathBuf> {
+pub(crate) fn current_registry_path() -> Result<PathBuf> {
     let cwd = std::env::current_dir().context("resolve current working directory")?;
     if let Ok(configured) = std::env::var("BIJUX_TOOL_REGISTRY_PATH") {
         let trimmed = configured.trim();
@@ -266,8 +266,7 @@ fn run_docker_env_with_tools(
         let row = registry_rows
             .remove(&tool_id)
             .ok_or_else(|| anyhow!("tool not found in registry: {tool_id}"))?;
-        let image_name =
-            ensure_local_docker_image(&repo_root, runtime, &platform, &catalog, &row)?;
+        let image_name = ensure_local_docker_image(&repo_root, runtime, &platform, &catalog, &row)?;
         for probe in docker_probe_commands(&row, smoke_level) {
             run_docker_probe(&image_name, &probe, row.expected_bin.as_deref())
                 .with_context(|| format!("docker smoke {runtime} {tool_id}: `{probe}`"))?;
@@ -314,10 +313,7 @@ fn ensure_local_docker_image<S: ::std::hash::BuildHasher>(
     }
     let container_dir = repo_root.join(&platform.container_dir);
     if !container_dir.is_dir() {
-        return Err(anyhow!(
-            "missing docker container dir {}",
-            container_dir.display()
-        ));
+        return Err(anyhow!("missing docker container dir {}", container_dir.display()));
     }
     let spec = catalog
         .get(&row.id)
@@ -384,10 +380,7 @@ fn buildable_docker_image_name(
     if version.is_empty() {
         return Err(anyhow!("tool `{tool_id}` is missing docker image version"));
     }
-    Ok(format!(
-        "{}/{}:{}-{}",
-        platform.image_prefix, tool_id, version, platform.arch
-    ))
+    Ok(format!("{}/{}:{}-{}", platform.image_prefix, tool_id, version, platform.arch))
 }
 
 fn docker_build_state_path(repo_root: &Path, runtime: &str, tool_id: &str) -> PathBuf {
@@ -504,10 +497,7 @@ enum DockerProbeInvocation {
 
 fn docker_probe_invocation(probe: &str, expected_bin: Option<&str>) -> DockerProbeInvocation {
     let trimmed = probe.trim();
-    let Some(expected_bin) = expected_bin
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-    else {
+    let Some(expected_bin) = expected_bin.map(str::trim).filter(|value| !value.is_empty()) else {
         return DockerProbeInvocation::Shell(trimmed.to_string());
     };
     let mut tokens = trimmed.split_whitespace().map(ToOwned::to_owned).collect::<Vec<_>>();
@@ -541,8 +531,9 @@ fn resolved_apptainer_hpc_root() -> Result<PathBuf> {
 #[allow(clippy::expect_used)]
 mod env_registry_query_tests {
     use super::{
-        docker_probe_commands, docker_probe_invocation, registry_tools_for_stage, selected_tools,
-        DockerProbeInvocation, RegistryRow,
+        current_registry_path, docker_probe_commands, docker_probe_invocation,
+        parse_tools_registry_rows, registry_tools_for_stage, selected_tools, DockerProbeInvocation,
+        RegistryRow,
     };
 
     fn registry_path() -> std::path::PathBuf {
@@ -600,7 +591,7 @@ mod env_registry_query_tests {
             "benchmark",
         )
         .expect("read-length benchmark tools");
-        assert_eq!(tools, vec!["seqkit_stats"]);
+        assert_eq!(tools, vec!["fastp", "prinseq", "seqfu", "seqkit_stats"]);
     }
 
     #[test]
@@ -616,15 +607,13 @@ mod env_registry_query_tests {
     #[test]
     fn docker_probe_invocation_uses_image_entrypoint_when_probe_matches_expected_bin() {
         let invocation = docker_probe_invocation("adapterremoval --help", Some("adapterremoval"));
-        assert_eq!(
-            invocation,
-            DockerProbeInvocation::EntrypointArgs(vec!["--help".to_string()])
-        );
+        assert_eq!(invocation, DockerProbeInvocation::EntrypointArgs(vec!["--help".to_string()]));
     }
 
     #[test]
     fn docker_probe_invocation_falls_back_to_shell_when_probe_uses_wrapper_command() {
-        let invocation = docker_probe_invocation("sh -lc 'adapterremoval --help'", Some("adapterremoval"));
+        let invocation =
+            docker_probe_invocation("sh -lc 'adapterremoval --help'", Some("adapterremoval"));
         assert_eq!(
             invocation,
             DockerProbeInvocation::Shell("sh -lc 'adapterremoval --help'".to_string())
@@ -642,11 +631,44 @@ mod env_registry_query_tests {
         };
         assert_eq!(
             docker_probe_commands(&row, "contract"),
-            vec![
-                "adapterremoval --version".to_string(),
-                "adapterremoval --help".to_string()
-            ]
+            vec!["adapterremoval --version".to_string(), "adapterremoval --help".to_string()]
         );
+    }
+
+    #[test]
+    fn parse_tools_registry_rows_keeps_last_tool_before_stage_section() {
+        let rows = parse_tools_registry_rows(
+            r#"
+[[tools]]
+id = "vsearch"
+runtimes = ["docker"]
+
+[[tools]]
+id = "yleaf"
+runtimes = ["docker", "apptainer"]
+
+[[stages]]
+id = "bam.haplogroups"
+"#,
+        )
+        .expect("parse test registry");
+        assert_eq!(
+            rows.iter().map(|row| row.id.as_str()).collect::<Vec<_>>(),
+            vec!["vsearch", "yleaf"]
+        );
+    }
+
+    #[test]
+    fn current_registry_path_honors_env_override() {
+        let original = std::env::var_os("BIJUX_TOOL_REGISTRY_PATH");
+        std::env::set_var("BIJUX_TOOL_REGISTRY_PATH", "configs/ci/registry/tool_registry_vcf.toml");
+        let path = current_registry_path().expect("resolve registry path override");
+        if let Some(value) = original {
+            std::env::set_var("BIJUX_TOOL_REGISTRY_PATH", value);
+        } else {
+            std::env::remove_var("BIJUX_TOOL_REGISTRY_PATH");
+        }
+        assert!(path.ends_with("configs/ci/registry/tool_registry_vcf.toml"));
     }
 }
 
@@ -770,11 +792,13 @@ fn parse_tools_registry_rows(raw: &str) -> Result<Vec<RegistryRow>> {
         if trimmed.is_empty() || trimmed.starts_with('#') {
             continue;
         }
-        if trimmed == "[[tools]]" {
+        if trimmed.starts_with("[[") && trimmed.ends_with("]]") {
             if let Some(row) = current.take() {
                 rows.push(row);
             }
-            current = Some(RegistryRow::default());
+            if trimmed == "[[tools]]" {
+                current = Some(RegistryRow::default());
+            }
             continue;
         }
         let Some(tool_entry) = current.as_mut() else {
