@@ -12,6 +12,7 @@ use super::bam_rendered_commands;
 use super::bam_report_map;
 use super::expected_benchmark_results;
 use super::tool_serving_map;
+use crate::commands::benchmark::bam_stage_families::BAM_STAGE_FAMILIES;
 use crate::commands::benchmark::readiness::bam_command_adapter_coverage::BamBenchmarkStatus;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -208,81 +209,61 @@ pub(crate) fn render_bam_all_retained_tools_complete(
         },
     );
 
-    for (goal_id, surface, stage_ids) in [
-        (380, "bam.align", vec!["bam.align"]),
-        (
-            381,
-            "bam validation and core qc",
-            vec!["bam.validate", "bam.qc_pre", "bam.mapping_summary"],
-        ),
-        (382, "bam filtering", vec!["bam.filter", "bam.mapq_filter", "bam.length_filter"]),
-        (383, "bam duplicate handling", vec!["bam.markdup", "bam.duplication_metrics"]),
-        (384, "bam complexity", vec!["bam.complexity"]),
-        (385, "bam coverage", vec!["bam.coverage"]),
-        (386, "bam insert-size and gc-bias", vec!["bam.insert_size", "bam.gc_bias"]),
-        (
-            387,
-            "bam overlap and endogenous-content",
-            vec!["bam.overlap_correction", "bam.endogenous_content"],
-        ),
-        (
-            388,
-            "bam damage and authenticity",
-            vec!["bam.bias_mitigation", "bam.damage", "bam.authenticity"],
-        ),
-        (
-            389,
-            "bam contamination sex haplogroups",
-            vec!["bam.contamination", "bam.sex", "bam.haplogroups"],
-        ),
-        (390, "bam recalibration and genotyping", vec!["bam.recalibration", "bam.genotyping"]),
-        (391, "bam kinship", vec!["bam.kinship"]),
-    ] {
+    for family in BAM_STAGE_FAMILIES {
         record_goal_check(
             &mut checks,
-            goal_id,
-            surface.to_string(),
+            family.goal_id,
+            family.surface_label.to_string(),
             Some(
                 bam_command_adapter_coverage::DEFAULT_BAM_COMMAND_ADAPTER_COVERAGE_PATH.to_string(),
             ),
             || {
-                let expected = filter_bindings_by_stage_ids(&retained_bindings, &stage_ids);
+                let expected = filter_bindings_by_stage_ids(&retained_bindings, family.stage_ids);
                 if expected.is_empty() {
-                    bail!("no retained BAM bindings were found for stage slice `{surface}`");
+                    bail!(
+                        "no retained BAM bindings were found for stage slice `{}`",
+                        family.surface_label
+                    );
                 }
-                ensure_binding_subset(surface, "command coverage", &expected, &command_bindings)?;
                 ensure_binding_subset(
-                    surface,
+                    family.surface_label,
+                    "command coverage",
+                    &expected,
+                    &command_bindings,
+                )?;
+                ensure_binding_subset(
+                    family.surface_label,
                     "parser fixture coverage",
                     &expected,
                     &parser_bindings,
                 )?;
                 ensure_binding_subset(
-                    surface,
+                    family.surface_label,
                     "local/container smoke coverage",
                     &expected,
                     &local_smoke_bindings,
                 )?;
                 ensure_binding_subset(
-                    surface,
+                    family.surface_label,
                     "rendered command coverage",
                     &expected,
                     &rendered_command_bindings,
                 )?;
                 ensure_binding_subset(
-                    surface,
+                    family.surface_label,
                     "expected benchmark results",
                     &expected,
                     &expected_result_bindings,
                 )?;
                 ensure_binding_subset(
-                    surface,
+                    family.surface_label,
                     "report map coverage",
                     &expected,
                     &report_map_bindings,
                 )?;
                 Ok(format!(
-                    "validated `{surface}` across {} retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage",
+                    "validated `{}` across {} retained BAM binding(s) with command, parser, smoke, expected-result, rendered-command, and report-map coverage",
+                    family.surface_label,
                     expected.len()
                 ))
             },

@@ -23,6 +23,7 @@
 )]
 pub(crate) mod active_scope;
 pub(crate) mod alias_inventory;
+pub(crate) mod bam_stage_families;
 pub(crate) mod benchmark_result_ids;
 pub(crate) mod config;
 pub(crate) mod corpus_fastq;
