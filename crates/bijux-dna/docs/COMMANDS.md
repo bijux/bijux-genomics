@@ -743,6 +743,16 @@ Visible aliases are part of the operator surface:
   contamination parser contract, typed `contamination.summary.json`, typed `stage.metrics.json`,
   and tool-specific governed outputs such as `contammix.report.txt`, `contamination.estimate.json`,
   and `mt_consensus.fasta` stay present and the insufficiency path keeps explicit refusal codes.
+- `bijux-dna bench readiness render-bam-sex-complete`
+  `render-bam-sex-complete` writes
+  `benchmarks/readiness/bam/stages/bam.sex.complete.json` with every retained `bam.sex`
+  binding promoted into a stage-owned completion gate. The report keeps active-scope, command,
+  output, parser, expected-result, report-map, and schema proofs explicit for `angsd`, `rxy`,
+  and `yleaf`, while adding owned ready and insufficient local-smoke proof per tool. The gate
+  fails closed unless the typed `sex.json`, typed `sex.summary.json`, typed `stage.metrics.json`,
+  and tool-specific governed outputs such as `population_metrics.json`, `sex_estimate.json`, and
+  `haplogroup_report.json` stay present and the insufficient BAM path keeps explicit
+  `insufficient_chromosomes` evidence instead of passing without X/Y/autosome support.
 - `bijux-dna bench readiness render-bam-authenticity-complete`
   `render-bam-authenticity-complete` writes
   `benchmarks/readiness/bam/stages/bam.authenticity.complete.json` with every retained
