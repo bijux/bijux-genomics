@@ -438,10 +438,7 @@ fn collect_fastq_bam_stage_proofs(
 }
 
 fn supports_direct_declared_output_proof(stage_id: &str) -> bool {
-    matches!(
-        stage_id,
-        "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship"
-    )
+    matches!(stage_id, "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship")
 }
 
 fn local_stage_output_contract_proof_plans(
@@ -583,8 +580,7 @@ fn collect_direct_declared_output_proof(
 ) -> Result<LocalStageProof> {
     let mut observed_ids = BTreeSet::<String>::new();
     let mut observed_paths_by_id = BTreeMap::<String, Vec<String>>::new();
-    let proof_root =
-        repo_root.join(DIRECT_OUTPUT_CONTRACT_PROOF_ROOT).join(stage_id).join(tool_id);
+    let proof_root = repo_root.join(DIRECT_OUTPUT_CONTRACT_PROOF_ROOT).join(stage_id).join(tool_id);
     if proof_root.is_dir() {
         std::fs::remove_dir_all(&proof_root)
             .with_context(|| format!("reset proof directory {}", proof_root.display()))?;
@@ -1046,9 +1042,7 @@ mod tests {
             "VCF direct tool smoke proof must be represented"
         );
         assert!(
-            report
-                .output_proof_surface_counts
-                .contains_key("direct_declared_output_proof"),
+            report.output_proof_surface_counts.contains_key("direct_declared_output_proof"),
             "BAM downstream bindings must retain direct declared-output proof coverage"
         );
 
@@ -1075,9 +1069,7 @@ mod tests {
         assert_eq!(report.failed_row_count, 0);
         assert_eq!(report.passed_row_count, report.row_count);
         assert!(
-            !report
-                .output_proof_surface_counts
-                .contains_key("local_stage_materialization_blocked"),
+            !report.output_proof_surface_counts.contains_key("local_stage_materialization_blocked"),
             "governed proof runs should not leave blocked FASTQ/BAM materialization rows"
         );
         assert_eq!(fastq_index_reference.output_proof_surface, "shared_stage_smoke");

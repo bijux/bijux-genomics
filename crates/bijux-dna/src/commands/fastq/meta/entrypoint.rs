@@ -640,6 +640,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderRetainedToolsetExecutableLocal(args) => {
+                        crate::commands::benchmark::readiness::retained_toolset_executable_local::run_render_retained_toolset_executable_local(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderVersionProbes(args) => {
                         crate::commands::benchmark::readiness::version_probes::run_render_version_probes(
                             args,

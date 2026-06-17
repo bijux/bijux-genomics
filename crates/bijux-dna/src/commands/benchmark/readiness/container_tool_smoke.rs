@@ -428,10 +428,7 @@ fn smoke_command_env(
         envs.push(("BIJUX_BIN".to_string(), bijux_bin_env));
     }
     if let Some(registry_path) = registry_path.map(str::trim).filter(|path| !path.is_empty()) {
-        envs.push((
-            "BIJUX_TOOL_REGISTRY_PATH".to_string(),
-            registry_path.to_string(),
-        ));
+        envs.push(("BIJUX_TOOL_REGISTRY_PATH".to_string(), registry_path.to_string()));
     }
     envs
 }

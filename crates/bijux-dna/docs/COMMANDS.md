@@ -1051,6 +1051,17 @@ Visible aliases are part of the operator surface:
   snapshot, and an explicit pass reason. The command fails closed unless every retained family has
   a real tiny output parsed through the owned normalization surface or governed BAM summary schema
   instead of relying on handcrafted parser fixtures alone.
+- `bijux-dna bench readiness render-retained-toolset-executable-local`
+  `render-retained-toolset-executable-local` writes
+  `benchmarks/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json` as the final local retained
+  tool execution gate for Goals 421–429. The gate rerenders the governed retained inventory,
+  executable-resolution, version-probe, Apptainer-map, input-preflight, output-contract, and
+  real-output parser proof surfaces, and it validates the retained host/container smoke manifests
+  already recorded under `runs/bench/tool-smoke/{host,container}`. The report keeps the checked
+  goal ids, failing goal ids when any, retained-tool and smoke counts, parser-family count, and a
+  per-goal detail line. The command fails closed if any retained active tool is unresolved,
+  unversioned, missing a governed smoke manifest, missing a structured unavailable reason, or
+  absent from the retained-family parser proof surface.
 - `bijux-dna bench readiness run-container-tool-smoke`
   `run-container-tool-smoke` executes the governed local container smoke wrapper for every
   retained tool that resolves to a non-host runtime and writes one manifest per tool at

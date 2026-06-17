@@ -200,6 +200,8 @@ pub enum BenchReadinessCommand {
     RenderOutputContractTests(BenchReadinessRenderOutputContractTestsArgs),
     #[command(name = "render-real-output-parser-smoke")]
     RenderRealOutputParserSmoke(BenchReadinessRenderRealOutputParserSmokeArgs),
+    #[command(name = "render-retained-toolset-executable-local")]
+    RenderRetainedToolsetExecutableLocal(BenchReadinessRenderRetainedToolsetExecutableLocalArgs),
     #[command(name = "render-version-probes")]
     RenderVersionProbes(BenchReadinessRenderVersionProbesArgs),
     #[command(name = "run-container-tool-smoke")]
@@ -1358,6 +1360,14 @@ pub struct BenchReadinessRenderOutputContractTestsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderRealOutputParserSmokeArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderRetainedToolsetExecutableLocalArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

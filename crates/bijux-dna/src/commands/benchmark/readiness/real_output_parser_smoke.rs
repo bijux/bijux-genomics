@@ -12,7 +12,9 @@ use serde_json::Value;
 
 use super::expected_benchmark_results::collect_expected_benchmark_result_rows;
 use super::tool_families::{validate_tool_families_path, DEFAULT_TOOL_FAMILIES_PATH};
-use crate::commands::benchmark::local_stage_commands::{local_stage_plans, materialize_local_stage};
+use crate::commands::benchmark::local_stage_commands::{
+    local_stage_plans, materialize_local_stage,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -64,10 +66,7 @@ struct FamilyProbeSpec {
 
 #[derive(Debug, Clone, Copy)]
 enum ProbeKind {
-    LocalStage {
-        stage_id: &'static str,
-        proof_pointer: Option<&'static str>,
-    },
+    LocalStage { stage_id: &'static str, proof_pointer: Option<&'static str> },
     GeneratedIndexReference,
     GeneratedCorrectErrors,
     GeneratedDepleteHost,
@@ -171,9 +170,7 @@ pub(crate) fn run_render_real_output_parser_smoke(
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let report = render_real_output_parser_smoke(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH)),
+        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH)),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -193,11 +190,13 @@ pub(crate) fn render_real_output_parser_smoke(
     }
     let probe_root = repo_root.join(DEFAULT_PROBE_ROOT);
     if probe_root.exists() {
-        fs::remove_dir_all(&probe_root).with_context(|| format!("remove {}", probe_root.display()))?;
+        fs::remove_dir_all(&probe_root)
+            .with_context(|| format!("remove {}", probe_root.display()))?;
     }
     fs::create_dir_all(&probe_root).with_context(|| format!("create {}", probe_root.display()))?;
 
-    let report = build_real_output_parser_smoke_report(repo_root, &absolute_output_path, &probe_root)?;
+    let report =
+        build_real_output_parser_smoke_report(repo_root, &absolute_output_path, &probe_root)?;
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)?;
     if report.failed_family_count != 0 {
         return Err(anyhow!(
@@ -221,10 +220,9 @@ fn build_real_output_parser_smoke_report(
 
     let mut rows = Vec::with_capacity(active_families.len());
     for (family_id, family_summary) in active_families {
-        let spec = spec_map
-            .get(family_id.as_str())
-            .copied()
-            .ok_or_else(|| anyhow!("real-output parser smoke has no governed probe spec for family `{family_id}`"))?;
+        let spec = spec_map.get(family_id.as_str()).copied().ok_or_else(|| {
+            anyhow!("real-output parser smoke has no governed probe spec for family `{family_id}`")
+        })?;
         let materialized = materialize_family_proof(repo_root, probe_root, &spec)?;
         let parsed = parse_proof(&materialized.proof_path, spec.parse_kind, spec.snapshot_keys)?;
         rows.push(RealOutputParserSmokeRow {
@@ -297,7 +295,13 @@ fn family_probe_specs() -> Vec<FamilyProbeSpec> {
             representative_stage_id: "fastq.index_reference",
             probe_kind: ProbeKind::GeneratedIndexReference,
             parse_kind: ParseKind::FastqIndexReference,
-            snapshot_keys: &["tool_id", "threads", "index_format", "index_file_count", "index_bytes"],
+            snapshot_keys: &[
+                "tool_id",
+                "threads",
+                "index_format",
+                "index_file_count",
+                "index_bytes",
+            ],
         },
         FamilyProbeSpec {
             family_id: "alignment",
@@ -349,10 +353,7 @@ fn family_probe_specs() -> Vec<FamilyProbeSpec> {
         FamilyProbeSpec {
             family_id: "report_aggregation",
             representative_stage_id: "fastq.report_qc",
-            probe_kind: ProbeKind::LocalStage {
-                stage_id: "fastq.report_qc",
-                proof_pointer: None,
-            },
+            probe_kind: ProbeKind::LocalStage { stage_id: "fastq.report_qc", proof_pointer: None },
             parse_kind: ParseKind::FastqReportQc,
             snapshot_keys: &[
                 "tool_id",
@@ -498,7 +499,12 @@ fn family_probe_specs() -> Vec<FamilyProbeSpec> {
                 proof_pointer: Some("/complexity_summary"),
             },
             parse_kind: ParseKind::BamComplexitySummary,
-            snapshot_keys: &["method", "status", "estimated_distinct_fragments", "observed_fragments"],
+            snapshot_keys: &[
+                "method",
+                "status",
+                "estimated_distinct_fragments",
+                "observed_fragments",
+            ],
         },
         FamilyProbeSpec {
             family_id: "sex_and_haplogroup_inference",
@@ -557,9 +563,13 @@ fn materialize_family_proof(
         ProbeKind::GeneratedDepleteRrna => generate_deplete_rrna_probe(repo_root, probe_root),
         ProbeKind::GeneratedScreenTaxonomy => generate_screen_taxonomy_probe(repo_root, probe_root),
         ProbeKind::GeneratedBamAlign => generate_bam_align_probe(repo_root, probe_root),
-        ProbeKind::GeneratedBamContamination => generate_bam_contamination_probe(repo_root, probe_root),
+        ProbeKind::GeneratedBamContamination => {
+            generate_bam_contamination_probe(repo_root, probe_root)
+        }
         ProbeKind::GeneratedBamDamage => generate_bam_damage_probe(repo_root, probe_root),
-        ProbeKind::GeneratedBamAuthenticity => generate_bam_authenticity_probe(repo_root, probe_root),
+        ProbeKind::GeneratedBamAuthenticity => {
+            generate_bam_authenticity_probe(repo_root, probe_root)
+        }
         ProbeKind::GeneratedBamGenotyping => generate_bam_genotyping_probe(repo_root, probe_root),
         ProbeKind::GeneratedBamKinship => generate_bam_kinship_probe(repo_root, probe_root),
         ProbeKind::GeneratedBamSex => generate_bam_sex_probe(repo_root, probe_root),
@@ -577,123 +587,154 @@ fn parse_proof(
 ) -> Result<(Value, BTreeMap<String, Value>)> {
     match parse_kind {
         ParseKind::FastqIndexReference => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_index_reference_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqCorrectErrors => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_correct_errors_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqDepleteHost => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_deplete_host_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqDepleteRrna => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_deplete_rrna_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqTrimReads => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_trim_reads_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqMergePairs => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_merge_pairs_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqFilterReads => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_filter_reads_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqProfileReads => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_profile_reads_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqReportQc => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_report_qc_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqRemoveDuplicates => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_remove_duplicates_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqExtractUmis => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_extract_umis_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqScreenTaxonomy => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_screen_taxonomy_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqInferAsvs => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_infer_asvs_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqNormalizeAbundance => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_normalize_abundance_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::FastqDetectDuplicatesPremerge => {
-            let raw = fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?;
+            let raw = fs::read_to_string(proof_path)
+                .with_context(|| format!("read {}", proof_path.display()))?;
             let _ = bijux_dna_domain_fastq::observer::parse_detect_duplicates_premerge_report(&raw)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::BamValidationSummary => {
-            let _: bijux_dna_domain_bam::BamValidationSummaryV1 =
-                serde_json::from_str(&fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?)
-                    .with_context(|| format!("parse {}", proof_path.display()))?;
+            let _: bijux_dna_domain_bam::BamValidationSummaryV1 = serde_json::from_str(
+                &fs::read_to_string(proof_path)
+                    .with_context(|| format!("read {}", proof_path.display()))?,
+            )
+            .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::BamAlignmentProvenance => {
-            let _: bijux_dna_domain_bam::BamAlignmentProvenanceV1 =
-                serde_json::from_str(&fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?)
-                    .with_context(|| format!("parse {}", proof_path.display()))?;
+            let _: bijux_dna_domain_bam::BamAlignmentProvenanceV1 = serde_json::from_str(
+                &fs::read_to_string(proof_path)
+                    .with_context(|| format!("read {}", proof_path.display()))?,
+            )
+            .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::BamContaminationJson => {
             let _ = bijux_dna_domain_bam::metrics::parse_contamination_json(proof_path)
                 .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::BamOverlapCorrectionSummary => {
-            let _: bijux_dna_domain_bam::BamOverlapCorrectionSummaryV1 =
-                serde_json::from_str(&fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?)
-                    .with_context(|| format!("parse {}", proof_path.display()))?;
+            let _: bijux_dna_domain_bam::BamOverlapCorrectionSummaryV1 = serde_json::from_str(
+                &fs::read_to_string(proof_path)
+                    .with_context(|| format!("read {}", proof_path.display()))?,
+            )
+            .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::BamRecalibrationSummary => {
-            let _: bijux_dna_domain_bam::BamRecalibrationSummaryV1 =
-                serde_json::from_str(&fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?)
-                    .with_context(|| format!("parse {}", proof_path.display()))?;
+            let _: bijux_dna_domain_bam::BamRecalibrationSummaryV1 = serde_json::from_str(
+                &fs::read_to_string(proof_path)
+                    .with_context(|| format!("read {}", proof_path.display()))?,
+            )
+            .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::BamDamageEvidence => {
-            let _: bijux_dna_domain_bam::BamDamageEvidenceV1 =
-                serde_json::from_str(&fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?)
-                    .with_context(|| format!("parse {}", proof_path.display()))?;
+            let _: bijux_dna_domain_bam::BamDamageEvidenceV1 = serde_json::from_str(
+                &fs::read_to_string(proof_path)
+                    .with_context(|| format!("read {}", proof_path.display()))?,
+            )
+            .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::BamAuthenticityAdvisory => {
-            let _: bijux_dna_domain_bam::BamAuthenticityAdvisoryV1 =
-                serde_json::from_str(&fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?)
-                    .with_context(|| format!("parse {}", proof_path.display()))?;
+            let _: bijux_dna_domain_bam::BamAuthenticityAdvisoryV1 = serde_json::from_str(
+                &fs::read_to_string(proof_path)
+                    .with_context(|| format!("read {}", proof_path.display()))?,
+            )
+            .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::BamComplexitySummary => {
-            let _: bijux_dna_domain_bam::BamComplexitySummaryV1 =
-                serde_json::from_str(&fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?)
-                    .with_context(|| format!("parse {}", proof_path.display()))?;
+            let _: bijux_dna_domain_bam::BamComplexitySummaryV1 = serde_json::from_str(
+                &fs::read_to_string(proof_path)
+                    .with_context(|| format!("read {}", proof_path.display()))?,
+            )
+            .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::BamKinshipSummary => {
-            let _: bijux_dna_domain_bam::BamKinshipSummaryV1 =
-                serde_json::from_str(&fs::read_to_string(proof_path).with_context(|| format!("read {}", proof_path.display()))?)
-                    .with_context(|| format!("parse {}", proof_path.display()))?;
+            let _: bijux_dna_domain_bam::BamKinshipSummaryV1 = serde_json::from_str(
+                &fs::read_to_string(proof_path)
+                    .with_context(|| format!("read {}", proof_path.display()))?,
+            )
+            .with_context(|| format!("parse {}", proof_path.display()))?;
         }
         ParseKind::BamSexJson => {
             let _ = bijux_dna_domain_bam::metrics::parse_sex_json(proof_path)
@@ -727,7 +768,9 @@ fn parse_surface_label(parse_kind: ParseKind) -> &'static str {
         ParseKind::FastqScreenTaxonomy => "fastq::parse_screen_taxonomy_report",
         ParseKind::FastqInferAsvs => "fastq::parse_infer_asvs_report",
         ParseKind::FastqNormalizeAbundance => "fastq::parse_normalize_abundance_report",
-        ParseKind::FastqDetectDuplicatesPremerge => "fastq::parse_detect_duplicates_premerge_report",
+        ParseKind::FastqDetectDuplicatesPremerge => {
+            "fastq::parse_detect_duplicates_premerge_report"
+        }
         ParseKind::BamValidationSummary => "serde_json::<BamValidationSummaryV1>",
         ParseKind::BamAlignmentProvenance => "serde_json::<BamAlignmentProvenanceV1>",
         ParseKind::BamContaminationJson => "bam::parse_contamination_json",
@@ -742,7 +785,10 @@ fn parse_surface_label(parse_kind: ParseKind) -> &'static str {
     }
 }
 
-fn generate_index_reference_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
+fn generate_index_reference_probe(
+    repo_root: &Path,
+    probe_root: &Path,
+) -> Result<MaterializedProof> {
     let plan = bijux_dna_planner_fastq::stage_api::local_index_reference_plan(repo_root)?;
     let probe_dir = probe_root.join("reference_indexing");
     fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
@@ -755,14 +801,17 @@ fn generate_index_reference_probe(repo_root: &Path, probe_root: &Path) -> Result
     fs::create_dir_all(&index_root).with_context(|| format!("create {}", index_root.display()))?;
     let extension = if tool_id == "bowtie2_build" { "bt2" } else { "idx" };
     let emitted_path = index_root.join(format!("reference.1.{extension}"));
-    fs::write(&emitted_path, b"bijux-index\n").with_context(|| format!("write {}", emitted_path.display()))?;
+    fs::write(&emitted_path, b"bijux-index\n")
+        .with_context(|| format!("write {}", emitted_path.display()))?;
     let emitted_files = vec![bijux_dna_domain_fastq::IndexReferenceFileEntryV1 {
         relative_path: emitted_path
             .strip_prefix(&index_root)
             .unwrap_or(&emitted_path)
             .display()
             .to_string(),
-        bytes: fs::metadata(&emitted_path).with_context(|| format!("stat {}", emitted_path.display()))?.len(),
+        bytes: fs::metadata(&emitted_path)
+            .with_context(|| format!("stat {}", emitted_path.display()))?
+            .len(),
     }];
     let index_bytes = emitted_files.iter().map(|entry| entry.bytes).sum::<u64>();
     let report_path = probe_dir.join("index_reference_report.json");
@@ -771,7 +820,9 @@ fn generate_index_reference_probe(repo_root: &Path, probe_root: &Path) -> Result
         stage: "fastq.index_reference".to_string(),
         stage_id: "fastq.index_reference".to_string(),
         tool_id: tool_id.clone(),
-        threads: u64_json(&plan.effective_params, "threads").and_then(|value| u32::try_from(value).ok()).unwrap_or(1),
+        threads: u64_json(&plan.effective_params, "threads")
+            .and_then(|value| u32::try_from(value).ok())
+            .unwrap_or(1),
         index_format: tool_id.clone(),
         reference_fasta: path_relative_to_repo(repo_root, &reference_fasta),
         reference_bytes,
@@ -792,9 +843,8 @@ fn generate_index_reference_probe(repo_root: &Path, probe_root: &Path) -> Result
 
 fn generate_correct_errors_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
     let cases = bijux_dna_planner_fastq::stage_api::local_correct_errors_smoke_plans(repo_root)?;
-    let case = cases
-        .first()
-        .ok_or_else(|| anyhow!("missing governed local correct-errors smoke case"))?;
+    let case =
+        cases.first().ok_or_else(|| anyhow!("missing governed local correct-errors smoke case"))?;
     let probe_dir = probe_root.join("error_correction");
     fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
     let input_r1 = repo_root.join(&case.r1);
@@ -812,7 +862,9 @@ fn generate_correct_errors_probe(repo_root: &Path, probe_root: &Path) -> Result<
     let stats_r2 = input_r2.as_ref().map(|path| count_fastq_stats(path)).transpose()?;
     let reads_in = stats_r1.reads + stats_r2.as_ref().map_or(0, |stats| stats.reads);
     let bases_in = stats_r1.bases + stats_r2.as_ref().map_or(0, |stats| stats.bases);
-    let pairs_in = input_r2.as_ref().map(|_| stats_r1.reads.min(stats_r2.as_ref().map_or(0, |stats| stats.reads)));
+    let pairs_in = input_r2
+        .as_ref()
+        .map(|_| stats_r1.reads.min(stats_r2.as_ref().map_or(0, |stats| stats.reads)));
     let report_path = probe_dir.join("correct_report.json");
     let engine = match case.plan.tool_id.as_str() {
         "lighter" => bijux_dna_domain_fastq::params::correct::CorrectionEngine::Lighter,
@@ -830,13 +882,17 @@ fn generate_correct_errors_probe(repo_root: &Path, probe_root: &Path) -> Result<
         } else {
             bijux_dna_domain_fastq::PairedMode::SingleEnd
         },
-        threads: u64_json(&case.plan.effective_params, "threads").and_then(|value| u32::try_from(value).ok()).unwrap_or(1),
+        threads: u64_json(&case.plan.effective_params, "threads")
+            .and_then(|value| u32::try_from(value).ok())
+            .unwrap_or(1),
         correction_engine: engine,
         quality_encoding: case.quality_encoding.clone(),
-        kmer_size: u64_json(&case.plan.effective_params, "kmer_size").and_then(|value| u32::try_from(value).ok()),
+        kmer_size: u64_json(&case.plan.effective_params, "kmer_size")
+            .and_then(|value| u32::try_from(value).ok()),
         musket_kmer_budget: u64_json(&case.plan.effective_params, "musket_kmer_budget"),
         genome_size: u64_json(&case.plan.effective_params, "genome_size"),
-        max_memory_gb: u64_json(&case.plan.effective_params, "max_memory_gb").and_then(|value| u32::try_from(value).ok()),
+        max_memory_gb: u64_json(&case.plan.effective_params, "max_memory_gb")
+            .and_then(|value| u32::try_from(value).ok()),
         trusted_kmer_artifact: None,
         conservative_mode: case.conservative_mode,
         input_r1: path_relative_to_repo(repo_root, &input_r1),
@@ -856,7 +912,9 @@ fn generate_correct_errors_probe(repo_root: &Path, probe_root: &Path) -> Result<
         mean_q_before: None,
         mean_q_after: None,
         kmer_fix_rate: Some(0.0),
-        correction_effect: Some(serde_json::json!({ "outputs_changed": false, "probe": "governed_tiny_copy" })),
+        correction_effect: Some(
+            serde_json::json!({ "outputs_changed": false, "probe": "governed_tiny_copy" }),
+        ),
         runtime_s: Some(0.0),
         memory_mb: Some(0.0),
         exit_code: Some(0),
@@ -865,7 +923,10 @@ fn generate_correct_errors_probe(repo_root: &Path, probe_root: &Path) -> Result<
         backend_metrics: Some(serde_json::json!({ "changed_reads": 0_u64 })),
     };
     bijux_dna_infra::atomic_write_json(&report_path, &report)?;
-    Ok(MaterializedProof { proof_path: report_path, observed_tool_id: case.plan.tool_id.as_str().to_string() })
+    Ok(MaterializedProof {
+        proof_path: report_path,
+        observed_tool_id: case.plan.tool_id.as_str().to_string(),
+    })
 }
 
 fn generate_deplete_host_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
@@ -896,7 +957,9 @@ fn generate_deplete_host_probe(repo_root: &Path, probe_root: &Path) -> Result<Ma
     let stats_r2 = input_r2.as_ref().map(|path| count_fastq_stats(path)).transpose()?;
     let reads_in = stats_r1.reads + stats_r2.as_ref().map_or(0, |stats| stats.reads);
     let bases_in = stats_r1.bases + stats_r2.as_ref().map_or(0, |stats| stats.bases);
-    let pairs_in = input_r2.as_ref().map(|_| stats_r1.reads.min(stats_r2.as_ref().map_or(0, |stats| stats.reads)));
+    let pairs_in = input_r2
+        .as_ref()
+        .map(|_| stats_r1.reads.min(stats_r2.as_ref().map_or(0, |stats| stats.reads)));
     let report_path = probe_dir.join("host_depletion_report.json");
     let report = bijux_dna_domain_fastq::DepleteHostReportV1 {
         schema_version: bijux_dna_domain_fastq::DEPLETE_HOST_REPORT_SCHEMA_VERSION.to_string(),
@@ -908,26 +971,60 @@ fn generate_deplete_host_probe(repo_root: &Path, probe_root: &Path) -> Result<Ma
         } else {
             bijux_dna_domain_fastq::PairedMode::SingleEnd
         },
-        threads: u64_json(&plan.effective_params, "threads").and_then(|value| u32::try_from(value).ok()).unwrap_or(1),
-        reference_scope: serde_json::from_value(plan.effective_params.get("reference_scope").cloned().unwrap_or(Value::String("host".to_string())))
-            .unwrap_or(bijux_dna_domain_fastq::params::screen::ReferenceScope::Host),
-        reference_catalog_id: string_json(&plan.effective_params, "reference_catalog_id").unwrap_or_else(|| "host_reference".to_string()),
-        reference_index_artifact_id: string_json(&plan.effective_params, "reference_index_artifact_id").unwrap_or_else(|| "reference_index".to_string()),
-        reference_index_backend: string_json(&plan.effective_params, "reference_index_backend").unwrap_or_else(|| "bowtie2_build".to_string()),
+        threads: u64_json(&plan.effective_params, "threads")
+            .and_then(|value| u32::try_from(value).ok())
+            .unwrap_or(1),
+        reference_scope: serde_json::from_value(
+            plan.effective_params
+                .get("reference_scope")
+                .cloned()
+                .unwrap_or(Value::String("host".to_string())),
+        )
+        .unwrap_or(bijux_dna_domain_fastq::params::screen::ReferenceScope::Host),
+        reference_catalog_id: string_json(&plan.effective_params, "reference_catalog_id")
+            .unwrap_or_else(|| "host_reference".to_string()),
+        reference_index_artifact_id: string_json(
+            &plan.effective_params,
+            "reference_index_artifact_id",
+        )
+        .unwrap_or_else(|| "reference_index".to_string()),
+        reference_index_backend: string_json(&plan.effective_params, "reference_index_backend")
+            .unwrap_or_else(|| "bowtie2_build".to_string()),
         reference_build_id: optional_string_json(&plan.effective_params, "reference_build_id"),
         reference_digest: optional_string_json(&plan.effective_params, "reference_digest"),
-        masking_policy: serde_json::from_value(plan.effective_params.get("masking_policy").cloned().unwrap_or(Value::String("unmasked".to_string())))
-            .unwrap_or(bijux_dna_domain_fastq::params::screen::ReferenceMaskingPolicy::Unmasked),
-        decoy_policy: serde_json::from_value(plan.effective_params.get("decoy_policy").cloned().unwrap_or(Value::String("none".to_string())))
-            .unwrap_or(bijux_dna_domain_fastq::params::screen::ReferenceDecoyPolicy::None),
+        masking_policy: serde_json::from_value(
+            plan.effective_params
+                .get("masking_policy")
+                .cloned()
+                .unwrap_or(Value::String("unmasked".to_string())),
+        )
+        .unwrap_or(bijux_dna_domain_fastq::params::screen::ReferenceMaskingPolicy::Unmasked),
+        decoy_policy: serde_json::from_value(
+            plan.effective_params
+                .get("decoy_policy")
+                .cloned()
+                .unwrap_or(Value::String("none".to_string())),
+        )
+        .unwrap_or(bijux_dna_domain_fastq::params::screen::ReferenceDecoyPolicy::None),
         decoy_catalog_id: optional_string_json(&plan.effective_params, "decoy_catalog_id"),
         identity_threshold: f64_json(&plan.effective_params, "identity_threshold").unwrap_or(0.95),
-        retained_read_policy: serde_json::from_value(plan.effective_params.get("retained_read_policy").cloned().unwrap_or(Value::String("keep_non_host_reads".to_string())))
-            .unwrap_or(bijux_dna_domain_fastq::params::screen::ReadRetentionPolicy::KeepNonHostReads),
+        retained_read_policy: serde_json::from_value(
+            plan.effective_params
+                .get("retained_read_policy")
+                .cloned()
+                .unwrap_or(Value::String("keep_non_host_reads".to_string())),
+        )
+        .unwrap_or(bijux_dna_domain_fastq::params::screen::ReadRetentionPolicy::KeepNonHostReads),
         emit_removed_reads: bool_json(&plan.effective_params, "emit_removed_reads").unwrap_or(true),
-        report_format: serde_json::from_value(plan.effective_params.get("report_format").cloned().unwrap_or(Value::String("bowtie2_metrics_file".to_string())))
-            .unwrap_or(bijux_dna_domain_fastq::params::screen::MappingReportFormat::Bowtie2MetricsFile),
-        retain_unmapped_pairs: bool_json(&plan.effective_params, "retain_unmapped_pairs").unwrap_or(false),
+        report_format: serde_json::from_value(
+            plan.effective_params
+                .get("report_format")
+                .cloned()
+                .unwrap_or(Value::String("bowtie2_metrics_file".to_string())),
+        )
+        .unwrap_or(bijux_dna_domain_fastq::params::screen::MappingReportFormat::Bowtie2MetricsFile),
+        retain_unmapped_pairs: bool_json(&plan.effective_params, "retain_unmapped_pairs")
+            .unwrap_or(false),
         input_r1: path_relative_to_repo(repo_root, &input_r1),
         input_r2: input_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
         output_r1: path_relative_to_repo(repo_root, &output_r1),
@@ -949,10 +1046,15 @@ fn generate_deplete_host_probe(repo_root: &Path, probe_root: &Path) -> Result<Ma
         exit_code: Some(0),
         raw_backend_report: None,
         raw_backend_report_format: None,
-        backend_metrics: Some(serde_json::json!({ "reads_removed": 0_u64, "bases_removed": 0_u64 })),
+        backend_metrics: Some(
+            serde_json::json!({ "reads_removed": 0_u64, "bases_removed": 0_u64 }),
+        ),
     };
     bijux_dna_infra::atomic_write_json(&report_path, &report)?;
-    Ok(MaterializedProof { proof_path: report_path, observed_tool_id: plan.tool_id.as_str().to_string() })
+    Ok(MaterializedProof {
+        proof_path: report_path,
+        observed_tool_id: plan.tool_id.as_str().to_string(),
+    })
 }
 
 fn generate_deplete_rrna_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
@@ -986,7 +1088,9 @@ fn generate_deplete_rrna_probe(repo_root: &Path, probe_root: &Path) -> Result<Ma
     let stats_r2 = input_r2.as_ref().map(|path| count_fastq_stats(path)).transpose()?;
     let reads_in = stats_r1.reads + stats_r2.as_ref().map_or(0, |stats| stats.reads);
     let bases_in = stats_r1.bases + stats_r2.as_ref().map_or(0, |stats| stats.bases);
-    let pairs_in = input_r2.as_ref().map(|_| stats_r1.reads.min(stats_r2.as_ref().map_or(0, |stats| stats.reads)));
+    let pairs_in = input_r2
+        .as_ref()
+        .map(|_| stats_r1.reads.min(stats_r2.as_ref().map_or(0, |stats| stats.reads)));
     let report_path = probe_dir.join("rrna_report.json");
     let report = bijux_dna_domain_fastq::DepleteRrnaReportV1 {
         schema_version: bijux_dna_domain_fastq::DEPLETE_RRNA_REPORT_SCHEMA_VERSION.to_string(),
@@ -998,15 +1102,28 @@ fn generate_deplete_rrna_probe(repo_root: &Path, probe_root: &Path) -> Result<Ma
         } else {
             bijux_dna_domain_fastq::PairedMode::SingleEnd
         },
-        threads: u64_json(&plan.effective_params, "threads").and_then(|value| u32::try_from(value).ok()).unwrap_or(1),
+        threads: u64_json(&plan.effective_params, "threads")
+            .and_then(|value| u32::try_from(value).ok())
+            .unwrap_or(1),
         rrna_db: optional_string_json(&plan.effective_params, "contaminant_db"),
-        database_artifact_id: string_json(&plan.effective_params, "database_artifact_id").unwrap_or_else(|| "rrna_reference".to_string()),
+        database_artifact_id: string_json(&plan.effective_params, "database_artifact_id")
+            .unwrap_or_else(|| "rrna_reference".to_string()),
         database_build_id: optional_string_json(&plan.effective_params, "database_build_id"),
         database_digest: optional_string_json(&plan.effective_params, "database_digest"),
-        screening_engine: serde_json::from_value(plan.effective_params.get("screening_engine").cloned().unwrap_or(Value::String("sortmerna".to_string())))
-            .unwrap_or(bijux_dna_domain_fastq::params::screen::RrnaScreeningEngine::Sortmerna),
-        report_format: serde_json::from_value(plan.effective_params.get("report_format").cloned().unwrap_or(Value::String("summary_tsv_and_json".to_string())))
-            .unwrap_or(bijux_dna_domain_fastq::params::screen::RrnaReportFormat::SummaryTsvAndJson),
+        screening_engine: serde_json::from_value(
+            plan.effective_params
+                .get("screening_engine")
+                .cloned()
+                .unwrap_or(Value::String("sortmerna".to_string())),
+        )
+        .unwrap_or(bijux_dna_domain_fastq::params::screen::RrnaScreeningEngine::Sortmerna),
+        report_format: serde_json::from_value(
+            plan.effective_params
+                .get("report_format")
+                .cloned()
+                .unwrap_or(Value::String("summary_tsv_and_json".to_string())),
+        )
+        .unwrap_or(bijux_dna_domain_fastq::params::screen::RrnaReportFormat::SummaryTsvAndJson),
         emit_removed_reads: bool_json(&plan.effective_params, "emit_removed_reads").unwrap_or(true),
         min_identity: f64_json(&plan.params, "min_identity"),
         retained_read_role: "rrna_filtered_reads".to_string(),
@@ -1036,10 +1153,16 @@ fn generate_deplete_rrna_probe(repo_root: &Path, probe_root: &Path) -> Result<Ma
         backend_metrics: Some(serde_json::json!({ "reads_removed": 0_u64 })),
     };
     bijux_dna_infra::atomic_write_json(&report_path, &report)?;
-    Ok(MaterializedProof { proof_path: report_path, observed_tool_id: plan.tool_id.as_str().to_string() })
+    Ok(MaterializedProof {
+        proof_path: report_path,
+        observed_tool_id: plan.tool_id.as_str().to_string(),
+    })
 }
 
-fn generate_screen_taxonomy_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
+fn generate_screen_taxonomy_probe(
+    repo_root: &Path,
+    probe_root: &Path,
+) -> Result<MaterializedProof> {
     let plan = bijux_dna_planner_fastq::stage_api::local_screen_taxonomy_plan(repo_root)?;
     let probe_dir = probe_root.join("screen_taxonomy");
     fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
@@ -1055,11 +1178,8 @@ fn generate_screen_taxonomy_probe(repo_root: &Path, probe_root: &Path) -> Result
         None
     };
     let report_tsv = probe_dir.join("taxonomy_screen.tsv");
-    fs::write(
-        &report_tsv,
-        "tax_id\tname\treads\tfraction\n9606\tHomo sapiens\t4\t1.000000\n",
-    )
-    .with_context(|| format!("write {}", report_tsv.display()))?;
+    fs::write(&report_tsv, "tax_id\tname\treads\tfraction\n9606\tHomo sapiens\t4\t1.000000\n")
+        .with_context(|| format!("write {}", report_tsv.display()))?;
     let effective_params: bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams =
         serde_json::from_value(plan.effective_params.clone())
             .context("parse governed screen_taxonomy effective params")?;
@@ -1067,7 +1187,9 @@ fn generate_screen_taxonomy_probe(repo_root: &Path, probe_root: &Path) -> Result
     let stats_r2 = input_r2.as_ref().map(|path| count_fastq_stats(path)).transpose()?;
     let reads_in = stats_r1.reads + stats_r2.as_ref().map_or(0, |stats| stats.reads);
     let bases_in = stats_r1.bases + stats_r2.as_ref().map_or(0, |stats| stats.bases);
-    let pairs_in = input_r2.as_ref().map(|_| stats_r1.reads.min(stats_r2.as_ref().map_or(0, |stats| stats.reads)));
+    let pairs_in = input_r2
+        .as_ref()
+        .map(|_| stats_r1.reads.min(stats_r2.as_ref().map_or(0, |stats| stats.reads)));
     let entries = vec![bijux_dna_domain_fastq::TaxonomyScreenSummaryEntryV1 {
         label: "Homo sapiens".to_string(),
         percent: 100.0,
@@ -1102,7 +1224,9 @@ fn generate_screen_taxonomy_probe(repo_root: &Path, probe_root: &Path) -> Result
         screen_report_tsv: path_relative_to_repo(repo_root, &report_tsv),
         classification_report_json: path_relative_to_repo(repo_root, &report_path),
         unclassified_reads_r1: Some(path_relative_to_repo(repo_root, &unclassified_r1)),
-        unclassified_reads_r2: unclassified_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
+        unclassified_reads_r2: unclassified_r2
+            .as_ref()
+            .map(|path| path_relative_to_repo(repo_root, path)),
         reads_in: Some(reads_in),
         reads_out: Some(reads_in),
         bases_in: Some(bases_in),
@@ -1118,31 +1242,37 @@ fn generate_screen_taxonomy_probe(repo_root: &Path, probe_root: &Path) -> Result
         memory_mb: Some(0.0),
     };
     bijux_dna_infra::atomic_write_json(&report_path, &report)?;
-    Ok(MaterializedProof { proof_path: report_path, observed_tool_id: plan.tool_id.as_str().to_string() })
+    Ok(MaterializedProof {
+        proof_path: report_path,
+        observed_tool_id: plan.tool_id.as_str().to_string(),
+    })
 }
 
 fn generate_bam_align_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
     let plan = bijux_dna_planner_bam::stage_api::local_align_plan(repo_root)?;
     let probe_dir = probe_root.join("bam_align");
     fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
-    let reference_fasta = required_input_path(&plan, "reference_fasta").or_else(|_| required_input_path(&plan, "reference"))?;
+    let reference_fasta = required_input_path(&plan, "reference_fasta")
+        .or_else(|_| required_input_path(&plan, "reference"))?;
     let input_r1 = required_input_path(&plan, "fastq_r1")
         .or_else(|_| required_input_path(&plan, "reads_r1"))
         .or_else(|_| required_input_path(&plan, "input_r1"))?;
     let input_r2 = optional_input_path(&plan, "fastq_r2")
         .or_else(|| optional_input_path(&plan, "reads_r2"))
         .or_else(|| optional_input_path(&plan, "input_r2"));
-    let sample_id = string_json(&plan.params, "sample_id").unwrap_or_else(|| "local_smoke".to_string());
-    let read_group: bijux_dna_domain_bam::params::ReadGroupSpec = serde_json::from_value(
-        plan.params.get("read_group").cloned().unwrap_or_else(|| serde_json::json!({
-            "id": sample_id,
-            "sample": sample_id,
-            "platform": "ILLUMINA",
-            "library": "local_smoke",
-            "platform_unit": "local_smoke",
-        })),
-    )
-    .context("decode bam.align read_group")?;
+    let sample_id =
+        string_json(&plan.params, "sample_id").unwrap_or_else(|| "local_smoke".to_string());
+    let read_group: bijux_dna_domain_bam::params::ReadGroupSpec =
+        serde_json::from_value(plan.params.get("read_group").cloned().unwrap_or_else(|| {
+            serde_json::json!({
+                "id": sample_id,
+                "sample": sample_id,
+                "platform": "ILLUMINA",
+                "library": "local_smoke",
+                "platform_unit": "local_smoke",
+            })
+        }))
+        .context("decode bam.align read_group")?;
     let (provenance, _mapping) = match plan.tool_id.as_str() {
         "bowtie2" => bijux_dna_domain_bam::align_fastq_to_bam_bowtie2_style(
             &reference_fasta,
@@ -1166,7 +1296,10 @@ fn generate_bam_align_probe(repo_root: &Path, probe_root: &Path) -> Result<Mater
     };
     let report_path = probe_dir.join("alignment.provenance.json");
     bijux_dna_infra::atomic_write_json(&report_path, &provenance)?;
-    Ok(MaterializedProof { proof_path: report_path, observed_tool_id: plan.tool_id.as_str().to_string() })
+    Ok(MaterializedProof {
+        proof_path: report_path,
+        observed_tool_id: plan.tool_id.as_str().to_string(),
+    })
 }
 
 fn generate_bam_contamination_probe(
@@ -1186,7 +1319,8 @@ fn generate_bam_contamination_probe(
         "verifybamid2"
     };
     let assumptions = vec![
-        string_json(&plan.params, "assumptions").unwrap_or_else(|| "governed tiny contamination parser smoke".to_string()),
+        string_json(&plan.params, "assumptions")
+            .unwrap_or_else(|| "governed tiny contamination parser smoke".to_string()),
         format!("scope:{scope}"),
     ];
     bijux_dna_infra::atomic_write_json(
@@ -1199,14 +1333,15 @@ fn generate_bam_contamination_probe(
             "assumptions": assumptions,
         }),
     )?;
-    Ok(MaterializedProof { proof_path: report_path, observed_tool_id: plan.tool_id.as_str().to_string() })
+    Ok(MaterializedProof {
+        proof_path: report_path,
+        observed_tool_id: plan.tool_id.as_str().to_string(),
+    })
 }
 
 fn generate_bam_damage_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
     let cases = bijux_dna_planner_bam::stage_api::local_damage_smoke_plans(repo_root)?;
-    let case = cases
-        .first()
-        .ok_or_else(|| anyhow!("missing governed local damage smoke case"))?;
+    let case = cases.first().ok_or_else(|| anyhow!("missing governed local damage smoke case"))?;
     let probe_dir = probe_root.join("bam_damage");
     fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
     let input_bam = repo_root.join(&case.bam);
@@ -1233,9 +1368,8 @@ fn generate_bam_authenticity_probe(
     probe_root: &Path,
 ) -> Result<MaterializedProof> {
     let cases = bijux_dna_planner_bam::stage_api::local_authenticity_smoke_plans(repo_root)?;
-    let case = cases
-        .first()
-        .ok_or_else(|| anyhow!("missing governed local authenticity smoke case"))?;
+    let case =
+        cases.first().ok_or_else(|| anyhow!("missing governed local authenticity smoke case"))?;
     let probe_dir = probe_root.join("bam_authenticity");
     fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
     let input_bam = repo_root.join(&case.bam);
@@ -1244,8 +1378,10 @@ fn generate_bam_authenticity_probe(
         g_to_a_3p: case.damage_terminal_g_to_a_3p,
         pmd_score_histogram: Vec::new(),
     };
-    let advisory =
-        bijux_dna_domain_bam::summarize_tiny_bam_authenticity_advisory(&input_bam, &damage_metrics)?;
+    let advisory = bijux_dna_domain_bam::summarize_tiny_bam_authenticity_advisory(
+        &input_bam,
+        &damage_metrics,
+    )?;
     let report_path = probe_dir.join("authenticity.summary.json");
     bijux_dna_infra::atomic_write_json(&report_path, &advisory)?;
     Ok(MaterializedProof {
@@ -1254,13 +1390,9 @@ fn generate_bam_authenticity_probe(
     })
 }
 
-fn generate_bam_genotyping_probe(
-    repo_root: &Path,
-    probe_root: &Path,
-) -> Result<MaterializedProof> {
-    let config: LocalBamGenotypingConfig = read_toml_document(
-        &repo_root.join(LOCAL_BAM_GENOTYPING_CONFIG_PATH),
-    )?;
+fn generate_bam_genotyping_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
+    let config: LocalBamGenotypingConfig =
+        read_toml_document(&repo_root.join(LOCAL_BAM_GENOTYPING_CONFIG_PATH))?;
     let tool_id = config.tool_id.clone();
     let probe_dir = probe_root.join("bam_genotyping");
     fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
@@ -1284,10 +1416,7 @@ fn generate_bam_genotyping_probe(
     Ok(MaterializedProof { proof_path: report_path, observed_tool_id: config.tool_id })
 }
 
-fn generate_bam_kinship_probe(
-    repo_root: &Path,
-    probe_root: &Path,
-) -> Result<MaterializedProof> {
+fn generate_bam_kinship_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
     let config: LocalBamKinshipConfig =
         read_toml_document(&repo_root.join(LOCAL_BAM_KINSHIP_CONFIG_PATH))?;
     let case = config
@@ -1314,10 +1443,8 @@ fn generate_bam_kinship_probe(
 
 fn generate_bam_sex_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
     let config: LocalBamSexConfig = read_toml_document(&repo_root.join(LOCAL_BAM_SEX_CONFIG_PATH))?;
-    let case = config
-        .cases
-        .first()
-        .ok_or_else(|| anyhow!("missing governed local sex smoke case"))?;
+    let case =
+        config.cases.first().ok_or_else(|| anyhow!("missing governed local sex smoke case"))?;
     let probe_dir = probe_root.join("bam_sex");
     fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
     let summary = bijux_dna_domain_bam::summarize_tiny_bam_sex(
@@ -1344,23 +1471,28 @@ fn observe_tool_id(repo_root: &Path, proof_path: &Path, stage_id: &str) -> Resul
     }
     let plans = local_stage_plans(repo_root, stage_id)?;
     plans.first().map(|plan| plan.tool_id.as_str().to_string()).ok_or_else(|| {
-        anyhow!(
-            "unable to determine tool_id for stage `{stage_id}` proof {}",
-            proof_path.display()
-        )
+        anyhow!("unable to determine tool_id for stage `{stage_id}` proof {}", proof_path.display())
     })
 }
 
-fn required_input_path(plan: &bijux_dna_stage_contract::StagePlanV1, artifact_name: &str) -> Result<PathBuf> {
+fn required_input_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_name: &str,
+) -> Result<PathBuf> {
     plan.io
         .inputs
         .iter()
         .find(|artifact| artifact.name.as_str() == artifact_name)
         .map(|artifact| artifact.path.clone())
-        .ok_or_else(|| anyhow!("plan `{}` is missing input `{artifact_name}`", plan.stage_id.as_str()))
+        .ok_or_else(|| {
+            anyhow!("plan `{}` is missing input `{artifact_name}`", plan.stage_id.as_str())
+        })
 }
 
-fn optional_input_path(plan: &bijux_dna_stage_contract::StagePlanV1, artifact_name: &str) -> Option<PathBuf> {
+fn optional_input_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_name: &str,
+) -> Option<PathBuf> {
     plan.io
         .inputs
         .iter()
@@ -1431,10 +1563,7 @@ where
 }
 
 fn top_level_keys(value: &Value) -> Vec<String> {
-    value
-        .as_object()
-        .map(|object| object.keys().cloned().collect::<Vec<_>>())
-        .unwrap_or_default()
+    value.as_object().map(|object| object.keys().cloned().collect::<Vec<_>>()).unwrap_or_default()
 }
 
 fn json_snapshot(value: &Value, keys: &[&str]) -> BTreeMap<String, Value> {
@@ -1510,7 +1639,8 @@ mod tests {
             .map(std::path::Path::to_path_buf)
             .expect("resolve workspace root from crate manifest dir");
         let output_path = repo_root.join(DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH);
-        let probe_root = repo_root.join("runs/bench/readiness-probes/tests/real-output-parser-smoke");
+        let probe_root =
+            repo_root.join("runs/bench/readiness-probes/tests/real-output-parser-smoke");
         if probe_root.exists() {
             std::fs::remove_dir_all(&probe_root)?;
         }
