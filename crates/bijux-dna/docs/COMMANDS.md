@@ -1052,8 +1052,9 @@ Visible aliases are part of the operator surface:
   probe per retained tool family. Each row keeps the family id and summary, representative stage
   and tool, proof path, parser surface, parsed schema version, top-level key audit, normalized
   snapshot, and an explicit pass reason. The command fails closed unless every retained family has
-  a real tiny output parsed through the owned normalization surface or governed BAM summary schema
-  instead of relying on handcrafted parser fixtures alone.
+  a real tiny output parsed through the owned FASTQ normalization surface, governed BAM summary
+  schema, or governed VCF smoke metric/report contract instead of relying on handcrafted parser
+  fixtures alone.
 - `bijux-dna bench readiness render-retained-toolset-executable-local`
   `render-retained-toolset-executable-local` writes
   `benchmarks/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json` as the final local retained
@@ -1303,10 +1304,10 @@ Visible aliases are part of the operator surface:
   required runtime fields.
 - `bijux-dna bench readiness validate-tool-families`
   `validate-tool-families` checks `benchmarks/configs/local/tool-families.toml` against the governed
-  FASTQ and BAM benchmark serving maps, enforcing one primary-function family assignment for every
-  benchmark tool. The JSON report carries `family_count`, `tool_count`, `multidomain_tool_count`,
-  `family_counts`, and one row per tool with its `family_id`, domains, and governed benchmark
-  stage scope.
+  FASTQ, BAM, and VCF benchmark serving maps, enforcing one primary-function family assignment for
+  every benchmark tool. The JSON report carries `family_count`, `tool_count`,
+  `multidomain_tool_count`, `family_counts`, and one row per tool with its `family_id`, domains,
+  and governed benchmark stage scope.
 - `bijux-dna bench readiness render-stage-registry-extra-pairs`
   `render-stage-registry-extra-pairs` writes
   `benchmarks/readiness/stage-registry-extra-pairs.tsv` with one governed row per benchmark-
