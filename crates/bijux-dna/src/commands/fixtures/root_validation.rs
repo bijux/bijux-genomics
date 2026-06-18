@@ -23,6 +23,9 @@ use crate::commands::fixtures::expected::bam_duplicate_insert::{
     validate_bam_duplicate_insert_truth_manifest_path,
     BAM_DUPLICATE_INSERT_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
+use crate::commands::fixtures::expected::bam_endogenous::{
+    validate_bam_endogenous_truth_manifest_path, BAM_ENDOGENOUS_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
 use crate::commands::fixtures::expected::bam_gc_coverage::{
     validate_bam_gc_coverage_truth_manifest_path, BAM_GC_COVERAGE_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
@@ -127,6 +130,9 @@ pub(crate) fn validate_benchmark_fixture_root(
         }
         if manifest_path.ends_with("bam-duplicate-insert-truth/manifest.toml") {
             rows.push(validate_bam_duplicate_insert_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("endogenous-truth/manifest.toml") {
+            rows.push(validate_bam_endogenous_truth_row(repo_root, &manifest_path));
         }
         if manifest_path.ends_with("bam-gc-coverage-truth/manifest.toml") {
             rows.push(validate_bam_gc_coverage_truth_row(repo_root, &manifest_path));
@@ -304,6 +310,10 @@ fn validate_manifest_row(
             validate_bam_duplicate_insert_truth_manifest_path(repo_root, manifest_path).map(|_| {
                 ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
             })
+        }
+        BAM_ENDOGENOUS_TRUTH_MANIFEST_SCHEMA_VERSION => {
+            validate_bam_endogenous_truth_manifest_path(repo_root, manifest_path)
+                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
         }
         BAM_GC_COVERAGE_TRUTH_MANIFEST_SCHEMA_VERSION => {
             validate_bam_gc_coverage_truth_manifest_path(repo_root, manifest_path).map(|_| {
@@ -552,6 +562,38 @@ fn validate_bam_duplicate_insert_truth_row(
                 report.validated_sample_count,
                 report.validated_duplicate_family_bin_count,
                 report.validated_insert_size_bin_count
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_bam_endogenous_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_bam_endogenous_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(report.manifest_path),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_samples={},validated_total_reads={},validated_contaminant_reads={},validated_retained_reads={}",
+                report.validated_sample_count,
+                report.validated_total_reads,
+                report.validated_contaminant_reads,
+                report.validated_retained_reads
             ),
         },
         Err(error) => BenchmarkFixtureRootValidationRow {

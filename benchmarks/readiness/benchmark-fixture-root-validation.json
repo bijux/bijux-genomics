@@ -4,8 +4,8 @@
   "root_path": "benchmarks/tests/fixtures",
   "required_subroot_count": 4,
   "parser_domain_count": 3,
-  "checked_fixture_count": 36,
-  "valid_fixture_count": 36,
+  "checked_fixture_count": 38,
+  "valid_fixture_count": 38,
   "invalid_fixture_count": 0,
   "ok": true,
   "rows": [
@@ -152,6 +152,15 @@
       "schema_version": "bijux.bench.bam_gc_coverage_truth.validation.v1",
       "valid": true,
       "detail": "validated_coverage_samples=1,validated_gc_bias_samples=1,validated_coverage_regions=2,validated_gc_bias_bins=3"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "endogenous-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/endogenous-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/endogenous-truth/expected.json",
+      "schema_version": "bijux.bench.bam_endogenous_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_samples=2,validated_total_reads=8,validated_contaminant_reads=2,validated_retained_reads=6"
     },
     {
       "fixture_kind": "expected_truth",
@@ -303,6 +312,15 @@
       "manifest_path": "benchmarks/tests/fixtures/science/bam-gc-coverage-truth/manifest.toml",
       "detail_path": null,
       "schema_version": "bijux.bench.bam_gc_coverage_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "endogenous-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/endogenous-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_endogenous_truth.v1",
       "valid": true,
       "detail": "valid"
     },
