@@ -997,7 +997,7 @@ mod tests {
 
         assert_eq!(report.schema_version, BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.corpus_id, "corpus-01-adna-bam-mini");
-        assert_eq!(report.sample_count, 3);
+        assert_eq!(report.sample_count, 4);
         assert_eq!(report.udg_model.as_deref(), Some("non_udg"));
         assert_eq!(report.damage_signal.as_deref(), Some("moderate"));
         assert_eq!(report.expected_terminal_pattern_class.as_deref(), Some("ct5p_dominant"));
@@ -1025,6 +1025,15 @@ mod tests {
                 && sample.observed_header_sample_ids == vec!["adna_y_haplogroup_panel".to_string()]
                 && sample.observed_read_group_ids == vec!["rg-haplogroups-adna".to_string()]
                 && sample.observed_record_count == 4
+        }));
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "adna_y_haplogroup_partial_panel"
+                && sample.observed_contigs == vec!["chrY".to_string()]
+                && sample.observed_header_sample_ids
+                    == vec!["adna_y_haplogroup_partial_panel".to_string()]
+                && sample.observed_read_group_ids
+                    == vec!["rg-haplogroups-adna-partial".to_string()]
+                && sample.observed_record_count == 2
         }));
     }
 
