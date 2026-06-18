@@ -47,9 +47,9 @@ fn fixtures_validate_expected_vcf_mini_reports_governed_truth_bundle() {
         payload.get("expected_dir").and_then(serde_json::Value::as_str),
         Some("benchmarks/tests/fixtures/corpora/vcf-mini/expected")
     );
-    assert_eq!(payload.get("truth_file_count").and_then(serde_json::Value::as_u64), Some(8));
-    assert_eq!(payload.get("cohort_sample_count").and_then(serde_json::Value::as_u64), Some(4));
-    assert_eq!(payload.get("pair_count").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(payload.get("truth_files").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("cohort_samples").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("sample_pairs").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(payload.get("valid").and_then(serde_json::Value::as_bool), Some(true));
 
     let checked_truth_files = payload

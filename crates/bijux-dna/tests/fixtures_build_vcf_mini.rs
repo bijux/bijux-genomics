@@ -89,15 +89,15 @@ fn fixtures_build_vcf_mini_reports_regenerated_contract_counts() {
     let generated_truth_counts =
         payload.get("generated_truth_counts").expect("generated_truth_counts");
     assert_eq!(
-        generated_truth_counts.get("truth_file_count").and_then(serde_json::Value::as_u64),
+        generated_truth_counts.get("truth_files").and_then(serde_json::Value::as_u64),
         Some(8)
     );
     assert_eq!(
-        generated_truth_counts.get("cohort_sample_count").and_then(serde_json::Value::as_u64),
+        generated_truth_counts.get("cohort_samples").and_then(serde_json::Value::as_u64),
         Some(4)
     );
     assert_eq!(
-        generated_truth_counts.get("pair_count").and_then(serde_json::Value::as_u64),
+        generated_truth_counts.get("sample_pairs").and_then(serde_json::Value::as_u64),
         Some(6)
     );
 
