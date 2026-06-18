@@ -15,11 +15,9 @@ benchmarks/tests/fixtures/bench/parsers/	make bench-parser-fast	bench parser fix
 adapter	make bench-adapter-fast	adapter rendering, argv, and missing-input proofs belong to the adapter lane
 rendered_commands	make bench-adapter-fast	rendered command surfaces belong to the adapter lane
 no_placeholder	make bench-adapter-fast	placeholder command regressions belong to the adapter lane
-benchmarks/tests/fixtures/corpora/corpus-01-mini/	make science-fixtures-fast	FASTQ mini corpus truth belongs to the science fixture lane
-benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/	make science-fixtures-fast	aDNA BAM mini corpus truth belongs to the science fixture lane
-benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/	make science-fixtures-fast	eDNA mini corpus truth belongs to the science fixture lane
-benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/	make science-fixtures-fast	amplicon mini corpus truth belongs to the science fixture lane
+benchmarks/tests/fixtures/corpora/	make science-fixtures-fast	governed corpus truth fixtures belong to the science fixture lane
+benchmarks/tests/fixtures/databases/	make science-fixtures-fast	governed database fixtures belong to the science fixture lane
+benchmarks/tests/fixtures/science/	make science-fixtures-fast	governed science truth bundles belong to the science fixture lane
+crates/bijux-dna/src/commands/fixtures/	make science-fixtures-fast	fixture validation commands own the science truth contract
 crates/bijux-dna/tests/bench_local_vcf_population_structure_smoke	make science-fixtures-fast	population mini-smoke truth belongs to the science fixture lane
-benchmarks/tests/fixtures/science/fastq-trimming-truth/	make science-fixtures-fast	FASTQ trimming truth belongs to the science fixture lane
-crates/bijux-dna/tests/fixtures_validate_expected_fastq_trimming_truth	make science-fixtures-fast	FASTQ trimming expected outputs belong to the science fixture lane
-crates/bijux-dna/tests/fixtures_validate_expected_vcf_mini_stdout.rs	make science-fixtures-fast	VCF mini expected outputs belong to the science fixture lane
+crates/bijux-dna/tests/fixtures_validate_	make science-fixtures-fast	fixture validation tests belong to the science fixture lane

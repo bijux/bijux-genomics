@@ -309,31 +309,7 @@ pub(in super::super) fn tooling_cargo_targets(
         "science-fixtures-fast" => run_program_with_env(
             workspace,
             "cargo",
-            &[
-                "test".to_string(),
-                "-p".to_string(),
-                "bijux-dna".to_string(),
-                "--test".to_string(),
-                "bench_local_corpus_fixture".to_string(),
-                "--test".to_string(),
-                "bench_local_bam_corpus_fixture".to_string(),
-                "--test".to_string(),
-                "bench_local_edna_corpus_fixture".to_string(),
-                "--test".to_string(),
-                "bench_local_amplicon_corpus_fixture".to_string(),
-                "--test".to_string(),
-                "bench_local_vcf_population_structure_smoke".to_string(),
-                "--test".to_string(),
-                "bench_local_vcf_population_structure_smoke_file".to_string(),
-                "--test".to_string(),
-                "fixtures_validate_expected_fastq_trimming_truth".to_string(),
-                "--test".to_string(),
-                "fixtures_validate_expected_fastq_trimming_truth_stdout".to_string(),
-                "--test".to_string(),
-                "fixtures_validate_expected_vcf_mini_stdout".to_string(),
-                "--".to_string(),
-                "--nocapture".to_string(),
-            ],
+            &science_fixtures_fast_command_args(),
             &common_envs,
         ),
         "policy-full" => run_program_with_env(
@@ -1075,5 +1051,95 @@ pub(in super::super) fn tooling_cargo_targets(
         other => Ok(OpsCommandOutcome::failure(format!(
             "unsupported cargo-targets subcommand: {other}\n"
         ))),
+    }
+}
+
+fn science_fixtures_fast_command_args() -> Vec<String> {
+    vec![
+        "test".to_string(),
+        "-p".to_string(),
+        "bijux-dna".to_string(),
+        "--test".to_string(),
+        "bench_local_corpus_fixture".to_string(),
+        "--test".to_string(),
+        "bench_local_bam_corpus_fixture".to_string(),
+        "--test".to_string(),
+        "bench_local_edna_corpus_fixture".to_string(),
+        "--test".to_string(),
+        "bench_local_amplicon_corpus_fixture".to_string(),
+        "--test".to_string(),
+        "bench_local_vcf_population_structure_smoke".to_string(),
+        "--test".to_string(),
+        "bench_local_vcf_population_structure_smoke_file".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_all".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_fastq_duplicates_truth".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_fastq_duplicates_truth_stdout".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_fastq_duplicates_truth".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_fastq_duplicates_truth_stdout".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_fastq_taxonomy_truth".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_fastq_taxonomy_truth_stdout".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_fastq_taxonomy_truth".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_fastq_taxonomy_truth_stdout".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_amplicon_truth".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_amplicon_truth_stdout".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_amplicon_truth".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_amplicon_truth_stdout".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_fastq_trimming_truth".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_fastq_trimming_truth_stdout".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_vcf_mini".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_vcf_mini_stdout".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_vcf_mini".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_vcf_mini_stdout".to_string(),
+        "--".to_string(),
+        "--nocapture".to_string(),
+    ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::science_fixtures_fast_command_args;
+
+    #[test]
+    fn science_fixtures_fast_keeps_taxonomy_and_fixture_validation_targets() {
+        let args = science_fixtures_fast_command_args();
+        assert!(args.windows(2).any(|window| {
+            window == ["--test".to_string(), "fixtures_validate_fastq_taxonomy_truth".to_string()]
+        }));
+        assert!(args.windows(2).any(|window| {
+            window
+                == [
+                    "--test".to_string(),
+                    "fixtures_validate_expected_fastq_taxonomy_truth".to_string(),
+                ]
+        }));
+        assert!(args.windows(2).any(|window| {
+            window == ["--test".to_string(), "fixtures_validate_fastq_duplicates_truth".to_string()]
+        }));
+        assert!(args.windows(2).any(|window| {
+            window == ["--test".to_string(), "fixtures_validate_amplicon_truth".to_string()]
+        }));
+        assert!(args.windows(2).any(|window| {
+            window == ["--test".to_string(), "fixtures_validate_all".to_string()]
+        }));
+        assert_eq!(args.last().map(String::as_str), Some("--nocapture"));
     }
 }

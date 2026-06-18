@@ -246,24 +246,24 @@ const CHANGED_PATH_RULES: &[ChangedPathRule] = &[
         reason: "placeholder command regressions belong to the adapter lane",
     },
     ChangedPathRule {
-        matcher: "benchmarks/tests/fixtures/corpora/corpus-01-mini/",
+        matcher: "benchmarks/tests/fixtures/corpora/",
         command: "make science-fixtures-fast",
-        reason: "FASTQ mini corpus truth belongs to the science fixture lane",
+        reason: "governed corpus truth fixtures belong to the science fixture lane",
     },
     ChangedPathRule {
-        matcher: "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/",
+        matcher: "benchmarks/tests/fixtures/databases/",
         command: "make science-fixtures-fast",
-        reason: "aDNA BAM mini corpus truth belongs to the science fixture lane",
+        reason: "governed database fixtures belong to the science fixture lane",
     },
     ChangedPathRule {
-        matcher: "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/",
+        matcher: "benchmarks/tests/fixtures/science/",
         command: "make science-fixtures-fast",
-        reason: "eDNA mini corpus truth belongs to the science fixture lane",
+        reason: "governed science truth bundles belong to the science fixture lane",
     },
     ChangedPathRule {
-        matcher: "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/",
+        matcher: "crates/bijux-dna/src/commands/fixtures/",
         command: "make science-fixtures-fast",
-        reason: "amplicon mini corpus truth belongs to the science fixture lane",
+        reason: "fixture validation commands own the science truth contract",
     },
     ChangedPathRule {
         matcher: "crates/bijux-dna/tests/bench_local_vcf_population_structure_smoke",
@@ -271,19 +271,9 @@ const CHANGED_PATH_RULES: &[ChangedPathRule] = &[
         reason: "population mini-smoke truth belongs to the science fixture lane",
     },
     ChangedPathRule {
-        matcher: "benchmarks/tests/fixtures/science/fastq-trimming-truth/",
+        matcher: "crates/bijux-dna/tests/fixtures_validate_",
         command: "make science-fixtures-fast",
-        reason: "FASTQ trimming truth belongs to the science fixture lane",
-    },
-    ChangedPathRule {
-        matcher: "crates/bijux-dna/tests/fixtures_validate_expected_fastq_trimming_truth",
-        command: "make science-fixtures-fast",
-        reason: "FASTQ trimming expected outputs belong to the science fixture lane",
-    },
-    ChangedPathRule {
-        matcher: "crates/bijux-dna/tests/fixtures_validate_expected_vcf_mini_stdout.rs",
-        command: "make science-fixtures-fast",
-        reason: "VCF mini expected outputs belong to the science fixture lane",
+        reason: "fixture validation tests belong to the science fixture lane",
     },
 ];
 
@@ -927,7 +917,7 @@ mod tests {
         let fixture = root.path().join("changed_paths.txt");
         write_utf8_report(
             &fixture,
-            ".github/workflows/ci.yml\ncrates/bijux-dna/tests/bench_readiness_all_domain_adapter_coverage.rs\nbenchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.pca/expected.normalized.json\nbenchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv\n",
+            ".github/workflows/ci.yml\ncrates/bijux-dna/tests/bench_readiness_all_domain_adapter_coverage.rs\nbenchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.pca/expected.normalized.json\nbenchmarks/tests/fixtures/science/fastq-taxonomy-truth/expected_taxa.tsv\n",
         )?;
         let report = changed_path_commands(root.path(), &fixture)?;
         assert_eq!(
@@ -940,6 +930,24 @@ mod tests {
                 "make science-fixtures-fast".to_string()
             ]
         );
+        Ok(())
+    }
+
+    #[test]
+    fn changed_path_command_report_routes_taxonomy_truth_surfaces_to_science_fixture_lane(
+    ) -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let fixture = root.path().join("changed_paths.txt");
+        write_utf8_report(
+            &fixture,
+            "benchmarks/tests/fixtures/science/fastq-taxonomy-truth/expected_taxa.tsv\ncrates/bijux-dna/src/commands/fixtures/expected/fastq_taxonomy.rs\ncrates/bijux-dna/tests/fixtures_validate_fastq_taxonomy_truth.rs\n",
+        )?;
+        let report = changed_path_commands(root.path(), &fixture)?;
+        assert_eq!(report.commands, vec!["make science-fixtures-fast".to_string()]);
+        assert!(report
+            .selections
+            .iter()
+            .all(|selection| selection.commands == vec!["make science-fixtures-fast".to_string()]));
         Ok(())
     }
 
