@@ -85,12 +85,19 @@ Commands listed here are owned by this crate even when their durable behavior is
   PLINK2 and EIGENSOFT parser fixtures. It fails closed if sample coordinates, ancestry fractions,
   cohort metadata joins, dominant cluster calls, or pairwise distance summaries drift from the
   governed science fixture.
+  `fixtures validate --corpus segments-demography-truth` validates the governed
+  `benchmarks/tests/fixtures/science/segments-demography-truth/manifest.toml` bundle against the
+  owned ROH-, IBD-, and demography-output truth summaries plus the retained PLINK2, germline,
+  IBDseq, IBDHap, and IBDNe parser fixtures. It fails closed if ROH intervals, relatedness segment
+  lengths, marker-overlap insufficiency evidence, or demography insufficiency status drift from the
+  governed science fixture.
   `fixtures validate --root benchmarks/tests/fixtures --all` writes
   `benchmarks/readiness/benchmark-fixture-root-validation.json` and fails closed unless the
   benchmark-owned `bench`, `corpora`, and `databases` roots all exist, parser-bank domains remain
   populated, and every governed corpus, taxonomy database, and science truth bundle including
   `vcf-genotype-truth`, `vcf-filter-truth`, `phasing-imputation-truth`, and
-  `population-structure-truth` validates from the benchmark fixture root.
+  `population-structure-truth`, and `segments-demography-truth` validates from the benchmark
+  fixture root.
 - `bijux-dna fixtures validate-expected`
   `fixtures validate-expected --corpus vcf-mini` validates the governed
   `benchmarks/tests/fixtures/corpora/vcf-mini/expected/*.json` truth bundle against the owned
@@ -120,6 +127,12 @@ Commands listed here are owned by this crate even when their durable behavior is
   PLINK2 and EIGENSOFT normalized metrics parsers. It fails closed when coordinate rows, ancestry
   proportions, metadata joins, dominant-cluster assignments, or pairwise distance summaries drift
   from the governed science fixture.
+  `fixtures validate-expected --corpus segments-demography-truth` validates the governed
+  `benchmarks/tests/fixtures/science/segments-demography-truth/expected.json` bundle against the
+  owned ROH-, IBD-, and demography-output truth summarizers plus the retained PLINK2, germline,
+  IBDseq, IBDHap, and IBDNe normalized metrics parsers. It fails closed when ROH interval rows,
+  retained IBD pair lengths, marker-overlap insufficiency probes, or demography insufficiency
+  states drift from the governed science fixture.
 
 ### Status
 - `bijux-dna status`
