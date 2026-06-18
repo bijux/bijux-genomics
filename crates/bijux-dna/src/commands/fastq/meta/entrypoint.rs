@@ -1182,6 +1182,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateCrossDomainSampleConsistency(args) => {
+                        crate::commands::benchmark::local_cross_domain_sample_consistency::run_validate_cross_domain_sample_consistency(
+                            args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateHpcSubmissionReady(args) => {
                         crate::commands::benchmark::local_hpc_submission_ready::run_validate_hpc_submission_ready(
                             args.output.clone(),

@@ -85,6 +85,8 @@ pub enum BenchLocalCommand {
     ValidateVcfReferenceCompatibility(BenchLocalValidateVcfReferenceCompatibilityArgs),
     #[command(name = "validate-vcf-sample-compatibility")]
     ValidateVcfSampleCompatibility(BenchLocalValidateVcfSampleCompatibilityArgs),
+    #[command(name = "validate-cross-domain-sample-consistency")]
+    ValidateCrossDomainSampleConsistency(BenchLocalValidateCrossDomainSampleConsistencyArgs),
     #[command(name = "validate-hpc-submission-ready")]
     ValidateHpcSubmissionReady(BenchLocalValidateHpcSubmissionReadyArgs),
     #[command(name = "simulate-dag-watchdog")]
@@ -403,6 +405,20 @@ pub struct BenchLocalValidateVcfReferenceCompatibilityArgs {
 pub struct BenchLocalValidateVcfSampleCompatibilityArgs {
     #[arg(long)]
     pub manifest: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateCrossDomainSampleConsistencyArgs {
+    #[arg(long)]
+    pub fastq_manifest: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub bam_manifest: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub vcf_manifest: Option<std::path::PathBuf>,
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
