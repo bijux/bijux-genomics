@@ -60,6 +60,7 @@ pub const BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.damage_evidence.
 pub const BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION: &str = "bijux.bam.authenticity_advisory.v1";
 pub const BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.contamination_evidence.v1";
 pub const BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION: &str = "bijux.bam.endogenous_content.v1";
+pub const BAM_ENDOGENOUS_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.endogenous_truth.v1";
 pub const BAM_SEX_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.sex_summary.v1";
 pub const BAM_SEX_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.sex_evidence.v1";
 pub const BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION: &str = "bijux.bam.haplogroup_readiness.v1";
@@ -955,6 +956,30 @@ pub struct BamEndogenousContentEstimateV1 {
     pub host_reference_scope: Option<String>,
     pub prealignment_meaning: String,
     pub postalignment_meaning: String,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamEndogenousTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    #[serde(default)]
+    pub host_reference_scope: Option<String>,
+    pub total_reads: u64,
+    pub mapped_reads: u64,
+    pub contaminant_reads: u64,
+    pub retained_reads: u64,
+    pub endogenous_reads: u64,
+    pub contaminant_fraction: f64,
+    pub retained_fraction: f64,
+    pub endogenous_fraction: f64,
+    #[serde(default)]
+    pub prealignment_fraction: Option<f64>,
+    pub postalignment_fraction: f64,
+    pub count_provenance: String,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -4813,6 +4838,46 @@ pub fn summarize_tiny_bam_endogenous_content(
     ))
 }
 
+/// Build a governed endogenous-count truth summary from explicit mapped/total read counts.
+#[must_use]
+pub fn summarize_bam_endogenous_truth(
+    stage_id: &str,
+    method: &str,
+    total_reads: u64,
+    mapped_reads: u64,
+    prealignment_fraction: Option<f64>,
+    host_reference_scope: Option<&str>,
+) -> BamEndogenousTruthSummaryV1 {
+    let estimate = summarize_bam_endogenous_content(
+        stage_id,
+        method,
+        total_reads,
+        mapped_reads,
+        prealignment_fraction,
+        host_reference_scope,
+    );
+    endogenous_truth_from_estimate(estimate)
+}
+
+/// Summarize governed endogenous-count truth directly from a tiny SAM/BAM fixture.
+///
+/// # Errors
+/// Returns an error if the tiny fixture cannot be parsed.
+pub fn summarize_tiny_bam_endogenous_truth(
+    input_bam: &Path,
+    method: &str,
+    host_reference_scope: &str,
+    prealignment_fraction: Option<f64>,
+) -> Result<BamEndogenousTruthSummaryV1> {
+    let estimate = summarize_tiny_bam_endogenous_content(
+        input_bam,
+        method,
+        host_reference_scope,
+        prealignment_fraction,
+    )?;
+    Ok(endogenous_truth_from_estimate(estimate))
+}
+
 /// Summarize sex-inference coverage signals from a tiny SAM/BAM fixture plus reference context.
 ///
 /// # Errors
@@ -5190,6 +5255,36 @@ fn build_endogenous_content_estimate(
         postalignment_meaning: "fraction of aligned reads relative to total reads after alignment"
             .to_string(),
         caveats,
+    }
+}
+
+fn endogenous_truth_from_estimate(
+    estimate: BamEndogenousContentEstimateV1,
+) -> BamEndogenousTruthSummaryV1 {
+    let contaminant_reads = estimate.total_reads.saturating_sub(estimate.mapped_reads);
+    let contaminant_fraction = if estimate.total_reads > 0 {
+        contaminant_reads as f64 / estimate.total_reads as f64
+    } else {
+        0.0
+    };
+    let retained_reads = estimate.mapped_reads;
+    BamEndogenousTruthSummaryV1 {
+        schema_version: BAM_ENDOGENOUS_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: estimate.stage_id,
+        method: estimate.method,
+        host_reference_scope: estimate.host_reference_scope,
+        total_reads: estimate.total_reads,
+        mapped_reads: estimate.mapped_reads,
+        contaminant_reads,
+        retained_reads,
+        endogenous_reads: estimate.endogenous_reads,
+        contaminant_fraction,
+        retained_fraction: estimate.postalignment_fraction,
+        endogenous_fraction: estimate.endogenous_fraction,
+        prealignment_fraction: estimate.prealignment_fraction,
+        postalignment_fraction: estimate.postalignment_fraction,
+        count_provenance: "mapped reads are retained endogenous reads under the governed host-reference scope; unmapped reads are counted as contaminant or background relative to that scope".to_string(),
+        caveats: estimate.caveats,
     }
 }
 
@@ -6356,6 +6451,53 @@ mod tests {
         assert_eq!(summary.total_reads, 5);
         assert!((summary.endogenous_fraction - 0.6).abs() < 1e-9);
         assert_eq!(summary.prealignment_fraction, Some(0.60));
+        assert_eq!(summary.host_reference_scope.as_deref(), Some("human_host"));
+    }
+
+    #[test]
+    fn bam_endogenous_truth_summary_counts_contaminant_and_retained_reads() {
+        let summary = summarize_bam_endogenous_truth(
+            "bam.endogenous_content",
+            "mapped_fraction_from_flagstat",
+            5,
+            3,
+            Some(0.58),
+            Some("human_host"),
+        );
+        assert_eq!(summary.schema_version, BAM_ENDOGENOUS_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.total_reads, 5);
+        assert_eq!(summary.mapped_reads, 3);
+        assert_eq!(summary.contaminant_reads, 2);
+        assert_eq!(summary.retained_reads, 3);
+        assert_eq!(summary.endogenous_reads, 3);
+        assert!((summary.contaminant_fraction - 0.4).abs() < 1e-9);
+        assert!((summary.retained_fraction - 0.6).abs() < 1e-9);
+        assert!(summary.count_provenance.contains("mapped reads are retained endogenous reads"));
+    }
+
+    #[test]
+    fn summarize_tiny_bam_endogenous_truth_preserves_fully_retained_counts() {
+        let input = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| panic!("workspace root"))
+            .join(
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_target_window_coverage.sam",
+            );
+        let summary = summarize_tiny_bam_endogenous_truth(
+            &input,
+            "mapped_fraction_from_flagstat",
+            "human_host",
+            Some(1.0),
+        )
+        .expect("summarize endogenous truth");
+        assert_eq!(summary.total_reads, 3);
+        assert_eq!(summary.mapped_reads, 3);
+        assert_eq!(summary.contaminant_reads, 0);
+        assert_eq!(summary.retained_reads, 3);
+        assert_eq!(summary.endogenous_reads, 3);
+        assert!((summary.contaminant_fraction - 0.0).abs() < 1e-9);
+        assert!((summary.retained_fraction - 1.0).abs() < 1e-9);
         assert_eq!(summary.host_reference_scope.as_deref(), Some("human_host"));
     }
 
