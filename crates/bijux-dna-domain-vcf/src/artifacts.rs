@@ -22,6 +22,8 @@ pub const VCF_PHASING_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.phasing.v1";
 pub const VCF_GENOTYPE_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.genotype_truth.v1";
 pub const VCF_FILTER_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.filter_output_truth.v1";
+pub const VCF_PHASING_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.phasing_output_truth.v1";
+pub const VCF_IMPUTATION_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.imputation_output_truth.v1";
 #[cfg(test)]
 const VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.imputation.v1";
@@ -288,6 +290,52 @@ pub struct VcfFilterOutputTruthSummaryV1 {
     pub per_filter_sites: BTreeMap<String, Vec<String>>,
     #[serde(default)]
     pub pass_sites: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfPhasingOutputTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub input_vcf: PathBuf,
+    pub sample_count: u32,
+    #[serde(default)]
+    pub sample_ids: Vec<String>,
+    pub variant_count: u64,
+    pub called_genotype_count: u64,
+    pub phased_genotype_count: u64,
+    pub unphased_genotype_count: u64,
+    pub phase_set_count: u64,
+    #[serde(default)]
+    pub phase_sets_by_sample: BTreeMap<String, Vec<String>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfImputationOutputTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub input_vcf: PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub truth_vcf: Option<PathBuf>,
+    pub sample_count: u32,
+    #[serde(default)]
+    pub sample_ids: Vec<String>,
+    pub variant_count: u64,
+    pub sites_with_info_score: u64,
+    pub sites_with_r2_score: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mean_info_score: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mean_r2_score: Option<f64>,
+    pub masked_truth_site_count: u64,
+    pub masked_truth_match_count: u64,
+    pub masked_truth_mismatch_count: u64,
+    pub unresolved_count: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub genotype_concordance: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -1016,6 +1064,271 @@ pub fn summarize_vcf_filter_output_truth(
         per_filter_variant_count,
         per_filter_sites,
         pass_sites,
+    })
+}
+
+/// Summarize phased genotype counts and phase-set evidence from a phasing-output VCF.
+///
+/// # Errors
+/// Returns an error when the VCF cannot be parsed.
+pub fn summarize_vcf_phasing_output_truth(
+    input_vcf: &Path,
+    stage_id: &str,
+    tool_id: &str,
+) -> Result<VcfPhasingOutputTruthSummaryV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let mut called_genotype_count = 0_u64;
+    let mut phased_genotype_count = 0_u64;
+    let mut unphased_genotype_count = 0_u64;
+    let mut phase_sets_by_sample = doc
+        .samples
+        .iter()
+        .cloned()
+        .map(|sample_id| (sample_id, BTreeSet::<String>::new()))
+        .collect::<BTreeMap<_, _>>();
+
+    for record in &doc.records {
+        let Some(format) = &record.format else {
+            continue;
+        };
+        let ps_in_format = format.split(':').any(|field| field == "PS");
+        for (sample_index, sample_payload) in record.samples.iter().enumerate() {
+            let Some(gt) = parse_gt_from_sample(format, sample_payload) else {
+                continue;
+            };
+            let Some((phased, _alleles)) = parse_called_genotype(gt) else {
+                continue;
+            };
+            called_genotype_count += 1;
+            if phased {
+                phased_genotype_count += 1;
+                if ps_in_format {
+                    if let Some(ps) = parse_format_value_from_sample(format, sample_payload, "PS") {
+                        let sample_id = &doc.samples[sample_index];
+                        if !ps.is_empty() && ps != "." {
+                            phase_sets_by_sample
+                                .entry(sample_id.clone())
+                                .or_default()
+                                .insert(ps.to_string());
+                        }
+                    }
+                }
+            } else {
+                unphased_genotype_count += 1;
+            }
+        }
+    }
+
+    let phase_sets_by_sample = phase_sets_by_sample
+        .into_iter()
+        .map(|(sample_id, phase_sets)| (sample_id, phase_sets.into_iter().collect::<Vec<_>>()))
+        .collect::<BTreeMap<_, _>>();
+    let phase_set_count = phase_sets_by_sample
+        .values()
+        .map(|phase_sets| u64::try_from(phase_sets.len()).unwrap_or(0))
+        .sum();
+
+    Ok(VcfPhasingOutputTruthSummaryV1 {
+        schema_version: VCF_PHASING_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        input_vcf: input_vcf.to_path_buf(),
+        sample_count: usize_to_u32_saturating(doc.samples.len()),
+        sample_ids: doc.samples,
+        variant_count: doc.records.len() as u64,
+        called_genotype_count,
+        phased_genotype_count,
+        unphased_genotype_count,
+        phase_set_count,
+        phase_sets_by_sample,
+    })
+}
+
+/// Summarize imputation-output truth from an imputed VCF plus optional masked-site truth VCF.
+///
+/// # Errors
+/// Returns an error when the VCF or truth VCF cannot be parsed.
+pub fn summarize_vcf_imputation_output_truth(
+    input_vcf: &Path,
+    truth_vcf: Option<&Path>,
+    stage_id: &str,
+    tool_id: &str,
+) -> Result<VcfImputationOutputTruthSummaryV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let mut info_sum = 0.0_f64;
+    let mut r2_sum = 0.0_f64;
+    let mut sites_with_info_score = 0_u64;
+    let mut sites_with_r2_score = 0_u64;
+
+    for record in &doc.records {
+        if let Some(info_score) = parse_record_info_metric(&record.info, "INFO") {
+            info_sum += info_score;
+            sites_with_info_score += 1;
+        }
+        if let Some(r2_score) = parse_record_info_metric(&record.info, "R2") {
+            r2_sum += r2_score;
+            sites_with_r2_score += 1;
+        }
+    }
+
+    let truth_comparison = match truth_vcf {
+        Some(path) => Some(compare_imputed_truth(&doc, &parse_tiny_vcf(path)?)?),
+        None => None,
+    };
+    let mean_info_score = if sites_with_info_score > 0 {
+        Some(info_sum / sites_with_info_score as f64)
+    } else {
+        None
+    };
+    let mean_r2_score =
+        if sites_with_r2_score > 0 { Some(r2_sum / sites_with_r2_score as f64) } else { None };
+    let genotype_concordance = truth_comparison.as_ref().and_then(|truth| {
+        let resolved = truth.masked_truth_match_count + truth.masked_truth_mismatch_count;
+        if resolved == 0 {
+            None
+        } else {
+            Some(truth.masked_truth_match_count as f64 / resolved as f64)
+        }
+    });
+
+    Ok(VcfImputationOutputTruthSummaryV1 {
+        schema_version: VCF_IMPUTATION_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        input_vcf: input_vcf.to_path_buf(),
+        truth_vcf: truth_vcf.map(Path::to_path_buf),
+        sample_count: usize_to_u32_saturating(doc.samples.len()),
+        sample_ids: doc.samples,
+        variant_count: doc.records.len() as u64,
+        sites_with_info_score,
+        sites_with_r2_score,
+        mean_info_score,
+        mean_r2_score,
+        masked_truth_site_count: truth_comparison
+            .as_ref()
+            .map_or(0, |truth| truth.masked_truth_site_count),
+        masked_truth_match_count: truth_comparison
+            .as_ref()
+            .map_or(0, |truth| truth.masked_truth_match_count),
+        masked_truth_mismatch_count: truth_comparison
+            .as_ref()
+            .map_or(0, |truth| truth.masked_truth_mismatch_count),
+        unresolved_count: truth_comparison.as_ref().map_or(0, |truth| truth.unresolved_count),
+        genotype_concordance,
+    })
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct ImputedTruthComparison {
+    masked_truth_site_count: u64,
+    masked_truth_match_count: u64,
+    masked_truth_mismatch_count: u64,
+    unresolved_count: u64,
+}
+
+fn compare_imputed_truth(
+    doc: &TinyVcfDocument,
+    truth: &TinyVcfDocument,
+) -> Result<ImputedTruthComparison> {
+    let output_sample_index = doc
+        .samples
+        .iter()
+        .enumerate()
+        .map(|(idx, sample_id)| (sample_id.clone(), idx))
+        .collect::<BTreeMap<_, _>>();
+    let truth_sample_index = truth
+        .samples
+        .iter()
+        .enumerate()
+        .map(|(idx, sample_id)| (sample_id.clone(), idx))
+        .collect::<BTreeMap<_, _>>();
+    let output_records = doc
+        .records
+        .iter()
+        .map(|record| (format!("{}:{}", record.chrom, record.pos), record))
+        .collect::<BTreeMap<_, _>>();
+
+    let mut masked_truth_site_count = 0_u64;
+    let mut masked_truth_match_count = 0_u64;
+    let mut masked_truth_mismatch_count = 0_u64;
+    let mut unresolved_count = 0_u64;
+
+    for truth_record in &truth.records {
+        let site_id = format!("{}:{}", truth_record.chrom, truth_record.pos);
+        let Some(output_record) = output_records.get(&site_id) else {
+            for truth_payload in &truth_record.samples {
+                let gt = truth_record
+                    .format
+                    .as_deref()
+                    .and_then(|format| parse_gt_from_sample(format, truth_payload));
+                if gt.is_some_and(|value| !genotype_is_missing(value)) {
+                    unresolved_count += 1;
+                }
+            }
+            continue;
+        };
+        let Some(truth_format) = truth_record.format.as_deref() else {
+            continue;
+        };
+        let Some(output_format) = output_record.format.as_deref() else {
+            continue;
+        };
+        for (sample_id, truth_index) in &truth_sample_index {
+            let truth_payload = truth_record.samples.get(*truth_index).ok_or_else(|| {
+                anyhow!("truth VCF row `{site_id}` is missing genotype for `{sample_id}`")
+            })?;
+            let Some(truth_gt) = parse_gt_from_sample(truth_format, truth_payload) else {
+                continue;
+            };
+            if genotype_is_missing(truth_gt) {
+                continue;
+            }
+            masked_truth_site_count += 1;
+            let Some(output_index) = output_sample_index.get(sample_id) else {
+                unresolved_count += 1;
+                continue;
+            };
+            let output_payload = output_record.samples.get(*output_index).ok_or_else(|| {
+                anyhow!("imputed VCF row `{site_id}` is missing genotype for `{sample_id}`")
+            })?;
+            let Some(output_gt) = parse_gt_from_sample(output_format, output_payload) else {
+                unresolved_count += 1;
+                continue;
+            };
+            if genotype_is_missing(output_gt) {
+                unresolved_count += 1;
+                continue;
+            }
+            if canonicalize_genotype_for_truth(output_gt)
+                == canonicalize_genotype_for_truth(truth_gt)
+            {
+                masked_truth_match_count += 1;
+            } else {
+                masked_truth_mismatch_count += 1;
+            }
+        }
+    }
+
+    Ok(ImputedTruthComparison {
+        masked_truth_site_count,
+        masked_truth_match_count,
+        masked_truth_mismatch_count,
+        unresolved_count,
+    })
+}
+
+fn canonicalize_genotype_for_truth(gt: &str) -> String {
+    gt.replace('|', "/")
+}
+
+fn parse_record_info_metric(info: &str, key: &str) -> Option<f64> {
+    info.split(';').find_map(|entry| {
+        let (entry_key, value) = entry.split_once('=')?;
+        if entry_key == key {
+            value.parse::<f64>().ok()
+        } else {
+            None
+        }
     })
 }
 
@@ -2739,9 +3052,7 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
     }
 
     fn repo_fixture_path(relative_path: &str) -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../")
-            .join(relative_path)
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../").join(relative_path)
     }
 
     #[test]
@@ -2791,8 +3102,8 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
             "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_gl/raw.gl.vcf",
         );
 
-        let summary = summarize_vcf_genotype_truth(&input, "vcf.call_gl", "bcftools")
-            .expect("summary");
+        let summary =
+            summarize_vcf_genotype_truth(&input, "vcf.call_gl", "bcftools").expect("summary");
         assert_eq!(summary.observed_ploidy_widths, vec![2]);
         assert_eq!(summary.likelihood_fields_present, vec!["PL".to_string()]);
         assert_eq!(summary.sites_with_likelihood_values.get("PL"), Some(&3));
@@ -2819,8 +3130,9 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
 
     #[test]
     fn summarize_vcf_filter_output_truth_reports_known_filter_labels_from_governed_fixture() {
-        let input =
-            repo_fixture_path("benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter/raw.filtered.vcf");
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter/raw.filtered.vcf",
+        );
 
         let summary =
             summarize_vcf_filter_output_truth(&input, "vcf.filter", "bcftools").expect("summary");
@@ -2841,10 +3153,7 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(summary.per_filter_variant_count.get("LOWQUAL"), Some(&1));
         assert_eq!(summary.per_filter_variant_count.get("LOW_DP"), Some(&1));
         assert_eq!(summary.per_filter_variant_count.get("HIGH_MISSING"), Some(&1));
-        assert_eq!(
-            summary.per_filter_sites.get("LOWQUAL"),
-            Some(&vec!["chr1:20".to_string()])
-        );
+        assert_eq!(summary.per_filter_sites.get("LOWQUAL"), Some(&vec!["chr1:20".to_string()]));
         assert_eq!(summary.pass_sites, vec!["chr1:10".to_string()]);
     }
 
@@ -2860,9 +3169,62 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(summary.pass_variant_count, 2);
         assert_eq!(summary.failed_variant_count, 0);
         assert!(summary.observed_filter_ids.is_empty());
-        assert_eq!(
-            summary.pass_sites,
-            vec!["chr1:10".to_string(), "chr1:40".to_string()]
+        assert_eq!(summary.pass_sites, vec!["chr1:10".to_string(), "chr1:40".to_string()]);
+    }
+
+    #[test]
+    fn summarize_vcf_phasing_output_truth_reports_phase_sets_from_governed_fixture() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/shapeit5/raw.phased.vcf",
         );
+
+        let summary =
+            summarize_vcf_phasing_output_truth(&input, "vcf.phasing", "shapeit5").expect("summary");
+        assert_eq!(summary.schema_version, VCF_PHASING_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.sample_count, 2);
+        assert_eq!(summary.sample_ids, vec!["cohort_alpha".to_string(), "cohort_beta".to_string()]);
+        assert_eq!(summary.variant_count, 4);
+        assert_eq!(summary.called_genotype_count, 8);
+        assert_eq!(summary.phased_genotype_count, 8);
+        assert_eq!(summary.unphased_genotype_count, 0);
+        assert_eq!(summary.phase_set_count, 4);
+        assert_eq!(
+            summary.phase_sets_by_sample.get("cohort_alpha"),
+            Some(&vec!["101".to_string(), "145".to_string()])
+        );
+        assert_eq!(
+            summary.phase_sets_by_sample.get("cohort_beta"),
+            Some(&vec!["101".to_string(), "145".to_string()])
+        );
+    }
+
+    #[test]
+    fn summarize_vcf_imputation_output_truth_reports_concordance_and_info_scores() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute/raw.imputed.vcf",
+        );
+        let truth = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute/raw.truth.vcf",
+        );
+
+        let summary =
+            summarize_vcf_imputation_output_truth(&input, Some(&truth), "vcf.impute", "beagle")
+                .expect("summary");
+        assert_eq!(summary.schema_version, VCF_IMPUTATION_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.sample_count, 2);
+        assert_eq!(
+            summary.sample_ids,
+            vec!["masked_sample".to_string(), "donor_sample".to_string()]
+        );
+        assert_eq!(summary.variant_count, 2);
+        assert_eq!(summary.sites_with_info_score, 2);
+        assert_eq!(summary.sites_with_r2_score, 2);
+        assert_eq!(summary.mean_info_score, Some(0.825));
+        assert_eq!(summary.mean_r2_score, Some(0.775));
+        assert_eq!(summary.masked_truth_site_count, 1);
+        assert_eq!(summary.masked_truth_match_count, 1);
+        assert_eq!(summary.masked_truth_mismatch_count, 0);
+        assert_eq!(summary.unresolved_count, 0);
+        assert_eq!(summary.genotype_concordance, Some(1.0));
     }
 }
