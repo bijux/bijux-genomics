@@ -25,6 +25,7 @@ pub const BAM_QC_PRE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.qc_pre.v1";
 pub const BAM_MAPPING_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapping_summary.v1";
 pub const BAM_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.filter.v1";
 pub const BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapq_filter.v1";
+pub const BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.alignment_truth.v1";
 pub const BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.length_filter.v1";
 pub const BAM_MARKDUP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.markdup.v1";
 pub const BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.duplication_metrics.v1";
@@ -164,6 +165,53 @@ pub struct BamTinyAlignmentInspectionV1 {
     pub read_group_ids: Vec<String>,
     pub mapped_record_contigs: Vec<String>,
     pub record_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAlignmentTruthRecordV1 {
+    pub qname: String,
+    pub mapped: bool,
+    pub reference_name: Option<String>,
+    pub position: Option<u64>,
+    pub mapq: u8,
+    pub cigar: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAlignmentTruthPositionV1 {
+    pub reference_name: String,
+    pub position: u64,
+    pub read_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAlignmentTruthMapqClassV1 {
+    pub mapq: u8,
+    pub read_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAlignmentTruthCigarClassV1 {
+    pub cigar: String,
+    pub read_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAlignmentTruthSummaryV1 {
+    pub schema_version: String,
+    pub total_reads: u64,
+    pub mapped_reads: u64,
+    pub unmapped_reads: u64,
+    pub mapped_contigs: Vec<String>,
+    pub mapped_positions: Vec<BamAlignmentTruthPositionV1>,
+    pub mapped_mapq_classes: Vec<BamAlignmentTruthMapqClassV1>,
+    pub cigar_classes: Vec<BamAlignmentTruthCigarClassV1>,
+    pub records: Vec<BamAlignmentTruthRecordV1>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -1138,6 +1186,99 @@ pub fn inspect_tiny_alignment(path: &Path) -> Result<BamTinyAlignmentInspectionV
         read_group_ids,
         mapped_record_contigs,
         record_count: document.records.len() as u64,
+    })
+}
+
+/// Summarize exact tiny-alignment truth for governed BAM/SAM fixtures.
+///
+/// # Errors
+/// Returns an error when the alignment fixture cannot be parsed.
+pub fn summarize_tiny_bam_alignment_truth(input_bam: &Path) -> Result<BamAlignmentTruthSummaryV1> {
+    let document = parse_tiny_alignment(input_bam)?;
+
+    let total_reads = document.records.len() as u64;
+    let mapped_reads = document.records.iter().filter(|record| record.is_mapped()).count() as u64;
+    let unmapped_reads = total_reads.saturating_sub(mapped_reads);
+
+    let mut mapped_contigs = document
+        .records
+        .iter()
+        .filter(|record| record.is_mapped())
+        .map(|record| record.rname.clone())
+        .collect::<Vec<_>>();
+    mapped_contigs.sort();
+    mapped_contigs.dedup();
+
+    let mut mapped_positions = HashMap::<(String, u64), u64>::new();
+    let mut mapped_mapq_classes = HashMap::<u8, u64>::new();
+    let mut cigar_classes = HashMap::<String, u64>::new();
+    let mut records = document
+        .records
+        .iter()
+        .map(|record| {
+            *cigar_classes.entry(record.cigar.clone()).or_insert(0) += 1;
+            if record.is_mapped() {
+                *mapped_positions.entry((record.rname.clone(), record.pos)).or_insert(0) += 1;
+                *mapped_mapq_classes.entry(record.mapq).or_insert(0) += 1;
+            }
+            BamAlignmentTruthRecordV1 {
+                qname: record.qname.clone(),
+                mapped: record.is_mapped(),
+                reference_name: record.is_mapped().then(|| record.rname.clone()),
+                position: record.is_mapped().then_some(record.pos),
+                mapq: record.mapq,
+                cigar: record.cigar.clone(),
+            }
+        })
+        .collect::<Vec<_>>();
+    records.sort_by(|left, right| {
+        left.mapped
+            .cmp(&right.mapped)
+            .reverse()
+            .then(left.reference_name.cmp(&right.reference_name))
+            .then(left.position.cmp(&right.position))
+            .then(left.qname.cmp(&right.qname))
+            .then(left.cigar.cmp(&right.cigar))
+            .then(left.mapq.cmp(&right.mapq))
+    });
+
+    let mut mapped_positions = mapped_positions
+        .into_iter()
+        .map(|((reference_name, position), read_count)| BamAlignmentTruthPositionV1 {
+            reference_name,
+            position,
+            read_count,
+        })
+        .collect::<Vec<_>>();
+    mapped_positions.sort_by(|left, right| {
+        left.reference_name
+            .cmp(&right.reference_name)
+            .then(left.position.cmp(&right.position))
+            .then(left.read_count.cmp(&right.read_count))
+    });
+
+    let mut mapped_mapq_classes = mapped_mapq_classes
+        .into_iter()
+        .map(|(mapq, read_count)| BamAlignmentTruthMapqClassV1 { mapq, read_count })
+        .collect::<Vec<_>>();
+    mapped_mapq_classes.sort_by_key(|row| row.mapq);
+
+    let mut cigar_classes = cigar_classes
+        .into_iter()
+        .map(|(cigar, read_count)| BamAlignmentTruthCigarClassV1 { cigar, read_count })
+        .collect::<Vec<_>>();
+    cigar_classes.sort_by(|left, right| left.cigar.cmp(&right.cigar));
+
+    Ok(BamAlignmentTruthSummaryV1 {
+        schema_version: BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        total_reads,
+        mapped_reads,
+        unmapped_reads,
+        mapped_contigs,
+        mapped_positions,
+        mapped_mapq_classes,
+        cigar_classes,
+        records,
     })
 }
 
@@ -5943,6 +6084,95 @@ r001\t99\tchr1\n",
         assert_eq!(inspection.read_group_ids.len(), 1);
         assert_eq!(inspection.mapped_record_contigs, vec!["chr1".to_string()]);
         assert_eq!(inspection.record_count, 2);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_alignment_truth_accepts_governed_binary_bam_fixture() {
+        let repo_root = workspace_root();
+        let bam = repo_root.join("assets/toy/core-v1/bam/validation_pass.bam");
+
+        let summary = summarize_tiny_bam_alignment_truth(&bam).expect("summarize BAM fixture");
+        assert_eq!(summary.schema_version, BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.total_reads, 2);
+        assert_eq!(summary.mapped_reads, 2);
+        assert_eq!(summary.unmapped_reads, 0);
+        assert_eq!(summary.mapped_contigs, vec!["chr1".to_string()]);
+        assert_eq!(
+            summary.mapped_positions,
+            vec![
+                BamAlignmentTruthPositionV1 {
+                    reference_name: "chr1".to_string(),
+                    position: 1,
+                    read_count: 1,
+                },
+                BamAlignmentTruthPositionV1 {
+                    reference_name: "chr1".to_string(),
+                    position: 7,
+                    read_count: 1,
+                },
+            ]
+        );
+        assert_eq!(
+            summary.mapped_mapq_classes,
+            vec![BamAlignmentTruthMapqClassV1 { mapq: 60, read_count: 2 }]
+        );
+        assert_eq!(
+            summary.cigar_classes,
+            vec![BamAlignmentTruthCigarClassV1 { cigar: "6M".to_string(), read_count: 2 }]
+        );
+    }
+
+    #[test]
+    fn summarize_tiny_bam_alignment_truth_tracks_mapped_unmapped_positions_and_classes() {
+        let repo_root = workspace_root();
+        let sam = repo_root.join("assets/toy/core-v1/bam/filter_mixed_constraints.sam");
+
+        let summary = summarize_tiny_bam_alignment_truth(&sam).expect("summarize SAM fixture");
+        assert_eq!(summary.schema_version, BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.total_reads, 5);
+        assert_eq!(summary.mapped_reads, 4);
+        assert_eq!(summary.unmapped_reads, 1);
+        assert_eq!(summary.mapped_contigs, vec!["chr1".to_string()]);
+        assert_eq!(
+            summary.mapped_positions,
+            vec![
+                BamAlignmentTruthPositionV1 {
+                    reference_name: "chr1".to_string(),
+                    position: 1,
+                    read_count: 1,
+                },
+                BamAlignmentTruthPositionV1 {
+                    reference_name: "chr1".to_string(),
+                    position: 10,
+                    read_count: 1,
+                },
+                BamAlignmentTruthPositionV1 {
+                    reference_name: "chr1".to_string(),
+                    position: 20,
+                    read_count: 1,
+                },
+                BamAlignmentTruthPositionV1 {
+                    reference_name: "chr1".to_string(),
+                    position: 30,
+                    read_count: 1,
+                },
+            ]
+        );
+        assert_eq!(
+            summary.mapped_mapq_classes,
+            vec![
+                BamAlignmentTruthMapqClassV1 { mapq: 10, read_count: 1 },
+                BamAlignmentTruthMapqClassV1 { mapq: 60, read_count: 3 },
+            ]
+        );
+        assert_eq!(
+            summary.cigar_classes,
+            vec![
+                BamAlignmentTruthCigarClassV1 { cigar: "*".to_string(), read_count: 1 },
+                BamAlignmentTruthCigarClassV1 { cigar: "6M".to_string(), read_count: 1 },
+                BamAlignmentTruthCigarClassV1 { cigar: "8M".to_string(), read_count: 3 },
+            ]
+        );
     }
 
     #[test]
