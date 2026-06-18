@@ -124,7 +124,6 @@ struct VcfGenotypeTruthCommandSummary {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
 struct RawVcfGenotypeTruthCommand {
     #[serde(default)]
     stage_id: Option<String>,

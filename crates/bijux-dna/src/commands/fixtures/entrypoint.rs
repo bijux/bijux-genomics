@@ -44,6 +44,9 @@ use crate::commands::fixtures::expected::fastq_trimming::{
     validate_fastq_trimming_truth_manifest_path, FASTQ_TRIMMING_TRUTH_FIXTURE_ID,
 };
 use crate::commands::fixtures::expected::vcf::validate_vcf_expected_truth;
+use crate::commands::fixtures::expected::vcf_genotype::{
+    validate_vcf_genotype_truth_manifest_path, VCF_GENOTYPE_TRUTH_FIXTURE_ID,
+};
 use crate::commands::fixtures::paths::{
     benchmark_corpus_manifest_path, benchmark_fixture_root_path, benchmark_science_manifest_path,
 };
@@ -257,6 +260,17 @@ pub(crate) fn validate_fixture(cwd: &Path, args: &cli::FixturesValidateArgs) -> 
             }
             Ok(())
         }
+        VCF_GENOTYPE_TRUTH_FIXTURE_ID => {
+            let manifest_path =
+                benchmark_science_manifest_path(&fixture_root, VCF_GENOTYPE_TRUTH_FIXTURE_ID);
+            let report = validate_vcf_genotype_truth_manifest_path(cwd, &manifest_path)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.manifest_path);
+            }
+            Ok(())
+        }
         _ => Err(anyhow!("unsupported governed fixture corpus `{corpus}`")),
     }
 }
@@ -426,6 +440,18 @@ pub(crate) fn validate_expected_fixture(
             let report = validate_bam_sex_truth_manifest_path(
                 cwd,
                 &benchmark_science_manifest_path(&fixture_root, BAM_SEX_TRUTH_FIXTURE_ID),
+            )?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.expected_path);
+            }
+            Ok(())
+        }
+        VCF_GENOTYPE_TRUTH_FIXTURE_ID => {
+            let report = validate_vcf_genotype_truth_manifest_path(
+                cwd,
+                &benchmark_science_manifest_path(&fixture_root, VCF_GENOTYPE_TRUTH_FIXTURE_ID),
             )?;
             if args.json {
                 cli::render::json::print_pretty(&report)?;
