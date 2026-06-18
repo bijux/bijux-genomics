@@ -61,11 +61,17 @@ Commands listed here are owned by this crate even when their durable behavior is
   FASTA and FAI, single-sample/cohort/phased/panel VCF assets, target-sites BED, and
   sample/population metadata. It fails closed when any declared file is missing, when the
   reference and FAI drift, or when VCF sample ids fall out of sync with the metadata tables.
+  `fixtures validate --corpus vcf-genotype-truth` validates the governed
+  `benchmarks/tests/fixtures/science/vcf-genotype-truth/manifest.toml` bundle against the owned
+  parser-fixture VCFs and command contracts for diploid, pseudohaploid, likelihood-bearing, and
+  propagated-likelihood cases. It fails closed if ploidy widths, genotype-state tallies,
+  per-sample missingness, retained GL/GP/PL fields, or seed-bearing command semantics drift away
+  from the governed science truth.
   `fixtures validate --root benchmarks/tests/fixtures --all` writes
   `benchmarks/readiness/benchmark-fixture-root-validation.json` and fails closed unless the
   benchmark-owned `bench`, `corpora`, and `databases` roots all exist, parser-bank domains remain
-  populated, and every governed corpus, taxonomy database, and `vcf-mini` expected-truth contract
-  validates from the benchmark fixture root.
+  populated, and every governed corpus, taxonomy database, and science truth bundle including
+  `vcf-genotype-truth` validates from the benchmark fixture root.
 - `bijux-dna fixtures validate-expected`
   `fixtures validate-expected --corpus vcf-mini` validates the governed
   `benchmarks/tests/fixtures/corpora/vcf-mini/expected/*.json` truth bundle against the owned
@@ -73,6 +79,11 @@ Commands listed here are owned by this crate even when their durable behavior is
   fails closed when variant counts, sample missingness, genotype-state tallies, allele
   frequencies, phasing status, pairwise cohort distances, ROH expectations, or IBD expectations
   drift away from the governed fixture corpus.
+  `fixtures validate-expected --corpus vcf-genotype-truth` validates the governed
+  `benchmarks/tests/fixtures/science/vcf-genotype-truth/expected.json` bundle against the owned
+  VCF genotype truth summarizer, boundary evaluators, and parser-fixture command metadata. It
+  fails closed when diploid or pseudohaploid call classes, GL/GP/PL field retention, genotype
+  missingness, or declared random-seed behavior drift from the governed science fixture.
 
 ### Status
 - `bijux-dna status`
