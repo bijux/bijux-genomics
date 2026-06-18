@@ -1,0 +1,117 @@
+{
+  "schema_version": "bijux.bench.vcf_filter_truth.expected.v1",
+  "fixture_id": "vcf-filter-truth",
+  "cases": [
+    {
+      "case_id": "bcftools_filter_labels",
+      "filter_metrics": {
+        "schema_version": "bijux.vcf.filter.v1",
+        "stage_id": "vcf.filter",
+        "tool_id": "bcftools",
+        "input_variants": 5,
+        "pass_variants": 1,
+        "failed_variants": 4,
+        "filter_ids": [
+          "HIGH_MISSING",
+          "LOWQUAL",
+          "LOW_DP",
+          "LOW_MQ"
+        ],
+        "depth_threshold": 8.0,
+        "quality_threshold": 30.0,
+        "missingness_threshold": 0.2,
+        "sample_count": 1
+      },
+      "output_truth": {
+        "schema_version": "bijux.vcf.filter_output_truth.v1",
+        "stage_id": "vcf.filter",
+        "tool_id": "bcftools",
+        "input_vcf": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter/raw.filtered.vcf",
+        "sample_count": 1,
+        "variant_count": 5,
+        "pass_variant_count": 1,
+        "failed_variant_count": 4,
+        "observed_filter_ids": [
+          "HIGH_MISSING",
+          "LOWQUAL",
+          "LOW_DP",
+          "LOW_MQ"
+        ],
+        "per_filter_variant_count": {
+          "HIGH_MISSING": 1,
+          "LOWQUAL": 1,
+          "LOW_DP": 1,
+          "LOW_MQ": 1
+        },
+        "per_filter_sites": {
+          "HIGH_MISSING": [
+            "chr1:50"
+          ],
+          "LOWQUAL": [
+            "chr1:20"
+          ],
+          "LOW_DP": [
+            "chr1:30"
+          ],
+          "LOW_MQ": [
+            "chr1:40"
+          ]
+        },
+        "pass_sites": [
+          "chr1:10"
+        ]
+      }
+    },
+    {
+      "case_id": "bcftools_damage_filter_removal",
+      "damage_filter_metrics": {
+        "schema_version": "bijux.vcf.damage_filter.v1",
+        "stage_id": "vcf.damage_filter",
+        "tool_id": "bcftools",
+        "input_variants": 4,
+        "removed_variants": 2,
+        "retained_variants": 2,
+        "low_quality_filtered_variants": 1,
+        "damage_ratio_filtered_variants": 1,
+        "terminal_damage_filtered_variants": 1,
+        "damage_context_rule": "remove_ct_ga_with_ratio_gt_0.35_or_terminal_signal_ge_0.50_or_pmd_lt_3.0",
+        "terminal_context_count": 1,
+        "sample_count": 1
+      },
+      "output_truth": {
+        "schema_version": "bijux.vcf.filter_output_truth.v1",
+        "stage_id": "vcf.damage_filter",
+        "tool_id": "bcftools",
+        "input_vcf": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter/raw.damage_filtered.vcf",
+        "sample_count": 1,
+        "variant_count": 2,
+        "pass_variant_count": 2,
+        "failed_variant_count": 0,
+        "observed_filter_ids": [],
+        "per_filter_variant_count": {},
+        "per_filter_sites": {},
+        "pass_sites": [
+          "chr1:10",
+          "chr1:40"
+        ]
+      }
+    },
+    {
+      "case_id": "angsd_damage_filter_removal",
+      "damage_filter_metrics": {
+        "schema_version": "bijux.vcf.damage_filter.v1",
+        "stage_id": "vcf.damage_filter",
+        "tool_id": "angsd",
+        "input_variants": 4,
+        "removed_variants": 2,
+        "retained_variants": 2,
+        "low_quality_filtered_variants": 1,
+        "damage_ratio_filtered_variants": 1,
+        "terminal_damage_filtered_variants": 1,
+        "damage_context_rule": "remove_ct_ga_with_ratio_gt_0.35_or_terminal_signal_ge_0.50_or_pmd_lt_1.0",
+        "terminal_context_count": 1,
+        "sample_count": 1
+      }
+    }
+  ]
+}
