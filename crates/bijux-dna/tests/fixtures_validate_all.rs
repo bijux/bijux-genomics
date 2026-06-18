@@ -58,7 +58,7 @@ fn fixtures_validate_all_reports_benchmark_root_pass_state() {
     );
     assert_eq!(payload.get("required_subroot_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(payload.get("parser_domain_count").and_then(serde_json::Value::as_u64), Some(3));
-    assert_eq!(payload.get("checked_fixture_count").and_then(serde_json::Value::as_u64), Some(46));
+    assert_eq!(payload.get("checked_fixture_count").and_then(serde_json::Value::as_u64), Some(48));
     assert_eq!(payload.get("invalid_fixture_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
@@ -172,6 +172,13 @@ fn fixtures_validate_all_reports_benchmark_root_pass_state() {
                 == Some("benchmarks/tests/fixtures/science/vcf-filter-truth/manifest.toml")
     }));
     assert!(rows.iter().any(|row| {
+        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
+            && row.get("fixture_id").and_then(serde_json::Value::as_str)
+                == Some("phasing-imputation-truth")
+            && row.get("manifest_path").and_then(serde_json::Value::as_str)
+                == Some("benchmarks/tests/fixtures/science/phasing-imputation-truth/manifest.toml")
+    }));
+    assert!(rows.iter().any(|row| {
         row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
             && row.get("fixture_id").and_then(serde_json::Value::as_str)
                 == Some("fastq-trimming-truth")
@@ -266,5 +273,12 @@ fn fixtures_validate_all_reports_benchmark_root_pass_state() {
             && row.get("fixture_id").and_then(serde_json::Value::as_str) == Some("vcf-filter-truth")
             && row.get("detail_path").and_then(serde_json::Value::as_str)
                 == Some("benchmarks/tests/fixtures/science/vcf-filter-truth/expected.json")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
+            && row.get("fixture_id").and_then(serde_json::Value::as_str)
+                == Some("phasing-imputation-truth")
+            && row.get("detail_path").and_then(serde_json::Value::as_str)
+                == Some("benchmarks/tests/fixtures/science/phasing-imputation-truth/expected.json")
     }));
 }
