@@ -20,6 +20,7 @@ pub const VCF_GL_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.gl_workflow.v1";
 pub const VCF_PHASING_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.phasing.v1";
+pub const VCF_GENOTYPE_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.genotype_truth.v1";
 #[cfg(test)]
 const VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.imputation.v1";
@@ -237,6 +238,34 @@ pub struct VcfLikelihoodWorkflowBoundaryV1 {
     pub assumptions: Vec<String>,
     #[serde(default)]
     pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfGenotypeTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub input_vcf: PathBuf,
+    pub sample_count: u32,
+    pub variant_count: u64,
+    #[serde(default)]
+    pub observed_ploidy_widths: Vec<u32>,
+    pub called_calls: u64,
+    pub missing_calls: u64,
+    pub reference_only_calls: u64,
+    pub mixed_allele_calls: u64,
+    pub alternate_only_calls: u64,
+    pub phased_calls: u64,
+    pub unphased_calls: u64,
+    #[serde(default)]
+    pub per_sample_missingness: BTreeMap<String, f64>,
+    #[serde(default)]
+    pub likelihood_fields_present: Vec<String>,
+    #[serde(default)]
+    pub sites_with_likelihood_values: BTreeMap<String, u64>,
+    #[serde(default)]
+    pub sites_missing_likelihood_values: BTreeMap<String, u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -697,14 +726,48 @@ fn is_transition(ref_allele: &str, alt_allele: &str) -> bool {
 }
 
 fn parse_gt_from_sample<'a>(format: &'a str, sample_payload: &'a str) -> Option<&'a str> {
+    parse_format_value_from_sample(format, sample_payload, "GT")
+}
+
+fn parse_format_value_from_sample<'a>(
+    format: &'a str,
+    sample_payload: &'a str,
+    field_name: &str,
+) -> Option<&'a str> {
     let keys = format.split(':').collect::<Vec<_>>();
     let values = sample_payload.split(':').collect::<Vec<_>>();
-    let gt_index = keys.iter().position(|key| *key == "GT")?;
-    values.get(gt_index).copied()
+    let field_index = keys.iter().position(|key| *key == field_name)?;
+    values.get(field_index).copied()
 }
 
 fn genotype_is_missing(gt: &str) -> bool {
     matches!(gt, "." | "./." | ".|." | "./" | ".|")
+}
+
+fn parse_called_genotype(gt: &str) -> Option<(bool, Vec<u32>)> {
+    if genotype_is_missing(gt) {
+        return None;
+    }
+    let (phased, alleles) = if gt.contains('|') {
+        (true, gt.split('|').collect::<Vec<_>>())
+    } else if gt.contains('/') {
+        (false, gt.split('/').collect::<Vec<_>>())
+    } else {
+        (false, vec![gt])
+    };
+    if alleles.iter().any(|allele| allele.is_empty() || *allele == ".") {
+        return None;
+    }
+    let parsed = alleles
+        .into_iter()
+        .map(str::parse::<u32>)
+        .collect::<std::result::Result<Vec<_>, _>>()
+        .ok()?;
+    Some((phased, parsed))
+}
+
+fn likelihood_value_present(value: &str) -> bool {
+    !value.is_empty() && value.split(',').any(|token| token != ".")
 }
 
 fn usize_to_u32_saturating(value: usize) -> u32 {
@@ -794,6 +857,95 @@ pub fn execute_vcf_stats_workflow(input_vcf: &Path) -> Result<VcfStatsWorkflowSu
                 .to_string(),
             "missingness is derived from GT fields in fixture-safe records".to_string(),
         ],
+    })
+}
+
+/// Summarize genotype-state, ploidy-width, missingness, and likelihood-field truth for a VCF.
+///
+/// # Errors
+/// Returns an error when the VCF cannot be parsed.
+pub fn summarize_vcf_genotype_truth(
+    input_vcf: &Path,
+    stage_id: &str,
+    tool_id: &str,
+) -> Result<VcfGenotypeTruthSummaryV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let stats = execute_vcf_stats_workflow(input_vcf)?;
+    let mut observed_ploidy_widths = BTreeSet::<u32>::new();
+    let mut called_calls = 0_u64;
+    let mut missing_calls = 0_u64;
+    let mut reference_only_calls = 0_u64;
+    let mut mixed_allele_calls = 0_u64;
+    let mut alternate_only_calls = 0_u64;
+    let mut phased_calls = 0_u64;
+    let mut unphased_calls = 0_u64;
+    let mut likelihood_fields_present = BTreeSet::<String>::new();
+    let mut sites_with_likelihood_values = BTreeMap::<String, u64>::new();
+    let mut sites_missing_likelihood_values = BTreeMap::<String, u64>::new();
+
+    for record in &doc.records {
+        let Some(format) = &record.format else {
+            continue;
+        };
+        for field_name in ["GL", "GP", "PL"] {
+            if !format.split(':').any(|field| field == field_name) {
+                continue;
+            }
+            likelihood_fields_present.insert(field_name.to_string());
+            let has_value = record.samples.iter().any(|sample_payload| {
+                parse_format_value_from_sample(format, sample_payload, field_name)
+                    .is_some_and(likelihood_value_present)
+            });
+            if has_value {
+                *sites_with_likelihood_values.entry(field_name.to_string()).or_insert(0) += 1;
+            } else {
+                *sites_missing_likelihood_values.entry(field_name.to_string()).or_insert(0) += 1;
+            }
+        }
+        for sample_payload in &record.samples {
+            let Some(gt) = parse_gt_from_sample(format, sample_payload) else {
+                continue;
+            };
+            let Some((phased, alleles)) = parse_called_genotype(gt) else {
+                missing_calls += 1;
+                continue;
+            };
+            called_calls += 1;
+            observed_ploidy_widths.insert(usize_to_u32_saturating(alleles.len()));
+            if phased {
+                phased_calls += 1;
+            } else {
+                unphased_calls += 1;
+            }
+            if alleles.iter().all(|allele| *allele == 0) {
+                reference_only_calls += 1;
+            } else if alleles.iter().all(|allele| *allele > 0) {
+                alternate_only_calls += 1;
+            } else {
+                mixed_allele_calls += 1;
+            }
+        }
+    }
+
+    Ok(VcfGenotypeTruthSummaryV1 {
+        schema_version: VCF_GENOTYPE_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        input_vcf: input_vcf.to_path_buf(),
+        sample_count: usize_to_u32_saturating(doc.samples.len()),
+        variant_count: doc.records.len() as u64,
+        observed_ploidy_widths: observed_ploidy_widths.into_iter().collect(),
+        called_calls,
+        missing_calls,
+        reference_only_calls,
+        mixed_allele_calls,
+        alternate_only_calls,
+        phased_calls,
+        unphased_calls,
+        per_sample_missingness: stats.per_sample_missingness,
+        likelihood_fields_present: likelihood_fields_present.into_iter().collect(),
+        sites_with_likelihood_values,
+        sites_missing_likelihood_values,
     })
 }
 
@@ -2514,5 +2666,84 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(refused.refusal_codes.contains(&"reference_identity_mismatch".to_string()));
         assert!(refused.refusal_codes.contains(&"trust_class_incompatible".to_string()));
         assert!(refused.refusal_codes.contains(&"caveats_required_for_handoff".to_string()));
+    }
+
+    fn repo_fixture_path(relative_path: &str) -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../")
+            .join(relative_path)
+    }
+
+    #[test]
+    fn summarize_vcf_genotype_truth_reports_diploid_counts_from_governed_fixture() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_diploid/raw.diploid.vcf",
+        );
+
+        let summary =
+            summarize_vcf_genotype_truth(&input, "vcf.call_diploid", "bcftools").expect("summary");
+        assert_eq!(summary.schema_version, VCF_GENOTYPE_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.sample_count, 1);
+        assert_eq!(summary.variant_count, 3);
+        assert_eq!(summary.observed_ploidy_widths, vec![2]);
+        assert_eq!(summary.called_calls, 3);
+        assert_eq!(summary.missing_calls, 0);
+        assert_eq!(summary.reference_only_calls, 1);
+        assert_eq!(summary.mixed_allele_calls, 1);
+        assert_eq!(summary.alternate_only_calls, 1);
+        assert_eq!(summary.phased_calls, 0);
+        assert_eq!(summary.unphased_calls, 3);
+        assert_eq!(summary.per_sample_missingness.get("sample_a"), Some(&0.0));
+        assert!(summary.likelihood_fields_present.is_empty());
+    }
+
+    #[test]
+    fn summarize_vcf_genotype_truth_reports_haploid_missingness_from_governed_fixture() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_pseudohaploid/raw.pseudohaploid.vcf",
+        );
+
+        let summary = summarize_vcf_genotype_truth(&input, "vcf.call_pseudohaploid", "angsd")
+            .expect("summary");
+        assert_eq!(summary.observed_ploidy_widths, vec![1]);
+        assert_eq!(summary.called_calls, 2);
+        assert_eq!(summary.missing_calls, 1);
+        assert_eq!(summary.reference_only_calls, 1);
+        assert_eq!(summary.mixed_allele_calls, 0);
+        assert_eq!(summary.alternate_only_calls, 1);
+        assert_eq!(summary.unphased_calls, 2);
+        assert_eq!(summary.per_sample_missingness.get("sample_lowcov"), Some(&(1.0 / 3.0)));
+    }
+
+    #[test]
+    fn summarize_vcf_genotype_truth_reports_single_likelihood_field_truth() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_gl/raw.gl.vcf",
+        );
+
+        let summary = summarize_vcf_genotype_truth(&input, "vcf.call_gl", "bcftools")
+            .expect("summary");
+        assert_eq!(summary.observed_ploidy_widths, vec![2]);
+        assert_eq!(summary.likelihood_fields_present, vec!["PL".to_string()]);
+        assert_eq!(summary.sites_with_likelihood_values.get("PL"), Some(&3));
+        assert!(summary.sites_missing_likelihood_values.is_empty());
+    }
+
+    #[test]
+    fn summarize_vcf_genotype_truth_reports_gl_gp_pl_field_sets() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.gl_propagation/raw.propagated.vcf",
+        );
+
+        let summary = summarize_vcf_genotype_truth(&input, "vcf.gl_propagation", "bcftools")
+            .expect("summary");
+        assert_eq!(
+            summary.likelihood_fields_present,
+            vec!["GL".to_string(), "GP".to_string(), "PL".to_string()]
+        );
+        assert_eq!(summary.sites_with_likelihood_values.get("GL"), Some(&3));
+        assert_eq!(summary.sites_with_likelihood_values.get("GP"), Some(&3));
+        assert_eq!(summary.sites_with_likelihood_values.get("PL"), Some(&3));
+        assert!(summary.sites_missing_likelihood_values.is_empty());
     }
 }
