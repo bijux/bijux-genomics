@@ -1,0 +1,9 @@
+8490bf1a0466a874ec1681b7e7ff3c69e5554a16ebc453caa3c257df5e1065e4  /Users/bijan/bijux/bijux-genomics/benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/manifest.toml
+16b42e313c4e38a001671383f8de1ea3d68194397e6934e23f39f014f0c99047  /Users/bijan/bijux/bijux-genomics/benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/normalized/sample_a_R1.fastq.gz
+9a98faaacdc378443e7a101bc04e1e34ea171029b2a421ae2d10e05c69b9909b  /Users/bijan/bijux/bijux-genomics/benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/normalized/sample_b_R1.fastq.gz
+d466332fd0e46f31c3b14df310c3da22cf3436e42a37bc3c2bc89eec16bce38e  /Users/bijan/bijux/bijux-genomics/benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/normalized/sample_c_R1.fastq.gz
+407dd611ffd90730a0d21f9622c3c81f99c7b79315b2be539ec73b4a93241c72  /Users/bijan/bijux/bijux-genomics/benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/normalized/sample_d_R1.fastq.gz
+01ce598219042c8b2d7f26882309fdcbc30db976661fba879c9d93276eb60c3f  /Users/bijan/bijux/bijux-genomics/benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_a.fastq
+a640878b5939aab68dba3bede5ced27a0f640471fb5d41e754c0632df5396af5  /Users/bijan/bijux/bijux-genomics/benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_b.fastq
+853f6c6a4c65e388348ddec6c81c4759d2b5fe1d358cc621c33760a0918bf043  /Users/bijan/bijux/bijux-genomics/benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_c.fastq
+781ed4ed470d54521520ffa170bfc2777752a6fa6b21e0e6243913de83c14e81  /Users/bijan/bijux/bijux-genomics/benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_d.fastq

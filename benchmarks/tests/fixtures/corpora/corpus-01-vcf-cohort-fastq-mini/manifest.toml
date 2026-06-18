@@ -1,0 +1,50 @@
+schema_version = "bijux.bench.fastq_corpus_fixture.v1"
+corpus_id = "corpus-01-vcf-cohort-fastq-mini"
+species = "Homo sapiens"
+description = "Tiny FASTQ cohort fixture with VCF-mini sample identities and reference intent for cross-domain sample consistency checks."
+compression = "gzip"
+reference_id = "vcf-mini-reference"
+
+[[samples]]
+sample_id = "sample_a"
+cohort = "vcf_cohort"
+layout = "se"
+r1_path = "normalized/sample_a_R1.fastq.gz"
+expected_read_count_r1 = 1
+expected_read_count_total = 1
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_a.fastq",
+]
+
+[[samples]]
+sample_id = "sample_b"
+cohort = "vcf_cohort"
+layout = "se"
+r1_path = "normalized/sample_b_R1.fastq.gz"
+expected_read_count_r1 = 1
+expected_read_count_total = 1
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_b.fastq",
+]
+
+[[samples]]
+sample_id = "sample_c"
+cohort = "vcf_cohort"
+layout = "se"
+r1_path = "normalized/sample_c_R1.fastq.gz"
+expected_read_count_r1 = 1
+expected_read_count_total = 1
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_c.fastq",
+]
+
+[[samples]]
+sample_id = "sample_d"
+cohort = "vcf_cohort"
+layout = "se"
+r1_path = "normalized/sample_d_R1.fastq.gz"
+expected_read_count_r1 = 1
+expected_read_count_total = 1
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_d.fastq",
+]
