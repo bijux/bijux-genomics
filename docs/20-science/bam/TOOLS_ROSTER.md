@@ -28,24 +28,24 @@ Clarifies tool coverage and rationale.
 | --- | --- | --- | --- |
 | bam.align | supported | bwa, bowtie2 | Alignment is the admitted mapping boundary before any BAM-level interpretation happens. |
 | bam.validate | supported | samtools, bedtools, bamtools | Validation checks structural soundness before downstream metrics are trusted. |
-| bam.qc_pre | planned | samtools | Baseline pre-filter QC remains planned and report-only in the current governed surface. |
-| bam.mapping_summary | supported | samtools | Mapping summaries remain a compact observational baseline for downstream gates. |
+| bam.qc_pre | supported | samtools, multiqc | Baseline pre-filter QC is admitted through governed samtools summaries with a MultiQC reporting companion. |
+| bam.mapping_summary | supported | samtools, picard | Mapping summaries remain a compact observational baseline across the admitted samtools and Picard report surfaces. |
 | bam.filter | supported | samtools, bedtools, bamtools | Read-retention filtering keeps the admissible BAM cleanup surface explicit. |
 | bam.mapq_filter | supported | samtools, bamtools | MAPQ gating stays separate from broader filtering to keep provenance legible. |
 | bam.length_filter | supported | samtools, picard | Fragment-length gating has its own admitted boundary and tool choices. |
 | bam.markdup | planned | picard, samtools | Duplicate marking stays planned until the governed runtime/reporting contract is promoted. |
 | bam.duplication_metrics | supported | samtools, picard | Duplicate-rate reporting is supported even while full markdup mutation remains planned. |
-| bam.complexity | planned | preseq | Library-complexity extrapolation remains planned until promotion evidence closes. |
+| bam.complexity | supported | preseq | Library-complexity extrapolation is admitted through the governed preseq curve and summary contract. |
 | bam.coverage | supported | mosdepth, samtools, bedtools | Coverage reporting keeps low-overhead, depth-derived, and interval-coverage summaries visible inside one governed contract. |
 | bam.insert_size | planned | picard | Insert-size reporting remains planned alongside other QC-expansion stages. |
 | bam.gc_bias | planned | picard | GC-bias analysis stays planned until the broader QC bundle is promoted. |
 | bam.endogenous_content | supported | samtools | Endogenous-content estimation currently resolves through governed samtools summaries. |
-| bam.overlap_correction | planned | bamutil | Overlap correction remains planned until post-correction comparability is governed. |
+| bam.overlap_correction | supported | bamutil | Overlap correction is admitted through the governed corrected-BAM contract and before-and-after audit artifacts. |
 | bam.damage | supported | mapdamage2, pydamage, damageprofiler, ngsbriggs, addeam, pmdtools | Damage profiling admits several aDNA-oriented backends for comparable report generation. |
 | bam.authenticity | supported | authenticct, pmdtools, damageprofiler | Authenticity scoring stays distinct from general damage profiling while sharing some evidence tools. |
 | bam.contamination | supported | schmutzi, verifybamid2, contammix | Contamination estimation requires multiple model families for method comparison. |
 | bam.sex | supported | rxy, yleaf, angsd | Sex inference admits ratio-, haplogroup-, and GL-aware backends. |
-| bam.bias_mitigation | planned | samtools | Bias-mitigation remains planned until its mutation/reporting contract is promoted. |
+| bam.bias_mitigation | supported | mapdamage2 | Bias-mitigation is admitted through the governed mapDamage evidence, bias report, and summary contract. |
 | bam.recalibration | supported | gatk | BQSR is admitted through the governed low-coverage skip contract with owned known-sites evidence. |
 | bam.haplogroups | supported | yleaf | Haplogroup inference is admitted through the governed Y-panel fixture and owned readiness contract. |
 | bam.genotyping | supported | angsd | BAM-driven genotype summaries are admitted through the governed low-depth ANGSD contract with owned candidate-sites and target-regions inputs. |
