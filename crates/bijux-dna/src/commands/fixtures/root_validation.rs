@@ -9,6 +9,9 @@ use crate::commands::benchmark::local_taxonomy_database_fixture::TAXONOMY_DATABA
 use crate::commands::fixtures::expected::amplicon::{
     validate_amplicon_truth_manifest_path, AMPLICON_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
+use crate::commands::fixtures::expected::bam_alignment::{
+    validate_bam_alignment_truth_manifest_path, BAM_ALIGNMENT_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
 use crate::commands::fixtures::expected::fastq_duplicates::{
     validate_fastq_duplicates_truth_manifest_path, FASTQ_DUPLICATES_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
@@ -98,6 +101,9 @@ pub(crate) fn validate_benchmark_fixture_root(
         }
         if manifest_path.ends_with("amplicon-truth/manifest.toml") {
             rows.push(validate_amplicon_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("bam-alignment-truth/manifest.toml") {
+            rows.push(validate_bam_alignment_truth_row(repo_root, &manifest_path));
         }
     }
 
@@ -256,6 +262,10 @@ fn validate_manifest_row(
             validate_amplicon_truth_manifest_path(repo_root, manifest_path)
                 .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
         }
+        BAM_ALIGNMENT_TRUTH_MANIFEST_SCHEMA_VERSION => {
+            validate_bam_alignment_truth_manifest_path(repo_root, manifest_path)
+                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
+        }
         other => Err(anyhow!(
             "unsupported benchmark fixture schema `{other}` in {}",
             manifest_path.display()
@@ -380,6 +390,35 @@ fn validate_amplicon_truth_row(
             detail: format!(
                 "validated_sections={},validated_rows={}",
                 report.validated_section_count, report.validated_row_count
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_bam_alignment_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_bam_alignment_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(report.manifest_path),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_samples={},validated_records={}",
+                report.validated_sample_count, report.validated_record_count
             ),
         },
         Err(error) => BenchmarkFixtureRootValidationRow {
