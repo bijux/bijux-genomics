@@ -7862,6 +7862,107 @@ y1\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n",
     }
 
     #[test]
+    fn summarize_tiny_bam_sex_reports_x_autosome_female_call() {
+        let temp = unique_temp_dir("bam-sex-female");
+        let input = temp.join("input.sam");
+        let reference = temp.join("reference.fasta");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:20\n\
+@SQ\tSN:chrX\tLN:20\n\
+@SQ\tSN:chrY\tLN:20\n\
+@RG\tID:rg1\tSM:sampleA\n\
+auto1\t0\tchr1\t1\t60\t10M\t*\t0\t0\tACGTACGTAC\tFFFFFFFFFF\tRG:Z:rg1\n\
+auto2\t0\tchr1\t11\t60\t10M\t*\t0\t0\tGTACGTACGT\tFFFFFFFFFF\tRG:Z:rg1\n\
+x1\t0\tchrX\t1\t60\t10M\t*\t0\t0\tTTTTCCCCAA\tFFFFFFFFFF\tRG:Z:rg1\n\
+x2\t0\tchrX\t11\t60\t10M\t*\t0\t0\tAAGGGGTTTT\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write sex fixture");
+        std::fs::write(
+            &reference,
+            ">chr1\nACGTACGTACGTACGTACGT\n>chrX\nTTTTCCCCAAAAGGGGTTTT\n>chrY\nGGGGAAAATTTTCCCCGGGG\n",
+        )
+        .expect("write reference fixture");
+
+        let summary = summarize_tiny_bam_sex(&input, &reference, "rxy", Some("xy"), Some(0))
+            .expect("summarize sex");
+        assert_eq!(summary.call, SexConfidenceClass::Female);
+        assert!((summary.x_coverage - 1.0).abs() <= 1e-9);
+        assert!((summary.y_coverage - 0.0).abs() <= 1e-9);
+        assert!((summary.autosomal_coverage - 1.0).abs() <= 1e-9);
+        assert_eq!(summary.x_covered_sites, 20);
+        assert_eq!(summary.y_covered_sites, 0);
+        assert_eq!(summary.x_to_y_ratio, None);
+        assert!((summary.confidence - 0.9).abs() <= 1e-9);
+        assert_eq!(summary.status, "ok");
+        assert_eq!(summary.insufficiency_reason, None);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_sex_reports_xy_autosome_ambiguous_call() {
+        let temp = unique_temp_dir("bam-sex-ambiguous");
+        let input = temp.join("input.sam");
+        let reference = temp.join("reference.fasta");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:20\n\
+@SQ\tSN:chrX\tLN:20\n\
+@SQ\tSN:chrY\tLN:20\n\
+@RG\tID:rg1\tSM:sampleA\n\
+auto1\t0\tchr1\t1\t60\t10M\t*\t0\t0\tACGTACGTAC\tFFFFFFFFFF\tRG:Z:rg1\n\
+auto2\t0\tchr1\t11\t60\t10M\t*\t0\t0\tGTACGTACGT\tFFFFFFFFFF\tRG:Z:rg1\n\
+x1\t0\tchrX\t1\t60\t10M\t*\t0\t0\tTTTTCCCCAA\tFFFFFFFFFF\tRG:Z:rg1\n\
+x2\t0\tchrX\t11\t60\t10M\t*\t0\t0\tAAGGGGTTTT\tFFFFFFFFFF\tRG:Z:rg1\n\
+y1\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write sex fixture");
+        std::fs::write(
+            &reference,
+            ">chr1\nACGTACGTACGTACGTACGT\n>chrX\nTTTTCCCCAAAAGGGGTTTT\n>chrY\nGGGGAAAATTTTCCCCGGGG\n",
+        )
+        .expect("write reference fixture");
+
+        let summary = summarize_tiny_bam_sex(&input, &reference, "rxy", Some("xy"), Some(1))
+            .expect("summarize sex");
+        assert_eq!(summary.call, SexConfidenceClass::Ambiguous);
+        assert!((summary.x_coverage - 1.0).abs() <= 1e-9);
+        assert!((summary.y_coverage - 0.5).abs() <= 1e-9);
+        assert!((summary.autosomal_coverage - 1.0).abs() <= 1e-9);
+        assert_eq!(summary.x_covered_sites, 20);
+        assert_eq!(summary.y_covered_sites, 10);
+        assert_eq!(summary.x_to_y_ratio, Some(2.0));
+        assert!((summary.confidence - 0.5).abs() <= 1e-9);
+        assert_eq!(summary.status, "ok");
+        assert_eq!(summary.insufficiency_reason, None);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_sex_reports_insufficient_chromosome_context() {
+        let repo_root = workspace_root();
+        let input = repo_root.join(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam",
+        );
+        let reference = repo_root.join(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+        );
+
+        let summary = summarize_tiny_bam_sex(&input, &reference, "rxy", Some("xy"), Some(1))
+            .expect("summarize sex");
+        assert_eq!(summary.call, SexConfidenceClass::Insufficient);
+        assert!((summary.x_coverage - 0.0).abs() <= 1e-9);
+        assert!((summary.y_coverage - 2.0).abs() <= 1e-9);
+        assert!((summary.autosomal_coverage - 0.0).abs() <= 1e-9);
+        assert_eq!(summary.x_covered_sites, 0);
+        assert_eq!(summary.y_covered_sites, 20);
+        assert_eq!(summary.x_to_y_ratio, Some(0.0));
+        assert!((summary.confidence - 0.0).abs() <= 1e-9);
+        assert_eq!(summary.status, "insufficient_chromosomes");
+        assert_eq!(summary.insufficiency_reason.as_deref(), Some("insufficient_chromosomes"));
+    }
+
+    #[test]
     fn bam_kinship_summary_round_trips() {
         let summary = BamKinshipSummaryV1 {
             schema_version: BAM_KINSHIP_SUMMARY_SCHEMA_VERSION.to_string(),
