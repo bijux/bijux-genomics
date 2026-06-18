@@ -11,4 +11,5 @@ pub(crate) mod fastq_duplicates;
 pub(crate) mod fastq_taxonomy;
 pub(crate) mod fastq_trimming;
 pub(crate) mod vcf;
+pub(crate) mod vcf_filter;
 pub(crate) mod vcf_genotype;
