@@ -28,6 +28,8 @@ pub const BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapq_filter.
 pub const BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.alignment_truth.v1";
 pub const BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION: &str =
     "bijux.bam.duplicate_insert_truth.v1";
+pub const BAM_GC_BIAS_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.gc_bias_truth.v1";
+pub const BAM_COVERAGE_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_truth.v1";
 pub const BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.length_filter.v1";
 pub const BAM_MARKDUP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.markdup.v1";
 pub const BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.duplication_metrics.v1";
@@ -251,6 +253,37 @@ pub struct BamDuplicateInsertTruthSummaryV1 {
     pub min_insert_size: Option<u64>,
     #[serde(default)]
     pub max_insert_size: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamGcBiasTruthSummaryV1 {
+    pub schema_version: String,
+    pub window_size: u32,
+    pub total_clusters: u64,
+    pub aligned_reads: u64,
+    pub windows: u64,
+    pub read_starts: u64,
+    pub at_dropout: f64,
+    pub gc_dropout: f64,
+    pub gc_bias_score: f64,
+    #[serde(default)]
+    pub insufficient_reference_reason: Option<String>,
+    pub gc_bins: Vec<BamGcBiasBinSummaryV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamCoverageTruthSummaryV1 {
+    pub schema_version: String,
+    pub depth_thresholds: Vec<u32>,
+    pub mean_depth: f64,
+    pub breadth_1x: f64,
+    pub covered_bases: u64,
+    pub total_bases: u64,
+    pub coverage_regime: String,
+    pub coverage_family: String,
+    pub region_summaries: Vec<BamCoverageRegionSummaryV1>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -1360,6 +1393,61 @@ pub fn summarize_tiny_bam_duplicate_insert_truth(
         mean_insert_size: populated_insert_metrics.map(|metrics| metrics.mean_insert_size),
         min_insert_size: populated_insert_metrics.map(|metrics| metrics.min_insert_size),
         max_insert_size: populated_insert_metrics.map(|metrics| metrics.max_insert_size),
+    })
+}
+
+/// Summarize tiny BAM/SAM GC-bias truth without embedding runtime-local file paths.
+///
+/// # Errors
+/// Returns an error if the BAM/SAM or reference FASTA cannot be parsed.
+pub fn summarize_tiny_bam_gc_bias_truth(
+    input_bam: &Path,
+    reference_fasta: &Path,
+    window_size: u32,
+) -> Result<BamGcBiasTruthSummaryV1> {
+    let (summary, gc_bins) = summarize_tiny_bam_gc_bias(input_bam, reference_fasta, window_size)?;
+    Ok(BamGcBiasTruthSummaryV1 {
+        schema_version: BAM_GC_BIAS_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        window_size,
+        total_clusters: summary.total_clusters,
+        aligned_reads: summary.aligned_reads,
+        windows: summary.windows,
+        read_starts: summary.read_starts,
+        at_dropout: summary.at_dropout,
+        gc_dropout: summary.gc_dropout,
+        gc_bias_score: summary.gc_bias_score,
+        insufficient_reference_reason: summary.insufficient_reference_reason,
+        gc_bins,
+    })
+}
+
+/// Summarize tiny BAM/SAM coverage truth over governed regions without embedding runtime-local
+/// file paths.
+///
+/// # Errors
+/// Returns an error if the BAM/SAM or BED regions input cannot be parsed.
+pub fn summarize_tiny_bam_coverage_truth(
+    input_bam: &Path,
+    regions_path: &Path,
+    depth_thresholds: &[u32],
+) -> Result<BamCoverageTruthSummaryV1> {
+    let (summary, region_summaries) =
+        summarize_tiny_bam_coverage_regions(input_bam, Some(regions_path), depth_thresholds)?;
+    let regime = summary
+        .regime
+        .ok_or_else(|| anyhow!("bam.coverage truth summary requires a classified regime"))?;
+    let covered_bases = region_summaries.iter().map(|row| row.covered_bases).sum::<u64>();
+    let total_bases = region_summaries.iter().map(|row| row.length).sum::<u64>();
+    Ok(BamCoverageTruthSummaryV1 {
+        schema_version: BAM_COVERAGE_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        depth_thresholds: summary.depth_thresholds,
+        mean_depth: summary.mean_depth.unwrap_or(0.0),
+        breadth_1x: regime.breadth_1x,
+        covered_bases,
+        total_bases,
+        coverage_regime: regime.regime_id,
+        coverage_family: regime.enforced_label,
+        region_summaries,
     })
 }
 
@@ -6970,6 +7058,62 @@ gc100_001\t0\tchrgc\t21\t60\t10M\t*\t0\t0\tCCCCCGGGGG\tFFFFFFFFFF\tRG:Z:rg1\n",
     }
 
     #[test]
+    fn summarize_tiny_bam_gc_bias_truth_omits_runtime_paths() {
+        let temp = unique_temp_dir("bam-gc-bias-truth");
+        let input = temp.join("input.sam");
+        let reference = temp.join("reference.fasta");
+        std::fs::write(&reference, ">chrgc\nAAAAATTTTTACGTACGTACCCCCCGGGGG\n")
+            .expect("write gc-bias truth reference");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chrgc\tLN:30\n\
+@RG\tID:rg1\tSM:sampleA\n\
+gc00_001\t0\tchrgc\t1\t60\t10M\t*\t0\t0\tAAAAATTTTT\tFFFFFFFFFF\tRG:Z:rg1\n\
+gc50_001\t0\tchrgc\t11\t60\t10M\t*\t0\t0\tACGTACGTAC\tFFFFFFFFFF\tRG:Z:rg1\n\
+gc50_002\t0\tchrgc\t13\t60\t10M\t*\t0\t0\tGTACGTACCC\tFFFFFFFFFF\tRG:Z:rg1\n\
+gc100_001\t0\tchrgc\t21\t60\t10M\t*\t0\t0\tCCCCCGGGGG\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write gc-bias truth fixture");
+
+        let summary =
+            summarize_tiny_bam_gc_bias_truth(&input, &reference, 10).expect("gc-bias truth");
+        assert_eq!(summary.schema_version, BAM_GC_BIAS_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.window_size, 10);
+        assert_eq!(summary.total_clusters, 4);
+        assert_eq!(summary.aligned_reads, 4);
+        assert_eq!(summary.windows, 3);
+        assert_eq!(summary.read_starts, 4);
+        assert!((summary.at_dropout - 25.0).abs() <= f64::EPSILON);
+        assert!((summary.gc_dropout - 25.0).abs() <= f64::EPSILON);
+        assert!((summary.gc_bias_score - 0.25).abs() <= f64::EPSILON);
+        assert_eq!(summary.insufficient_reference_reason, None);
+        assert_eq!(
+            summary.gc_bins,
+            vec![
+                BamGcBiasBinSummaryV1 {
+                    gc_bin: 0,
+                    windows: 1,
+                    read_starts: 1,
+                    normalized_coverage: 0.75,
+                },
+                BamGcBiasBinSummaryV1 {
+                    gc_bin: 50,
+                    windows: 1,
+                    read_starts: 2,
+                    normalized_coverage: 1.5,
+                },
+                BamGcBiasBinSummaryV1 {
+                    gc_bin: 100,
+                    windows: 1,
+                    read_starts: 1,
+                    normalized_coverage: 0.75,
+                },
+            ]
+        );
+    }
+
+    #[test]
     fn summarize_tiny_bam_bias_mitigation_projects_gc_bias_reduction() {
         let temp = unique_temp_dir("bam-bias-mitigation");
         let input = temp.join("input.sam");
@@ -7598,6 +7742,62 @@ r03\t0\tchr2\t2\t45\t3M\t*\t0\t0\tGGA\tFFF\tRG:Z:rg1\n",
         assert!((summary.mean_depth.expect("mean depth") - 1.1).abs() <= 1e-9);
         let regime = summary.regime.expect("coverage regime");
         assert!((regime.breadth_1x - 0.9).abs() <= 1e-9);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_coverage_truth_reports_weighted_region_metrics() {
+        let temp = unique_temp_dir("bam-coverage-truth");
+        let input = temp.join("input.sam");
+        let regions = temp.join("regions.bed");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:12\n\
+@SQ\tSN:chr2\tLN:8\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t1\t45\t4M\t*\t0\t0\tACGT\tFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t3\t45\t4M\t*\t0\t0\tTTAA\tFFFF\tRG:Z:rg1\n\
+r03\t0\tchr2\t2\t45\t3M\t*\t0\t0\tGGA\tFFF\tRG:Z:rg1\n",
+        )
+        .expect("write coverage truth fixture");
+        std::fs::write(&regions, "chr1\t0\t6\tchr1_window\nchr2\t1\t5\tchr2_window\n")
+            .expect("write coverage truth regions");
+
+        let summary =
+            summarize_tiny_bam_coverage_truth(&input, &regions, &[1, 5]).expect("coverage truth");
+        assert_eq!(summary.schema_version, BAM_COVERAGE_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.depth_thresholds, vec![1, 5]);
+        assert!((summary.mean_depth - 1.1).abs() <= 1e-9);
+        assert!((summary.breadth_1x - 0.9).abs() <= 1e-9);
+        assert_eq!(summary.covered_bases, 9);
+        assert_eq!(summary.total_bases, 10);
+        assert_eq!(summary.coverage_regime, "low_pass");
+        assert_eq!(summary.coverage_family, "guardrail_required");
+        assert_eq!(
+            summary.region_summaries,
+            vec![
+                BamCoverageRegionSummaryV1 {
+                    region_id: "chr1_window".to_string(),
+                    contig: "chr1".to_string(),
+                    start: 1,
+                    end: 6,
+                    length: 6,
+                    mean_depth: 4.0 / 3.0,
+                    breadth_1x: 1.0,
+                    covered_bases: 6,
+                },
+                BamCoverageRegionSummaryV1 {
+                    region_id: "chr2_window".to_string(),
+                    contig: "chr2".to_string(),
+                    start: 2,
+                    end: 5,
+                    length: 4,
+                    mean_depth: 0.75,
+                    breadth_1x: 0.75,
+                    covered_bases: 3,
+                },
+            ]
+        );
     }
 
     #[test]
