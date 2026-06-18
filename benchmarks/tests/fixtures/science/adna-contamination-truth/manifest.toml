@@ -1,0 +1,121 @@
+schema_version = "bijux.bench.adna_contamination_truth.v1"
+fixture_id = "adna-contamination-truth"
+description = "Governed aDNA contamination truth bundle for admitted estimates, confidence-interval status, and stage-comparison insufficiency behavior."
+expected_path = "expected.json"
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml",
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat",
+  "benchmarks/tests/fixtures/bench/parsers/bam/bam.contamination/schmutzi/raw.contamination.json",
+  "benchmarks/tests/fixtures/bench/parsers/bam/bam.contamination/schmutzi/expected.contamination.json",
+  "domain/bam/stages/contamination.yaml",
+]
+
+[[cases]]
+case_id = "schmutzi_mitochondrial_ready"
+sample_id = "adna_contamination_panel_screen"
+cohort = "adna_like"
+tool = "schmutzi"
+alignment_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam"
+reference_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+minimum_mean_coverage = 0.5
+observed_mean_coverage = 4.0
+raw_estimate = 0.02
+raw_ci_low = 0.01
+raw_ci_high = 0.03
+has_mito_reference = true
+has_damage_context = true
+has_reference_panel = false
+panel_build_compatible = false
+sex_context_available = false
+
+[[cases]]
+case_id = "schmutzi_mitochondrial_insufficient"
+sample_id = "adna_contamination_panel_screen"
+cohort = "adna_like"
+tool = "schmutzi"
+alignment_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam"
+reference_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+minimum_mean_coverage = 0.5
+observed_mean_coverage = 0.25
+raw_estimate = 0.08
+raw_ci_low = 0.05
+raw_ci_high = 0.12
+has_mito_reference = false
+has_damage_context = false
+has_reference_panel = false
+panel_build_compatible = false
+sex_context_available = false
+
+[[cases]]
+case_id = "verifybamid2_nuclear_ready"
+sample_id = "adna_contamination_panel_screen"
+cohort = "adna_like"
+tool = "verifybamid2"
+alignment_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam"
+reference_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+minimum_mean_coverage = 0.5
+observed_mean_coverage = 4.0
+raw_estimate = 0.02
+raw_ci_low = 0.01
+raw_ci_high = 0.03
+has_mito_reference = false
+has_damage_context = false
+has_reference_panel = true
+panel_build_compatible = true
+sex_context_available = true
+
+[[cases]]
+case_id = "verifybamid2_nuclear_insufficient"
+sample_id = "adna_contamination_panel_screen"
+cohort = "adna_like"
+tool = "verifybamid2"
+alignment_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam"
+reference_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+minimum_mean_coverage = 0.5
+observed_mean_coverage = 0.25
+raw_estimate = 0.08
+raw_ci_low = 0.05
+raw_ci_high = 0.12
+has_mito_reference = false
+has_damage_context = false
+has_reference_panel = true
+panel_build_compatible = true
+sex_context_available = false
+
+[[cases]]
+case_id = "contammix_nuclear_ready"
+sample_id = "adna_contamination_panel_screen"
+cohort = "adna_like"
+tool = "contammix"
+alignment_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam"
+reference_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+minimum_mean_coverage = 0.5
+observed_mean_coverage = 4.0
+raw_estimate = 0.02
+raw_ci_low = 0.01
+raw_ci_high = 0.03
+has_mito_reference = false
+has_damage_context = false
+has_reference_panel = true
+panel_build_compatible = true
+sex_context_available = true
+
+[[cases]]
+case_id = "contammix_nuclear_insufficient"
+sample_id = "adna_contamination_panel_screen"
+cohort = "adna_like"
+tool = "contammix"
+alignment_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam"
+reference_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+minimum_mean_coverage = 0.5
+observed_mean_coverage = 0.25
+raw_estimate = 0.08
+raw_ci_low = 0.05
+raw_ci_high = 0.12
+has_mito_reference = false
+has_damage_context = false
+has_reference_panel = true
+panel_build_compatible = false
+sex_context_available = true

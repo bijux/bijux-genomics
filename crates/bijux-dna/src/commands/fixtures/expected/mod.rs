@@ -1,3 +1,4 @@
+pub(crate) mod adna_contamination;
 pub(crate) mod adna_damage;
 pub(crate) mod amplicon;
 pub(crate) mod bam_alignment;
