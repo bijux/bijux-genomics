@@ -1,0 +1,52 @@
+{
+  "schema_version": "bijux.bench.adna_damage_truth.expected.v1",
+  "fixture_id": "adna-damage-truth",
+  "truths": [
+    {
+      "case_id": "half_udg_insufficient_signal",
+      "sample_id": "adna_like_damage",
+      "cohort": "adna_like",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/reference/adna_damage_reference.fasta",
+      "summary": {
+        "schema_version": "bijux.bam.adna_damage_truth.v1",
+        "stage_id": "bam.damage",
+        "udg_model": "half_udg",
+        "terminal_c_to_t_5p": 0.04,
+        "terminal_g_to_a_3p": 0.08,
+        "short_fragment_fraction": 1.0,
+        "damage_signal": "low",
+        "strict_profile_upgraded": false,
+        "terminal_5p_class": "terminal_damage_limited",
+        "terminal_3p_class": "terminal_damage_limited",
+        "terminal_pattern_class": "insufficient_terminal_damage",
+        "insufficiency_reason": "terminal_damage_below_comparison_threshold",
+        "insufficiency_policy": "warn_and_exclude_stage",
+        "advisory_only": true
+      }
+    },
+    {
+      "case_id": "non_udg_terminal_damage",
+      "sample_id": "adna_damage_non_udg",
+      "cohort": "adna_like",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/reference/adna_damage_reference.fasta",
+      "summary": {
+        "schema_version": "bijux.bam.adna_damage_truth.v1",
+        "stage_id": "bam.damage",
+        "udg_model": "non_udg",
+        "terminal_c_to_t_5p": 0.18,
+        "terminal_g_to_a_3p": 0.11,
+        "short_fragment_fraction": 1.0,
+        "damage_signal": "moderate",
+        "strict_profile_upgraded": false,
+        "terminal_5p_class": "terminal_damage_enriched",
+        "terminal_3p_class": "terminal_damage_enriched",
+        "terminal_pattern_class": "ct5p_dominant",
+        "insufficiency_reason": null,
+        "insufficiency_policy": "warn_and_exclude_stage",
+        "advisory_only": true
+      }
+    }
+  ]
+}

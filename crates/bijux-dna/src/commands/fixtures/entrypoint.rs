@@ -7,6 +7,9 @@ use crate::commands::cli;
 use crate::commands::fixtures::build::vcf::{
     build_vcf_mini_fixture, DEFAULT_VCF_MINI_REGENERATION_ROOT,
 };
+use crate::commands::fixtures::expected::adna_damage::{
+    validate_adna_damage_truth_manifest_path, ADNA_DAMAGE_TRUTH_FIXTURE_ID,
+};
 use crate::commands::fixtures::expected::amplicon::{
     validate_amplicon_truth_manifest_path, AMPLICON_TRUTH_FIXTURE_ID,
 };
@@ -152,6 +155,17 @@ pub(crate) fn validate_fixture(cwd: &Path, args: &cli::FixturesValidateArgs) -> 
             }
             Ok(())
         }
+        ADNA_DAMAGE_TRUTH_FIXTURE_ID => {
+            let manifest_path =
+                benchmark_science_manifest_path(&fixture_root, ADNA_DAMAGE_TRUTH_FIXTURE_ID);
+            let report = validate_adna_damage_truth_manifest_path(cwd, &manifest_path)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.manifest_path);
+            }
+            Ok(())
+        }
         BAM_ALIGNMENT_TRUTH_FIXTURE_ID => {
             let manifest_path =
                 benchmark_science_manifest_path(&fixture_root, BAM_ALIGNMENT_TRUTH_FIXTURE_ID);
@@ -254,6 +268,18 @@ pub(crate) fn validate_expected_fixture(
             let report = validate_amplicon_truth_manifest_path(
                 cwd,
                 &benchmark_science_manifest_path(&fixture_root, AMPLICON_TRUTH_FIXTURE_ID),
+            )?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.expected_path);
+            }
+            Ok(())
+        }
+        ADNA_DAMAGE_TRUTH_FIXTURE_ID => {
+            let report = validate_adna_damage_truth_manifest_path(
+                cwd,
+                &benchmark_science_manifest_path(&fixture_root, ADNA_DAMAGE_TRUTH_FIXTURE_ID),
             )?;
             if args.json {
                 cli::render::json::print_pretty(&report)?;
