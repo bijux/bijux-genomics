@@ -73,11 +73,18 @@ Commands listed here are owned by this crate even when their durable behavior is
   filter stages. It fails closed if low-quality, low-depth, mapping-quality, or missingness filter
   labels drift from the governed fixture, or if damage-aware removal counts and retained PASS sites
   stop matching the owned filter-output truth.
+  `fixtures validate --corpus phasing-imputation-truth` validates the governed
+  `benchmarks/tests/fixtures/science/phasing-imputation-truth/manifest.toml` bundle against the
+  owned phasing-output and imputation-output truth summaries plus the retained phasing and
+  imputation parser fixtures. It fails closed if phased genotype counts, phase-set evidence,
+  masked-truth match counts, INFO or R² summaries, concordance, or low-confidence imputation
+  signals drift from the governed science fixture.
   `fixtures validate --root benchmarks/tests/fixtures --all` writes
   `benchmarks/readiness/benchmark-fixture-root-validation.json` and fails closed unless the
   benchmark-owned `bench`, `corpora`, and `databases` roots all exist, parser-bank domains remain
   populated, and every governed corpus, taxonomy database, and science truth bundle including
-  `vcf-genotype-truth` and `vcf-filter-truth` validates from the benchmark fixture root.
+  `vcf-genotype-truth`, `vcf-filter-truth`, and `phasing-imputation-truth` validates from the
+  benchmark fixture root.
 - `bijux-dna fixtures validate-expected`
   `fixtures validate-expected --corpus vcf-mini` validates the governed
   `benchmarks/tests/fixtures/corpora/vcf-mini/expected/*.json` truth bundle against the owned
@@ -95,6 +102,12 @@ Commands listed here are owned by this crate even when their durable behavior is
   filter-output summarizer plus the bcftools and ANGSD normalized metrics parsers. It fails closed
   when filter-threshold metrics, declared failure labels, retained PASS-only damage-filter output,
   or tool-specific damage-context removal rules drift from the governed science fixture.
+  `fixtures validate-expected --corpus phasing-imputation-truth` validates the governed
+  `benchmarks/tests/fixtures/science/phasing-imputation-truth/expected.json` bundle against the
+  owned phasing-output and imputation-output truth summarizers plus the retained phasing and
+  imputation normalized metrics parsers. It fails closed when phased genotype tallies, phase-set
+  evidence, masked-truth concordance, INFO or R² retention, or low-confidence imputation counts
+  drift from the governed science fixture.
 
 ### Status
 - `bijux-dna status`
