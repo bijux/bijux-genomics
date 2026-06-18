@@ -4,8 +4,8 @@
   "root_path": "benchmarks/tests/fixtures",
   "required_subroot_count": 4,
   "parser_domain_count": 3,
-  "checked_fixture_count": 26,
-  "valid_fixture_count": 26,
+  "checked_fixture_count": 28,
+  "valid_fixture_count": 28,
   "invalid_fixture_count": 0,
   "ok": true,
   "rows": [
@@ -107,6 +107,15 @@
       "schema_version": "bijux.bench.amplicon_truth.validation.v1",
       "valid": true,
       "detail": "validated_sections=8,validated_rows=21"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "bam-alignment-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/bam-alignment-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/bam-alignment-truth/expected.json",
+      "schema_version": "bijux.bench.bam_alignment_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_samples=4,validated_records=14"
     },
     {
       "fixture_kind": "expected_truth",
@@ -213,6 +222,15 @@
       "manifest_path": "benchmarks/tests/fixtures/science/amplicon-truth/manifest.toml",
       "detail_path": null,
       "schema_version": "bijux.bench.amplicon_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "bam-alignment-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/bam-alignment-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_alignment_truth.v1",
       "valid": true,
       "detail": "valid"
     },
