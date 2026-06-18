@@ -46,8 +46,8 @@ fn bench_readiness_bam_all_retained_tools_complete_writes_governed_json_file() {
         report.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.bam_all_retained_tools_complete.v1")
     );
-    assert_eq!(report.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(17));
-    assert_eq!(report.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(17));
+    assert_eq!(report.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(19));
+    assert_eq!(report.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let goal_ids = report
@@ -57,7 +57,7 @@ fn bench_readiness_bam_all_retained_tools_complete_writes_governed_json_file() {
         .iter()
         .filter_map(|check| check.get("goal_id").and_then(serde_json::Value::as_u64))
         .collect::<BTreeSet<_>>();
-    assert_eq!(goal_ids, (379_u64..=395_u64).collect::<BTreeSet<_>>());
+    assert_eq!(goal_ids, (431_u64..=449_u64).collect::<BTreeSet<_>>());
 
     assert_eq!(
         report.get("local_smoke_container_row_count").and_then(serde_json::Value::as_u64),

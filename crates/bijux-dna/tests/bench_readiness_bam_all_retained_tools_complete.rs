@@ -45,8 +45,8 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json")
     );
-    assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(17));
-    assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(17));
+    assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(19));
+    assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(payload.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("failing_goal_ids").and_then(serde_json::Value::as_array).map(Vec::len),
@@ -57,6 +57,10 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
     assert_eq!(payload.get("retained_tool_count").and_then(serde_json::Value::as_u64), Some(25));
     assert_eq!(
         payload.get("command_adapter_row_count").and_then(serde_json::Value::as_u64),
+        Some(49)
+    );
+    assert_eq!(
+        payload.get("output_declaration_row_count").and_then(serde_json::Value::as_u64),
         Some(49)
     );
     assert_eq!(
@@ -81,33 +85,45 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
         Some(31)
     );
     assert_eq!(payload.get("report_map_row_count").and_then(serde_json::Value::as_u64), Some(49));
+    assert_eq!(
+        payload.get("active_row_consistency_surface_count").and_then(serde_json::Value::as_u64),
+        Some(6)
+    );
+    assert_eq!(
+        payload.get("micro_smoke_family_count").and_then(serde_json::Value::as_u64),
+        Some(12)
+    );
+    assert_eq!(
+        payload.get("science_threshold_stage_count").and_then(serde_json::Value::as_u64),
+        Some(15)
+    );
     assert_eq!(payload.get("ok"), Some(&serde_json::Value::Bool(true)));
 
     let checks = payload.get("checks").and_then(serde_json::Value::as_array).expect("checks array");
-    assert_eq!(checks.len(), 17);
+    assert_eq!(checks.len(), 19);
     assert!(checks.iter().all(|check| check.get("ok") == Some(&serde_json::Value::Bool(true))));
 
-    let goal_390 = checks
+    let goal_439 = checks
         .iter()
-        .find(|check| check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(390))
-        .expect("goal 390 check");
+        .find(|check| check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(439))
+        .expect("goal 439 check");
     assert!(
-        goal_390
+        goal_439
             .get("detail")
             .and_then(serde_json::Value::as_str)
-            .is_some_and(|detail| detail.contains("recalibration and genotyping")),
-        "goal 390 detail must keep the BAM recalibration/genotyping slice explicit"
+            .is_some_and(|detail| detail.contains("bam.genotyping")),
+        "goal 439 detail must keep BAM genotyping explicit"
     );
 
-    let goal_392 = checks
+    let goal_448 = checks
         .iter()
-        .find(|check| check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(392))
-        .expect("goal 392 check");
+        .find(|check| check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(448))
+        .expect("goal 448 check");
     assert!(
-        goal_392
+        goal_448
             .get("detail")
             .and_then(serde_json::Value::as_str)
-            .is_some_and(|detail| detail.contains("host-vs-container smoke")),
-        "goal 392 detail must keep the local/container smoke split explicit"
+            .is_some_and(|detail| detail.contains("stage family")),
+        "goal 448 detail must keep the BAM stage-family micro smoke proof explicit"
     );
 }
