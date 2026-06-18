@@ -25,6 +25,9 @@ pub const VCF_GENOTYPE_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.genotype_truth.v1
 pub const VCF_FILTER_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.filter_output_truth.v1";
 pub const VCF_PHASING_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.phasing_output_truth.v1";
 pub const VCF_IMPUTATION_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.imputation_output_truth.v1";
+pub const VCF_ROH_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.roh_output_truth.v1";
+pub const VCF_IBD_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.ibd_output_truth.v1";
+pub const VCF_DEMOGRAPHY_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.demography_output_truth.v1";
 pub const VCF_PCA_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.pca_output_truth.v1";
 pub const VCF_ADMIXTURE_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.admixture_output_truth.v1";
 pub const VCF_POPULATION_STRUCTURE_OUTPUT_TRUTH_SCHEMA_VERSION: &str =
@@ -341,6 +344,124 @@ pub struct VcfImputationOutputTruthSummaryV1 {
     pub unresolved_count: u64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub genotype_concordance: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfRohSegmentTruthRowV1 {
+    pub sample_id: String,
+    pub contig: String,
+    pub start: u64,
+    pub end: u64,
+    pub length: u64,
+    pub variant_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfRohSampleTruthRowV1 {
+    pub sample_id: String,
+    pub segment_count: u64,
+    pub total_length: u64,
+    pub mean_length: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfRohOutputTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub status: String,
+    pub sample_count: u32,
+    pub segment_count: u64,
+    pub total_length: u64,
+    #[serde(default)]
+    pub sample_ids: Vec<String>,
+    #[serde(default)]
+    pub segments: Vec<VcfRohSegmentTruthRowV1>,
+    #[serde(default)]
+    pub per_sample_summary: Vec<VcfRohSampleTruthRowV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfIbdPairTruthRowV1 {
+    pub sample_a: String,
+    pub sample_b: String,
+    pub segment_count: u64,
+    pub total_length: f64,
+    pub overlap_marker_count: u64,
+    pub status: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfIbdInsufficientOverlapTruthV1 {
+    pub status: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub insufficient_reason: Option<String>,
+    pub filtered_segment_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfIbdOutputTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub status: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub insufficient_reason: Option<String>,
+    pub pair_count: u64,
+    pub retained_segment_count: u64,
+    pub total_length: f64,
+    pub overlap_marker_total: u64,
+    #[serde(default)]
+    pub sample_ids: Vec<String>,
+    #[serde(default)]
+    pub rows: Vec<VcfIbdPairTruthRowV1>,
+    pub insufficient_overlap_probe: VcfIbdInsufficientOverlapTruthV1,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfDemographyEstimateTruthRowV1 {
+    pub generation: u64,
+    pub ne: f64,
+    pub ci_low: f64,
+    pub ci_high: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfDemographyInsufficientDataTruthV1 {
+    pub status: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub insufficient_reason: Option<String>,
+    #[serde(default)]
+    pub time_bins: Vec<u64>,
+    #[serde(default)]
+    pub ne_estimates: Vec<VcfDemographyEstimateTruthRowV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfDemographyOutputTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub method: String,
+    pub inference_status: String,
+    pub status: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub insufficient_reason: Option<String>,
+    pub estimate_count: u64,
+    #[serde(default)]
+    pub time_bins: Vec<u64>,
+    #[serde(default)]
+    pub ne_estimates: Vec<VcfDemographyEstimateTruthRowV1>,
+    pub insufficient_data_probe: VcfDemographyInsufficientDataTruthV1,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -1332,6 +1453,367 @@ pub fn summarize_vcf_imputation_output_truth(
     })
 }
 
+/// Summarize normalized ROH metrics into governed interval truth.
+///
+/// # Errors
+/// Returns an error when normalized metrics drift away from their interval summaries.
+pub fn summarize_vcf_roh_output_truth(
+    metrics: &serde_json::Value,
+) -> Result<VcfRohOutputTruthSummaryV1> {
+    let stage_id = json_required_string(metrics, "stage_id")?;
+    let tool_id = json_required_string(metrics, "tool_id")?;
+    let status = json_required_string(metrics, "status")?;
+    let sample_count = json_required_u64(metrics, "sample_count")?;
+    let segment_count = json_required_u64(metrics, "segment_count")?;
+    let total_length = json_required_u64(metrics, "total_length")?;
+    let segments = json_required_array(metrics, "segments")?
+        .iter()
+        .map(|row| {
+            Ok(VcfRohSegmentTruthRowV1 {
+                sample_id: json_required_string(row, "sample_id")?,
+                contig: json_required_string(row, "contig")?,
+                start: json_required_u64(row, "start")?,
+                end: json_required_u64(row, "end")?,
+                length: json_required_u64(row, "length")?,
+                variant_count: json_required_u64(row, "variant_count")?,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let per_sample_summary = json_required_array(metrics, "per_sample_summary")?
+        .iter()
+        .map(|row| {
+            Ok(VcfRohSampleTruthRowV1 {
+                sample_id: json_required_string(row, "sample_id")?,
+                segment_count: json_required_u64(row, "segment_count")?,
+                total_length: json_required_u64(row, "total_length")?,
+                mean_length: json_required_f64(row, "mean_length")?,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+    if segment_count != segments.len() as u64 {
+        return Err(anyhow!(
+            "ROH segment_count drifted: metrics=`{segment_count}`, rows=`{}`",
+            segments.len()
+        ));
+    }
+    if sample_count != per_sample_summary.len() as u64 {
+        return Err(anyhow!(
+            "ROH sample_count drifted: metrics=`{sample_count}`, per-sample rows=`{}`",
+            per_sample_summary.len()
+        ));
+    }
+
+    let mut observed_per_sample = BTreeMap::<String, (u64, u64)>::new();
+    let mut observed_total_length = 0_u64;
+    for segment in &segments {
+        observed_total_length += segment.length;
+        let entry = observed_per_sample.entry(segment.sample_id.clone()).or_insert((0, 0));
+        entry.0 += 1;
+        entry.1 += segment.length;
+    }
+    if total_length != observed_total_length {
+        return Err(anyhow!(
+            "ROH total_length drifted: metrics=`{total_length}`, intervals=`{observed_total_length}`"
+        ));
+    }
+    for row in &per_sample_summary {
+        let (observed_segment_count, observed_sample_total_length) =
+            observed_per_sample.get(&row.sample_id).copied().ok_or_else(|| {
+                anyhow!("ROH per-sample summary contains unknown sample `{}`", row.sample_id)
+            })?;
+        if row.segment_count != observed_segment_count
+            || row.total_length != observed_sample_total_length
+        {
+            return Err(anyhow!(
+                "ROH per-sample summary drifted for `{}`: summary=({}, {}), intervals=({}, {})",
+                row.sample_id,
+                row.segment_count,
+                row.total_length,
+                observed_segment_count,
+                observed_sample_total_length
+            ));
+        }
+        let observed_mean_length = if observed_segment_count == 0 {
+            0.0
+        } else {
+            observed_sample_total_length as f64 / observed_segment_count as f64
+        };
+        if !f64s_match(row.mean_length, observed_mean_length) {
+            return Err(anyhow!(
+                "ROH mean_length drifted for `{}`: summary=`{}`, intervals=`{}`",
+                row.sample_id,
+                row.mean_length,
+                observed_mean_length
+            ));
+        }
+    }
+
+    let sample_ids =
+        collect_sorted_unique_strings(segments.iter().map(|row| row.sample_id.as_str()));
+    if sample_count != sample_ids.len() as u64 {
+        return Err(anyhow!(
+            "ROH sample_count drifted from interval sample IDs: metrics=`{sample_count}`, intervals=`{}`",
+            sample_ids.len()
+        ));
+    }
+
+    Ok(VcfRohOutputTruthSummaryV1 {
+        schema_version: VCF_ROH_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id,
+        tool_id,
+        status,
+        sample_count: usize_to_u32_saturating(sample_ids.len()),
+        segment_count,
+        total_length,
+        sample_ids,
+        segments,
+        per_sample_summary,
+    })
+}
+
+/// Summarize normalized IBD metrics into governed pair truth.
+///
+/// # Errors
+/// Returns an error when normalized metrics drift away from their insufficiency probe or pair rows.
+pub fn summarize_vcf_ibd_output_truth(
+    metrics: &serde_json::Value,
+) -> Result<VcfIbdOutputTruthSummaryV1> {
+    let stage_id = json_required_string(metrics, "stage_id")?;
+    let tool_id = json_required_string(metrics, "tool_id")?;
+    let status = json_required_string(metrics, "status")?;
+    let insufficient_reason = json_optional_string(metrics, "insufficient_reason")?;
+    let pair_count = json_required_u64(metrics, "pair_count")?;
+    let rows = json_required_array(metrics, "rows")?
+        .iter()
+        .map(|row| {
+            Ok(VcfIbdPairTruthRowV1 {
+                sample_a: json_required_string(row, "sample_a")?,
+                sample_b: json_required_string(row, "sample_b")?,
+                segment_count: json_required_u64(row, "segment_count")?,
+                total_length: json_required_f64(row, "total_length")?,
+                overlap_marker_count: json_required_u64(row, "overlap_marker_count")?,
+                status: json_required_string(row, "status")?,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    if pair_count != rows.len() as u64 {
+        return Err(anyhow!(
+            "IBD pair_count drifted: metrics=`{pair_count}`, rows=`{}`",
+            rows.len()
+        ));
+    }
+
+    let insufficient_overlap_probe_value =
+        metrics.get("insufficient_overlap_probe").ok_or_else(|| {
+            anyhow!("normalized metrics are missing object field `insufficient_overlap_probe`")
+        })?;
+    let insufficient_overlap_probe = VcfIbdInsufficientOverlapTruthV1 {
+        status: json_required_string(insufficient_overlap_probe_value, "status")?,
+        insufficient_reason: json_optional_string(
+            insufficient_overlap_probe_value,
+            "insufficient_reason",
+        )?,
+        filtered_segment_count: json_required_u64(
+            insufficient_overlap_probe_value,
+            "filtered_segment_count",
+        )?,
+    };
+
+    match status.as_str() {
+        "complete" => {
+            if insufficient_reason.is_some() {
+                return Err(anyhow!(
+                    "IBD complete metrics must not declare an insufficient_reason"
+                ));
+            }
+            if insufficient_overlap_probe.status != "not_run"
+                || insufficient_overlap_probe.insufficient_reason.is_some()
+                || insufficient_overlap_probe.filtered_segment_count != 0
+            {
+                return Err(anyhow!(
+                    "IBD complete metrics must keep the insufficient-overlap probe in `not_run` state"
+                ));
+            }
+        }
+        "insufficient_marker_overlap" => {
+            if insufficient_overlap_probe.status != status
+                || insufficient_overlap_probe.insufficient_reason != insufficient_reason
+            {
+                return Err(anyhow!(
+                    "IBD insufficient-overlap probe drifted from top-level status"
+                ));
+            }
+        }
+        other => {
+            return Err(anyhow!("unsupported IBD output truth status `{other}`"));
+        }
+    }
+
+    let retained_segment_count = rows.iter().map(|row| row.segment_count).sum::<u64>();
+    let total_length = rows.iter().map(|row| row.total_length).sum::<f64>();
+    let overlap_marker_total = rows.iter().map(|row| row.overlap_marker_count).sum::<u64>();
+    let sample_ids = collect_sorted_unique_strings(
+        rows.iter().flat_map(|row| [row.sample_a.as_str(), row.sample_b.as_str()].into_iter()),
+    );
+
+    Ok(VcfIbdOutputTruthSummaryV1 {
+        schema_version: VCF_IBD_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id,
+        tool_id,
+        status,
+        insufficient_reason,
+        pair_count,
+        retained_segment_count,
+        total_length,
+        overlap_marker_total,
+        sample_ids,
+        rows,
+        insufficient_overlap_probe,
+    })
+}
+
+/// Summarize normalized demography metrics into governed estimate truth.
+///
+/// # Errors
+/// Returns an error when normalized metrics drift away from their time-bin or insufficiency contract.
+pub fn summarize_vcf_demography_output_truth(
+    metrics: &serde_json::Value,
+) -> Result<VcfDemographyOutputTruthSummaryV1> {
+    let stage_id = json_required_string(metrics, "stage_id")?;
+    let tool_id = json_required_string(metrics, "tool_id")?;
+    let method = json_required_string(metrics, "method")?;
+    let inference_status = json_required_string(metrics, "inference_status")?;
+    let status = json_required_string(metrics, "status")?;
+    let insufficient_reason = json_optional_string(metrics, "insufficient_reason")?;
+    let time_bins = json_required_array(metrics, "time_bins")?
+        .iter()
+        .map(|value| {
+            value.as_u64().ok_or_else(|| anyhow!("demography time_bins must contain only integers"))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let ne_estimates = json_required_array(metrics, "ne_estimates")?
+        .iter()
+        .map(|row| {
+            Ok(VcfDemographyEstimateTruthRowV1 {
+                generation: json_required_u64(row, "generation")?,
+                ne: json_required_f64(row, "ne")?,
+                ci_low: json_required_f64(row, "ci_low")?,
+                ci_high: json_required_f64(row, "ci_high")?,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    if time_bins.len() != ne_estimates.len() {
+        return Err(anyhow!(
+            "demography time_bins drifted from ne_estimates: bins=`{}`, estimates=`{}`",
+            time_bins.len(),
+            ne_estimates.len()
+        ));
+    }
+    for (time_bin, estimate) in time_bins.iter().zip(&ne_estimates) {
+        if *time_bin != estimate.generation {
+            return Err(anyhow!(
+                "demography estimate generation drifted from time_bins: bin=`{time_bin}`, generation=`{}`",
+                estimate.generation
+            ));
+        }
+    }
+
+    let insufficient_data_probe_value =
+        metrics.get("insufficient_data_probe").ok_or_else(|| {
+            anyhow!("normalized metrics are missing object field `insufficient_data_probe`")
+        })?;
+    let insufficient_probe_time_bins =
+        json_required_array(insufficient_data_probe_value, "time_bins")?
+            .iter()
+            .map(|value| {
+                value.as_u64().ok_or_else(|| {
+                    anyhow!(
+                        "demography insufficient_data_probe time_bins must contain only integers"
+                    )
+                })
+            })
+            .collect::<Result<Vec<_>>>()?;
+    let insufficient_probe_estimates =
+        json_required_array(insufficient_data_probe_value, "ne_estimates")?
+            .iter()
+            .map(|row| {
+                Ok(VcfDemographyEstimateTruthRowV1 {
+                    generation: json_required_u64(row, "generation")?,
+                    ne: json_required_f64(row, "ne")?,
+                    ci_low: json_required_f64(row, "ci_low")?,
+                    ci_high: json_required_f64(row, "ci_high")?,
+                })
+            })
+            .collect::<Result<Vec<_>>>()?;
+    let insufficient_data_probe = VcfDemographyInsufficientDataTruthV1 {
+        status: json_required_string(insufficient_data_probe_value, "status")?,
+        insufficient_reason: json_optional_string(
+            insufficient_data_probe_value,
+            "insufficient_reason",
+        )?,
+        time_bins: insufficient_probe_time_bins,
+        ne_estimates: insufficient_probe_estimates,
+    };
+
+    match status.as_str() {
+        "complete" => {
+            if insufficient_reason.is_some() {
+                return Err(anyhow!(
+                    "demography complete metrics must not declare an insufficient_reason"
+                ));
+            }
+            if insufficient_data_probe.status != "not_run"
+                || insufficient_data_probe.insufficient_reason.is_some()
+                || !insufficient_data_probe.time_bins.is_empty()
+                || !insufficient_data_probe.ne_estimates.is_empty()
+            {
+                return Err(anyhow!(
+                    "demography complete metrics must keep the insufficient-data probe in `not_run` state"
+                ));
+            }
+        }
+        "insufficient_data" => {
+            if insufficient_reason.is_none() {
+                return Err(anyhow!(
+                    "demography insufficient_data metrics must declare an insufficient_reason"
+                ));
+            }
+            if !time_bins.is_empty() || !ne_estimates.is_empty() {
+                return Err(anyhow!(
+                    "demography insufficient_data metrics must not retain estimate rows"
+                ));
+            }
+            if insufficient_data_probe.status != status
+                || insufficient_data_probe.insufficient_reason != insufficient_reason
+                || !insufficient_data_probe.time_bins.is_empty()
+                || !insufficient_data_probe.ne_estimates.is_empty()
+            {
+                return Err(anyhow!(
+                    "demography insufficient_data probe drifted from top-level status"
+                ));
+            }
+        }
+        other => {
+            return Err(anyhow!("unsupported demography output truth status `{other}`"));
+        }
+    }
+
+    Ok(VcfDemographyOutputTruthSummaryV1 {
+        schema_version: VCF_DEMOGRAPHY_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id,
+        tool_id,
+        method,
+        inference_status,
+        status,
+        insufficient_reason,
+        estimate_count: ne_estimates.len() as u64,
+        time_bins,
+        ne_estimates,
+        insufficient_data_probe,
+    })
+}
+
 #[derive(Debug, Clone)]
 struct PopulationMetadataRow {
     sample_id: String,
@@ -1809,7 +2291,11 @@ fn dominant_cluster_fraction(
 }
 
 fn collect_population_ids<'a>(population_ids: impl Iterator<Item = &'a str>) -> Vec<String> {
-    let mut values = population_ids.map(str::to_string).collect::<Vec<_>>();
+    collect_sorted_unique_strings(population_ids)
+}
+
+fn collect_sorted_unique_strings<'a>(values: impl Iterator<Item = &'a str>) -> Vec<String> {
+    let mut values = values.map(str::to_string).collect::<Vec<_>>();
     values.sort();
     values.dedup();
     values
@@ -1833,6 +2319,14 @@ fn json_required_string(value: &serde_json::Value, field: &str) -> Result<String
         .ok_or_else(|| anyhow!("normalized metrics are missing string field `{field}`"))
 }
 
+fn json_optional_string(value: &serde_json::Value, field: &str) -> Result<Option<String>> {
+    match value.get(field) {
+        None | Some(serde_json::Value::Null) => Ok(None),
+        Some(serde_json::Value::String(raw)) => Ok(Some(raw.clone())),
+        Some(_) => Err(anyhow!("normalized metrics field `{field}` must be a string or null")),
+    }
+}
+
 fn json_required_u64(value: &serde_json::Value, field: &str) -> Result<u64> {
     value
         .get(field)
@@ -1845,6 +2339,10 @@ fn json_required_f64(value: &serde_json::Value, field: &str) -> Result<f64> {
         .get(field)
         .and_then(serde_json::Value::as_f64)
         .ok_or_else(|| anyhow!("normalized metrics are missing numeric field `{field}`"))
+}
+
+fn f64s_match(left: f64, right: f64) -> bool {
+    (left - right).abs() <= 1e-12
 }
 
 /// Apply fixture-safe VCF filtering and report explainable retained/removed consequences.
@@ -3834,5 +4332,138 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(summary.sample_groups[0].dominant_cluster, "cluster_1");
         assert_eq!(summary.sample_groups[2].dominant_cluster, "cluster_2");
         assert_eq!(summary.sample_groups[1].role, "cohort");
+    }
+
+    #[test]
+    fn summarize_vcf_roh_output_truth_reports_interval_rows() {
+        let artifact_root = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/plink2/vcf.roh/complete",
+        );
+        let metrics = crate::parse_segment_stage_metrics(
+            "plink2",
+            crate::VcfDomainStage::Roh,
+            &artifact_root,
+        )
+        .expect("parse plink2 roh metrics");
+
+        let summary = summarize_vcf_roh_output_truth(&metrics).expect("summary");
+        assert_eq!(summary.schema_version, VCF_ROH_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "vcf.roh");
+        assert_eq!(summary.tool_id, "plink2");
+        assert_eq!(summary.status, "complete");
+        assert_eq!(summary.sample_count, 4);
+        assert_eq!(summary.segment_count, 8);
+        assert_eq!(summary.total_length, 8);
+        assert_eq!(
+            summary.sample_ids,
+            vec![
+                "sample_a".to_string(),
+                "sample_b".to_string(),
+                "sample_c".to_string(),
+                "sample_d".to_string()
+            ]
+        );
+        assert_eq!(summary.segments[0].sample_id, "sample_a");
+        assert_eq!(summary.segments[0].start, 3);
+        assert_eq!(summary.segments[7].sample_id, "sample_d");
+        assert_eq!(summary.segments[7].end, 8);
+        assert_eq!(summary.per_sample_summary[0].segment_count, 2);
+        assert_eq!(summary.per_sample_summary[0].mean_length, 1.0);
+    }
+
+    #[test]
+    fn summarize_vcf_ibd_output_truth_tracks_pair_lengths_and_marker_overlap() {
+        let artifact_root = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/germline/vcf.ibd/complete",
+        );
+        let metrics = crate::parse_segment_stage_metrics(
+            "germline",
+            crate::VcfDomainStage::Ibd,
+            &artifact_root,
+        )
+        .expect("parse germline ibd metrics");
+
+        let summary = summarize_vcf_ibd_output_truth(&metrics).expect("summary");
+        assert_eq!(summary.schema_version, VCF_IBD_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "vcf.ibd");
+        assert_eq!(summary.tool_id, "germline");
+        assert_eq!(summary.status, "complete");
+        assert_eq!(summary.pair_count, 1);
+        assert_eq!(summary.retained_segment_count, 2);
+        assert_eq!(summary.total_length, 9.5);
+        assert_eq!(summary.overlap_marker_total, 41);
+        assert_eq!(summary.sample_ids, vec!["sample_a".to_string(), "sample_b".to_string()]);
+        assert_eq!(summary.rows[0].sample_a, "sample_a");
+        assert_eq!(summary.rows[0].sample_b, "sample_b");
+        assert_eq!(summary.rows[0].segment_count, 2);
+        assert_eq!(summary.insufficient_overlap_probe.status, "not_run");
+    }
+
+    #[test]
+    fn summarize_vcf_ibd_output_truth_preserves_marker_overlap_insufficiency() {
+        let artifact_root = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdseq/vcf.ibd/insufficient_marker_overlap",
+        );
+        let metrics = crate::parse_segment_stage_metrics(
+            "ibdseq",
+            crate::VcfDomainStage::Ibd,
+            &artifact_root,
+        )
+        .expect("parse ibdseq insufficiency metrics");
+
+        let summary = summarize_vcf_ibd_output_truth(&metrics).expect("summary");
+        assert_eq!(summary.status, "insufficient_marker_overlap");
+        assert_eq!(
+            summary.insufficient_reason.as_deref(),
+            Some("no_pairs_met_min_marker_or_length_threshold")
+        );
+        assert_eq!(summary.pair_count, 0);
+        assert_eq!(summary.retained_segment_count, 0);
+        assert_eq!(summary.total_length, 0.0);
+        assert_eq!(summary.overlap_marker_total, 0);
+        assert!(summary.sample_ids.is_empty());
+        assert_eq!(summary.insufficient_overlap_probe.status, "insufficient_marker_overlap");
+    }
+
+    #[test]
+    fn summarize_vcf_demography_output_truth_preserves_complete_and_insufficient_states() {
+        let complete_root = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/complete",
+        );
+        let complete_metrics = crate::parse_segment_stage_metrics(
+            "ibdne",
+            crate::VcfDomainStage::Demography,
+            &complete_root,
+        )
+        .expect("parse complete demography metrics");
+        let complete_summary =
+            summarize_vcf_demography_output_truth(&complete_metrics).expect("complete summary");
+        assert_eq!(complete_summary.schema_version, VCF_DEMOGRAPHY_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(complete_summary.status, "complete");
+        assert_eq!(complete_summary.estimate_count, 3);
+        assert_eq!(complete_summary.time_bins, vec![5, 10, 20]);
+        assert_eq!(complete_summary.ne_estimates[0].ne, 12000.0);
+        assert_eq!(complete_summary.insufficient_data_probe.status, "not_run");
+
+        let insufficient_root = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/insufficient_data",
+        );
+        let insufficient_metrics = crate::parse_segment_stage_metrics(
+            "ibdne",
+            crate::VcfDomainStage::Demography,
+            &insufficient_root,
+        )
+        .expect("parse insufficient demography metrics");
+        let insufficient_summary = summarize_vcf_demography_output_truth(&insufficient_metrics)
+            .expect("insufficient summary");
+        assert_eq!(insufficient_summary.status, "insufficient_data");
+        assert_eq!(
+            insufficient_summary.insufficient_reason.as_deref(),
+            Some("not_enough_ibd_segments")
+        );
+        assert_eq!(insufficient_summary.estimate_count, 0);
+        assert!(insufficient_summary.time_bins.is_empty());
+        assert!(insufficient_summary.ne_estimates.is_empty());
+        assert_eq!(insufficient_summary.insufficient_data_probe.status, "insufficient_data");
     }
 }
