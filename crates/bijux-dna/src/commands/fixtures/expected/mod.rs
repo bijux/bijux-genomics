@@ -5,6 +5,7 @@ pub(crate) mod bam_alignment;
 pub(crate) mod bam_duplicate_insert;
 pub(crate) mod bam_endogenous;
 pub(crate) mod bam_gc_coverage;
+pub(crate) mod bam_haplogroups;
 pub(crate) mod bam_sex;
 pub(crate) mod fastq_duplicates;
 pub(crate) mod fastq_taxonomy;

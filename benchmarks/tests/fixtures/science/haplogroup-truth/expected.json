@@ -1,0 +1,96 @@
+{
+  "schema_version": "bijux.bench.bam_haplogroup_truth.expected.v1",
+  "fixture_id": "haplogroup-truth",
+  "case_truths": [
+    {
+      "case_id": "screening_panel_ready",
+      "sample_id": "adna_y_haplogroup_panel",
+      "cohort": "adna_like",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam",
+      "reference_panel_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
+      "summary": {
+        "summary_schema_version": "bijux.bam.haplogroup_truth.v1",
+        "stage_id": "bam.haplogroups",
+        "method": "yleaf",
+        "reference_panel_id": "adna-y-hg38-mini",
+        "reference_build": "hg38",
+        "population_scope": "adna_y_haplogroup_panel",
+        "minimum_coverage": 2.0,
+        "observed_mean_coverage": 2.0,
+        "ready": true,
+        "haplogroup_call": "R1b1a",
+        "confidence": 1.0,
+        "status": "ready",
+        "markers_total": 2,
+        "markers_supported": 2,
+        "supported_marker_ids": [
+          "adna-y-snp1",
+          "adna-y-snp2"
+        ],
+        "lineage_scope": "screening",
+        "refusal_codes": []
+      }
+    },
+    {
+      "case_id": "screening_panel_partial_support",
+      "sample_id": "adna_y_haplogroup_partial_panel",
+      "cohort": "adna_like",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_partial_panel.sam",
+      "reference_panel_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
+      "summary": {
+        "summary_schema_version": "bijux.bam.haplogroup_truth.v1",
+        "stage_id": "bam.haplogroups",
+        "method": "yleaf",
+        "reference_panel_id": "adna-y-hg38-mini",
+        "reference_build": "hg38",
+        "population_scope": "adna_y_haplogroup_panel",
+        "minimum_coverage": 1.0,
+        "observed_mean_coverage": 1.0,
+        "ready": false,
+        "haplogroup_call": "R1b",
+        "confidence": 0.5,
+        "status": "uncertain_marker_support",
+        "markers_total": 2,
+        "markers_supported": 1,
+        "supported_marker_ids": [
+          "adna-y-snp1"
+        ],
+        "lineage_scope": "screening",
+        "refusal_codes": [
+          "marker_support_incomplete"
+        ]
+      }
+    },
+    {
+      "case_id": "screening_panel_coverage_gate",
+      "sample_id": "adna_y_haplogroup_panel",
+      "cohort": "adna_like",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam",
+      "reference_panel_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
+      "summary": {
+        "summary_schema_version": "bijux.bam.haplogroup_truth.v1",
+        "stage_id": "bam.haplogroups",
+        "method": "yleaf",
+        "reference_panel_id": "adna-y-hg38-mini",
+        "reference_build": "hg38",
+        "population_scope": "adna_y_haplogroup_panel",
+        "minimum_coverage": 2.5,
+        "observed_mean_coverage": 2.0,
+        "ready": false,
+        "haplogroup_call": null,
+        "confidence": 0.0,
+        "status": "coverage_gate_not_met",
+        "markers_total": 2,
+        "markers_supported": 2,
+        "supported_marker_ids": [
+          "adna-y-snp1",
+          "adna-y-snp2"
+        ],
+        "lineage_scope": "screening",
+        "refusal_codes": [
+          "coverage_below_haplogroup_minimum"
+        ]
+      }
+    }
+  ]
+}
