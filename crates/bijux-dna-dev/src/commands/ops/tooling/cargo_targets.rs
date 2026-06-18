@@ -1106,6 +1106,14 @@ fn science_fixtures_fast_command_args() -> Vec<String> {
         "--test".to_string(),
         "fixtures_validate_expected_adna_damage_truth_stdout".to_string(),
         "--test".to_string(),
+        "fixtures_validate_adna_contamination_truth".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_adna_contamination_truth_stdout".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_adna_contamination_truth".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_adna_contamination_truth_stdout".to_string(),
+        "--test".to_string(),
         "fixtures_validate_bam_alignment_truth".to_string(),
         "--test".to_string(),
         "fixtures_validate_bam_alignment_truth_stdout".to_string(),
@@ -1177,6 +1185,17 @@ mod tests {
                 == [
                     "--test".to_string(),
                     "fixtures_validate_expected_adna_damage_truth".to_string(),
+                ]
+        }));
+        assert!(args.windows(2).any(|window| {
+            window
+                == ["--test".to_string(), "fixtures_validate_adna_contamination_truth".to_string()]
+        }));
+        assert!(args.windows(2).any(|window| {
+            window
+                == [
+                    "--test".to_string(),
+                    "fixtures_validate_expected_adna_contamination_truth".to_string(),
                 ]
         }));
         assert!(args.windows(2).any(|window| {
