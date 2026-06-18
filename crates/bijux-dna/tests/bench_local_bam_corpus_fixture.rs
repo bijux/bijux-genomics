@@ -52,14 +52,14 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_corpus_01_bam_m
         payload.get("corpus_id").and_then(serde_json::Value::as_str),
         Some("corpus-01-bam-mini")
     );
-    assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(21));
+    assert_eq!(payload.get("sample_count").and_then(serde_json::Value::as_u64), Some(23));
     assert_eq!(
         payload.get("reference_contigs").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(6)
     );
     assert!(payload.get("valid").and_then(serde_json::Value::as_bool) == Some(true));
     assert!(payload.get("samples").and_then(serde_json::Value::as_array).is_some_and(|samples| {
-        samples.len() == 21
+        samples.len() == 23
             && samples.iter().any(|sample| {
                 sample.get("sample_id").and_then(serde_json::Value::as_str)
                     == Some("human_like_duplicate_flagged_multicontig")
@@ -226,6 +226,52 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_corpus_01_bam_m
                         })
                     && sample.get("observed_record_count").and_then(serde_json::Value::as_u64)
                         == Some(5)
+            })
+            && samples.iter().any(|sample| {
+                sample.get("sample_id").and_then(serde_json::Value::as_str)
+                    == Some("human_like_x_autosome_coverage")
+                    && sample
+                        .get("observed_contigs")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|contigs| {
+                            contigs
+                                == &vec![
+                                    serde_json::json!("chr1"),
+                                    serde_json::json!("chrX"),
+                                    serde_json::json!("chrY"),
+                                ]
+                        })
+                    && sample
+                        .get("observed_read_group_ids")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|read_groups| {
+                            read_groups == &vec![serde_json::json!("rg-sex-female-human-like")]
+                        })
+                    && sample.get("observed_record_count").and_then(serde_json::Value::as_u64)
+                        == Some(5)
+            })
+            && samples.iter().any(|sample| {
+                sample.get("sample_id").and_then(serde_json::Value::as_str)
+                    == Some("human_like_x_y_ambiguous_coverage")
+                    && sample
+                        .get("observed_contigs")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|contigs| {
+                            contigs
+                                == &vec![
+                                    serde_json::json!("chr1"),
+                                    serde_json::json!("chrX"),
+                                    serde_json::json!("chrY"),
+                                ]
+                        })
+                    && sample
+                        .get("observed_read_group_ids")
+                        .and_then(serde_json::Value::as_array)
+                        .is_some_and(|read_groups| {
+                            read_groups == &vec![serde_json::json!("rg-sex-ambiguous-human-like")]
+                        })
+                    && sample.get("observed_record_count").and_then(serde_json::Value::as_u64)
+                        == Some(6)
             })
             && samples.iter().any(|sample| {
                 sample.get("sample_id").and_then(serde_json::Value::as_str)
