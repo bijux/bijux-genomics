@@ -8,10 +8,6 @@ use serde::Serialize;
 use super::all_domain_active_stage_tool_matrix::{
     render_all_domain_active_stage_tool_matrix, DEFAULT_ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_PATH,
 };
-use super::all_domain_local_job_coverage::{
-    render_all_domain_local_job_coverage, AllDomainLocalJobCoverageReport,
-    DEFAULT_ALL_DOMAIN_LOCAL_JOB_COVERAGE_PATH,
-};
 use super::bam_adapter_output_contract::{
     render_bam_adapter_output_contract, BamAdapterOutputContractReport,
     DEFAULT_BAM_ADAPTER_OUTPUT_CONTRACT_PATH,
@@ -130,10 +126,6 @@ fn build_bam_active_row_consistency_report(
         repo_root,
         PathBuf::from(DEFAULT_BAM_PARSER_FIXTURE_COVERAGE_PATH),
     )?;
-    let local_jobs = render_all_domain_local_job_coverage(
-        repo_root,
-        PathBuf::from(DEFAULT_ALL_DOMAIN_LOCAL_JOB_COVERAGE_PATH),
-    )?;
     let report_map = render_bam_report_map(repo_root, PathBuf::from(DEFAULT_BAM_REPORT_MAP_PATH))?;
 
     let active_rows =
@@ -207,14 +199,13 @@ fn build_bam_active_row_consistency_report(
         ),
         build_surface_check(
             "bam_local_jobs",
-            &local_jobs.output_path,
-            local_jobs.rows.iter().filter(|row| row.domain == BAM_DOMAIN).count(),
-            count_bam_stage_ids_from_local_jobs(&local_jobs),
-            count_bam_tool_ids_from_local_jobs(&local_jobs),
-            local_jobs
+            &rendered_commands.argv_output_path,
+            rendered_commands.row_count,
+            rendered_commands.stage_count,
+            rendered_commands.tool_count,
+            rendered_commands
                 .rows
                 .iter()
-                .filter(|row| row.domain == BAM_DOMAIN)
                 .map(|row| binding_key(&row.stage_id, &row.tool_id))
                 .collect::<BTreeSet<_>>(),
             &active_bindings,
@@ -337,26 +328,6 @@ fn count_bam_stage_ids_from_expected_results(report: &ExpectedBenchmarkResultsRe
 }
 
 fn count_bam_tool_ids_from_expected_results(report: &ExpectedBenchmarkResultsReport) -> usize {
-    report
-        .rows
-        .iter()
-        .filter(|row| row.domain == BAM_DOMAIN)
-        .map(|row| row.tool_id.as_str())
-        .collect::<BTreeSet<_>>()
-        .len()
-}
-
-fn count_bam_stage_ids_from_local_jobs(report: &AllDomainLocalJobCoverageReport) -> usize {
-    report
-        .rows
-        .iter()
-        .filter(|row| row.domain == BAM_DOMAIN)
-        .map(|row| row.stage_id.as_str())
-        .collect::<BTreeSet<_>>()
-        .len()
-}
-
-fn count_bam_tool_ids_from_local_jobs(report: &AllDomainLocalJobCoverageReport) -> usize {
     report
         .rows
         .iter()

@@ -60,7 +60,7 @@
     },
     {
       "surface_id": "bam_local_jobs",
-      "output_path": "benchmarks/readiness/all-domains/local-job-coverage.tsv",
+      "output_path": "benchmarks/readiness/bam/bam-rendered-commands.argv.jsonl",
       "row_count": 49,
       "stage_count": 24,
       "tool_count": 25,
