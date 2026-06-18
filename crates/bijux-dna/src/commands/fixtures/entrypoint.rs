@@ -13,6 +13,9 @@ use crate::commands::fixtures::expected::amplicon::{
 use crate::commands::fixtures::expected::bam_alignment::{
     validate_bam_alignment_truth_manifest_path, BAM_ALIGNMENT_TRUTH_FIXTURE_ID,
 };
+use crate::commands::fixtures::expected::bam_duplicate_insert::{
+    validate_bam_duplicate_insert_truth_manifest_path, BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID,
+};
 use crate::commands::fixtures::expected::fastq_duplicates::{
     validate_fastq_duplicates_truth_manifest_path, FASTQ_DUPLICATES_TRUTH_FIXTURE_ID,
 };
@@ -157,6 +160,19 @@ pub(crate) fn validate_fixture(cwd: &Path, args: &cli::FixturesValidateArgs) -> 
             }
             Ok(())
         }
+        BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID => {
+            let manifest_path = benchmark_science_manifest_path(
+                &fixture_root,
+                BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID,
+            );
+            let report = validate_bam_duplicate_insert_truth_manifest_path(cwd, &manifest_path)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.manifest_path);
+            }
+            Ok(())
+        }
         _ => Err(anyhow!("unsupported governed fixture corpus `{corpus}`")),
     }
 }
@@ -236,6 +252,21 @@ pub(crate) fn validate_expected_fixture(
             let report = validate_bam_alignment_truth_manifest_path(
                 cwd,
                 &benchmark_science_manifest_path(&fixture_root, BAM_ALIGNMENT_TRUTH_FIXTURE_ID),
+            )?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.expected_path);
+            }
+            Ok(())
+        }
+        BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID => {
+            let report = validate_bam_duplicate_insert_truth_manifest_path(
+                cwd,
+                &benchmark_science_manifest_path(
+                    &fixture_root,
+                    BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID,
+                ),
             )?;
             if args.json {
                 cli::render::json::print_pretty(&report)?;
