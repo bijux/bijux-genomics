@@ -31,6 +31,8 @@ pub const BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION: &str =
 pub const BAM_GC_BIAS_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.gc_bias_truth.v1";
 pub const BAM_COVERAGE_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_truth.v1";
 pub const BAM_ADNA_DAMAGE_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.adna_damage_truth.v1";
+pub const BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION: &str =
+    "bijux.bam.adna_contamination_truth.v1";
 pub const BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.length_filter.v1";
 pub const BAM_MARKDUP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.markdup.v1";
 pub const BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.duplication_metrics.v1";
@@ -305,6 +307,30 @@ pub struct BamAdnaDamageTruthSummaryV1 {
     pub insufficiency_reason: Option<String>,
     pub insufficiency_policy: String,
     pub advisory_only: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAdnaContaminationTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool: String,
+    pub scope: String,
+    pub prerequisites_passed: bool,
+    pub status: String,
+    pub confidence_interval_status: String,
+    #[serde(default)]
+    pub estimate: Option<f64>,
+    #[serde(default)]
+    pub ci_low: Option<f64>,
+    #[serde(default)]
+    pub ci_high: Option<f64>,
+    #[serde(default)]
+    pub insufficiency_reason: Option<String>,
+    pub insufficiency_policy: String,
+    pub advisory_only: bool,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -3660,6 +3686,51 @@ pub fn summarize_tiny_bam_adna_damage_truth(
     })
 }
 
+/// Build a path-free aDNA contamination truth summary from governed contamination evidence.
+///
+/// # Errors
+/// Returns an error if the requested contamination tool is unsupported.
+pub fn summarize_bam_adna_contamination_truth(
+    tool: &str,
+    metrics: &crate::metrics::BamMetricsV1,
+    minimum_mean_coverage: f64,
+    has_mito_reference: bool,
+    has_damage_context: bool,
+    has_reference_panel: bool,
+    panel_build_compatible: bool,
+    sex_context_available: bool,
+) -> Result<BamAdnaContaminationTruthSummaryV1> {
+    let evidence = match tool {
+        "schmutzi" => execute_mitochondrial_contamination_workflow(
+            metrics,
+            has_mito_reference,
+            has_damage_context,
+            minimum_mean_coverage,
+        ),
+        "verifybamid2" => execute_nuclear_contamination_workflow(
+            metrics,
+            has_reference_panel,
+            panel_build_compatible,
+            sex_context_available,
+            minimum_mean_coverage,
+        ),
+        "contammix" => {
+            let mut evidence = execute_nuclear_contamination_workflow(
+                metrics,
+                has_reference_panel,
+                panel_build_compatible,
+                sex_context_available,
+                minimum_mean_coverage,
+            );
+            evidence.tool = "contammix".to_string();
+            evidence
+        }
+        _ => return Err(anyhow!("unsupported aDNA contamination truth tool `{tool}`")),
+    };
+
+    Ok(contamination_truth_from_evidence(evidence))
+}
+
 /// Build typed `bam.authenticity` advisory evidence for a tiny BAM fixture from damage metrics.
 ///
 /// # Errors
@@ -3704,8 +3775,8 @@ fn classify_damage_truth_insufficiency(evidence: &BamDamageEvidenceV1) -> Option
     }
 }
 
-fn damage_truth_insufficiency_policy() -> &'static str {
-    let stage_id = bijux_dna_core::ids::StageId::new("bam.damage");
+fn stage_truth_insufficiency_policy(stage_id: &str) -> &'static str {
+    let stage_id = bijux_dna_core::ids::StageId::new(stage_id);
     crate::comparison_contract::stage_comparable_metric_contracts_for_stage(&stage_id)
         .into_iter()
         .find_map(|metric| {
@@ -3722,6 +3793,52 @@ fn damage_truth_insufficiency_policy() -> &'static str {
             })
         })
         .unwrap_or("warn_and_exclude_stage")
+}
+
+fn damage_truth_insufficiency_policy() -> &'static str {
+    stage_truth_insufficiency_policy("bam.damage")
+}
+
+fn contamination_truth_from_evidence(
+    evidence: BamContaminationEvidenceV1,
+) -> BamAdnaContaminationTruthSummaryV1 {
+    let confidence_interval_status = match (
+        evidence.estimate.is_some(),
+        evidence.ci_low.is_some(),
+        evidence.ci_high.is_some(),
+    ) {
+        (true, true, true) => "reported",
+        (false, false, false) => "excluded",
+        _ => "partial",
+    };
+    let insufficiency_reason = (!evidence.prerequisites_passed).then(|| {
+        evidence
+            .refusal_codes
+            .first()
+            .cloned()
+            .unwrap_or_else(|| "prerequisites_failed".to_string())
+    });
+
+    BamAdnaContaminationTruthSummaryV1 {
+        schema_version: BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: evidence.stage_id,
+        tool: evidence.tool,
+        scope: evidence.scope,
+        prerequisites_passed: evidence.prerequisites_passed,
+        status: if evidence.prerequisites_passed {
+            "ok".to_string()
+        } else {
+            "insufficient".to_string()
+        },
+        confidence_interval_status: confidence_interval_status.to_string(),
+        estimate: evidence.estimate,
+        ci_low: evidence.ci_low,
+        ci_high: evidence.ci_high,
+        insufficiency_reason,
+        insufficiency_policy: stage_truth_insufficiency_policy("bam.contamination").to_string(),
+        advisory_only: evidence.advisory_boundary.advisory_only,
+        refusal_codes: evidence.refusal_codes,
+    }
 }
 
 const fn udg_model_label(udg_model: crate::params::UdgModel) -> &'static str {
@@ -7845,6 +7962,98 @@ r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFF
             Some("terminal_damage_below_comparison_threshold")
         );
         assert_eq!(summary.insufficiency_policy, "warn_and_exclude_stage");
+    }
+
+    #[test]
+    fn summarize_bam_adna_contamination_truth_reports_ready_mitochondrial_signal() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.coverage.mean = 4.0;
+        metrics.contamination.method = "schmutzi".to_string();
+        metrics.contamination.estimate = 0.02;
+        metrics.contamination.ci_low = 0.01;
+        metrics.contamination.ci_high = 0.03;
+
+        let summary = summarize_bam_adna_contamination_truth(
+            "schmutzi", &metrics, 0.5, true, true, false, false, false,
+        )
+        .expect("summarize ready mitochondrial contamination truth");
+
+        assert_eq!(summary.schema_version, BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "bam.contamination");
+        assert_eq!(summary.tool, "schmutzi");
+        assert_eq!(summary.scope, "mitochondrial");
+        assert!(summary.prerequisites_passed);
+        assert_eq!(summary.status, "ok");
+        assert_eq!(summary.confidence_interval_status, "reported");
+        assert_eq!(summary.estimate, Some(0.02));
+        assert_eq!(summary.ci_low, Some(0.01));
+        assert_eq!(summary.ci_high, Some(0.03));
+        assert_eq!(summary.insufficiency_reason, None);
+        assert_eq!(summary.insufficiency_policy, "warn_and_exclude_stage");
+        assert!(summary.advisory_only);
+        assert!(summary.refusal_codes.is_empty());
+    }
+
+    #[test]
+    fn summarize_bam_adna_contamination_truth_marks_missing_sex_context_as_insufficient() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.coverage.mean = 4.0;
+        metrics.contamination.method = "verifybamid2".to_string();
+        metrics.contamination.estimate = 0.08;
+        metrics.contamination.ci_low = 0.05;
+        metrics.contamination.ci_high = 0.12;
+
+        let summary = summarize_bam_adna_contamination_truth(
+            "verifybamid2",
+            &metrics,
+            0.5,
+            false,
+            false,
+            true,
+            true,
+            false,
+        )
+        .expect("summarize insufficient nuclear contamination truth");
+
+        assert_eq!(summary.tool, "verifybamid2");
+        assert_eq!(summary.scope, "nuclear");
+        assert!(!summary.prerequisites_passed);
+        assert_eq!(summary.status, "insufficient");
+        assert_eq!(summary.confidence_interval_status, "excluded");
+        assert_eq!(summary.estimate, None);
+        assert_eq!(summary.ci_low, None);
+        assert_eq!(summary.ci_high, None);
+        assert_eq!(summary.insufficiency_reason.as_deref(), Some("sex_context_required"));
+        assert_eq!(summary.insufficiency_policy, "warn_and_exclude_stage");
+        assert!(summary.refusal_codes.contains(&"sex_context_required".to_string()));
+    }
+
+    #[test]
+    fn summarize_bam_adna_contamination_truth_preserves_contammix_tool_identity() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.coverage.mean = 5.0;
+        metrics.contamination.method = "contammix".to_string();
+        metrics.contamination.estimate = 0.02;
+        metrics.contamination.ci_low = 0.01;
+        metrics.contamination.ci_high = 0.03;
+
+        let summary = summarize_bam_adna_contamination_truth(
+            "contammix",
+            &metrics,
+            0.5,
+            false,
+            false,
+            true,
+            true,
+            true,
+        )
+        .expect("summarize contammix contamination truth");
+
+        assert_eq!(summary.tool, "contammix");
+        assert_eq!(summary.scope, "nuclear");
+        assert_eq!(summary.status, "ok");
+        assert_eq!(summary.confidence_interval_status, "reported");
+        assert_eq!(summary.estimate, Some(0.02));
     }
 
     #[test]
