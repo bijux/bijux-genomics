@@ -4,8 +4,8 @@
   "root_path": "benchmarks/tests/fixtures",
   "required_subroot_count": 4,
   "parser_domain_count": 3,
-  "checked_fixture_count": 32,
-  "valid_fixture_count": 32,
+  "checked_fixture_count": 34,
+  "valid_fixture_count": 34,
   "invalid_fixture_count": 0,
   "ok": true,
   "rows": [
@@ -98,6 +98,15 @@
       "schema_version": "bijux.bench.taxonomy_database_fixture.v2",
       "valid": true,
       "detail": "valid"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "adna-damage-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/adna-damage-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/adna-damage-truth/expected.json",
+      "schema_version": "bijux.bench.adna_damage_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=2,validated_insufficient_cases=1"
     },
     {
       "fixture_kind": "expected_truth",
@@ -233,6 +242,15 @@
       "schema_version": null,
       "valid": true,
       "detail": "present"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "adna-damage-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/adna-damage-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.adna_damage_truth.v1",
+      "valid": true,
+      "detail": "valid"
     },
     {
       "fixture_kind": "science_fixture",
