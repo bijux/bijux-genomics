@@ -3,7 +3,7 @@ use std::fmt::Write as _;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
 use bijux_dna_core::prelude::ArtifactId;
 use noodles_bam as bam;
@@ -63,6 +63,7 @@ pub const BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION: &str = "bijux.bam.endogenous_co
 pub const BAM_ENDOGENOUS_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.endogenous_truth.v1";
 pub const BAM_SEX_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.sex_summary.v1";
 pub const BAM_SEX_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.sex_evidence.v1";
+pub const BAM_HAPLOGROUP_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.haplogroup_truth.v1";
 pub const BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION: &str = "bijux.bam.haplogroup_readiness.v1";
 pub const BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION: &str = "bijux.bam.kinship_prerequisites.v1";
 pub const BAM_KINSHIP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.kinship_summary.v1";
@@ -1101,6 +1102,34 @@ pub struct BamHaplogroupReadinessV1 {
     pub refusal_codes: Vec<String>,
     #[serde(default)]
     pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamHaplogroupTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    pub input_bam: PathBuf,
+    pub reference_panel: PathBuf,
+    pub reference_panel_id: String,
+    pub reference_build: String,
+    pub population_scope: String,
+    pub minimum_coverage: f64,
+    pub observed_mean_coverage: f64,
+    pub ready: bool,
+    #[serde(default)]
+    pub haplogroup_call: Option<String>,
+    pub confidence: f64,
+    pub status: String,
+    pub markers_total: u64,
+    pub markers_supported: u64,
+    #[serde(default)]
+    pub supported_marker_ids: Vec<String>,
+    #[serde(default)]
+    pub lineage_scope: Option<String>,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -4981,6 +5010,150 @@ pub fn summarize_tiny_bam_sex(
     })
 }
 
+#[derive(Debug, Clone)]
+struct TinyHaplogroupMarker {
+    marker_id: String,
+    contig: String,
+    position: u64,
+    haplogroup: String,
+    lineage_scope: String,
+}
+
+/// Summarize tiny BAM/SAM haplogroup support against a governed marker panel.
+///
+/// # Errors
+/// Returns an error if the tiny fixture or haplogroup panel cannot be parsed.
+pub fn summarize_tiny_bam_haplogroup_truth(
+    input_bam: &Path,
+    method: &str,
+    reference_panel: &Path,
+    reference_panel_id: &str,
+    reference_build: &str,
+    population_scope: &str,
+    minimum_coverage: f64,
+) -> Result<BamHaplogroupTruthSummaryV1> {
+    let observed_mean_coverage =
+        summarize_tiny_bam_coverage(input_bam, &[1])?.mean_depth.unwrap_or(0.0);
+    let markers = load_tiny_haplogroup_panel(reference_panel)?;
+    let supported_markers = covered_tiny_haplogroup_markers(input_bam, &markers)?;
+    let markers_total = markers.len() as u64;
+    let markers_supported = supported_markers.len() as u64;
+    let confidence =
+        if markers_total > 0 { markers_supported as f64 / markers_total as f64 } else { 0.0 };
+    let selected_marker = select_supported_haplogroup_marker(&supported_markers);
+    let mut refusal_codes = Vec::new();
+    let (ready, haplogroup_call, status) = if observed_mean_coverage < minimum_coverage {
+        refusal_codes.push("coverage_below_haplogroup_minimum".to_string());
+        (false, None, "coverage_gate_not_met".to_string())
+    } else if supported_markers.is_empty() {
+        refusal_codes.push("no_supported_markers".to_string());
+        (false, None, "no_supported_markers".to_string())
+    } else if markers_supported < markers_total {
+        refusal_codes.push("marker_support_incomplete".to_string());
+        (
+            false,
+            selected_marker.as_ref().map(|marker| marker.haplogroup.clone()),
+            "uncertain_marker_support".to_string(),
+        )
+    } else {
+        (
+            true,
+            selected_marker.as_ref().map(|marker| marker.haplogroup.clone()),
+            "ready".to_string(),
+        )
+    };
+
+    Ok(BamHaplogroupTruthSummaryV1 {
+        schema_version: BAM_HAPLOGROUP_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.haplogroups".to_string(),
+        method: method.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_panel: reference_panel.to_path_buf(),
+        reference_panel_id: reference_panel_id.to_string(),
+        reference_build: reference_build.to_string(),
+        population_scope: population_scope.to_string(),
+        minimum_coverage,
+        observed_mean_coverage,
+        ready,
+        haplogroup_call,
+        confidence: if ready || status == "uncertain_marker_support" { confidence } else { 0.0 },
+        status,
+        markers_total,
+        markers_supported,
+        supported_marker_ids: supported_markers
+            .iter()
+            .map(|marker| marker.marker_id.clone())
+            .collect(),
+        lineage_scope: selected_marker.map(|marker| marker.lineage_scope.clone()),
+        refusal_codes,
+    })
+}
+
+fn load_tiny_haplogroup_panel(reference_panel: &Path) -> Result<Vec<TinyHaplogroupMarker>> {
+    let raw = std::fs::read_to_string(reference_panel)
+        .with_context(|| format!("read {}", reference_panel.display()))?;
+    let mut markers = Vec::new();
+    for line in raw.lines() {
+        if line.is_empty() || line.starts_with('#') || line.starts_with("marker_id\t") {
+            continue;
+        }
+        let fields = line.split('\t').collect::<Vec<_>>();
+        if fields.len() < 7 {
+            return Err(anyhow!("haplogroup panel row must have 7 tab-delimited fields: `{line}`"));
+        }
+        markers.push(TinyHaplogroupMarker {
+            marker_id: fields[0].to_string(),
+            contig: fields[1].to_string(),
+            position: fields[2]
+                .parse::<u64>()
+                .with_context(|| format!("parse haplogroup panel position `{}`", fields[2]))?,
+            haplogroup: fields[5].to_string(),
+            lineage_scope: fields[6].to_string(),
+        });
+    }
+    if markers.is_empty() {
+        return Err(anyhow!(
+            "haplogroup panel `{}` must carry at least one marker row",
+            reference_panel.display()
+        ));
+    }
+    Ok(markers)
+}
+
+fn covered_tiny_haplogroup_markers(
+    input_bam: &Path,
+    markers: &[TinyHaplogroupMarker],
+) -> Result<Vec<TinyHaplogroupMarker>> {
+    let raw = std::fs::read_to_string(input_bam)
+        .with_context(|| format!("read {}", input_bam.display()))?;
+    let mut supported = Vec::new();
+    for marker in markers {
+        let covered = raw.lines().filter(|line| !line.starts_with('@')).any(|line| {
+            let fields = line.split('\t').collect::<Vec<_>>();
+            if fields.len() < 11 || fields[2] != marker.contig {
+                return false;
+            }
+            let start = match fields[3].parse::<u64>() {
+                Ok(value) => value,
+                Err(_) => return false,
+            };
+            let read_len = fields[9].len() as u64;
+            let end = start.saturating_add(read_len.saturating_sub(1));
+            marker.position >= start && marker.position <= end
+        });
+        if covered {
+            supported.push(marker.clone());
+        }
+    }
+    Ok(supported)
+}
+
+fn select_supported_haplogroup_marker(
+    supported_markers: &[TinyHaplogroupMarker],
+) -> Option<&TinyHaplogroupMarker> {
+    supported_markers.iter().max_by_key(|marker| (marker.haplogroup.len(), marker.position))
+}
+
 /// Summarize pairwise kinship signals from a tiny SAM/BAM fixture with governed panel context.
 ///
 /// # Errors
@@ -7960,6 +8133,101 @@ y1\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n",
         assert!((summary.confidence - 0.0).abs() <= 1e-9);
         assert_eq!(summary.status, "insufficient_chromosomes");
         assert_eq!(summary.insufficiency_reason.as_deref(), Some("insufficient_chromosomes"));
+    }
+
+    #[test]
+    fn summarize_tiny_bam_haplogroup_truth_reports_ready_uncertain_and_coverage_gate_cases() {
+        let temp = unique_temp_dir("bam-haplogroup-truth");
+        let ready_input = temp.join("ready.sam");
+        let uncertain_input = temp.join("uncertain.sam");
+        let panel = temp.join("panel.tsv");
+        std::fs::write(
+            &ready_input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chrY\tLN:20\n\
+@RG\tID:rg1\tSM:sampleA\n\
+yhap1\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n\
+yhap2\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n\
+yhap3\t0\tchrY\t11\t60\t10M\t*\t0\t0\tCCGGTTCCGG\tFFFFFFFFFF\tRG:Z:rg1\n\
+yhap4\t0\tchrY\t11\t60\t10M\t*\t0\t0\tCCGGTTCCGG\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write ready haplogroup fixture");
+        std::fs::write(
+            &uncertain_input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chrY\tLN:20\n\
+@RG\tID:rg1\tSM:sampleA\n\
+yhap1\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n\
+yhap2\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write uncertain haplogroup fixture");
+        std::fs::write(
+            &panel,
+            "# panel\nmarker_id\tcontig\tposition\tref\talt\thaplogroup\tlineage_scope\n\
+adna-y-snp1\tchrY\t4\tG\tA\tR1b\tscreening\n\
+adna-y-snp2\tchrY\t15\tC\tT\tR1b1a\tscreening\n",
+        )
+        .expect("write haplogroup panel");
+
+        let ready = summarize_tiny_bam_haplogroup_truth(
+            &ready_input,
+            "yleaf",
+            &panel,
+            "adna-y-hg38-mini",
+            "hg38",
+            "adna_y_haplogroup_panel",
+            2.0,
+        )
+        .expect("summarize ready haplogroup truth");
+        assert_eq!(ready.stage_id, "bam.haplogroups");
+        assert_eq!(ready.method, "yleaf");
+        assert_eq!(ready.reference_panel_id, "adna-y-hg38-mini");
+        assert!((ready.observed_mean_coverage - 2.0).abs() <= 1e-9);
+        assert!(ready.ready);
+        assert_eq!(ready.haplogroup_call.as_deref(), Some("R1b1a"));
+        assert!((ready.confidence - 1.0).abs() <= 1e-9);
+        assert_eq!(ready.status, "ready");
+        assert_eq!(ready.markers_total, 2);
+        assert_eq!(ready.markers_supported, 2);
+        assert_eq!(ready.supported_marker_ids, vec!["adna-y-snp1", "adna-y-snp2"]);
+        assert_eq!(ready.lineage_scope.as_deref(), Some("screening"));
+        assert!(ready.refusal_codes.is_empty());
+
+        let uncertain = summarize_tiny_bam_haplogroup_truth(
+            &uncertain_input,
+            "yleaf",
+            &panel,
+            "adna-y-hg38-mini",
+            "hg38",
+            "adna_y_haplogroup_panel",
+            1.0,
+        )
+        .expect("summarize uncertain haplogroup truth");
+        assert!((uncertain.observed_mean_coverage - 1.0).abs() <= 1e-9);
+        assert!(!uncertain.ready);
+        assert_eq!(uncertain.haplogroup_call.as_deref(), Some("R1b"));
+        assert!((uncertain.confidence - 0.5).abs() <= 1e-9);
+        assert_eq!(uncertain.status, "uncertain_marker_support");
+        assert_eq!(uncertain.markers_total, 2);
+        assert_eq!(uncertain.markers_supported, 1);
+        assert_eq!(uncertain.supported_marker_ids, vec!["adna-y-snp1"]);
+        assert_eq!(uncertain.refusal_codes, vec!["marker_support_incomplete"]);
+
+        let insufficient = summarize_tiny_bam_haplogroup_truth(
+            &ready_input,
+            "yleaf",
+            &panel,
+            "adna-y-hg38-mini",
+            "hg38",
+            "adna_y_haplogroup_panel",
+            2.5,
+        )
+        .expect("summarize insufficient haplogroup truth");
+        assert!(!insufficient.ready);
+        assert_eq!(insufficient.haplogroup_call, None);
+        assert!((insufficient.confidence - 0.0).abs() <= 1e-9);
+        assert_eq!(insufficient.status, "coverage_gate_not_met");
+        assert_eq!(insufficient.refusal_codes, vec!["coverage_below_haplogroup_minimum"]);
     }
 
     #[test]
