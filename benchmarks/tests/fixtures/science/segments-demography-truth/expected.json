@@ -1,0 +1,608 @@
+{
+  "schema_version": "bijux.bench.segments_demography_truth.expected.v1",
+  "fixture_id": "segments-demography-truth",
+  "cases": [
+    {
+      "case_id": "plink2_roh_output",
+      "roh_metrics": {
+        "schema_version": "bijux.vcf.roh.v1",
+        "stage_id": "vcf.roh",
+        "tool_id": "plink2",
+        "status": "complete",
+        "sample_count": 4,
+        "segment_count": 8,
+        "total_length": 8,
+        "segments": [
+          {
+            "sample_id": "sample_a",
+            "contig": "chr1",
+            "start": 3,
+            "end": 3,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_a",
+            "contig": "chr1",
+            "start": 8,
+            "end": 8,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_b",
+            "contig": "chr1",
+            "start": 3,
+            "end": 3,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_b",
+            "contig": "chr1",
+            "start": 8,
+            "end": 8,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_c",
+            "contig": "chr1",
+            "start": 3,
+            "end": 3,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_c",
+            "contig": "chr1",
+            "start": 8,
+            "end": 8,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_d",
+            "contig": "chr1",
+            "start": 3,
+            "end": 3,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_d",
+            "contig": "chr1",
+            "start": 8,
+            "end": 8,
+            "length": 1,
+            "variant_count": 1
+          }
+        ],
+        "per_sample_summary": [
+          {
+            "sample_id": "sample_a",
+            "segment_count": 2,
+            "total_length": 2,
+            "mean_length": 1.0
+          },
+          {
+            "sample_id": "sample_b",
+            "segment_count": 2,
+            "total_length": 2,
+            "mean_length": 1.0
+          },
+          {
+            "sample_id": "sample_c",
+            "segment_count": 2,
+            "total_length": 2,
+            "mean_length": 1.0
+          },
+          {
+            "sample_id": "sample_d",
+            "segment_count": 2,
+            "total_length": 2,
+            "mean_length": 1.0
+          }
+        ]
+      },
+      "roh_output_truth": {
+        "schema_version": "bijux.vcf.roh_output_truth.v1",
+        "stage_id": "vcf.roh",
+        "tool_id": "plink2",
+        "status": "complete",
+        "sample_count": 4,
+        "segment_count": 8,
+        "total_length": 8,
+        "sample_ids": [
+          "sample_a",
+          "sample_b",
+          "sample_c",
+          "sample_d"
+        ],
+        "segments": [
+          {
+            "sample_id": "sample_a",
+            "contig": "chr1",
+            "start": 3,
+            "end": 3,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_a",
+            "contig": "chr1",
+            "start": 8,
+            "end": 8,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_b",
+            "contig": "chr1",
+            "start": 3,
+            "end": 3,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_b",
+            "contig": "chr1",
+            "start": 8,
+            "end": 8,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_c",
+            "contig": "chr1",
+            "start": 3,
+            "end": 3,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_c",
+            "contig": "chr1",
+            "start": 8,
+            "end": 8,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_d",
+            "contig": "chr1",
+            "start": 3,
+            "end": 3,
+            "length": 1,
+            "variant_count": 1
+          },
+          {
+            "sample_id": "sample_d",
+            "contig": "chr1",
+            "start": 8,
+            "end": 8,
+            "length": 1,
+            "variant_count": 1
+          }
+        ],
+        "per_sample_summary": [
+          {
+            "sample_id": "sample_a",
+            "segment_count": 2,
+            "total_length": 2,
+            "mean_length": 1.0
+          },
+          {
+            "sample_id": "sample_b",
+            "segment_count": 2,
+            "total_length": 2,
+            "mean_length": 1.0
+          },
+          {
+            "sample_id": "sample_c",
+            "segment_count": 2,
+            "total_length": 2,
+            "mean_length": 1.0
+          },
+          {
+            "sample_id": "sample_d",
+            "segment_count": 2,
+            "total_length": 2,
+            "mean_length": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "germline_ibd_complete",
+      "ibd_metrics": {
+        "schema_version": "bijux.vcf.ibd.v1",
+        "stage_id": "vcf.ibd",
+        "tool_id": "germline",
+        "status": "complete",
+        "insufficient_reason": null,
+        "pair_count": 1,
+        "rows": [
+          {
+            "sample_a": "sample_a",
+            "sample_b": "sample_b",
+            "segment_count": 2,
+            "total_length": 9.5,
+            "overlap_marker_count": 41,
+            "status": "complete"
+          }
+        ],
+        "insufficient_overlap_probe": {
+          "status": "not_run",
+          "insufficient_reason": null,
+          "filtered_segment_count": 0
+        }
+      },
+      "ibd_output_truth": {
+        "schema_version": "bijux.vcf.ibd_output_truth.v1",
+        "stage_id": "vcf.ibd",
+        "tool_id": "germline",
+        "status": "complete",
+        "pair_count": 1,
+        "retained_segment_count": 2,
+        "total_length": 9.5,
+        "overlap_marker_total": 41,
+        "sample_ids": [
+          "sample_a",
+          "sample_b"
+        ],
+        "rows": [
+          {
+            "sample_a": "sample_a",
+            "sample_b": "sample_b",
+            "segment_count": 2,
+            "total_length": 9.5,
+            "overlap_marker_count": 41,
+            "status": "complete"
+          }
+        ],
+        "insufficient_overlap_probe": {
+          "status": "not_run",
+          "insufficient_reason": null,
+          "filtered_segment_count": 0
+        }
+      }
+    },
+    {
+      "case_id": "germline_ibd_insufficient_overlap",
+      "ibd_metrics": {
+        "schema_version": "bijux.vcf.ibd.v1",
+        "stage_id": "vcf.ibd",
+        "tool_id": "germline",
+        "status": "insufficient_marker_overlap",
+        "insufficient_reason": "no_pairs_met_min_marker_or_length_threshold",
+        "pair_count": 0,
+        "rows": [],
+        "insufficient_overlap_probe": {
+          "status": "insufficient_marker_overlap",
+          "insufficient_reason": "no_pairs_met_min_marker_or_length_threshold",
+          "filtered_segment_count": 0
+        }
+      },
+      "ibd_output_truth": {
+        "schema_version": "bijux.vcf.ibd_output_truth.v1",
+        "stage_id": "vcf.ibd",
+        "tool_id": "germline",
+        "status": "insufficient_marker_overlap",
+        "insufficient_reason": "no_pairs_met_min_marker_or_length_threshold",
+        "pair_count": 0,
+        "retained_segment_count": 0,
+        "total_length": 0.0,
+        "overlap_marker_total": 0,
+        "sample_ids": [],
+        "rows": [],
+        "insufficient_overlap_probe": {
+          "status": "insufficient_marker_overlap",
+          "insufficient_reason": "no_pairs_met_min_marker_or_length_threshold",
+          "filtered_segment_count": 0
+        }
+      }
+    },
+    {
+      "case_id": "ibdseq_ibd_complete",
+      "ibd_metrics": {
+        "schema_version": "bijux.vcf.ibd.v1",
+        "stage_id": "vcf.ibd",
+        "tool_id": "ibdseq",
+        "status": "complete",
+        "insufficient_reason": null,
+        "pair_count": 1,
+        "rows": [
+          {
+            "sample_a": "sample_c",
+            "sample_b": "sample_d",
+            "segment_count": 1,
+            "total_length": 7.125,
+            "overlap_marker_count": 31,
+            "status": "complete"
+          }
+        ],
+        "insufficient_overlap_probe": {
+          "status": "not_run",
+          "insufficient_reason": null,
+          "filtered_segment_count": 0
+        }
+      },
+      "ibd_output_truth": {
+        "schema_version": "bijux.vcf.ibd_output_truth.v1",
+        "stage_id": "vcf.ibd",
+        "tool_id": "ibdseq",
+        "status": "complete",
+        "pair_count": 1,
+        "retained_segment_count": 1,
+        "total_length": 7.125,
+        "overlap_marker_total": 31,
+        "sample_ids": [
+          "sample_c",
+          "sample_d"
+        ],
+        "rows": [
+          {
+            "sample_a": "sample_c",
+            "sample_b": "sample_d",
+            "segment_count": 1,
+            "total_length": 7.125,
+            "overlap_marker_count": 31,
+            "status": "complete"
+          }
+        ],
+        "insufficient_overlap_probe": {
+          "status": "not_run",
+          "insufficient_reason": null,
+          "filtered_segment_count": 0
+        }
+      }
+    },
+    {
+      "case_id": "ibdseq_ibd_insufficient_overlap",
+      "ibd_metrics": {
+        "schema_version": "bijux.vcf.ibd.v1",
+        "stage_id": "vcf.ibd",
+        "tool_id": "ibdseq",
+        "status": "insufficient_marker_overlap",
+        "insufficient_reason": "no_pairs_met_min_marker_or_length_threshold",
+        "pair_count": 0,
+        "rows": [],
+        "insufficient_overlap_probe": {
+          "status": "insufficient_marker_overlap",
+          "insufficient_reason": "no_pairs_met_min_marker_or_length_threshold",
+          "filtered_segment_count": 0
+        }
+      },
+      "ibd_output_truth": {
+        "schema_version": "bijux.vcf.ibd_output_truth.v1",
+        "stage_id": "vcf.ibd",
+        "tool_id": "ibdseq",
+        "status": "insufficient_marker_overlap",
+        "insufficient_reason": "no_pairs_met_min_marker_or_length_threshold",
+        "pair_count": 0,
+        "retained_segment_count": 0,
+        "total_length": 0.0,
+        "overlap_marker_total": 0,
+        "sample_ids": [],
+        "rows": [],
+        "insufficient_overlap_probe": {
+          "status": "insufficient_marker_overlap",
+          "insufficient_reason": "no_pairs_met_min_marker_or_length_threshold",
+          "filtered_segment_count": 0
+        }
+      }
+    },
+    {
+      "case_id": "ibdhap_ibd_complete",
+      "ibd_metrics": {
+        "schema_version": "bijux.vcf.ibd.v1",
+        "stage_id": "vcf.ibd",
+        "tool_id": "ibdhap",
+        "status": "complete",
+        "insufficient_reason": null,
+        "pair_count": 1,
+        "rows": [
+          {
+            "sample_a": "sample_a",
+            "sample_b": "sample_c",
+            "segment_count": 2,
+            "total_length": 11.5,
+            "overlap_marker_count": 51,
+            "status": "complete"
+          }
+        ],
+        "insufficient_overlap_probe": {
+          "status": "not_run",
+          "insufficient_reason": null,
+          "filtered_segment_count": 0
+        }
+      },
+      "ibd_output_truth": {
+        "schema_version": "bijux.vcf.ibd_output_truth.v1",
+        "stage_id": "vcf.ibd",
+        "tool_id": "ibdhap",
+        "status": "complete",
+        "pair_count": 1,
+        "retained_segment_count": 2,
+        "total_length": 11.5,
+        "overlap_marker_total": 51,
+        "sample_ids": [
+          "sample_a",
+          "sample_c"
+        ],
+        "rows": [
+          {
+            "sample_a": "sample_a",
+            "sample_b": "sample_c",
+            "segment_count": 2,
+            "total_length": 11.5,
+            "overlap_marker_count": 51,
+            "status": "complete"
+          }
+        ],
+        "insufficient_overlap_probe": {
+          "status": "not_run",
+          "insufficient_reason": null,
+          "filtered_segment_count": 0
+        }
+      }
+    },
+    {
+      "case_id": "ibdhap_ibd_insufficient_overlap",
+      "ibd_metrics": {
+        "schema_version": "bijux.vcf.ibd.v1",
+        "stage_id": "vcf.ibd",
+        "tool_id": "ibdhap",
+        "status": "insufficient_marker_overlap",
+        "insufficient_reason": "no_pairs_met_min_marker_or_length_threshold",
+        "pair_count": 0,
+        "rows": [],
+        "insufficient_overlap_probe": {
+          "status": "insufficient_marker_overlap",
+          "insufficient_reason": "no_pairs_met_min_marker_or_length_threshold",
+          "filtered_segment_count": 0
+        }
+      },
+      "ibd_output_truth": {
+        "schema_version": "bijux.vcf.ibd_output_truth.v1",
+        "stage_id": "vcf.ibd",
+        "tool_id": "ibdhap",
+        "status": "insufficient_marker_overlap",
+        "insufficient_reason": "no_pairs_met_min_marker_or_length_threshold",
+        "pair_count": 0,
+        "retained_segment_count": 0,
+        "total_length": 0.0,
+        "overlap_marker_total": 0,
+        "sample_ids": [],
+        "rows": [],
+        "insufficient_overlap_probe": {
+          "status": "insufficient_marker_overlap",
+          "insufficient_reason": "no_pairs_met_min_marker_or_length_threshold",
+          "filtered_segment_count": 0
+        }
+      }
+    },
+    {
+      "case_id": "ibdne_demography_complete",
+      "demography_metrics": {
+        "schema_version": "bijux.vcf.demography.v1",
+        "stage_id": "vcf.demography",
+        "tool_id": "ibdne",
+        "method": "ibdne",
+        "inference_status": "fallback_estimate",
+        "status": "complete",
+        "insufficient_reason": null,
+        "time_bins": [
+          5,
+          10,
+          20
+        ],
+        "ne_estimates": [
+          {
+            "generation": 5,
+            "ne": 12000.0,
+            "ci_low": 11000.0,
+            "ci_high": 13000.0
+          },
+          {
+            "generation": 10,
+            "ne": 14500.0,
+            "ci_low": 13250.0,
+            "ci_high": 15750.0
+          },
+          {
+            "generation": 20,
+            "ne": 18000.0,
+            "ci_low": 16500.0,
+            "ci_high": 19500.0
+          }
+        ],
+        "insufficient_data_probe": {
+          "status": "not_run",
+          "insufficient_reason": null,
+          "time_bins": [],
+          "ne_estimates": []
+        }
+      },
+      "demography_output_truth": {
+        "schema_version": "bijux.vcf.demography_output_truth.v1",
+        "stage_id": "vcf.demography",
+        "tool_id": "ibdne",
+        "method": "ibdne",
+        "inference_status": "fallback_estimate",
+        "status": "complete",
+        "estimate_count": 3,
+        "time_bins": [
+          5,
+          10,
+          20
+        ],
+        "ne_estimates": [
+          {
+            "generation": 5,
+            "ne": 12000.0,
+            "ci_low": 11000.0,
+            "ci_high": 13000.0
+          },
+          {
+            "generation": 10,
+            "ne": 14500.0,
+            "ci_low": 13250.0,
+            "ci_high": 15750.0
+          },
+          {
+            "generation": 20,
+            "ne": 18000.0,
+            "ci_low": 16500.0,
+            "ci_high": 19500.0
+          }
+        ],
+        "insufficient_data_probe": {
+          "status": "not_run",
+          "insufficient_reason": null,
+          "time_bins": [],
+          "ne_estimates": []
+        }
+      }
+    },
+    {
+      "case_id": "ibdne_demography_insufficient_data",
+      "demography_metrics": {
+        "schema_version": "bijux.vcf.demography.v1",
+        "stage_id": "vcf.demography",
+        "tool_id": "ibdne",
+        "method": "ibdne",
+        "inference_status": "insufficient_data",
+        "status": "insufficient_data",
+        "insufficient_reason": "not_enough_ibd_segments",
+        "time_bins": [],
+        "ne_estimates": [],
+        "insufficient_data_probe": {
+          "status": "insufficient_data",
+          "insufficient_reason": "not_enough_ibd_segments",
+          "time_bins": [],
+          "ne_estimates": []
+        }
+      },
+      "demography_output_truth": {
+        "schema_version": "bijux.vcf.demography_output_truth.v1",
+        "stage_id": "vcf.demography",
+        "tool_id": "ibdne",
+        "method": "ibdne",
+        "inference_status": "insufficient_data",
+        "status": "insufficient_data",
+        "insufficient_reason": "not_enough_ibd_segments",
+        "estimate_count": 0,
+        "time_bins": [],
+        "ne_estimates": [],
+        "insufficient_data_probe": {
+          "status": "insufficient_data",
+          "insufficient_reason": "not_enough_ibd_segments",
+          "time_bins": [],
+          "ne_estimates": []
+        }
+      }
+    }
+  ]
+}
