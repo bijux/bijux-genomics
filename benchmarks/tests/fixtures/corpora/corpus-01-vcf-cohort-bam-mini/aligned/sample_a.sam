@@ -1,0 +1,5 @@
+@HD	VN:1.6	SO:coordinate
+@SQ	SN:chr1	LN:12
+@SQ	SN:chr2	LN:12
+@RG	ID:rg-sample-a	SM:sample_a
+sample_a_read_1	0	chr1	1	60	6M	*	0	0	ACGTAC	FFFFFF	RG:Z:rg-sample-a
