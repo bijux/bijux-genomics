@@ -26,6 +26,8 @@ pub const BAM_MAPPING_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapping_summary.
 pub const BAM_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.filter.v1";
 pub const BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapq_filter.v1";
 pub const BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.alignment_truth.v1";
+pub const BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION: &str =
+    "bijux.bam.duplicate_insert_truth.v1";
 pub const BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.length_filter.v1";
 pub const BAM_MARKDUP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.markdup.v1";
 pub const BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.duplication_metrics.v1";
@@ -212,6 +214,43 @@ pub struct BamAlignmentTruthSummaryV1 {
     pub mapped_mapq_classes: Vec<BamAlignmentTruthMapqClassV1>,
     pub cigar_classes: Vec<BamAlignmentTruthCigarClassV1>,
     pub records: Vec<BamAlignmentTruthRecordV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamDuplicateFamilyHistogramBinV1 {
+    pub family_size: u64,
+    pub family_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamInsertSizeHistogramBinV1 {
+    pub insert_size: u64,
+    pub pair_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamDuplicateInsertTruthSummaryV1 {
+    pub schema_version: String,
+    pub total_reads: u64,
+    pub mapped_reads: u64,
+    pub unmapped_reads: u64,
+    pub examined_reads: u64,
+    pub duplicate_reads: u64,
+    pub duplicate_pairs: u64,
+    pub duplicate_family_histogram: Vec<BamDuplicateFamilyHistogramBinV1>,
+    pub pair_count: u64,
+    pub insert_size_histogram: Vec<BamInsertSizeHistogramBinV1>,
+    #[serde(default)]
+    pub median_insert_size: Option<f64>,
+    #[serde(default)]
+    pub mean_insert_size: Option<f64>,
+    #[serde(default)]
+    pub min_insert_size: Option<u64>,
+    #[serde(default)]
+    pub max_insert_size: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -1279,6 +1318,48 @@ pub fn summarize_tiny_bam_alignment_truth(input_bam: &Path) -> Result<BamAlignme
         mapped_mapq_classes,
         cigar_classes,
         records,
+    })
+}
+
+/// Summarize duplicate burden and insert-size geometry for a tiny BAM/SAM fixture.
+///
+/// # Errors
+/// Returns an error when the alignment fixture cannot be parsed.
+pub fn summarize_tiny_bam_duplicate_insert_truth(
+    input_bam: &Path,
+) -> Result<BamDuplicateInsertTruthSummaryV1> {
+    let document = parse_tiny_alignment(input_bam)?;
+    let total_reads = document.records.len() as u64;
+    let mapped_reads = document.records.iter().filter(|record| record.is_mapped()).count() as u64;
+    let unmapped_reads = total_reads.saturating_sub(mapped_reads);
+
+    let duplicate_family_sizes = tiny_duplicate_family_sizes(&document.records);
+    let examined_reads = duplicate_family_sizes.iter().sum::<u64>();
+    let duplicate_reads =
+        duplicate_family_sizes.iter().map(|family_size| family_size.saturating_sub(1)).sum::<u64>();
+    let duplicate_family_histogram = family_size_histogram_bins(&duplicate_family_sizes);
+
+    let (pair_count, duplicate_pairs, insert_size_histogram) =
+        tiny_pair_duplicate_insert_metrics(&document.records);
+    let insert_size_metrics = tiny_insert_size_metrics(&document.records);
+    let populated_insert_metrics =
+        (insert_size_metrics.read_pairs > 0).then_some(&insert_size_metrics);
+
+    Ok(BamDuplicateInsertTruthSummaryV1 {
+        schema_version: BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        total_reads,
+        mapped_reads,
+        unmapped_reads,
+        examined_reads,
+        duplicate_reads,
+        duplicate_pairs,
+        duplicate_family_histogram,
+        pair_count,
+        insert_size_histogram,
+        median_insert_size: populated_insert_metrics.map(|metrics| metrics.median_insert_size),
+        mean_insert_size: populated_insert_metrics.map(|metrics| metrics.mean_insert_size),
+        min_insert_size: populated_insert_metrics.map(|metrics| metrics.min_insert_size),
+        max_insert_size: populated_insert_metrics.map(|metrics| metrics.max_insert_size),
     })
 }
 
@@ -3520,6 +3601,102 @@ fn build_insert_size_summary(
             .map(|metrics| metrics.pair_orientation_fr_fraction),
         insufficient_pairs_reason,
     }
+}
+
+fn tiny_duplicate_family_sizes(records: &[TinySamRecord]) -> Vec<u64> {
+    let mut observed = HashMap::<String, u64>::new();
+    for record in records.iter().filter(|record| record.is_mapped()) {
+        let key = format!("{}:{}:{}:{}", record.rname, record.pos, record.cigar, record.seq);
+        *observed.entry(key).or_insert(0) += 1;
+    }
+    observed.into_values().collect::<Vec<_>>()
+}
+
+fn family_size_histogram_bins(family_sizes: &[u64]) -> Vec<BamDuplicateFamilyHistogramBinV1> {
+    let mut histogram = HashMap::<u64, u64>::new();
+    for family_size in family_sizes {
+        *histogram.entry(*family_size).or_insert(0) += 1;
+    }
+    let mut bins = histogram
+        .into_iter()
+        .map(|(family_size, family_count)| BamDuplicateFamilyHistogramBinV1 {
+            family_size,
+            family_count,
+        })
+        .collect::<Vec<_>>();
+    bins.sort_by_key(|bin| bin.family_size);
+    bins
+}
+
+fn tiny_pair_duplicate_insert_metrics(
+    records: &[TinySamRecord],
+) -> (u64, u64, Vec<BamInsertSizeHistogramBinV1>) {
+    let mut qname_groups = HashMap::<String, Vec<&TinySamRecord>>::new();
+    for record in records.iter().filter(|record| is_mapped_proper_pair_component(record)) {
+        qname_groups.entry(record.qname.clone()).or_default().push(record);
+    }
+
+    let mut pair_family_counts = HashMap::<String, u64>::new();
+    let mut insert_size_counts = HashMap::<u64, u64>::new();
+    let mut pair_count = 0_u64;
+
+    for group in qname_groups.values() {
+        let first = group.iter().copied().find(|record| is_first_observed_pair_record(record));
+        let second = group.iter().copied().find(|record| is_second_observed_pair_record(record));
+        let Some(first) = first else {
+            continue;
+        };
+        let insert_size = u64::try_from(first.template_length).unwrap_or(0);
+        if insert_size == 0 {
+            continue;
+        }
+        pair_count += 1;
+        *insert_size_counts.entry(insert_size).or_insert(0) += 1;
+
+        let pair_key = if let Some(second) = second {
+            format!(
+                "{}:{}:{}:{}|{}:{}:{}:{}",
+                first.rname,
+                first.pos,
+                first.cigar,
+                first.seq,
+                second.rname,
+                second.pos,
+                second.cigar,
+                second.seq
+            )
+        } else {
+            format!("{}:{}:{}:{}", first.rname, first.pos, first.cigar, first.seq)
+        };
+        *pair_family_counts.entry(pair_key).or_insert(0) += 1;
+    }
+
+    let duplicate_pairs =
+        pair_family_counts.values().map(|family_size| family_size.saturating_sub(1)).sum::<u64>();
+    let mut insert_size_histogram = insert_size_counts
+        .into_iter()
+        .map(|(insert_size, pair_count)| BamInsertSizeHistogramBinV1 { insert_size, pair_count })
+        .collect::<Vec<_>>();
+    insert_size_histogram.sort_by_key(|bin| bin.insert_size);
+
+    (pair_count, duplicate_pairs, insert_size_histogram)
+}
+
+fn is_mapped_proper_pair_component(record: &TinySamRecord) -> bool {
+    (record.flag & 0x1) != 0
+        && (record.flag & 0x2) != 0
+        && (record.flag & 0x4) == 0
+        && (record.flag & 0x8) == 0
+}
+
+fn is_first_observed_pair_record(record: &TinySamRecord) -> bool {
+    is_mapped_proper_pair_component(record)
+        && (record.flag & 0x40) != 0
+        && record.template_length > 0
+}
+
+fn is_second_observed_pair_record(record: &TinySamRecord) -> bool {
+    is_mapped_proper_pair_component(record) && (record.flag & 0x80) != 0
 }
 
 fn tiny_gc_bias_rows(
@@ -6171,6 +6348,105 @@ r001\t99\tchr1\n",
                 BamAlignmentTruthCigarClassV1 { cigar: "*".to_string(), read_count: 1 },
                 BamAlignmentTruthCigarClassV1 { cigar: "6M".to_string(), read_count: 1 },
                 BamAlignmentTruthCigarClassV1 { cigar: "8M".to_string(), read_count: 3 },
+            ]
+        );
+    }
+
+    #[test]
+    fn summarize_tiny_bam_duplicate_insert_truth_reports_governed_duplicate_cluster() {
+        let repo_root = workspace_root();
+        let sam = repo_root.join(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam",
+        );
+
+        let summary = summarize_tiny_bam_duplicate_insert_truth(&sam)
+            .expect("summarize duplicate and insert truth");
+        assert_eq!(summary.schema_version, BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.total_reads, 4);
+        assert_eq!(summary.mapped_reads, 3);
+        assert_eq!(summary.unmapped_reads, 1);
+        assert_eq!(summary.examined_reads, 3);
+        assert_eq!(summary.duplicate_reads, 1);
+        assert_eq!(summary.duplicate_pairs, 0);
+        assert_eq!(
+            summary.duplicate_family_histogram,
+            vec![
+                BamDuplicateFamilyHistogramBinV1 { family_size: 1, family_count: 1 },
+                BamDuplicateFamilyHistogramBinV1 { family_size: 2, family_count: 1 },
+            ]
+        );
+        assert_eq!(summary.pair_count, 0);
+        assert!(summary.insert_size_histogram.is_empty());
+        assert_eq!(summary.median_insert_size, None);
+        assert_eq!(summary.mean_insert_size, None);
+        assert_eq!(summary.min_insert_size, None);
+        assert_eq!(summary.max_insert_size, None);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_duplicate_insert_truth_reports_governed_insert_size_triplet() {
+        let repo_root = workspace_root();
+        let sam = repo_root.join(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam",
+        );
+
+        let summary = summarize_tiny_bam_duplicate_insert_truth(&sam)
+            .expect("summarize duplicate and insert truth");
+        assert_eq!(summary.schema_version, BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.total_reads, 6);
+        assert_eq!(summary.mapped_reads, 6);
+        assert_eq!(summary.unmapped_reads, 0);
+        assert_eq!(summary.examined_reads, 6);
+        assert_eq!(summary.duplicate_reads, 0);
+        assert_eq!(summary.duplicate_pairs, 0);
+        assert_eq!(
+            summary.duplicate_family_histogram,
+            vec![BamDuplicateFamilyHistogramBinV1 { family_size: 1, family_count: 6 }]
+        );
+        assert_eq!(summary.pair_count, 3);
+        assert_eq!(
+            summary.insert_size_histogram,
+            vec![
+                BamInsertSizeHistogramBinV1 { insert_size: 15, pair_count: 1 },
+                BamInsertSizeHistogramBinV1 { insert_size: 20, pair_count: 1 },
+                BamInsertSizeHistogramBinV1 { insert_size: 30, pair_count: 1 },
+            ]
+        );
+        assert_eq!(summary.median_insert_size, Some(20.0));
+        assert_eq!(summary.mean_insert_size, Some(21.666_666_666_666_668));
+        assert_eq!(summary.min_insert_size, Some(15));
+        assert_eq!(summary.max_insert_size, Some(30));
+    }
+
+    #[test]
+    fn summarize_tiny_bam_duplicate_insert_truth_counts_duplicate_pairs() {
+        let temp = unique_temp_dir("bam-duplicate-insert-truth");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:200\n\
+@RG\tID:rg1\tSM:sampleA\n\
+pair001\t99\tchr1\t1\t60\t5M\t=\t16\t20\tACGTA\tFFFFF\tRG:Z:rg1\n\
+pair001\t147\tchr1\t16\t60\t5M\t=\t1\t-20\tTGCAT\tFFFFF\tRG:Z:rg1\n\
+pair002\t99\tchr1\t1\t60\t5M\t=\t16\t20\tACGTA\tFFFFF\tRG:Z:rg1\n\
+pair002\t147\tchr1\t16\t60\t5M\t=\t1\t-20\tTGCAT\tFFFFF\tRG:Z:rg1\n\
+pair003\t99\tchr1\t40\t60\t5M\t=\t50\t15\tCCCCC\tFFFFF\tRG:Z:rg1\n\
+pair003\t147\tchr1\t50\t60\t5M\t=\t40\t-15\tGGGGG\tFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write paired duplicate fixture");
+
+        let summary = summarize_tiny_bam_duplicate_insert_truth(&input)
+            .expect("summarize duplicate and insert truth");
+        assert_eq!(summary.examined_reads, 6);
+        assert_eq!(summary.duplicate_reads, 2);
+        assert_eq!(summary.duplicate_pairs, 1);
+        assert_eq!(summary.pair_count, 3);
+        assert_eq!(
+            summary.insert_size_histogram,
+            vec![
+                BamInsertSizeHistogramBinV1 { insert_size: 15, pair_count: 1 },
+                BamInsertSizeHistogramBinV1 { insert_size: 20, pair_count: 2 },
             ]
         );
     }
