@@ -67,11 +67,17 @@ Commands listed here are owned by this crate even when their durable behavior is
   propagated-likelihood cases. It fails closed if ploidy widths, genotype-state tallies,
   per-sample missingness, retained GL/GP/PL fields, or seed-bearing command semantics drift away
   from the governed science truth.
+  `fixtures validate --corpus vcf-filter-truth` validates the governed
+  `benchmarks/tests/fixtures/science/vcf-filter-truth/manifest.toml` bundle against the owned
+  parser-fixture VCF outputs and normalized filter metrics for retained bcftools and ANGSD VCF
+  filter stages. It fails closed if low-quality, low-depth, mapping-quality, or missingness filter
+  labels drift from the governed fixture, or if damage-aware removal counts and retained PASS sites
+  stop matching the owned filter-output truth.
   `fixtures validate --root benchmarks/tests/fixtures --all` writes
   `benchmarks/readiness/benchmark-fixture-root-validation.json` and fails closed unless the
   benchmark-owned `bench`, `corpora`, and `databases` roots all exist, parser-bank domains remain
   populated, and every governed corpus, taxonomy database, and science truth bundle including
-  `vcf-genotype-truth` validates from the benchmark fixture root.
+  `vcf-genotype-truth` and `vcf-filter-truth` validates from the benchmark fixture root.
 - `bijux-dna fixtures validate-expected`
   `fixtures validate-expected --corpus vcf-mini` validates the governed
   `benchmarks/tests/fixtures/corpora/vcf-mini/expected/*.json` truth bundle against the owned
@@ -84,6 +90,11 @@ Commands listed here are owned by this crate even when their durable behavior is
   VCF genotype truth summarizer, boundary evaluators, and parser-fixture command metadata. It
   fails closed when diploid or pseudohaploid call classes, GL/GP/PL field retention, genotype
   missingness, or declared random-seed behavior drift from the governed science fixture.
+  `fixtures validate-expected --corpus vcf-filter-truth` validates the governed
+  `benchmarks/tests/fixtures/science/vcf-filter-truth/expected.json` bundle against the owned VCF
+  filter-output summarizer plus the bcftools and ANGSD normalized metrics parsers. It fails closed
+  when filter-threshold metrics, declared failure labels, retained PASS-only damage-filter output,
+  or tool-specific damage-context removal rules drift from the governed science fixture.
 
 ### Status
 - `bijux-dna status`
