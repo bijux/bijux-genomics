@@ -6,6 +6,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::commands::benchmark::local_corpus_fixture::{amplicon, bam, damage, edna, fastq, vcf};
 use crate::commands::benchmark::local_taxonomy_database_fixture::TAXONOMY_DATABASE_FIXTURE_SCHEMA_VERSION;
+use crate::commands::fixtures::expected::adna_contamination::{
+    validate_adna_contamination_truth_manifest_path,
+    ADNA_CONTAMINATION_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
 use crate::commands::fixtures::expected::adna_damage::{
     validate_adna_damage_truth_manifest_path, ADNA_DAMAGE_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
@@ -114,6 +118,9 @@ pub(crate) fn validate_benchmark_fixture_root(
         }
         if manifest_path.ends_with("adna-damage-truth/manifest.toml") {
             rows.push(validate_adna_damage_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("adna-contamination-truth/manifest.toml") {
+            rows.push(validate_adna_contamination_truth_row(repo_root, &manifest_path));
         }
         if manifest_path.ends_with("bam-alignment-truth/manifest.toml") {
             rows.push(validate_bam_alignment_truth_row(repo_root, &manifest_path));
@@ -285,6 +292,10 @@ fn validate_manifest_row(
             validate_adna_damage_truth_manifest_path(repo_root, manifest_path)
                 .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
         }
+        ADNA_CONTAMINATION_TRUTH_MANIFEST_SCHEMA_VERSION => {
+            validate_adna_contamination_truth_manifest_path(repo_root, manifest_path)
+                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
+        }
         BAM_ALIGNMENT_TRUTH_MANIFEST_SCHEMA_VERSION => {
             validate_bam_alignment_truth_manifest_path(repo_root, manifest_path)
                 .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
@@ -442,6 +453,35 @@ fn validate_adna_damage_truth_row(
     manifest_path: &Path,
 ) -> BenchmarkFixtureRootValidationRow {
     match validate_adna_damage_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_cases={},validated_insufficient_cases={}",
+                report.validated_case_count, report.validated_insufficient_case_count
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_adna_contamination_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_adna_contamination_truth_manifest_path(repo_root, manifest_path) {
         Ok(report) => BenchmarkFixtureRootValidationRow {
             fixture_kind: "expected_truth".to_string(),
             fixture_id: report.fixture_id,
