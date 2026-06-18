@@ -1,0 +1,38 @@
+schema_version = "bijux.bench.bam_sex_truth.v1"
+fixture_id = "sex-inference-truth"
+description = "Governed BAM sex-inference truth bundle for male, female, ambiguous, and insufficient call classes with explicit chromosome-system and minimum-Y-site assumptions."
+corpus_manifest_path = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml"
+expected_path = "expected.json"
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_x_autosome_coverage.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_x_y_ambiguous_coverage.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+  "domain/bam/stages/sex.yaml",
+]
+
+[[cases]]
+sample_id = "human_like_xy_autosome_coverage"
+method = "rxy"
+chromosome_system = "xy"
+minimum_y_sites = 5
+
+[[cases]]
+sample_id = "human_like_x_autosome_coverage"
+method = "rxy"
+chromosome_system = "xy"
+minimum_y_sites = 0
+
+[[cases]]
+sample_id = "human_like_x_y_ambiguous_coverage"
+method = "rxy"
+chromosome_system = "xy"
+minimum_y_sites = 1
+
+[[cases]]
+sample_id = "human_like_y_haplogroup_panel"
+method = "rxy"
+chromosome_system = "xy"
+minimum_y_sites = 1

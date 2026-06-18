@@ -1,0 +1,116 @@
+{
+  "schema_version": "bijux.bench.bam_sex_truth.expected.v1",
+  "fixture_id": "sex-inference-truth",
+  "sample_truths": [
+    {
+      "sample_id": "human_like_xy_autosome_coverage",
+      "cohort": "human_like",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_xy_autosome_coverage.sam",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+      "summary": {
+        "summary_schema_version": "bijux.bam.sex_summary.v1",
+        "stage_id": "bam.sex",
+        "method": "rxy",
+        "chromosome_system": "xy",
+        "minimum_y_sites": 5,
+        "x_contig": "chrX",
+        "y_contig": "chrY",
+        "autosomal_contigs": [
+          "chr1"
+        ],
+        "x_coverage": 0.5,
+        "y_coverage": 0.5,
+        "autosomal_coverage": 1.0,
+        "x_covered_sites": 10,
+        "y_covered_sites": 10,
+        "x_to_y_ratio": 1.0,
+        "call": "male",
+        "confidence": 0.9,
+        "status": "ok",
+        "insufficiency_reason": null
+      }
+    },
+    {
+      "sample_id": "human_like_x_autosome_coverage",
+      "cohort": "human_like",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_x_autosome_coverage.sam",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+      "summary": {
+        "summary_schema_version": "bijux.bam.sex_summary.v1",
+        "stage_id": "bam.sex",
+        "method": "rxy",
+        "chromosome_system": "xy",
+        "minimum_y_sites": 0,
+        "x_contig": "chrX",
+        "y_contig": "chrY",
+        "autosomal_contigs": [
+          "chr1"
+        ],
+        "x_coverage": 1.0,
+        "y_coverage": 0.0,
+        "autosomal_coverage": 1.0,
+        "x_covered_sites": 20,
+        "y_covered_sites": 0,
+        "x_to_y_ratio": null,
+        "call": "female",
+        "confidence": 0.9,
+        "status": "ok",
+        "insufficiency_reason": null
+      }
+    },
+    {
+      "sample_id": "human_like_x_y_ambiguous_coverage",
+      "cohort": "human_like",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_x_y_ambiguous_coverage.sam",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+      "summary": {
+        "summary_schema_version": "bijux.bam.sex_summary.v1",
+        "stage_id": "bam.sex",
+        "method": "rxy",
+        "chromosome_system": "xy",
+        "minimum_y_sites": 1,
+        "x_contig": "chrX",
+        "y_contig": "chrY",
+        "autosomal_contigs": [
+          "chr1"
+        ],
+        "x_coverage": 1.0,
+        "y_coverage": 0.5,
+        "autosomal_coverage": 1.0,
+        "x_covered_sites": 20,
+        "y_covered_sites": 10,
+        "x_to_y_ratio": 2.0,
+        "call": "ambiguous",
+        "confidence": 0.5,
+        "status": "ok",
+        "insufficiency_reason": null
+      }
+    },
+    {
+      "sample_id": "human_like_y_haplogroup_panel",
+      "cohort": "human_like",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+      "summary": {
+        "summary_schema_version": "bijux.bam.sex_summary.v1",
+        "stage_id": "bam.sex",
+        "method": "rxy",
+        "chromosome_system": "xy",
+        "minimum_y_sites": 1,
+        "x_contig": "chrX",
+        "y_contig": "chrY",
+        "autosomal_contigs": [],
+        "x_coverage": 0.0,
+        "y_coverage": 2.0,
+        "autosomal_coverage": 0.0,
+        "x_covered_sites": 0,
+        "y_covered_sites": 20,
+        "x_to_y_ratio": 0.0,
+        "call": "insufficient",
+        "confidence": 0.0,
+        "status": "insufficient_chromosomes",
+        "insufficiency_reason": "insufficient_chromosomes"
+      }
+    }
+  ]
+}
