@@ -79,12 +79,18 @@ Commands listed here are owned by this crate even when their durable behavior is
   imputation parser fixtures. It fails closed if phased genotype counts, phase-set evidence,
   masked-truth match counts, INFO or R² summaries, concordance, or low-confidence imputation
   signals drift from the governed science fixture.
+  `fixtures validate --corpus population-structure-truth` validates the governed
+  `benchmarks/tests/fixtures/science/population-structure-truth/manifest.toml` bundle against the
+  owned PCA-, admixture-, and population-structure output truth summaries plus the retained
+  PLINK2 and EIGENSOFT parser fixtures. It fails closed if sample coordinates, ancestry fractions,
+  cohort metadata joins, dominant cluster calls, or pairwise distance summaries drift from the
+  governed science fixture.
   `fixtures validate --root benchmarks/tests/fixtures --all` writes
   `benchmarks/readiness/benchmark-fixture-root-validation.json` and fails closed unless the
   benchmark-owned `bench`, `corpora`, and `databases` roots all exist, parser-bank domains remain
   populated, and every governed corpus, taxonomy database, and science truth bundle including
-  `vcf-genotype-truth`, `vcf-filter-truth`, and `phasing-imputation-truth` validates from the
-  benchmark fixture root.
+  `vcf-genotype-truth`, `vcf-filter-truth`, `phasing-imputation-truth`, and
+  `population-structure-truth` validates from the benchmark fixture root.
 - `bijux-dna fixtures validate-expected`
   `fixtures validate-expected --corpus vcf-mini` validates the governed
   `benchmarks/tests/fixtures/corpora/vcf-mini/expected/*.json` truth bundle against the owned
@@ -108,6 +114,12 @@ Commands listed here are owned by this crate even when their durable behavior is
   imputation normalized metrics parsers. It fails closed when phased genotype tallies, phase-set
   evidence, masked-truth concordance, INFO or R² retention, or low-confidence imputation counts
   drift from the governed science fixture.
+  `fixtures validate-expected --corpus population-structure-truth` validates the governed
+  `benchmarks/tests/fixtures/science/population-structure-truth/expected.json` bundle against the
+  owned PCA-, admixture-, and population-structure output truth summarizers plus the retained
+  PLINK2 and EIGENSOFT normalized metrics parsers. It fails closed when coordinate rows, ancestry
+  proportions, metadata joins, dominant-cluster assignments, or pairwise distance summaries drift
+  from the governed science fixture.
 
 ### Status
 - `bijux-dna status`
