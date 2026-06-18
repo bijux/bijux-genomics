@@ -21,6 +21,7 @@ pub const VCF_GL_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
 pub const VCF_PHASING_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.phasing.v1";
 pub const VCF_GENOTYPE_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.genotype_truth.v1";
+pub const VCF_FILTER_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.filter_output_truth.v1";
 #[cfg(test)]
 const VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.imputation.v1";
@@ -266,6 +267,27 @@ pub struct VcfGenotypeTruthSummaryV1 {
     pub sites_with_likelihood_values: BTreeMap<String, u64>,
     #[serde(default)]
     pub sites_missing_likelihood_values: BTreeMap<String, u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfFilterOutputTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub input_vcf: PathBuf,
+    pub sample_count: u32,
+    pub variant_count: u64,
+    pub pass_variant_count: u64,
+    pub failed_variant_count: u64,
+    #[serde(default)]
+    pub observed_filter_ids: Vec<String>,
+    #[serde(default)]
+    pub per_filter_variant_count: BTreeMap<String, u64>,
+    #[serde(default)]
+    pub per_filter_sites: BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    pub pass_sites: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -946,6 +968,54 @@ pub fn summarize_vcf_genotype_truth(
         likelihood_fields_present: likelihood_fields_present.into_iter().collect(),
         sites_with_likelihood_values,
         sites_missing_likelihood_values,
+    })
+}
+
+/// Summarize the labeled filter output observed in a VCF after filtering or damage-aware removal.
+///
+/// # Errors
+/// Returns an error when the VCF cannot be parsed.
+pub fn summarize_vcf_filter_output_truth(
+    input_vcf: &Path,
+    stage_id: &str,
+    tool_id: &str,
+) -> Result<VcfFilterOutputTruthSummaryV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let mut pass_variant_count = 0_u64;
+    let mut failed_variant_count = 0_u64;
+    let mut observed_filter_ids = BTreeSet::<String>::new();
+    let mut per_filter_variant_count = BTreeMap::<String, u64>::new();
+    let mut per_filter_sites = BTreeMap::<String, Vec<String>>::new();
+    let mut pass_sites = Vec::<String>::new();
+
+    for record in &doc.records {
+        let site_id = format!("{}:{}", record.chrom, record.pos);
+        if matches!(record.filter.as_str(), "PASS" | ".") {
+            pass_variant_count += 1;
+            pass_sites.push(site_id);
+            continue;
+        }
+        failed_variant_count += 1;
+        for filter_id in record.filter.split(';').filter(|value| !value.is_empty()) {
+            observed_filter_ids.insert(filter_id.to_string());
+            *per_filter_variant_count.entry(filter_id.to_string()).or_insert(0) += 1;
+            per_filter_sites.entry(filter_id.to_string()).or_default().push(site_id.clone());
+        }
+    }
+
+    Ok(VcfFilterOutputTruthSummaryV1 {
+        schema_version: VCF_FILTER_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        input_vcf: input_vcf.to_path_buf(),
+        sample_count: usize_to_u32_saturating(doc.samples.len()),
+        variant_count: doc.records.len() as u64,
+        pass_variant_count,
+        failed_variant_count,
+        observed_filter_ids: observed_filter_ids.into_iter().collect(),
+        per_filter_variant_count,
+        per_filter_sites,
+        pass_sites,
     })
 }
 
@@ -2745,5 +2815,54 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(summary.sites_with_likelihood_values.get("GP"), Some(&3));
         assert_eq!(summary.sites_with_likelihood_values.get("PL"), Some(&3));
         assert!(summary.sites_missing_likelihood_values.is_empty());
+    }
+
+    #[test]
+    fn summarize_vcf_filter_output_truth_reports_known_filter_labels_from_governed_fixture() {
+        let input =
+            repo_fixture_path("benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter/raw.filtered.vcf");
+
+        let summary =
+            summarize_vcf_filter_output_truth(&input, "vcf.filter", "bcftools").expect("summary");
+        assert_eq!(summary.schema_version, VCF_FILTER_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.sample_count, 1);
+        assert_eq!(summary.variant_count, 5);
+        assert_eq!(summary.pass_variant_count, 1);
+        assert_eq!(summary.failed_variant_count, 4);
+        assert_eq!(
+            summary.observed_filter_ids,
+            vec![
+                "HIGH_MISSING".to_string(),
+                "LOWQUAL".to_string(),
+                "LOW_DP".to_string(),
+                "LOW_MQ".to_string()
+            ]
+        );
+        assert_eq!(summary.per_filter_variant_count.get("LOWQUAL"), Some(&1));
+        assert_eq!(summary.per_filter_variant_count.get("LOW_DP"), Some(&1));
+        assert_eq!(summary.per_filter_variant_count.get("HIGH_MISSING"), Some(&1));
+        assert_eq!(
+            summary.per_filter_sites.get("LOWQUAL"),
+            Some(&vec!["chr1:20".to_string()])
+        );
+        assert_eq!(summary.pass_sites, vec!["chr1:10".to_string()]);
+    }
+
+    #[test]
+    fn summarize_vcf_filter_output_truth_reports_retained_damage_filter_sites() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter/raw.damage_filtered.vcf",
+        );
+
+        let summary = summarize_vcf_filter_output_truth(&input, "vcf.damage_filter", "bcftools")
+            .expect("summary");
+        assert_eq!(summary.variant_count, 2);
+        assert_eq!(summary.pass_variant_count, 2);
+        assert_eq!(summary.failed_variant_count, 0);
+        assert!(summary.observed_filter_ids.is_empty());
+        assert_eq!(
+            summary.pass_sites,
+            vec!["chr1:10".to_string(), "chr1:40".to_string()]
+        );
     }
 }
