@@ -1,0 +1,23 @@
+schema_version = "bijux.bench.bam_endogenous_truth.v1"
+fixture_id = "endogenous-truth"
+description = "Governed BAM endogenous-content truth bundle for exact total, mapped, contaminant, retained, and endogenous counts with explicit host-scope provenance."
+corpus_manifest_path = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml"
+expected_path = "expected.json"
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_target_window_coverage.sam",
+  "domain/bam/stages/endogenous_content.yaml",
+]
+
+[[cases]]
+sample_id = "human_like_endogenous_partial_mapping"
+method = "mapped_fraction_from_flagstat"
+host_reference_scope = "human_host"
+prealignment_fraction = 0.6
+
+[[cases]]
+sample_id = "human_like_target_window_coverage"
+method = "mapped_fraction_from_flagstat"
+host_reference_scope = "human_host"
+prealignment_fraction = 1.0
