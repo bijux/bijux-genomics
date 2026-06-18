@@ -4,8 +4,8 @@
   "root_path": "benchmarks/tests/fixtures",
   "required_subroot_count": 4,
   "parser_domain_count": 3,
-  "checked_fixture_count": 38,
-  "valid_fixture_count": 38,
+  "checked_fixture_count": 40,
+  "valid_fixture_count": 40,
   "invalid_fixture_count": 0,
   "ok": true,
   "rows": [
@@ -191,6 +191,15 @@
     },
     {
       "fixture_kind": "expected_truth",
+      "fixture_id": "sex-inference-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/sex-inference-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/sex-inference-truth/expected.json",
+      "schema_version": "bijux.bench.bam_sex_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=4,validated_ok_cases=3,validated_insufficient_cases=1"
+    },
+    {
+      "fixture_kind": "expected_truth",
       "fixture_id": "vcf-mini",
       "manifest_path": "benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml",
       "detail_path": "benchmarks/tests/fixtures/corpora/vcf-mini/expected",
@@ -348,6 +357,15 @@
       "manifest_path": "benchmarks/tests/fixtures/science/fastq-trimming-truth/manifest.toml",
       "detail_path": null,
       "schema_version": "bijux.bench.fastq_trimming_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "sex-inference-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/sex-inference-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_sex_truth.v1",
       "valid": true,
       "detail": "valid"
     }

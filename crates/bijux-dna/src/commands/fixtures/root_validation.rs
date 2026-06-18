@@ -29,6 +29,9 @@ use crate::commands::fixtures::expected::bam_endogenous::{
 use crate::commands::fixtures::expected::bam_gc_coverage::{
     validate_bam_gc_coverage_truth_manifest_path, BAM_GC_COVERAGE_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
+use crate::commands::fixtures::expected::bam_sex::{
+    validate_bam_sex_truth_manifest_path, BAM_SEX_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
 use crate::commands::fixtures::expected::fastq_duplicates::{
     validate_fastq_duplicates_truth_manifest_path, FASTQ_DUPLICATES_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
@@ -136,6 +139,9 @@ pub(crate) fn validate_benchmark_fixture_root(
         }
         if manifest_path.ends_with("bam-gc-coverage-truth/manifest.toml") {
             rows.push(validate_bam_gc_coverage_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("sex-inference-truth/manifest.toml") {
+            rows.push(validate_bam_sex_truth_row(repo_root, &manifest_path));
         }
     }
 
@@ -319,6 +325,10 @@ fn validate_manifest_row(
             validate_bam_gc_coverage_truth_manifest_path(repo_root, manifest_path).map(|_| {
                 ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
             })
+        }
+        BAM_SEX_TRUTH_MANIFEST_SCHEMA_VERSION => {
+            validate_bam_sex_truth_manifest_path(repo_root, manifest_path)
+                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
         }
         other => Err(anyhow!(
             "unsupported benchmark fixture schema `{other}` in {}",
@@ -626,6 +636,37 @@ fn validate_bam_gc_coverage_truth_row(
                 report.validated_gc_bias_sample_count,
                 report.validated_coverage_region_count,
                 report.validated_gc_bias_bin_count
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_bam_sex_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_bam_sex_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(report.manifest_path),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_cases={},validated_ok_cases={},validated_insufficient_cases={}",
+                report.validated_case_count,
+                report.validated_ok_case_count,
+                report.validated_insufficient_case_count
             ),
         },
         Err(error) => BenchmarkFixtureRootValidationRow {
