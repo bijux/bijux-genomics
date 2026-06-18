@@ -1098,6 +1098,14 @@ fn science_fixtures_fast_command_args() -> Vec<String> {
         "--test".to_string(),
         "fixtures_validate_expected_amplicon_truth_stdout".to_string(),
         "--test".to_string(),
+        "fixtures_validate_bam_alignment_truth".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_bam_alignment_truth_stdout".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_bam_alignment_truth".to_string(),
+        "--test".to_string(),
+        "fixtures_validate_expected_bam_alignment_truth_stdout".to_string(),
+        "--test".to_string(),
         "fixtures_validate_expected_fastq_trimming_truth".to_string(),
         "--test".to_string(),
         "fixtures_validate_expected_fastq_trimming_truth_stdout".to_string(),
@@ -1136,6 +1144,9 @@ mod tests {
         }));
         assert!(args.windows(2).any(|window| {
             window == ["--test".to_string(), "fixtures_validate_amplicon_truth".to_string()]
+        }));
+        assert!(args.windows(2).any(|window| {
+            window == ["--test".to_string(), "fixtures_validate_bam_alignment_truth".to_string()]
         }));
         assert!(args.windows(2).any(|window| {
             window == ["--test".to_string(), "fixtures_validate_all".to_string()]
