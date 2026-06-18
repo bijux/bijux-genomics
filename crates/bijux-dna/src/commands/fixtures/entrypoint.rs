@@ -49,6 +49,9 @@ use crate::commands::fixtures::expected::phasing_imputation::{
 use crate::commands::fixtures::expected::population_structure::{
     validate_population_structure_truth_manifest_path, POPULATION_STRUCTURE_TRUTH_FIXTURE_ID,
 };
+use crate::commands::fixtures::expected::segments_demography::{
+    validate_segments_demography_truth_manifest_path, SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID,
+};
 use crate::commands::fixtures::expected::vcf::validate_vcf_expected_truth;
 use crate::commands::fixtures::expected::vcf_filter::{
     validate_vcf_filter_truth_manifest_path, VCF_FILTER_TRUTH_FIXTURE_ID,
@@ -315,6 +318,19 @@ pub(crate) fn validate_fixture(cwd: &Path, args: &cli::FixturesValidateArgs) -> 
             }
             Ok(())
         }
+        SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID => {
+            let manifest_path = benchmark_science_manifest_path(
+                &fixture_root,
+                SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID,
+            );
+            let report = validate_segments_demography_truth_manifest_path(cwd, &manifest_path)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.manifest_path);
+            }
+            Ok(())
+        }
         _ => Err(anyhow!("unsupported governed fixture corpus `{corpus}`")),
     }
 }
@@ -537,6 +553,21 @@ pub(crate) fn validate_expected_fixture(
                 &benchmark_science_manifest_path(
                     &fixture_root,
                     POPULATION_STRUCTURE_TRUTH_FIXTURE_ID,
+                ),
+            )?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("{}", report.expected_path);
+            }
+            Ok(())
+        }
+        SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID => {
+            let report = validate_segments_demography_truth_manifest_path(
+                cwd,
+                &benchmark_science_manifest_path(
+                    &fixture_root,
+                    SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID,
                 ),
             )?;
             if args.json {

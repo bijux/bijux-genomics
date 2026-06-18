@@ -52,6 +52,10 @@ use crate::commands::fixtures::expected::population_structure::{
     validate_population_structure_truth_manifest_path,
     POPULATION_STRUCTURE_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
+use crate::commands::fixtures::expected::segments_demography::{
+    validate_segments_demography_truth_manifest_path,
+    SEGMENTS_DEMOGRAPHY_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
 use crate::commands::fixtures::expected::vcf::validate_vcf_expected_truth_manifest_path;
 use crate::commands::fixtures::expected::vcf_filter::{
     validate_vcf_filter_truth_manifest_path, VCF_FILTER_TRUTH_MANIFEST_SCHEMA_VERSION,
@@ -174,6 +178,9 @@ pub(crate) fn validate_benchmark_fixture_root(
         }
         if manifest_path.ends_with("population-structure-truth/manifest.toml") {
             rows.push(validate_population_structure_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("segments-demography-truth/manifest.toml") {
+            rows.push(validate_segments_demography_truth_row(repo_root, &manifest_path));
         }
     }
 
@@ -384,6 +391,11 @@ fn validate_manifest_row(
         }
         POPULATION_STRUCTURE_TRUTH_MANIFEST_SCHEMA_VERSION => {
             validate_population_structure_truth_manifest_path(repo_root, manifest_path).map(|_| {
+                ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
+            })
+        }
+        SEGMENTS_DEMOGRAPHY_TRUTH_MANIFEST_SCHEMA_VERSION => {
+            validate_segments_demography_truth_manifest_path(repo_root, manifest_path).map(|_| {
                 ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
             })
         }
@@ -853,6 +865,32 @@ fn validate_population_structure_truth_row(
     manifest_path: &Path,
 ) -> BenchmarkFixtureRootValidationRow {
     match validate_population_structure_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!("validated_cases={}", report.validated_case_count),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_segments_demography_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_segments_demography_truth_manifest_path(repo_root, manifest_path) {
         Ok(report) => BenchmarkFixtureRootValidationRow {
             fixture_kind: "expected_truth".to_string(),
             fixture_id: report.fixture_id,
