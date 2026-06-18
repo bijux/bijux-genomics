@@ -45,6 +45,9 @@ use crate::commands::fixtures::expected::fastq_trimming::{
     validate_fastq_trimming_truth_manifest_path, FASTQ_TRIMMING_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
 use crate::commands::fixtures::expected::vcf::validate_vcf_expected_truth_manifest_path;
+use crate::commands::fixtures::expected::vcf_filter::{
+    validate_vcf_filter_truth_manifest_path, VCF_FILTER_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
 use crate::commands::fixtures::expected::vcf_genotype::{
     validate_vcf_genotype_truth_manifest_path, VCF_GENOTYPE_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
@@ -154,6 +157,9 @@ pub(crate) fn validate_benchmark_fixture_root(
         }
         if manifest_path.ends_with("vcf-genotype-truth/manifest.toml") {
             rows.push(validate_vcf_genotype_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("vcf-filter-truth/manifest.toml") {
+            rows.push(validate_vcf_filter_truth_row(repo_root, &manifest_path));
         }
     }
 
@@ -349,6 +355,11 @@ fn validate_manifest_row(
         }
         VCF_GENOTYPE_TRUTH_MANIFEST_SCHEMA_VERSION => {
             validate_vcf_genotype_truth_manifest_path(repo_root, manifest_path).map(|_| {
+                ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
+            })
+        }
+        VCF_FILTER_TRUTH_MANIFEST_SCHEMA_VERSION => {
+            validate_vcf_filter_truth_manifest_path(repo_root, manifest_path).map(|_| {
                 ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
             })
         }
@@ -740,6 +751,32 @@ fn validate_vcf_genotype_truth_row(
     manifest_path: &Path,
 ) -> BenchmarkFixtureRootValidationRow {
     match validate_vcf_genotype_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!("validated_cases={}", report.validated_case_count),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_vcf_filter_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_vcf_filter_truth_manifest_path(repo_root, manifest_path) {
         Ok(report) => BenchmarkFixtureRootValidationRow {
             fixture_kind: "expected_truth".to_string(),
             fixture_id: report.fixture_id,
