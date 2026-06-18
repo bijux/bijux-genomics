@@ -1,0 +1,87 @@
+schema_version = "bijux.bench.vcf_genotype_truth.v1"
+fixture_id = "vcf-genotype-truth"
+description = "Governed VCF genotype truth bundle covering diploid calls, pseudohaploid seed semantics, genotype missingness, and GL/GP/PL likelihood-field behavior across retained parser fixtures."
+expected_path = "expected.json"
+source_paths = [
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_diploid/raw.diploid.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_diploid/expected.normalized.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_pseudohaploid/raw.pseudohaploid.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_pseudohaploid/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_pseudohaploid/expected.normalized.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_pseudohaploid/raw.pseudohaploid.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_pseudohaploid/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_pseudohaploid/expected.normalized.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_gl/raw.gl.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_gl/expected.normalized.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_gl/raw.gl_sites.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_gl/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_gl/expected.normalized.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.gl_propagation/raw.propagated.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.gl_propagation/expected.normalized.json",
+  "domain/vcf/stages/call_diploid.yaml",
+  "domain/vcf/stages/call_pseudohaploid.yaml",
+  "domain/vcf/stages/call_gl.yaml",
+  "domain/vcf/stages/gl_propagation.yaml",
+]
+
+[[cases]]
+case_id = "bcftools_diploid_calls"
+stage_id = "vcf.call_diploid"
+tool_id = "bcftools"
+input_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_diploid/raw.diploid.vcf"
+evaluation_kind = "diploid"
+declared_ploidy = "diploid"
+has_input_bam = true
+has_reference_context = true
+mean_coverage = 12.0
+minimum_mean_coverage = 6.0
+
+[[cases]]
+case_id = "bcftools_pseudohaploid_projection"
+stage_id = "vcf.call_pseudohaploid"
+tool_id = "bcftools"
+input_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_pseudohaploid/raw.pseudohaploid.vcf"
+command_path = "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_pseudohaploid/raw.command.json"
+evaluation_kind = "pseudohaploid"
+declared_ploidy = "pseudohaploid"
+has_input_bam = true
+low_coverage_expected = true
+uncertainty_reported = true
+
+[[cases]]
+case_id = "angsd_pseudohaploid_missingness"
+stage_id = "vcf.call_pseudohaploid"
+tool_id = "angsd"
+input_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_pseudohaploid/raw.pseudohaploid.vcf"
+command_path = "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_pseudohaploid/raw.command.json"
+evaluation_kind = "pseudohaploid"
+declared_ploidy = "pseudohaploid"
+has_input_bam = true
+low_coverage_expected = true
+uncertainty_reported = true
+
+[[cases]]
+case_id = "bcftools_pl_likelihood_calls"
+stage_id = "vcf.call_gl"
+tool_id = "bcftools"
+input_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_gl/raw.gl.vcf"
+evaluation_kind = "likelihood"
+downstream_gl_compatible = true
+uncertainty_reported = true
+
+[[cases]]
+case_id = "angsd_gl_likelihood_calls"
+stage_id = "vcf.call_gl"
+tool_id = "angsd"
+input_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_gl/raw.gl_sites.vcf"
+command_path = "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_gl/raw.command.json"
+evaluation_kind = "likelihood"
+downstream_gl_compatible = true
+uncertainty_reported = true
+
+[[cases]]
+case_id = "bcftools_gl_gp_pl_propagation"
+stage_id = "vcf.gl_propagation"
+tool_id = "bcftools"
+input_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.gl_propagation/raw.propagated.vcf"
+evaluation_kind = "none"
