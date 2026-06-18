@@ -1,0 +1,87 @@
+{
+  "schema_version": "bijux.bench.bam_gc_coverage_truth.expected.v1",
+  "fixture_id": "bam-gc-coverage-truth",
+  "coverage_truths": [
+    {
+      "sample_id": "human_like_target_window_coverage",
+      "cohort": "human_like",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_target_window_coverage.sam",
+      "regions_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_target_window_coverage.bed",
+      "summary": {
+        "schema_version": "bijux.bam.coverage_truth.v1",
+        "depth_thresholds": [
+          1,
+          5
+        ],
+        "mean_depth": 1.1,
+        "breadth_1x": 0.9,
+        "covered_bases": 9,
+        "total_bases": 10,
+        "coverage_regime": "low_pass",
+        "coverage_family": "guardrail_required",
+        "region_summaries": [
+          {
+            "region_id": "chr1_window",
+            "contig": "chr1",
+            "start": 1,
+            "end": 6,
+            "length": 6,
+            "mean_depth": 1.3333333333333333,
+            "breadth_1x": 1.0,
+            "covered_bases": 6
+          },
+          {
+            "region_id": "chr2_window",
+            "contig": "chr2",
+            "start": 2,
+            "end": 5,
+            "length": 4,
+            "mean_depth": 0.75,
+            "breadth_1x": 0.75,
+            "covered_bases": 3
+          }
+        ]
+      }
+    }
+  ],
+  "gc_bias_truths": [
+    {
+      "sample_id": "human_like_gc_window_ladder",
+      "cohort": "human_like",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
+      "summary": {
+        "schema_version": "bijux.bam.gc_bias_truth.v1",
+        "window_size": 10,
+        "total_clusters": 4,
+        "aligned_reads": 4,
+        "windows": 3,
+        "read_starts": 4,
+        "at_dropout": 25.0,
+        "gc_dropout": 25.0,
+        "gc_bias_score": 0.25,
+        "insufficient_reference_reason": null,
+        "gc_bins": [
+          {
+            "gc_bin": 0,
+            "windows": 1,
+            "read_starts": 1,
+            "normalized_coverage": 0.75
+          },
+          {
+            "gc_bin": 50,
+            "windows": 1,
+            "read_starts": 2,
+            "normalized_coverage": 1.5
+          },
+          {
+            "gc_bin": 100,
+            "windows": 1,
+            "read_starts": 1,
+            "normalized_coverage": 0.75
+          }
+        ]
+      }
+    }
+  ]
+}

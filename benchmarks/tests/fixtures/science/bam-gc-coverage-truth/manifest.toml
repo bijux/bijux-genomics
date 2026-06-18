@@ -1,0 +1,22 @@
+schema_version = "bijux.bench.bam_gc_coverage_truth.v1"
+fixture_id = "bam-gc-coverage-truth"
+description = "Governed BAM GC-bias and target-coverage truth bundle for exact GC-bin normalization, weighted coverage breadth, and region-level depth validation."
+corpus_manifest_path = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml"
+expected_path = "expected.json"
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_target_window_coverage.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_target_window_coverage.bed",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
+]
+
+[[coverage_cases]]
+sample_id = "human_like_target_window_coverage"
+regions_path = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_target_window_coverage.bed"
+depth_thresholds = [1, 5]
+
+[[gc_bias_cases]]
+sample_id = "human_like_gc_window_ladder"
+reference_path = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta"
+window_size = 10
