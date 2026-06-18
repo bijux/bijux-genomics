@@ -30,6 +30,7 @@ pub const BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION: &str =
     "bijux.bam.duplicate_insert_truth.v1";
 pub const BAM_GC_BIAS_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.gc_bias_truth.v1";
 pub const BAM_COVERAGE_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_truth.v1";
+pub const BAM_ADNA_DAMAGE_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.adna_damage_truth.v1";
 pub const BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.length_filter.v1";
 pub const BAM_MARKDUP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.markdup.v1";
 pub const BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.duplication_metrics.v1";
@@ -284,6 +285,26 @@ pub struct BamCoverageTruthSummaryV1 {
     pub coverage_regime: String,
     pub coverage_family: String,
     pub region_summaries: Vec<BamCoverageRegionSummaryV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAdnaDamageTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub udg_model: String,
+    pub terminal_c_to_t_5p: f64,
+    pub terminal_g_to_a_3p: f64,
+    pub short_fragment_fraction: f64,
+    pub damage_signal: String,
+    pub strict_profile_upgraded: bool,
+    pub terminal_5p_class: String,
+    pub terminal_3p_class: String,
+    pub terminal_pattern_class: String,
+    #[serde(default)]
+    pub insufficiency_reason: Option<String>,
+    pub insufficiency_policy: String,
+    pub advisory_only: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -3601,6 +3622,44 @@ pub fn summarize_tiny_bam_damage_evidence(
     Ok(execute_ancient_damage_evidence(&metrics, strict_profile))
 }
 
+/// Build a path-free aDNA damage truth summary for governed tiny BAM fixtures.
+///
+/// # Errors
+/// Returns an error if the tiny BAM fixture cannot be summarized into pre-QC metrics.
+pub fn summarize_tiny_bam_adna_damage_truth(
+    input_bam: &Path,
+    damage: &crate::metrics::DamageMetricsV1,
+    strict_profile: bool,
+    udg_model: crate::params::UdgModel,
+) -> Result<BamAdnaDamageTruthSummaryV1> {
+    let evidence = summarize_tiny_bam_damage_evidence(input_bam, damage, strict_profile)?;
+    let terminal_5p_class = classify_terminal_damage_end(evidence.terminal_c_to_t_5p);
+    let terminal_3p_class = classify_terminal_damage_end(evidence.terminal_g_to_a_3p);
+    let insufficiency_reason = classify_damage_truth_insufficiency(&evidence);
+
+    Ok(BamAdnaDamageTruthSummaryV1 {
+        schema_version: BAM_ADNA_DAMAGE_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: evidence.stage_id,
+        udg_model: udg_model_label(udg_model).to_string(),
+        terminal_c_to_t_5p: evidence.terminal_c_to_t_5p,
+        terminal_g_to_a_3p: evidence.terminal_g_to_a_3p,
+        short_fragment_fraction: evidence.short_fragment_fraction,
+        damage_signal: evidence.damage_signal,
+        strict_profile_upgraded: evidence.strict_profile_upgraded,
+        terminal_5p_class: terminal_5p_class.to_string(),
+        terminal_3p_class: terminal_3p_class.to_string(),
+        terminal_pattern_class: classify_terminal_pattern(
+            evidence.terminal_c_to_t_5p,
+            evidence.terminal_g_to_a_3p,
+            insufficiency_reason.is_some(),
+        )
+        .to_string(),
+        insufficiency_reason,
+        insufficiency_policy: damage_truth_insufficiency_policy().to_string(),
+        advisory_only: evidence.advisory_boundary.advisory_only,
+    })
+}
+
 /// Build typed `bam.authenticity` advisory evidence for a tiny BAM fixture from damage metrics.
 ///
 /// # Errors
@@ -3615,6 +3674,62 @@ pub fn summarize_tiny_bam_authenticity_advisory(
     metrics.mapq = qc_pre.mapq;
     metrics.damage = damage.clone();
     Ok(execute_pmd_authenticity_advisory(&metrics))
+}
+
+fn classify_terminal_damage_end(rate: f64) -> &'static str {
+    if rate >= 0.10 {
+        "terminal_damage_enriched"
+    } else {
+        "terminal_damage_limited"
+    }
+}
+
+fn classify_terminal_pattern(c_to_t_5p: f64, g_to_a_3p: f64, insufficient: bool) -> &'static str {
+    if insufficient {
+        "insufficient_terminal_damage"
+    } else if c_to_t_5p > g_to_a_3p {
+        "ct5p_dominant"
+    } else if g_to_a_3p > c_to_t_5p {
+        "ga3p_dominant"
+    } else {
+        "balanced_terminal_damage"
+    }
+}
+
+fn classify_damage_truth_insufficiency(evidence: &BamDamageEvidenceV1) -> Option<String> {
+    if evidence.damage_signal == "low" {
+        Some("terminal_damage_below_comparison_threshold".to_string())
+    } else {
+        None
+    }
+}
+
+fn damage_truth_insufficiency_policy() -> &'static str {
+    let stage_id = bijux_dna_core::ids::StageId::new("bam.damage");
+    crate::comparison_contract::stage_comparable_metric_contracts_for_stage(&stage_id)
+        .into_iter()
+        .find_map(|metric| {
+            metric.scientific_threshold.map(|threshold| match threshold.insufficiency_policy {
+                crate::comparison_contract::BamScientificInsufficiencyPolicy::WarnAndExcludeStage => {
+                    "warn_and_exclude_stage"
+                }
+                crate::comparison_contract::BamScientificInsufficiencyPolicy::DropMetricFromStage => {
+                    "drop_metric_from_stage"
+                }
+                crate::comparison_contract::BamScientificInsufficiencyPolicy::RefuseStageComparison => {
+                    "refuse_stage_comparison"
+                }
+            })
+        })
+        .unwrap_or("warn_and_exclude_stage")
+}
+
+const fn udg_model_label(udg_model: crate::params::UdgModel) -> &'static str {
+    match udg_model {
+        crate::params::UdgModel::NonUdg => "non_udg",
+        crate::params::UdgModel::HalfUdg => "half_udg",
+        crate::params::UdgModel::Udg => "udg",
+    }
 }
 
 fn idxstats_from_tiny_document(document: &TinySamDocument) -> crate::metrics::IdxstatsSummaryV1 {
@@ -7652,6 +7767,84 @@ r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFF
         assert!((evidence.short_fragment_fraction - 1.0).abs() <= f64::EPSILON);
         assert!(!evidence.strict_profile_upgraded);
         assert!(evidence.advisory_boundary.advisory_only);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_adna_damage_truth_reports_terminal_classes_and_udg_status() {
+        let temp = unique_temp_dir("bam-adna-damage-truth");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chranc\tLN:120\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchranc\t5\t60\t20M\t*\t0\t0\tTCTTTCTTTCTTTCTTTCTT\tFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchranc\t19\t60\t24M\t*\t0\t0\tCTTTCCAAACTTTCCAAACTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchranc\t47\t60\t28M\t*\t0\t0\tTTCCCAAAGGGTTTCCCAAAGGGTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write damage fixture");
+
+        let summary = summarize_tiny_bam_adna_damage_truth(
+            &input,
+            &crate::metrics::DamageMetricsV1 {
+                c_to_t_5p: 0.18,
+                g_to_a_3p: 0.11,
+                pmd_score_histogram: Vec::new(),
+            },
+            false,
+            crate::params::UdgModel::NonUdg,
+        )
+        .expect("summarize aDNA damage truth");
+
+        assert_eq!(summary.schema_version, BAM_ADNA_DAMAGE_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.udg_model, "non_udg");
+        assert_eq!(summary.terminal_5p_class, "terminal_damage_enriched");
+        assert_eq!(summary.terminal_3p_class, "terminal_damage_enriched");
+        assert_eq!(summary.terminal_pattern_class, "ct5p_dominant");
+        assert_eq!(summary.insufficiency_reason, None);
+        assert_eq!(summary.insufficiency_policy, "warn_and_exclude_stage");
+        assert!(summary.advisory_only);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_adna_damage_truth_marks_low_signal_as_insufficient() {
+        let temp = unique_temp_dir("bam-adna-damage-insufficient");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chranc\tLN:120\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchranc\t5\t60\t20M\t*\t0\t0\tTCTTTCTTTCTTTCTTTCTT\tFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchranc\t19\t60\t24M\t*\t0\t0\tCTTTCCAAACTTTCCAAACTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchranc\t47\t60\t28M\t*\t0\t0\tTTCCCAAAGGGTTTCCCAAAGGGTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write damage fixture");
+
+        let summary = summarize_tiny_bam_adna_damage_truth(
+            &input,
+            &crate::metrics::DamageMetricsV1 {
+                c_to_t_5p: 0.04,
+                g_to_a_3p: 0.08,
+                pmd_score_histogram: Vec::new(),
+            },
+            false,
+            crate::params::UdgModel::HalfUdg,
+        )
+        .expect("summarize insufficient aDNA damage truth");
+
+        assert_eq!(summary.udg_model, "half_udg");
+        assert_eq!(summary.damage_signal, "low");
+        assert_eq!(summary.terminal_5p_class, "terminal_damage_limited");
+        assert_eq!(summary.terminal_3p_class, "terminal_damage_limited");
+        assert_eq!(summary.terminal_pattern_class, "insufficient_terminal_damage");
+        assert_eq!(
+            summary.insufficiency_reason.as_deref(),
+            Some("terminal_damage_below_comparison_threshold")
+        );
+        assert_eq!(summary.insufficiency_policy, "warn_and_exclude_stage");
     }
 
     #[test]
