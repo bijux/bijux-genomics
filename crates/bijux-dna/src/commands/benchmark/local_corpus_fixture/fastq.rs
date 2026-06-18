@@ -11,6 +11,8 @@ use super::{path_relative_to_repo, resolve_manifest_relative_path};
 
 pub(crate) const DEFAULT_CORPUS_01_MINI_MANIFEST_PATH: &str =
     "benchmarks/tests/fixtures/corpora/corpus-01-mini/manifest.toml";
+pub(crate) const DEFAULT_CORPUS_01_VCF_COHORT_FASTQ_MINI_MANIFEST_PATH: &str =
+    "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/manifest.toml";
 pub(crate) const FASTQ_CORPUS_FIXTURE_SCHEMA_VERSION: &str = "bijux.bench.fastq_corpus_fixture.v1";
 const FASTQ_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.fastq_corpus_fixture_validation.v1";
@@ -59,6 +61,8 @@ pub(crate) struct FastqCorpusFixtureManifest {
     pub(crate) species: String,
     pub(crate) description: String,
     pub(crate) compression: FastqCorpusFixtureCompression,
+    #[serde(default)]
+    pub(crate) reference_id: Option<String>,
     pub(crate) samples: Vec<FastqCorpusFixtureSample>,
 }
 
@@ -97,6 +101,7 @@ pub(crate) struct FastqCorpusFixtureValidationReport {
     pub(crate) corpus_id: String,
     pub(crate) species: String,
     pub(crate) compression: String,
+    pub(crate) reference_id: Option<String>,
     pub(crate) sample_count: usize,
     pub(crate) single_end_sample_count: usize,
     pub(crate) paired_end_sample_count: usize,
@@ -130,6 +135,7 @@ pub(crate) fn validate_fastq_corpus_fixture_manifest_path(
         corpus_id: manifest.corpus_id,
         species: manifest.species,
         compression: manifest.compression.as_str().to_string(),
+        reference_id: manifest.reference_id,
         sample_count: samples.len(),
         single_end_sample_count,
         paired_end_sample_count,
@@ -138,7 +144,7 @@ pub(crate) fn validate_fastq_corpus_fixture_manifest_path(
     })
 }
 
-fn load_fastq_corpus_fixture_manifest_path(
+pub(crate) fn load_fastq_corpus_fixture_manifest_path(
     manifest_path: &Path,
 ) -> Result<FastqCorpusFixtureManifest> {
     let raw = fs::read_to_string(manifest_path)
@@ -163,6 +169,11 @@ fn validate_fastq_corpus_fixture_manifest_contract(
     }
     if manifest.description.trim().is_empty() {
         return Err(anyhow!("FASTQ corpus fixture must declare a non-empty `description`"));
+    }
+    if manifest.reference_id.as_deref().is_some_and(|reference_id| reference_id.trim().is_empty()) {
+        return Err(anyhow!(
+            "FASTQ corpus fixture `reference_id`, when declared, must not be empty"
+        ));
     }
     if manifest.samples.is_empty() {
         return Err(anyhow!("FASTQ corpus fixture must declare at least one sample"));
