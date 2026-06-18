@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
@@ -24,6 +25,10 @@ pub const VCF_GENOTYPE_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.genotype_truth.v1
 pub const VCF_FILTER_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.filter_output_truth.v1";
 pub const VCF_PHASING_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.phasing_output_truth.v1";
 pub const VCF_IMPUTATION_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.imputation_output_truth.v1";
+pub const VCF_PCA_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.pca_output_truth.v1";
+pub const VCF_ADMIXTURE_OUTPUT_TRUTH_SCHEMA_VERSION: &str = "bijux.vcf.admixture_output_truth.v1";
+pub const VCF_POPULATION_STRUCTURE_OUTPUT_TRUTH_SCHEMA_VERSION: &str =
+    "bijux.vcf.population_structure_output_truth.v1";
 #[cfg(test)]
 const VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.imputation.v1";
@@ -336,6 +341,115 @@ pub struct VcfImputationOutputTruthSummaryV1 {
     pub unresolved_count: u64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub genotype_concordance: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfPopulationCoordinateTruthRowV1 {
+    pub sample_id: String,
+    pub population_id: String,
+    pub sex: String,
+    pub role: String,
+    pub pc1: f64,
+    pub pc2: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfAdmixtureOutputTruthRowV1 {
+    pub sample_id: String,
+    pub population_id: String,
+    pub sex: String,
+    pub role: String,
+    pub status: String,
+    pub dominant_cluster: String,
+    pub dominant_fraction: f64,
+    #[serde(default)]
+    pub cluster_fractions: BTreeMap<String, f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfPopulationStructureOutputTruthRowV1 {
+    pub sample_id: String,
+    pub population_id: String,
+    pub sex: String,
+    pub role: String,
+    pub dominant_cluster: String,
+    pub dominant_fraction: f64,
+    pub pc1: f64,
+    pub pc2: f64,
+    pub status: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfPopulationDistanceTruthRowV1 {
+    pub left_sample_id: String,
+    pub right_sample_id: String,
+    pub left_population_id: String,
+    pub right_population_id: String,
+    pub distance: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfPcaOutputTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub sample_metadata_path: PathBuf,
+    pub sample_count: u32,
+    pub joined_sample_count: u32,
+    pub pair_count: u64,
+    #[serde(default)]
+    pub population_ids: Vec<String>,
+    #[serde(default)]
+    pub rows: Vec<VcfPopulationCoordinateTruthRowV1>,
+    #[serde(default)]
+    pub pairwise_distances: Vec<VcfPopulationDistanceTruthRowV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfAdmixtureOutputTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub sample_metadata_path: PathBuf,
+    pub selected_k: u64,
+    pub sample_count: u32,
+    pub joined_sample_count: u32,
+    pub population_count: u64,
+    #[serde(default)]
+    pub cluster_headers: Vec<String>,
+    #[serde(default)]
+    pub population_ids: Vec<String>,
+    #[serde(default)]
+    pub rows: Vec<VcfAdmixtureOutputTruthRowV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfPopulationStructureOutputTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub sample_metadata_path: PathBuf,
+    pub sample_count: u32,
+    pub joined_sample_count: u32,
+    pub pair_count: u64,
+    pub within_population_pair_count: u64,
+    pub cross_population_pair_count: u64,
+    pub min_pc_distance: f64,
+    pub max_pc_distance: f64,
+    pub mean_pc_distance: f64,
+    #[serde(default)]
+    pub population_ids: Vec<String>,
+    #[serde(default)]
+    pub sample_groups: Vec<VcfPopulationStructureOutputTruthRowV1>,
+    #[serde(default)]
+    pub pairwise_distances: Vec<VcfPopulationDistanceTruthRowV1>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -1218,6 +1332,234 @@ pub fn summarize_vcf_imputation_output_truth(
     })
 }
 
+#[derive(Debug, Clone)]
+struct PopulationMetadataRow {
+    sample_id: String,
+    population_id: String,
+    sex: String,
+    role: String,
+}
+
+#[derive(Debug, Clone)]
+struct CoordinateRow {
+    sample_id: String,
+    population_id: String,
+    pc1: f64,
+    pc2: f64,
+}
+
+/// Summarize normalized PCA metrics against governed sample metadata.
+///
+/// # Errors
+/// Returns an error when normalized metrics cannot be joined to sample metadata.
+pub fn summarize_vcf_pca_output_truth(
+    metrics: &serde_json::Value,
+    sample_metadata_path: &Path,
+) -> Result<VcfPcaOutputTruthSummaryV1> {
+    let stage_id = json_required_string(metrics, "stage_id")?;
+    let tool_id = json_required_string(metrics, "tool_id")?;
+    let metadata_rows = parse_population_metadata_rows(sample_metadata_path)?;
+    let metadata_by_sample =
+        metadata_rows.iter().map(|row| (row.sample_id.as_str(), row)).collect::<BTreeMap<_, _>>();
+    let coordinates = parse_coordinate_rows(json_required_array(metrics, "rows")?)?;
+
+    let rows = coordinates
+        .iter()
+        .map(|coordinate| {
+            let metadata =
+                metadata_by_sample.get(coordinate.sample_id.as_str()).ok_or_else(|| {
+                    anyhow!(
+                        "PCA metrics sample `{}` is missing from metadata `{}`",
+                        coordinate.sample_id,
+                        sample_metadata_path.display()
+                    )
+                })?;
+            if coordinate.population_id != metadata.population_id {
+                return Err(anyhow!(
+                    "PCA metrics sample `{}` population drifted: metrics=`{}`, metadata=`{}`",
+                    coordinate.sample_id,
+                    coordinate.population_id,
+                    metadata.population_id
+                ));
+            }
+            Ok(VcfPopulationCoordinateTruthRowV1 {
+                sample_id: coordinate.sample_id.clone(),
+                population_id: coordinate.population_id.clone(),
+                sex: metadata.sex.clone(),
+                role: metadata.role.clone(),
+                pc1: coordinate.pc1,
+                pc2: coordinate.pc2,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let pairwise_distances = build_population_distance_rows(&rows)?;
+    let population_ids = collect_population_ids(rows.iter().map(|row| row.population_id.as_str()));
+
+    Ok(VcfPcaOutputTruthSummaryV1 {
+        schema_version: VCF_PCA_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id,
+        tool_id,
+        sample_metadata_path: sample_metadata_path.to_path_buf(),
+        sample_count: usize_to_u32_saturating(rows.len()),
+        joined_sample_count: usize_to_u32_saturating(rows.len()),
+        pair_count: pairwise_distances.len() as u64,
+        population_ids,
+        rows,
+        pairwise_distances,
+    })
+}
+
+/// Summarize normalized admixture metrics against governed sample metadata.
+///
+/// # Errors
+/// Returns an error when normalized metrics cannot be joined to sample metadata.
+pub fn summarize_vcf_admixture_output_truth(
+    metrics: &serde_json::Value,
+    sample_metadata_path: &Path,
+) -> Result<VcfAdmixtureOutputTruthSummaryV1> {
+    let stage_id = json_required_string(metrics, "stage_id")?;
+    let tool_id = json_required_string(metrics, "tool_id")?;
+    let selected_k = json_required_u64(metrics, "selected_k")?;
+    let population_count = json_required_u64(metrics, "population_count")?;
+    let cluster_headers = json_required_array(metrics, "cluster_headers")?
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .map(str::to_string)
+                .ok_or_else(|| anyhow!("admixture cluster_headers must contain only strings"))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let metadata_rows = parse_population_metadata_rows(sample_metadata_path)?;
+    let metadata_by_sample =
+        metadata_rows.iter().map(|row| (row.sample_id.as_str(), row)).collect::<BTreeMap<_, _>>();
+    let metric_rows = json_required_array(metrics, "rows")?;
+    let rows = metric_rows
+        .iter()
+        .map(|row| {
+            let sample_id = json_required_string(row, "sample_id")?;
+            let population_id = json_required_string(row, "population_id")?;
+            let metadata = metadata_by_sample.get(sample_id.as_str()).ok_or_else(|| {
+                anyhow!(
+                    "admixture metrics sample `{sample_id}` is missing from metadata `{}`",
+                    sample_metadata_path.display()
+                )
+            })?;
+            if population_id != metadata.population_id {
+                return Err(anyhow!(
+                    "admixture metrics sample `{sample_id}` population drifted: metrics=`{population_id}`, metadata=`{}`",
+                    metadata.population_id
+                ));
+            }
+            let cluster_fractions = cluster_headers
+                .iter()
+                .map(|header| Ok((header.clone(), json_required_f64(row, header)?)))
+                .collect::<Result<BTreeMap<_, _>>>()?;
+            let (dominant_cluster, dominant_fraction) =
+                dominant_cluster_fraction(&cluster_fractions, &sample_id)?;
+            Ok(VcfAdmixtureOutputTruthRowV1 {
+                sample_id,
+                population_id,
+                sex: metadata.sex.clone(),
+                role: metadata.role.clone(),
+                status: json_required_string(row, "status")?,
+                dominant_cluster,
+                dominant_fraction,
+                cluster_fractions,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let population_ids = collect_population_ids(rows.iter().map(|row| row.population_id.as_str()));
+
+    Ok(VcfAdmixtureOutputTruthSummaryV1 {
+        schema_version: VCF_ADMIXTURE_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id,
+        tool_id,
+        sample_metadata_path: sample_metadata_path.to_path_buf(),
+        selected_k,
+        sample_count: usize_to_u32_saturating(rows.len()),
+        joined_sample_count: usize_to_u32_saturating(rows.len()),
+        population_count,
+        cluster_headers,
+        population_ids,
+        rows,
+    })
+}
+
+/// Summarize normalized population-structure metrics against governed sample metadata.
+///
+/// # Errors
+/// Returns an error when normalized metrics cannot be joined to sample metadata.
+pub fn summarize_vcf_population_structure_output_truth(
+    metrics: &serde_json::Value,
+    sample_metadata_path: &Path,
+) -> Result<VcfPopulationStructureOutputTruthSummaryV1> {
+    let stage_id = json_required_string(metrics, "stage_id")?;
+    let tool_id = json_required_string(metrics, "tool_id")?;
+    let metadata_rows = parse_population_metadata_rows(sample_metadata_path)?;
+    let metadata_by_sample =
+        metadata_rows.iter().map(|row| (row.sample_id.as_str(), row)).collect::<BTreeMap<_, _>>();
+    let metric_rows = json_required_array(metrics, "sample_groups")?;
+    let sample_groups = metric_rows
+        .iter()
+        .map(|row| {
+            let sample_id = json_required_string(row, "sample_id")?;
+            let population_id = json_required_string(row, "population_id")?;
+            let metadata = metadata_by_sample.get(sample_id.as_str()).ok_or_else(|| {
+                anyhow!(
+                    "population-structure metrics sample `{sample_id}` is missing from metadata `{}`",
+                    sample_metadata_path.display()
+                )
+            })?;
+            if population_id != metadata.population_id {
+                return Err(anyhow!(
+                    "population-structure metrics sample `{sample_id}` population drifted: metrics=`{population_id}`, metadata=`{}`",
+                    metadata.population_id
+                ));
+            }
+            Ok(VcfPopulationStructureOutputTruthRowV1 {
+                sample_id,
+                population_id,
+                sex: metadata.sex.clone(),
+                role: metadata.role.clone(),
+                dominant_cluster: json_required_string(row, "dominant_cluster")?,
+                dominant_fraction: json_required_f64(row, "dominant_fraction")?,
+                pc1: json_required_f64(row, "pc1")?,
+                pc2: json_required_f64(row, "pc2")?,
+                status: json_required_string(row, "status")?,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let pairwise_distances = build_population_distance_rows_from_structure(&sample_groups)?;
+    let (
+        within_population_pair_count,
+        cross_population_pair_count,
+        min_pc_distance,
+        max_pc_distance,
+        mean_pc_distance,
+    ) = summarize_population_distance_rows(&pairwise_distances);
+    let population_ids =
+        collect_population_ids(sample_groups.iter().map(|row| row.population_id.as_str()));
+
+    Ok(VcfPopulationStructureOutputTruthSummaryV1 {
+        schema_version: VCF_POPULATION_STRUCTURE_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id,
+        tool_id,
+        sample_metadata_path: sample_metadata_path.to_path_buf(),
+        sample_count: usize_to_u32_saturating(sample_groups.len()),
+        joined_sample_count: usize_to_u32_saturating(sample_groups.len()),
+        pair_count: pairwise_distances.len() as u64,
+        within_population_pair_count,
+        cross_population_pair_count,
+        min_pc_distance,
+        max_pc_distance,
+        mean_pc_distance,
+        population_ids,
+        sample_groups,
+        pairwise_distances,
+    })
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct ImputedTruthComparison {
     masked_truth_site_count: u64,
@@ -1330,6 +1672,179 @@ fn parse_record_info_metric(info: &str, key: &str) -> Option<f64> {
             None
         }
     })
+}
+
+fn parse_population_metadata_rows(path: &Path) -> Result<Vec<PopulationMetadataRow>> {
+    let raw = fs::read_to_string(path)?;
+    let mut lines = raw.lines();
+    let header =
+        lines.next().ok_or_else(|| anyhow!("population metadata `{}` is empty", path.display()))?;
+    let expected = ["sample_id", "population_id", "sex", "role"];
+    for column in expected {
+        if !header.split('\t').any(|value| value == column) {
+            return Err(anyhow!(
+                "population metadata `{}` is missing required column `{column}`",
+                path.display()
+            ));
+        }
+    }
+    lines
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            let columns = line.split('\t').collect::<Vec<_>>();
+            if columns.len() < 4 {
+                return Err(anyhow!(
+                    "population metadata `{}` contains malformed row `{line}`",
+                    path.display()
+                ));
+            }
+            Ok(PopulationMetadataRow {
+                sample_id: columns[0].to_string(),
+                population_id: columns[1].to_string(),
+                sex: columns[2].to_string(),
+                role: columns[3].to_string(),
+            })
+        })
+        .collect()
+}
+
+fn parse_coordinate_rows(rows: &[serde_json::Value]) -> Result<Vec<CoordinateRow>> {
+    rows.iter()
+        .map(|row| {
+            Ok(CoordinateRow {
+                sample_id: json_required_string(row, "sample_id")?,
+                population_id: json_required_string(row, "population_id")?,
+                pc1: json_required_f64(row, "pc1")?,
+                pc2: json_required_f64(row, "pc2")?,
+            })
+        })
+        .collect()
+}
+
+fn build_population_distance_rows(
+    rows: &[VcfPopulationCoordinateTruthRowV1],
+) -> Result<Vec<VcfPopulationDistanceTruthRowV1>> {
+    let coordinates = rows
+        .iter()
+        .map(|row| CoordinateRow {
+            sample_id: row.sample_id.clone(),
+            population_id: row.population_id.clone(),
+            pc1: row.pc1,
+            pc2: row.pc2,
+        })
+        .collect::<Vec<_>>();
+    build_population_distance_rows_from_coordinates(&coordinates)
+}
+
+fn build_population_distance_rows_from_structure(
+    rows: &[VcfPopulationStructureOutputTruthRowV1],
+) -> Result<Vec<VcfPopulationDistanceTruthRowV1>> {
+    let coordinates = rows
+        .iter()
+        .map(|row| CoordinateRow {
+            sample_id: row.sample_id.clone(),
+            population_id: row.population_id.clone(),
+            pc1: row.pc1,
+            pc2: row.pc2,
+        })
+        .collect::<Vec<_>>();
+    build_population_distance_rows_from_coordinates(&coordinates)
+}
+
+fn build_population_distance_rows_from_coordinates(
+    rows: &[CoordinateRow],
+) -> Result<Vec<VcfPopulationDistanceTruthRowV1>> {
+    let mut distances = Vec::new();
+    for left_index in 0..rows.len() {
+        for right_index in (left_index + 1)..rows.len() {
+            let left = &rows[left_index];
+            let right = &rows[right_index];
+            let delta_pc1 = left.pc1 - right.pc1;
+            let delta_pc2 = left.pc2 - right.pc2;
+            distances.push(VcfPopulationDistanceTruthRowV1 {
+                left_sample_id: left.sample_id.clone(),
+                right_sample_id: right.sample_id.clone(),
+                left_population_id: left.population_id.clone(),
+                right_population_id: right.population_id.clone(),
+                distance: (delta_pc1.powi(2) + delta_pc2.powi(2)).sqrt(),
+            });
+        }
+    }
+    Ok(distances)
+}
+
+fn summarize_population_distance_rows(
+    rows: &[VcfPopulationDistanceTruthRowV1],
+) -> (u64, u64, f64, f64, f64) {
+    let within_population_pair_count =
+        rows.iter().filter(|row| row.left_population_id == row.right_population_id).count() as u64;
+    let cross_population_pair_count = rows.len() as u64 - within_population_pair_count;
+    let min_pc_distance = rows.iter().map(|row| row.distance).reduce(f64::min).unwrap_or(0.0);
+    let max_pc_distance = rows.iter().map(|row| row.distance).reduce(f64::max).unwrap_or(0.0);
+    let mean_pc_distance = if rows.is_empty() {
+        0.0
+    } else {
+        rows.iter().map(|row| row.distance).sum::<f64>() / rows.len() as f64
+    };
+    (
+        within_population_pair_count,
+        cross_population_pair_count,
+        min_pc_distance,
+        max_pc_distance,
+        mean_pc_distance,
+    )
+}
+
+fn dominant_cluster_fraction(
+    cluster_fractions: &BTreeMap<String, f64>,
+    sample_id: &str,
+) -> Result<(String, f64)> {
+    cluster_fractions
+        .iter()
+        .max_by(|left, right| left.1.partial_cmp(right.1).unwrap_or(std::cmp::Ordering::Equal))
+        .map(|(cluster_id, fraction)| (cluster_id.clone(), *fraction))
+        .ok_or_else(|| {
+            anyhow!("admixture metrics sample `{sample_id}` is missing cluster fractions")
+        })
+}
+
+fn collect_population_ids<'a>(population_ids: impl Iterator<Item = &'a str>) -> Vec<String> {
+    let mut values = population_ids.map(str::to_string).collect::<Vec<_>>();
+    values.sort();
+    values.dedup();
+    values
+}
+
+fn json_required_array<'a>(
+    value: &'a serde_json::Value,
+    field: &str,
+) -> Result<&'a Vec<serde_json::Value>> {
+    value
+        .get(field)
+        .and_then(serde_json::Value::as_array)
+        .ok_or_else(|| anyhow!("normalized metrics are missing array field `{field}`"))
+}
+
+fn json_required_string(value: &serde_json::Value, field: &str) -> Result<String> {
+    value
+        .get(field)
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string)
+        .ok_or_else(|| anyhow!("normalized metrics are missing string field `{field}`"))
+}
+
+fn json_required_u64(value: &serde_json::Value, field: &str) -> Result<u64> {
+    value
+        .get(field)
+        .and_then(serde_json::Value::as_u64)
+        .ok_or_else(|| anyhow!("normalized metrics are missing integer field `{field}`"))
+}
+
+fn json_required_f64(value: &serde_json::Value, field: &str) -> Result<f64> {
+    value
+        .get(field)
+        .and_then(serde_json::Value::as_f64)
+        .ok_or_else(|| anyhow!("normalized metrics are missing numeric field `{field}`"))
 }
 
 /// Apply fixture-safe VCF filtering and report explainable retained/removed consequences.
@@ -3226,5 +3741,98 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(summary.masked_truth_mismatch_count, 0);
         assert_eq!(summary.unresolved_count, 0);
         assert_eq!(summary.genotype_concordance, Some(1.0));
+    }
+
+    #[test]
+    fn summarize_vcf_pca_output_truth_joins_coordinates_to_metadata() {
+        let artifact_root =
+            repo_fixture_path("benchmarks/tests/fixtures/bench/parsers/vcf/eigensoft/pca");
+        let metadata = repo_fixture_path(
+            "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv",
+        );
+        let metrics =
+            crate::parse_eigensoft_stage_metrics(crate::VcfDomainStage::Pca, &artifact_root)
+                .expect("parse eigensoft pca metrics");
+
+        let summary = summarize_vcf_pca_output_truth(&metrics, &metadata).expect("summary");
+        assert_eq!(summary.schema_version, VCF_PCA_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "vcf.pca");
+        assert_eq!(summary.tool_id, "eigensoft");
+        assert_eq!(summary.sample_count, 4);
+        assert_eq!(summary.joined_sample_count, 4);
+        assert_eq!(summary.pair_count, 6);
+        assert_eq!(
+            summary.population_ids,
+            vec!["cohort_alpha".to_string(), "cohort_beta".to_string()]
+        );
+        assert_eq!(summary.rows[0].sample_id, "sample_a");
+        assert_eq!(summary.rows[0].sex, "female");
+        assert_eq!(summary.rows[0].role, "cohort");
+        assert_eq!(summary.rows[0].pc1, 0.01);
+        assert_eq!(summary.rows[0].pc2, 0.02);
+        assert_eq!(summary.pairwise_distances[0].left_sample_id, "sample_a");
+        assert_eq!(summary.pairwise_distances[0].right_sample_id, "sample_b");
+        assert_eq!(summary.pairwise_distances[0].distance, 0.01414213562373095);
+    }
+
+    #[test]
+    fn summarize_vcf_admixture_output_truth_tracks_cluster_fractions_with_metadata() {
+        let artifact_root =
+            repo_fixture_path("benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.admixture");
+        let metadata = repo_fixture_path(
+            "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv",
+        );
+        let metrics =
+            crate::parse_plink2_stage_metrics(crate::VcfDomainStage::Admixture, &artifact_root)
+                .expect("parse plink2 admixture metrics");
+
+        let summary = summarize_vcf_admixture_output_truth(&metrics, &metadata).expect("summary");
+        assert_eq!(summary.schema_version, VCF_ADMIXTURE_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "vcf.admixture");
+        assert_eq!(summary.tool_id, "plink2");
+        assert_eq!(summary.selected_k, 2);
+        assert_eq!(summary.sample_count, 4);
+        assert_eq!(summary.joined_sample_count, 4);
+        assert_eq!(summary.population_count, 2);
+        assert_eq!(summary.cluster_headers, vec!["cluster_1".to_string(), "cluster_2".to_string()]);
+        assert_eq!(summary.rows[0].sample_id, "sample_a");
+        assert_eq!(summary.rows[0].dominant_cluster, "cluster_1");
+        assert_eq!(summary.rows[0].dominant_fraction, 1.0);
+        assert_eq!(summary.rows[0].cluster_fractions.get("cluster_2"), Some(&0.0));
+        assert_eq!(summary.rows[2].sample_id, "sample_c");
+        assert_eq!(summary.rows[2].dominant_cluster, "cluster_2");
+        assert_eq!(summary.rows[2].sex, "female");
+    }
+
+    #[test]
+    fn summarize_vcf_population_structure_output_truth_reports_distance_summary() {
+        let artifact_root = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.population_structure",
+        );
+        let metadata = repo_fixture_path(
+            "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv",
+        );
+        let metrics = crate::parse_plink2_stage_metrics(
+            crate::VcfDomainStage::PopulationStructure,
+            &artifact_root,
+        )
+        .expect("parse plink2 population structure metrics");
+
+        let summary =
+            summarize_vcf_population_structure_output_truth(&metrics, &metadata).expect("summary");
+        assert_eq!(summary.schema_version, VCF_POPULATION_STRUCTURE_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "vcf.population_structure");
+        assert_eq!(summary.tool_id, "plink2");
+        assert_eq!(summary.sample_count, 4);
+        assert_eq!(summary.joined_sample_count, 4);
+        assert_eq!(summary.pair_count, 6);
+        assert_eq!(summary.within_population_pair_count, 2);
+        assert_eq!(summary.cross_population_pair_count, 4);
+        assert_eq!(summary.min_pc_distance, 0.01414213562373095);
+        assert_eq!(summary.max_pc_distance, 0.042426406871192854);
+        assert_eq!(summary.mean_pc_distance, 0.023570226039551587);
+        assert_eq!(summary.sample_groups[0].dominant_cluster, "cluster_1");
+        assert_eq!(summary.sample_groups[2].dominant_cluster, "cluster_2");
+        assert_eq!(summary.sample_groups[1].role, "cohort");
     }
 }
