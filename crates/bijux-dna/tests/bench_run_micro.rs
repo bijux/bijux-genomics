@@ -58,6 +58,7 @@ fn bench_run_micro_includes_fastq_family_component() {
     assert_eq!(
         component_ids,
         BTreeSet::from([
+            "amplicon_micro_pipeline",
             "adna_micro_pipeline",
             "bam_micro_smoke_subset",
             "core_germline_micro_pipeline",
@@ -84,6 +85,12 @@ fn bench_run_micro_includes_fastq_family_component() {
             == Some("vcf_micro_smoke_subset")
             && component.get("report_path").and_then(serde_json::Value::as_str)
                 == Some("runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json")
+    }));
+    assert!(components.iter().any(|component| {
+        component.get("component_id").and_then(serde_json::Value::as_str)
+            == Some("amplicon_micro_pipeline")
+            && component.get("report_path").and_then(serde_json::Value::as_str)
+                == Some("runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json")
     }));
     assert!(components.iter().any(|component| {
         component.get("component_id").and_then(serde_json::Value::as_str)
