@@ -475,3 +475,252 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use std::collections::{BTreeMap, BTreeSet};
+
+    use tempfile::tempdir;
+
+    use super::{
+        render_science_truth_sets_complete_from_prerequisites, ScienceTruthSurfaceStatus,
+        BenchmarkFixtureRootValidationReport, BenchmarkFixtureRootValidationRow,
+        CrossDomainSampleConsistencyReport, ScientificAcceptanceThresholdsReport,
+        DEFAULT_SCIENCE_TRUTH_SETS_COMPLETE_PATH, SCIENCE_TRUTH_REQUIREMENTS,
+    };
+    use crate::commands::benchmark::local_corpus_fixture::bam::DEFAULT_CORPUS_01_VCF_COHORT_BAM_MINI_MANIFEST_PATH;
+    use crate::commands::benchmark::local_corpus_fixture::fastq::DEFAULT_CORPUS_01_VCF_COHORT_FASTQ_MINI_MANIFEST_PATH;
+    use crate::commands::benchmark::local_corpus_fixture::vcf::DEFAULT_VCF_MINI_MANIFEST_PATH;
+    use crate::commands::benchmark::local_cross_domain_sample_consistency::{
+        render_cross_domain_sample_consistency, DEFAULT_CROSS_DOMAIN_SAMPLE_CONSISTENCY_PATH,
+    };
+    use crate::commands::benchmark::readiness::scientific_acceptance_thresholds::{
+        render_scientific_acceptance_thresholds, ScientificAcceptanceDirection,
+        ScientificAcceptanceInsufficiencyBehavior, ScientificAcceptancePassRule,
+        ScientificAcceptanceThresholdRow, ScientificAcceptanceToleranceKind,
+        DEFAULT_SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH,
+    };
+    use crate::commands::fixtures::paths::DEFAULT_BENCHMARK_FIXTURE_ROOT;
+    use crate::commands::fixtures::root_validation::validate_benchmark_fixture_root;
+
+    fn repo_root() -> std::path::PathBuf {
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .expect("canonicalize repo root")
+    }
+
+    #[test]
+    fn science_truth_sets_complete_reports_all_governed_science_surfaces() {
+        let repo_root = repo_root();
+        let tempdir = tempdir().expect("create tempdir");
+        let fixture_validation_report = validate_benchmark_fixture_root(
+            &repo_root,
+            &repo_root.join(DEFAULT_BENCHMARK_FIXTURE_ROOT),
+            &tempdir.path().join("fixture-root-validation.json"),
+        )
+        .expect("validate benchmark fixture root");
+        let cross_domain_report = render_cross_domain_sample_consistency(
+            &repo_root,
+            &repo_root.join(DEFAULT_CORPUS_01_VCF_COHORT_FASTQ_MINI_MANIFEST_PATH),
+            &repo_root.join(DEFAULT_CORPUS_01_VCF_COHORT_BAM_MINI_MANIFEST_PATH),
+            &repo_root.join(DEFAULT_VCF_MINI_MANIFEST_PATH),
+            &tempdir.path().join(DEFAULT_CROSS_DOMAIN_SAMPLE_CONSISTENCY_PATH),
+        )
+        .expect("render cross-domain sample consistency");
+        let scientific_acceptance_report = render_scientific_acceptance_thresholds(
+            &repo_root,
+            tempdir.path().join(DEFAULT_SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH),
+        )
+        .expect("render scientific acceptance thresholds");
+
+        let report = render_science_truth_sets_complete_from_prerequisites(
+            &repo_root,
+            tempdir.path().join(DEFAULT_SCIENCE_TRUTH_SETS_COMPLETE_PATH),
+            &fixture_validation_report,
+            &cross_domain_report,
+            &scientific_acceptance_report,
+        )
+        .expect("render science truth gate");
+
+        assert!(report.passes_gate);
+        assert_eq!(report.required_truth_fixture_count, SCIENCE_TRUTH_REQUIREMENTS.len());
+        assert_eq!(report.validated_required_truth_fixture_count, SCIENCE_TRUTH_REQUIREMENTS.len());
+        assert!(report.missing_truth_fixture_ids.is_empty());
+        assert!(report.invalid_truth_fixture_ids.is_empty());
+        assert!(report.missing_acceptance_stage_ids.is_empty());
+        assert_eq!(report.cross_domain_consistency_status, "compatible");
+        assert_eq!(report.science_surface_count, SCIENCE_TRUTH_REQUIREMENTS.len());
+        assert!(
+            report
+                .extra_validated_truth_fixture_ids
+                .contains(&"vcf-mini".to_string())
+        );
+
+        let vcf_genotyping = report
+            .rows
+            .iter()
+            .find(|row| row.surface_id == "vcf_genotyping")
+            .expect("vcf_genotyping row");
+        assert_eq!(
+            vcf_genotyping.acceptance_stage_ids,
+            vec![
+                "vcf.call_pseudohaploid".to_string(),
+                "vcf.call_gl".to_string(),
+                "vcf.gl_propagation".to_string()
+            ]
+        );
+        assert_eq!(vcf_genotyping.accepted_stage_count, 3);
+        assert!(vcf_genotyping.missing_acceptance_stage_ids.is_empty());
+    }
+
+    #[test]
+    fn science_truth_sets_complete_fails_when_acceptance_stage_drops() {
+        let tempdir = tempdir().expect("create tempdir");
+        let repo_root = tempdir.path();
+        let fixture_validation_report = synthetic_fixture_validation_report();
+        let cross_domain_report = synthetic_cross_domain_report();
+        let mut scientific_acceptance_report = synthetic_scientific_acceptance_report();
+        scientific_acceptance_report
+            .rows
+            .retain(|row| row.stage_id != "bam.align");
+        scientific_acceptance_report.row_count = scientific_acceptance_report.rows.len();
+        scientific_acceptance_report.comparable_metric_count =
+            scientific_acceptance_report.rows.len();
+
+        let report = render_science_truth_sets_complete_from_prerequisites(
+            repo_root,
+            tempdir.path().join(DEFAULT_SCIENCE_TRUTH_SETS_COMPLETE_PATH),
+            &fixture_validation_report,
+            &cross_domain_report,
+            &scientific_acceptance_report,
+        )
+        .expect("render synthetic science truth gate");
+
+        assert!(!report.passes_gate);
+        assert!(report.missing_truth_fixture_ids.is_empty());
+        assert!(report.invalid_truth_fixture_ids.is_empty());
+        assert_eq!(report.missing_acceptance_stage_ids, vec!["bam.align".to_string()]);
+
+        let bam_alignment = report
+            .rows
+            .iter()
+            .find(|row| row.surface_id == "bam_alignment")
+            .expect("bam_alignment row");
+        assert_eq!(bam_alignment.status, ScienceTruthSurfaceStatus::Fail);
+        assert_eq!(
+            bam_alignment.missing_acceptance_stage_ids,
+            vec!["bam.align".to_string()]
+        );
+    }
+
+    fn synthetic_fixture_validation_report() -> BenchmarkFixtureRootValidationReport {
+        let rows = SCIENCE_TRUTH_REQUIREMENTS
+            .iter()
+            .map(|requirement| BenchmarkFixtureRootValidationRow {
+                fixture_kind: "expected_truth".to_string(),
+                fixture_id: requirement.truth_fixture_id.to_string(),
+                manifest_path: Some(format!(
+                    "benchmarks/tests/fixtures/science/{}/manifest.toml",
+                    requirement.truth_fixture_id
+                )),
+                detail_path: Some(format!(
+                    "benchmarks/tests/fixtures/science/{}/expected.json",
+                    requirement.truth_fixture_id
+                )),
+                schema_version: Some("synthetic".to_string()),
+                valid: true,
+                detail: "synthetic".to_string(),
+            })
+            .collect::<Vec<_>>();
+        BenchmarkFixtureRootValidationReport {
+            schema_version: "synthetic.fixture_root_validation.v1",
+            output_path: "fixture-root-validation.json".to_string(),
+            root_path: "benchmarks/tests/fixtures".to_string(),
+            required_subroot_count: 4,
+            parser_domain_count: 3,
+            checked_fixture_count: rows.len(),
+            valid_fixture_count: rows.len(),
+            invalid_fixture_count: 0,
+            ok: true,
+            rows,
+        }
+    }
+
+    fn synthetic_cross_domain_report() -> CrossDomainSampleConsistencyReport {
+        CrossDomainSampleConsistencyReport {
+            schema_version: "synthetic.cross_domain_sample_consistency.v1",
+            output_path: "cross-domain-sample-consistency.json".to_string(),
+            fastq_manifest_path: "fastq.toml".to_string(),
+            bam_manifest_path: "bam.toml".to_string(),
+            vcf_manifest_path: "vcf.toml".to_string(),
+            fastq_corpus_id: "corpus-01-fastq".to_string(),
+            bam_corpus_id: "corpus-01-bam".to_string(),
+            vcf_corpus_id: "vcf-mini".to_string(),
+            fastq_reference_id: Some("vcf-mini-reference".to_string()),
+            bam_reference_id: Some("vcf-mini-reference".to_string()),
+            vcf_reference_id: "vcf-mini-reference".to_string(),
+            reference_issues: Vec::new(),
+            sample_ids: Vec::new(),
+            fastq_samples: Vec::new(),
+            bam_samples: Vec::new(),
+            bam_header_samples: Vec::new(),
+            vcf_samples: Vec::new(),
+            metadata_samples: Vec::new(),
+            missing_from_fastq: Vec::new(),
+            extra_in_fastq: Vec::new(),
+            missing_from_bam: Vec::new(),
+            extra_in_bam: Vec::new(),
+            missing_from_bam_headers: Vec::new(),
+            extra_in_bam_headers: Vec::new(),
+            missing_from_metadata: Vec::new(),
+            extra_in_metadata: Vec::new(),
+            source_link_failures: Vec::new(),
+            samples: Vec::new(),
+            status: "compatible".to_string(),
+        }
+    }
+
+    fn synthetic_scientific_acceptance_report() -> ScientificAcceptanceThresholdsReport {
+        let stage_ids = SCIENCE_TRUTH_REQUIREMENTS
+            .iter()
+            .flat_map(|requirement| requirement.acceptance_stage_ids.iter().copied())
+            .collect::<BTreeSet<_>>();
+        let rows = stage_ids
+            .into_iter()
+            .map(|stage_id| ScientificAcceptanceThresholdRow {
+                domain: stage_id.split('.').next().expect("stage domain").to_string(),
+                stage_id: stage_id.to_string(),
+                metric_id: format!("{stage_id}.metric"),
+                metric_name: format!("{stage_id} metric"),
+                unit: None,
+                direction: ScientificAcceptanceDirection::ExactMatchPreferred,
+                tolerance_kind: ScientificAcceptanceToleranceKind::ExactMatch,
+                tolerance_value: 0.0,
+                pass_rule: ScientificAcceptancePassRule::MustMatchReference,
+                insufficiency_behavior:
+                    ScientificAcceptanceInsufficiencyBehavior::RefuseStageComparison,
+                required: true,
+                declaration_origin: "synthetic".to_string(),
+            })
+            .collect::<Vec<_>>();
+        let domain_counts = rows.iter().fold(BTreeMap::<String, usize>::new(), |mut acc, row| {
+            *acc.entry(row.domain.clone()).or_default() += 1;
+            acc
+        });
+        ScientificAcceptanceThresholdsReport {
+            schema_version: "synthetic.scientific_acceptance_thresholds.v1",
+            config_path: "scientific-acceptance-thresholds.toml".to_string(),
+            comparable_metric_count: rows.len(),
+            row_count: rows.len(),
+            domain_counts,
+            direction_counts: BTreeMap::from([("exact_match_preferred".to_string(), rows.len())]),
+            insufficiency_behavior_counts: BTreeMap::from([(
+                "refuse_stage_comparison".to_string(),
+                rows.len(),
+            )]),
+            rows,
+        }
+    }
+}
