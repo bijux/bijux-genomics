@@ -731,7 +731,7 @@ fn stage_domain(stage_id: &str) -> Result<&'static str> {
 }
 
 fn stage_uses_materialize_stage_fallback(stage_id: &str) -> bool {
-    matches!(stage_id, "fastq.report_qc" | "bam.genotyping")
+    matches!(stage_id, "fastq.report_qc" | "bam.align" | "bam.genotyping")
 }
 
 fn companion_argv_output_path(output_path: &Path) -> PathBuf {
