@@ -42,10 +42,10 @@ const EXPECTED_RETAINED_ROW_COUNT: usize = 42;
 const EXPECTED_RETAINED_STAGE_COUNT: usize = 20;
 const EXPECTED_RETAINED_TOOL_COUNT: usize = 16;
 const EXPECTED_ACTIVE_ROW_COUNT: usize = 21;
-const EXPECTED_REMOVED_ROW_COUNT: usize = 22;
+const EXPECTED_REMOVED_ROW_COUNT: usize = 21;
 const EXPECTED_ACTIVE_STAGE_COUNT: usize = 18;
 const EXPECTED_ACTIVE_TOOL_COUNT: usize = 6;
-const EXPECTED_HOST_STAGE_SMOKE_ROW_COUNT: usize = 21;
+const EXPECTED_HOST_STAGE_SMOKE_ROW_COUNT: usize = 20;
 const EXPECTED_CONTAINER_SMOKE_ROW_COUNT: usize = 22;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -201,7 +201,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 );
             }
             Ok(
-                "validated the governed 42-row retained VCF matrix with 20 active bindings across 20 stages"
+                "validated the governed 42-row retained VCF matrix with 21 active bindings across 18 active stages"
                     .to_string(),
             )
         },

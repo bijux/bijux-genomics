@@ -81,7 +81,7 @@ fn bench_readiness_vcf_adapter_output_coverage_writes_governed_tsv_columns() {
             "vcf.phasing",
             "shapeit5",
             "complete",
-            "not_benchmark_ready",
+            "benchmark_ready",
             "phased_vcf=",
             ".tbi"
         ),

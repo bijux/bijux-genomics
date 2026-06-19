@@ -57,7 +57,7 @@ fn bench_validate_vcf_schemas_reports_governed_pass_state() {
     assert_eq!(payload.get("passes_gate"), Some(&serde_json::Value::Bool(true)));
     assert_eq!(payload.get("shared_schema_matches"), Some(&serde_json::Value::Bool(true)));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("required_stage_count").and_then(serde_json::Value::as_u64), Some(17));
+    assert_eq!(payload.get("required_stage_count").and_then(serde_json::Value::as_u64), Some(18));
     assert_eq!(
         payload.get("exact_stage_schema_file_count").and_then(serde_json::Value::as_u64),
         Some(20)

@@ -68,6 +68,15 @@ fn bench_readiness_vcf_local_container_smoke_reports_retained_wrapper_paths() {
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 42);
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.roh")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
+            && row.get("smoke_path_kind").and_then(serde_json::Value::as_str)
+                == Some("host_stage_smoke")
+            && row.get("smoke_runtime").and_then(serde_json::Value::as_str) == Some("host")
+            && row.get("smoke_command").and_then(serde_json::Value::as_str)
+                == Some("bijux-dna bench local run-vcf-roh-smoke --tool-id plink2")
+    }));
 
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.call")

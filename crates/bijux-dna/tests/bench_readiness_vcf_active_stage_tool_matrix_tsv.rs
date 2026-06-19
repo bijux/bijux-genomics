@@ -76,4 +76,7 @@ fn bench_readiness_vcf_active_stage_tool_matrix_writes_governed_tsv_file() {
     assert!(rows.iter().any(|row| {
         row == &"vcf.phasing\teagle\texperimental,planned\tsupported\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.vcf_output\tbijux.schemas.bench.vcf-normalized-metrics.phasing.v1\tremoved_from_scope\tbenchmark_not_ready\tbenchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json\tbinding `vcf.phasing` / `eagle` is retained for a supported stage but remains outside active scope because it is not benchmark ready"
     }));
+    assert!(rows.iter().any(|row| {
+        row == &"vcf.roh\tplink2\texperimental,production\tsupported\tvcf_production_regression\tvcf_cohort\tvcf.adapter.roh\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.roh.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.roh` / `plink2` is part of the governed all-domain active benchmark matrix"
+    }));
 }

@@ -51,10 +51,10 @@ fn bench_readiness_vcf_rendered_commands_report_tracks_canonical_rows() {
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(21));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 20);
+    assert_eq!(rows.len(), 21);
     assert!(rows.iter().all(|row| {
         row.get("benchmark_status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
             && row.get("readiness_kind").and_then(serde_json::Value::as_str)

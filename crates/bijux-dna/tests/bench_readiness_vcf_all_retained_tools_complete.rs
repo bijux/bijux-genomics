@@ -55,21 +55,21 @@ fn bench_readiness_vcf_all_retained_tools_complete_reports_governed_pass_state()
     assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(42));
     assert_eq!(payload.get("retained_stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(payload.get("retained_tool_count").and_then(serde_json::Value::as_u64), Some(16));
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(22));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(17));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(21));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(21));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(18));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(
         payload.get("expected_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(21)
     );
     assert_eq!(
         payload.get("rendered_command_row_count").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(21)
     );
     assert_eq!(
         payload.get("parser_fixture_row_count").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(21)
     );
     assert_eq!(payload.get("local_smoke_row_count").and_then(serde_json::Value::as_u64), Some(42));
     assert_eq!(
@@ -80,7 +80,7 @@ fn bench_readiness_vcf_all_retained_tools_complete_reports_governed_pass_state()
         payload.get("local_smoke_container_row_count").and_then(serde_json::Value::as_u64),
         Some(22)
     );
-    assert_eq!(payload.get("report_map_row_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("report_map_row_count").and_then(serde_json::Value::as_u64), Some(21));
     assert_eq!(payload.get("ok"), Some(&serde_json::Value::Bool(true)));
 
     let checks = payload.get("checks").and_then(serde_json::Value::as_array).expect("checks array");

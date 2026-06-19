@@ -88,6 +88,6 @@ fn bench_validate_all_domain_schemas_reports_benchmark_root_pass_state() {
             && row.get("stage_dir").and_then(serde_json::Value::as_str)
                 == Some("benchmarks/schemas/vcf-normalized-metrics")
             && row.get("stage_count").and_then(serde_json::Value::as_u64) == Some(20)
-            && row.get("required_stage_count").and_then(serde_json::Value::as_u64) == Some(17)
+            && row.get("required_stage_count").and_then(serde_json::Value::as_u64) == Some(18)
     }));
 }

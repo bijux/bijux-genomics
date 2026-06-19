@@ -45,11 +45,11 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf/vcf-report-map.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(17));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(21));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(18));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(6));
-    assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(9));
-    assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(
         payload
             .get("section_counts")
@@ -85,9 +85,16 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
             .and_then(serde_json::Value::as_u64),
         Some(4)
     );
+    assert_eq!(
+        payload
+            .get("section_counts")
+            .and_then(|value| value.get("runs_of_homozygosity"))
+            .and_then(serde_json::Value::as_u64),
+        Some(1)
+    );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 20);
+    assert_eq!(rows.len(), 21);
 
     let call = rows
         .iter()
@@ -219,6 +226,18 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
     assert_eq!(
         imputation_metrics.get("summary_table").and_then(serde_json::Value::as_str),
         Some("imputation_metrics")
+    );
+    let roh = rows
+        .iter()
+        .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.roh"))
+        .expect("vcf.roh row");
+    assert_eq!(
+        roh.get("section_id").and_then(serde_json::Value::as_str),
+        Some("runs_of_homozygosity")
+    );
+    assert_eq!(
+        roh.get("summary_table").and_then(serde_json::Value::as_str),
+        Some("roh_metrics")
     );
 
     let pca = rows

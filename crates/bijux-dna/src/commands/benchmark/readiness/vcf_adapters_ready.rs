@@ -180,7 +180,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_UNDERCOVERED_STAGES_PATH),
             )?;
-            if report.stage_count != 20 || report.undercovered_stage_count != 9 {
+            if report.stage_count != 20 || report.undercovered_stage_count != 10 {
                 bail!(
                     "VCF undercovered-stage report drifted: stage_count={}, undercovered_stage_count={}",
                     report.stage_count,
@@ -191,13 +191,13 @@ pub(crate) fn render_vcf_adapters_ready(
                 report.decision_counts.get("future_not_benchmark_ready").copied().unwrap_or(0);
             let limit_to_specialized_tool =
                 report.decision_counts.get("limit_to_specialized_tool").copied().unwrap_or(0);
-            if future_not_benchmark_ready != 8 || limit_to_specialized_tool != 1 {
+            if future_not_benchmark_ready != 9 || limit_to_specialized_tool != 1 {
                 bail!(
                     "VCF undercovered-stage decisions drifted: future_not_benchmark_ready={future_not_benchmark_ready}, limit_to_specialized_tool={limit_to_specialized_tool}"
                 );
             }
             Ok(
-                "validated 9 governed undercovered VCF stages with explicit future vs specialized decisions"
+                "validated 10 governed undercovered VCF stages with explicit future vs specialized decisions"
                     .to_string(),
             )
         },
@@ -222,7 +222,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 || report
                     .get("benchmark_ready_registry_pair_count")
                     .and_then(serde_json::Value::as_u64)
-                    != Some(16)
+                    != Some(18)
                 || report.get("unregistered_matrix_pair_count").and_then(serde_json::Value::as_u64)
                     != Some(0)
                 || report
@@ -492,7 +492,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 || report.benchmark_ready_row_count != 21
                 || report.benchmark_ready_complete_row_count != 21
                 || report.benchmark_ready_incomplete_row_count != 0
-                || report.complete_row_count != 37
+                || report.complete_row_count != 36
                 || report.incomplete_row_count != 3
             {
                 bail!("VCF adapter output coverage report drifted from the governed completeness contract");
