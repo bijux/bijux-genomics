@@ -61,6 +61,7 @@ fn bench_run_micro_includes_fastq_family_component() {
             "bam_micro_smoke_subset",
             "fastq_micro_smoke_subset",
             "real_smoke_core_subset",
+            "vcf_micro_smoke_subset",
         ])
     );
     assert!(components.iter().any(|component| {
@@ -74,5 +75,11 @@ fn bench_run_micro_includes_fastq_family_component() {
             == Some("bam_micro_smoke_subset")
             && component.get("report_path").and_then(serde_json::Value::as_str)
                 == Some("runs/bench/micro/bam/MICRO_BAM_SUMMARY.json")
+    }));
+    assert!(components.iter().any(|component| {
+        component.get("component_id").and_then(serde_json::Value::as_str)
+            == Some("vcf_micro_smoke_subset")
+            && component.get("report_path").and_then(serde_json::Value::as_str)
+                == Some("runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json")
     }));
 }
