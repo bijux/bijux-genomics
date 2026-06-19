@@ -439,8 +439,8 @@ mod tests {
         assert_eq!(report.config_path, DEFAULT_VCF_STAGE_MATRIX_PATH);
         assert_eq!(report.row_count, 20);
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.supported_stage_count, 8);
-        assert_eq!(report.planned_stage_count, 12);
+        assert_eq!(report.supported_stage_count, 18);
+        assert_eq!(report.planned_stage_count, 2);
     }
 
     #[test]

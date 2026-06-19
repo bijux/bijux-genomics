@@ -261,7 +261,7 @@ mod contracts {
             );
         }
 
-        assert!(admixture_raw.contains("status: \"planned\""));
+        assert!(admixture_raw.contains("status: \"supported\""));
         assert!(admixture_raw.contains("- name: \"admixture_report\""));
         assert!(admixture_raw.contains("required_outputs: [\"admixture_report\"]"));
         assert!(!admixture_raw.contains("- name: \"admixture_out\""));
@@ -313,7 +313,7 @@ mod contracts {
             );
         }
 
-        assert!(roh_raw.contains("status: \"planned\""));
+        assert!(roh_raw.contains("status: \"supported\""));
         assert!(roh_raw.contains("- name: \"roh_report\""));
         assert!(roh_raw.contains("required_outputs: [\"roh_report\"]"));
         assert!(roh_raw.contains("planned_out_of_scope: []"));
