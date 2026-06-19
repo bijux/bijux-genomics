@@ -2,10 +2,10 @@
   "schema_version": "bijux.bench.local_micro_benchmark_run.v1",
   "manifest_path": "runs/bench/micro/MICRO_BENCHMARK_RUN.json",
   "run_root": "runs/bench/micro",
-  "run_id": "micro-benchmark-99978463f35d",
-  "repo_revision": "61653a3ba2ffd5cf4aae5ca6e15f0b9296074363",
+  "run_id": "micro-benchmark-ce1688fcdb16",
+  "repo_revision": "2e89c17fb5b46d2e8af553aed9c5f76bc1c499f1",
   "worktree_dirty": false,
-  "created_at_unix": 1781833744,
+  "created_at_unix": 1781833875,
   "command": "bijux-dna bench run-micro",
   "component_reports": [
     {
