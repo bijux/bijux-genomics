@@ -18,20 +18,11 @@
     "source": "bam_micro_smoke_subset"
   },
   {
-    "execution_id": "bam.coverage",
-    "component_id": "bam_micro_smoke_subset",
-    "artifact_id": "evidence",
-    "role": "family_evidence",
-    "path": "runs/bench/local-smoke/bam.coverage/coverage.tsv",
-    "exists": true,
-    "source": "bam_micro_smoke_subset"
-  },
-  {
     "execution_id": "bam.damage_authenticity",
     "component_id": "bam_micro_smoke_subset",
     "artifact_id": "evidence",
     "role": "family_evidence",
-    "path": "runs/bench/local-smoke/bam.damage/damage.json",
+    "path": "runs/bench/local-smoke/bam.authenticity/authenticity.json",
     "exists": true,
     "source": "bam_micro_smoke_subset"
   },

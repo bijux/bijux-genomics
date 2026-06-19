@@ -2,10 +2,10 @@
   "schema_version": "bijux.bench.local_micro_benchmark_run.v1",
   "manifest_path": "runs/bench/micro/MICRO_BENCHMARK_RUN.json",
   "run_root": "runs/bench/micro",
-  "run_id": "micro-benchmark-598fc9e7b826",
-  "repo_revision": "933019d2aa4189ba63512eaf8addcb6130d80b56",
+  "run_id": "micro-benchmark-00eeb6ba7f6a",
+  "repo_revision": "b2a450d69999f7fda8bcee05f53b0d5a5e9a5576",
   "worktree_dirty": false,
-  "created_at_unix": 1781839341,
+  "created_at_unix": 1781842561,
   "command": "bijux-dna bench run-micro",
   "component_reports": [
     {
@@ -20,7 +20,7 @@
     },
     {
       "component_id": "bam_micro_smoke_subset",
-      "report_path": "runs/bench/micro/bam/BAM_MICRO_SMOKE_SUMMARY.json",
+      "report_path": "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json",
       "row_count": 12
     }
   ],
@@ -29,7 +29,7 @@
   "log_rows_path": "runs/bench/micro/logs/MICRO_LOG_ROWS.json",
   "normalized_metrics_path": "runs/bench/micro/normalized-metrics/MICRO_NORMALIZED_METRICS.json",
   "result_row_count": 29,
-  "output_row_count": 30,
+  "output_row_count": 29,
   "log_row_count": 1,
   "normalized_metric_row_count": 19,
   "passes_behavior_test": true
