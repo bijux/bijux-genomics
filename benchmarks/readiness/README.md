@@ -4,6 +4,7 @@ This directory stores tracked deterministic benchmark readiness proof, including
 `.tsv`, and report artifacts that must survive deleting disposable local roots such as `target/`.
 
 Deterministic local-ready proof now lives under `benchmarks/readiness/local-ready/`.
+Micro-benchmark execution proof now lives under `benchmarks/readiness/micro/`.
 All-domain retained-tool proof now lives under `benchmarks/readiness/all-domains/`.
 VCF retained-binding scope proof now lives under `benchmarks/readiness/vcf/`.
 Disposable-root cleanup proof now lives under `benchmarks/readiness/path-cleanup/`.

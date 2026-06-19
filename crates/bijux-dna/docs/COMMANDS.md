@@ -377,6 +377,14 @@ Visible aliases are part of the operator surface:
   failures, missing-results, comparable-metrics, and unsupported-pairs sections from the
   governed source surfaces. The command fail-closes unless the report row count stays equal to
   the expected-result table count plus the explicit unsupported rows.
+- `bijux-dna bench readiness render-micro-benchmark-execution-ready`
+  `render-micro-benchmark-execution-ready` writes
+  `benchmarks/readiness/micro/MICRO_BENCHMARK_EXECUTION_READY.json`. It reruns the governed
+  `bench run-micro` slice, reloads the retained FASTQ, BAM, and VCF family summaries plus the
+  governed core germline, aDNA, eDNA, and amplicon pipeline summaries, and fail-closes unless
+  Goals 471–479 still pass. The gate keeps one explicit row per micro goal and one explicit
+  representative-coverage row per major domain or pipeline family, so unavailable rows remain
+  visible while failed, missing, or insufficient micro evidence cannot quietly pass.
 - `bijux-dna bench readiness render-operational-benchmark-ready`
   `render-operational-benchmark-ready` writes
   `benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json`. It reruns the
