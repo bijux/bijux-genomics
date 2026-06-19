@@ -339,7 +339,7 @@ mod tests {
 
         let error = ensure_path_stays_within_benchmark_runs_root(
             repo_root,
-            Path::new("runs/bench/slurm-dry-run"),
+            Path::new("benchmarks/readiness/local-ready"),
             "slurm dry-run output",
         )
         .expect_err("path outside runs root should be rejected");

@@ -703,6 +703,10 @@ mod tests {
         write_text(&root.join("benchmarks/schemas/README.md"), "# Benchmark Schemas\n");
         write_text(&root.join("benchmarks/tests/README.md"), "# Benchmark Tests\n");
         write_text(&root.join("benchmarks/readiness/README.md"), "# Benchmark Readiness\n");
+        write_text(
+            &root.join("benchmarks/readiness/local-ready/README.md"),
+            "# Local Benchmark Ready\n",
+        );
         write_text(&root.join("tests/README.md"), "# Root Tests\n");
         std::fs::create_dir_all(root.join("tests")).expect("create tests root");
         #[cfg(unix)]
@@ -734,9 +738,9 @@ mod tests {
         .expect("validate benchmark paths");
 
         assert!(report.ok);
-        assert_eq!(report.root_count, 5);
-        assert_eq!(report.existing_root_count, 5);
-        assert_eq!(report.tracked_marker_count, 5);
+        assert_eq!(report.root_count, 6);
+        assert_eq!(report.existing_root_count, 6);
+        assert_eq!(report.tracked_marker_count, 6);
         assert_eq!(report.ignored_root_count, 0);
         assert_eq!(report.readiness_snapshot_count, 2);
         assert_eq!(report.readiness_json_snapshot_count, 1);
