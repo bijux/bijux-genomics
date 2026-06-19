@@ -2000,6 +2000,16 @@ Visible aliases are part of the operator surface:
   parsed evidence path, normalized metrics, and validated `stage-result.json` identity where a
   manifest-backed real execution exists, so the all-domain harness keeps at least one non-fake
   execution slice grounded in real outputs.
+- `bijux-dna bench local run-amplicon-micro-pipeline`
+  `run-amplicon-micro-pipeline` writes
+  `runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json` and validates one governed
+  amplicon-only FASTQ slice for `amplicon-asv-otu-no-vcf`. The report keeps eight stage rows and
+  13 exact-path handoff checks across corpus validation, truth-bundle validation, primer
+  normalization, ASV inference, chimera removal, OTU clustering, abundance normalization, and the
+  final amplicon-output judgment. The judgment row refuses completion unless primer metrics stay
+  self-consistent, ASV and OTU representatives match the governed truth bundle, chimera rows stay
+  explicit, and both the OTU abundance table and normalized abundance table match governed
+  expectations, so the proof cannot pass on file existence alone.
 - `bijux-dna bench local run-adna-micro-pipeline`
   `run-adna-micro-pipeline` writes
   `runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json` and executes one governed local
