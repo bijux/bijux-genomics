@@ -21,6 +21,7 @@ COVERAGE_OUT = coverage.json
 DEV_DNA_BIN ?= $(CARGO_TARGET_DIR)/debug/bijux-dna-dev
 DEV_DNA_BOOTSTRAP ?= makes/bin/dev_dna_bootstrap.sh
 RUST_GATE_BIN ?= makes/bin/rust_gate.sh
+TEST_ALL_FROZEN_BIN ?= makes/bin/test_all_frozen.sh
 RS_ARTIFACT_ROOT ?= $(ARTIFACT_ROOT)/rust
 RS_RUN_ID ?= local
 RS_TARGET_DIR ?= $(abspath $(RS_ARTIFACT_ROOT)/target)
@@ -192,6 +193,10 @@ test-all: ## Run the full Rust suite, including ignored tests.
 test-all-rs: ## Run the full Rust suite, including ignored and long-running tests.
 	@$(ensure_artifact_env)
 	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_TARGET_DIR="$(RS_TARGET_DIR)" RS_NEXTEST_CACHE_DIR="$(RS_NEXTEST_CACHE_DIR)" RS_NEXTEST_CONFIG_HOME="$(RS_NEXTEST_CONFIG_HOME)" RS_PROFRAW_DIR="$(RS_PROFRAW_DIR)" RS_LLVM_PROFILE_FILE="$(RS_LLVM_PROFILE_FILE)" RS_TEST_ALL_REPORT="$(RS_TEST_ALL_REPORT)" NEXTEST_CONFIG_FILE="$(NEXTEST_TOML)" NEXTEST_PROFILE_ALL="$(NEXTEST_PROFILE_ALL)" NEXTEST_STATUS_LEVEL="$(NEXTEST_STATUS_LEVEL)" NEXTEST_FINAL_STATUS_LEVEL="$(NEXTEST_FINAL_STATUS_LEVEL)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" test-all
+
+test-all-frozen: ## Start a detached background full-suite run for a frozen commit and write artifacts under artifacts/<sha>/.
+	@$(ensure_artifact_env)
+	@"$(TEST_ALL_FROZEN_BIN)"
 
 _test:
 	@$(ensure_artifact_env)
@@ -487,7 +492,7 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@cargo run -q -p bijux-dna-dev -- assets run refresh-golden
 
-.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs audit audit-rs coverage coverage-rs coverage-workspace ci doctor _check _verify-artifact-env \
+.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs test-all-frozen audit audit-rs coverage coverage-rs coverage-workspace ci doctor _check _verify-artifact-env \
 		_clean-artifact-scratch \
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \

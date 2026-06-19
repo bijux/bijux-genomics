@@ -7,6 +7,7 @@ Public targets (stable contract):
 - `test`
 - `test-slow`
 - `test-all`
+- `test-all-frozen`
 - `coverage`
 - `ci`
 - `doctor`
@@ -35,6 +36,7 @@ Target -> implementation mapping (no hidden magic):
 - `test` -> `makes/bin/rust_gate.sh test`
 - `test-slow` -> `makes/bin/rust_gate.sh test-slow`
 - `test-all` -> `makes/bin/rust_gate.sh test-all`
+- `test-all-frozen` -> `makes/bin/test_all_frozen.sh`
 - `coverage` -> `makes/bin/rust_gate.sh coverage`
 - `doctor` -> `cargo run -q -p bijux-dna-dev -- tooling run repo-doctor --fast` + fast parity checks
 - `release-gate` -> docs + root layout + registry lock + container version lock/authority checks
@@ -46,6 +48,7 @@ Target -> implementation mapping (no hidden magic):
 
 Rust gate artifact layout:
 - fast Rust gates write under `artifacts/rust/`
+- `make test-all-frozen` starts `make test-all` in a detached worktree for `TEST_ALL_FROZEN_REF` (default `HEAD`) and writes the frozen run under `artifacts/<sha>/`
 - `make lint` is the fast product-crate clippy lane and excludes `bijux-dna-dev`
 - workspace governance checks remain available through `make lint-workspace`
 - `make test` is the fast Rust lane: it excludes `slow__` tests and enforces a 10-second per-test budget
