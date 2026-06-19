@@ -6,10 +6,8 @@ repo_name="$(basename "${repo_root}")"
 frozen_ref="${TEST_ALL_FROZEN_REF:-HEAD}"
 full_sha="$(git -C "${repo_root}" rev-parse "${frozen_ref}")"
 short_sha="$(git -C "${repo_root}" rev-parse --short=9 "${full_sha}")"
-workspace_root="$(cd "${repo_root}/.." && pwd)"
-worktree_root="${TEST_ALL_FROZEN_WORKTREE_ROOT:-${workspace_root}/.bijux-worktrees/${repo_name}}"
-worktree_dir="${worktree_root}/${short_sha}"
 artifact_root="${repo_root}/artifacts/${short_sha}"
+frozen_repo_dir="${artifact_root}/frozen-repo"
 rs_artifact_root="${artifact_root}/rust"
 background_dir="${artifact_root}/background"
 console_log="${background_dir}/test-all.console.log"
@@ -36,7 +34,7 @@ require_tool bash
 require_tool python3
 
 mkdir -p \
-  "${worktree_root}" \
+  "${artifact_root}" \
   "${background_dir}" \
   "${artifact_target_dir}" \
   "${artifact_cargo_home}" \
@@ -53,24 +51,25 @@ if [ -f "${pid_file}" ]; then
   fi
 fi
 
-if [ -d "${worktree_dir}" ]; then
-  if ! git -C "${worktree_dir}" rev-parse --show-toplevel >/dev/null 2>&1; then
-    echo "existing path is not a git worktree: ${worktree_dir}" >&2
+if [ -d "${frozen_repo_dir}" ]; then
+  if ! git -C "${frozen_repo_dir}" rev-parse --show-toplevel >/dev/null 2>&1; then
+    echo "existing path is not a git repository: ${frozen_repo_dir}" >&2
     exit 1
   fi
 
-  worktree_sha="$(git -C "${worktree_dir}" rev-parse HEAD)"
-  if [ "${worktree_sha}" != "${full_sha}" ]; then
-    echo "existing worktree points to ${worktree_sha}, expected ${full_sha}: ${worktree_dir}" >&2
+  frozen_repo_sha="$(git -C "${frozen_repo_dir}" rev-parse HEAD)"
+  if [ "${frozen_repo_sha}" != "${full_sha}" ]; then
+    echo "existing frozen repo points to ${frozen_repo_sha}, expected ${full_sha}: ${frozen_repo_dir}" >&2
     exit 1
   fi
 
-  if [ -n "$(git -C "${worktree_dir}" status --short)" ]; then
-    echo "existing worktree is dirty: ${worktree_dir}" >&2
+  if [ -n "$(git -C "${frozen_repo_dir}" status --short)" ]; then
+    echo "existing frozen repo is dirty: ${frozen_repo_dir}" >&2
     exit 1
   fi
 else
-  git -C "${repo_root}" worktree add --detach "${worktree_dir}" "${full_sha}" >/dev/null
+  git clone --shared --no-checkout --quiet "${repo_root}" "${frozen_repo_dir}"
+  git -C "${frozen_repo_dir}" checkout --detach --force "${full_sha}" >/dev/null
 fi
 
 cat >"${meta_file}" <<EOF
@@ -78,7 +77,8 @@ ref=${frozen_ref}
 commit=${full_sha}
 short_commit=${short_sha}
 repo_root=${repo_root}
-worktree=${worktree_dir}
+repo_name=${repo_name}
+frozen_repo=${frozen_repo_dir}
 artifact_root=${artifact_root}
 artifact_target_dir=${artifact_target_dir}
 artifact_cargo_home=${artifact_cargo_home}
@@ -95,7 +95,7 @@ cat >"${launcher_file}" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "${worktree_dir}"
+cd "${frozen_repo_dir}"
 
 export ARTIFACT_ROOT="${artifact_root}"
 export ARTIFACT_TARGET_DIR="${artifact_target_dir}"
@@ -111,7 +111,7 @@ export RS_ARTIFACT_ROOT="${rs_artifact_root}"
 export RS_RUN_ID="${short_sha}"
 
 printf '%s\n' "frozen test-all start: ${short_sha}"
-printf '%s\n' "worktree: ${worktree_dir}"
+printf '%s\n' "frozen repo: ${frozen_repo_dir}"
 printf '%s\n' "artifact root: ${artifact_root}"
 printf '%s\n' "cargo target dir: ${artifact_target_dir}"
 printf '%s\n' "nextest report: ${nextest_report}"
@@ -128,7 +128,7 @@ EOF
 chmod +x "${launcher_file}"
 
 (
-  cd "${worktree_dir}"
+  cd "${frozen_repo_dir}"
   background_pid="$(
     python3 - "${launcher_file}" "${console_log}" <<'PY'
 import subprocess
@@ -157,7 +157,7 @@ background_pid="$(cat "${pid_file}")"
 printf '%s\n' "started background test-all for ${short_sha}"
 printf '%s\n' "ref: ${frozen_ref}"
 printf '%s\n' "commit: ${full_sha}"
-printf '%s\n' "worktree: ${worktree_dir}"
+printf '%s\n' "frozen repo: ${frozen_repo_dir}"
 printf '%s\n' "artifact root: ${artifact_root}"
 printf '%s\n' "console log: ${console_log}"
 printf '%s\n' "nextest report: ${nextest_report}"

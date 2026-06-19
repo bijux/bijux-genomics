@@ -48,7 +48,8 @@ Target -> implementation mapping (no hidden magic):
 
 Rust gate artifact layout:
 - fast Rust gates write under `artifacts/rust/`
-- `make test-all-frozen` starts `make test-all` in a detached worktree for `TEST_ALL_FROZEN_REF` (default `HEAD`) and writes the frozen run under `artifacts/<sha>/`
+- `make test-all-frozen` starts `make test-all` from a frozen checkout for `TEST_ALL_FROZEN_REF` (default `HEAD`) and writes the run under `artifacts/<sha>/`
+- `make test-all-frozen` materializes the exact source snapshot under `artifacts/<sha>/frozen-repo/` so reports and code stay pinned to the same commit
 - `make test-all-frozen` isolates cargo state under `artifacts/<sha>/target`, `artifacts/<sha>/cargo/home`, and `artifacts/<sha>/tmp`
 - `make test-all-frozen` records launcher state under `artifacts/<sha>/background/`, including `test-all.console.log`, `test-all.pid`, and `test-all.exit.status`
 - `make lint` is the fast product-crate clippy lane and excludes `bijux-dna-dev`
