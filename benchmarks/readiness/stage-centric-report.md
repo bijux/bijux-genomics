@@ -4,31 +4,31 @@
 
 - Stage count: 51
 - Multi-tool stages: 29
-- Stage-tool rows: 122
-- Benchmark-ready rows: 118
-- Blocked rows: 4
-- Stages with blockers: 3
+- Stage-tool rows: 120
+- Benchmark-ready rows: 120
+- Blocked rows: 0
+- Stages with blockers: 0
 
 | Domain | Stage | Report section | Tools | Ready | Blocked | Shared metrics | Blocked tools |
 | --- | --- | --- | ---: | ---: | ---: | --- | --- |
 | bam | bam.align | Alignment Intake | 2 | 2 | 0 | mapped_reads, alignment_rate | none |
-| bam | bam.validate | Alignment Intake | 3 | 3 | 0 | validation_status, validation_errors, validation_warnings, input_bam_identity | none |
-| bam | bam.qc_pre | Alignment Intake | 2 | 2 | 0 | total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads, contig_summary | none |
+| bam | bam.validate | Alignment Intake | 3 | 3 | 0 | validation_status, validation_errors, validation_warnings | none |
+| bam | bam.qc_pre | Alignment Intake | 2 | 2 | 0 | total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads | none |
 | bam | bam.mapping_summary | Alignment Intake | 2 | 2 | 0 | mapping_fraction, mapped_reads, unmapped_reads, secondary_reads, supplementary_reads | none |
-| bam | bam.filter | Alignment Refinement | 3 | 3 | 0 | input_reads, kept_reads, removed_reads, active_filters | none |
-| bam | bam.mapq_filter | Alignment Refinement | 2 | 2 | 0 | mapq_threshold, kept_reads, removed_reads, filtered_bam | none |
-| bam | bam.length_filter | Alignment Refinement | 2 | 2 | 0 | min_length_threshold, kept_reads, removed_reads, filtered_bam | none |
-| bam | bam.markdup | Library Complexity | 2 | 2 | 0 | marked_bam, duplicate_metrics, duplicate_count, duplicate_fraction | none |
+| bam | bam.filter | Alignment Refinement | 3 | 3 | 0 | input_reads, kept_reads, removed_reads | none |
+| bam | bam.mapq_filter | Alignment Refinement | 2 | 2 | 0 | mapq_threshold, kept_reads, removed_reads | none |
+| bam | bam.length_filter | Alignment Refinement | 2 | 2 | 0 | min_length_threshold, kept_reads, removed_reads | none |
+| bam | bam.markdup | Library Complexity | 2 | 2 | 0 | duplicate_count, duplicate_fraction | none |
 | bam | bam.duplication_metrics | Library Complexity | 2 | 2 | 0 | duplicate_count, duplicate_fraction, estimated_library_size | none |
 | bam | bam.complexity | Library Complexity | 1 | 1 | 0 | not_applicable | none |
-| bam | bam.coverage | Coverage and Quality | 3 | 3 | 0 | mean_depth, breadth_1x, covered_bases, observed_region_count, region_ids | none |
+| bam | bam.coverage | Coverage and Quality | 3 | 3 | 0 | mean_depth, breadth_1x, covered_bases | none |
 | bam | bam.insert_size | Coverage and Quality | 1 | 1 | 0 | not_applicable | none |
 | bam | bam.gc_bias | Coverage and Quality | 1 | 1 | 0 | not_applicable | none |
 | bam | bam.endogenous_content | Coverage and Quality | 1 | 1 | 0 | not_applicable | none |
 | bam | bam.overlap_correction | Alignment Refinement | 1 | 1 | 0 | not_applicable | none |
-| bam | bam.damage | Ancient Signal | 6 | 6 | 0 | terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb | none |
-| bam | bam.authenticity | Ancient Signal | 3 | 3 | 0 | score, confidence, pmd_like_signal_present, consumed_metric_ids, missing_metric_ids | none |
-| bam | bam.contamination | Ancient Signal | 3 | 3 | 0 | scope, prerequisites_passed, estimate, ci_low, ci_high | none |
+| bam | bam.damage | Ancient Signal | 6 | 6 | 0 | terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal | none |
+| bam | bam.authenticity | Ancient Signal | 3 | 3 | 0 | score, confidence, status, pmd_like_signal_present | none |
+| bam | bam.contamination | Ancient Signal | 3 | 3 | 0 | estimate, ci_low, ci_high | none |
 | bam | bam.sex | Sample Identity | 3 | 3 | 0 | x_coverage, y_coverage, autosomal_coverage, call, confidence, status | none |
 | bam | bam.bias_mitigation | Downstream Readiness | 1 | 1 | 0 | not_applicable | none |
 | bam | bam.recalibration | Downstream Readiness | 1 | 1 | 0 | not_applicable | none |
@@ -43,13 +43,13 @@
 | fastq | fastq.trim_terminal_damage | Read Cleanup | 3 | 3 | 0 | not_declared | none |
 | fastq | fastq.normalize_primers | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.trim_polyg_tails | Read Cleanup | 2 | 2 | 0 | not_declared | none |
-| fastq | fastq.trim_reads | Read Cleanup | 14 | 13 | 1 | not_declared | seqpurge (support) |
+| fastq | fastq.trim_reads | Read Cleanup | 13 | 13 | 0 | not_declared | none |
 | fastq | fastq.filter_reads | Read Cleanup | 4 | 4 | 0 | not_declared | none |
 | fastq | fastq.profile_reads | Quality Profiling | 3 | 3 | 0 | not_declared | none |
 | fastq | fastq.deplete_rrna | Contamination Screening | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.merge_pairs | Read Cleanup | 6 | 6 | 0 | not_declared | none |
 | fastq | fastq.remove_duplicates | Read Cleanup | 2 | 2 | 0 | not_declared | none |
-| fastq | fastq.filter_low_complexity | Read Cleanup | 4 | 2 | 2 | not_declared | dustmasker (support), fastp (support) |
+| fastq | fastq.filter_low_complexity | Read Cleanup | 3 | 3 | 0 | not_declared | none |
 | fastq | fastq.deplete_host | Contamination Screening | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.deplete_reference_contaminants | Contamination Screening | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.correct_errors | Read Cleanup | 4 | 4 | 0 | not_declared | none |
@@ -60,7 +60,7 @@
 | fastq | fastq.cluster_otus | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.normalize_abundance | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.screen_taxonomy | Contamination Screening | 4 | 4 | 0 | not_declared | none |
-| fastq | fastq.report_qc | Quality Profiling | 1 | 0 | 1 | not_applicable | multiqc (corpus) |
+| fastq | fastq.report_qc | Quality Profiling | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.index_reference | Reference Preparation | 2 | 2 | 0 | index_build_exit_code | none |
 
 ## bam.align
@@ -90,7 +90,7 @@
 - Ready tools: 3
 - Blocked tools: 0
 - Shared metric contract: declared
-- Shared metrics: validation_status, validation_errors, validation_warnings, input_bam_identity
+- Shared metrics: validation_status, validation_errors, validation_warnings
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -108,7 +108,7 @@
 - Ready tools: 2
 - Blocked tools: 0
 - Shared metric contract: declared
-- Shared metrics: total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads, contig_summary
+- Shared metrics: total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -142,7 +142,7 @@
 - Ready tools: 3
 - Blocked tools: 0
 - Shared metric contract: declared
-- Shared metrics: input_reads, kept_reads, removed_reads, active_filters
+- Shared metrics: input_reads, kept_reads, removed_reads
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -160,7 +160,7 @@
 - Ready tools: 2
 - Blocked tools: 0
 - Shared metric contract: declared
-- Shared metrics: mapq_threshold, kept_reads, removed_reads, filtered_bam
+- Shared metrics: mapq_threshold, kept_reads, removed_reads
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -177,7 +177,7 @@
 - Ready tools: 2
 - Blocked tools: 0
 - Shared metric contract: declared
-- Shared metrics: min_length_threshold, kept_reads, removed_reads, filtered_bam
+- Shared metrics: min_length_threshold, kept_reads, removed_reads
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -194,7 +194,7 @@
 - Ready tools: 2
 - Blocked tools: 0
 - Shared metric contract: declared
-- Shared metrics: marked_bam, duplicate_metrics, duplicate_count, duplicate_fraction
+- Shared metrics: duplicate_count, duplicate_fraction
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -244,7 +244,7 @@
 - Ready tools: 3
 - Blocked tools: 0
 - Shared metric contract: declared
-- Shared metrics: mean_depth, breadth_1x, covered_bases, observed_region_count, region_ids
+- Shared metrics: mean_depth, breadth_1x, covered_bases
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -326,7 +326,7 @@
 - Ready tools: 6
 - Blocked tools: 0
 - Shared metric contract: declared
-- Shared metrics: terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb
+- Shared metrics: terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -347,7 +347,7 @@
 - Ready tools: 3
 - Blocked tools: 0
 - Shared metric contract: declared
-- Shared metrics: score, confidence, pmd_like_signal_present, consumed_metric_ids, missing_metric_ids
+- Shared metrics: score, confidence, status, pmd_like_signal_present
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -365,7 +365,7 @@
 - Ready tools: 3
 - Blocked tools: 0
 - Shared metric contract: declared
-- Shared metrics: scope, prerequisites_passed, estimate, ci_low, ci_high
+- Shared metrics: estimate, ci_low, ci_high
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -616,9 +616,9 @@
 - Report section: Read Cleanup
 - Summary table: Cleanup and Retention
 - Anchor tool: fastp (supported)
-- Tools: 14
+- Tools: 13
 - Ready tools: 13
-- Blocked tools: 1
+- Blocked tools: 0
 - Shared metric contract: not_declared
 - Shared metrics: none
 
@@ -634,7 +634,6 @@
 | leehom | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 | prinseq | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 | seqkit | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
-| seqpurge | not_benchmark_ready | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |
 | skewer | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 | trim_galore | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 | trimmomatic | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
@@ -736,17 +735,16 @@
 - Report section: Read Cleanup
 - Summary table: Cleanup and Retention
 - Anchor tool: bbduk (supported)
-- Tools: 4
-- Ready tools: 2
-- Blocked tools: 2
+- Tools: 3
+- Ready tools: 3
+- Blocked tools: 0
 - Shared metric contract: not_declared
 - Shared metrics: none
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | bbduk | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
-| dustmasker | not_benchmark_ready | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |
-| fastp | not_benchmark_ready | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |
+| fastp | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 | prinseq | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 
 ## fastq.deplete_host
@@ -924,14 +922,14 @@
 - Summary table: QC Signal Profiles
 - Anchor tool: multiqc (supported)
 - Tools: 1
-- Ready tools: 0
-- Blocked tools: 1
+- Ready tools: 1
+- Blocked tools: 0
 - Shared metric contract: not_applicable
 - Shared metrics: none
 
 | Tool | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| multiqc | not_benchmark_ready | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |
+| multiqc | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |
 
 ## fastq.index_reference
 

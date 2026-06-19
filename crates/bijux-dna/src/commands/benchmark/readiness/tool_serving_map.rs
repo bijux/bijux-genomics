@@ -596,7 +596,7 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "multiqc"
                 && row.stage_id == "fastq.report_qc"
-                && row.corpus_status == "planner_only"
+                && row.corpus_status == "fixture:corpus-01-mini"
         }));
         for tool_id in ["fastq_scan", "fastqc", "seqkit"] {
             assert!(report.rows.iter().any(|row| {

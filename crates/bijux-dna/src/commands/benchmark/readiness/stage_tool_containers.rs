@@ -315,12 +315,12 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_containers.v1");
         assert_eq!(report.config_path, "benchmarks/configs/local/stage-tool-containers.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_runtime_declarations");
-        assert_eq!(report.row_count, 118);
-        assert_eq!(report.benchmark_ready_row_count, 118);
-        assert_eq!(report.external_row_count, 116);
-        assert_eq!(report.container_declared_row_count, 116);
-        assert_eq!(report.command_entrypoint_row_count, 118);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&69));
+        assert_eq!(report.row_count, 120);
+        assert_eq!(report.benchmark_ready_row_count, 120);
+        assert_eq!(report.external_row_count, 118);
+        assert_eq!(report.container_declared_row_count, 118);
+        assert_eq!(report.command_entrypoint_row_count, 120);
+        assert_eq!(report.domain_counts.get("fastq"), Some(&71));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
         assert!(report.rows.iter().all(|row| {
             row.container_id.is_some()
@@ -518,7 +518,7 @@ mod tests {
 
         assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_VERSION);
         assert_eq!(config.classification_scope, STAGE_TOOL_CONTAINERS_SCOPE);
-        assert_eq!(config.rows.len(), 118);
+        assert_eq!(config.rows.len(), 120);
         assert!(config.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()

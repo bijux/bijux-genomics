@@ -468,11 +468,11 @@ mod tests {
         assert_eq!(report.schema_version, MISSING_RESULT_REPORT_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_MISSING_RESULT_REPORT_TEST_PATH);
         assert_eq!(report.fake_result_root, "benchmarks/readiness/missing-result-report-fixture");
-        assert_eq!(report.expected_row_count, 118);
-        assert_eq!(report.present_result_row_count, 117);
+        assert_eq!(report.expected_row_count, 120);
+        assert_eq!(report.present_result_row_count, 119);
         assert_eq!(report.missing_result_row_count, 1);
         assert!(report.passes_behavior_test);
-        assert_eq!(report.domain_counts.get("fastq").copied(), Some(69));
+        assert_eq!(report.domain_counts.get("fastq").copied(), Some(71));
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
 
         let removed_row = report

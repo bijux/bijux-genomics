@@ -407,8 +407,8 @@ mod tests {
         assert_eq!(report.row_count, 23);
         assert_eq!(report.stage_count, 20);
         assert_eq!(report.tool_count, 8);
-        assert_eq!(report.benchmark_ready_row_count, 20);
-        assert_eq!(report.not_benchmark_ready_row_count, 3);
+        assert_eq!(report.benchmark_ready_row_count, 21);
+        assert_eq!(report.not_benchmark_ready_row_count, 2);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "plink2"
                 && row.stage_id == "vcf.admixture"

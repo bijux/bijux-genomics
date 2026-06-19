@@ -605,12 +605,12 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_LOCAL_CONTAINER_SMOKE_SCHEMA_VERSION);
         assert_eq!(report.output_path, "benchmarks/readiness/vcf/vcf-local-container-smoke.tsv");
-        assert_eq!(report.row_count, 42);
+        assert_eq!(report.row_count, 43);
         assert_eq!(report.stage_count, 20);
         assert_eq!(report.tool_count, 16);
-        assert_eq!(report.host_stage_smoke_row_count, 20);
+        assert_eq!(report.host_stage_smoke_row_count, 21);
         assert_eq!(report.container_smoke_row_count, 22);
-        assert_eq!(report.runtime_counts.get("host").copied(), Some(20));
+        assert_eq!(report.runtime_counts.get("host").copied(), Some(21));
         assert_eq!(report.runtime_counts.get("docker-arm64").copied(), Some(21));
         assert_eq!(report.runtime_counts.get("apptainer").copied(), Some(1));
 

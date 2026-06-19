@@ -126,8 +126,8 @@ pub(crate) fn render_vcf_adapters_ready(
             if report.row_count != 23
                 || report.stage_count != 20
                 || report.tool_count != 8
-                || report.benchmark_ready_row_count != 20
-                || report.not_benchmark_ready_row_count != 3
+                || report.benchmark_ready_row_count != 21
+                || report.not_benchmark_ready_row_count != 2
             {
                 bail!(
                     "VCF tool-serving map drifted: rows={}, stages={}, tools={}, benchmark_ready={}, not_benchmark_ready={}",
@@ -140,7 +140,7 @@ pub(crate) fn render_vcf_adapters_ready(
             }
             benchmark_ready_pair_count = report.benchmark_ready_row_count;
             tool_serving_map_report = Some(report);
-            Ok("validated 23 governed VCF stage-tool rows with 20 canonical benchmark-ready pairs"
+            Ok("validated 23 governed VCF stage-tool rows with 21 canonical benchmark-ready pairs"
                 .to_string())
         },
     );
@@ -180,7 +180,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_UNDERCOVERED_STAGES_PATH),
             )?;
-            if report.stage_count != 20 || report.undercovered_stage_count != 10 {
+            if report.stage_count != 20 || report.undercovered_stage_count != 9 {
                 bail!(
                     "VCF undercovered-stage report drifted: stage_count={}, undercovered_stage_count={}",
                     report.stage_count,
@@ -191,13 +191,13 @@ pub(crate) fn render_vcf_adapters_ready(
                 report.decision_counts.get("future_not_benchmark_ready").copied().unwrap_or(0);
             let limit_to_specialized_tool =
                 report.decision_counts.get("limit_to_specialized_tool").copied().unwrap_or(0);
-            if future_not_benchmark_ready != 9 || limit_to_specialized_tool != 1 {
+            if future_not_benchmark_ready != 8 || limit_to_specialized_tool != 1 {
                 bail!(
                     "VCF undercovered-stage decisions drifted: future_not_benchmark_ready={future_not_benchmark_ready}, limit_to_specialized_tool={limit_to_specialized_tool}"
                 );
             }
             Ok(
-                "validated 10 governed undercovered VCF stages with explicit future vs specialized decisions"
+                "validated 9 governed undercovered VCF stages with explicit future vs specialized decisions"
                     .to_string(),
             )
         },
@@ -489,10 +489,10 @@ pub(crate) fn render_vcf_adapters_ready(
                 PathBuf::from(DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH),
             )?;
             if report.row_count != 39
-                || report.benchmark_ready_row_count != 20
-                || report.benchmark_ready_complete_row_count != 20
+                || report.benchmark_ready_row_count != 21
+                || report.benchmark_ready_complete_row_count != 21
                 || report.benchmark_ready_incomplete_row_count != 0
-                || report.complete_row_count != 36
+                || report.complete_row_count != 37
                 || report.incomplete_row_count != 3
             {
                 bail!("VCF adapter output coverage report drifted from the governed completeness contract");

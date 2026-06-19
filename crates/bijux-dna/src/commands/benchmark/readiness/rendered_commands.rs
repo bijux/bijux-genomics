@@ -140,8 +140,8 @@ mod tests {
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.rendered_commands.v1");
         assert_eq!(report.output_path, "benchmarks/readiness/rendered-commands.sh");
-        assert_eq!(report.row_count, 118);
-        assert_eq!(report.rows.len(), 118);
+        assert_eq!(report.row_count, 120);
+        assert_eq!(report.rows.len(), 120);
         assert!(report.rows.iter().all(|row| {
             !row.argv.is_empty()
                 && !row.command.is_empty()

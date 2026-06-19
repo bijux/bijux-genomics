@@ -455,7 +455,7 @@ mod tests {
         assert!(report.rows.iter().any(|row| row.domain == "bam"
             && row.stage_id == "bam.coverage"
             && row.tool_id == "mosdepth"
-            && row.corpus_id == "corpus-01-mini"
+            && row.corpus_id == "corpus-01-bam-mini"
             && row.asset_profile_id == "corpus_only"
             && row.adapter_id == "bam.adapter.coverage"
             && row.parser_id == "bam.parser.coverage"

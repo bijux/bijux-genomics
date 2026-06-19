@@ -321,9 +321,9 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "VCF expected-result table must keep one row per benchmark-ready stage-tool-corpus-asset binding"
         ));
     }
-    if rows.len() != 20 {
+    if rows.len() != 21 {
         return Err(anyhow!(
-            "VCF expected-result table must retain exactly 20 benchmark-ready rows, found {}",
+            "VCF expected-result table must retain exactly 21 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -394,6 +394,15 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "population_structure_report",
             "pair_count",
             "population_structure",
+        ),
+        (
+            "vcf.roh",
+            "plink2",
+            "vcf_production_regression",
+            "vcf_cohort",
+            "roh_report",
+            "segment_count",
+            "runs_of_homozygosity",
         ),
         (
             "vcf.pca",
@@ -520,8 +529,8 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 20);
-        assert_eq!(report.stage_count, 17);
+        assert_eq!(report.row_count, 21);
+        assert_eq!(report.stage_count, 18);
         assert_eq!(report.tool_count, 6);
         assert_eq!(report.corpus_count, 1);
         assert_eq!(report.asset_profile_count, 5);
@@ -529,6 +538,7 @@ mod tests {
         assert_eq!(report.report_section_counts.get("imputation"), Some(&2));
         assert_eq!(report.report_section_counts.get("likelihood_postprocess"), Some(&1));
         assert_eq!(report.report_section_counts.get("population_structure"), Some(&4));
+        assert_eq!(report.report_section_counts.get("runs_of_homozygosity"), Some(&1));
         assert_eq!(report.report_section_counts.get("phasing"), Some(&1));
         assert_eq!(report.report_section_counts.get("variant_calling"), Some(&4));
         assert_eq!(report.report_section_counts.get("quality_control"), Some(&5));
@@ -587,6 +597,14 @@ mod tests {
                 && row.expected_outputs == vec!["population_structure_report".to_string()]
                 && row.expected_metrics.iter().any(|metric| metric == "pair_count")
                 && row.report_section == "population_structure"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.roh"
+                && row.tool_id == "plink2"
+                && row.asset_profile_id == "vcf_cohort"
+                && row.expected_outputs == vec!["roh_report".to_string()]
+                && row.expected_metrics.iter().any(|metric| metric == "segment_count")
+                && row.report_section == "runs_of_homozygosity"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.pca"

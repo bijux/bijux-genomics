@@ -249,9 +249,9 @@ mod tests {
 
         assert_eq!(report.schema_version, FASTQ_PARSER_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 27);
-        assert_eq!(report.tool_count, 44);
-        assert_eq!(report.row_count, 69);
-        assert_eq!(report.parser_covered_row_count, 69);
+        assert_eq!(report.tool_count, 42);
+        assert_eq!(report.row_count, 71);
+        assert_eq!(report.parser_covered_row_count, 71);
         assert_eq!(report.parser_missing_row_count, 0);
         assert_eq!(report.parser_coverage_percent, 100.0);
         assert!(report.rows.iter().all(|row| {

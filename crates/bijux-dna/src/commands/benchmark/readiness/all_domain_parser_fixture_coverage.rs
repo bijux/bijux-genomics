@@ -596,18 +596,18 @@ mod tests {
 
         assert_eq!(report.schema_version, ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_PATH);
-        assert_eq!(report.stage_count, 67);
+        assert_eq!(report.stage_count, 69);
         assert_eq!(report.tool_count, 71);
         assert_eq!(report.parser_proof_binding_count, report.row_count);
         assert_eq!(report.covered_row_count, report.row_count);
         assert_eq!(report.missing_row_count, 0);
         assert_eq!(report.coverage_percent, 100.0);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&69));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&71));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&20));
-        assert_eq!(report.proof_source_counts.get("fastq_parser_fixture_coverage"), Some(&69));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&21));
+        assert_eq!(report.proof_source_counts.get("fastq_parser_fixture_coverage"), Some(&71));
         assert_eq!(report.proof_source_counts.get("bam_parser_fixture_coverage"), Some(&49));
-        assert_eq!(report.proof_source_counts.get("vcf_parser_fixture_coverage"), Some(&20));
+        assert_eq!(report.proof_source_counts.get("vcf_parser_fixture_coverage"), Some(&21));
         assert_eq!(report.proof_source_counts.values().copied().sum::<usize>(), report.row_count);
         assert_eq!(report.coverage_status_counts.get("covered"), Some(&report.row_count));
         assert_eq!(report.violation_count, 0);

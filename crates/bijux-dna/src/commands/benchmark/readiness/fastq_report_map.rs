@@ -705,14 +705,14 @@ mod tests {
         assert_eq!(report.schema_version, FASTQ_REPORT_MAP_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_FASTQ_REPORT_MAP_PATH);
         assert_eq!(report.domain, "fastq");
-        assert_eq!(report.expected_result_row_count, 69);
-        assert_eq!(report.row_count, 69);
-        assert_eq!(report.stage_count, 26);
-        assert_eq!(report.tool_count, 41);
+        assert_eq!(report.expected_result_row_count, 71);
+        assert_eq!(report.row_count, 71);
+        assert_eq!(report.stage_count, 27);
+        assert_eq!(report.tool_count, 42);
         assert_eq!(report.section_count, 6);
         assert_eq!(report.summary_table_count, 7);
-        assert_eq!(report.section_counts.get("quality_profiling"), Some(&13));
-        assert_eq!(report.section_counts.get("read_cleanup"), Some(&37));
+        assert_eq!(report.section_counts.get("quality_profiling"), Some(&14));
+        assert_eq!(report.section_counts.get("read_cleanup"), Some(&38));
         assert_eq!(report.section_counts.get("contamination_screening"), Some(&7));
         assert_eq!(report.section_counts.get("amplicon_interpretation"), Some(&5));
         let expected_result_ids = collect_expected_benchmark_result_rows(&repo_root)

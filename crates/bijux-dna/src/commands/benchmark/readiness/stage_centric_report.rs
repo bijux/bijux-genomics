@@ -310,9 +310,9 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         ));
     }
     let row_count = stages.iter().map(|stage| stage.tool_count).sum::<usize>();
-    if row_count != 122 {
+    if row_count != 120 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 122 stage-tool rows, found {row_count}"
+            "stage-centric report must retain exactly 120 stage-tool rows, found {row_count}"
         ));
     }
     let multi_tool_stage_count = stages.iter().filter(|stage| stage.tool_count > 1).count();
@@ -322,9 +322,9 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         ));
     }
     let blocked_stage_count = stages.iter().filter(|stage| stage.blocked_tool_count > 0).count();
-    if blocked_stage_count != 3 {
+    if blocked_stage_count != 0 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 3 blocked stages, found {blocked_stage_count}"
+            "stage-centric report must retain exactly 0 blocked stages, found {blocked_stage_count}"
         ));
     }
     let declared_shared_metric_stage_count =
@@ -342,7 +342,7 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         ));
     }
 
-    ensure_stage(stages, "fastq", "fastq.trim_reads", 14, 1, "not_declared", &[])?;
+    ensure_stage(stages, "fastq", "fastq.trim_reads", 13, 0, "not_declared", &[])?;
     ensure_stage(
         stages,
         "fastq",
@@ -563,9 +563,9 @@ mod tests {
         assert_eq!(report.blocked_stage_count, 3);
         assert_eq!(report.declared_shared_metric_stage_count, 18);
         assert_eq!(report.not_declared_shared_metric_stage_count, 11);
-        assert_eq!(report.row_count, 122);
-        assert_eq!(report.benchmark_ready_row_count, 118);
-        assert_eq!(report.blocked_row_count, 4);
+        assert_eq!(report.row_count, 120);
+        assert_eq!(report.benchmark_ready_row_count, 120);
+        assert_eq!(report.blocked_row_count, 0);
 
         let trim_reads = report
             .stages
@@ -608,7 +608,7 @@ mod tests {
         let markdown = std::fs::read_to_string(output_path).expect("read markdown");
         assert!(markdown.contains("# Stage-Centric Benchmark Report"));
         assert!(markdown.contains("## fastq.trim_reads"));
-        assert!(markdown.contains("| seqpurge | not_benchmark_ready | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |"));
+        assert!(markdown.contains("| fastp | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |"));
         assert!(markdown.contains("## bam.damage"));
         assert!(markdown.contains("| damageprofiler | benchmark_ready | none | supported | runnable | parser_fixture_validated | fixture:corpus-01-adna-damage-mini | not_required |"));
     }

@@ -539,7 +539,7 @@ mod tests {
         assert_eq!(report.schema_version, TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.classification_scope, "primary_operator_runtime");
         assert_eq!(report.mode_count, 6);
-        assert_eq!(report.tool_count, 67);
+        assert_eq!(report.tool_count, 65);
         assert!(report.valid, "tool execution mode config must validate cleanly");
 
         let bijux_dna =

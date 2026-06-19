@@ -578,10 +578,10 @@ mod tests {
 
         assert_eq!(report.schema_version, EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 118);
-        assert_eq!(report.stage_count, 50);
-        assert_eq!(report.rows.len(), 118);
-        assert_eq!(report.domain_counts.get("fastq").copied(), Some(69));
+        assert_eq!(report.row_count, 120);
+        assert_eq!(report.stage_count, 51);
+        assert_eq!(report.rows.len(), 120);
+        assert_eq!(report.domain_counts.get("fastq").copied(), Some(71));
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
         assert!(report.rows.iter().any(|row| {
             row.domain == "fastq"

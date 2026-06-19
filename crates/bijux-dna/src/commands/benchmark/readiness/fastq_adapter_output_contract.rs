@@ -428,10 +428,10 @@ mod tests {
         .expect("render FASTQ adapter output contract");
 
         assert_eq!(report.schema_version, FASTQ_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION);
-        assert_eq!(report.row_count, 73);
-        assert_eq!(report.missing_adapter_row_count, 3);
-        assert_eq!(report.adapter_row_count, 70);
-        assert_eq!(report.complete_adapter_row_count, 70);
+        assert_eq!(report.row_count, 71);
+        assert_eq!(report.missing_adapter_row_count, 0);
+        assert_eq!(report.adapter_row_count, 71);
+        assert_eq!(report.complete_adapter_row_count, 71);
         assert_eq!(report.incomplete_adapter_row_count, 0);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "seqkit_stats"
