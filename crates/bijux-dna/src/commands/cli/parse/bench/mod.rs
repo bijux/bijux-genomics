@@ -42,6 +42,7 @@ pub use self::local::{
     BenchLocalFakeRunAllDomainsArgs, BenchLocalFakeRunEssentialPipelinesArgs,
     BenchLocalFakeRunFailuresArgs, BenchLocalFakeRunStagesArgs, BenchLocalJudgeTaxonomyOutputArgs,
     BenchLocalListStagesArgs, BenchLocalMaterializeStageArgs,
+    BenchLocalRenderHpcAssetStagingManifestArgs,
     BenchLocalRenderAllDomainSlurmScriptsArgs, BenchLocalRenderAllDomainSlurmSubmitManifestArgs,
     BenchLocalRenderBenchmarkSummaryArgs, BenchLocalRenderCorpusSkipReportArgs,
     BenchLocalRenderSlurmScriptsArgs, BenchLocalRenderSlurmSubmitManifestArgs,

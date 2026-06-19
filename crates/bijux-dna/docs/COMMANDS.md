@@ -1980,6 +1980,15 @@ Visible aliases are part of the operator surface:
   asset-profile, script path, stdout, stderr, declared outputs, manifest-only dependencies, and
   resource ceilings. The command fails closed if any dependency points at a non-existent local job
   id or if a generated script leaks dependency ordering into `#SBATCH --dependency` headers.
+- `bijux-dna bench local render-hpc-asset-staging-manifest`
+  `render-hpc-asset-staging-manifest` writes
+  `runs/bench/hpc-dry-run/asset-staging-manifest.json`, using the governed
+  `benchmarks/readiness/rendered-commands-all-domains.argv.jsonl` slice as the selected future HPC
+  benchmark job roster. Each job row lists the staged source assets it consumes, including the
+  original repo-relative source path, deterministic staged path under `runs/bench/hpc-dry-run/staged/`,
+  checksum, size, member count for prefix bundles or directories, and the canonical consumer
+  `result_id`, so hidden local benchmark dependencies stay explicit before any cluster transfer
+  logic is added.
 - `bijux-dna bench local render-benchmark-summary`
   `render-benchmark-summary` writes both `benchmarks/readiness/local-ready/benchmark-summary.json` and
   `benchmarks/readiness/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51

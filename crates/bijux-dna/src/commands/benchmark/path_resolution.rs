@@ -20,6 +20,7 @@ pub(crate) const DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE: &str = "runs/bench/micro
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE: &str = "runs/bench/local-smoke";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE: &str =
     "runs/bench/local-fake-runs";
+pub(crate) const DEFAULT_BENCHMARK_HPC_DRY_RUN_ROOT_RELATIVE: &str = "runs/bench/hpc-dry-run";
 pub(crate) const DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE: &str = "runs/bench/slurm-dry-run";
 pub(crate) const DEFAULT_BENCHMARK_READINESS_PROBE_ROOT_RELATIVE: &str =
     "runs/bench/readiness-probes";
@@ -106,6 +107,10 @@ impl BenchmarkPathResolver {
         self.repo_root.join(DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE)
     }
 
+    pub(crate) fn benchmark_hpc_dry_run_root(&self) -> PathBuf {
+        self.repo_root.join(DEFAULT_BENCHMARK_HPC_DRY_RUN_ROOT_RELATIVE)
+    }
+
     pub(crate) fn benchmark_slurm_dry_run_root(&self) -> PathBuf {
         self.repo_root.join(DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE)
     }
@@ -182,7 +187,7 @@ mod tests {
     use super::{
         ensure_path_stays_outside_benchmark_readiness_root,
         ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver, BENCHMARK_ROOT_ENV,
-        DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE,
+        DEFAULT_BENCHMARK_HPC_DRY_RUN_ROOT_RELATIVE, DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE, DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE, DEFAULT_BENCHMARK_READINESS_PROBE_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE, DEFAULT_BENCHMARK_ROOT_RELATIVE,
@@ -262,6 +267,10 @@ mod tests {
         assert_eq!(
             resolver.benchmark_local_fake_run_root(),
             repo_root.join(DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE)
+        );
+        assert_eq!(
+            resolver.benchmark_hpc_dry_run_root(),
+            repo_root.join(DEFAULT_BENCHMARK_HPC_DRY_RUN_ROOT_RELATIVE)
         );
         assert_eq!(
             resolver.benchmark_slurm_dry_run_root(),

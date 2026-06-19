@@ -54,6 +54,7 @@ pub(crate) mod local_edna_micro_pipeline;
 pub(crate) mod local_essential_pipeline_fake_runs;
 pub(crate) mod local_fastq_micro_smoke_subset;
 pub(crate) mod local_hpc_submission_ready;
+pub(crate) mod local_hpc_asset_staging_manifest;
 pub(crate) mod local_micro_benchmark_report;
 pub(crate) mod local_micro_benchmark_run;
 pub(crate) mod local_pipeline_dag;
