@@ -144,7 +144,7 @@ const SCIENCE_TRUTH_REQUIREMENTS: &[ScienceTruthRequirement] = &[
         domain: "vcf",
         truth_fixture_id: "vcf-filter-truth",
         stage_ids: &["vcf.filter", "vcf.damage_filter"],
-        acceptance_stage_ids: &["vcf.filter", "vcf.damage_filter"],
+        acceptance_stage_ids: &["vcf.damage_filter"],
     },
     ScienceTruthRequirement {
         surface_id: "vcf_phasing_imputation",

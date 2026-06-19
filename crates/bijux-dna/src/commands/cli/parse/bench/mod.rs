@@ -156,6 +156,7 @@ pub use self::readiness::{
     BenchReadinessRenderParserFailureTestsArgs, BenchReadinessRenderRealOutputParserSmokeArgs,
     BenchReadinessRenderRemovedFromScopeArgs,
     BenchReadinessRenderRetainedToolsetExecutableLocalArgs,
+    BenchReadinessRenderScienceTruthSetsCompleteArgs,
     BenchReadinessRenderScientificAcceptanceThresholdsArgs,
     BenchReadinessRenderStageCentricReportArgs, BenchReadinessRenderStageRegistryExtraPairsArgs,
     BenchReadinessRenderStageToolAliasCheckArgs, BenchReadinessRenderStageToolAssetsArgs,
