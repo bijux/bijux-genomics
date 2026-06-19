@@ -10,6 +10,9 @@ use serde::Serialize;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
+use super::local_adna_micro_pipeline::{
+    render_adna_micro_pipeline, AdnaMicroPipelineReport, AdnaMicroPipelineRowStatus,
+};
 use super::local_bam_micro_smoke_subset::{
     render_bam_micro_smoke_subset, BamMicroSmokeExecutionStatus, BamMicroSmokeSubsetReport,
 };
@@ -22,11 +25,11 @@ use super::local_fastq_micro_smoke_subset::{
 use super::local_real_smoke_core_subset::{
     render_real_smoke_core_subset, RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport,
 };
-use super::local_vcf_micro_smoke_subset::{
-    render_vcf_micro_smoke_subset, VcfMicroSmokeExecutionStatus, VcfMicroSmokeSubsetReport,
-};
 use super::local_stage_result_manifest::{
     load_validated_stage_result_manifest_path, path_relative_to_repo, BenchStageResultManifestV1,
+};
+use super::local_vcf_micro_smoke_subset::{
+    render_vcf_micro_smoke_subset, VcfMicroSmokeExecutionStatus, VcfMicroSmokeSubsetReport,
 };
 use super::path_resolution::{
     ensure_path_stays_outside_benchmark_readiness_root,
@@ -174,10 +177,9 @@ pub(crate) fn render_micro_benchmark_run(
     let fastq_report_path = run_root.join("fastq").join("MICRO_FASTQ_SUMMARY.json");
     let bam_report_path = run_root.join("bam").join("MICRO_BAM_SUMMARY.json");
     let vcf_report_path = run_root.join("vcf").join("MICRO_VCF_SUMMARY.json");
-    let pipeline_report_path = run_root
-        .join("pipelines")
-        .join("core-germline")
-        .join("MICRO_PIPELINE_SUMMARY.json");
+    let adna_report_path = run_root.join("pipelines").join("adna").join("MICRO_ADNA_SUMMARY.json");
+    let pipeline_report_path =
+        run_root.join("pipelines").join("core-germline").join("MICRO_PIPELINE_SUMMARY.json");
 
     ensure_path_stays_outside_benchmark_readiness_root(
         repo_root,
@@ -206,6 +208,9 @@ pub(crate) fn render_micro_benchmark_run(
             .ok_or_else(|| anyhow!("micro benchmark FASTQ parent is missing"))?,
         bam_report_path.parent().ok_or_else(|| anyhow!("micro benchmark BAM parent is missing"))?,
         vcf_report_path.parent().ok_or_else(|| anyhow!("micro benchmark VCF parent is missing"))?,
+        adna_report_path
+            .parent()
+            .ok_or_else(|| anyhow!("micro benchmark aDNA pipeline parent is missing"))?,
         pipeline_report_path
             .parent()
             .ok_or_else(|| anyhow!("micro benchmark pipeline parent is missing"))?,
@@ -245,6 +250,10 @@ pub(crate) fn render_micro_benchmark_run(
         .context("render micro benchmark VCF family report")?;
     run_log.push(format!("vcf_micro_smoke_subset={}", vcf_report.output_path));
 
+    let adna_report = render_adna_micro_pipeline(repo_root, adna_report_path.clone())
+        .context("render micro benchmark aDNA pipeline report")?;
+    run_log.push(format!("adna_micro_pipeline={}", adna_report.output_path));
+
     let pipeline_report = render_core_germline_micro_pipeline(repo_root, pipeline_report_path)
         .context("render micro benchmark core germline pipeline report")?;
     run_log.push(format!("core_germline_micro_pipeline={}", pipeline_report.output_path));
@@ -271,6 +280,7 @@ pub(crate) fn render_micro_benchmark_run(
         &mut log_rows,
     )?;
     collect_vcf_micro_rows(repo_root, &vcf_report, &mut result_rows, &mut output_rows)?;
+    collect_adna_pipeline_rows(repo_root, &adna_report, &mut result_rows, &mut output_rows)?;
     collect_core_germline_pipeline_rows(
         repo_root,
         &pipeline_report,
@@ -357,6 +367,11 @@ pub(crate) fn render_micro_benchmark_run(
                 component_id: "vcf_micro_smoke_subset".to_string(),
                 report_path: vcf_report.output_path.clone(),
                 row_count: vcf_report.rows.len(),
+            },
+            MicroBenchmarkComponentReport {
+                component_id: "adna_micro_pipeline".to_string(),
+                report_path: adna_report.output_path.clone(),
+                row_count: adna_report.rows.len(),
             },
             MicroBenchmarkComponentReport {
                 component_id: "core_germline_micro_pipeline".to_string(),
@@ -588,6 +603,70 @@ fn collect_fastq_micro_rows(
     Ok(())
 }
 
+fn collect_adna_pipeline_rows(
+    repo_root: &Path,
+    report: &AdnaMicroPipelineReport,
+    result_rows: &mut Vec<MicroBenchmarkResultRow>,
+    output_rows: &mut Vec<MicroBenchmarkOutputRow>,
+) -> Result<()> {
+    for row in &report.rows {
+        if row.status == AdnaMicroPipelineRowStatus::Succeeded {
+            if let Some(evidence_path) = &row.evidence_path {
+                output_rows.push(MicroBenchmarkOutputRow {
+                    execution_id: row.stage_id.clone(),
+                    component_id: "adna_micro_pipeline".to_string(),
+                    artifact_id: "evidence".to_string(),
+                    role: "pipeline_stage_evidence".to_string(),
+                    path: evidence_path.clone(),
+                    exists: repo_root.join(evidence_path).is_file(),
+                    source: "adna_micro_pipeline".to_string(),
+                });
+            }
+
+            for (artifact_id, path) in &row.outputs {
+                output_rows.push(MicroBenchmarkOutputRow {
+                    execution_id: row.stage_id.clone(),
+                    component_id: "adna_micro_pipeline".to_string(),
+                    artifact_id: artifact_id.clone(),
+                    role: "pipeline_stage_output".to_string(),
+                    path: path.clone(),
+                    exists: repo_root.join(path).exists(),
+                    source: "adna_micro_pipeline".to_string(),
+                });
+            }
+        }
+
+        result_rows.push(MicroBenchmarkResultRow {
+            execution_id: row.stage_id.clone(),
+            component_id: "adna_micro_pipeline".to_string(),
+            result_kind: if row.domain == "vcf" {
+                MicroBenchmarkResultKind::PipelineBridge
+            } else {
+                MicroBenchmarkResultKind::Stage
+            },
+            domain: row.domain.clone(),
+            bridge_source_domain: None,
+            bridge_target_domain: None,
+            stage_id: row.stage_id.clone(),
+            tool_id: row.tool_id.clone(),
+            status: if row.status == AdnaMicroPipelineRowStatus::Succeeded {
+                MicroBenchmarkExecutionStatus::Succeeded
+            } else {
+                MicroBenchmarkExecutionStatus::Unavailable
+            },
+            reason: row.reason.clone(),
+            command: Some("bijux-dna bench local run-adna-micro-pipeline".to_string()),
+            source_report_path: report.output_path.clone(),
+            evidence_path: row.evidence_path.clone(),
+            stage_result_manifest_path: None,
+            normalized_metric_count: row.metrics.len(),
+            output_count: row.outputs.len() + usize::from(row.evidence_path.is_some()),
+            log_count: 0,
+        });
+    }
+    Ok(())
+}
+
 fn collect_core_germline_pipeline_rows(
     repo_root: &Path,
     report: &CoreGermlineMicroPipelineReport,
@@ -694,9 +773,9 @@ fn ensure_micro_benchmark_run_contract(
             manifest.run_root
         );
     }
-    if manifest.component_reports.len() < 5 {
+    if manifest.component_reports.len() < 6 {
         bail!(
-            "micro benchmark run must keep at least five component reports, found {}",
+            "micro benchmark run must keep at least six component reports, found {}",
             manifest.component_reports.len()
         );
     }
@@ -742,6 +821,7 @@ fn ensure_micro_benchmark_run_contract(
         .map(|component| component.component_id.as_str())
         .collect::<std::collections::BTreeSet<_>>();
     let expected_component_ids = std::collections::BTreeSet::from([
+        "adna_micro_pipeline",
         "bam_micro_smoke_subset",
         "core_germline_micro_pipeline",
         "fastq_micro_smoke_subset",
@@ -932,16 +1012,20 @@ mod tests {
         let component_fastq = repo_root.join("runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json");
         let component_bam = repo_root.join("runs/bench/micro/bam/MICRO_BAM_SUMMARY.json");
         let component_vcf = repo_root.join("runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json");
-        let component_pipeline = repo_root
-            .join("runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json");
+        let component_adna =
+            repo_root.join("runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json");
+        let component_pipeline =
+            repo_root.join("runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json");
         let evidence_path =
             repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/metrics.json");
         let fastq_evidence_path =
             repo_root.join("runs/bench/local-smoke/fastq.validate_reads/report.json");
         let vcf_evidence_path =
             repo_root.join("runs/bench/local-smoke/vcf.call/bcftools/stage-result.json");
-        let pipeline_evidence_path =
-            repo_root.join("runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/report.json");
+        let adna_evidence_path =
+            repo_root.join("runs/bench/micro/pipelines/adna/artifacts/vcf.stats/report.json");
+        let pipeline_evidence_path = repo_root
+            .join("runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/report.json");
         let output_path = repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/stats.txt");
         let log_path = repo_root.join("runs/bench/micro/logs/MICRO_RUN.log");
         let result_rows_path = repo_root.join("runs/bench/micro/results/MICRO_RESULT_ROWS.json");
@@ -955,10 +1039,12 @@ mod tests {
             &component_fastq,
             &component_bam,
             &component_vcf,
+            &component_adna,
             &component_pipeline,
             &evidence_path,
             &fastq_evidence_path,
             &vcf_evidence_path,
+            &adna_evidence_path,
             &pipeline_evidence_path,
             &output_path,
             &log_path,
@@ -1065,6 +1151,28 @@ mod tests {
                 log_count: 0,
             },
             MicroBenchmarkResultRow {
+                execution_id: "vcf.stats".to_string(),
+                component_id: "adna_micro_pipeline".to_string(),
+                result_kind: MicroBenchmarkResultKind::PipelineBridge,
+                domain: "vcf".to_string(),
+                bridge_source_domain: None,
+                bridge_target_domain: None,
+                stage_id: "vcf.stats".to_string(),
+                tool_id: "bcftools".to_string(),
+                status: MicroBenchmarkExecutionStatus::Succeeded,
+                reason: "adna_micro_pipeline_execution".to_string(),
+                command: Some("bijux-dna bench local run-adna-micro-pipeline".to_string()),
+                source_report_path: "runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json"
+                    .to_string(),
+                evidence_path: Some(
+                    "runs/bench/micro/pipelines/adna/artifacts/vcf.stats/report.json".to_string(),
+                ),
+                stage_result_manifest_path: None,
+                normalized_metric_count: 3,
+                output_count: 3,
+                log_count: 0,
+            },
+            MicroBenchmarkResultRow {
                 execution_id: "vcf.call".to_string(),
                 component_id: "core_germline_micro_pipeline".to_string(),
                 result_kind: MicroBenchmarkResultKind::PipelineBridge,
@@ -1075,9 +1183,7 @@ mod tests {
                 tool_id: "bcftools".to_string(),
                 status: MicroBenchmarkExecutionStatus::Succeeded,
                 reason: "core_germline_pipeline_execution".to_string(),
-                command: Some(
-                    "bijux-dna bench local run-core-germline-micro-pipeline".to_string(),
-                ),
+                command: Some("bijux-dna bench local run-core-germline-micro-pipeline".to_string()),
                 source_report_path:
                     "runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json"
                         .to_string(),
@@ -1118,6 +1224,15 @@ mod tests {
                 path: "runs/bench/local-smoke/vcf.call/bcftools/stage-result.json".to_string(),
                 exists: true,
                 source: "vcf_micro_smoke_subset".to_string(),
+            },
+            MicroBenchmarkOutputRow {
+                execution_id: "vcf.stats".to_string(),
+                component_id: "adna_micro_pipeline".to_string(),
+                artifact_id: "evidence".to_string(),
+                role: "pipeline_stage_evidence".to_string(),
+                path: "runs/bench/micro/pipelines/adna/artifacts/vcf.stats/report.json".to_string(),
+                exists: true,
+                source: "adna_micro_pipeline".to_string(),
             },
             MicroBenchmarkOutputRow {
                 execution_id: "vcf.call".to_string(),
@@ -1183,6 +1298,12 @@ mod tests {
                     component_id: "vcf_micro_smoke_subset".to_string(),
                     report_path: "runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json".to_string(),
                     row_count: 1,
+                },
+                MicroBenchmarkComponentReport {
+                    component_id: "adna_micro_pipeline".to_string(),
+                    report_path: "runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json"
+                        .to_string(),
+                    row_count: 15,
                 },
                 MicroBenchmarkComponentReport {
                     component_id: "core_germline_micro_pipeline".to_string(),
