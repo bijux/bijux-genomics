@@ -7,7 +7,7 @@
 - Missing-result rows: 3
 - Unsupported-pair rows: 1
 - Failure rows: 140
-- Comparable metric rows: 105
+- Comparable metric rows: 91
 
 ## Stage-Centric
 
@@ -317,7 +317,7 @@
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:fqtools | fastq | fastq.validate_reads | fqtools | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:seqtk | fastq | fastq.validate_reads | seqtk | present | 1.250 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2 | vcf | vcf.admixture | plink2 | present | 1.250 |  | fake_run_simulated |
-| vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools | vcf | vcf.call | bcftools | present | 1.750 | 0.176 | fake_run_and_real_smoke |
+| vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools | vcf | vcf.call | bcftools | present | 1.750 | 0.167 | fake_run_and_real_smoke |
 | vcf:vcf_production_regression:vcf.call_diploid:bam_bundle:bcftools | vcf | vcf.call_diploid | bcftools | present | 1.750 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.call_gl:bam_bundle:bcftools | vcf | vcf.call_gl | bcftools | present | 1.750 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.call_pseudohaploid:bam_bundle:bcftools | vcf | vcf.call_pseudohaploid | bcftools | present | 1.750 |  | fake_run_simulated |
@@ -493,7 +493,7 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | command_failed | fastq | fastq.cluster_otus | vsearch | governed_command_failed_probe | command_failed | governed shell probe exits with code 23 after writing stderr |
 | insufficient_data | vcf | vcf.demography | ibdne | vcf_segment_fixture_bank | insufficient_data | ibdne |
-| missing_input | vcf | vcf.call | bcftools | vcf_adapter_missing_input_tests | missing_input | governed VCF missing-input probe removed `bam` and expected `required input `input_bam`` |
+| missing_input | vcf | vcf.call | bcftools | vcf_adapter_missing_input_tests | missing_input | governed VCF missing-input probe removed `input_bam` and expected `required input `input_bam`` |
 | missing_output | vcf | vcf.admixture | plink2 | governed_missing_output_probe | missing_output | runs/bench/readiness-probes/all-domains/failure-classification/missing-output/vcf/vcf.admixture/plink2/expected-output.json |
 | parser_failed | vcf | vcf.call | bcftools | vcf_parser_failure_tests | parser_failed | parse_bcftools_call_metrics expected `raw VCF is missing #CHROM header` |
 | tool_not_found | bam | bam.align | bowtie2 | governed_tool_not_found_probe | tool_not_found | governed probe derived from a benchmark-ready binding uses an absent executable path |
@@ -509,113 +509,99 @@
 
 ## Comparable Metrics
 
-| Domain | Stage | Metric ID | Metric Name | Unit | Direction | Required | Tools | Contract Status |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| bam | bam.align | alignment_rate | alignment_rate |  |  |  | bowtie2, bwa | declared |
-| bam | bam.align | mapped_reads | mapped_reads |  |  |  | bowtie2, bwa | declared |
-| bam | bam.authenticity | confidence | confidence |  |  |  | authenticct, damageprofiler, pmdtools | declared |
-| bam | bam.authenticity | consumed_metric_ids | consumed_metric_ids |  |  |  | authenticct, damageprofiler, pmdtools | declared |
-| bam | bam.authenticity | missing_metric_ids | missing_metric_ids |  |  |  | authenticct, damageprofiler, pmdtools | declared |
-| bam | bam.authenticity | pmd_like_signal_present | pmd_like_signal_present |  |  |  | authenticct, damageprofiler, pmdtools | declared |
-| bam | bam.authenticity | score | score |  |  |  | authenticct, damageprofiler, pmdtools | declared |
-| bam | bam.contamination | ci_high | ci_high |  |  |  | contammix, schmutzi, verifybamid2 | declared |
-| bam | bam.contamination | ci_low | ci_low |  |  |  | contammix, schmutzi, verifybamid2 | declared |
-| bam | bam.contamination | estimate | estimate |  |  |  | contammix, schmutzi, verifybamid2 | declared |
-| bam | bam.contamination | prerequisites_passed | prerequisites_passed |  |  |  | contammix, schmutzi, verifybamid2 | declared |
-| bam | bam.contamination | scope | scope |  |  |  | contammix, schmutzi, verifybamid2 | declared |
-| bam | bam.coverage | breadth_1x | breadth_1x |  |  |  | bedtools, mosdepth, samtools | declared |
-| bam | bam.coverage | covered_bases | covered_bases |  |  |  | bedtools, mosdepth, samtools | declared |
-| bam | bam.coverage | mean_depth | mean_depth |  |  |  | bedtools, mosdepth, samtools | declared |
-| bam | bam.coverage | observed_region_count | observed_region_count |  |  |  | bedtools, mosdepth, samtools | declared |
-| bam | bam.coverage | region_ids | region_ids |  |  |  | bedtools, mosdepth, samtools | declared |
-| bam | bam.damage | damage_signal | damage_signal |  |  |  | addeam, damageprofiler, mapdamage2, ngsbriggs, pmdtools, pydamage | declared |
-| bam | bam.damage | memory_mb | memory_mb |  |  |  | addeam, damageprofiler, mapdamage2, ngsbriggs, pmdtools, pydamage | declared |
-| bam | bam.damage | runtime_s | runtime_s |  |  |  | addeam, damageprofiler, mapdamage2, ngsbriggs, pmdtools, pydamage | declared |
-| bam | bam.damage | terminal_c_to_t_5p | terminal_c_to_t_5p |  |  |  | addeam, damageprofiler, mapdamage2, ngsbriggs, pmdtools, pydamage | declared |
-| bam | bam.damage | terminal_g_to_a_3p | terminal_g_to_a_3p |  |  |  | addeam, damageprofiler, mapdamage2, ngsbriggs, pmdtools, pydamage | declared |
-| bam | bam.duplication_metrics | duplicate_count | duplicate_count |  |  |  | picard, samtools | declared |
-| bam | bam.duplication_metrics | duplicate_fraction | duplicate_fraction |  |  |  | picard, samtools | declared |
-| bam | bam.duplication_metrics | estimated_library_size | estimated_library_size |  |  |  | picard, samtools | declared |
-| bam | bam.filter | active_filters | active_filters |  |  |  | bamtools, bedtools, samtools | declared |
-| bam | bam.filter | input_reads | input_reads |  |  |  | bamtools, bedtools, samtools | declared |
-| bam | bam.filter | kept_reads | kept_reads |  |  |  | bamtools, bedtools, samtools | declared |
-| bam | bam.filter | removed_reads | removed_reads |  |  |  | bamtools, bedtools, samtools | declared |
-| bam | bam.kinship | observed_max_overlap_snps | observed_max_overlap_snps |  |  |  | angsd, king | declared |
-| bam | bam.kinship | pair_count | pair_count |  |  |  | angsd, king | declared |
-| bam | bam.kinship | pairwise_results | pairwise_results |  |  |  | angsd, king | declared |
-| bam | bam.kinship | status | status |  |  |  | angsd, king | declared |
-| bam | bam.length_filter | filtered_bam | filtered_bam |  |  |  | picard, samtools | declared |
-| bam | bam.length_filter | kept_reads | kept_reads |  |  |  | picard, samtools | declared |
-| bam | bam.length_filter | min_length_threshold | min_length_threshold |  |  |  | picard, samtools | declared |
-| bam | bam.length_filter | removed_reads | removed_reads |  |  |  | picard, samtools | declared |
-| bam | bam.mapping_summary | mapped_reads | mapped_reads |  |  |  | picard, samtools | declared |
-| bam | bam.mapping_summary | mapping_fraction | mapping_fraction |  |  |  | picard, samtools | declared |
-| bam | bam.mapping_summary | secondary_reads | secondary_reads |  |  |  | picard, samtools | declared |
-| bam | bam.mapping_summary | supplementary_reads | supplementary_reads |  |  |  | picard, samtools | declared |
-| bam | bam.mapping_summary | unmapped_reads | unmapped_reads |  |  |  | picard, samtools | declared |
-| bam | bam.mapq_filter | filtered_bam | filtered_bam |  |  |  | bamtools, samtools | declared |
-| bam | bam.mapq_filter | kept_reads | kept_reads |  |  |  | bamtools, samtools | declared |
-| bam | bam.mapq_filter | mapq_threshold | mapq_threshold |  |  |  | bamtools, samtools | declared |
-| bam | bam.mapq_filter | removed_reads | removed_reads |  |  |  | bamtools, samtools | declared |
-| bam | bam.markdup | duplicate_count | duplicate_count |  |  |  | picard, samtools | declared |
-| bam | bam.markdup | duplicate_fraction | duplicate_fraction |  |  |  | picard, samtools | declared |
-| bam | bam.markdup | duplicate_metrics | duplicate_metrics |  |  |  | picard, samtools | declared |
-| bam | bam.markdup | marked_bam | marked_bam |  |  |  | picard, samtools | declared |
-| bam | bam.qc_pre | contig_summary | contig_summary |  |  |  | multiqc, samtools | declared |
-| bam | bam.qc_pre | duplicate_flagged_reads | duplicate_flagged_reads |  |  |  | multiqc, samtools | declared |
-| bam | bam.qc_pre | mapped_reads | mapped_reads |  |  |  | multiqc, samtools | declared |
-| bam | bam.qc_pre | total_reads | total_reads |  |  |  | multiqc, samtools | declared |
-| bam | bam.qc_pre | unmapped_reads | unmapped_reads |  |  |  | multiqc, samtools | declared |
-| bam | bam.sex | autosomal_coverage | autosomal_coverage |  |  |  | angsd, rxy, yleaf | declared |
-| bam | bam.sex | call | call |  |  |  | angsd, rxy, yleaf | declared |
-| bam | bam.sex | confidence | confidence |  |  |  | angsd, rxy, yleaf | declared |
-| bam | bam.sex | status | status |  |  |  | angsd, rxy, yleaf | declared |
-| bam | bam.sex | x_coverage | x_coverage |  |  |  | angsd, rxy, yleaf | declared |
-| bam | bam.sex | y_coverage | y_coverage |  |  |  | angsd, rxy, yleaf | declared |
-| bam | bam.validate | input_bam_identity | input_bam_identity |  |  |  | bamtools, bedtools, samtools | declared |
-| bam | bam.validate | validation_errors | validation_errors |  |  |  | bamtools, bedtools, samtools | declared |
-| bam | bam.validate | validation_status | validation_status |  |  |  | bamtools, bedtools, samtools | declared |
-| bam | bam.validate | validation_warnings | validation_warnings |  |  |  | bamtools, bedtools, samtools | declared |
-| fastq | fastq.index_reference | index_build_exit_code | index_build_exit_code |  |  |  | bowtie2_build, star | declared |
-| fastq | fastq.profile_overrepresented_sequences | flagged_sequences | flagged_sequences |  |  |  | fastq_scan, fastqc, seqkit | declared |
-| fastq | fastq.profile_overrepresented_sequences | sequence_count | sequence_count |  |  |  | fastq_scan, fastqc, seqkit | declared |
-| fastq | fastq.profile_overrepresented_sequences | top_fraction | top_fraction |  |  |  | fastq_scan, fastqc, seqkit | declared |
-| fastq | fastq.validate_reads | format_validation_pass_rate | format_validation_pass_rate |  |  |  | fastq_scan, fastqc, fastqvalidator, fqtools, seqtk | declared |
-| vcf | vcf.admixture | population_count | population count | populations | exact_match_preferred | true | plink, plink2 | declared |
-| vcf | vcf.admixture | sample_count | sample count | samples | exact_match_preferred | true | plink, plink2 | declared |
-| vcf | vcf.admixture | selected_k | selected cluster count | clusters | exact_match_preferred | true | plink, plink2 | declared |
-| vcf | vcf.call_gl | missing_likelihoods | missing likelihoods | sites | lower_is_better | true | angsd, bcftools | declared |
-| vcf | vcf.call_gl | sites_with_likelihoods | sites with likelihoods | sites | higher_is_better | true | angsd, bcftools | declared |
-| vcf | vcf.call_pseudohaploid | called_sites | called sites | sites | higher_is_better | true | angsd, bcftools | declared |
-| vcf | vcf.call_pseudohaploid | missing_sites | missing sites | sites | lower_is_better | true | angsd, bcftools | declared |
-| vcf | vcf.damage_filter | removed_variants | removed variants | variants | exact_match_preferred | true | angsd, bcftools | declared |
-| vcf | vcf.damage_filter | retained_variants | retained variants | variants | exact_match_preferred | true | angsd, bcftools | declared |
-| vcf | vcf.damage_filter | terminal_damage_filtered_variants | terminal damage filtered variants | variants | exact_match_preferred | true | angsd, bcftools | declared |
-| vcf | vcf.gl_propagation | sample_count | sample count | samples | exact_match_preferred | true | angsd, bcftools | declared |
-| vcf | vcf.gl_propagation | site_count_after | site count after propagation | sites | exact_match_preferred | true | angsd, bcftools | declared |
-| vcf | vcf.gl_propagation | site_count_before | site count before propagation | sites | exact_match_preferred | true | angsd, bcftools | declared |
-| vcf | vcf.ibd | pair_count | pair count | pairs | exact_match_preferred | true | germline, ibdhap, ibdseq | declared |
-| vcf | vcf.imputation_metrics | concordance | concordance | fraction | higher_is_better | true | beagle, glimpse, impute5, minimac4 | declared |
-| vcf | vcf.imputation_metrics | dosage_r2 | dosage r-squared | score | higher_is_better | false | beagle, glimpse, impute5, minimac4 | declared |
-| vcf | vcf.imputation_metrics | low_confidence_sites | low-confidence sites | sites | lower_is_better | true | beagle, glimpse, impute5, minimac4 | declared |
-| vcf | vcf.imputation_metrics | masked_truth_sites | masked-truth sites | sites | exact_match_preferred | true | beagle, glimpse, impute5, minimac4 | declared |
-| vcf | vcf.imputation_metrics | mean_info_score | mean info score | score | higher_is_better | true | beagle, glimpse, impute5, minimac4 | declared |
-| vcf | vcf.impute | imputed_genotypes | imputed genotypes | genotypes | higher_is_better | true | beagle, glimpse, impute5, minimac4 | declared |
-| vcf | vcf.impute | low_confidence_count | low-confidence sites | sites | lower_is_better | true | beagle, glimpse, impute5, minimac4 | declared |
-| vcf | vcf.impute | masked_truth_match_count | masked-truth matches | sites | higher_is_better | true | beagle, glimpse, impute5, minimac4 | declared |
-| vcf | vcf.impute | missing_after | missing genotypes after imputation | genotypes | lower_is_better | true | beagle, glimpse, impute5, minimac4 | declared |
-| vcf | vcf.impute | missing_before | missing genotypes before imputation | genotypes | lower_is_better | true | beagle, glimpse, impute5, minimac4 | declared |
-| vcf | vcf.impute | unresolved_count | unresolved sites | sites | lower_is_better | true | beagle, glimpse, impute5, minimac4 | declared |
-| vcf | vcf.pca | sample_count | sample count | samples | exact_match_preferred | true | eigensoft, plink2 | declared |
-| vcf | vcf.pca | variant_count | variant count | variants | exact_match_preferred | true | eigensoft, plink2 | declared |
-| vcf | vcf.phasing | phase_block_n50 | phase block n50 | bases | higher_is_better | true | beagle, eagle, shapeit5 | declared |
-| vcf | vcf.phasing | switch_error_proxy | switch error proxy | fraction | lower_is_better | true | beagle, eagle, shapeit5 | declared |
-| vcf | vcf.population_structure | pair_count | pair count | pairs | exact_match_preferred | true | eigensoft, plink2 | declared |
-| vcf | vcf.population_structure | sample_count | sample count | samples | exact_match_preferred | true | eigensoft, plink2 | declared |
-| vcf | vcf.qc | concordance | concordance | fraction | higher_is_better | true | bcftools, plink, plink2 | declared |
-| vcf | vcf.qc | imputation_info_mean | mean imputation info | score | higher_is_better | true | bcftools, plink, plink2 | declared |
-| vcf | vcf.qc | missingness_post | post-qc missingness | fraction | lower_is_better | true | bcftools, plink, plink2 | declared |
-| vcf | vcf.qc | rsq_mean | mean r-squared | score | higher_is_better | true | bcftools, plink, plink2 | declared |
+| Domain | Stage | Metric ID | Metric Name | Unit | Direction | Tolerance Kind | Tolerance | Pass Rule | Insufficiency Behavior | Required | Tools | Contract Status |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| bam | bam.align | alignment_rate | alignment_rate |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | refuse_stage_comparison | true | bowtie2, bwa | declared |
+| bam | bam.align | mapped_reads | mapped_reads |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | refuse_stage_comparison | true | bowtie2, bwa | declared |
+| bam | bam.authenticity | confidence | confidence |  | range | absolute_delta | 0.1 | must_remain_within_reference_range | warn_and_exclude_stage | true | authenticct, damageprofiler, pmdtools | declared |
+| bam | bam.authenticity | pmd_like_signal_present | pmd_like_signal_present |  | exact_match_preferred | exact_match | 0 | must_match_reference | warn_and_exclude_stage | true | authenticct, damageprofiler, pmdtools | declared |
+| bam | bam.authenticity | score | score |  | range | relative_fraction | 0.1 | must_remain_within_reference_range | warn_and_exclude_stage | true | authenticct, damageprofiler, pmdtools | declared |
+| bam | bam.authenticity | status | status |  | exact_match_preferred | exact_match | 0 | must_match_reference | warn_and_exclude_stage | true | authenticct, damageprofiler, pmdtools | declared |
+| bam | bam.contamination | ci_high | ci_high |  | maximum | absolute_delta | 0.02 | must_not_exceed_reference | warn_and_exclude_stage | true | contammix, schmutzi, verifybamid2 | declared |
+| bam | bam.contamination | ci_low | ci_low |  | maximum | absolute_delta | 0.02 | must_not_exceed_reference | warn_and_exclude_stage | true | contammix, schmutzi, verifybamid2 | declared |
+| bam | bam.contamination | estimate | estimate |  | maximum | absolute_delta | 0.01 | must_not_exceed_reference | warn_and_exclude_stage | true | contammix, schmutzi, verifybamid2 | declared |
+| bam | bam.coverage | breadth_1x | breadth_1x |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | warn_and_exclude_stage | true | bedtools, mosdepth, samtools | declared |
+| bam | bam.coverage | covered_bases | covered_bases |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | warn_and_exclude_stage | true | bedtools, mosdepth, samtools | declared |
+| bam | bam.coverage | mean_depth | mean_depth |  | range | relative_fraction | 0.1 | must_remain_within_reference_range | warn_and_exclude_stage | true | bedtools, mosdepth, samtools | declared |
+| bam | bam.damage | damage_signal | damage_signal |  | exact_match_preferred | exact_match | 0 | must_match_reference | warn_and_exclude_stage | true | addeam, damageprofiler, mapdamage2, ngsbriggs, pmdtools, pydamage | declared |
+| bam | bam.damage | terminal_c_to_t_5p | terminal_c_to_t_5p |  | range | absolute_delta | 0.02 | must_remain_within_reference_range | warn_and_exclude_stage | true | addeam, damageprofiler, mapdamage2, ngsbriggs, pmdtools, pydamage | declared |
+| bam | bam.damage | terminal_g_to_a_3p | terminal_g_to_a_3p |  | range | absolute_delta | 0.02 | must_remain_within_reference_range | warn_and_exclude_stage | true | addeam, damageprofiler, mapdamage2, ngsbriggs, pmdtools, pydamage | declared |
+| bam | bam.duplication_metrics | duplicate_count | duplicate_count |  | range | relative_fraction | 0.05 | must_remain_within_reference_range | refuse_stage_comparison | true | picard, samtools | declared |
+| bam | bam.duplication_metrics | duplicate_fraction | duplicate_fraction |  | maximum | absolute_delta | 0.02 | must_not_exceed_reference | refuse_stage_comparison | true | picard, samtools | declared |
+| bam | bam.duplication_metrics | estimated_library_size | estimated_library_size |  | minimum | relative_fraction | 0.2 | must_meet_or_exceed_reference | warn_and_exclude_stage | true | picard, samtools | declared |
+| bam | bam.filter | input_reads | input_reads |  | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | bamtools, bedtools, samtools | declared |
+| bam | bam.filter | kept_reads | kept_reads |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | refuse_stage_comparison | true | bamtools, bedtools, samtools | declared |
+| bam | bam.filter | removed_reads | removed_reads |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | refuse_stage_comparison | true | bamtools, bedtools, samtools | declared |
+| bam | bam.kinship | observed_max_overlap_snps | observed_max_overlap_snps |  | minimum | absolute_delta | 100 | must_meet_or_exceed_reference | warn_and_exclude_stage | true | angsd, king | declared |
+| bam | bam.kinship | pair_count | pair_count |  | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | angsd, king | declared |
+| bam | bam.kinship | pairwise_results | pairwise_results |  | structured_match | normalized_record_overlap | 1 | must_match_reference_structure | warn_and_exclude_stage | true | angsd, king | declared |
+| bam | bam.kinship | status | status |  | exact_match_preferred | exact_match | 0 | must_match_reference | warn_and_exclude_stage | true | angsd, king | declared |
+| bam | bam.length_filter | kept_reads | kept_reads |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | refuse_stage_comparison | true | picard, samtools | declared |
+| bam | bam.length_filter | min_length_threshold | min_length_threshold |  | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | picard, samtools | declared |
+| bam | bam.length_filter | removed_reads | removed_reads |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | refuse_stage_comparison | true | picard, samtools | declared |
+| bam | bam.mapping_summary | mapped_reads | mapped_reads |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | refuse_stage_comparison | true | picard, samtools | declared |
+| bam | bam.mapping_summary | mapping_fraction | mapping_fraction |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | refuse_stage_comparison | true | picard, samtools | declared |
+| bam | bam.mapping_summary | secondary_reads | secondary_reads |  | range | relative_fraction | 0.05 | must_remain_within_reference_range | refuse_stage_comparison | true | picard, samtools | declared |
+| bam | bam.mapping_summary | supplementary_reads | supplementary_reads |  | range | relative_fraction | 0.05 | must_remain_within_reference_range | refuse_stage_comparison | true | picard, samtools | declared |
+| bam | bam.mapping_summary | unmapped_reads | unmapped_reads |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | refuse_stage_comparison | true | picard, samtools | declared |
+| bam | bam.mapq_filter | kept_reads | kept_reads |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | refuse_stage_comparison | true | bamtools, samtools | declared |
+| bam | bam.mapq_filter | mapq_threshold | mapq_threshold |  | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | bamtools, samtools | declared |
+| bam | bam.mapq_filter | removed_reads | removed_reads |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | refuse_stage_comparison | true | bamtools, samtools | declared |
+| bam | bam.markdup | duplicate_count | duplicate_count |  | range | relative_fraction | 0.05 | must_remain_within_reference_range | refuse_stage_comparison | true | picard, samtools | declared |
+| bam | bam.markdup | duplicate_fraction | duplicate_fraction |  | maximum | absolute_delta | 0.02 | must_not_exceed_reference | refuse_stage_comparison | true | picard, samtools | declared |
+| bam | bam.qc_pre | duplicate_flagged_reads | duplicate_flagged_reads |  | range | relative_fraction | 0.05 | must_remain_within_reference_range | refuse_stage_comparison | true | multiqc, samtools | declared |
+| bam | bam.qc_pre | mapped_reads | mapped_reads |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | refuse_stage_comparison | true | multiqc, samtools | declared |
+| bam | bam.qc_pre | total_reads | total_reads |  | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | multiqc, samtools | declared |
+| bam | bam.qc_pre | unmapped_reads | unmapped_reads |  | range | relative_fraction | 0.02 | must_remain_within_reference_range | refuse_stage_comparison | true | multiqc, samtools | declared |
+| bam | bam.sex | autosomal_coverage | autosomal_coverage |  | range | relative_fraction | 0.1 | must_remain_within_reference_range | warn_and_exclude_stage | true | angsd, rxy, yleaf | declared |
+| bam | bam.sex | call | call |  | exact_match_preferred | exact_match | 0 | must_match_reference | warn_and_exclude_stage | true | angsd, rxy, yleaf | declared |
+| bam | bam.sex | confidence | confidence |  | minimum | absolute_delta | 0.1 | must_meet_or_exceed_reference | warn_and_exclude_stage | true | angsd, rxy, yleaf | declared |
+| bam | bam.sex | status | status |  | exact_match_preferred | exact_match | 0 | must_match_reference | warn_and_exclude_stage | true | angsd, rxy, yleaf | declared |
+| bam | bam.sex | x_coverage | x_coverage |  | range | relative_fraction | 0.15 | must_remain_within_reference_range | warn_and_exclude_stage | true | angsd, rxy, yleaf | declared |
+| bam | bam.sex | y_coverage | y_coverage |  | range | relative_fraction | 0.15 | must_remain_within_reference_range | warn_and_exclude_stage | true | angsd, rxy, yleaf | declared |
+| bam | bam.validate | validation_errors | validation_errors |  | structured_match | normalized_set_overlap | 1 | must_match_reference_structure | refuse_stage_comparison | true | bamtools, bedtools, samtools | declared |
+| bam | bam.validate | validation_status | validation_status |  | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | bamtools, bedtools, samtools | declared |
+| bam | bam.validate | validation_warnings | validation_warnings |  | structured_match | normalized_set_overlap | 1 | must_match_reference_structure | drop_metric_from_stage | true | bamtools, bedtools, samtools | declared |
+| fastq | fastq.index_reference | index_build_exit_code | index_build_exit_code | exit_code | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | bowtie2_build, star | declared |
+| fastq | fastq.profile_overrepresented_sequences | flagged_sequences | flagged_sequences | sequences | exact_match_preferred | absolute_delta | 1 | must_match_reference | warn_and_exclude_stage | true | fastq_scan, fastqc, seqkit | declared |
+| fastq | fastq.profile_overrepresented_sequences | sequence_count | sequence_count | reads | exact_match_preferred | exact_match | 0 | must_match_reference | warn_and_exclude_stage | true | fastq_scan, fastqc, seqkit | declared |
+| fastq | fastq.profile_overrepresented_sequences | top_fraction | top_fraction | fraction | exact_match_preferred | absolute_delta | 0.05 | must_match_reference | warn_and_exclude_stage | true | fastq_scan, fastqc, seqkit | declared |
+| fastq | fastq.validate_reads | format_validation_pass_rate | format_validation_pass_rate | fraction | higher_is_better | absolute_delta | 0.01 | must_meet_or_exceed_reference | refuse_stage_comparison | true | fastq_scan, fastqc, fastqvalidator, fqtools, seqtk | declared |
+| vcf | vcf.admixture | population_count | population count | populations | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | plink, plink2 | declared |
+| vcf | vcf.admixture | sample_count | sample count | samples | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | plink, plink2 | declared |
+| vcf | vcf.admixture | selected_k | selected cluster count | clusters | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | plink, plink2 | declared |
+| vcf | vcf.call_gl | missing_likelihoods | missing likelihoods | sites | lower_is_better | relative_fraction | 0.05 | must_not_exceed_reference | refuse_stage_comparison | true | angsd, bcftools | declared |
+| vcf | vcf.call_gl | sites_with_likelihoods | sites with likelihoods | sites | higher_is_better | relative_fraction | 0.05 | must_meet_or_exceed_reference | refuse_stage_comparison | true | angsd, bcftools | declared |
+| vcf | vcf.call_pseudohaploid | called_sites | called sites | sites | higher_is_better | relative_fraction | 0.05 | must_meet_or_exceed_reference | refuse_stage_comparison | true | angsd, bcftools | declared |
+| vcf | vcf.call_pseudohaploid | missing_sites | missing sites | sites | lower_is_better | relative_fraction | 0.05 | must_not_exceed_reference | refuse_stage_comparison | true | angsd, bcftools | declared |
+| vcf | vcf.damage_filter | removed_variants | removed variants | variants | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | angsd, bcftools | declared |
+| vcf | vcf.damage_filter | retained_variants | retained variants | variants | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | angsd, bcftools | declared |
+| vcf | vcf.damage_filter | terminal_damage_filtered_variants | terminal damage filtered variants | variants | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | angsd, bcftools | declared |
+| vcf | vcf.gl_propagation | sample_count | sample count | samples | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | angsd, bcftools | declared |
+| vcf | vcf.gl_propagation | site_count_after | site count after propagation | sites | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | angsd, bcftools | declared |
+| vcf | vcf.gl_propagation | site_count_before | site count before propagation | sites | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | angsd, bcftools | declared |
+| vcf | vcf.ibd | pair_count | pair count | pairs | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | germline, ibdhap, ibdseq | declared |
+| vcf | vcf.imputation_metrics | concordance | concordance | fraction | higher_is_better | absolute_delta | 0.02 | must_meet_or_exceed_reference | refuse_stage_comparison | true | beagle, glimpse, impute5, minimac4 | declared |
+| vcf | vcf.imputation_metrics | dosage_r2 | dosage r-squared | score | higher_is_better | absolute_delta | 0.05 | must_meet_or_exceed_reference | drop_metric_from_stage | false | beagle, glimpse, impute5, minimac4 | declared |
+| vcf | vcf.imputation_metrics | low_confidence_sites | low-confidence sites | sites | lower_is_better | relative_fraction | 0.05 | must_not_exceed_reference | refuse_stage_comparison | true | beagle, glimpse, impute5, minimac4 | declared |
+| vcf | vcf.imputation_metrics | masked_truth_sites | masked-truth sites | sites | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | beagle, glimpse, impute5, minimac4 | declared |
+| vcf | vcf.imputation_metrics | mean_info_score | mean info score | score | higher_is_better | absolute_delta | 0.05 | must_meet_or_exceed_reference | refuse_stage_comparison | true | beagle, glimpse, impute5, minimac4 | declared |
+| vcf | vcf.impute | imputed_genotypes | imputed genotypes | genotypes | higher_is_better | relative_fraction | 0.05 | must_meet_or_exceed_reference | refuse_stage_comparison | true | beagle, glimpse, impute5, minimac4 | declared |
+| vcf | vcf.impute | low_confidence_count | low-confidence sites | sites | lower_is_better | relative_fraction | 0.05 | must_not_exceed_reference | refuse_stage_comparison | true | beagle, glimpse, impute5, minimac4 | declared |
+| vcf | vcf.impute | masked_truth_match_count | masked-truth matches | sites | higher_is_better | relative_fraction | 0.05 | must_meet_or_exceed_reference | refuse_stage_comparison | true | beagle, glimpse, impute5, minimac4 | declared |
+| vcf | vcf.impute | missing_after | missing genotypes after imputation | genotypes | lower_is_better | relative_fraction | 0.05 | must_not_exceed_reference | refuse_stage_comparison | true | beagle, glimpse, impute5, minimac4 | declared |
+| vcf | vcf.impute | missing_before | missing genotypes before imputation | genotypes | lower_is_better | relative_fraction | 0.05 | must_not_exceed_reference | refuse_stage_comparison | true | beagle, glimpse, impute5, minimac4 | declared |
+| vcf | vcf.impute | unresolved_count | unresolved sites | sites | lower_is_better | relative_fraction | 0.05 | must_not_exceed_reference | refuse_stage_comparison | true | beagle, glimpse, impute5, minimac4 | declared |
+| vcf | vcf.pca | sample_count | sample count | samples | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | eigensoft, plink2 | declared |
+| vcf | vcf.pca | variant_count | variant count | variants | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | eigensoft, plink2 | declared |
+| vcf | vcf.phasing | phase_block_n50 | phase block n50 | bases | higher_is_better | relative_fraction | 0.15 | must_meet_or_exceed_reference | refuse_stage_comparison | true | beagle, eagle, shapeit5 | declared |
+| vcf | vcf.phasing | switch_error_proxy | switch error proxy | fraction | lower_is_better | absolute_delta | 0.02 | must_not_exceed_reference | refuse_stage_comparison | true | beagle, eagle, shapeit5 | declared |
+| vcf | vcf.population_structure | pair_count | pair count | pairs | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | eigensoft, plink2 | declared |
+| vcf | vcf.population_structure | sample_count | sample count | samples | exact_match_preferred | exact_match | 0 | must_match_reference | refuse_stage_comparison | true | eigensoft, plink2 | declared |
+| vcf | vcf.qc | concordance | concordance | fraction | higher_is_better | absolute_delta | 0.02 | must_meet_or_exceed_reference | refuse_stage_comparison | true | bcftools, plink, plink2 | declared |
+| vcf | vcf.qc | imputation_info_mean | mean imputation info | score | higher_is_better | absolute_delta | 0.05 | must_meet_or_exceed_reference | refuse_stage_comparison | true | bcftools, plink, plink2 | declared |
+| vcf | vcf.qc | missingness_post | post-qc missingness | fraction | lower_is_better | absolute_delta | 0.02 | must_not_exceed_reference | refuse_stage_comparison | true | bcftools, plink, plink2 | declared |
+| vcf | vcf.qc | rsq_mean | mean r-squared | score | higher_is_better | absolute_delta | 0.05 | must_meet_or_exceed_reference | refuse_stage_comparison | true | bcftools, plink, plink2 | declared |
 
 ## Unsupported Pairs
 

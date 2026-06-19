@@ -14,7 +14,7 @@
   "pipeline_centric_row_count": 10,
   "runtime_row_count": 141,
   "memory_row_count": 141,
-  "comparable_metric_row_count": 105,
+  "comparable_metric_row_count": 91,
   "failure_row_count": 140,
   "failure_class_row_count": 7,
   "passes_behavior_test": true,
@@ -99,8 +99,8 @@
         "adna-pseudohaploid-fastq-bam-vcf"
       ],
       "expected_output_count": 3,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 5,
+      "comparable_metric_count": 4,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -124,8 +124,8 @@
       "report_section": "ancient_signal",
       "pipeline_ids": [],
       "expected_output_count": 8,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 5,
+      "comparable_metric_count": 4,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -149,8 +149,8 @@
       "report_section": "ancient_signal",
       "pipeline_ids": [],
       "expected_output_count": 8,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 5,
+      "comparable_metric_count": 4,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -227,8 +227,8 @@
       "report_section": "ancient_signal",
       "pipeline_ids": [],
       "expected_output_count": 5,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -252,8 +252,8 @@
       "report_section": "ancient_signal",
       "pipeline_ids": [],
       "expected_output_count": 5,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -280,8 +280,8 @@
         "adna-pseudohaploid-fastq-bam-vcf"
       ],
       "expected_output_count": 4,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -305,8 +305,8 @@
       "report_section": "coverage_quality",
       "pipeline_ids": [],
       "expected_output_count": 12,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -330,8 +330,8 @@
       "report_section": "coverage_quality",
       "pipeline_ids": [],
       "expected_output_count": 3,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -361,8 +361,8 @@
         "diploid-small-fastq-bam-vcf"
       ],
       "expected_output_count": 19,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -386,8 +386,8 @@
       "report_section": "ancient_signal",
       "pipeline_ids": [],
       "expected_output_count": 6,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -411,8 +411,8 @@
       "report_section": "ancient_signal",
       "pipeline_ids": [],
       "expected_output_count": 8,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -436,8 +436,8 @@
       "report_section": "ancient_signal",
       "pipeline_ids": [],
       "expected_output_count": 8,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -464,8 +464,8 @@
         "adna-pseudohaploid-fastq-bam-vcf"
       ],
       "expected_output_count": 6,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -489,8 +489,8 @@
       "report_section": "ancient_signal",
       "pipeline_ids": [],
       "expected_output_count": 8,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -514,8 +514,8 @@
       "report_section": "ancient_signal",
       "pipeline_ids": [],
       "expected_output_count": 5,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -614,8 +614,8 @@
       "report_section": "alignment_refinement",
       "pipeline_ids": [],
       "expected_output_count": 10,
-      "expected_metric_count": 5,
-      "comparable_metric_count": 4,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -639,8 +639,8 @@
       "report_section": "alignment_refinement",
       "pipeline_ids": [],
       "expected_output_count": 12,
-      "expected_metric_count": 5,
-      "comparable_metric_count": 4,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -667,8 +667,8 @@
         "diploid-small-fastq-bam-vcf"
       ],
       "expected_output_count": 19,
-      "expected_metric_count": 5,
-      "comparable_metric_count": 4,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -842,8 +842,8 @@
       "report_section": "alignment_refinement",
       "pipeline_ids": [],
       "expected_output_count": 19,
-      "expected_metric_count": 5,
-      "comparable_metric_count": 4,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -867,8 +867,8 @@
       "report_section": "alignment_refinement",
       "pipeline_ids": [],
       "expected_output_count": 19,
-      "expected_metric_count": 5,
-      "comparable_metric_count": 4,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -946,8 +946,8 @@
       "report_section": "alignment_refinement",
       "pipeline_ids": [],
       "expected_output_count": 10,
-      "expected_metric_count": 5,
-      "comparable_metric_count": 4,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -971,8 +971,8 @@
       "report_section": "alignment_refinement",
       "pipeline_ids": [],
       "expected_output_count": 19,
-      "expected_metric_count": 5,
-      "comparable_metric_count": 4,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -996,8 +996,8 @@
       "report_section": "library_complexity",
       "pipeline_ids": [],
       "expected_output_count": 19,
-      "expected_metric_count": 5,
-      "comparable_metric_count": 4,
+      "expected_metric_count": 3,
+      "comparable_metric_count": 2,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -1021,8 +1021,8 @@
       "report_section": "library_complexity",
       "pipeline_ids": [],
       "expected_output_count": 19,
-      "expected_metric_count": 5,
-      "comparable_metric_count": 4,
+      "expected_metric_count": 3,
+      "comparable_metric_count": 2,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -1071,8 +1071,8 @@
       "report_section": "alignment_intake",
       "pipeline_ids": [],
       "expected_output_count": 4,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 5,
+      "comparable_metric_count": 4,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -1099,8 +1099,8 @@
         "diploid-small-fastq-bam-vcf"
       ],
       "expected_output_count": 19,
-      "expected_metric_count": 6,
-      "comparable_metric_count": 5,
+      "expected_metric_count": 5,
+      "comparable_metric_count": 4,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -1227,8 +1227,8 @@
       "report_section": "alignment_intake",
       "pipeline_ids": [],
       "expected_output_count": 10,
-      "expected_metric_count": 5,
-      "comparable_metric_count": 4,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -1252,8 +1252,8 @@
       "report_section": "alignment_intake",
       "pipeline_ids": [],
       "expected_output_count": 12,
-      "expected_metric_count": 5,
-      "comparable_metric_count": 4,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
@@ -1282,8 +1282,8 @@
         "diploid-small-fastq-bam-vcf"
       ],
       "expected_output_count": 19,
-      "expected_metric_count": 5,
-      "comparable_metric_count": 4,
+      "expected_metric_count": 4,
+      "comparable_metric_count": 3,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:bam.validate",
       "real_smoke_elapsed_seconds": null,
@@ -1433,7 +1433,7 @@
       "asset_profile_id": "reference_catalog_id+reference_index_artifact_id",
       "report_section": "contamination_screening",
       "pipeline_ids": [],
-      "expected_output_count": 8,
+      "expected_output_count": 10,
       "expected_metric_count": 2,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -1458,7 +1458,7 @@
       "asset_profile_id": "reference_catalog_id+reference_index_artifact_id",
       "report_section": "contamination_screening",
       "pipeline_ids": [],
-      "expected_output_count": 8,
+      "expected_output_count": 10,
       "expected_metric_count": 2,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -2247,7 +2247,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "quality_profiling",
       "pipeline_ids": [],
-      "expected_output_count": 5,
+      "expected_output_count": 2,
       "expected_metric_count": 3,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -2272,7 +2272,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "quality_profiling",
       "pipeline_ids": [],
-      "expected_output_count": 10,
+      "expected_output_count": 2,
       "expected_metric_count": 3,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -2659,7 +2659,11 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "report_section": "read_cleanup",
-      "pipeline_ids": [],
+      "pipeline_ids": [
+        "core-germline-fastq-bam-vcf",
+        "diploid-small-fastq-bam-vcf",
+        "edna-taxonomy-no-vcf"
+      ],
       "expected_output_count": 9,
       "expected_metric_count": 3,
       "comparable_metric_count": 0,
@@ -2709,11 +2713,7 @@
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "report_section": "read_cleanup",
-      "pipeline_ids": [
-        "core-germline-fastq-bam-vcf",
-        "diploid-small-fastq-bam-vcf",
-        "edna-taxonomy-no-vcf"
-      ],
+      "pipeline_ids": [],
       "expected_output_count": 4,
       "expected_metric_count": 3,
       "comparable_metric_count": 0,
@@ -2914,7 +2914,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "read_cleanup",
       "pipeline_ids": [],
-      "expected_output_count": 8,
+      "expected_output_count": 3,
       "expected_metric_count": 3,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -3158,7 +3158,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.175873167,
+      "real_smoke_elapsed_seconds": 0.167066917,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -3674,7 +3674,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.040312792,
+      "real_smoke_elapsed_seconds": 0.040087333,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -5297,7 +5297,11 @@
       "corpus_ids": [
         "corpus-01-mini"
       ],
-      "pipeline_ids": []
+      "pipeline_ids": [
+        "core-germline-fastq-bam-vcf",
+        "diploid-small-fastq-bam-vcf",
+        "edna-taxonomy-no-vcf"
+      ]
     },
     {
       "tool_id": "bbmerge",
@@ -7002,6 +7006,7 @@
           "vcf.stats"
         ],
         "tool_ids": [
+          "bbduk",
           "bcftools",
           "bowtie2",
           "fastp",
@@ -7041,6 +7046,7 @@
           "vcf.stats"
         ],
         "tool_ids": [
+          "bbduk",
           "bcftools",
           "bowtie2",
           "fastp",
@@ -7070,6 +7076,7 @@
           "fastq.validate_reads"
         ],
         "tool_ids": [
+          "bbduk",
           "fastp",
           "fastqc",
           "fastqvalidator",
@@ -8477,7 +8484,7 @@
       "row_status": "present",
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.175873167,
+      "real_smoke_elapsed_seconds": 0.167066917,
       "runtime_source": "fake_run_and_real_smoke"
     },
     {
@@ -8686,7 +8693,7 @@
       "row_status": "missing_result",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.040312792,
+      "real_smoke_elapsed_seconds": 0.040087333,
       "runtime_source": "fake_run_and_real_smoke"
     }
   ],
@@ -11691,7 +11698,7 @@
         "evidence_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
         "observed_status": "missing_input",
         "observed_error": "required input `input_bam` for VCF stage `vcf.call` does not exist at artifacts/bench-readiness/adapters/probes/vcf.call/input_bam.missing",
-        "detail": "governed VCF missing-input probe removed `bam` and expected `required input `input_bam``",
+        "detail": "governed VCF missing-input probe removed `input_bam` and expected `required input `input_bam``",
         "triggered": true
       },
       {
@@ -11793,8 +11800,12 @@
       "metric_id": "alignment_rate",
       "metric_name": "alignment_rate",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "bowtie2",
         "bwa"
@@ -11808,8 +11819,12 @@
       "metric_id": "mapped_reads",
       "metric_name": "mapped_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "bowtie2",
         "bwa"
@@ -11823,47 +11838,19 @@
       "metric_id": "confidence",
       "metric_name": "confidence",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.1,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "authenticct",
         "damageprofiler",
         "pmdtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.authenticity` publishes governed shared comparable metrics `score, confidence, pmd_like_signal_present, consumed_metric_ids, missing_metric_ids` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.authenticity",
-      "metric_id": "consumed_metric_ids",
-      "metric_name": "consumed_metric_ids",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "authenticct",
-        "damageprofiler",
-        "pmdtools"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.authenticity` publishes governed shared comparable metrics `score, confidence, pmd_like_signal_present, consumed_metric_ids, missing_metric_ids` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.authenticity",
-      "metric_id": "missing_metric_ids",
-      "metric_name": "missing_metric_ids",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "authenticct",
-        "damageprofiler",
-        "pmdtools"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.authenticity` publishes governed shared comparable metrics `score, confidence, pmd_like_signal_present, consumed_metric_ids, missing_metric_ids` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
+      "reason": "stage `bam.authenticity` publishes governed shared comparable metrics `score, confidence, status, pmd_like_signal_present` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
     },
     {
       "domain": "bam",
@@ -11871,15 +11858,19 @@
       "metric_id": "pmd_like_signal_present",
       "metric_name": "pmd_like_signal_present",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "authenticct",
         "damageprofiler",
         "pmdtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.authenticity` publishes governed shared comparable metrics `score, confidence, pmd_like_signal_present, consumed_metric_ids, missing_metric_ids` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
+      "reason": "stage `bam.authenticity` publishes governed shared comparable metrics `score, confidence, status, pmd_like_signal_present` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
     },
     {
       "domain": "bam",
@@ -11887,15 +11878,39 @@
       "metric_id": "score",
       "metric_name": "score",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.1,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "authenticct",
         "damageprofiler",
         "pmdtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.authenticity` publishes governed shared comparable metrics `score, confidence, pmd_like_signal_present, consumed_metric_ids, missing_metric_ids` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
+      "reason": "stage `bam.authenticity` publishes governed shared comparable metrics `score, confidence, status, pmd_like_signal_present` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
+    },
+    {
+      "domain": "bam",
+      "stage_id": "bam.authenticity",
+      "metric_id": "status",
+      "metric_name": "status",
+      "unit": null,
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
+      "tool_ids": [
+        "authenticct",
+        "damageprofiler",
+        "pmdtools"
+      ],
+      "contract_status": "declared",
+      "reason": "stage `bam.authenticity` publishes governed shared comparable metrics `score, confidence, status, pmd_like_signal_present` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
     },
     {
       "domain": "bam",
@@ -11903,15 +11918,19 @@
       "metric_id": "ci_high",
       "metric_name": "ci_high",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "maximum",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "contammix",
         "schmutzi",
         "verifybamid2"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.contamination` publishes governed shared comparable metrics `scope, prerequisites_passed, estimate, ci_low, ci_high` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-bam-mini`"
+      "reason": "stage `bam.contamination` publishes governed shared comparable metrics `estimate, ci_low, ci_high` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-bam-mini`"
     },
     {
       "domain": "bam",
@@ -11919,15 +11938,19 @@
       "metric_id": "ci_low",
       "metric_name": "ci_low",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "maximum",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "contammix",
         "schmutzi",
         "verifybamid2"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.contamination` publishes governed shared comparable metrics `scope, prerequisites_passed, estimate, ci_low, ci_high` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-bam-mini`"
+      "reason": "stage `bam.contamination` publishes governed shared comparable metrics `estimate, ci_low, ci_high` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-bam-mini`"
     },
     {
       "domain": "bam",
@@ -11935,47 +11958,19 @@
       "metric_id": "estimate",
       "metric_name": "estimate",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "maximum",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.01,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "contammix",
         "schmutzi",
         "verifybamid2"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.contamination` publishes governed shared comparable metrics `scope, prerequisites_passed, estimate, ci_low, ci_high` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-bam-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.contamination",
-      "metric_id": "prerequisites_passed",
-      "metric_name": "prerequisites_passed",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "contammix",
-        "schmutzi",
-        "verifybamid2"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.contamination` publishes governed shared comparable metrics `scope, prerequisites_passed, estimate, ci_low, ci_high` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-bam-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.contamination",
-      "metric_id": "scope",
-      "metric_name": "scope",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "contammix",
-        "schmutzi",
-        "verifybamid2"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.contamination` publishes governed shared comparable metrics `scope, prerequisites_passed, estimate, ci_low, ci_high` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-bam-mini`"
+      "reason": "stage `bam.contamination` publishes governed shared comparable metrics `estimate, ci_low, ci_high` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-bam-mini`"
     },
     {
       "domain": "bam",
@@ -11983,15 +11978,19 @@
       "metric_id": "breadth_1x",
       "metric_name": "breadth_1x",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "bedtools",
         "mosdepth",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.coverage` publishes governed shared comparable metrics `mean_depth, breadth_1x, covered_bases, observed_region_count, region_ids` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.coverage` publishes governed shared comparable metrics `mean_depth, breadth_1x, covered_bases` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -11999,15 +11998,19 @@
       "metric_id": "covered_bases",
       "metric_name": "covered_bases",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "bedtools",
         "mosdepth",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.coverage` publishes governed shared comparable metrics `mean_depth, breadth_1x, covered_bases, observed_region_count, region_ids` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.coverage` publishes governed shared comparable metrics `mean_depth, breadth_1x, covered_bases` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12015,47 +12018,19 @@
       "metric_id": "mean_depth",
       "metric_name": "mean_depth",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.1,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "bedtools",
         "mosdepth",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.coverage` publishes governed shared comparable metrics `mean_depth, breadth_1x, covered_bases, observed_region_count, region_ids` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.coverage",
-      "metric_id": "observed_region_count",
-      "metric_name": "observed_region_count",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "bedtools",
-        "mosdepth",
-        "samtools"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.coverage` publishes governed shared comparable metrics `mean_depth, breadth_1x, covered_bases, observed_region_count, region_ids` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.coverage",
-      "metric_id": "region_ids",
-      "metric_name": "region_ids",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "bedtools",
-        "mosdepth",
-        "samtools"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.coverage` publishes governed shared comparable metrics `mean_depth, breadth_1x, covered_bases, observed_region_count, region_ids` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.coverage` publishes governed shared comparable metrics `mean_depth, breadth_1x, covered_bases` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12063,8 +12038,12 @@
       "metric_id": "damage_signal",
       "metric_name": "damage_signal",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "addeam",
         "damageprofiler",
@@ -12074,45 +12053,7 @@
         "pydamage"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.damage",
-      "metric_id": "memory_mb",
-      "metric_name": "memory_mb",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "addeam",
-        "damageprofiler",
-        "mapdamage2",
-        "ngsbriggs",
-        "pmdtools",
-        "pydamage"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.damage",
-      "metric_id": "runtime_s",
-      "metric_name": "runtime_s",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "addeam",
-        "damageprofiler",
-        "mapdamage2",
-        "ngsbriggs",
-        "pmdtools",
-        "pydamage"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
+      "reason": "stage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
     },
     {
       "domain": "bam",
@@ -12120,8 +12061,12 @@
       "metric_id": "terminal_c_to_t_5p",
       "metric_name": "terminal_c_to_t_5p",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "addeam",
         "damageprofiler",
@@ -12131,7 +12076,7 @@
         "pydamage"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
+      "reason": "stage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
     },
     {
       "domain": "bam",
@@ -12139,8 +12084,12 @@
       "metric_id": "terminal_g_to_a_3p",
       "metric_name": "terminal_g_to_a_3p",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "addeam",
         "damageprofiler",
@@ -12150,7 +12099,7 @@
         "pydamage"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
+      "reason": "stage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
     },
     {
       "domain": "bam",
@@ -12158,8 +12107,12 @@
       "metric_id": "duplicate_count",
       "metric_name": "duplicate_count",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "picard",
         "samtools"
@@ -12173,8 +12126,12 @@
       "metric_id": "duplicate_fraction",
       "metric_name": "duplicate_fraction",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "maximum",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "picard",
         "samtools"
@@ -12188,8 +12145,12 @@
       "metric_id": "estimated_library_size",
       "metric_name": "estimated_library_size",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "minimum",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.2,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "picard",
         "samtools"
@@ -12200,34 +12161,22 @@
     {
       "domain": "bam",
       "stage_id": "bam.filter",
-      "metric_id": "active_filters",
-      "metric_name": "active_filters",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "bamtools",
-        "bedtools",
-        "samtools"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.filter` publishes governed shared comparable metrics `input_reads, kept_reads, removed_reads, active_filters` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.filter",
       "metric_id": "input_reads",
       "metric_name": "input_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "bamtools",
         "bedtools",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.filter` publishes governed shared comparable metrics `input_reads, kept_reads, removed_reads, active_filters` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.filter` publishes governed shared comparable metrics `input_reads, kept_reads, removed_reads` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12235,15 +12184,19 @@
       "metric_id": "kept_reads",
       "metric_name": "kept_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "bamtools",
         "bedtools",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.filter` publishes governed shared comparable metrics `input_reads, kept_reads, removed_reads, active_filters` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.filter` publishes governed shared comparable metrics `input_reads, kept_reads, removed_reads` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12251,15 +12204,19 @@
       "metric_id": "removed_reads",
       "metric_name": "removed_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "bamtools",
         "bedtools",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.filter` publishes governed shared comparable metrics `input_reads, kept_reads, removed_reads, active_filters` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.filter` publishes governed shared comparable metrics `input_reads, kept_reads, removed_reads` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12267,8 +12224,12 @@
       "metric_id": "observed_max_overlap_snps",
       "metric_name": "observed_max_overlap_snps",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "minimum",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 100.0,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "angsd",
         "king"
@@ -12282,8 +12243,12 @@
       "metric_id": "pair_count",
       "metric_name": "pair_count",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "angsd",
         "king"
@@ -12297,8 +12262,12 @@
       "metric_id": "pairwise_results",
       "metric_name": "pairwise_results",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "structured_match",
+      "tolerance_kind": "normalized_record_overlap",
+      "tolerance_value": 1.0,
+      "pass_rule": "must_match_reference_structure",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "angsd",
         "king"
@@ -12312,8 +12281,12 @@
       "metric_id": "status",
       "metric_name": "status",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "angsd",
         "king"
@@ -12324,32 +12297,21 @@
     {
       "domain": "bam",
       "stage_id": "bam.length_filter",
-      "metric_id": "filtered_bam",
-      "metric_name": "filtered_bam",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "picard",
-        "samtools"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.length_filter` publishes governed shared comparable metrics `min_length_threshold, kept_reads, removed_reads, filtered_bam` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.length_filter",
       "metric_id": "kept_reads",
       "metric_name": "kept_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "picard",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.length_filter` publishes governed shared comparable metrics `min_length_threshold, kept_reads, removed_reads, filtered_bam` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.length_filter` publishes governed shared comparable metrics `min_length_threshold, kept_reads, removed_reads` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12357,14 +12319,18 @@
       "metric_id": "min_length_threshold",
       "metric_name": "min_length_threshold",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "picard",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.length_filter` publishes governed shared comparable metrics `min_length_threshold, kept_reads, removed_reads, filtered_bam` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.length_filter` publishes governed shared comparable metrics `min_length_threshold, kept_reads, removed_reads` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12372,14 +12338,18 @@
       "metric_id": "removed_reads",
       "metric_name": "removed_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "picard",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.length_filter` publishes governed shared comparable metrics `min_length_threshold, kept_reads, removed_reads, filtered_bam` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.length_filter` publishes governed shared comparable metrics `min_length_threshold, kept_reads, removed_reads` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12387,8 +12357,12 @@
       "metric_id": "mapped_reads",
       "metric_name": "mapped_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "picard",
         "samtools"
@@ -12402,8 +12376,12 @@
       "metric_id": "mapping_fraction",
       "metric_name": "mapping_fraction",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "picard",
         "samtools"
@@ -12417,8 +12395,12 @@
       "metric_id": "secondary_reads",
       "metric_name": "secondary_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "picard",
         "samtools"
@@ -12432,8 +12414,12 @@
       "metric_id": "supplementary_reads",
       "metric_name": "supplementary_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "picard",
         "samtools"
@@ -12447,8 +12433,12 @@
       "metric_id": "unmapped_reads",
       "metric_name": "unmapped_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "picard",
         "samtools"
@@ -12459,32 +12449,21 @@
     {
       "domain": "bam",
       "stage_id": "bam.mapq_filter",
-      "metric_id": "filtered_bam",
-      "metric_name": "filtered_bam",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "bamtools",
-        "samtools"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.mapq_filter` publishes governed shared comparable metrics `mapq_threshold, kept_reads, removed_reads, filtered_bam` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.mapq_filter",
       "metric_id": "kept_reads",
       "metric_name": "kept_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "bamtools",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.mapq_filter` publishes governed shared comparable metrics `mapq_threshold, kept_reads, removed_reads, filtered_bam` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.mapq_filter` publishes governed shared comparable metrics `mapq_threshold, kept_reads, removed_reads` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12492,14 +12471,18 @@
       "metric_id": "mapq_threshold",
       "metric_name": "mapq_threshold",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "bamtools",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.mapq_filter` publishes governed shared comparable metrics `mapq_threshold, kept_reads, removed_reads, filtered_bam` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.mapq_filter` publishes governed shared comparable metrics `mapq_threshold, kept_reads, removed_reads` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12507,14 +12490,18 @@
       "metric_id": "removed_reads",
       "metric_name": "removed_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "bamtools",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.mapq_filter` publishes governed shared comparable metrics `mapq_threshold, kept_reads, removed_reads, filtered_bam` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.mapq_filter` publishes governed shared comparable metrics `mapq_threshold, kept_reads, removed_reads` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12522,14 +12509,18 @@
       "metric_id": "duplicate_count",
       "metric_name": "duplicate_count",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "picard",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.markdup` publishes governed shared comparable metrics `marked_bam, duplicate_metrics, duplicate_count, duplicate_fraction` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.markdup` publishes governed shared comparable metrics `duplicate_count, duplicate_fraction` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12537,59 +12528,18 @@
       "metric_id": "duplicate_fraction",
       "metric_name": "duplicate_fraction",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "maximum",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "picard",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.markdup` publishes governed shared comparable metrics `marked_bam, duplicate_metrics, duplicate_count, duplicate_fraction` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.markdup",
-      "metric_id": "duplicate_metrics",
-      "metric_name": "duplicate_metrics",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "picard",
-        "samtools"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.markdup` publishes governed shared comparable metrics `marked_bam, duplicate_metrics, duplicate_count, duplicate_fraction` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.markdup",
-      "metric_id": "marked_bam",
-      "metric_name": "marked_bam",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "picard",
-        "samtools"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.markdup` publishes governed shared comparable metrics `marked_bam, duplicate_metrics, duplicate_count, duplicate_fraction` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.qc_pre",
-      "metric_id": "contig_summary",
-      "metric_name": "contig_summary",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "multiqc",
-        "samtools"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.qc_pre` publishes governed shared comparable metrics `total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads, contig_summary` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.markdup` publishes governed shared comparable metrics `duplicate_count, duplicate_fraction` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12597,14 +12547,18 @@
       "metric_id": "duplicate_flagged_reads",
       "metric_name": "duplicate_flagged_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "multiqc",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.qc_pre` publishes governed shared comparable metrics `total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads, contig_summary` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.qc_pre` publishes governed shared comparable metrics `total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12612,14 +12566,18 @@
       "metric_id": "mapped_reads",
       "metric_name": "mapped_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "multiqc",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.qc_pre` publishes governed shared comparable metrics `total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads, contig_summary` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.qc_pre` publishes governed shared comparable metrics `total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12627,14 +12585,18 @@
       "metric_id": "total_reads",
       "metric_name": "total_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "multiqc",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.qc_pre` publishes governed shared comparable metrics `total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads, contig_summary` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.qc_pre` publishes governed shared comparable metrics `total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12642,14 +12604,18 @@
       "metric_id": "unmapped_reads",
       "metric_name": "unmapped_reads",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "multiqc",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.qc_pre` publishes governed shared comparable metrics `total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads, contig_summary` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.qc_pre` publishes governed shared comparable metrics `total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12657,8 +12623,12 @@
       "metric_id": "autosomal_coverage",
       "metric_name": "autosomal_coverage",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.1,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "angsd",
         "rxy",
@@ -12673,8 +12643,12 @@
       "metric_id": "call",
       "metric_name": "call",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "angsd",
         "rxy",
@@ -12689,8 +12663,12 @@
       "metric_id": "confidence",
       "metric_name": "confidence",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "minimum",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.1,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "angsd",
         "rxy",
@@ -12705,8 +12683,12 @@
       "metric_id": "status",
       "metric_name": "status",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "angsd",
         "rxy",
@@ -12721,8 +12703,12 @@
       "metric_id": "x_coverage",
       "metric_name": "x_coverage",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.15,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "angsd",
         "rxy",
@@ -12737,8 +12723,12 @@
       "metric_id": "y_coverage",
       "metric_name": "y_coverage",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "range",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.15,
+      "pass_rule": "must_remain_within_reference_range",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "angsd",
         "rxy",
@@ -12750,34 +12740,22 @@
     {
       "domain": "bam",
       "stage_id": "bam.validate",
-      "metric_id": "input_bam_identity",
-      "metric_name": "input_bam_identity",
-      "unit": null,
-      "direction": null,
-      "required": null,
-      "tool_ids": [
-        "bamtools",
-        "bedtools",
-        "samtools"
-      ],
-      "contract_status": "declared",
-      "reason": "stage `bam.validate` publishes governed shared comparable metrics `validation_status, validation_errors, validation_warnings, input_bam_identity` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
-    },
-    {
-      "domain": "bam",
-      "stage_id": "bam.validate",
       "metric_id": "validation_errors",
       "metric_name": "validation_errors",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "structured_match",
+      "tolerance_kind": "normalized_set_overlap",
+      "tolerance_value": 1.0,
+      "pass_rule": "must_match_reference_structure",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "bamtools",
         "bedtools",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.validate` publishes governed shared comparable metrics `validation_status, validation_errors, validation_warnings, input_bam_identity` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.validate` publishes governed shared comparable metrics `validation_status, validation_errors, validation_warnings` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12785,15 +12763,19 @@
       "metric_id": "validation_status",
       "metric_name": "validation_status",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "bamtools",
         "bedtools",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.validate` publishes governed shared comparable metrics `validation_status, validation_errors, validation_warnings, input_bam_identity` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.validate` publishes governed shared comparable metrics `validation_status, validation_errors, validation_warnings` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "bam",
@@ -12801,24 +12783,32 @@
       "metric_id": "validation_warnings",
       "metric_name": "validation_warnings",
       "unit": null,
-      "direction": null,
-      "required": null,
+      "direction": "structured_match",
+      "tolerance_kind": "normalized_set_overlap",
+      "tolerance_value": 1.0,
+      "pass_rule": "must_match_reference_structure",
+      "insufficiency_behavior": "drop_metric_from_stage",
+      "required": true,
       "tool_ids": [
         "bamtools",
         "bedtools",
         "samtools"
       ],
       "contract_status": "declared",
-      "reason": "stage `bam.validate` publishes governed shared comparable metrics `validation_status, validation_errors, validation_warnings, input_bam_identity` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
+      "reason": "stage `bam.validate` publishes governed shared comparable metrics `validation_status, validation_errors, validation_warnings` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-bam-mini`"
     },
     {
       "domain": "fastq",
       "stage_id": "fastq.index_reference",
       "metric_id": "index_build_exit_code",
       "metric_name": "index_build_exit_code",
-      "unit": null,
-      "direction": null,
-      "required": null,
+      "unit": "exit_code",
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "bowtie2_build",
         "star"
@@ -12831,9 +12821,13 @@
       "stage_id": "fastq.profile_overrepresented_sequences",
       "metric_id": "flagged_sequences",
       "metric_name": "flagged_sequences",
-      "unit": null,
-      "direction": null,
-      "required": null,
+      "unit": "sequences",
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 1.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "fastq_scan",
         "fastqc",
@@ -12847,9 +12841,13 @@
       "stage_id": "fastq.profile_overrepresented_sequences",
       "metric_id": "sequence_count",
       "metric_name": "sequence_count",
-      "unit": null,
-      "direction": null,
-      "required": null,
+      "unit": "reads",
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "fastq_scan",
         "fastqc",
@@ -12863,9 +12861,13 @@
       "stage_id": "fastq.profile_overrepresented_sequences",
       "metric_id": "top_fraction",
       "metric_name": "top_fraction",
-      "unit": null,
-      "direction": null,
-      "required": null,
+      "unit": "fraction",
+      "direction": "exact_match_preferred",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "warn_and_exclude_stage",
+      "required": true,
       "tool_ids": [
         "fastq_scan",
         "fastqc",
@@ -12879,9 +12881,13 @@
       "stage_id": "fastq.validate_reads",
       "metric_id": "format_validation_pass_rate",
       "metric_name": "format_validation_pass_rate",
-      "unit": null,
-      "direction": null,
-      "required": null,
+      "unit": "fraction",
+      "direction": "higher_is_better",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.01,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
+      "required": true,
       "tool_ids": [
         "fastq_scan",
         "fastqc",
@@ -12899,6 +12905,10 @@
       "metric_name": "population count",
       "unit": "populations",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "plink",
@@ -12914,6 +12924,10 @@
       "metric_name": "sample count",
       "unit": "samples",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "plink",
@@ -12929,6 +12943,10 @@
       "metric_name": "selected cluster count",
       "unit": "clusters",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "plink",
@@ -12944,6 +12962,10 @@
       "metric_name": "missing likelihoods",
       "unit": "sites",
       "direction": "lower_is_better",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "angsd",
@@ -12959,6 +12981,10 @@
       "metric_name": "sites with likelihoods",
       "unit": "sites",
       "direction": "higher_is_better",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "angsd",
@@ -12974,6 +13000,10 @@
       "metric_name": "called sites",
       "unit": "sites",
       "direction": "higher_is_better",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "angsd",
@@ -12989,6 +13019,10 @@
       "metric_name": "missing sites",
       "unit": "sites",
       "direction": "lower_is_better",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "angsd",
@@ -13004,6 +13038,10 @@
       "metric_name": "removed variants",
       "unit": "variants",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "angsd",
@@ -13019,6 +13057,10 @@
       "metric_name": "retained variants",
       "unit": "variants",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "angsd",
@@ -13034,6 +13076,10 @@
       "metric_name": "terminal damage filtered variants",
       "unit": "variants",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "angsd",
@@ -13049,6 +13095,10 @@
       "metric_name": "sample count",
       "unit": "samples",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "angsd",
@@ -13064,6 +13114,10 @@
       "metric_name": "site count after propagation",
       "unit": "sites",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "angsd",
@@ -13079,6 +13133,10 @@
       "metric_name": "site count before propagation",
       "unit": "sites",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "angsd",
@@ -13094,6 +13152,10 @@
       "metric_name": "pair count",
       "unit": "pairs",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "germline",
@@ -13110,6 +13172,10 @@
       "metric_name": "concordance",
       "unit": "fraction",
       "direction": "higher_is_better",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "beagle",
@@ -13127,6 +13193,10 @@
       "metric_name": "dosage r-squared",
       "unit": "score",
       "direction": "higher_is_better",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "drop_metric_from_stage",
       "required": false,
       "tool_ids": [
         "beagle",
@@ -13144,6 +13214,10 @@
       "metric_name": "low-confidence sites",
       "unit": "sites",
       "direction": "lower_is_better",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "beagle",
@@ -13161,6 +13235,10 @@
       "metric_name": "masked-truth sites",
       "unit": "sites",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "beagle",
@@ -13178,6 +13256,10 @@
       "metric_name": "mean info score",
       "unit": "score",
       "direction": "higher_is_better",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "beagle",
@@ -13195,6 +13277,10 @@
       "metric_name": "imputed genotypes",
       "unit": "genotypes",
       "direction": "higher_is_better",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "beagle",
@@ -13212,6 +13298,10 @@
       "metric_name": "low-confidence sites",
       "unit": "sites",
       "direction": "lower_is_better",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "beagle",
@@ -13229,6 +13319,10 @@
       "metric_name": "masked-truth matches",
       "unit": "sites",
       "direction": "higher_is_better",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "beagle",
@@ -13246,6 +13340,10 @@
       "metric_name": "missing genotypes after imputation",
       "unit": "genotypes",
       "direction": "lower_is_better",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "beagle",
@@ -13263,6 +13361,10 @@
       "metric_name": "missing genotypes before imputation",
       "unit": "genotypes",
       "direction": "lower_is_better",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "beagle",
@@ -13280,6 +13382,10 @@
       "metric_name": "unresolved sites",
       "unit": "sites",
       "direction": "lower_is_better",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "beagle",
@@ -13297,6 +13403,10 @@
       "metric_name": "sample count",
       "unit": "samples",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "eigensoft",
@@ -13312,6 +13422,10 @@
       "metric_name": "variant count",
       "unit": "variants",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "eigensoft",
@@ -13327,6 +13441,10 @@
       "metric_name": "phase block n50",
       "unit": "bases",
       "direction": "higher_is_better",
+      "tolerance_kind": "relative_fraction",
+      "tolerance_value": 0.15,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "beagle",
@@ -13343,6 +13461,10 @@
       "metric_name": "switch error proxy",
       "unit": "fraction",
       "direction": "lower_is_better",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "beagle",
@@ -13359,6 +13481,10 @@
       "metric_name": "pair count",
       "unit": "pairs",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "eigensoft",
@@ -13374,6 +13500,10 @@
       "metric_name": "sample count",
       "unit": "samples",
       "direction": "exact_match_preferred",
+      "tolerance_kind": "exact_match",
+      "tolerance_value": 0.0,
+      "pass_rule": "must_match_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "eigensoft",
@@ -13389,6 +13519,10 @@
       "metric_name": "concordance",
       "unit": "fraction",
       "direction": "higher_is_better",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "bcftools",
@@ -13405,6 +13539,10 @@
       "metric_name": "mean imputation info",
       "unit": "score",
       "direction": "higher_is_better",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "bcftools",
@@ -13421,6 +13559,10 @@
       "metric_name": "post-qc missingness",
       "unit": "fraction",
       "direction": "lower_is_better",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.02,
+      "pass_rule": "must_not_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "bcftools",
@@ -13437,6 +13579,10 @@
       "metric_name": "mean r-squared",
       "unit": "score",
       "direction": "higher_is_better",
+      "tolerance_kind": "absolute_delta",
+      "tolerance_value": 0.05,
+      "pass_rule": "must_meet_or_exceed_reference",
+      "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
         "bcftools",
