@@ -1560,7 +1560,7 @@ Visible aliases are part of the operator surface:
   `pair_root`, `artifacts_root`, and `result_manifest_path` values so repeated local smoke runs
   cannot drift onto random temp paths.
 - `bijux-dna bench local run-bam-micro-smoke-subset`
-  `run-bam-micro-smoke-subset` writes `runs/bench/micro/bam/BAM_MICRO_SMOKE_SUMMARY.json`, choosing
+  `run-bam-micro-smoke-subset` writes `runs/bench/micro/bam/MICRO_BAM_SUMMARY.json`, choosing
   one governed retained BAM binding per family from the canonical local-smoke matrix. Host-backed
   families materialize the real tiny-fixture artifact under `runs/bench/local-smoke/<stage>/`,
   while container-backed families record the exact smoke command and checked-in support path
