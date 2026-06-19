@@ -1074,6 +1074,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RunFastqMicroSmokeSubset(args) => {
+                        crate::commands::benchmark::local_fastq_micro_smoke_subset::run_fastq_micro_smoke_subset(
+                            args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RunBamMicroSmokeSubset(args) => {
                         crate::commands::benchmark::local_bam_micro_smoke_subset::run_bam_micro_smoke_subset(
                             args,

@@ -13,6 +13,9 @@ use sha2::{Digest, Sha256};
 use super::local_bam_micro_smoke_subset::{
     render_bam_micro_smoke_subset, BamMicroSmokeExecutionStatus, BamMicroSmokeSubsetReport,
 };
+use super::local_fastq_micro_smoke_subset::{
+    render_fastq_micro_smoke_subset, FastqMicroSmokeExecutionStatus, FastqMicroSmokeSubsetReport,
+};
 use super::local_real_smoke_core_subset::{
     render_real_smoke_core_subset, RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport,
 };
@@ -162,6 +165,7 @@ pub(crate) fn render_micro_benchmark_run(
     let normalized_metrics_path =
         run_root.join("normalized-metrics").join(MICRO_BENCHMARK_NORMALIZED_METRICS_NAME);
     let core_report_path = run_root.join("core").join("REAL_SMOKE_CORE_SUMMARY.json");
+    let fastq_report_path = run_root.join("fastq").join("MICRO_FASTQ_SUMMARY.json");
     let bam_report_path = run_root.join("bam").join("BAM_MICRO_SMOKE_SUMMARY.json");
 
     ensure_path_stays_outside_benchmark_readiness_root(
@@ -186,6 +190,9 @@ pub(crate) fn render_micro_benchmark_run(
         core_report_path
             .parent()
             .ok_or_else(|| anyhow!("micro benchmark core parent is missing"))?,
+        fastq_report_path
+            .parent()
+            .ok_or_else(|| anyhow!("micro benchmark FASTQ parent is missing"))?,
         bam_report_path.parent().ok_or_else(|| anyhow!("micro benchmark BAM parent is missing"))?,
     ] {
         fs::create_dir_all(directory).with_context(|| format!("create {}", directory.display()))?;
@@ -211,6 +218,10 @@ pub(crate) fn render_micro_benchmark_run(
         .context("render micro benchmark real-smoke core report")?;
     run_log.push(format!("real_smoke_core_subset={}", real_report.output_path));
 
+    let fastq_report = render_fastq_micro_smoke_subset(repo_root, fastq_report_path.clone())
+        .context("render micro benchmark FASTQ family report")?;
+    run_log.push(format!("fastq_micro_smoke_subset={}", fastq_report.output_path));
+
     let bam_report = render_bam_micro_smoke_subset(repo_root, bam_report_path.clone())
         .context("render micro benchmark BAM family report")?;
     run_log.push(format!("bam_micro_smoke_subset={}", bam_report.output_path));
@@ -228,6 +239,7 @@ pub(crate) fn render_micro_benchmark_run(
         &mut log_rows,
         &mut normalized_metric_rows,
     )?;
+    collect_fastq_micro_rows(repo_root, &fastq_report, &mut result_rows, &mut output_rows)?;
     collect_bam_micro_rows(
         repo_root,
         &bam_report,
@@ -300,6 +312,11 @@ pub(crate) fn render_micro_benchmark_run(
                 component_id: "real_smoke_core_subset".to_string(),
                 report_path: real_report.output_path.clone(),
                 row_count: real_report.rows.len(),
+            },
+            MicroBenchmarkComponentReport {
+                component_id: "fastq_micro_smoke_subset".to_string(),
+                report_path: fastq_report.output_path.clone(),
+                row_count: fastq_report.rows.len(),
             },
             MicroBenchmarkComponentReport {
                 component_id: "bam_micro_smoke_subset".to_string(),
@@ -441,6 +458,51 @@ fn collect_bam_micro_rows(
     Ok(())
 }
 
+fn collect_fastq_micro_rows(
+    repo_root: &Path,
+    report: &FastqMicroSmokeSubsetReport,
+    result_rows: &mut Vec<MicroBenchmarkResultRow>,
+    output_rows: &mut Vec<MicroBenchmarkOutputRow>,
+) -> Result<()> {
+    for row in &report.rows {
+        let output_count = if let Some(evidence_path) = &row.evidence_path {
+            output_rows.push(MicroBenchmarkOutputRow {
+                execution_id: row.family_id.clone(),
+                component_id: "fastq_micro_smoke_subset".to_string(),
+                artifact_id: "evidence".to_string(),
+                role: "family_evidence".to_string(),
+                path: evidence_path.clone(),
+                exists: repo_root.join(evidence_path).is_file(),
+                source: "fastq_micro_smoke_subset".to_string(),
+            });
+            1
+        } else {
+            0
+        };
+
+        result_rows.push(MicroBenchmarkResultRow {
+            execution_id: row.family_id.clone(),
+            component_id: "fastq_micro_smoke_subset".to_string(),
+            result_kind: MicroBenchmarkResultKind::FamilyRepresentative,
+            domain: "fastq".to_string(),
+            bridge_source_domain: None,
+            bridge_target_domain: None,
+            stage_id: row.representative_stage_id.clone(),
+            tool_id: row.representative_tool_id.clone(),
+            status: fastq_result_status(row.execution_status),
+            reason: row.reason.clone(),
+            command: Some(row.smoke_command.clone()),
+            source_report_path: report.output_path.clone(),
+            evidence_path: row.evidence_path.clone(),
+            stage_result_manifest_path: None,
+            normalized_metric_count: 0,
+            output_count,
+            log_count: 0,
+        });
+    }
+    Ok(())
+}
+
 fn append_manifest_outputs(
     repo_root: &Path,
     row: &super::local_real_smoke_core_subset::RealSmokeCoreSubsetRow,
@@ -491,9 +553,9 @@ fn ensure_micro_benchmark_run_contract(
             manifest.run_root
         );
     }
-    if manifest.component_reports.len() < 2 {
+    if manifest.component_reports.len() < 3 {
         bail!(
-            "micro benchmark run must keep at least two component reports, found {}",
+            "micro benchmark run must keep at least three component reports, found {}",
             manifest.component_reports.len()
         );
     }
@@ -532,6 +594,21 @@ fn ensure_micro_benchmark_run_contract(
                 component.report_path
             );
         }
+    }
+    let component_ids = manifest
+        .component_reports
+        .iter()
+        .map(|component| component.component_id.as_str())
+        .collect::<std::collections::BTreeSet<_>>();
+    let expected_component_ids = std::collections::BTreeSet::from([
+        "bam_micro_smoke_subset",
+        "fastq_micro_smoke_subset",
+        "real_smoke_core_subset",
+    ]);
+    if !expected_component_ids.is_subset(&component_ids) {
+        bail!(
+            "micro benchmark component reports drifted: observed={component_ids:?} expected_at_least={expected_component_ids:?}"
+        );
     }
     for result_row in result_rows {
         match result_row.status {
@@ -585,6 +662,12 @@ fn ensure_micro_benchmark_run_contract(
     {
         bail!("micro benchmark normalized metrics must include at least one VCF execution");
     }
+    if !result_rows
+        .iter()
+        .any(|row| row.component_id == "fastq_micro_smoke_subset" && row.domain == "fastq")
+    {
+        bail!("micro benchmark results must include at least one FASTQ family representative");
+    }
     manifest.passes_behavior_test = true;
     Ok(())
 }
@@ -605,6 +688,16 @@ fn bam_result_status(status: BamMicroSmokeExecutionStatus) -> MicroBenchmarkExec
             MicroBenchmarkExecutionStatus::ContainerNeeded
         }
         BamMicroSmokeExecutionStatus::Unavailable => MicroBenchmarkExecutionStatus::Unavailable,
+    }
+}
+
+fn fastq_result_status(status: FastqMicroSmokeExecutionStatus) -> MicroBenchmarkExecutionStatus {
+    match status {
+        FastqMicroSmokeExecutionStatus::LocalSmoke => MicroBenchmarkExecutionStatus::Succeeded,
+        FastqMicroSmokeExecutionStatus::ContainerNeeded => {
+            MicroBenchmarkExecutionStatus::ContainerNeeded
+        }
+        FastqMicroSmokeExecutionStatus::Unavailable => MicroBenchmarkExecutionStatus::Unavailable,
     }
 }
 
@@ -677,9 +770,12 @@ mod tests {
         let temp = tempdir().expect("tempdir");
         let repo_root = temp.path();
         let component_core = repo_root.join("runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json");
+        let component_fastq = repo_root.join("runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json");
         let component_bam = repo_root.join("runs/bench/micro/bam/BAM_MICRO_SMOKE_SUMMARY.json");
         let evidence_path =
             repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/metrics.json");
+        let fastq_evidence_path =
+            repo_root.join("runs/bench/local-smoke/fastq.validate_reads/report.json");
         let output_path = repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/stats.txt");
         let log_path = repo_root.join("runs/bench/micro/logs/MICRO_RUN.log");
         let result_rows_path = repo_root.join("runs/bench/micro/results/MICRO_RESULT_ROWS.json");
@@ -690,8 +786,10 @@ mod tests {
 
         for path in [
             &component_core,
+            &component_fastq,
             &component_bam,
             &evidence_path,
+            &fastq_evidence_path,
             &output_path,
             &log_path,
             &result_rows_path,
@@ -729,6 +827,30 @@ mod tests {
                 log_count: 0,
             },
             MicroBenchmarkResultRow {
+                execution_id: "fastq.validate_reads".to_string(),
+                component_id: "fastq_micro_smoke_subset".to_string(),
+                result_kind: MicroBenchmarkResultKind::FamilyRepresentative,
+                domain: "fastq".to_string(),
+                bridge_source_domain: None,
+                bridge_target_domain: None,
+                stage_id: "fastq.validate_reads".to_string(),
+                tool_id: "fastq_scan".to_string(),
+                status: MicroBenchmarkExecutionStatus::Succeeded,
+                reason: "governed local smoke".to_string(),
+                command: Some(
+                    "bijux-dna bench local materialize-stage --stage-id fastq.validate_reads"
+                        .to_string(),
+                ),
+                source_report_path: "runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json".to_string(),
+                evidence_path: Some(
+                    "runs/bench/local-smoke/fastq.validate_reads/report.json".to_string(),
+                ),
+                stage_result_manifest_path: None,
+                normalized_metric_count: 0,
+                output_count: 1,
+                log_count: 0,
+            },
+            MicroBenchmarkResultRow {
                 execution_id: "bam.align".to_string(),
                 component_id: "bam_micro_smoke_subset".to_string(),
                 result_kind: MicroBenchmarkResultKind::FamilyRepresentative,
@@ -750,15 +872,26 @@ mod tests {
                 log_count: 0,
             },
         ];
-        let output_rows = vec![MicroBenchmarkOutputRow {
-            execution_id: "vcf.stats".to_string(),
-            component_id: "real_smoke_core_subset".to_string(),
-            artifact_id: "evidence".to_string(),
-            role: "evidence_report".to_string(),
-            path: "runs/bench/local-smoke/vcf.stats/bcftools/stats.txt".to_string(),
-            exists: true,
-            source: "real_smoke_core_subset".to_string(),
-        }];
+        let output_rows = vec![
+            MicroBenchmarkOutputRow {
+                execution_id: "vcf.stats".to_string(),
+                component_id: "real_smoke_core_subset".to_string(),
+                artifact_id: "evidence".to_string(),
+                role: "evidence_report".to_string(),
+                path: "runs/bench/local-smoke/vcf.stats/bcftools/stats.txt".to_string(),
+                exists: true,
+                source: "real_smoke_core_subset".to_string(),
+            },
+            MicroBenchmarkOutputRow {
+                execution_id: "fastq.validate_reads".to_string(),
+                component_id: "fastq_micro_smoke_subset".to_string(),
+                artifact_id: "evidence".to_string(),
+                role: "family_evidence".to_string(),
+                path: "runs/bench/local-smoke/fastq.validate_reads/report.json".to_string(),
+                exists: true,
+                source: "fastq_micro_smoke_subset".to_string(),
+            },
+        ];
         let log_rows = vec![MicroBenchmarkLogRow {
             execution_id: "micro.run".to_string(),
             component_id: "micro_benchmark_run".to_string(),
@@ -796,6 +929,11 @@ mod tests {
                 MicroBenchmarkComponentReport {
                     component_id: "real_smoke_core_subset".to_string(),
                     report_path: "runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json".to_string(),
+                    row_count: 1,
+                },
+                MicroBenchmarkComponentReport {
+                    component_id: "fastq_micro_smoke_subset".to_string(),
+                    report_path: "runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json".to_string(),
                     row_count: 1,
                 },
                 MicroBenchmarkComponentReport {
