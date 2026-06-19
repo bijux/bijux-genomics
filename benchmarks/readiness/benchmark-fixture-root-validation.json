@@ -4,8 +4,8 @@
   "root_path": "benchmarks/tests/fixtures",
   "required_subroot_count": 4,
   "parser_domain_count": 3,
-  "checked_fixture_count": 52,
-  "valid_fixture_count": 52,
+  "checked_fixture_count": 54,
+  "valid_fixture_count": 54,
   "invalid_fixture_count": 0,
   "ok": true,
   "rows": [
@@ -58,6 +58,24 @@
       "fixture_kind": "corpus",
       "fixture_id": "corpus-01-mini",
       "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.fastq_corpus_fixture.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "corpus",
+      "fixture_id": "corpus-01-vcf-cohort-bam-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_corpus_fixture.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "corpus",
+      "fixture_id": "corpus-01-vcf-cohort-fastq-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/manifest.toml",
       "detail_path": null,
       "schema_version": "bijux.bench.fastq_corpus_fixture.v1",
       "valid": true,

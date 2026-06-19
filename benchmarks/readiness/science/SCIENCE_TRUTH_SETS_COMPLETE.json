@@ -1,0 +1,365 @@
+{
+  "schema_version": "bijux.bench.readiness.science_truth_sets_complete.v1",
+  "output_path": "benchmarks/readiness/science/SCIENCE_TRUTH_SETS_COMPLETE.json",
+  "fixture_validation_path": "benchmarks/readiness/benchmark-fixture-root-validation.json",
+  "fixture_validation_ok": true,
+  "required_truth_fixture_count": 17,
+  "validated_required_truth_fixture_count": 17,
+  "missing_truth_fixture_ids": [],
+  "invalid_truth_fixture_ids": [],
+  "extra_validated_truth_fixture_ids": [
+    "vcf-mini"
+  ],
+  "cross_domain_consistency_path": "benchmarks/readiness/science/cross-domain-sample-consistency.json",
+  "cross_domain_consistency_status": "compatible",
+  "cross_domain_source_link_failure_count": 0,
+  "scientific_acceptance_config_path": "benchmarks/configs/local/scientific-acceptance-thresholds.toml",
+  "scientific_acceptance_row_count": 91,
+  "scientific_acceptance_stage_count": 30,
+  "science_surface_count": 17,
+  "science_stage_count": 36,
+  "acceptance_governed_stage_count": 19,
+  "accepted_stage_count": 19,
+  "missing_acceptance_stage_ids": [],
+  "passes_gate": true,
+  "rows": [
+    {
+      "surface_id": "amplicon_feature_inference",
+      "domain": "fastq",
+      "truth_fixture_id": "amplicon-truth",
+      "stage_ids": [
+        "fastq.remove_chimeras",
+        "fastq.infer_asvs",
+        "fastq.cluster_otus",
+        "fastq.normalize_abundance"
+      ],
+      "acceptance_stage_ids": [],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/amplicon-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/amplicon-truth/expected.json",
+      "accepted_stage_count": 0,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `amplicon-truth` validates non-comparable science stages `fastq.remove_chimeras, fastq.infer_asvs, fastq.cluster_otus, fastq.normalize_abundance`"
+    },
+    {
+      "surface_id": "bam_alignment",
+      "domain": "bam",
+      "truth_fixture_id": "bam-alignment-truth",
+      "stage_ids": [
+        "bam.align"
+      ],
+      "acceptance_stage_ids": [
+        "bam.align"
+      ],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/bam-alignment-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/bam-alignment-truth/expected.json",
+      "accepted_stage_count": 1,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `bam-alignment-truth` validates science stages `bam.align` and scientific acceptance governs `bam.align`"
+    },
+    {
+      "surface_id": "bam_contamination",
+      "domain": "bam",
+      "truth_fixture_id": "adna-contamination-truth",
+      "stage_ids": [
+        "bam.contamination"
+      ],
+      "acceptance_stage_ids": [
+        "bam.contamination"
+      ],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/adna-contamination-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/adna-contamination-truth/expected.json",
+      "accepted_stage_count": 1,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `adna-contamination-truth` validates science stages `bam.contamination` and scientific acceptance governs `bam.contamination`"
+    },
+    {
+      "surface_id": "bam_damage_authenticity",
+      "domain": "bam",
+      "truth_fixture_id": "adna-damage-truth",
+      "stage_ids": [
+        "bam.damage",
+        "bam.authenticity"
+      ],
+      "acceptance_stage_ids": [
+        "bam.damage",
+        "bam.authenticity"
+      ],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/adna-damage-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/adna-damage-truth/expected.json",
+      "accepted_stage_count": 2,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `adna-damage-truth` validates science stages `bam.damage, bam.authenticity` and scientific acceptance governs `bam.damage, bam.authenticity`"
+    },
+    {
+      "surface_id": "bam_duplicate_insert",
+      "domain": "bam",
+      "truth_fixture_id": "bam-duplicate-insert-truth",
+      "stage_ids": [
+        "bam.markdup",
+        "bam.duplication_metrics",
+        "bam.insert_size"
+      ],
+      "acceptance_stage_ids": [
+        "bam.markdup",
+        "bam.duplication_metrics"
+      ],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/bam-duplicate-insert-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/bam-duplicate-insert-truth/expected.json",
+      "accepted_stage_count": 2,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `bam-duplicate-insert-truth` validates science stages `bam.markdup, bam.duplication_metrics, bam.insert_size` and scientific acceptance governs `bam.markdup, bam.duplication_metrics`"
+    },
+    {
+      "surface_id": "bam_endogenous_content",
+      "domain": "bam",
+      "truth_fixture_id": "endogenous-truth",
+      "stage_ids": [
+        "bam.endogenous_content"
+      ],
+      "acceptance_stage_ids": [],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/endogenous-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/endogenous-truth/expected.json",
+      "accepted_stage_count": 0,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `endogenous-truth` validates non-comparable science stages `bam.endogenous_content`"
+    },
+    {
+      "surface_id": "bam_gc_coverage",
+      "domain": "bam",
+      "truth_fixture_id": "bam-gc-coverage-truth",
+      "stage_ids": [
+        "bam.coverage",
+        "bam.gc_bias"
+      ],
+      "acceptance_stage_ids": [
+        "bam.coverage"
+      ],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/bam-gc-coverage-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/bam-gc-coverage-truth/expected.json",
+      "accepted_stage_count": 1,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `bam-gc-coverage-truth` validates science stages `bam.coverage, bam.gc_bias` and scientific acceptance governs `bam.coverage`"
+    },
+    {
+      "surface_id": "bam_haplogroups",
+      "domain": "bam",
+      "truth_fixture_id": "haplogroup-truth",
+      "stage_ids": [
+        "bam.haplogroups"
+      ],
+      "acceptance_stage_ids": [],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/haplogroup-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/haplogroup-truth/expected.json",
+      "accepted_stage_count": 0,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `haplogroup-truth` validates non-comparable science stages `bam.haplogroups`"
+    },
+    {
+      "surface_id": "bam_sex_inference",
+      "domain": "bam",
+      "truth_fixture_id": "sex-inference-truth",
+      "stage_ids": [
+        "bam.sex"
+      ],
+      "acceptance_stage_ids": [
+        "bam.sex"
+      ],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/sex-inference-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/sex-inference-truth/expected.json",
+      "accepted_stage_count": 1,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `sex-inference-truth` validates science stages `bam.sex` and scientific acceptance governs `bam.sex`"
+    },
+    {
+      "surface_id": "fastq_duplicates",
+      "domain": "fastq",
+      "truth_fixture_id": "fastq-duplicates-truth",
+      "stage_ids": [
+        "fastq.detect_duplicates_premerge",
+        "fastq.remove_duplicates"
+      ],
+      "acceptance_stage_ids": [],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/fastq-duplicates-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/fastq-duplicates-truth/expected.json",
+      "accepted_stage_count": 0,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `fastq-duplicates-truth` validates non-comparable science stages `fastq.detect_duplicates_premerge, fastq.remove_duplicates`"
+    },
+    {
+      "surface_id": "fastq_taxonomy",
+      "domain": "fastq",
+      "truth_fixture_id": "fastq-taxonomy-truth",
+      "stage_ids": [
+        "fastq.screen_taxonomy"
+      ],
+      "acceptance_stage_ids": [],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/fastq-taxonomy-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/fastq-taxonomy-truth/expected_taxa.tsv",
+      "accepted_stage_count": 0,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `fastq-taxonomy-truth` validates non-comparable science stages `fastq.screen_taxonomy`"
+    },
+    {
+      "surface_id": "fastq_trimming",
+      "domain": "fastq",
+      "truth_fixture_id": "fastq-trimming-truth",
+      "stage_ids": [
+        "fastq.trim_reads",
+        "fastq.trim_polyg_tails"
+      ],
+      "acceptance_stage_ids": [],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/fastq-trimming-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/fastq-trimming-truth/expected.json",
+      "accepted_stage_count": 0,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `fastq-trimming-truth` validates non-comparable science stages `fastq.trim_reads, fastq.trim_polyg_tails`"
+    },
+    {
+      "surface_id": "vcf_filtering",
+      "domain": "vcf",
+      "truth_fixture_id": "vcf-filter-truth",
+      "stage_ids": [
+        "vcf.filter",
+        "vcf.damage_filter"
+      ],
+      "acceptance_stage_ids": [
+        "vcf.damage_filter"
+      ],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/vcf-filter-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/vcf-filter-truth/expected.json",
+      "accepted_stage_count": 1,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `vcf-filter-truth` validates science stages `vcf.filter, vcf.damage_filter` and scientific acceptance governs `vcf.damage_filter`"
+    },
+    {
+      "surface_id": "vcf_genotyping",
+      "domain": "vcf",
+      "truth_fixture_id": "vcf-genotype-truth",
+      "stage_ids": [
+        "vcf.call_diploid",
+        "vcf.call_pseudohaploid",
+        "vcf.call_gl",
+        "vcf.gl_propagation"
+      ],
+      "acceptance_stage_ids": [
+        "vcf.call_pseudohaploid",
+        "vcf.call_gl",
+        "vcf.gl_propagation"
+      ],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/vcf-genotype-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/vcf-genotype-truth/expected.json",
+      "accepted_stage_count": 3,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `vcf-genotype-truth` validates science stages `vcf.call_diploid, vcf.call_pseudohaploid, vcf.call_gl, vcf.gl_propagation` and scientific acceptance governs `vcf.call_pseudohaploid, vcf.call_gl, vcf.gl_propagation`"
+    },
+    {
+      "surface_id": "vcf_phasing_imputation",
+      "domain": "vcf",
+      "truth_fixture_id": "phasing-imputation-truth",
+      "stage_ids": [
+        "vcf.phasing",
+        "vcf.impute",
+        "vcf.imputation_metrics"
+      ],
+      "acceptance_stage_ids": [
+        "vcf.phasing",
+        "vcf.impute",
+        "vcf.imputation_metrics"
+      ],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/phasing-imputation-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/phasing-imputation-truth/expected.json",
+      "accepted_stage_count": 3,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `phasing-imputation-truth` validates science stages `vcf.phasing, vcf.impute, vcf.imputation_metrics` and scientific acceptance governs `vcf.phasing, vcf.impute, vcf.imputation_metrics`"
+    },
+    {
+      "surface_id": "vcf_population_structure",
+      "domain": "vcf",
+      "truth_fixture_id": "population-structure-truth",
+      "stage_ids": [
+        "vcf.pca",
+        "vcf.admixture",
+        "vcf.population_structure"
+      ],
+      "acceptance_stage_ids": [
+        "vcf.pca",
+        "vcf.admixture",
+        "vcf.population_structure"
+      ],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/population-structure-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/population-structure-truth/expected.json",
+      "accepted_stage_count": 3,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `population-structure-truth` validates science stages `vcf.pca, vcf.admixture, vcf.population_structure` and scientific acceptance governs `vcf.pca, vcf.admixture, vcf.population_structure`"
+    },
+    {
+      "surface_id": "vcf_segments_demography",
+      "domain": "vcf",
+      "truth_fixture_id": "segments-demography-truth",
+      "stage_ids": [
+        "vcf.roh",
+        "vcf.ibd",
+        "vcf.demography"
+      ],
+      "acceptance_stage_ids": [
+        "vcf.ibd"
+      ],
+      "truth_fixture_present": true,
+      "truth_fixture_valid": true,
+      "truth_manifest_path": "benchmarks/tests/fixtures/science/segments-demography-truth/manifest.toml",
+      "truth_detail_path": "benchmarks/tests/fixtures/science/segments-demography-truth/expected.json",
+      "accepted_stage_count": 1,
+      "missing_acceptance_stage_ids": [],
+      "status": "pass",
+      "reason": "truth fixture `segments-demography-truth` validates science stages `vcf.roh, vcf.ibd, vcf.demography` and scientific acceptance governs `vcf.ibd`"
+    }
+  ]
+}
