@@ -226,9 +226,19 @@ Visible aliases are part of the operator surface:
   `run-micro` writes `runs/bench/micro/MICRO_BENCHMARK_RUN.json` plus governed aggregate row sets
   for result rows, output rows, log rows, and normalized metrics under `runs/bench/micro/`. The
   command materializes the current real micro execution slice by combining the all-domain
-  `REAL_SMOKE_CORE_SUMMARY.json` report under `runs/bench/micro/core/` with the retained BAM family
-  summary under `runs/bench/micro/bam/`, then flattens those real reports into one micro-run
-  contract with stable `run_id`, repo revision, written row counts, and an explicit run log.
+  `REAL_SMOKE_CORE_SUMMARY.json` report under `runs/bench/micro/core/` with the retained FASTQ
+  family summary under `runs/bench/micro/fastq/` and the retained BAM family summary under
+  `runs/bench/micro/bam/`, then flattens those real reports into one micro-run contract with
+  stable `run_id`, repo revision, written row counts, and an explicit run log.
+- `bijux-dna bench local run-fastq-micro-smoke-subset`
+  `run-fastq-micro-smoke-subset` writes `runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json`,
+  choosing one governed retained FASTQ binding per family from the canonical local-container smoke
+  matrix. Families with a real governed `materialize-stage` smoke artifact record host-local
+  evidence under `runs/bench/local-smoke/<stage>/`, while planner-backed families report the
+  checked-in container smoke path instead of inventing a fake host success. The summary keeps the
+  family slice, representative stage/tool, execution status, smoke metadata, and any parsed
+  evidence schema so FASTQ readiness stays grounded in one honest local-or-container verdict per
+  family.
 - `bijux-dna bench status`
 - `bijux-dna bench workspace-value`
 - `bijux-dna bench config-json`

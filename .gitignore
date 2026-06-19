@@ -46,6 +46,8 @@ Thumbs.db
 !/runs/bench/micro/bam/BAM_MICRO_SMOKE_SUMMARY.json
 !/runs/bench/micro/core/
 !/runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json
+!/runs/bench/micro/fastq/
+!/runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json
 !/runs/bench/micro/logs/
 !/runs/bench/micro/logs/MICRO_LOG_ROWS.json
 !/runs/bench/micro/logs/MICRO_RUN.log
