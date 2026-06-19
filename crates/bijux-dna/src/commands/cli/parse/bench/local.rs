@@ -35,6 +35,8 @@ pub enum BenchLocalCommand {
     RunFastqMicroSmokeSubset(BenchLocalRunFastqMicroSmokeSubsetArgs),
     #[command(name = "run-bam-micro-smoke-subset")]
     RunBamMicroSmokeSubset(BenchLocalRunBamMicroSmokeSubsetArgs),
+    #[command(name = "run-vcf-micro-smoke-subset")]
+    RunVcfMicroSmokeSubset(BenchLocalRunVcfMicroSmokeSubsetArgs),
     #[command(name = "run-bam-stage-smoke")]
     RunBamStageSmoke(BenchLocalRunBamStageSmokeArgs),
     #[command(name = "run-vcf-call-smoke")]
@@ -201,6 +203,14 @@ pub struct BenchLocalRunFastqMicroSmokeSubsetArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalRunBamMicroSmokeSubsetArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunVcfMicroSmokeSubsetArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

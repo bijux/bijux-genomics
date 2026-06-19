@@ -1084,6 +1084,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RunVcfMicroSmokeSubset(args) => {
+                        crate::commands::benchmark::local_vcf_micro_smoke_subset::run_vcf_micro_smoke_subset(
+                            args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RunBamStageSmoke(args) => {
                         crate::commands::benchmark::local_stage_commands::run_bam_stage_smoke(
                             args,
