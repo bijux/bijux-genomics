@@ -2,10 +2,10 @@
   "schema_version": "bijux.bench.local_micro_benchmark_run.v1",
   "manifest_path": "runs/bench/micro/MICRO_BENCHMARK_RUN.json",
   "run_root": "runs/bench/micro",
-  "run_id": "micro-benchmark-9e48d3dc0bb7",
-  "repo_revision": "531d1d52869130eaaaad8223f5d4ad2471292f6a",
+  "run_id": "micro-benchmark-3233896de98a",
+  "repo_revision": "53c937957bf037052c0d3fba5ab5bbcc22f61488",
   "worktree_dirty": true,
-  "created_at_unix": 1781869389,
+  "created_at_unix": 1781873429,
   "command": "bijux-dna bench run-micro",
   "component_reports": [
     {
@@ -29,6 +29,11 @@
       "row_count": 8
     },
     {
+      "component_id": "amplicon_micro_pipeline",
+      "report_path": "runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json",
+      "row_count": 8
+    },
+    {
       "component_id": "adna_micro_pipeline",
       "report_path": "runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json",
       "row_count": 15
@@ -48,8 +53,8 @@
   "output_rows_path": "runs/bench/micro/outputs/MICRO_OUTPUT_ROWS.json",
   "log_rows_path": "runs/bench/micro/logs/MICRO_LOG_ROWS.json",
   "normalized_metrics_path": "runs/bench/micro/normalized-metrics/MICRO_NORMALIZED_METRICS.json",
-  "result_row_count": 69,
-  "output_row_count": 160,
+  "result_row_count": 77,
+  "output_row_count": 198,
   "log_row_count": 1,
   "normalized_metric_row_count": 19,
   "passes_behavior_test": true

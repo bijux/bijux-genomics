@@ -1,0 +1,424 @@
+{
+  "schema_version": "bijux.bench.local_amplicon_micro_pipeline.v1",
+  "command": "bijux-dna bench local run-amplicon-micro-pipeline",
+  "output_path": "runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json",
+  "pipeline_id": "amplicon-asv-otu-no-vcf",
+  "corpus_manifest_path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml",
+  "truth_manifest_path": "benchmarks/tests/fixtures/science/amplicon-truth/manifest.toml",
+  "sample_count": 4,
+  "started_at": "1781874273",
+  "finished_at": "1781874273",
+  "elapsed_seconds": 0.079002625,
+  "stage_count": 8,
+  "handoff_count": 13,
+  "passes_behavior_test": true,
+  "rows": [
+    {
+      "stage_id": "benchmark.amplicon_corpus_fixture",
+      "domain": "benchmark",
+      "tool_id": "bijux",
+      "execution_mode": "fixture_validation",
+      "status": "succeeded",
+      "reason": "validated governed amplicon corpus fixture contract",
+      "evidence_path": "runs/bench/micro/pipelines/amplicon/artifacts/benchmark.amplicon_corpus_fixture/report.json",
+      "parsed_schema_version": "bijux.bench.amplicon_corpus_fixture_validation.v1",
+      "consumed_inputs": {
+        "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml"
+      },
+      "outputs": {
+        "amplicon_abundance_table": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv",
+        "chimera_expectations_path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv",
+        "expected_asvs_path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv",
+        "primers_tsv_path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv"
+      },
+      "metrics": {
+        "abundance_table_count": 1,
+        "chimera_expectation_row_count": 1,
+        "control_count": 1,
+        "expected_asv_row_count": 3,
+        "primer_table_row_count": 1,
+        "sample_count": 4,
+        "valid": true
+      }
+    },
+    {
+      "stage_id": "benchmark.amplicon_truth_fixture",
+      "domain": "benchmark",
+      "tool_id": "bijux",
+      "execution_mode": "fixture_validation",
+      "status": "succeeded",
+      "reason": "validated governed amplicon truth bundle contract",
+      "evidence_path": "runs/bench/micro/pipelines/amplicon/artifacts/benchmark.amplicon_truth_fixture/report.json",
+      "parsed_schema_version": "bijux.bench.amplicon_truth.validation.v1",
+      "consumed_inputs": {
+        "manifest_path": "benchmarks/tests/fixtures/science/amplicon-truth/manifest.toml"
+      },
+      "outputs": {
+        "expected_path": "benchmarks/tests/fixtures/science/amplicon-truth/expected.json"
+      },
+      "metrics": {
+        "valid": true,
+        "validated_row_count": 21,
+        "validated_section_count": 8
+      }
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
+      "domain": "fastq",
+      "tool_id": "cutadapt",
+      "execution_mode": "local_smoke_copy",
+      "status": "succeeded",
+      "reason": "copied governed primer-normalization smoke outputs into the amplicon micro pipeline",
+      "evidence_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_primers/report.json",
+      "parsed_schema_version": "bijux.fastq.normalize_primers.local_smoke.report.v2",
+      "consumed_inputs": {
+        "primer_contract": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv",
+        "sample_fastq": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-se.fastq.gz"
+      },
+      "outputs": {
+        "normalized_reads_r1": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_normalized.fastq.gz",
+        "primer_orientation_report": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_orientation.tsv",
+        "primer_stats_json": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_stats.json",
+        "report_json": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_primers/amplicon-16s-se/cutadapt/normalize_primers_report.json"
+      },
+      "metrics": {
+        "case_count": 2,
+        "input_reads": 3,
+        "matched_reads": 2,
+        "output_reads": 3,
+        "unmatched_reads": 1,
+        "used_fallback": true
+      }
+    },
+    {
+      "stage_id": "fastq.infer_asvs",
+      "domain": "fastq",
+      "tool_id": "dada2",
+      "execution_mode": "local_smoke_copy",
+      "status": "succeeded",
+      "reason": "copied governed ASV inference smoke outputs into the amplicon micro pipeline",
+      "evidence_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/report.json",
+      "parsed_schema_version": "bijux.fastq.infer_asvs.local_smoke.report.v1",
+      "consumed_inputs": {
+        "normalized_amplicon_reads": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/corpus-03-amplicon-se.fastq.gz"
+      },
+      "outputs": {
+        "asv_table_tsv": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/corpus-03-amplicon-se/dada2/asv_table.tsv",
+        "case_report_json": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/corpus-03-amplicon-se/dada2/infer_asvs_report.json",
+        "raw_backend_report": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/corpus-03-amplicon-se/dada2/infer_asvs_backend_report.json",
+        "representatives_fasta": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta",
+        "taxonomy_ready_fasta": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/corpus-03-amplicon-se/dada2/taxonomy_ready.fasta",
+        "taxonomy_ready_fastq": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/corpus-03-amplicon-se/dada2/taxonomy_ready.fastq"
+      },
+      "metrics": {
+        "asv_count": 3,
+        "representative_sequence_count": 3,
+        "sample_count": 1
+      }
+    },
+    {
+      "stage_id": "fastq.remove_chimeras",
+      "domain": "fastq",
+      "tool_id": "vsearch",
+      "execution_mode": "local_smoke_copy",
+      "status": "succeeded",
+      "reason": "copied governed chimera-removal smoke outputs into the amplicon micro pipeline",
+      "evidence_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/report.json",
+      "parsed_schema_version": "bijux.fastq.remove_chimeras.local_smoke.report.v1",
+      "consumed_inputs": {
+        "asv_representatives": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta",
+        "chimera_control_contract": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv"
+      },
+      "outputs": {
+        "case_report_json": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/chimera-control-se/vsearch/remove_chimeras_report.json",
+        "chimera_metrics_json": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/chimera-control-se/vsearch/chimera_metrics.json",
+        "chimeras_fasta": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/chimera-control-se/vsearch/chimeras.fasta",
+        "chimeras_tsv": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/chimeras.tsv",
+        "non_chimeric_fasta": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta",
+        "raw_backend_report": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/chimera-control-se/vsearch/uchime.tsv"
+      },
+      "metrics": {
+        "checked_sequence_count": 3,
+        "chimera_count": 1,
+        "non_chimera_count": 2
+      }
+    },
+    {
+      "stage_id": "fastq.cluster_otus",
+      "domain": "fastq",
+      "tool_id": "vsearch",
+      "execution_mode": "local_smoke_copy",
+      "status": "succeeded",
+      "reason": "copied governed OTU-clustering smoke outputs into the amplicon micro pipeline",
+      "evidence_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/report.json",
+      "parsed_schema_version": "bijux.fastq.cluster_otus.local_smoke.report.v1",
+      "consumed_inputs": {
+        "non_chimeric_representatives": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta",
+        "normalized_amplicon_reads": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/corpus-03-otu-cluster-se.fastq.gz"
+      },
+      "outputs": {
+        "case_report_json": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/cluster_otus_report.json",
+        "otu_representatives_fasta": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/otu_representatives.fasta",
+        "otu_table_tsv": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/otu_table.tsv",
+        "taxonomy_ready_fasta": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fasta",
+        "taxonomy_ready_fastq": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fastq"
+      },
+      "metrics": {
+        "clustering_threshold": 0.97,
+        "otu_count": 3,
+        "representative_sequence_count": 3,
+        "sample_count": 1
+      }
+    },
+    {
+      "stage_id": "fastq.normalize_abundance",
+      "domain": "fastq",
+      "tool_id": "seqkit",
+      "execution_mode": "local_smoke_copy",
+      "status": "succeeded",
+      "reason": "copied governed abundance-normalization smoke outputs into the amplicon micro pipeline",
+      "evidence_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/report.json",
+      "parsed_schema_version": "bijux.fastq.normalize_abundance.local_smoke.report.v1",
+      "consumed_inputs": {
+        "otu_abundance_table": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/otu_abundance.tsv"
+      },
+      "outputs": {
+        "case_report_json": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit/normalize_abundance_report.json",
+        "normalized_abundance_tsv": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/normalized_abundance.tsv",
+        "otu_abundance_table": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/otu_abundance.tsv"
+      },
+      "metrics": {
+        "feature_count": 3,
+        "numeric_output_valid": true,
+        "sample_count": 2,
+        "table_rows": 4,
+        "zero_fraction": 0.0
+      }
+    },
+    {
+      "stage_id": "benchmark.amplicon_output_judgment",
+      "domain": "benchmark",
+      "tool_id": "bijux",
+      "execution_mode": "truth_judgment",
+      "status": "succeeded",
+      "reason": "validated amplicon primer, ASV, chimera, OTU, and abundance outputs against governed truth",
+      "evidence_path": "runs/bench/micro/pipelines/amplicon/artifacts/benchmark.amplicon_output_judgment/report.json",
+      "parsed_schema_version": "bijux.bench.local_amplicon_output_judgment.v1",
+      "consumed_inputs": {
+        "asv_representatives": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta",
+        "asv_table_tsv": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/corpus-03-amplicon-se/dada2/asv_table.tsv",
+        "chimeras_tsv": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/chimeras.tsv",
+        "corpus_manifest_path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml",
+        "non_chimeric_representatives": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta",
+        "normalized_abundance_tsv": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/normalized_abundance.tsv",
+        "normalized_reads_r1": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_normalized.fastq.gz",
+        "otu_abundance_table": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/otu_abundance.tsv",
+        "otu_representatives": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/otu_representatives.fasta",
+        "otu_table_tsv": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/otu_table.tsv",
+        "truth_bundle_path": "benchmarks/tests/fixtures/science/amplicon-truth/expected.json",
+        "truth_manifest_path": "benchmarks/tests/fixtures/science/amplicon-truth/manifest.toml"
+      },
+      "outputs": {
+        "judgment_report": "runs/bench/micro/pipelines/amplicon/artifacts/benchmark.amplicon_output_judgment/report.json"
+      },
+      "metrics": {
+        "asv_representatives_valid": true,
+        "asv_table_valid": true,
+        "checked_row_count": 21,
+        "checked_section_count": 9,
+        "chimera_table_valid": true,
+        "non_chimeric_representatives_valid": true,
+        "normalized_abundance_valid": true,
+        "otu_abundance_table_valid": true,
+        "otu_representatives_valid": true,
+        "otu_table_valid": true,
+        "primer_case_valid": true,
+        "valid": true
+      }
+    }
+  ],
+  "handoffs": [
+    {
+      "handoff_id": "benchmark.amplicon_corpus_fixture:primers_tsv_path->fastq.normalize_primers:primer_contract",
+      "source_stage_id": "benchmark.amplicon_corpus_fixture",
+      "target_stage_id": "fastq.normalize_primers",
+      "source_output_id": "primers_tsv_path",
+      "target_input_id": "primer_contract",
+      "source_path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv",
+      "target_path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "micro pipeline keeps the governed artifact handoff explicit"
+    },
+    {
+      "handoff_id": "benchmark.amplicon_truth_fixture:expected_path->benchmark.amplicon_output_judgment:truth_bundle_path",
+      "source_stage_id": "benchmark.amplicon_truth_fixture",
+      "target_stage_id": "benchmark.amplicon_output_judgment",
+      "source_output_id": "expected_path",
+      "target_input_id": "truth_bundle_path",
+      "source_path": "benchmarks/tests/fixtures/science/amplicon-truth/expected.json",
+      "target_path": "benchmarks/tests/fixtures/science/amplicon-truth/expected.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "micro pipeline keeps the governed artifact handoff explicit"
+    },
+    {
+      "handoff_id": "fastq.normalize_primers:normalized_reads_r1->benchmark.amplicon_output_judgment:normalized_reads_r1",
+      "source_stage_id": "fastq.normalize_primers",
+      "target_stage_id": "benchmark.amplicon_output_judgment",
+      "source_output_id": "normalized_reads_r1",
+      "target_input_id": "normalized_reads_r1",
+      "source_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_normalized.fastq.gz",
+      "target_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_normalized.fastq.gz",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "micro pipeline keeps the governed artifact handoff explicit"
+    },
+    {
+      "handoff_id": "fastq.infer_asvs:asv_table_tsv->benchmark.amplicon_output_judgment:asv_table_tsv",
+      "source_stage_id": "fastq.infer_asvs",
+      "target_stage_id": "benchmark.amplicon_output_judgment",
+      "source_output_id": "asv_table_tsv",
+      "target_input_id": "asv_table_tsv",
+      "source_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/corpus-03-amplicon-se/dada2/asv_table.tsv",
+      "target_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/corpus-03-amplicon-se/dada2/asv_table.tsv",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "micro pipeline keeps the governed artifact handoff explicit"
+    },
+    {
+      "handoff_id": "fastq.infer_asvs:representatives_fasta->fastq.remove_chimeras:asv_representatives",
+      "source_stage_id": "fastq.infer_asvs",
+      "target_stage_id": "fastq.remove_chimeras",
+      "source_output_id": "representatives_fasta",
+      "target_input_id": "asv_representatives",
+      "source_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta",
+      "target_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "micro pipeline keeps the governed artifact handoff explicit"
+    },
+    {
+      "handoff_id": "fastq.infer_asvs:representatives_fasta->benchmark.amplicon_output_judgment:asv_representatives",
+      "source_stage_id": "fastq.infer_asvs",
+      "target_stage_id": "benchmark.amplicon_output_judgment",
+      "source_output_id": "representatives_fasta",
+      "target_input_id": "asv_representatives",
+      "source_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta",
+      "target_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "micro pipeline keeps the governed artifact handoff explicit"
+    },
+    {
+      "handoff_id": "fastq.remove_chimeras:chimeras_tsv->benchmark.amplicon_output_judgment:chimeras_tsv",
+      "source_stage_id": "fastq.remove_chimeras",
+      "target_stage_id": "benchmark.amplicon_output_judgment",
+      "source_output_id": "chimeras_tsv",
+      "target_input_id": "chimeras_tsv",
+      "source_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/chimeras.tsv",
+      "target_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/chimeras.tsv",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "micro pipeline keeps the governed artifact handoff explicit"
+    },
+    {
+      "handoff_id": "fastq.remove_chimeras:non_chimeric_fasta->fastq.cluster_otus:non_chimeric_representatives",
+      "source_stage_id": "fastq.remove_chimeras",
+      "target_stage_id": "fastq.cluster_otus",
+      "source_output_id": "non_chimeric_fasta",
+      "target_input_id": "non_chimeric_representatives",
+      "source_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta",
+      "target_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "micro pipeline keeps the governed artifact handoff explicit"
+    },
+    {
+      "handoff_id": "fastq.remove_chimeras:non_chimeric_fasta->benchmark.amplicon_output_judgment:non_chimeric_representatives",
+      "source_stage_id": "fastq.remove_chimeras",
+      "target_stage_id": "benchmark.amplicon_output_judgment",
+      "source_output_id": "non_chimeric_fasta",
+      "target_input_id": "non_chimeric_representatives",
+      "source_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta",
+      "target_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "micro pipeline keeps the governed artifact handoff explicit"
+    },
+    {
+      "handoff_id": "fastq.cluster_otus:otu_table_tsv->benchmark.amplicon_output_judgment:otu_table_tsv",
+      "source_stage_id": "fastq.cluster_otus",
+      "target_stage_id": "benchmark.amplicon_output_judgment",
+      "source_output_id": "otu_table_tsv",
+      "target_input_id": "otu_table_tsv",
+      "source_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/otu_table.tsv",
+      "target_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/otu_table.tsv",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "micro pipeline keeps the governed artifact handoff explicit"
+    },
+    {
+      "handoff_id": "fastq.cluster_otus:otu_representatives_fasta->benchmark.amplicon_output_judgment:otu_representatives",
+      "source_stage_id": "fastq.cluster_otus",
+      "target_stage_id": "benchmark.amplicon_output_judgment",
+      "source_output_id": "otu_representatives_fasta",
+      "target_input_id": "otu_representatives",
+      "source_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/otu_representatives.fasta",
+      "target_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/otu_representatives.fasta",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "micro pipeline keeps the governed artifact handoff explicit"
+    },
+    {
+      "handoff_id": "fastq.normalize_abundance:otu_abundance_table->benchmark.amplicon_output_judgment:otu_abundance_table",
+      "source_stage_id": "fastq.normalize_abundance",
+      "target_stage_id": "benchmark.amplicon_output_judgment",
+      "source_output_id": "otu_abundance_table",
+      "target_input_id": "otu_abundance_table",
+      "source_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/otu_abundance.tsv",
+      "target_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/otu_abundance.tsv",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "micro pipeline keeps the governed artifact handoff explicit"
+    },
+    {
+      "handoff_id": "fastq.normalize_abundance:normalized_abundance_tsv->benchmark.amplicon_output_judgment:normalized_abundance_tsv",
+      "source_stage_id": "fastq.normalize_abundance",
+      "target_stage_id": "benchmark.amplicon_output_judgment",
+      "source_output_id": "normalized_abundance_tsv",
+      "target_input_id": "normalized_abundance_tsv",
+      "source_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/normalized_abundance.tsv",
+      "target_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/normalized_abundance.tsv",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "micro pipeline keeps the governed artifact handoff explicit"
+    }
+  ]
+}
