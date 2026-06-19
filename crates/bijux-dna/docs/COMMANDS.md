@@ -224,15 +224,21 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench run`
 - `bijux-dna bench run-micro`
   `run-micro` writes `runs/bench/micro/MICRO_BENCHMARK_RUN.json` plus governed aggregate row sets
-  for result rows, output rows, log rows, and normalized metrics under `runs/bench/micro/`. The
-  command materializes the current real micro execution slice by combining the all-domain
-  `REAL_SMOKE_CORE_SUMMARY.json` report under `runs/bench/micro/core/` with the retained FASTQ
-  family summary under `runs/bench/micro/fastq/` and the retained BAM family summary under
-  `runs/bench/micro/bam/` plus the retained VCF family summary under `runs/bench/micro/vcf/`,
-  the governed aDNA pipeline summary under `runs/bench/micro/pipelines/adna/`, the governed eDNA
-  pipeline summary under `runs/bench/micro/pipelines/edna/`, and the governed core germline
-  pipeline summary under `runs/bench/micro/pipelines/core-germline/`. It then flattens those real
-  reports into one micro-run contract with stable `run_id`, repo revision, written row counts, and
+  for result rows, output rows, log rows, and normalized metrics under `runs/bench/micro/`, and
+  also writes the governed Markdown and JSON micro benchmark report pair
+  `runs/bench/micro/MICRO_BENCHMARK_REPORT.md` and
+  `runs/bench/micro/MICRO_BENCHMARK_REPORT.json`. The command materializes the current real micro
+  execution slice by combining the all-domain `REAL_SMOKE_CORE_SUMMARY.json` report under
+  `runs/bench/micro/core/` with the retained FASTQ family summary under
+  `runs/bench/micro/fastq/`, the retained BAM family summary under `runs/bench/micro/bam/`, the
+  retained VCF family summary under `runs/bench/micro/vcf/`, the governed amplicon pipeline
+  summary under `runs/bench/micro/pipelines/amplicon/`, the governed aDNA pipeline summary under
+  `runs/bench/micro/pipelines/adna/`, the governed eDNA pipeline summary under
+  `runs/bench/micro/pipelines/edna/`, and the governed core germline pipeline summary under
+  `runs/bench/micro/pipelines/core-germline/`. It then flattens those real reports into one
+  micro-run contract with stable `run_id`, repo revision, written row counts, runtime and
+  memory-source evidence, preserved unavailable rows, and filtered science-threshold rows so the
+  report stays honest about what is complete, unavailable, missing, or insufficient.
   an explicit run log.
 - `bijux-dna bench local run-fastq-micro-smoke-subset`
   `run-fastq-micro-smoke-subset` writes `runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json`,
