@@ -2533,7 +2533,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.deplete_host"
-required_tool_roles = ["transform"]
+required_tool_roles = ["aligner", "transform"]
 primary_tools = ["bowtie2"]
 optional_alternatives = []
 validation_tools = []
@@ -2593,7 +2593,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.estimate_library_complexity_prealign"
-required_tool_roles = ["transform"]
+required_tool_roles = ["merger", "transform"]
 primary_tools = ["bijux_dna"]
 optional_alternatives = []
 validation_tools = []
@@ -2713,7 +2713,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.profile_read_lengths"
-required_tool_roles = ["transform"]
+required_tool_roles = ["transform", "filter"]
 primary_tools = ["seqkit_stats"]
 optional_alternatives = ["fastp", "prinseq", "seqfu"]
 validation_tools = []
@@ -2725,7 +2725,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.profile_reads"
-required_tool_roles = ["transform"]
+required_tool_roles = ["transform", "filter"]
 primary_tools = ["seqkit_stats"]
 optional_alternatives = ["seqfu", "seqkit"]
 validation_tools = []
@@ -2830,4 +2830,3 @@ planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
-
