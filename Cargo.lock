@@ -247,6 +247,8 @@ dependencies = [
  "filetime",
  "flate2",
  "insta",
+ "noodles-bam",
+ "noodles-sam",
  "predicates",
  "regex",
  "schemars",

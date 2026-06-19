@@ -39,6 +39,8 @@ sha2 = { workspace = true }
 tar.workspace = true
 flate2.workspace = true
 schemars.workspace = true
+noodles-bam.workspace = true
+noodles-sam.workspace = true
 
 [features]
 bam_downstream = ["bijux-dna-api/bam_downstream"]

@@ -49,6 +49,7 @@ pub use self::local::{
     BenchLocalRenderVcfSmokeRootArgs, BenchLocalRenderVcfStageCatalogArgs,
     BenchLocalRenderVcfStageMatrixArgs, BenchLocalRunBamMicroSmokeSubsetArgs,
     BenchLocalRunBamStageSmokeArgs, BenchLocalRunFastqMicroSmokeSubsetArgs,
+    BenchLocalRunCoreGermlineMicroPipelineArgs,
     BenchLocalRunRealSmokeCoreSubsetArgs, BenchLocalRunVcfAdmixtureSmokeArgs,
     BenchLocalRunVcfCallDiploidSmokeArgs, BenchLocalRunVcfCallGlSmokeArgs,
     BenchLocalRunVcfCallPseudohaploidSmokeArgs, BenchLocalRunVcfCallSmokeArgs,

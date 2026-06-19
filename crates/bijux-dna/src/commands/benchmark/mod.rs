@@ -45,6 +45,7 @@ pub(crate) mod local_benchmark_summary;
 pub(crate) mod local_corpus_fixture;
 pub(crate) mod local_corpus_skip_report;
 pub(crate) mod local_corpus_stage_compatibility;
+pub(crate) mod local_core_germline_micro_pipeline;
 pub(crate) mod local_cross_domain_sample_consistency;
 pub(crate) mod local_dag_watchdog_simulation;
 pub(crate) mod local_essential_pipeline_fake_runs;
