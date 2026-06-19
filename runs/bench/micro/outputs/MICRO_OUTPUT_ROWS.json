@@ -225,6 +225,69 @@
     "source": "fastq_micro_smoke_subset"
   },
   {
+    "execution_id": "vcf.calling",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.call/bcftools/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
+    "execution_id": "vcf.descent_and_demography",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.ibd/germline/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
+    "execution_id": "vcf.imputation",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.impute/beagle/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
+    "execution_id": "vcf.phasing",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.phasing/shapeit5/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
+    "execution_id": "vcf.population_structure",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.population_structure/plink2/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
+    "execution_id": "vcf.quality_control",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.stats/bcftools/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
+    "execution_id": "vcf.reference_panel_preparation",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
     "execution_id": "vcf.stats",
     "component_id": "real_smoke_core_subset",
     "artifact_id": "bcftools_stats_txt",
@@ -259,5 +322,14 @@
     "path": "runs/bench/local-smoke/vcf.stats/bcftools/stats.json",
     "exists": true,
     "source": "stage_result_manifest"
+  },
+  {
+    "execution_id": "vcf.variant_curation",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.damage_filter/bcftools/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
   }
 ]
