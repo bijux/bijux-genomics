@@ -74,6 +74,8 @@ pub enum BenchReadinessCommand {
     RenderBamComparableMetrics(BenchReadinessRenderBamComparableMetricsArgs),
     #[command(name = "render-scientific-acceptance-thresholds")]
     RenderScientificAcceptanceThresholds(BenchReadinessRenderScientificAcceptanceThresholdsArgs),
+    #[command(name = "render-science-truth-sets-complete")]
+    RenderScienceTruthSetsComplete(BenchReadinessRenderScienceTruthSetsCompleteArgs),
     #[command(name = "render-bam-science-thresholds-ready")]
     RenderBamScienceThresholdsReady(BenchReadinessRenderBamScienceThresholdsReadyArgs),
     #[command(name = "render-bam-normalized-metrics-schema")]
@@ -584,6 +586,14 @@ pub struct BenchReadinessRenderBamComparableMetricsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderScientificAcceptanceThresholdsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderScienceTruthSetsCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

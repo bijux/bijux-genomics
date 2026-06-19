@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use serde::Serialize;
 
 use super::scientific_acceptance_thresholds::{
@@ -16,6 +16,8 @@ use crate::commands::benchmark::local_cross_domain_sample_consistency::{
     render_cross_domain_sample_consistency, CrossDomainSampleConsistencyReport,
     DEFAULT_CROSS_DOMAIN_SAMPLE_CONSISTENCY_PATH,
 };
+use crate::commands::cli::parse;
+use crate::commands::cli::render;
 use crate::commands::fixtures::paths::DEFAULT_BENCHMARK_FIXTURE_ROOT;
 use crate::commands::fixtures::root_validation::{
     validate_benchmark_fixture_root, BenchmarkFixtureRootValidationReport,
@@ -215,6 +217,27 @@ pub(crate) struct ScienceTruthSetsCompleteReport {
     pub(crate) missing_acceptance_stage_ids: Vec<String>,
     pub(crate) passes_gate: bool,
     pub(crate) rows: Vec<ScienceTruthSurfaceRow>,
+}
+
+pub(crate) fn run_render_science_truth_sets_complete(
+    args: &parse::BenchReadinessRenderScienceTruthSetsCompleteArgs,
+) -> Result<()> {
+    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let report = render_science_truth_sets_complete(
+        &repo_root,
+        args.output
+            .clone()
+            .unwrap_or_else(|| PathBuf::from(DEFAULT_SCIENCE_TRUTH_SETS_COMPLETE_PATH)),
+    )?;
+    if args.json {
+        render::json::print_pretty(&report)?;
+    } else {
+        println!("{}", report.output_path);
+    }
+    if !report.passes_gate {
+        bail!("science truth gate drifted; inspect {}", report.output_path);
+    }
+    Ok(())
 }
 
 pub(crate) fn render_science_truth_sets_complete(

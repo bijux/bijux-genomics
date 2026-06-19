@@ -350,6 +350,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderScienceTruthSetsComplete(args) => {
+                        crate::commands::benchmark::readiness::science_truth_sets_complete::run_render_science_truth_sets_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamScienceThresholdsReady(args) => {
                         crate::commands::benchmark::readiness::bam_science_thresholds_ready::run_render_bam_science_thresholds_ready(
                             args,
