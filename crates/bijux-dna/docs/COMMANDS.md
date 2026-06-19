@@ -1997,6 +1997,15 @@ Visible aliases are part of the operator surface:
   parsed evidence path, normalized metrics, and validated `stage-result.json` identity where a
   manifest-backed real execution exists, so the all-domain harness keeps at least one non-fake
   execution slice grounded in real outputs.
+- `bijux-dna bench local run-adna-micro-pipeline`
+  `run-adna-micro-pipeline` writes
+  `runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json` and executes one governed local
+  aDNA FASTQ→BAM→VCF handoff slice for `adna-pseudohaploid-fastq-bam-vcf`. The report keeps 15
+  stage rows, 21 exact-path handoff checks, real terminal-damage trimming and duplicate removal
+  outputs, a real aligned BAM plus BAI, real `bam.damage` and `bam.authenticity` evidence, the
+  active pseudohaploid VCF branch, and explicit skip reasons for contamination and GL-only VCF
+  branches, so this proof shows which aDNA path actually executed instead of implying full-branch
+  coverage.
 - `bijux-dna bench local run-core-germline-micro-pipeline`
   `run-core-germline-micro-pipeline` writes
   `runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json` and executes one real
