@@ -8,17 +8,17 @@
   "retained_row_count": 42,
   "retained_stage_count": 20,
   "retained_tool_count": 16,
-  "active_row_count": 20,
-  "removed_row_count": 22,
-  "active_stage_count": 17,
+  "active_row_count": 21,
+  "removed_row_count": 21,
+  "active_stage_count": 18,
   "active_tool_count": 6,
-  "expected_result_row_count": 20,
-  "rendered_command_row_count": 20,
-  "parser_fixture_row_count": 20,
+  "expected_result_row_count": 21,
+  "rendered_command_row_count": 21,
+  "parser_fixture_row_count": 21,
   "local_smoke_row_count": 42,
   "local_smoke_host_stage_row_count": 20,
   "local_smoke_container_row_count": 22,
-  "report_map_row_count": 20,
+  "report_map_row_count": 21,
   "ok": true,
   "checks": [
     {
@@ -26,7 +26,7 @@
       "surface": "vcf active stage tool matrix",
       "output_path": "benchmarks/readiness/vcf/vcf-active-stage-tool-matrix.tsv",
       "ok": true,
-      "detail": "validated the governed 42-row retained VCF matrix with 20 active bindings across 20 stages"
+      "detail": "validated the governed 42-row retained VCF matrix with 21 active bindings across 18 active stages"
     },
     {
       "goal_id": 337,

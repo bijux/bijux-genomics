@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.vcf_missing_result_report.v1",
   "output_path": "benchmarks/readiness/vcf-missing-result-report-test.json",
   "fake_result_root": "benchmarks/readiness/vcf-missing-result-report-fixture",
-  "expected_row_count": 20,
-  "present_result_row_count": 19,
+  "expected_row_count": 21,
+  "present_result_row_count": 20,
   "missing_result_row_count": 1,
   "passes_behavior_test": true,
   "removed_result_row_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
@@ -17,6 +17,7 @@
     "population_structure": 4,
     "quality_control": 5,
     "reference_panel_preparation": 1,
+    "runs_of_homozygosity": 1,
     "variant_calling": 4
   },
   "rows": [
@@ -368,8 +369,14 @@
         "phased_vcf"
       ],
       "expected_metrics": [
-        "switch_error_proxy",
-        "phase_block_n50"
+        "input_genotypes",
+        "phased_genotypes",
+        "unphased_genotypes",
+        "phase_set_count",
+        "sample_count",
+        "sample_ids",
+        "output_variant_count",
+        "status"
       ],
       "report_section": "phasing",
       "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5` remains present with a validated stage-result manifest"
@@ -552,6 +559,33 @@
       ],
       "report_section": "quality_control",
       "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2` remains present with a validated stage-result manifest"
+    },
+    {
+      "result_row_id": "vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.roh",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stage-result.json",
+      "audit_manifest_path": "benchmarks/readiness/vcf-missing-result-report-fixture/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "roh_report"
+      ],
+      "observed_output_artifact_ids": [
+        "roh_report"
+      ],
+      "expected_metrics": [
+        "sample_count",
+        "segment_count",
+        "total_length",
+        "segments",
+        "per_sample_summary",
+        "status"
+      ],
+      "report_section": "runs_of_homozygosity",
+      "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2` remains present with a validated stage-result manifest"
     },
     {
       "result_row_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
