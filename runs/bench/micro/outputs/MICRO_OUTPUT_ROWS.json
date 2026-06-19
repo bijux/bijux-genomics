@@ -135,6 +135,87 @@
     "source": "stage_result_manifest"
   },
   {
+    "execution_id": "fastq.adapter_detection",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.detect_adapters/adapters.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.amplicon",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.normalize_primers/report.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.complexity_correction",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.duplicate_handling",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.detect_duplicates_premerge/duplicates.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.filtering",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.filter_low_complexity/report.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.merge_umi",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.merge_pairs/report.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.qc_reporting",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.report_qc/report.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.read_profiling",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.trimming",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/metrics.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
     "execution_id": "fastq.validate_reads",
     "component_id": "real_smoke_core_subset",
     "artifact_id": "evidence",
@@ -142,6 +223,15 @@
     "path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
     "exists": true,
     "source": "real_smoke_core_subset"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
   },
   {
     "execution_id": "vcf.stats",

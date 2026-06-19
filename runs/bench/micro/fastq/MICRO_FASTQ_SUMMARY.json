@@ -1,0 +1,285 @@
+{
+  "schema_version": "bijux.bench.local_fastq_micro_smoke_subset.v1",
+  "output_path": "runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json",
+  "family_count": 13,
+  "local_smoke_count": 10,
+  "container_needed_count": 3,
+  "unavailable_count": 0,
+  "passes_behavior_test": true,
+  "rows": [
+    {
+      "family_id": "fastq.validate_reads",
+      "surface_label": "fastq.validate_reads",
+      "stage_ids": [
+        "fastq.validate_reads"
+      ],
+      "representative_stage_id": "fastq.validate_reads",
+      "representative_tool_id": "fastqvalidator",
+      "registered_binary": "fastqvalidator",
+      "smoke_tool_id": "fastqvalidator",
+      "smoke_path_kind": "local_stage_materialization",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local materialize-stage --stage-id fastq.validate_reads",
+      "smoke_support_path": null,
+      "execution_status": "local_smoke",
+      "reason": "binding `fastq.validate_reads` / `fastqvalidator` is the governed FASTQ default tool and `materialize-stage` writes a real local smoke artifact for that stage, so this family is proved with host-local evidence",
+      "evidence_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.fastq.validate.local_smoke.report.v1"
+    },
+    {
+      "family_id": "fastq.read_profiling",
+      "surface_label": "fastq read profiling",
+      "stage_ids": [
+        "fastq.profile_reads",
+        "fastq.profile_read_lengths",
+        "fastq.profile_overrepresented_sequences"
+      ],
+      "representative_stage_id": "fastq.profile_overrepresented_sequences",
+      "representative_tool_id": "fastqc",
+      "registered_binary": "fastqc",
+      "smoke_tool_id": "fastqc",
+      "smoke_path_kind": "local_stage_materialization",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local materialize-stage --stage-id fastq.profile_overrepresented_sequences",
+      "smoke_support_path": null,
+      "execution_status": "local_smoke",
+      "reason": "binding `fastq.profile_overrepresented_sequences` / `fastqc` is the governed FASTQ default tool and `materialize-stage` writes a real local smoke artifact for that stage, so this family is proved with host-local evidence",
+      "evidence_path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv",
+      "evidence_format": "tsv",
+      "parsed_schema_version": null
+    },
+    {
+      "family_id": "fastq.qc_reporting",
+      "surface_label": "fastq qc reporting",
+      "stage_ids": [
+        "fastq.report_qc"
+      ],
+      "representative_stage_id": "fastq.report_qc",
+      "representative_tool_id": "multiqc",
+      "registered_binary": "multiqc",
+      "smoke_tool_id": "multiqc",
+      "smoke_path_kind": "local_stage_materialization",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local materialize-stage --stage-id fastq.report_qc",
+      "smoke_support_path": null,
+      "execution_status": "local_smoke",
+      "reason": "binding `fastq.report_qc` / `multiqc` is the governed FASTQ default tool and `materialize-stage` writes a real local smoke artifact for that stage, so this family is proved with host-local evidence",
+      "evidence_path": "runs/bench/local-smoke/fastq.report_qc/report.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.fastq.report_qc.report.v2"
+    },
+    {
+      "family_id": "fastq.adapter_detection",
+      "surface_label": "fastq adapter detection",
+      "stage_ids": [
+        "fastq.detect_adapters"
+      ],
+      "representative_stage_id": "fastq.detect_adapters",
+      "representative_tool_id": "fastqc",
+      "registered_binary": "fastqc",
+      "smoke_tool_id": "fastqc",
+      "smoke_path_kind": "local_stage_materialization",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local materialize-stage --stage-id fastq.detect_adapters",
+      "smoke_support_path": null,
+      "execution_status": "local_smoke",
+      "reason": "binding `fastq.detect_adapters` / `fastqc` is the governed FASTQ default tool and `materialize-stage` writes a real local smoke artifact for that stage, so this family is proved with host-local evidence",
+      "evidence_path": "runs/bench/local-smoke/fastq.detect_adapters/adapters.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.fastq.detect_adapters.local_smoke.report.v2"
+    },
+    {
+      "family_id": "fastq.trimming",
+      "surface_label": "fastq trimming",
+      "stage_ids": [
+        "fastq.trim_reads",
+        "fastq.trim_terminal_damage",
+        "fastq.trim_polyg_tails"
+      ],
+      "representative_stage_id": "fastq.trim_terminal_damage",
+      "representative_tool_id": "cutadapt",
+      "registered_binary": "cutadapt",
+      "smoke_tool_id": "cutadapt",
+      "smoke_path_kind": "local_stage_materialization",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local materialize-stage --stage-id fastq.trim_terminal_damage",
+      "smoke_support_path": null,
+      "execution_status": "local_smoke",
+      "reason": "binding `fastq.trim_terminal_damage` / `cutadapt` is the governed FASTQ default tool and `materialize-stage` writes a real local smoke artifact for that stage, so this family is proved with host-local evidence",
+      "evidence_path": "runs/bench/local-smoke/fastq.trim_terminal_damage/metrics.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.fastq.trim_terminal_damage.local_smoke.metrics.v1"
+    },
+    {
+      "family_id": "fastq.filtering",
+      "surface_label": "fastq filtering",
+      "stage_ids": [
+        "fastq.filter_reads",
+        "fastq.filter_low_complexity"
+      ],
+      "representative_stage_id": "fastq.filter_low_complexity",
+      "representative_tool_id": "bbduk",
+      "registered_binary": "bbduk",
+      "smoke_tool_id": "bbduk",
+      "smoke_path_kind": "local_stage_materialization",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local materialize-stage --stage-id fastq.filter_low_complexity",
+      "smoke_support_path": null,
+      "execution_status": "local_smoke",
+      "reason": "binding `fastq.filter_low_complexity` / `bbduk` is the governed FASTQ default tool and `materialize-stage` writes a real local smoke artifact for that stage, so this family is proved with host-local evidence",
+      "evidence_path": "runs/bench/local-smoke/fastq.filter_low_complexity/report.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.fastq.filter_low_complexity.local_smoke.report.v1"
+    },
+    {
+      "family_id": "fastq.duplicate_handling",
+      "surface_label": "fastq duplicate handling",
+      "stage_ids": [
+        "fastq.detect_duplicates_premerge",
+        "fastq.remove_duplicates"
+      ],
+      "representative_stage_id": "fastq.detect_duplicates_premerge",
+      "representative_tool_id": "bijux_dna",
+      "registered_binary": "bijux-dna",
+      "smoke_tool_id": "bijux_dna",
+      "smoke_path_kind": "local_stage_materialization",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local materialize-stage --stage-id fastq.detect_duplicates_premerge",
+      "smoke_support_path": null,
+      "execution_status": "local_smoke",
+      "reason": "binding `fastq.detect_duplicates_premerge` / `bijux_dna` is the governed FASTQ default tool and `materialize-stage` writes a real local smoke artifact for that stage, so this family is proved with host-local evidence",
+      "evidence_path": "runs/bench/local-smoke/fastq.detect_duplicates_premerge/duplicates.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.fastq.detect_duplicates_premerge.local_smoke.report.v1"
+    },
+    {
+      "family_id": "fastq.complexity_correction",
+      "surface_label": "fastq complexity and correction",
+      "stage_ids": [
+        "fastq.estimate_library_complexity_prealign",
+        "fastq.correct_errors"
+      ],
+      "representative_stage_id": "fastq.estimate_library_complexity_prealign",
+      "representative_tool_id": "bijux_dna",
+      "registered_binary": "bijux-dna",
+      "smoke_tool_id": "bijux_dna",
+      "smoke_path_kind": "local_stage_materialization",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local materialize-stage --stage-id fastq.estimate_library_complexity_prealign",
+      "smoke_support_path": null,
+      "execution_status": "local_smoke",
+      "reason": "binding `fastq.estimate_library_complexity_prealign` / `bijux_dna` is the governed FASTQ default tool and `materialize-stage` writes a real local smoke artifact for that stage, so this family is proved with host-local evidence",
+      "evidence_path": "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.fastq.estimate_library_complexity_prealign.local_smoke.report.v1"
+    },
+    {
+      "family_id": "fastq.merge_umi",
+      "surface_label": "fastq merge and umi",
+      "stage_ids": [
+        "fastq.merge_pairs",
+        "fastq.extract_umis"
+      ],
+      "representative_stage_id": "fastq.merge_pairs",
+      "representative_tool_id": "pear",
+      "registered_binary": "pear",
+      "smoke_tool_id": "pear",
+      "smoke_path_kind": "local_stage_materialization",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local materialize-stage --stage-id fastq.merge_pairs",
+      "smoke_support_path": null,
+      "execution_status": "local_smoke",
+      "reason": "binding `fastq.merge_pairs` / `pear` is the governed FASTQ default tool and `materialize-stage` writes a real local smoke artifact for that stage, so this family is proved with host-local evidence",
+      "evidence_path": "runs/bench/local-smoke/fastq.merge_pairs/report.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.fastq.merge_pairs.local_smoke.report.v1"
+    },
+    {
+      "family_id": "fastq.depletion",
+      "surface_label": "fastq depletion",
+      "stage_ids": [
+        "fastq.deplete_rrna",
+        "fastq.deplete_host",
+        "fastq.deplete_reference_contaminants"
+      ],
+      "representative_stage_id": "fastq.deplete_host",
+      "representative_tool_id": "bowtie2",
+      "registered_binary": "bowtie2",
+      "smoke_tool_id": "bowtie2",
+      "smoke_path_kind": "docker_container_smoke",
+      "smoke_runtime": "docker-arm64",
+      "smoke_command": "bijux-dna env smoke docker-arm64 bowtie2",
+      "smoke_support_path": "containers/docker/arm64/Dockerfile.bowtie2",
+      "execution_status": "container_needed",
+      "reason": "binding `fastq.deplete_host` / `bowtie2` is the governed FASTQ default tool, but the current local path is still planner-backed rather than a real smoke artifact, so the governed container smoke wrapper remains the honest micro-benchmark path",
+      "evidence_path": null,
+      "evidence_format": null,
+      "parsed_schema_version": null
+    },
+    {
+      "family_id": "fastq.index_reference",
+      "surface_label": "fastq.index_reference",
+      "stage_ids": [
+        "fastq.index_reference"
+      ],
+      "representative_stage_id": "fastq.index_reference",
+      "representative_tool_id": "bowtie2_build",
+      "registered_binary": "bowtie2-build",
+      "smoke_tool_id": "bowtie2-build",
+      "smoke_path_kind": "docker_container_smoke",
+      "smoke_runtime": "docker-arm64",
+      "smoke_command": "bijux-dna env smoke docker-arm64 bowtie2-build",
+      "smoke_support_path": "containers/docker/arm64/Dockerfile.bowtie2_build",
+      "execution_status": "container_needed",
+      "reason": "binding `fastq.index_reference` / `bowtie2_build` is the governed FASTQ default tool, but the current local path is still planner-backed rather than a real smoke artifact, so the governed container smoke wrapper remains the honest micro-benchmark path",
+      "evidence_path": null,
+      "evidence_format": null,
+      "parsed_schema_version": null
+    },
+    {
+      "family_id": "fastq.taxonomy",
+      "surface_label": "fastq taxonomy",
+      "stage_ids": [
+        "fastq.screen_taxonomy"
+      ],
+      "representative_stage_id": "fastq.screen_taxonomy",
+      "representative_tool_id": "kraken2",
+      "registered_binary": "kraken2",
+      "smoke_tool_id": "kraken2",
+      "smoke_path_kind": "docker_container_smoke",
+      "smoke_runtime": "docker-arm64",
+      "smoke_command": "bijux-dna env smoke docker-arm64 kraken2",
+      "smoke_support_path": "containers/docker/arm64/Dockerfile.kraken2",
+      "execution_status": "container_needed",
+      "reason": "binding `fastq.screen_taxonomy` / `kraken2` is the governed FASTQ default tool, but the current local path is still planner-backed rather than a real smoke artifact, so the governed container smoke wrapper remains the honest micro-benchmark path",
+      "evidence_path": null,
+      "evidence_format": null,
+      "parsed_schema_version": null
+    },
+    {
+      "family_id": "fastq.amplicon",
+      "surface_label": "fastq amplicon",
+      "stage_ids": [
+        "fastq.normalize_primers",
+        "fastq.remove_chimeras",
+        "fastq.infer_asvs",
+        "fastq.cluster_otus",
+        "fastq.normalize_abundance"
+      ],
+      "representative_stage_id": "fastq.normalize_primers",
+      "representative_tool_id": "cutadapt",
+      "registered_binary": "cutadapt",
+      "smoke_tool_id": "cutadapt",
+      "smoke_path_kind": "local_stage_materialization",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local materialize-stage --stage-id fastq.normalize_primers",
+      "smoke_support_path": null,
+      "execution_status": "local_smoke",
+      "reason": "binding `fastq.normalize_primers` / `cutadapt` is the governed FASTQ default tool and `materialize-stage` writes a real local smoke artifact for that stage, so this family is proved with host-local evidence",
+      "evidence_path": "runs/bench/local-smoke/fastq.normalize_primers/report.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.fastq.normalize_primers.local_smoke.report.v2"
+    }
+  ]
+}
