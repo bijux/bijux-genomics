@@ -1,0 +1,10 @@
+[
+  {
+    "execution_id": "micro.run",
+    "component_id": "micro_benchmark_run",
+    "role": "run_log",
+    "path": "runs/bench/micro/logs/MICRO_RUN.log",
+    "exists": true,
+    "source": "micro_benchmark_run"
+  }
+]

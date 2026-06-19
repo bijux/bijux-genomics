@@ -1,0 +1,182 @@
+[
+  {
+    "execution_id": "bam.complexity",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.complexity/complexity.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.contamination_sex_haplogroups",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.sex/sex.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.coverage",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.coverage/coverage.tsv",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.damage_authenticity",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.damage/damage.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.duplicate_handling",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.markdup/duplicates.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.filtering",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.filter/filter_metrics.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.insert_size_gc_bias",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.insert_size/insert_size.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.overlap_endogenous_content",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.recalibration_genotyping",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.recalibration/recalibration.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.validate",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "evidence",
+    "role": "evidence_report",
+    "path": "runs/bench/local-smoke/bam.validate/validation.json",
+    "exists": true,
+    "source": "real_smoke_core_subset"
+  },
+  {
+    "execution_id": "bam.validation_core_qc",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.validate/validation.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bridge:bam-to-vcf.call",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "called_vcf",
+    "role": "vcf_output",
+    "path": "runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz",
+    "exists": true,
+    "source": "stage_result_manifest"
+  },
+  {
+    "execution_id": "bridge:bam-to-vcf.call",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "called_vcf_tbi",
+    "role": "vcf_index",
+    "path": "runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz.tbi",
+    "exists": true,
+    "source": "stage_result_manifest"
+  },
+  {
+    "execution_id": "bridge:bam-to-vcf.call",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "evidence",
+    "role": "evidence_report",
+    "path": "runs/bench/local-smoke/vcf.call/bcftools/metrics.json",
+    "exists": true,
+    "source": "real_smoke_core_subset"
+  },
+  {
+    "execution_id": "bridge:bam-to-vcf.call",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "metrics_json",
+    "role": "report_output",
+    "path": "runs/bench/local-smoke/vcf.call/bcftools/metrics.json",
+    "exists": true,
+    "source": "stage_result_manifest"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "evidence",
+    "role": "evidence_report",
+    "path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+    "exists": true,
+    "source": "real_smoke_core_subset"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "bcftools_stats_txt",
+    "role": "report_output",
+    "path": "runs/bench/local-smoke/vcf.stats/bcftools/bcftools_stats.txt",
+    "exists": true,
+    "source": "stage_result_manifest"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "evidence",
+    "role": "evidence_report",
+    "path": "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json",
+    "exists": true,
+    "source": "real_smoke_core_subset"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "metrics_json",
+    "role": "report_output",
+    "path": "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json",
+    "exists": true,
+    "source": "stage_result_manifest"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "stats_json",
+    "role": "report_output",
+    "path": "runs/bench/local-smoke/vcf.stats/bcftools/stats.json",
+    "exists": true,
+    "source": "stage_result_manifest"
+  }
+]
