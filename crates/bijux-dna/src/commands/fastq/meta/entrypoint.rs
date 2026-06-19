@@ -610,6 +610,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderMicroBenchmarkExecutionReady(args) => {
+                        crate::commands::benchmark::readiness::micro_benchmark_execution_ready::run_render_micro_benchmark_execution_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderOperationalBenchmarkReady(args) => {
                         crate::commands::benchmark::readiness::operational_benchmark_ready::run_render_operational_benchmark_ready(
                             args,
