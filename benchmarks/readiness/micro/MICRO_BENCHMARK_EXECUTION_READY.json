@@ -1,0 +1,171 @@
+{
+  "schema_version": "bijux.bench.readiness.micro_benchmark_execution_ready.v1",
+  "output_path": "benchmarks/readiness/micro/MICRO_BENCHMARK_EXECUTION_READY.json",
+  "checked_goal_count": 9,
+  "passed_goal_count": 9,
+  "failed_goal_count": 0,
+  "failing_goal_ids": [],
+  "coverage_check_count": 11,
+  "passed_coverage_check_count": 11,
+  "failed_coverage_check_count": 0,
+  "failing_coverage_ids": [],
+  "result_row_count": 77,
+  "complete_row_count": 68,
+  "unavailable_row_count": 9,
+  "ok": true,
+  "checks": [
+    {
+      "goal_id": 471,
+      "surface": "local micro-benchmark command",
+      "output_path": "runs/bench/micro/MICRO_BENCHMARK_RUN.json",
+      "ok": true,
+      "detail": "validated 77 result rows, 198 outputs, 1 logs, 19 normalized metrics across 8 component reports"
+    },
+    {
+      "goal_id": 472,
+      "surface": "fastq micro-benchmark run",
+      "output_path": "runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 13 retained families with local=10 container_needed=3 unavailable=0"
+    },
+    {
+      "goal_id": 473,
+      "surface": "bam micro-benchmark run",
+      "output_path": "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 12 retained families with local=9 container_needed=3 unavailable=0"
+    },
+    {
+      "goal_id": 474,
+      "surface": "vcf micro-benchmark run",
+      "output_path": "runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 8 retained families with local=8 container_needed=0 unavailable=0"
+    },
+    {
+      "goal_id": 475,
+      "surface": "core FASTQ->BAM->VCF micro-pipeline run",
+      "output_path": "runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 12 executed stages"
+    },
+    {
+      "goal_id": 476,
+      "surface": "adna micro-pipeline run",
+      "output_path": "runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 15 stage rows with 3 structured skips"
+    },
+    {
+      "goal_id": 477,
+      "surface": "edna taxonomy micro-pipeline run",
+      "output_path": "runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 5 executed stages"
+    },
+    {
+      "goal_id": 478,
+      "surface": "amplicon micro-pipeline run",
+      "output_path": "runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 8 executed stages"
+    },
+    {
+      "goal_id": 479,
+      "surface": "micro-benchmark report",
+      "output_path": "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+      "ok": true,
+      "detail": "validated result=77 complete=68 unavailable=9 failed=0 missing=0 insufficient=0"
+    }
+  ],
+  "coverage_checks": [
+    {
+      "coverage_id": "report.health",
+      "category": "report",
+      "surface": "micro report health",
+      "output_path": "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+      "ok": true,
+      "detail": "complete=68 unavailable=9 with no failed, missing, or insufficient rows"
+    },
+    {
+      "coverage_id": "domain.fastq",
+      "category": "domain",
+      "surface": "fastq real execution",
+      "output_path": "runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 1 representative `fastq` execution rows"
+    },
+    {
+      "coverage_id": "domain.bam",
+      "category": "domain",
+      "surface": "bam real execution",
+      "output_path": "runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 1 representative `bam` execution rows"
+    },
+    {
+      "coverage_id": "domain.vcf",
+      "category": "domain",
+      "surface": "vcf real execution",
+      "output_path": "runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 2 representative `vcf` execution rows"
+    },
+    {
+      "coverage_id": "family.fastq",
+      "category": "family",
+      "surface": "FASTQ family representative local execution",
+      "output_path": "runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json",
+      "ok": true,
+      "detail": "local=10 container_needed=3 unavailable=0 across 13 retained families"
+    },
+    {
+      "coverage_id": "family.bam",
+      "category": "family",
+      "surface": "BAM family representative local execution",
+      "output_path": "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json",
+      "ok": true,
+      "detail": "local=9 container_needed=3 unavailable=0 across 12 retained families"
+    },
+    {
+      "coverage_id": "family.vcf",
+      "category": "family",
+      "surface": "VCF family representative local execution",
+      "output_path": "runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json",
+      "ok": true,
+      "detail": "local=8 container_needed=0 unavailable=0 across 8 retained families"
+    },
+    {
+      "coverage_id": "pipeline.core_germline",
+      "category": "pipeline",
+      "surface": "core germline pipeline execution",
+      "output_path": "runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 12 stage rows"
+    },
+    {
+      "coverage_id": "pipeline.adna",
+      "category": "pipeline",
+      "surface": "adna pipeline execution",
+      "output_path": "runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 15 stage rows with 3 governed skips"
+    },
+    {
+      "coverage_id": "pipeline.edna",
+      "category": "pipeline",
+      "surface": "edna pipeline execution",
+      "output_path": "runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 5 stage rows"
+    },
+    {
+      "coverage_id": "pipeline.amplicon",
+      "category": "pipeline",
+      "surface": "amplicon pipeline execution",
+      "output_path": "runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json",
+      "ok": true,
+      "detail": "validated 8 stage rows"
+    }
+  ]
+}
