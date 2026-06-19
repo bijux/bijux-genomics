@@ -222,6 +222,13 @@ Visible aliases are part of the operator surface:
   any disposable root survives the cleanup step or if tracked benchmark truth depends on files
   outside `benchmarks/`.
 - `bijux-dna bench run`
+- `bijux-dna bench run-micro`
+  `run-micro` writes `runs/bench/micro/MICRO_BENCHMARK_RUN.json` plus governed aggregate row sets
+  for result rows, output rows, log rows, and normalized metrics under `runs/bench/micro/`. The
+  command materializes the current real micro execution slice by combining the all-domain
+  `REAL_SMOKE_CORE_SUMMARY.json` report under `runs/bench/micro/core/` with the retained BAM family
+  summary under `runs/bench/micro/bam/`, then flattens those real reports into one micro-run
+  contract with stable `run_id`, repo revision, written row counts, and an explicit run log.
 - `bijux-dna bench status`
 - `bijux-dna bench workspace-value`
 - `bijux-dna bench config-json`
