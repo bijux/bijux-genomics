@@ -55,7 +55,7 @@
       "evidence_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
       "observed_status": "missing_input",
       "observed_error": "required input `input_bam` for VCF stage `vcf.call` does not exist at artifacts/bench-readiness/adapters/probes/vcf.call/input_bam.missing",
-      "detail": "governed VCF missing-input probe removed `bam` and expected `required input `input_bam``",
+      "detail": "governed VCF missing-input probe removed `input_bam` and expected `required input `input_bam``",
       "triggered": true
     },
     {
