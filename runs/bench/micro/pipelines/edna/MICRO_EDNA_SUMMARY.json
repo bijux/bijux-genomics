@@ -1,0 +1,263 @@
+{
+  "schema_version": "bijux.bench.local_edna_micro_pipeline.v1",
+  "command": "bijux-dna bench local run-edna-micro-pipeline",
+  "output_path": "runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json",
+  "pipeline_id": "edna-taxonomy-fastq",
+  "corpus_manifest_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml",
+  "taxonomy_database_manifest_path": "benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml",
+  "sample_count": 2,
+  "started_at": "1781869394",
+  "finished_at": "1781869394",
+  "elapsed_seconds": 0.06367475,
+  "stage_count": 5,
+  "handoff_count": 8,
+  "passes_behavior_test": true,
+  "rows": [
+    {
+      "stage_id": "benchmark.taxonomy_database_fixture",
+      "domain": "benchmark",
+      "tool_id": "bijux",
+      "execution_mode": "fixture_contract",
+      "status": "succeeded",
+      "reason": "validated the governed local taxonomy database fixture",
+      "evidence_path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_database_fixture/report.json",
+      "parsed_schema_version": "bijux.bench.taxonomy_database_fixture_validation.v2",
+      "consumed_inputs": {
+        "taxonomy_database_manifest": "benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml"
+      },
+      "outputs": {
+        "centrifuge_backend_index": "benchmarks/tests/fixtures/databases/taxonomy-mini/centrifuge/reference.1.cf",
+        "kaiju_backend_index": "benchmarks/tests/fixtures/databases/taxonomy-mini/kaiju/nodes.dmp",
+        "kraken2_backend_index": "benchmarks/tests/fixtures/databases/taxonomy-mini/kraken2/hash.k2d",
+        "krakenuniq_backend_index": "benchmarks/tests/fixtures/databases/taxonomy-mini/krakenuniq/database.kdb",
+        "lineage_table": "benchmarks/tests/fixtures/databases/taxonomy-mini/lineage.tsv",
+        "taxonomy_database_manifest": "benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml",
+        "validation_report": "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_database_fixture/report.json"
+      },
+      "metrics": {
+        "classifier_backend_count": 4,
+        "taxa_count": 3,
+        "valid": true
+      }
+    },
+    {
+      "stage_id": "benchmark.edna_corpus_fixture",
+      "domain": "benchmark",
+      "tool_id": "bijux",
+      "execution_mode": "fixture_contract",
+      "status": "succeeded",
+      "reason": "validated the governed eDNA corpus fixture and expected taxa table",
+      "evidence_path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.edna_corpus_fixture/report.json",
+      "parsed_schema_version": "bijux.bench.edna_corpus_fixture_validation.v1",
+      "consumed_inputs": {
+        "corpus_manifest": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml"
+      },
+      "outputs": {
+        "corpus_manifest": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml",
+        "expected_taxa": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv",
+        "mock_community_sample_a_fastq": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_a.fastq.gz",
+        "mock_community_sample_b_fastq": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_b.fastq.gz",
+        "validation_report": "runs/bench/micro/pipelines/edna/artifacts/benchmark.edna_corpus_fixture/report.json"
+      },
+      "metrics": {
+        "expected_taxa_row_count": 6,
+        "sample_count": 2,
+        "valid": true
+      }
+    },
+    {
+      "stage_id": "fastq.validate_reads",
+      "domain": "fastq",
+      "tool_id": "fastqvalidator",
+      "execution_mode": "domain_contract",
+      "status": "succeeded",
+      "reason": "validated each governed eDNA FASTQ sample before taxonomy screening",
+      "evidence_path": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/report.json",
+      "parsed_schema_version": "bijux.fastq.validate.report.v1",
+      "consumed_inputs": {
+        "mock_community_sample_a_raw_reads_r1_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_a.fastq.gz",
+        "mock_community_sample_b_raw_reads_r1_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_b.fastq.gz"
+      },
+      "outputs": {
+        "mock_community_sample_a_validated_reads_manifest": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/mock_community_sample_a/validated_reads_manifest.json",
+        "mock_community_sample_a_validation_report": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/mock_community_sample_a/validation.json",
+        "mock_community_sample_b_validated_reads_manifest": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/mock_community_sample_b/validated_reads_manifest.json",
+        "mock_community_sample_b_validation_report": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/mock_community_sample_b/validation.json"
+      },
+      "metrics": {
+        "strict_pass_sample_count": 2,
+        "validated_reads_total": 4,
+        "validated_sample_count": 2
+      }
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "domain": "fastq",
+      "tool_id": "kraken2",
+      "execution_mode": "fixture_backed_micro_execution",
+      "status": "succeeded",
+      "reason": "materialized governed classifier reports and unclassified FASTQ outputs for each eDNA sample",
+      "evidence_path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/report.json",
+      "parsed_schema_version": "bijux.fastq.screen_taxonomy.report.v2",
+      "consumed_inputs": {
+        "classifier_backend_path": "benchmarks/tests/fixtures/databases/taxonomy-mini/kraken2/hash.k2d",
+        "taxonomy_database_manifest": "benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml"
+      },
+      "outputs": {
+        "mock_community_sample_a_classification_report_json": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_a/kraken2.classifications.json",
+        "mock_community_sample_a_screen_report_tsv": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_a/kraken2.report.tsv",
+        "mock_community_sample_a_unclassified_reads_r1": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_a/kraken2.unclassified_reads.fastq.gz",
+        "mock_community_sample_b_classification_report_json": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_b/kraken2.classifications.json",
+        "mock_community_sample_b_screen_report_tsv": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_b/kraken2.report.tsv",
+        "mock_community_sample_b_unclassified_reads_r1": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_b/kraken2.unclassified_reads.fastq.gz"
+      },
+      "metrics": {
+        "bases_in_total": 128,
+        "mean_unclassified_fraction": 0.0,
+        "reads_in_total": 4,
+        "screened_sample_count": 2,
+        "unclassified_output_count": 2
+      }
+    },
+    {
+      "stage_id": "benchmark.taxonomy_output_judgment",
+      "domain": "benchmark",
+      "tool_id": "bijux",
+      "execution_mode": "fixture_truth_validation",
+      "status": "succeeded",
+      "reason": "validated expected taxa, unclassified reads, and false-positive absence against governed eDNA truth",
+      "evidence_path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json",
+      "parsed_schema_version": "bijux.bench.local_taxonomy_output_judgment.v1",
+      "consumed_inputs": {
+        "corpus_manifest": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml",
+        "expected_taxa": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv"
+      },
+      "outputs": {
+        "taxonomy_output_judgment": "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json"
+      },
+      "metrics": {
+        "expectation_count": 6,
+        "false_positive_count": 0,
+        "matched_expectation_count": 6,
+        "mismatched_expectation_count": 0,
+        "observed_unclassified_read_count": 0,
+        "sample_count": 2,
+        "valid": true
+      }
+    }
+  ],
+  "handoffs": [
+    {
+      "handoff_id": "benchmark.edna_corpus_fixture->fastq.validate_reads:mock_community_sample_a_fastq",
+      "source_stage_id": "benchmark.edna_corpus_fixture",
+      "target_stage_id": "fastq.validate_reads",
+      "source_output_id": "mock_community_sample_a_fastq",
+      "target_input_id": "mock_community_sample_a_raw_reads_r1_path",
+      "source_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_a.fastq.gz",
+      "target_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_a.fastq.gz",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact path handoff validated"
+    },
+    {
+      "handoff_id": "benchmark.edna_corpus_fixture->fastq.validate_reads:mock_community_sample_b_fastq",
+      "source_stage_id": "benchmark.edna_corpus_fixture",
+      "target_stage_id": "fastq.validate_reads",
+      "source_output_id": "mock_community_sample_b_fastq",
+      "target_input_id": "mock_community_sample_b_raw_reads_r1_path",
+      "source_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_b.fastq.gz",
+      "target_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_b.fastq.gz",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact path handoff validated"
+    },
+    {
+      "handoff_id": "fastq.validate_reads->fastq.screen_taxonomy:mock_community_sample_a_validated_reads_r1_path",
+      "source_stage_id": "fastq.validate_reads",
+      "target_stage_id": "fastq.screen_taxonomy",
+      "source_output_id": "mock_community_sample_a_validated_reads_r1_path",
+      "target_input_id": "mock_community_sample_a_input_r1",
+      "source_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_a.fastq.gz",
+      "target_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_a.fastq.gz",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact path handoff validated"
+    },
+    {
+      "handoff_id": "fastq.validate_reads->fastq.screen_taxonomy:mock_community_sample_b_validated_reads_r1_path",
+      "source_stage_id": "fastq.validate_reads",
+      "target_stage_id": "fastq.screen_taxonomy",
+      "source_output_id": "mock_community_sample_b_validated_reads_r1_path",
+      "target_input_id": "mock_community_sample_b_input_r1",
+      "source_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_b.fastq.gz",
+      "target_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_b.fastq.gz",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact path handoff validated"
+    },
+    {
+      "handoff_id": "benchmark.taxonomy_database_fixture->fastq.screen_taxonomy:kraken2_backend_index",
+      "source_stage_id": "benchmark.taxonomy_database_fixture",
+      "target_stage_id": "fastq.screen_taxonomy",
+      "source_output_id": "kraken2_backend_index",
+      "target_input_id": "classifier_backend_path",
+      "source_path": "benchmarks/tests/fixtures/databases/taxonomy-mini/kraken2/hash.k2d",
+      "target_path": "benchmarks/tests/fixtures/databases/taxonomy-mini/kraken2/hash.k2d",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact path handoff validated"
+    },
+    {
+      "handoff_id": "benchmark.edna_corpus_fixture->benchmark.taxonomy_output_judgment:expected_taxa",
+      "source_stage_id": "benchmark.edna_corpus_fixture",
+      "target_stage_id": "benchmark.taxonomy_output_judgment",
+      "source_output_id": "expected_taxa",
+      "target_input_id": "expected_taxa",
+      "source_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv",
+      "target_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact path handoff validated"
+    },
+    {
+      "handoff_id": "fastq.screen_taxonomy->benchmark.taxonomy_output_judgment:mock_community_sample_a_classification_report_json",
+      "source_stage_id": "fastq.screen_taxonomy",
+      "target_stage_id": "benchmark.taxonomy_output_judgment",
+      "source_output_id": "mock_community_sample_a_classification_report_json",
+      "target_input_id": "mock_community_sample_a_observed_report",
+      "source_path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_a/kraken2.classifications.json",
+      "target_path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_a/kraken2.classifications.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact path handoff validated"
+    },
+    {
+      "handoff_id": "fastq.screen_taxonomy->benchmark.taxonomy_output_judgment:mock_community_sample_b_classification_report_json",
+      "source_stage_id": "fastq.screen_taxonomy",
+      "target_stage_id": "benchmark.taxonomy_output_judgment",
+      "source_output_id": "mock_community_sample_b_classification_report_json",
+      "target_input_id": "mock_community_sample_b_observed_report",
+      "source_path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_b/kraken2.classifications.json",
+      "target_path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_b/kraken2.classifications.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact path handoff validated"
+    }
+  ]
+}

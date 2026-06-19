@@ -378,6 +378,150 @@
     "source": "bam_micro_smoke_subset"
   },
   {
+    "execution_id": "benchmark.edna_corpus_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "corpus_manifest",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.edna_corpus_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.edna_corpus_fixture/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.edna_corpus_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "expected_taxa",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.edna_corpus_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_a_fastq",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_a.fastq.gz",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.edna_corpus_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_b_fastq",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_b.fastq.gz",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.edna_corpus_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "validation_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.edna_corpus_fixture/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "centrifuge_backend_index",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/databases/taxonomy-mini/centrifuge/reference.1.cf",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_database_fixture/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "kaiju_backend_index",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/databases/taxonomy-mini/kaiju/nodes.dmp",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "kraken2_backend_index",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/databases/taxonomy-mini/kraken2/hash.k2d",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "krakenuniq_backend_index",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/databases/taxonomy-mini/krakenuniq/database.kdb",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "lineage_table",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/databases/taxonomy-mini/lineage.tsv",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "taxonomy_database_manifest",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "validation_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_database_fixture/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_output_judgment",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_output_judgment",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "taxonomy_output_judgment",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
     "execution_id": "bridge:bam-to-vcf.call",
     "component_id": "real_smoke_core_subset",
     "artifact_id": "called_vcf",
@@ -603,6 +747,69 @@
     "source": "adna_micro_pipeline"
   },
   {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_a_classification_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_a/kraken2.classifications.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_a_screen_report_tsv",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_a/kraken2.report.tsv",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_a_unclassified_reads_r1",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_a/kraken2.unclassified_reads.fastq.gz",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_b_classification_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_b/kraken2.classifications.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_b_screen_report_tsv",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_b/kraken2.report.tsv",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_b_unclassified_reads_r1",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_b/kraken2.unclassified_reads.fastq.gz",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
     "execution_id": "fastq.trim_reads",
     "component_id": "core_germline_micro_pipeline",
     "artifact_id": "evidence",
@@ -736,6 +943,51 @@
     "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.validate_reads/validation.json",
     "exists": true,
     "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_a_validated_reads_manifest",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/mock_community_sample_a/validated_reads_manifest.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_a_validation_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/mock_community_sample_a/validation.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_b_validated_reads_manifest",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/mock_community_sample_b/validated_reads_manifest.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_b_validation_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/mock_community_sample_b/validation.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
   },
   {
     "execution_id": "fastq.validate_reads",
