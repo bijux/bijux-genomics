@@ -48,6 +48,7 @@ pub(crate) mod local_cross_domain_sample_consistency;
 pub(crate) mod local_dag_watchdog_simulation;
 pub(crate) mod local_essential_pipeline_fake_runs;
 pub(crate) mod local_hpc_submission_ready;
+pub(crate) mod local_micro_benchmark_run;
 pub(crate) mod local_pipeline_dag;
 pub(crate) mod local_real_smoke_core_subset;
 pub(crate) mod local_slurm_dependency_check;
