@@ -69,4 +69,10 @@ fn bench_run_micro_includes_fastq_family_component() {
             && component.get("report_path").and_then(serde_json::Value::as_str)
                 == Some("runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json")
     }));
+    assert!(components.iter().any(|component| {
+        component.get("component_id").and_then(serde_json::Value::as_str)
+            == Some("bam_micro_smoke_subset")
+            && component.get("report_path").and_then(serde_json::Value::as_str)
+                == Some("runs/bench/micro/bam/MICRO_BAM_SUMMARY.json")
+    }));
 }

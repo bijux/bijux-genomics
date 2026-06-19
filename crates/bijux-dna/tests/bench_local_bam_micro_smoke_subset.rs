@@ -37,16 +37,16 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 #[test]
 fn bench_local_bam_micro_smoke_subset_reports_one_governed_row_per_family() {
     let payload = run_cli_json(&["bench", "local", "run-bam-micro-smoke-subset", "--json"]);
-    let expected_local_smoke_count = if cfg!(feature = "bam_downstream") { 11 } else { 10 };
+    let expected_local_smoke_count = if cfg!(feature = "bam_downstream") { 10 } else { 9 };
     let expected_container_needed_count = 12 - expected_local_smoke_count;
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.local_bam_micro_smoke_subset.v1")
+        Some("bijux.bench.local_bam_micro_smoke_subset.v2")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/micro/bam/BAM_MICRO_SMOKE_SUMMARY.json")
+        Some("runs/bench/micro/bam/MICRO_BAM_SUMMARY.json")
     );
     assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(12));
     assert_eq!(
@@ -100,6 +100,10 @@ fn bench_local_bam_micro_smoke_subset_reports_one_governed_row_per_family() {
         align.get("representative_stage_id").and_then(serde_json::Value::as_str),
         Some("bam.align")
     );
+    assert_eq!(
+        align.get("representative_tool_id").and_then(serde_json::Value::as_str),
+        Some("bwa")
+    );
     assert!(align
         .get("smoke_command")
         .and_then(serde_json::Value::as_str)
@@ -120,6 +124,10 @@ fn bench_local_bam_micro_smoke_subset_reports_one_governed_row_per_family() {
         validation.get("representative_stage_id").and_then(serde_json::Value::as_str),
         Some("bam.validate")
     );
+    assert_eq!(
+        validation.get("representative_tool_id").and_then(serde_json::Value::as_str),
+        Some("samtools")
+    );
     assert_eq!(validation.get("evidence_format").and_then(serde_json::Value::as_str), Some("json"));
     assert_eq!(
         validation.get("parsed_schema_version").and_then(serde_json::Value::as_str),
@@ -135,5 +143,9 @@ fn bench_local_bam_micro_smoke_subset_reports_one_governed_row_per_family() {
     assert_eq!(
         kinship.get("execution_status").and_then(serde_json::Value::as_str),
         Some(expected_kinship_status)
+    );
+    assert!(
+        kinship.get("goal_id").is_none(),
+        "BAM micro report must not leak backlog goal ids into repo artifacts"
     );
 }
