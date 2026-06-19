@@ -3,20 +3,20 @@
   "output_path": "benchmarks/readiness/parser-collector-all-domains.json",
   "fixture_root": "runs/bench/readiness-probes/all-domains/parser-collector",
   "fake_run_root": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs",
-  "row_count": 144,
-  "fake_run_row_count": 140,
+  "row_count": 145,
+  "fake_run_row_count": 141,
   "real_smoke_row_count": 4,
   "source_kind_counts": {
-    "fake_run": 140,
+    "fake_run": 141,
     "real_smoke": 4
   },
   "domain_counts": {
     "bam": 50,
     "fastq": 72,
-    "vcf": 22
+    "vcf": 23
   },
   "document_kind_counts": {
-    "all_domain_fake_run_metrics": 140,
+    "all_domain_fake_run_metrics": 141,
     "bam_local_smoke_report": 1,
     "fastq_local_smoke_report": 1,
     "vcf_local_prepare_reference_panel_metrics": 1,
@@ -136,7 +136,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 3,
-        "expected_metric_count": 6,
+        "expected_metric_count": 5,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -175,7 +175,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 5,
-        "expected_metric_count": 6,
+        "expected_metric_count": 5,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -214,7 +214,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 5,
-        "expected_metric_count": 6,
+        "expected_metric_count": 5,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -331,7 +331,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 5,
-        "expected_metric_count": 6,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -370,7 +370,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 5,
-        "expected_metric_count": 6,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -409,7 +409,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 4,
-        "expected_metric_count": 6,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -448,7 +448,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 3,
-        "expected_metric_count": 6,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -487,7 +487,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 3,
-        "expected_metric_count": 6,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -526,7 +526,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 3,
-        "expected_metric_count": 6,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -565,7 +565,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 6,
-        "expected_metric_count": 6,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -604,7 +604,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 6,
-        "expected_metric_count": 6,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -643,7 +643,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 6,
-        "expected_metric_count": 6,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -682,7 +682,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 6,
-        "expected_metric_count": 6,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -721,7 +721,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 6,
-        "expected_metric_count": 6,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -760,7 +760,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 5,
-        "expected_metric_count": 6,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -916,7 +916,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 8,
-        "expected_metric_count": 5,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -955,7 +955,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 8,
-        "expected_metric_count": 5,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -994,7 +994,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 8,
-        "expected_metric_count": 5,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -1267,7 +1267,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 8,
-        "expected_metric_count": 5,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -1306,7 +1306,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 8,
-        "expected_metric_count": 5,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -1423,7 +1423,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 8,
-        "expected_metric_count": 5,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -1462,7 +1462,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 8,
-        "expected_metric_count": 5,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -1501,7 +1501,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 8,
-        "expected_metric_count": 5,
+        "expected_metric_count": 3,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -1540,7 +1540,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 8,
-        "expected_metric_count": 5,
+        "expected_metric_count": 3,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -1618,7 +1618,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 5,
-        "expected_metric_count": 6,
+        "expected_metric_count": 5,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -1657,7 +1657,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 4,
-        "expected_metric_count": 6,
+        "expected_metric_count": 5,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -1852,7 +1852,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 3,
-        "expected_metric_count": 5,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -1891,7 +1891,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 3,
-        "expected_metric_count": 5,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -1930,7 +1930,7 @@
       "normalized_snapshot": {
         "command_step_count": 1,
         "declared_output_count": 3,
-        "expected_metric_count": 5,
+        "expected_metric_count": 4,
         "simulated_elapsed_seconds": 1.25
       }
     },
@@ -2199,10 +2199,10 @@
       "manifest_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/fastq/corpus-01-mini/fastq.deplete_reference_contaminants/reference_catalog_id+reference_index_artifact_id/bowtie2/stage-result.json",
       "manifest_status": "succeeded",
       "manifest_exit_code": 0,
-      "declared_output_count": 3,
+      "declared_output_count": 5,
       "normalized_snapshot": {
         "command_step_count": 1,
-        "declared_output_count": 3,
+        "declared_output_count": 5,
         "expected_metric_count": 2,
         "simulated_elapsed_seconds": 1.25
       }
@@ -4422,10 +4422,10 @@
       "manifest_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/fastq/corpus-01-mini/fastq.trim_terminal_damage/corpus_only/adapterremoval/stage-result.json",
       "manifest_status": "succeeded",
       "manifest_exit_code": 0,
-      "declared_output_count": 4,
+      "declared_output_count": 3,
       "normalized_snapshot": {
         "command_step_count": 1,
-        "declared_output_count": 4,
+        "declared_output_count": 3,
         "expected_metric_count": 3,
         "simulated_elapsed_seconds": 1.25
       }
@@ -5206,7 +5206,7 @@
       "normalized_snapshot": {
         "command_step_count": 2,
         "declared_output_count": 5,
-        "expected_metric_count": 2,
+        "expected_metric_count": 8,
         "simulated_elapsed_seconds": 1.5
       }
     },
@@ -5441,6 +5441,45 @@
         "command_step_count": 1,
         "declared_output_count": 7,
         "expected_metric_count": 10,
+        "simulated_elapsed_seconds": 1.25
+      }
+    },
+    {
+      "record_id": "fake-run:vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2",
+      "source_kind": "fake_run",
+      "document_kind": "all_domain_fake_run_metrics",
+      "domain": "vcf",
+      "stage_id": "vcf.roh",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "result_id": "vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2",
+      "parsed_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/vcf/vcf_production_regression/vcf.roh/vcf_cohort/plink2/metrics.json",
+      "parsed_schema_version": "bijux.bench.local_all_domain_fake_run_metrics.v1",
+      "parsed_top_level_key_count": 13,
+      "parsed_top_level_keys": [
+        "asset_profile_id",
+        "command_step_count",
+        "corpus_id",
+        "declared_output_count",
+        "domain",
+        "expected_metric_count",
+        "expected_metrics",
+        "materialized_byte_count",
+        "result_id",
+        "schema_version",
+        "simulated_elapsed_seconds",
+        "stage_id",
+        "tool_id"
+      ],
+      "manifest_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/vcf/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stage-result.json",
+      "manifest_status": "succeeded",
+      "manifest_exit_code": 0,
+      "declared_output_count": 3,
+      "normalized_snapshot": {
+        "command_step_count": 1,
+        "declared_output_count": 3,
+        "expected_metric_count": 6,
         "simulated_elapsed_seconds": 1.25
       }
     },

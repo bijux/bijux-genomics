@@ -1,12 +1,12 @@
 # FASTQ + BAM + VCF Benchmark Report
 
-- Report rows: 141
-- Expected-result rows: 140
+- Report rows: 142
+- Expected-result rows: 141
 - Explicit unsupported rows: 1
-- Present rows: 137
+- Present rows: 138
 - Missing-result rows: 3
 - Unsupported-pair rows: 1
-- Failure rows: 140
+- Failure rows: 141
 - Comparable metric rows: 91
 
 ## Stage-Centric
@@ -80,6 +80,7 @@
 | vcf | vcf.postprocess | 1 | 1 | 0 | 0 | bcftools |  |
 | vcf | vcf.prepare_reference_panel | 1 | 1 | 0 | 0 | bcftools | reference-panel-imputation |
 | vcf | vcf.qc | 3 | 3 | 0 | 0 | bcftools, plink, plink2 | adna-gl-fastq-bam-vcf, bam-genotyping-to-vcf-downstream, core-germline-fastq-bam-vcf, diploid-small-fastq-bam-vcf, popgen-structure-vcf, reference-panel-imputation, relatedness-segments-vcf |
+| vcf | vcf.roh | 1 | 1 | 0 | 0 | plink2 | bam-genotyping-to-vcf-downstream, relatedness-segments-vcf |
 | vcf | vcf.stats | 1 | 0 | 1 | 0 | bcftools | adna-pseudohaploid-fastq-bam-vcf, bam-genotyping-to-vcf-downstream, core-germline-fastq-bam-vcf, diploid-small-fastq-bam-vcf |
 
 ## Tool-Centric
@@ -134,7 +135,7 @@
 | pear | 1 | 1 | 0 | 0 | fastq | fastq.merge_pairs |
 | picard | 6 | 6 | 0 | 0 | bam | bam.duplication_metrics, bam.gc_bias, bam.insert_size, bam.length_filter, bam.mapping_summary, bam.markdup |
 | plink | 1 | 1 | 0 | 0 | vcf | vcf.qc |
-| plink2 | 4 | 4 | 0 | 0 | vcf | vcf.admixture, vcf.pca, vcf.population_structure, vcf.qc |
+| plink2 | 5 | 5 | 0 | 0 | vcf | vcf.admixture, vcf.pca, vcf.population_structure, vcf.qc, vcf.roh |
 | pmdtools | 2 | 2 | 0 | 0 | bam | bam.authenticity, bam.damage |
 | preseq | 1 | 1 | 0 | 0 | bam | bam.complexity |
 | prinseq | 4 | 4 | 0 | 0 | fastq | fastq.filter_low_complexity, fastq.filter_reads, fastq.profile_read_lengths, fastq.trim_reads |
@@ -172,7 +173,7 @@
 | corpus-03-amplicon-mini | 5 | 5 | 0 | 0 | fastq | fastq.cluster_otus, fastq.infer_asvs, fastq.normalize_abundance, fastq.normalize_primers, fastq.remove_chimeras |
 | not_applicable | 1 | 0 | 0 | 1 | vcf | vcf.filter |
 | reference-index-assets | 2 | 2 | 0 | 0 | fastq | fastq.index_reference |
-| vcf_production_regression | 20 | 19 | 1 | 0 | vcf | vcf.admixture, vcf.call, vcf.call_diploid, vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.filter, vcf.gl_propagation, vcf.imputation_metrics, vcf.impute, vcf.pca, vcf.phasing, vcf.population_structure, vcf.postprocess, vcf.prepare_reference_panel, vcf.qc, vcf.stats |
+| vcf_production_regression | 21 | 20 | 1 | 0 | vcf | vcf.admixture, vcf.call, vcf.call_diploid, vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.filter, vcf.gl_propagation, vcf.imputation_metrics, vcf.impute, vcf.pca, vcf.phasing, vcf.population_structure, vcf.postprocess, vcf.prepare_reference_panel, vcf.qc, vcf.roh, vcf.stats |
 
 ## Pipeline-Centric
 
@@ -184,13 +185,13 @@
 | adna-gl-fastq-bam-vcf | 15 | 14 | 1 | 0 | bam, fastq, vcf | bam.align, bam.authenticity, bam.complexity, bam.contamination, bam.coverage, bam.damage, bam.mapping_summary, bam.validate, fastq.filter_reads, fastq.remove_duplicates, fastq.trim_terminal_damage, fastq.validate_reads, vcf.call_gl, vcf.gl_propagation, vcf.qc |
 | adna-pseudohaploid-fastq-bam-vcf | 15 | 13 | 2 | 0 | bam, fastq, vcf | bam.align, bam.authenticity, bam.complexity, bam.contamination, bam.coverage, bam.damage, bam.mapping_summary, bam.validate, fastq.filter_reads, fastq.remove_duplicates, fastq.trim_terminal_damage, fastq.validate_reads, vcf.call_pseudohaploid, vcf.damage_filter, vcf.stats |
 | amplicon-asv-otu-no-vcf | 7 | 7 | 0 | 0 | fastq | fastq.cluster_otus, fastq.infer_asvs, fastq.normalize_abundance, fastq.normalize_primers, fastq.remove_chimeras, fastq.report_qc, fastq.validate_reads |
-| bam-genotyping-to-vcf-downstream | 7 | 5 | 2 | 0 | bam, vcf | bam.coverage, bam.filter, bam.recalibration, vcf.filter, vcf.pca, vcf.qc, vcf.stats |
+| bam-genotyping-to-vcf-downstream | 8 | 6 | 2 | 0 | bam, vcf | bam.coverage, bam.filter, bam.recalibration, vcf.filter, vcf.pca, vcf.qc, vcf.roh, vcf.stats |
 | core-germline-fastq-bam-vcf | 12 | 10 | 2 | 0 | bam, fastq, vcf | bam.align, bam.coverage, bam.qc_pre, bam.validate, fastq.filter_reads, fastq.profile_reads, fastq.trim_reads, fastq.validate_reads, vcf.call, vcf.filter, vcf.qc, vcf.stats |
 | diploid-small-fastq-bam-vcf | 16 | 14 | 2 | 0 | bam, fastq, vcf | bam.align, bam.coverage, bam.filter, bam.mapping_summary, bam.qc_pre, bam.recalibration, bam.validate, fastq.filter_reads, fastq.profile_reads, fastq.trim_reads, fastq.validate_reads, vcf.call_diploid, vcf.filter, vcf.phasing, vcf.qc, vcf.stats |
 | edna-taxonomy-no-vcf | 6 | 5 | 1 | 0 | fastq | fastq.detect_adapters, fastq.filter_reads, fastq.report_qc, fastq.screen_taxonomy, fastq.trim_reads, fastq.validate_reads |
 | popgen-structure-vcf | 4 | 4 | 0 | 0 | vcf | vcf.admixture, vcf.pca, vcf.population_structure, vcf.qc |
 | reference-panel-imputation | 5 | 5 | 0 | 0 | vcf | vcf.imputation_metrics, vcf.impute, vcf.phasing, vcf.prepare_reference_panel, vcf.qc |
-| relatedness-segments-vcf | 1 | 1 | 0 | 0 | vcf | vcf.qc |
+| relatedness-segments-vcf | 2 | 2 | 0 | 0 | vcf | vcf.qc, vcf.roh |
 
 ## Runtime
 
@@ -317,7 +318,7 @@
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:fqtools | fastq | fastq.validate_reads | fqtools | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:seqtk | fastq | fastq.validate_reads | seqtk | present | 1.250 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2 | vcf | vcf.admixture | plink2 | present | 1.250 |  | fake_run_simulated |
-| vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools | vcf | vcf.call | bcftools | present | 1.750 | 0.167 | fake_run_and_real_smoke |
+| vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools | vcf | vcf.call | bcftools | present | 1.750 | 0.166 | fake_run_and_real_smoke |
 | vcf:vcf_production_regression:vcf.call_diploid:bam_bundle:bcftools | vcf | vcf.call_diploid | bcftools | present | 1.750 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.call_gl:bam_bundle:bcftools | vcf | vcf.call_gl | bcftools | present | 1.750 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.call_pseudohaploid:bam_bundle:bcftools | vcf | vcf.call_pseudohaploid | bcftools | present | 1.750 |  | fake_run_simulated |
@@ -336,7 +337,8 @@
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools | vcf | vcf.qc | bcftools | present | 1.500 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink | vcf | vcf.qc | plink | present | 1.250 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2 | vcf | vcf.qc | plink2 | present | 1.250 |  | fake_run_simulated |
-| vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools | vcf | vcf.stats | bcftools | missing_result | 1.250 | 0.040 | fake_run_and_real_smoke |
+| vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2 | vcf | vcf.roh | plink2 | present | 1.250 |  | fake_run_simulated |
+| vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools | vcf | vcf.stats | bcftools | missing_result | 1.250 | 0.033 | fake_run_and_real_smoke |
 
 ## Memory
 
@@ -482,11 +484,12 @@
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools | vcf | vcf.qc | bcftools | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink | vcf | vcf.qc | plink | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2 | vcf | vcf.qc | plink2 | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
+| vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2 | vcf | vcf.roh | plink2 | present | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 | vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools | vcf | vcf.stats | bcftools | missing_result | 4096.000 | 2 |  |  | declared_stage_tool_resource |
 
 ## Failures
 
-- Simulated failure rows: 140
+- Simulated failure rows: 141
 - Failure classification rows: 7
 
 | Failure Class | Domain | Stage | Tool | Source Surface | Status | Detail |

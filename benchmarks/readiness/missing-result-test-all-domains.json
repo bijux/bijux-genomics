@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.readiness.all_domain_missing_result_test.v1",
   "output_path": "benchmarks/readiness/missing-result-test-all-domains.json",
   "fake_result_root": "runs/bench/readiness-probes/all-domains/missing-result-test",
-  "expected_row_count": 140,
-  "present_result_row_count": 137,
+  "expected_row_count": 141,
+  "present_result_row_count": 138,
   "missing_result_row_count": 3,
   "passes_behavior_test": true,
   "removed_result_ids": [
@@ -19,7 +19,7 @@
   "domain_counts": {
     "bam": 49,
     "fastq": 71,
-    "vcf": 20
+    "vcf": 21
   },
   "rows": [
     {
@@ -4325,6 +4325,37 @@
       ],
       "report_section": "quality_control",
       "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.roh",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "roh_hom",
+        "logs_txt",
+        "roh_report"
+      ],
+      "observed_output_artifact_ids": [
+        "roh_hom",
+        "logs_txt",
+        "roh_report"
+      ],
+      "expected_metrics": [
+        "sample_count",
+        "segment_count",
+        "total_length",
+        "segments",
+        "per_sample_summary",
+        "status"
+      ],
+      "report_section": "runs_of_homozygosity",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2` remains present with a validated fake-run manifest"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
