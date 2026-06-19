@@ -3,6 +3,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_domain_bam::BamStage;
+use bijux_dna_planner_bam::stage_api::default_tool_for_stage;
 use serde::Serialize;
 use serde_json::Value;
 
@@ -16,8 +18,8 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_MICRO_SMOKE_SUMMARY_PATH: &str =
-    "runs/bench/micro/bam/BAM_MICRO_SMOKE_SUMMARY.json";
-const BAM_MICRO_SMOKE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bench.local_bam_micro_smoke_subset.v1";
+    "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json";
+const BAM_MICRO_SMOKE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bench.local_bam_micro_smoke_subset.v2";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -29,7 +31,6 @@ pub(crate) enum BamMicroSmokeExecutionStatus {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct BamMicroSmokeFamilyRow {
-    pub(crate) goal_id: u32,
     pub(crate) family_id: String,
     pub(crate) surface_label: String,
     pub(crate) stage_ids: Vec<String>,
@@ -136,8 +137,8 @@ fn select_family_representative<'a>(
     }
 
     matching_rows.sort_by(|left, right| {
-        smoke_priority(&left.smoke_path_kind)
-            .cmp(&smoke_priority(&right.smoke_path_kind))
+        family_priority(left)
+            .cmp(&family_priority(right))
             .then_with(|| {
                 family_stage_order(family, &left.stage_id)
                     .cmp(&family_stage_order(family, &right.stage_id))
@@ -186,7 +187,6 @@ fn materialize_family_row(
         };
 
     Ok(BamMicroSmokeFamilyRow {
-        goal_id: family.goal_id,
         family_id: family.family_id.to_string(),
         surface_label: family.surface_label.to_string(),
         stage_ids: family.stage_ids.iter().map(|stage_id| (*stage_id).to_string()).collect(),
@@ -366,6 +366,22 @@ fn smoke_priority(smoke_path_kind: &str) -> u8 {
         "docker_container_smoke" | "apptainer_container_smoke" => 1,
         _ => 2,
     }
+}
+
+fn family_priority(row: &BamLocalContainerSmokeRow) -> (u8, u8, String) {
+    if default_tool_id(&row.stage_id).as_deref() == Some(row.tool_id.as_str())
+        && row.smoke_path_kind == "host_stage_smoke"
+    {
+        return (0, 0, row.tool_id.clone());
+    }
+    if default_tool_id(&row.stage_id).as_deref() == Some(row.tool_id.as_str()) {
+        return (1, smoke_priority(&row.smoke_path_kind), row.tool_id.clone());
+    }
+    (2, smoke_priority(&row.smoke_path_kind), row.tool_id.clone())
+}
+
+fn default_tool_id(stage_id: &str) -> Option<String> {
+    BamStage::try_from(stage_id).ok().map(|stage| default_tool_for_stage(stage).to_string())
 }
 
 fn family_stage_order(family: &BamStageFamily, stage_id: &str) -> usize {

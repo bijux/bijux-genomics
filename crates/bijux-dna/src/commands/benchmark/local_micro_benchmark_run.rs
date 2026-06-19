@@ -166,7 +166,7 @@ pub(crate) fn render_micro_benchmark_run(
         run_root.join("normalized-metrics").join(MICRO_BENCHMARK_NORMALIZED_METRICS_NAME);
     let core_report_path = run_root.join("core").join("REAL_SMOKE_CORE_SUMMARY.json");
     let fastq_report_path = run_root.join("fastq").join("MICRO_FASTQ_SUMMARY.json");
-    let bam_report_path = run_root.join("bam").join("BAM_MICRO_SMOKE_SUMMARY.json");
+    let bam_report_path = run_root.join("bam").join("MICRO_BAM_SUMMARY.json");
 
     ensure_path_stays_outside_benchmark_readiness_root(
         repo_root,
@@ -771,7 +771,7 @@ mod tests {
         let repo_root = temp.path();
         let component_core = repo_root.join("runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json");
         let component_fastq = repo_root.join("runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json");
-        let component_bam = repo_root.join("runs/bench/micro/bam/BAM_MICRO_SMOKE_SUMMARY.json");
+        let component_bam = repo_root.join("runs/bench/micro/bam/MICRO_BAM_SUMMARY.json");
         let evidence_path =
             repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/metrics.json");
         let fastq_evidence_path =
@@ -864,7 +864,7 @@ mod tests {
                 command: Some(
                     "bijux-dna bench local run-bam-stage-smoke --stage-id bam.align".to_string(),
                 ),
-                source_report_path: "runs/bench/micro/bam/BAM_MICRO_SMOKE_SUMMARY.json".to_string(),
+                source_report_path: "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json".to_string(),
                 evidence_path: None,
                 stage_result_manifest_path: None,
                 normalized_metric_count: 0,
@@ -938,7 +938,7 @@ mod tests {
                 },
                 MicroBenchmarkComponentReport {
                     component_id: "bam_micro_smoke_subset".to_string(),
-                    report_path: "runs/bench/micro/bam/BAM_MICRO_SMOKE_SUMMARY.json".to_string(),
+                    report_path: "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json".to_string(),
                     row_count: 1,
                 },
             ],
