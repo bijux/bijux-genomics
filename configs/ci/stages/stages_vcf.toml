@@ -11,7 +11,7 @@
 
 [[stages]]
 id = "vcf.admixture"
-status = "planned"
+status = "supported"
 output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.admixture.v1"
@@ -173,7 +173,7 @@ tools = ["bcftools", "plink", "plink2"]
 
 [[stages]]
 id = "vcf.roh"
-status = "planned"
+status = "supported"
 output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.roh.v1"
@@ -188,4 +188,3 @@ experimental = true
 metrics_schema = "bijux.vcf.stats.v1"
 smoke_required = true
 tools = ["bcftools"]
-
