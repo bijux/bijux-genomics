@@ -228,8 +228,9 @@ Visible aliases are part of the operator surface:
   command materializes the current real micro execution slice by combining the all-domain
   `REAL_SMOKE_CORE_SUMMARY.json` report under `runs/bench/micro/core/` with the retained FASTQ
   family summary under `runs/bench/micro/fastq/` and the retained BAM family summary under
-  `runs/bench/micro/bam/`, then flattens those real reports into one micro-run contract with
-  stable `run_id`, repo revision, written row counts, and an explicit run log.
+  `runs/bench/micro/bam/` plus the retained VCF family summary under `runs/bench/micro/vcf/`,
+  then flattens those real reports into one micro-run contract with stable `run_id`, repo
+  revision, written row counts, and an explicit run log.
 - `bijux-dna bench local run-fastq-micro-smoke-subset`
   `run-fastq-micro-smoke-subset` writes `runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json`,
   choosing one governed retained FASTQ binding per family from the canonical local-container smoke
@@ -1573,6 +1574,15 @@ Visible aliases are part of the operator surface:
   smoke contract checked in under `benchmarks/configs/local/`. JSON-backed BAM smoke stages print
   the real governed report in `--json` mode, while TSV-backed stages report the artifact path and
   format without inventing extra metrics.
+- `bijux-dna bench local run-vcf-micro-smoke-subset`
+  `run-vcf-micro-smoke-subset` writes `runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json`, choosing one
+  governed retained VCF binding per family from the canonical local-container smoke matrix.
+  Families with a real governed local smoke wrapper materialize the exact stage-result manifest
+  under `runs/bench/local-smoke/<stage>/`, while container-backed families record the exact smoke
+  command and checked-in support path instead of inventing a fake host success. The summary keeps
+  the family slice, representative stage/tool, execution status, smoke metadata, and any parsed
+  evidence schema so VCF readiness stays grounded in one honest local-or-container verdict per
+  family.
 - `bijux-dna bench local run-vcf-call-smoke`
   `run-vcf-call-smoke` writes `runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz`,
   `runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz.tbi`, and
