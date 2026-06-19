@@ -57,6 +57,8 @@ Thumbs.db
 !/runs/bench/micro/outputs/MICRO_OUTPUT_ROWS.json
 !/runs/bench/micro/results/
 !/runs/bench/micro/results/MICRO_RESULT_ROWS.json
+!/runs/bench/micro/vcf/
+!/runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json
 *.log
 !/runs/bench/micro/logs/MICRO_RUN.log
 
