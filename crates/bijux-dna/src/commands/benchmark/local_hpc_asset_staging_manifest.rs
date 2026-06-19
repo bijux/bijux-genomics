@@ -8,9 +8,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use super::local_stage_commands::local_stage_plans;
-use super::path_resolution::{
-    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
-};
+use super::path_resolution::{ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -20,6 +18,7 @@ pub(crate) const DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH: &str =
     "runs/bench/hpc-dry-run/asset-staging-manifest.json";
 const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH: &str =
     "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl";
+const GENERATED_BENCHMARK_OUTPUT_ROOTS: [&str; 1] = ["benchmarks/readiness/stage-tool-commands/"];
 
 const SOURCE_ROOTS: [&str; 3] = ["assets/", "benchmarks/", "runs/"];
 const OUTPUT_FLAG_ARGS: [&str; 12] = [
@@ -140,30 +139,33 @@ pub(crate) fn render_hpc_asset_staging_manifest(
     )?;
     let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let staging_root = benchmark_paths.benchmark_hpc_dry_run_root().join("staged");
-    fs::create_dir_all(&staging_root).with_context(|| format!("create {}", staging_root.display()))?;
+    fs::create_dir_all(&staging_root)
+        .with_context(|| format!("create {}", staging_root.display()))?;
     if let Some(parent) = absolute_output.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
 
     let command_rows = load_rendered_command_argv_rows(repo_root)?;
-    let materialized_stage_ids = command_rows
+    let stage_ids = command_rows
         .iter()
         .flat_map(|row| row.command_steps.iter())
         .filter_map(|step| materialize_stage_id(&step.argv))
+        .chain(command_rows.iter().map(|row| row.stage_id.clone()))
         .collect::<BTreeSet<_>>();
-    let stage_input_hints = collect_local_stage_input_hints(repo_root, &materialized_stage_ids)?;
+    let stage_input_hints = collect_local_stage_input_hints(repo_root, &stage_ids)?;
     let mut jobs = Vec::with_capacity(command_rows.len());
     let mut unique_source_paths = BTreeSet::new();
     let mut staged_input_count = 0usize;
 
     for row in command_rows {
-        let staged_inputs = collect_job_staged_inputs(repo_root, &staging_root, &row, &stage_input_hints)
-            .with_context(|| {
-                format!(
-                    "collect staged inputs for `{}` / `{}` / `{}`",
-                    row.result_id, row.stage_id, row.tool_id
-                )
-            })?;
+        let staged_inputs =
+            collect_job_staged_inputs(repo_root, &staging_root, &row, &stage_input_hints)
+                .with_context(|| {
+                    format!(
+                        "collect staged inputs for `{}` / `{}` / `{}`",
+                        row.result_id, row.stage_id, row.tool_id
+                    )
+                })?;
         staged_input_count += staged_inputs.len();
         unique_source_paths.extend(staged_inputs.iter().map(|entry| entry.source_path.clone()));
         jobs.push(LocalHpcAssetStagingJob {
@@ -232,7 +234,14 @@ fn collect_local_stage_input_hints(
 ) -> Result<BTreeMap<String, Vec<LocalStageInputHint>>> {
     let mut hints = BTreeMap::<String, Vec<LocalStageInputHint>>::new();
     for stage_id in stage_ids {
-        let mut stage_hints = local_stage_plans(repo_root, stage_id)?
+        let stage_plans = match local_stage_plans(repo_root, stage_id) {
+            Ok(stage_plans) => stage_plans,
+            Err(error) if error.to_string().starts_with("unsupported local benchmark stage `") => {
+                continue;
+            }
+            Err(error) => return Err(error),
+        };
+        let mut stage_hints = stage_plans
             .into_iter()
             .flat_map(|plan| plan.io.inputs.into_iter())
             .map(|input| LocalStageInputHint {
@@ -272,12 +281,13 @@ fn collect_job_staged_inputs(
                 anyhow!("missing local stage input hints for materialized stage `{stage_id}`")
             })?;
             for hint in hints {
-                let resolved = resolve_source_asset(repo_root, &hint.source_path)?.ok_or_else(|| {
-                    anyhow!(
-                        "materialized stage `{stage_id}` depends on unresolved source `{}`",
-                        hint.source_path
-                    )
-                })?;
+                let resolved =
+                    resolve_source_asset(repo_root, &hint.source_path)?.ok_or_else(|| {
+                        anyhow!(
+                            "materialized stage `{stage_id}` depends on unresolved source `{}`",
+                            hint.source_path
+                        )
+                    })?;
                 merge_staged_input(
                     &mut staged_by_source,
                     row,
@@ -309,6 +319,30 @@ fn collect_job_staged_inputs(
             }
         }
         produced_paths.extend(usage.produced);
+    }
+
+    if staged_by_source.is_empty() {
+        if let Some(hints) = stage_input_hints.get(&row.stage_id) {
+            for hint in hints {
+                let resolved =
+                    resolve_source_asset(repo_root, &hint.source_path)?.ok_or_else(|| {
+                        anyhow!(
+                            "stage `{}` depends on unresolved source `{}`",
+                            row.stage_id,
+                            hint.source_path
+                        )
+                    })?;
+                merge_staged_input(
+                    &mut staged_by_source,
+                    row,
+                    repo_root,
+                    staging_root,
+                    resolved,
+                    Some(hint.artifact_id.clone()),
+                    Some(hint.artifact_role.clone()),
+                );
+            }
+        }
     }
 
     if staged_by_source.is_empty() {
@@ -358,14 +392,27 @@ fn materialize_stage_id(argv: &[String]) -> Option<String> {
     if !argv.iter().any(|arg| arg == "materialize-stage") {
         return None;
     }
-    argv.windows(2)
-        .find(|window| window[0] == "--stage-id")
-        .map(|window| window[1].clone())
+    argv.windows(2).find(|window| window[0] == "--stage-id").map(|window| window[1].clone())
+}
+
+fn shell_step_body(argv: &[String]) -> Option<&str> {
+    let [shell, flag, body, ..] = argv else {
+        return None;
+    };
+    let shell_name = Path::new(shell).file_name()?.to_str()?;
+    if !matches!(shell_name, "sh" | "bash" | "zsh") {
+        return None;
+    }
+    if !flag.starts_with('-') || !flag.contains('c') {
+        return None;
+    }
+
+    Some(body)
 }
 
 fn collect_step_path_usage(argv: &[String]) -> Result<StepPathUsage> {
-    if argv.len() >= 3 && argv[0] == "/bin/sh" && argv[1] == "-c" {
-        return collect_shell_step_path_usage(&argv[2]);
+    if let Some(body) = shell_step_body(argv) {
+        return collect_shell_step_path_usage(body);
     }
     Ok(collect_tokenized_step_path_usage(argv))
 }
@@ -375,8 +422,15 @@ fn collect_tokenized_step_path_usage(argv: &[String]) -> StepPathUsage {
     let mut previous_flag: Option<&str> = None;
 
     for arg in argv {
-        if let Some(path) = candidate_repo_path(arg) {
-            if previous_flag.is_some_and(is_output_flag) {
+        if let Some((assignment_key, path)) = assignment_repo_path(arg) {
+            if is_generated_benchmark_output_path(path) || is_output_flag(assignment_key) {
+                usage.produced.insert(path.to_string());
+            } else {
+                usage.consumed.insert(path.to_string());
+            }
+        } else if let Some(path) = candidate_repo_path(arg) {
+            if is_generated_benchmark_output_path(path) || previous_flag.is_some_and(is_output_flag)
+            {
                 usage.produced.insert(path.to_string());
             } else {
                 usage.consumed.insert(path.to_string());
@@ -390,17 +444,27 @@ fn collect_tokenized_step_path_usage(argv: &[String]) -> StepPathUsage {
 }
 
 fn collect_shell_step_path_usage(shell_command: &str) -> Result<StepPathUsage> {
-    let body = strip_heredoc_bodies(shell_command);
-    let matcher = Regex::new(r"(?:assets|benchmarks|runs)/[A-Za-z0-9_./@+-]+")
+    let matcher = Regex::new(
+        r#"'((?:assets|benchmarks|runs)/[^']+)'|"((?:assets|benchmarks|runs)/[^"]+)"|((?:assets|benchmarks|runs)/[A-Za-z0-9_./@+-]+)"#,
+    )
         .context("compile HPC asset path matcher")?;
     let mut usage = StepPathUsage::default();
 
-    for matched in matcher.find_iter(&body) {
-        let source_path = matched.as_str().trim_end_matches('.');
+    for captures in matcher.captures_iter(shell_command) {
+        let matched = captures.get(0).expect("shell path capture must include full match");
+        let source_path = captures
+            .get(1)
+            .or_else(|| captures.get(2))
+            .or_else(|| captures.get(3))
+            .expect("shell path capture must include a repo-relative path")
+            .as_str()
+            .trim_end_matches('.');
         if !is_repo_source_path(source_path) {
             continue;
         }
-        if is_output_context(&body, matched.start()) {
+        if is_generated_benchmark_output_path(source_path)
+            || is_output_context(shell_command, matched.start())
+        {
             usage.produced.insert(source_path.to_string());
         } else {
             usage.consumed.insert(source_path.to_string());
@@ -451,7 +515,11 @@ fn heredoc_delimiter(line: &str) -> Option<String> {
         break;
     }
 
-    if delimiter.is_empty() { None } else { Some(delimiter) }
+    if delimiter.is_empty() {
+        None
+    } else {
+        Some(delimiter)
+    }
 }
 
 fn is_output_context(body: &str, start: usize) -> bool {
@@ -464,9 +532,7 @@ fn is_output_context(body: &str, start: usize) -> bool {
 }
 
 fn last_shell_token(prefix: &str) -> Option<&str> {
-    prefix
-        .rsplit(|ch: char| ch.is_whitespace())
-        .find(|segment| !segment.is_empty())
+    prefix.rsplit(|ch: char| ch.is_whitespace()).find(|segment| !segment.is_empty())
 }
 
 fn is_output_flag(flag: &str) -> bool {
@@ -474,14 +540,30 @@ fn is_output_flag(flag: &str) -> bool {
 }
 
 fn candidate_repo_path(value: &str) -> Option<&str> {
-    if is_repo_source_path(value) { Some(value) } else { None }
+    if is_repo_source_path(value) {
+        Some(value)
+    } else {
+        None
+    }
+}
+
+fn assignment_repo_path(value: &str) -> Option<(&str, &str)> {
+    let (key, path) = value.split_once('=')?;
+    candidate_repo_path(path).map(|path| (key, path))
 }
 
 fn is_repo_source_path(value: &str) -> bool {
     SOURCE_ROOTS.iter().any(|root| value.starts_with(root))
 }
 
-fn resolve_source_asset(repo_root: &Path, source_path: &str) -> Result<Option<ResolvedSourceAsset>> {
+fn is_generated_benchmark_output_path(value: &str) -> bool {
+    GENERATED_BENCHMARK_OUTPUT_ROOTS.iter().any(|root| value.starts_with(root))
+}
+
+fn resolve_source_asset(
+    repo_root: &Path,
+    source_path: &str,
+) -> Result<Option<ResolvedSourceAsset>> {
     let absolute_source = repo_root.join(source_path);
     if absolute_source.is_file() {
         let checksum_sha256 = bijux_dna_infra::hash_file_sha256(&absolute_source)
@@ -520,6 +602,9 @@ fn resolve_prefix_bundle(
     let Some(parent) = absolute_source.parent() else {
         return Ok(None);
     };
+    if !parent.exists() {
+        return Ok(None);
+    }
     let Some(prefix) = absolute_source.file_name().and_then(|value| value.to_str()) else {
         return Ok(None);
     };
@@ -571,12 +656,16 @@ fn collect_directory_files(path: &Path, members: &mut Vec<PathBuf>) -> Result<()
     Ok(())
 }
 
-fn digest_explicit_members(members: &[PathBuf], relative_root: &Path) -> Result<(String, u64, usize)> {
+fn digest_explicit_members(
+    members: &[PathBuf],
+    relative_root: &Path,
+) -> Result<(String, u64, usize)> {
     let mut hasher = Sha256::new();
     let mut size_bytes = 0u64;
 
     for member in members {
-        let digest = bijux_dna_infra::hash_file_sha256(member).map_err(|err| anyhow!(err.to_string()))?;
+        let digest =
+            bijux_dna_infra::hash_file_sha256(member).map_err(|err| anyhow!(err.to_string()))?;
         let metadata =
             member.metadata().with_context(|| format!("read metadata for {}", member.display()))?;
         let relative_member = member
@@ -661,7 +750,7 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     )
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "bam_downstream"))]
 mod tests {
     use std::path::PathBuf;
 
@@ -677,7 +766,6 @@ mod tests {
             .expect("canonicalize repo root")
     }
 
-    #[cfg(feature = "bam_downstream")]
     #[test]
     fn rendered_hpc_asset_staging_manifest_covers_all_domain_jobs() {
         let root = repo_root();
@@ -688,14 +776,8 @@ mod tests {
         .expect("render HPC asset staging manifest");
         let rows = load_rendered_command_argv_rows(&root).expect("load all-domain command argv");
 
-        assert_eq!(
-            manifest.schema_version,
-            LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION
-        );
-        assert_eq!(
-            manifest.output_path,
-            "runs/bench/hpc-dry-run/asset-staging-manifest.json"
-        );
+        assert_eq!(manifest.schema_version, LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION);
+        assert_eq!(manifest.output_path, "runs/bench/hpc-dry-run/asset-staging-manifest.json");
         assert_eq!(manifest.selected_job_count, rows.len());
         assert_eq!(manifest.jobs.len(), rows.len());
         assert!(manifest.staged_input_count >= manifest.jobs.len());
