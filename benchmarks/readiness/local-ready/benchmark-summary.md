@@ -7,7 +7,7 @@
 
 ## Sources
 
-- Fake-run root: `runs/bench/local-fake-runs/stages`
+- Fake-run root: `runs/bench/local-fake-runs/stages-benchmark-summary`
 - Stage command manifest: `benchmarks/readiness/local-ready/rendered-stage-commands.json`
 - Manifest completion report: `benchmarks/readiness/local-ready/manifest-completion-report.json`
 - Output completion report: `benchmarks/readiness/local-ready/output-completion-report.json`
@@ -27,7 +27,7 @@
 | `fastq.trim_terminal_damage` | `cutadapt` | `smoke` | `ready` | `1.0` | `8192.0` | `not_applicable` |
 | `fastq.normalize_primers` | `cutadapt` | `smoke` | `ready` | `1.0` | `8192.0` | `not_applicable` |
 | `fastq.trim_polyg_tails` | `fastp` | `smoke` | `ready` | `1.0` | `8192.0` | `not_applicable` |
-| `fastq.trim_reads` | `fastp` | `smoke` | `ready` | `1.0` | `8192.0` | `not_applicable` |
+| `fastq.trim_reads` | `bbduk` | `smoke` | `ready` | `1.0` | `8192.0` | `not_applicable` |
 | `fastq.filter_reads` | `fastp` | `smoke` | `ready` | `1.0` | `8192.0` | `not_applicable` |
 | `fastq.profile_reads` | `seqkit_stats` | `smoke` | `ready` | `1.0` | `2048.0` | `not_applicable` |
 | `fastq.deplete_rrna` | `sortmerna` | `dry_or_smoke` | `ready` | `1.0` | `8192.0` | `not_applicable` |

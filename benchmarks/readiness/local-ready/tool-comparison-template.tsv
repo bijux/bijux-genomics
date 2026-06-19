@@ -8,7 +8,7 @@ fastq.estimate_library_complexity_prealign	bijux_dna	1.0	1024.0	not_available	su
 fastq.trim_terminal_damage	cutadapt	1.0	8192.0	not_available	succeeded	not_applicable
 fastq.normalize_primers	cutadapt	1.0	8192.0	not_available	succeeded	not_applicable
 fastq.trim_polyg_tails	fastp	1.0	8192.0	not_available	succeeded	not_applicable
-fastq.trim_reads	fastp	1.0	8192.0	not_available	succeeded	not_applicable
+fastq.trim_reads	bbduk	1.0	8192.0	not_available	succeeded	not_applicable
 fastq.filter_reads	fastp	1.0	8192.0	not_available	succeeded	not_applicable
 fastq.profile_reads	seqkit_stats	1.0	2048.0	not_available	succeeded	not_applicable
 fastq.deplete_rrna	sortmerna	1.0	8192.0	not_available	succeeded	not_applicable

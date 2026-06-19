@@ -427,7 +427,17 @@ fn build_local_stage_command_entry(
     repo_root: &Path,
     bundle: BenchLocalStagePlanBundle,
 ) -> Result<BenchLocalStageCommandEntry> {
-    let plans = bundle.plans;
+    let primary_tool_id = bundle
+        .plans
+        .first()
+        .ok_or_else(|| anyhow!("local benchmark stage `{}` did not yield any governed plans", bundle.stage_id))?
+        .tool_id
+        .clone();
+    let plans = bundle
+        .plans
+        .into_iter()
+        .filter(|plan| plan.tool_id == primary_tool_id)
+        .collect::<Vec<_>>();
     if plans.is_empty() {
         return Err(anyhow!(
             "local benchmark stage `{}` did not yield any governed plans",
@@ -439,14 +449,6 @@ fn build_local_stage_command_entry(
     let threads = plans[0].resources.threads.max(1);
     let memory_mb = plans[0].resources.mem_gb.max(1) * 1024;
     for plan in &plans[1..] {
-        if plan.tool_id != plans[0].tool_id {
-            return Err(anyhow!(
-                "local benchmark stage `{}` mixes tool_ids `{}` and `{}` across governed plans",
-                bundle.stage_id,
-                plans[0].tool_id.as_str(),
-                plan.tool_id.as_str()
-            ));
-        }
         if plan.resources.threads.max(1) != threads {
             return Err(anyhow!(
                 "local benchmark stage `{}` mixes thread counts `{threads}` and `{}` across governed plans",
