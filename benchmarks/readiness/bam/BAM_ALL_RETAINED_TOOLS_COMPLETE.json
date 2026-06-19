@@ -144,9 +144,9 @@
     {
       "goal_id": 448,
       "surface": "bam real micro smoke subset",
-      "output_path": "runs/bench/micro/bam/BAM_MICRO_SMOKE_SUMMARY.json",
+      "output_path": "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json",
       "ok": true,
-      "detail": "validated one representative retained BAM micro smoke per stage family with 10 host-local row(s), 2 container-needed row(s), and 0 unavailable row(s)"
+      "detail": "validated one representative retained BAM micro smoke per stage family with 9 host-local row(s), 3 container-needed row(s), and 0 unavailable row(s)"
     },
     {
       "goal_id": 449,
