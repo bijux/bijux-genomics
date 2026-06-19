@@ -107,6 +107,7 @@ pub(crate) mod rendered_command_argv;
 pub(crate) mod rendered_commands;
 pub(crate) mod retained_toolset_executable_local;
 pub(crate) mod scientific_acceptance_thresholds;
+pub(crate) mod science_truth_sets_complete;
 pub(crate) mod stage_centric_report;
 pub(crate) mod stage_registry_extra_pairs;
 pub(crate) mod stage_tool_alias_check;
