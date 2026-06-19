@@ -1,35 +1,33 @@
 {
-  "schema_version": "bijux.bench.local_bam_micro_smoke_subset.v1",
-  "output_path": "runs/bench/micro/bam/BAM_MICRO_SMOKE_SUMMARY.json",
+  "schema_version": "bijux.bench.local_bam_micro_smoke_subset.v2",
+  "output_path": "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json",
   "family_count": 12,
-  "local_smoke_count": 10,
-  "container_needed_count": 2,
+  "local_smoke_count": 9,
+  "container_needed_count": 3,
   "unavailable_count": 0,
   "passes_behavior_test": true,
   "rows": [
     {
-      "goal_id": 380,
       "family_id": "bam.align",
       "surface_label": "bam.align",
       "stage_ids": [
         "bam.align"
       ],
       "representative_stage_id": "bam.align",
-      "representative_tool_id": "bowtie2",
-      "registered_binary": "bowtie2",
-      "smoke_tool_id": "bowtie2",
+      "representative_tool_id": "bwa",
+      "registered_binary": "bwa",
+      "smoke_tool_id": "bwa",
       "smoke_path_kind": "docker_container_smoke",
       "smoke_runtime": "docker-arm64",
-      "smoke_command": "bijux-dna env smoke docker-arm64 bowtie2",
-      "smoke_support_path": "containers/docker/arm64/Dockerfile.bowtie2",
+      "smoke_command": "bijux-dna env smoke docker-arm64 bwa",
+      "smoke_support_path": "containers/docker/arm64/Dockerfile.bwa",
       "execution_status": "container_needed",
-      "reason": "stage `bam.align` keeps governed local-ready plan coverage but no BAM tiny-fixture smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `bam.align` / `bowtie2`",
+      "reason": "stage `bam.align` keeps governed local-ready plan coverage but no BAM tiny-fixture smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `bam.align` / `bwa`",
       "evidence_path": null,
       "evidence_format": null,
       "parsed_schema_version": null
     },
     {
-      "goal_id": 381,
       "family_id": "bam.validation_core_qc",
       "surface_label": "bam validation and core qc",
       "stage_ids": [
@@ -52,7 +50,6 @@
       "parsed_schema_version": "bijux.bam.validate.local_smoke.report.v1"
     },
     {
-      "goal_id": 382,
       "family_id": "bam.filtering",
       "surface_label": "bam filtering",
       "stage_ids": [
@@ -75,7 +72,6 @@
       "parsed_schema_version": "bijux.bam.filter.local_smoke.metrics.v1"
     },
     {
-      "goal_id": 383,
       "family_id": "bam.duplicate_handling",
       "surface_label": "bam duplicate handling",
       "stage_ids": [
@@ -97,7 +93,6 @@
       "parsed_schema_version": "bijux.bam.markdup.local_smoke.report.v1"
     },
     {
-      "goal_id": 384,
       "family_id": "bam.complexity",
       "surface_label": "bam complexity",
       "stage_ids": [
@@ -118,28 +113,26 @@
       "parsed_schema_version": "bijux.bam.complexity.local_smoke.report.v1"
     },
     {
-      "goal_id": 385,
       "family_id": "bam.coverage",
       "surface_label": "bam coverage",
       "stage_ids": [
         "bam.coverage"
       ],
       "representative_stage_id": "bam.coverage",
-      "representative_tool_id": "samtools",
-      "registered_binary": "samtools",
-      "smoke_tool_id": "samtools",
-      "smoke_path_kind": "host_stage_smoke",
-      "smoke_runtime": "host",
-      "smoke_command": "bijux-dna bench local run-bam-stage-smoke --stage-id bam.coverage",
-      "smoke_support_path": "crates/bijux-dna/src/commands/benchmark/local_bam_stage_smoke.rs",
-      "execution_status": "local_smoke",
-      "reason": "binding `bam.coverage` / `samtools` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host",
-      "evidence_path": "runs/bench/local-smoke/bam.coverage/coverage.tsv",
-      "evidence_format": "tsv",
+      "representative_tool_id": "mosdepth",
+      "registered_binary": "mosdepth",
+      "smoke_tool_id": "mosdepth",
+      "smoke_path_kind": "docker_container_smoke",
+      "smoke_runtime": "docker-arm64",
+      "smoke_command": "bijux-dna env smoke docker-arm64 mosdepth",
+      "smoke_support_path": "containers/docker/arm64/Dockerfile.mosdepth",
+      "execution_status": "container_needed",
+      "reason": "binding `bam.coverage` / `mosdepth` does not match the governed BAM local-smoke contract tool `samtools`, so the governed container smoke wrapper is the available local exercise path for `bam.coverage` / `mosdepth`",
+      "evidence_path": null,
+      "evidence_format": null,
       "parsed_schema_version": null
     },
     {
-      "goal_id": 386,
       "family_id": "bam.insert_size_gc_bias",
       "surface_label": "bam insert-size and gc-bias",
       "stage_ids": [
@@ -161,7 +154,6 @@
       "parsed_schema_version": "bijux.bam.insert_size.local_smoke.report.v1"
     },
     {
-      "goal_id": 387,
       "family_id": "bam.overlap_endogenous_content",
       "surface_label": "bam overlap and endogenous-content",
       "stage_ids": [
@@ -183,7 +175,6 @@
       "parsed_schema_version": "bijux.bam.overlap_correction.local_smoke.report.v1"
     },
     {
-      "goal_id": 388,
       "family_id": "bam.damage_authenticity",
       "surface_label": "bam damage and authenticity",
       "stage_ids": [
@@ -191,22 +182,21 @@
         "bam.damage",
         "bam.authenticity"
       ],
-      "representative_stage_id": "bam.damage",
-      "representative_tool_id": "ngsbriggs",
-      "registered_binary": "ngsbriggs",
-      "smoke_tool_id": "ngsbriggs",
+      "representative_stage_id": "bam.authenticity",
+      "representative_tool_id": "authenticct",
+      "registered_binary": "authenticct",
+      "smoke_tool_id": "authenticct",
       "smoke_path_kind": "host_stage_smoke",
       "smoke_runtime": "host",
-      "smoke_command": "bijux-dna bench local run-bam-stage-smoke --stage-id bam.damage",
+      "smoke_command": "bijux-dna bench local run-bam-stage-smoke --stage-id bam.authenticity",
       "smoke_support_path": "crates/bijux-dna/src/commands/benchmark/local_bam_stage_smoke.rs",
       "execution_status": "local_smoke",
-      "reason": "binding `bam.damage` / `ngsbriggs` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host",
-      "evidence_path": "runs/bench/local-smoke/bam.damage/damage.json",
+      "reason": "binding `bam.authenticity` / `authenticct` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host",
+      "evidence_path": "runs/bench/local-smoke/bam.authenticity/authenticity.json",
       "evidence_format": "json",
-      "parsed_schema_version": "bijux.bam.damage.local_smoke.report.v1"
+      "parsed_schema_version": "bijux.bam.authenticity.local_smoke.report.v1"
     },
     {
-      "goal_id": 389,
       "family_id": "bam.contamination_sex_haplogroups",
       "surface_label": "bam contamination sex haplogroups",
       "stage_ids": [
@@ -229,7 +219,6 @@
       "parsed_schema_version": "bijux.bam.sex.local_smoke.report.v1"
     },
     {
-      "goal_id": 390,
       "family_id": "bam.recalibration_genotyping",
       "surface_label": "bam recalibration and genotyping",
       "stage_ids": [
@@ -251,22 +240,21 @@
       "parsed_schema_version": "bijux.bam.recalibration.local_smoke.report.v1"
     },
     {
-      "goal_id": 391,
       "family_id": "bam.kinship",
       "surface_label": "bam kinship",
       "stage_ids": [
         "bam.kinship"
       ],
       "representative_stage_id": "bam.kinship",
-      "representative_tool_id": "angsd",
-      "registered_binary": "angsd",
-      "smoke_tool_id": "angsd",
+      "representative_tool_id": "king",
+      "registered_binary": "king",
+      "smoke_tool_id": "king",
       "smoke_path_kind": "docker_container_smoke",
       "smoke_runtime": "docker-arm64",
-      "smoke_command": "bijux-dna env smoke docker-arm64 angsd",
-      "smoke_support_path": "containers/docker/arm64/Dockerfile.angsd",
+      "smoke_command": "bijux-dna env smoke docker-arm64 king",
+      "smoke_support_path": "containers/docker/arm64/Dockerfile.king",
       "execution_status": "container_needed",
-      "reason": "retained tool `angsd` has no exact BAM tiny-fixture smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `bam.kinship` / `angsd`",
+      "reason": "retained tool `king` has no exact BAM tiny-fixture smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `bam.kinship` / `king`",
       "evidence_path": null,
       "evidence_format": null,
       "parsed_schema_version": null
