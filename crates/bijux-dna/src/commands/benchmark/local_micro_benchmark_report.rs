@@ -7,7 +7,7 @@ use serde::Serialize;
 use serde_json::Value;
 
 use super::local_adna_micro_pipeline::{
-    AdnaMicroPipelineReport, AdnaMicroPipelineRow, AdnaMicroPipelineRowStatus,
+    AdnaMicroPipelineReport, AdnaMicroPipelineRow,
 };
 use super::local_amplicon_micro_pipeline::{AmpliconMicroPipelineReport, AmpliconMicroPipelineRow};
 use super::local_bam_micro_smoke_subset::{BamMicroSmokeFamilyRow, BamMicroSmokeSubsetReport};
@@ -1263,7 +1263,7 @@ resource_origin = "test_resource"
                 domain: "bam".to_string(),
                 tool_id: "verifybamid2".to_string(),
                 execution_mode: "skipped".to_string(),
-                status: AdnaMicroPipelineRowStatus::Skipped,
+                status: super::super::local_adna_micro_pipeline::AdnaMicroPipelineRowStatus::Skipped,
                 reason: "synthetic aDNA micro execution does not claim panel-backed contamination evidence".to_string(),
                 evidence_path: None,
                 parsed_schema_version: None,
