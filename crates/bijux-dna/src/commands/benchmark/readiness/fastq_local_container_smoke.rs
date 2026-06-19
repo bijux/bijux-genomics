@@ -404,22 +404,22 @@ fn ensure_fastq_local_container_smoke_contract(
                 && host_smoke_source_path(repo_root, &row.stage_id).is_ok_and(|path| path.is_some())
         })
         .count();
-    if rows.len() != 69 {
+    if rows.len() != 71 {
         return Err(anyhow!(
-            "FASTQ local-container smoke report drifted from the governed retained surface (expected 69 rows, found {})",
+            "FASTQ local-container smoke report drifted from the governed retained surface (expected 71 rows, found {})",
             rows.len()
         ));
     }
     let stage_count = rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>().len();
-    if stage_count != 26 {
+    if stage_count != 27 {
         return Err(anyhow!(
-            "FASTQ local-container smoke report drifted from the governed retained stage surface (expected 26 stages, found {stage_count})"
+            "FASTQ local-container smoke report drifted from the governed retained stage surface (expected 27 stages, found {stage_count})"
         ));
     }
     let tool_count = rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>().len();
-    if tool_count != 41 {
+    if tool_count != 42 {
         return Err(anyhow!(
-            "FASTQ local-container smoke report drifted from the governed retained tool surface (expected 41 tools, found {tool_count})"
+            "FASTQ local-container smoke report drifted from the governed retained tool surface (expected 42 tools, found {tool_count})"
         ));
     }
 
@@ -451,6 +451,15 @@ fn ensure_fastq_local_container_smoke_contract(
             "fixture:corpus-03-amplicon-mini",
         ),
         (
+            "fastq.filter_low_complexity",
+            "fastp",
+            "fastp",
+            "production",
+            "benchmark_ready",
+            "governed_benchmark_cohort",
+            "fixture:corpus-01-mini",
+        ),
+        (
             "fastq.infer_asvs",
             "dada2",
             "dada2",
@@ -472,6 +481,15 @@ fn ensure_fastq_local_container_smoke_contract(
             "fastq.validate_reads",
             "fastq_scan",
             "fastq_scan",
+            "production",
+            "benchmark_ready",
+            "observer_specialized_benchmark",
+            "fixture:corpus-01-mini",
+        ),
+        (
+            "fastq.report_qc",
+            "multiqc",
+            "multiqc",
             "production",
             "benchmark_ready",
             "observer_specialized_benchmark",
