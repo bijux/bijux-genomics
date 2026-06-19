@@ -229,8 +229,11 @@ Visible aliases are part of the operator surface:
   `REAL_SMOKE_CORE_SUMMARY.json` report under `runs/bench/micro/core/` with the retained FASTQ
   family summary under `runs/bench/micro/fastq/` and the retained BAM family summary under
   `runs/bench/micro/bam/` plus the retained VCF family summary under `runs/bench/micro/vcf/`,
-  then flattens those real reports into one micro-run contract with stable `run_id`, repo
-  revision, written row counts, and an explicit run log.
+  the governed aDNA pipeline summary under `runs/bench/micro/pipelines/adna/`, the governed eDNA
+  pipeline summary under `runs/bench/micro/pipelines/edna/`, and the governed core germline
+  pipeline summary under `runs/bench/micro/pipelines/core-germline/`. It then flattens those real
+  reports into one micro-run contract with stable `run_id`, repo revision, written row counts, and
+  an explicit run log.
 - `bijux-dna bench local run-fastq-micro-smoke-subset`
   `run-fastq-micro-smoke-subset` writes `runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json`,
   choosing one governed retained FASTQ binding per family from the canonical local-container smoke
@@ -2006,6 +2009,15 @@ Visible aliases are part of the operator surface:
   active pseudohaploid VCF branch, and explicit skip reasons for contamination and GL-only VCF
   branches, so this proof shows which aDNA path actually executed instead of implying full-branch
   coverage.
+- `bijux-dna bench local run-edna-micro-pipeline`
+  `run-edna-micro-pipeline` writes
+  `runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json` and executes one governed local eDNA
+  FASTQ taxonomy slice for `edna-taxonomy-fastq`. The report keeps five stage rows and eight
+  exact-path handoff checks across taxonomy database validation, eDNA corpus validation,
+  `fastq.validate_reads`, `fastq.screen_taxonomy`, and taxonomy-output judgment, while recording
+  per-sample classifier reports, per-sample unclassified FASTQ outputs, the governed expected-taxa
+  table, and the zero-false-positive judgment path, so eDNA proof stays FASTQ/taxonomy-specific
+  instead of leaking into germline BAM/VCF reporting.
 - `bijux-dna bench local run-core-germline-micro-pipeline`
   `run-core-germline-micro-pipeline` writes
   `runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json` and executes one real
