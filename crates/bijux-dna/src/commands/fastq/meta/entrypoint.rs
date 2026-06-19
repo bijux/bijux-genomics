@@ -76,6 +76,11 @@ pub(crate) fn handle_meta_commands(
                     )?;
                     println!("suite_run_dir={}", run_dir.display());
                 }
+                BenchCommand::RunMicro(args) => {
+                    crate::commands::benchmark::local_micro_benchmark_run::run_micro_benchmark(
+                        args,
+                    )?;
+                }
                 BenchCommand::Status => {
                     let cwd = std::env::current_dir()?;
                     let status = crate::commands::bench_suite::bench_status(&cwd);

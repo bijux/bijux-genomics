@@ -8,6 +8,7 @@ mod corpus_fastq;
 mod fastq;
 mod local;
 mod matrix;
+mod micro;
 mod paths;
 mod publication;
 mod readiness;
@@ -72,6 +73,7 @@ pub use self::local::{
     BenchLocalValidateVcfStageCatalogReadyArgs,
 };
 pub use self::matrix::{BenchMatrixDomainArg, BenchValidateMatrixArgs};
+pub use self::micro::BenchRunMicroArgs;
 pub use self::paths::{BenchPathsCleanupProofArgs, BenchPathsCommand, BenchPathsValidateArgs};
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
@@ -205,6 +207,8 @@ pub enum BenchCommand {
         command: BenchConfigCommand,
     },
     Run(BenchRunArgs),
+    #[command(name = "run-micro")]
+    RunMicro(BenchRunMicroArgs),
     Status,
     #[command(name = "workspace-value")]
     WorkspaceValue(BenchWorkspaceValueArgs),
