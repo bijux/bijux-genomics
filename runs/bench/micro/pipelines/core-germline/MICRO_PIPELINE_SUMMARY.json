@@ -1,0 +1,589 @@
+{
+  "schema_version": "bijux.bench.local_core_germline_micro_pipeline.v1",
+  "command": "bijux-dna bench local run-core-germline-micro-pipeline",
+  "output_path": "runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json",
+  "pipeline_id": "core-germline-fastq-bam-vcf",
+  "sample_id": "core-germline-micro",
+  "reference_fasta_path": "assets/reference/host/references/toy_host_reference.fasta",
+  "started_at": "1781862029",
+  "finished_at": "1781862029",
+  "elapsed_seconds": 0.558929208,
+  "stage_count": 12,
+  "handoff_count": 20,
+  "passes_behavior_test": true,
+  "rows": [
+    {
+      "stage_id": "fastq.validate_reads",
+      "domain": "fastq",
+      "tool_id": "fastqvalidator",
+      "execution_mode": "domain_contract",
+      "evidence_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.validate_reads/validation.json",
+      "parsed_schema_version": "bijux.fastq.validate.report.v1",
+      "consumed_inputs": {
+        "raw_reads_r1_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R1.fastq",
+        "raw_reads_r2_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R2.fastq"
+      },
+      "outputs": {
+        "validated_reads_manifest": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.validate_reads/validated_reads_manifest.json",
+        "validated_reads_r1_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R1.fastq",
+        "validated_reads_r2_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R2.fastq",
+        "validation_report": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.validate_reads/validation.json"
+      },
+      "metrics": {
+        "exit_code": 0,
+        "strict_pass": true,
+        "validated_pairs": 2,
+        "validated_reads_r1": 2,
+        "validated_reads_r2": 2
+      }
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "domain": "fastq",
+      "tool_id": "seqkit_stats",
+      "execution_mode": "domain_contract",
+      "evidence_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.profile_reads/profile.json",
+      "parsed_schema_version": "bijux.bench.local_core_germline_micro_pipeline.fastq_profile.v1",
+      "consumed_inputs": {
+        "validated_reads_r1_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R1.fastq",
+        "validated_reads_r2_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R2.fastq"
+      },
+      "outputs": {
+        "validated_profile": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.profile_reads/profile.json"
+      },
+      "metrics": {
+        "bases_total": 120,
+        "gc_percent": 56.666666666666664,
+        "mean_q": 37.0,
+        "reads_total": 4
+      }
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "domain": "fastq",
+      "tool_id": "fastp",
+      "execution_mode": "domain_contract",
+      "evidence_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trim.report.json",
+      "parsed_schema_version": "bijux.fastq.trim_reads.report.v2",
+      "consumed_inputs": {
+        "validated_reads_r1_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R1.fastq",
+        "validated_reads_r2_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R2.fastq"
+      },
+      "outputs": {
+        "trim_backend_report": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trim.backend.json",
+        "trim_report": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trim.report.json",
+        "trimmed_reads_r1_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trimmed_R1.fastq",
+        "trimmed_reads_r2_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trimmed_R2.fastq"
+      },
+      "metrics": {
+        "bases_in": 120,
+        "bases_out": 120,
+        "reads_in": 4,
+        "reads_out": 4
+      }
+    },
+    {
+      "stage_id": "fastq.filter_reads",
+      "domain": "fastq",
+      "tool_id": "fastp",
+      "execution_mode": "domain_contract",
+      "evidence_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filter.report.json",
+      "parsed_schema_version": "bijux.fastq.filter_reads.report.v3",
+      "consumed_inputs": {
+        "trimmed_reads_r1_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trimmed_R1.fastq",
+        "trimmed_reads_r2_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trimmed_R2.fastq"
+      },
+      "outputs": {
+        "filter_backend_report": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filter.backend.json",
+        "filter_report_json": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filter.report.json",
+        "filtered_reads_r1_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filtered_R1.fastq",
+        "filtered_reads_r2_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filtered_R2.fastq"
+      },
+      "metrics": {
+        "mean_q_after": 37.0,
+        "mean_q_before": 37.0,
+        "reads_dropped": 0,
+        "reads_in": 4,
+        "reads_out": 4
+      }
+    },
+    {
+      "stage_id": "bam.align",
+      "domain": "bam",
+      "tool_id": "bowtie2",
+      "execution_mode": "semantic_alignment",
+      "evidence_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/alignment.provenance.json",
+      "parsed_schema_version": "bijux.bam.alignment_provenance.v1",
+      "consumed_inputs": {
+        "alignment_read_group_contract": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/read_group.json",
+        "filtered_reads_r1_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filtered_R1.fastq",
+        "filtered_reads_r2_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filtered_R2.fastq",
+        "reference_fasta_contract": "assets/reference/host/references/toy_host_reference.fasta"
+      },
+      "outputs": {
+        "align_metrics": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/mapping_summary.json",
+        "align_provenance": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/alignment.provenance.json",
+        "align_sam": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.sam",
+        "align_semantic_sam": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.semantic.sam",
+        "aligned_bai": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam.bai",
+        "aligned_bam": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam"
+      },
+      "metrics": {
+        "mapped_reads": 0,
+        "proper_pair_reads": 0,
+        "total_reads": 4
+      }
+    },
+    {
+      "stage_id": "bam.validate",
+      "domain": "bam",
+      "tool_id": "samtools",
+      "execution_mode": "domain_contract",
+      "evidence_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.validate/validation.json",
+      "parsed_schema_version": "bijux.bam.validate.v1",
+      "consumed_inputs": {
+        "aligned_bai": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam.bai",
+        "aligned_bam": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam",
+        "reference_fasta_contract": "assets/reference/host/references/toy_host_reference.fasta"
+      },
+      "outputs": {
+        "bam_validation_report": "runs/bench/micro/pipelines/core-germline/artifacts/bam.validate/validation.json"
+      },
+      "metrics": {
+        "mapped_reads": 4,
+        "refusal_code_count": 0,
+        "total_reads": 4,
+        "validation_report_present": true
+      }
+    },
+    {
+      "stage_id": "bam.qc_pre",
+      "domain": "bam",
+      "tool_id": "samtools",
+      "execution_mode": "domain_contract",
+      "evidence_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.qc_pre/qc_pre.summary.json",
+      "parsed_schema_version": "bijux.bam.qc_pre.v1",
+      "consumed_inputs": {
+        "aligned_bai": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam.bai",
+        "aligned_bam": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam",
+        "bam_validation_report": "runs/bench/micro/pipelines/core-germline/artifacts/bam.validate/validation.json"
+      },
+      "outputs": {
+        "qc_pre_report": "runs/bench/micro/pipelines/core-germline/artifacts/bam.qc_pre/qc_pre.summary.json"
+      },
+      "metrics": {
+        "duplicate_flagged_reads": 0,
+        "mapped_reads": 4,
+        "total_reads": 4,
+        "unmapped_reads": 0
+      }
+    },
+    {
+      "stage_id": "bam.coverage",
+      "domain": "bam",
+      "tool_id": "samtools",
+      "execution_mode": "domain_contract",
+      "evidence_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.coverage/coverage.summary.json",
+      "parsed_schema_version": "bijux.bam.coverage_summary.v1",
+      "consumed_inputs": {
+        "aligned_bai": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam.bai",
+        "aligned_bam": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam",
+        "coverage_region_contract": "runs/bench/micro/pipelines/core-germline/artifacts/bam.coverage/coverage_regions.bed",
+        "qc_pre_report": "runs/bench/micro/pipelines/core-germline/artifacts/bam.qc_pre/qc_pre.summary.json"
+      },
+      "outputs": {
+        "coverage_regions_json": "runs/bench/micro/pipelines/core-germline/artifacts/bam.coverage/coverage.regions.json",
+        "coverage_report_json": "runs/bench/micro/pipelines/core-germline/artifacts/bam.coverage/coverage.summary.json"
+      },
+      "metrics": {
+        "coverage_regime": "unusable",
+        "mean_depth": 0.0024741247783596552,
+        "region_count": 1
+      }
+    },
+    {
+      "stage_id": "vcf.call",
+      "domain": "vcf",
+      "tool_id": "bcftools",
+      "execution_mode": "tool_backed",
+      "evidence_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/report.json",
+      "parsed_schema_version": "bijux.bench.local_core_germline_micro_pipeline.vcf_call.v1",
+      "consumed_inputs": {
+        "aligned_bai": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam.bai",
+        "aligned_bam": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam",
+        "coverage_regions_json": "runs/bench/micro/pipelines/core-germline/artifacts/bam.coverage/coverage.regions.json",
+        "coverage_report_json": "runs/bench/micro/pipelines/core-germline/artifacts/bam.coverage/coverage.summary.json",
+        "reference_fai_contract": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/reference/toy_host_reference.fasta.fai",
+        "reference_fasta_contract": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/reference/toy_host_reference.fasta"
+      },
+      "outputs": {
+        "call_manifest_json": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/call_manifest.json",
+        "call_metrics_json": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/call_metrics.json",
+        "called_vcf": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/called_diploid.vcf.gz",
+        "called_vcf_tbi": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/called_diploid.vcf.gz.tbi"
+      },
+      "metrics": {
+        "coverage_gate_passed": true,
+        "indel_count": 0,
+        "sample_count": 1,
+        "snp_count": 1,
+        "variant_count": 1
+      }
+    },
+    {
+      "stage_id": "vcf.filter",
+      "domain": "vcf",
+      "tool_id": "bcftools",
+      "execution_mode": "stage_runtime",
+      "evidence_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/report.json",
+      "parsed_schema_version": "bijux.bench.local_core_germline_micro_pipeline.vcf_filter.v1",
+      "consumed_inputs": {
+        "call_metrics_json": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/call_metrics.json",
+        "called_vcf": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/called_diploid.vcf.gz",
+        "called_vcf_tbi": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/called_diploid.vcf.gz.tbi"
+      },
+      "outputs": {
+        "filter_breakdown_json": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filter_breakdown.json",
+        "filter_report_json": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/report.json",
+        "filtered_vcf": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filtered.vcf.gz",
+        "filtered_vcf_tbi": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filtered.vcf.gz.tbi"
+      },
+      "metrics": {
+        "pass_variant_count": 0,
+        "sample_count": 1,
+        "tagged_variant_count": 1
+      }
+    },
+    {
+      "stage_id": "vcf.stats",
+      "domain": "vcf",
+      "tool_id": "bcftools",
+      "execution_mode": "stage_runtime",
+      "evidence_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.stats/report.json",
+      "parsed_schema_version": "bijux.bench.local_core_germline_micro_pipeline.vcf_stats.v1",
+      "consumed_inputs": {
+        "filter_report_json": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/report.json",
+        "filtered_vcf": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filtered.vcf.gz",
+        "filtered_vcf_tbi": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filtered.vcf.gz.tbi"
+      },
+      "outputs": {
+        "bcftools_stats_txt": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.stats/bcftools_stats.txt",
+        "stats_json": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.stats/stats.json",
+        "stats_stage_metrics": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.stats/stats.json"
+      },
+      "metrics": {
+        "indel_count": 0,
+        "sample_count": 1,
+        "snp_count": 1,
+        "ti_tv": 0.0,
+        "variant_count": 1
+      }
+    },
+    {
+      "stage_id": "vcf.qc",
+      "domain": "vcf",
+      "tool_id": "plink2",
+      "execution_mode": "stage_runtime",
+      "evidence_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.qc/report.json",
+      "parsed_schema_version": "bijux.bench.local_core_germline_micro_pipeline.vcf_qc.v1",
+      "consumed_inputs": {
+        "filtered_vcf": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filtered.vcf.gz",
+        "filtered_vcf_tbi": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filtered.vcf.gz.tbi",
+        "stats_json": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.stats/stats.json"
+      },
+      "outputs": {
+        "qc_report": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.qc/qc_summary.json",
+        "qc_stage_metrics": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.qc/qc_summary.json",
+        "qc_tables_tsv": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.qc/qc_tables.tsv"
+      },
+      "metrics": {
+        "excluded_sample_count": 0,
+        "excluded_variant_count": 0,
+        "sample_missingness_row_count": 1,
+        "variant_missingness_row_count": 1
+      }
+    }
+  ],
+  "handoffs": [
+    {
+      "handoff_id": "fastq.validate_reads:validated_reads_r1_path->fastq.profile_reads:validated_reads_r1_path",
+      "source_stage_id": "fastq.validate_reads",
+      "target_stage_id": "fastq.profile_reads",
+      "source_output_id": "validated_reads_r1_path",
+      "target_input_id": "validated_reads_r1_path",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R1.fastq",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R1.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "fastq.validate_reads:validated_reads_r2_path->fastq.profile_reads:validated_reads_r2_path",
+      "source_stage_id": "fastq.validate_reads",
+      "target_stage_id": "fastq.profile_reads",
+      "source_output_id": "validated_reads_r2_path",
+      "target_input_id": "validated_reads_r2_path",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R2.fastq",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R2.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "fastq.validate_reads:validated_reads_r1_path->fastq.trim_reads:validated_reads_r1_path",
+      "source_stage_id": "fastq.validate_reads",
+      "target_stage_id": "fastq.trim_reads",
+      "source_output_id": "validated_reads_r1_path",
+      "target_input_id": "validated_reads_r1_path",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R1.fastq",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R1.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "fastq.validate_reads:validated_reads_r2_path->fastq.trim_reads:validated_reads_r2_path",
+      "source_stage_id": "fastq.validate_reads",
+      "target_stage_id": "fastq.trim_reads",
+      "source_output_id": "validated_reads_r2_path",
+      "target_input_id": "validated_reads_r2_path",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R2.fastq",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R2.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "fastq.trim_reads:trimmed_reads_r1_path->fastq.filter_reads:trimmed_reads_r1_path",
+      "source_stage_id": "fastq.trim_reads",
+      "target_stage_id": "fastq.filter_reads",
+      "source_output_id": "trimmed_reads_r1_path",
+      "target_input_id": "trimmed_reads_r1_path",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trimmed_R1.fastq",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trimmed_R1.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "fastq.trim_reads:trimmed_reads_r2_path->fastq.filter_reads:trimmed_reads_r2_path",
+      "source_stage_id": "fastq.trim_reads",
+      "target_stage_id": "fastq.filter_reads",
+      "source_output_id": "trimmed_reads_r2_path",
+      "target_input_id": "trimmed_reads_r2_path",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trimmed_R2.fastq",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trimmed_R2.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "fastq.filter_reads:filtered_reads_r1_path->bam.align:filtered_reads_r1_path",
+      "source_stage_id": "fastq.filter_reads",
+      "target_stage_id": "bam.align",
+      "source_output_id": "filtered_reads_r1_path",
+      "target_input_id": "filtered_reads_r1_path",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filtered_R1.fastq",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filtered_R1.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "fastq.filter_reads:filtered_reads_r2_path->bam.align:filtered_reads_r2_path",
+      "source_stage_id": "fastq.filter_reads",
+      "target_stage_id": "bam.align",
+      "source_output_id": "filtered_reads_r2_path",
+      "target_input_id": "filtered_reads_r2_path",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filtered_R2.fastq",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filtered_R2.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "bam.align:aligned_bam->bam.validate:aligned_bam",
+      "source_stage_id": "bam.align",
+      "target_stage_id": "bam.validate",
+      "source_output_id": "aligned_bam",
+      "target_input_id": "aligned_bam",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "bam.validate:bam_validation_report->bam.qc_pre:bam_validation_report",
+      "source_stage_id": "bam.validate",
+      "target_stage_id": "bam.qc_pre",
+      "source_output_id": "bam_validation_report",
+      "target_input_id": "bam_validation_report",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.validate/validation.json",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.validate/validation.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "bam.qc_pre:qc_pre_report->bam.coverage:qc_pre_report",
+      "source_stage_id": "bam.qc_pre",
+      "target_stage_id": "bam.coverage",
+      "source_output_id": "qc_pre_report",
+      "target_input_id": "qc_pre_report",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.qc_pre/qc_pre.summary.json",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.qc_pre/qc_pre.summary.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "bam.align:aligned_bam->vcf.call:aligned_bam",
+      "source_stage_id": "bam.align",
+      "target_stage_id": "vcf.call",
+      "source_output_id": "aligned_bam",
+      "target_input_id": "aligned_bam",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "bam.coverage:coverage_report_json->vcf.call:coverage_report_json",
+      "source_stage_id": "bam.coverage",
+      "target_stage_id": "vcf.call",
+      "source_output_id": "coverage_report_json",
+      "target_input_id": "coverage_report_json",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.coverage/coverage.summary.json",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.coverage/coverage.summary.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "bam.coverage:coverage_regions_json->vcf.call:coverage_regions_json",
+      "source_stage_id": "bam.coverage",
+      "target_stage_id": "vcf.call",
+      "source_output_id": "coverage_regions_json",
+      "target_input_id": "coverage_regions_json",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.coverage/coverage.regions.json",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.coverage/coverage.regions.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "vcf.call:call_metrics_json->vcf.filter:call_metrics_json",
+      "source_stage_id": "vcf.call",
+      "target_stage_id": "vcf.filter",
+      "source_output_id": "call_metrics_json",
+      "target_input_id": "call_metrics_json",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/call_metrics.json",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/call_metrics.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "vcf.call:called_vcf->vcf.filter:called_vcf",
+      "source_stage_id": "vcf.call",
+      "target_stage_id": "vcf.filter",
+      "source_output_id": "called_vcf",
+      "target_input_id": "called_vcf",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/called_diploid.vcf.gz",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/called_diploid.vcf.gz",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "vcf.filter:filter_report_json->vcf.stats:filter_report_json",
+      "source_stage_id": "vcf.filter",
+      "target_stage_id": "vcf.stats",
+      "source_output_id": "filter_report_json",
+      "target_input_id": "filter_report_json",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/report.json",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/report.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "vcf.filter:filtered_vcf->vcf.stats:filtered_vcf",
+      "source_stage_id": "vcf.filter",
+      "target_stage_id": "vcf.stats",
+      "source_output_id": "filtered_vcf",
+      "target_input_id": "filtered_vcf",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filtered.vcf.gz",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filtered.vcf.gz",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "vcf.filter:filtered_vcf->vcf.qc:filtered_vcf",
+      "source_stage_id": "vcf.filter",
+      "target_stage_id": "vcf.qc",
+      "source_output_id": "filtered_vcf",
+      "target_input_id": "filtered_vcf",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filtered.vcf.gz",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filtered.vcf.gz",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    },
+    {
+      "handoff_id": "vcf.stats:stats_json->vcf.qc:stats_json",
+      "source_stage_id": "vcf.stats",
+      "target_stage_id": "vcf.qc",
+      "source_output_id": "stats_json",
+      "target_input_id": "stats_json",
+      "source_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.stats/stats.json",
+      "target_path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.stats/stats.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "target consumed the exact source artifact path"
+    }
+  ]
+}
