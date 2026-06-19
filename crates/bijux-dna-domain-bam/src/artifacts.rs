@@ -1320,7 +1320,14 @@ fn parse_tag_value(field: &str, key: &str) -> Option<String> {
 
 fn parse_tiny_alignment(path: &Path) -> Result<TinySamDocument> {
     match path.extension().and_then(std::ffi::OsStr::to_str) {
-        Some("bam") => parse_tiny_bam(path),
+        Some("bam") => parse_tiny_bam(path).or_else(|bam_error| {
+            parse_tiny_sam(path).map_err(|sam_error| {
+                anyhow!(
+                    "failed to parse {} as BAM ({bam_error}) or SAM ({sam_error})",
+                    path.display()
+                )
+            })
+        }),
         _ => parse_tiny_sam(path),
     }
 }
@@ -3148,7 +3155,7 @@ pub fn filter_tiny_bam_by_mapq(
     output_bam: &Path,
     mapq_threshold: u8,
 ) -> Result<BamMapqFilterSummaryV1> {
-    let input = parse_tiny_sam(input_bam)?;
+    let input = parse_tiny_alignment(input_bam)?;
     let before = flagstat_from_records(&input.records);
     let filtered_records = input
         .records
@@ -3358,7 +3365,7 @@ pub fn filter_tiny_bam_by_length(
         base_quality_threshold: 20,
     };
     let summary = filter_tiny_bam(input_bam, output_bam, &params)?;
-    let output = parse_tiny_sam(output_bam)?;
+    let output = parse_tiny_alignment(output_bam)?;
     let observed_lengths = output
         .records
         .iter()
@@ -3392,7 +3399,7 @@ pub fn filter_tiny_bam(
     output_bam: &Path,
     params: &FilterEffectiveParams,
 ) -> Result<BamFilterSummaryV1> {
-    let input = parse_tiny_sam(input_bam)?;
+    let input = parse_tiny_alignment(input_bam)?;
     let include_mask = params.include_flags.iter().fold(0_u16, |mask, flag| mask | flag);
     let mut exclude_flags = params.exclude_flags.clone();
     if params.remove_duplicates && !exclude_flags.contains(&0x400_u16) {
@@ -3649,7 +3656,7 @@ fn round_metric(metric: f64) -> f64 {
 /// # Errors
 /// Returns an error if the input cannot be parsed.
 pub fn summarize_tiny_bam_qc_pre(input_bam: &Path) -> Result<BamQcPreSummaryV1> {
-    let document = parse_tiny_sam(input_bam)?;
+    let document = parse_tiny_alignment(input_bam)?;
     let flagstat = flagstat_from_records(&document.records);
     let idxstats = idxstats_from_tiny_document(&document);
 
@@ -4288,7 +4295,7 @@ pub fn summarize_tiny_bam_coverage_regions(
     regions_path: Option<&Path>,
     depth_thresholds: &[u32],
 ) -> Result<(BamCoverageSummaryV1, Vec<BamCoverageRegionSummaryV1>)> {
-    let document = parse_tiny_sam(input_bam)?;
+    let document = parse_tiny_alignment(input_bam)?;
     let coverage_vectors = tiny_coverage_vectors(&document);
     let regions = regions_path
         .map(parse_tiny_bed_regions)
