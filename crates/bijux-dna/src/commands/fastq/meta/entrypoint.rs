@@ -1089,6 +1089,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RunAmpliconMicroPipeline(args) => {
+                        crate::commands::benchmark::local_amplicon_micro_pipeline::run_amplicon_micro_pipeline(
+                            args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RunAdnaMicroPipeline(args) => {
                         crate::commands::benchmark::local_adna_micro_pipeline::run_adna_micro_pipeline(
                             args,

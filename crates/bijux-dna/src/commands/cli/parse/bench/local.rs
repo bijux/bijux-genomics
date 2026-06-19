@@ -37,6 +37,8 @@ pub enum BenchLocalCommand {
     RunBamMicroSmokeSubset(BenchLocalRunBamMicroSmokeSubsetArgs),
     #[command(name = "run-vcf-micro-smoke-subset")]
     RunVcfMicroSmokeSubset(BenchLocalRunVcfMicroSmokeSubsetArgs),
+    #[command(name = "run-amplicon-micro-pipeline")]
+    RunAmpliconMicroPipeline(BenchLocalRunAmpliconMicroPipelineArgs),
     #[command(name = "run-adna-micro-pipeline")]
     RunAdnaMicroPipeline(BenchLocalRunAdnaMicroPipelineArgs),
     #[command(name = "run-edna-micro-pipeline")]
@@ -217,6 +219,14 @@ pub struct BenchLocalRunBamMicroSmokeSubsetArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalRunVcfMicroSmokeSubsetArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunAmpliconMicroPipelineArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

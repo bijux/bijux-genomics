@@ -40,6 +40,7 @@ pub(crate) mod local_all_domain_slurm_script_bodies;
 pub(crate) mod local_all_domain_slurm_scripts;
 pub(crate) mod local_all_domain_slurm_shell_syntax;
 pub(crate) mod local_all_domain_slurm_submit_manifest;
+pub(crate) mod local_amplicon_micro_pipeline;
 pub(crate) mod local_bam_micro_smoke_subset;
 mod local_bam_stage_smoke;
 pub(crate) mod local_benchmark_summary;
