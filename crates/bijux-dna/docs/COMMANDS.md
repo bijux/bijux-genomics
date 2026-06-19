@@ -1997,6 +1997,13 @@ Visible aliases are part of the operator surface:
   parsed evidence path, normalized metrics, and validated `stage-result.json` identity where a
   manifest-backed real execution exists, so the all-domain harness keeps at least one non-fake
   execution slice grounded in real outputs.
+- `bijux-dna bench local run-core-germline-micro-pipeline`
+  `run-core-germline-micro-pipeline` writes
+  `runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json` and executes one real
+  local FASTQ→BAM→VCF handoff slice for `core-germline-fastq-bam-vcf`. The report keeps 12 stage
+  rows, 19 exact-path handoff checks, the concrete FASTQ trim/filter outputs that feed `bam.align`,
+  the real BAM plus BAI that feed `vcf.call`, and the downstream `vcf.filter`, `vcf.stats`, and
+  `vcf.qc` evidence paths, so this proof cannot pass on DAG validation alone.
 - `bijux-dna bench local fake-run-all-domains`
   `fake-run-all-domains` writes one governed fake-run tree under
   `runs/bench/local-fake-runs/all-domains/` for every benchmark-ready FASTQ, BAM, and VCF result
