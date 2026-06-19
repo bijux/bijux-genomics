@@ -210,9 +210,9 @@ mod tests {
 
         assert_eq!(report.fixture_count, 8);
         assert_eq!(report.stage_count, 51);
-        assert_eq!(report.skip_count, 343);
+        assert_eq!(report.skip_count, 350);
         assert_eq!(report.asset_backed_stage_count, 1);
-        assert_eq!(report.planner_only_stage_count, 1);
+        assert_eq!(report.planner_only_stage_count, 0);
         assert!(
             report.skips.iter().any(|skip| {
                 skip.stage_id == "fastq.screen_taxonomy"
@@ -286,11 +286,8 @@ mod tests {
             "asset-backed stages must stay explicit in the skip report"
         );
         assert!(
-            report.planner_only_stages.iter().any(|stage| {
-                stage.stage_id == "fastq.report_qc"
-                    && stage.reason.contains("not yet owned by any corpus fixture manifest")
-            }),
-            "planner-only stages must stay explicit in the skip report"
+            report.planner_only_stages.is_empty(),
+            "planner-only stages should be empty once fastq.report_qc is fixture-backed"
         );
     }
 }

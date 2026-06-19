@@ -506,7 +506,7 @@ mod tests {
                 + report.planner_only_stage_count,
             51
         );
-        assert_eq!(report.corpus_family_counts.get("corpus-01"), Some(&19));
+        assert_eq!(report.corpus_family_counts.get("corpus-01"), Some(&21));
         assert_eq!(report.corpus_family_counts.get("corpus-01-bam"), Some(&16));
         assert_eq!(report.corpus_family_counts.get("corpus-01-adna-bam"), Some(&5));
         assert_eq!(report.corpus_family_counts.get("corpus-01-genotyping"), Some(&1));

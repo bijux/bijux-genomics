@@ -789,7 +789,7 @@ mod tests {
 
         assert_eq!(report.schema_version, BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.corpus_id, "corpus-01-bam-mini");
-        assert_eq!(report.sample_count, 21);
+        assert_eq!(report.sample_count, 23);
         assert_eq!(
             report.reference_contigs,
             vec![
@@ -1115,8 +1115,13 @@ mod tests {
     #[test]
     fn corpus_01_bam_mini_fixture_validation_refuses_header_sample_id_drift() {
         let root = repo_root();
-        let temp = tempfile::tempdir().expect("tempdir");
-        let manifest_path = temp.path().join("manifest.toml");
+        let fixture_root = root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini");
+        let temp = tempfile::Builder::new()
+            .prefix("broken-corpus-01-bam-mini-")
+            .suffix(".toml")
+            .tempfile_in(&fixture_root)
+            .expect("temp manifest");
+        let manifest_path = temp.path().to_path_buf();
         let broken = fs::read_to_string(root.join(DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH))
             .expect("read governed corpus-01 bam mini manifest")
             .replacen(
