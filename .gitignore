@@ -41,6 +41,8 @@ Thumbs.db
 /runs/bench/*
 !/runs/bench/micro/
 /runs/bench/micro/*
+!/runs/bench/micro/MICRO_BENCHMARK_REPORT.json
+!/runs/bench/micro/MICRO_BENCHMARK_REPORT.md
 !/runs/bench/micro/MICRO_BENCHMARK_RUN.json
 !/runs/bench/micro/bam/
 !/runs/bench/micro/bam/MICRO_BAM_SUMMARY.json

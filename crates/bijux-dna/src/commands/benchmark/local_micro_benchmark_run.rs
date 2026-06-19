@@ -26,6 +26,10 @@ use super::local_edna_micro_pipeline::{render_edna_micro_pipeline, EdnaMicroPipe
 use super::local_fastq_micro_smoke_subset::{
     render_fastq_micro_smoke_subset, FastqMicroSmokeExecutionStatus, FastqMicroSmokeSubsetReport,
 };
+use super::local_micro_benchmark_report::{
+    render_micro_benchmark_report, MicroBenchmarkSourceReports,
+    DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH, DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH,
+};
 use super::local_real_smoke_core_subset::{
     render_real_smoke_core_subset, RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport,
 };
@@ -436,6 +440,25 @@ pub(crate) fn render_micro_benchmark_run(
         &normalized_metric_rows,
     )?;
     bijux_dna_infra::atomic_write_json(&manifest_output_path, &manifest)?;
+    render_micro_benchmark_report(
+        repo_root,
+        &manifest,
+        &result_rows,
+        &output_rows,
+        &log_rows,
+        PathBuf::from(DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH),
+        PathBuf::from(DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH),
+        MicroBenchmarkSourceReports {
+            real_smoke: &real_report,
+            fastq: &fastq_report,
+            bam: &bam_report,
+            vcf: &vcf_report,
+            amplicon: &amplicon_report,
+            adna: &adna_report,
+            edna: &edna_report,
+            core_germline: &pipeline_report,
+        },
+    )?;
     Ok(manifest)
 }
 
