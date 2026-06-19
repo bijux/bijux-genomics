@@ -61,6 +61,6 @@ fn bench_readiness_vcf_all_retained_tools_complete_writes_governed_json_file() {
 
     assert_eq!(
         report.get("local_smoke_container_row_count").and_then(serde_json::Value::as_u64),
-        Some(25)
+        Some(22)
     );
 }

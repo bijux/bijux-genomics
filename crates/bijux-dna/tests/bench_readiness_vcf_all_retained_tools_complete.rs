@@ -52,11 +52,11 @@ fn bench_readiness_vcf_all_retained_tools_complete_reports_governed_pass_state()
         payload.get("failing_goal_ids").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(0)
     );
-    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(44));
+    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(42));
     assert_eq!(payload.get("retained_stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("retained_tool_count").and_then(serde_json::Value::as_u64), Some(17));
+    assert_eq!(payload.get("retained_tool_count").and_then(serde_json::Value::as_u64), Some(16));
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(24));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(22));
     assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(17));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(
@@ -71,14 +71,14 @@ fn bench_readiness_vcf_all_retained_tools_complete_reports_governed_pass_state()
         payload.get("parser_fixture_row_count").and_then(serde_json::Value::as_u64),
         Some(20)
     );
-    assert_eq!(payload.get("local_smoke_row_count").and_then(serde_json::Value::as_u64), Some(44));
+    assert_eq!(payload.get("local_smoke_row_count").and_then(serde_json::Value::as_u64), Some(42));
     assert_eq!(
         payload.get("local_smoke_host_stage_row_count").and_then(serde_json::Value::as_u64),
-        Some(19)
+        Some(20)
     );
     assert_eq!(
         payload.get("local_smoke_container_row_count").and_then(serde_json::Value::as_u64),
-        Some(25)
+        Some(22)
     );
     assert_eq!(payload.get("report_map_row_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(payload.get("ok"), Some(&serde_json::Value::Bool(true)));

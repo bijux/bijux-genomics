@@ -51,19 +51,19 @@ fn bench_readiness_vcf_local_container_smoke_reports_retained_wrapper_paths() {
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(16));
     assert_eq!(
         payload.get("host_stage_smoke_row_count").and_then(serde_json::Value::as_u64),
-        Some(19)
+        Some(20)
     );
     assert_eq!(
         payload.get("container_smoke_row_count").and_then(serde_json::Value::as_u64),
-        Some(23)
+        Some(22)
     );
 
     let runtime_counts = payload
         .get("runtime_counts")
         .and_then(serde_json::Value::as_object)
         .expect("runtime counts");
-    assert_eq!(runtime_counts.get("host").and_then(serde_json::Value::as_u64), Some(19));
-    assert_eq!(runtime_counts.get("docker-arm64").and_then(serde_json::Value::as_u64), Some(22));
+    assert_eq!(runtime_counts.get("host").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(runtime_counts.get("docker-arm64").and_then(serde_json::Value::as_u64), Some(21));
     assert_eq!(runtime_counts.get("apptainer").and_then(serde_json::Value::as_u64), Some(1));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -110,10 +110,10 @@ fn bench_readiness_vcf_local_container_smoke_reports_retained_wrapper_paths() {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.postprocess")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
             && row.get("smoke_path_kind").and_then(serde_json::Value::as_str)
-                == Some("docker_container_smoke")
-            && row.get("smoke_runtime").and_then(serde_json::Value::as_str) == Some("docker-arm64")
+                == Some("host_stage_smoke")
+            && row.get("smoke_runtime").and_then(serde_json::Value::as_str) == Some("host")
             && row.get("smoke_command").and_then(serde_json::Value::as_str)
-                == Some("bijux-dna env smoke docker-arm64 bcftools")
+                == Some("bijux-dna bench local run-vcf-postprocess-smoke --tool-id bcftools")
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.phasing")

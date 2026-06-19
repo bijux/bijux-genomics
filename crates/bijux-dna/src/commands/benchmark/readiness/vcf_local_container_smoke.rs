@@ -453,11 +453,11 @@ fn ensure_vcf_local_container_smoke_contract(
             "vcf.postprocess",
             "bcftools",
             "bcftools",
-            "docker_container_smoke",
-            "docker-arm64",
+            "host_stage_smoke",
+            "host",
             "bcftools",
-            "bijux-dna env smoke docker-arm64 bcftools",
-            "containers/docker/arm64/Dockerfile.bcftools",
+            "bijux-dna bench local run-vcf-postprocess-smoke --tool-id bcftools",
+            "crates/bijux-dna/src/commands/benchmark/local_vcf_postprocess_smoke.rs",
             "",
         ),
         (
@@ -608,11 +608,11 @@ mod tests {
         assert_eq!(report.row_count, 42);
         assert_eq!(report.stage_count, 20);
         assert_eq!(report.tool_count, 16);
-        assert_eq!(report.host_stage_smoke_row_count, 19);
-        assert_eq!(report.container_smoke_row_count, 23);
-        assert_eq!(report.runtime_counts.get("host").copied(), Some(19));
+        assert_eq!(report.host_stage_smoke_row_count, 20);
+        assert_eq!(report.container_smoke_row_count, 22);
+        assert_eq!(report.runtime_counts.get("host").copied(), Some(20));
         assert_eq!(report.runtime_counts.get("docker-arm64").copied(), Some(21));
-        assert_eq!(report.runtime_counts.get("apptainer").copied(), Some(2));
+        assert_eq!(report.runtime_counts.get("apptainer").copied(), Some(1));
 
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.call"
@@ -630,8 +630,9 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.postprocess"
                 && row.tool_id == "bcftools"
-                && row.smoke_path_kind == "docker_container_smoke"
-                && row.smoke_command == "bijux-dna env smoke docker-arm64 bcftools"
+                && row.smoke_path_kind == "host_stage_smoke"
+                && row.smoke_command
+                    == "bijux-dna bench local run-vcf-postprocess-smoke --tool-id bcftools"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.phasing"
