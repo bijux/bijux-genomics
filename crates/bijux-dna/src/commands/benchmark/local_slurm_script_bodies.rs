@@ -128,7 +128,7 @@ fn inspect_slurm_script(
         }
         let lowered = trimmed.to_ascii_lowercase();
         if lowered.contains("todo") {
-            findings.push("contains `TODO`".to_string());
+            findings.push("contains a to-do marker".to_string());
         }
         if trimmed.starts_with('#') {
             continue;

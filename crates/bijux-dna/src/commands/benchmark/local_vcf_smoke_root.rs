@@ -300,13 +300,13 @@ mod tests {
     #[test]
     fn vcf_smoke_root_keeps_governed_root_when_manifest_path_is_redirected() {
         let repo_root = repo_root();
-        let report = render_vcf_smoke_root(
-            &repo_root,
-            PathBuf::from("artifacts/test-output/local-vcf-smoke-root.json"),
-        )
-        .expect("render VCF smoke root with redirected manifest");
+        let redirected_manifest =
+            bijux_dna_testkit::TestPaths::new("local-vcf-smoke-root-redirect")
+                .child("local-vcf-smoke-root.json");
+        let report = render_vcf_smoke_root(&repo_root, redirected_manifest.clone())
+            .expect("render VCF smoke root with redirected manifest");
 
-        assert_eq!(report.manifest_path, "artifacts/test-output/local-vcf-smoke-root.json");
+        assert_eq!(report.manifest_path, redirected_manifest.to_string_lossy().replace('\\', "/"));
         assert_eq!(report.root_path, "runs/bench/local-smoke/vcf");
         assert!(report
             .rows

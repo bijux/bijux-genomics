@@ -20,7 +20,10 @@ fn policy__contracts__root_migration_guard_policy__new_top_level_dirs_are_blocke
         "makes",
         "science",
         "artifacts",
+        "benchmarks",
         "target",
+        "runs",
+        "tests",
     ];
     let mut offenders = Vec::new();
     for entry in std::fs::read_dir(&root).expect("read root") {

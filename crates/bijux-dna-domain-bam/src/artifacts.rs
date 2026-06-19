@@ -6713,12 +6713,7 @@ mod tests {
 
     #[test]
     fn correct_tiny_bam_overlaps_reports_pair_count_and_trimmed_bases() {
-        let unique = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("unix epoch")
-            .as_nanos();
-        let temp = std::env::temp_dir().join(format!("bijux-overlap-correction-{unique}"));
-        std::fs::create_dir_all(&temp).expect("create temp dir");
+        let temp = bijux_dna_testkit::TestPaths::new("bam-overlap-correction").root().to_path_buf();
         let input = temp.join("input.sam");
         let output = temp.join("overlap.corrected.sam");
         std::fs::write(
@@ -6747,8 +6742,6 @@ pair_spaced\t147\tchr1\t55\t60\t10M\t=\t40\t-25\tCCCCAAAAGG\tFFFFFFFFFF\tRG:Z:rg
         assert_eq!(written.corrected_pairs, Some(1));
         assert_eq!(written.corrected_overlap_bases, Some(7));
         assert_eq!(written.insufficiency_reason, None);
-
-        std::fs::remove_dir_all(&temp).expect("remove temp dir");
     }
 
     #[test]

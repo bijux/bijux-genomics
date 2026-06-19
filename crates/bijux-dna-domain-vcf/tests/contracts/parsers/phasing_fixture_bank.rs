@@ -1,6 +1,5 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result};
 use bijux_dna_domain_vcf::parse_phasing_stage_metrics;
@@ -144,11 +143,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn unique_temp_dir(tool_id: &str) -> Result<PathBuf> {
-    let stamp =
-        SystemTime::now().duration_since(UNIX_EPOCH).map_or(0_u128, |duration| duration.as_nanos());
-    let path = std::env::temp_dir().join(format!("bijux-vcf-phasing-{tool_id}-{stamp}"));
-    fs::create_dir_all(&path).with_context(|| format!("create {}", path.display()))?;
-    Ok(path)
+    Ok(bijux_dna_testkit::temp_path_for(&format!("vcf-phasing-{tool_id}")))
 }
 
 fn copy_fixture_dir(from: &Path, to: &Path) -> Result<()> {

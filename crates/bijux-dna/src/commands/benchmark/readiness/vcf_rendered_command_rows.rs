@@ -364,7 +364,7 @@ fn validate_vcf_rendered_command_row(row: &VcfRenderedCommandRow) -> Result<()> 
         let command_lower = step.command.to_ascii_lowercase();
         if command_lower.contains("todo") {
             return Err(anyhow!(
-                "VCF rendered command row `{}` / `{}` step `{}` still contains TODO text",
+                "VCF rendered command row `{}` / `{}` step `{}` still contains a to-do marker",
                 row.stage_id,
                 row.tool_id,
                 step.step_id

@@ -289,7 +289,7 @@ mod tests {
     }
 
     #[test]
-    fn benchmark_path_resolver_honors_environment_override() {
+    fn benchmark_path_resolver_honors_environment_variable() {
         let _env_lock = ENV_LOCK.lock().expect("env lock");
         let _root_env = EnvVarGuard::set(BENCHMARK_ROOT_ENV, "benchmarks-from-env");
         let repo_root = Path::new("/workspace/repo");

@@ -1534,8 +1534,8 @@ Visible aliases are part of the operator surface:
   `benchmarks/readiness/stage-registry-extra-pairs.tsv` with one governed row per benchmark-
   scoped stage-registry pair that is present in `configs/ci/registry/tool_registry.toml` but not
   admitted by the domain tool contracts. Each row carries `domain`, `stage_id`, `tool_id`,
-  `contract_status`, `registry_sources`, `registered_stage_ids`, `intentional_override_status`,
-  `intentional_override_reason`, and `reason` so compiled registry scope cannot silently outrun
+  `contract_status`, `registry_sources`, `registered_stage_ids`, `documented_exception_status`,
+  `documented_exception_reason`, and `reason` so compiled registry scope cannot silently outrun
   domain truth.
 - `bijux-dna bench readiness render-unregistered-benchmark-pairs`
   `render-unregistered-benchmark-pairs` writes
@@ -2077,7 +2077,7 @@ Visible aliases are part of the operator surface:
   `validate-all-domain-slurm-script-bodies` regenerates the governed all-domain SLURM tree under
   `runs/bench/slurm-dry-run/all-domains/`, then writes
   `runs/bench/slurm-dry-run/all-domains/no-placeholder-report.json`. The report fails closed if any
-  generated `.sbatch` body contains `placeholder`, `TODO`, `echo execute`, unconditional `rc=0`,
+  generated `.sbatch` body contains `placeholder`, a to-do marker, `echo execute`, unconditional `rc=0`,
   an empty executable body, or a missing `bijux-dna` invocation, so reviewers can prove the
   all-domain SLURM surface calls owned repo commands instead of template text.
 - `bijux-dna bench local validate-all-domain-slurm-result-paths`

@@ -659,10 +659,10 @@ id = "bam.haplogroups"
     }
 
     #[test]
-    fn current_registry_path_honors_env_override() {
+    fn current_registry_path_honors_env_variable() {
         let original = std::env::var_os("BIJUX_TOOL_REGISTRY_PATH");
         std::env::set_var("BIJUX_TOOL_REGISTRY_PATH", "configs/ci/registry/tool_registry_vcf.toml");
-        let path = current_registry_path().expect("resolve registry path override");
+        let path = current_registry_path().expect("resolve registry path from env variable");
         if let Some(value) = original {
             std::env::set_var("BIJUX_TOOL_REGISTRY_PATH", value);
         } else {

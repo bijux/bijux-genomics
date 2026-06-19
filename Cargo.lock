@@ -243,6 +243,7 @@ dependencies = [
  "bijux-dna-stage-contract",
  "bijux-dna-stages-fastq",
  "bijux-dna-stages-vcf",
+ "bijux-dna-testkit",
  "clap",
  "filetime",
  "flate2",
@@ -493,6 +494,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-policies",
+ "bijux-dna-testkit",
  "flate2",
  "schemars",
  "serde",

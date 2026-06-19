@@ -743,14 +743,14 @@ fn topological_dependency_order(adjacency: &BTreeMap<String, BTreeSet<String>>) 
     }
 }
 
-fn gate_cargo_target_dir_with_override(cwd: &Path, override_path: Option<&Path>) -> PathBuf {
-    override_path
+fn gate_cargo_target_dir_with_explicit_path(cwd: &Path, explicit_path: Option<&Path>) -> PathBuf {
+    explicit_path
         .map(Path::to_path_buf)
         .unwrap_or_else(|| cwd.join(DEFAULT_CRATE_SHAPE_GATE_TARGET_DIR))
 }
 
 fn gate_cargo_target_dir(cwd: &Path) -> PathBuf {
-    gate_cargo_target_dir_with_override(
+    gate_cargo_target_dir_with_explicit_path(
         cwd,
         std::env::var_os("CARGO_TARGET_DIR").as_deref().map(Path::new),
     )
@@ -2568,7 +2568,7 @@ pub fn write_runner_owned_process_execution_report(
 mod tests {
     use super::{
         build_benchmarking_ready_crate_shape_gate_report, cycle_components,
-        gate_cargo_target_dir_with_override, topological_dependency_order,
+        gate_cargo_target_dir_with_explicit_path, topological_dependency_order,
         CrateShapeGateCheckReport, CRATE_CYCLE_CATEGORIES, CRATE_CYCLE_CLI_CRATES,
         CRATE_CYCLE_DOMAIN_CRATES,
     };
@@ -2675,7 +2675,7 @@ mod tests {
 
     #[test]
     fn benchmarking_ready_gate_target_dir_defaults_to_artifacts_root() {
-        let resolved = gate_cargo_target_dir_with_override(Path::new("/workspace"), None);
+        let resolved = gate_cargo_target_dir_with_explicit_path(Path::new("/workspace"), None);
 
         assert_eq!(
             resolved,
@@ -2684,8 +2684,8 @@ mod tests {
     }
 
     #[test]
-    fn benchmarking_ready_gate_target_dir_respects_explicit_override() {
-        let resolved = gate_cargo_target_dir_with_override(
+    fn benchmarking_ready_gate_target_dir_respects_explicit_path() {
+        let resolved = gate_cargo_target_dir_with_explicit_path(
             Path::new("/workspace"),
             Some(Path::new("/tmp/custom-target")),
         );

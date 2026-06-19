@@ -51,6 +51,7 @@ default = []
 
 [dev-dependencies]
 bijux-dna-policies.workspace = true
+bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 tempfile.workspace = true
 predicates.workspace = true
 insta = { workspace = true }
