@@ -40,22 +40,22 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - References: SAMtools plus BAM-structure validation helpers.
 
 ### bam.qc_pre {#bam-qc-pre}
-- Status: planned.
+- Status: supported.
 - Purpose: baseline QC before filtering.
 - Inputs/Outputs: bam → pre-QC report.
 - Metrics: pre‑QC summary.
-- Tools: samtools.
+- Tools: samtools, multiqc.
 - Defaults: default `samtools`; rationale lives in [domain/bam/docs/DEFAULT_SETTINGS.md](../../../domain/bam/docs/DEFAULT_SETTINGS.md).
-- References: SAMtools.
+- References: SAMtools and MultiQC.
 
 ### bam.mapping_summary {#bam-mapping-summary}
 - Status: supported.
 - Purpose: emit observational mapping summaries before downstream interpretation gates.
 - Inputs/Outputs: bam → mapping summary report.
 - Metrics: mapped reads, alignment rate.
-- Tools: samtools.
+- Tools: samtools, picard.
 - Defaults: default `samtools`; rationale lives in [domain/bam/docs/DEFAULT_SETTINGS.md](../../../domain/bam/docs/DEFAULT_SETTINGS.md).
-- References: SAMtools.
+- References: SAMtools and Picard.
 
 ### bam.filter {#bam-filter}
 - Status: supported.
@@ -103,7 +103,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - References: SAMtools and Picard duplication metrics.
 
 ### bam.complexity {#bam-complexity}
-- Status: planned.
+- Status: supported.
 - Purpose: estimate library complexity.
 - Inputs/Outputs: bam → complexity report.
 - Metrics: complexity curves.
@@ -166,13 +166,13 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - References: RXY, Yleaf, ANGSD.
 
 ### bam.bias_mitigation {#bam-bias-mitigation}
-- Status: planned.
+- Status: supported.
 - Purpose: record bias-mitigation decisions that should stay separate from pure bias observation.
 - Inputs/Outputs: bam → bias-mitigation report.
 - Metrics: bias-mitigation summary, operator notes.
-- Tools: samtools.
-- Defaults: default `samtools`; rationale lives in [domain/bam/docs/DEFAULT_SETTINGS.md](../../../domain/bam/docs/DEFAULT_SETTINGS.md).
-- References: SAMtools plus governed bias-mitigation policy notes.
+- Tools: mapdamage2.
+- Defaults: default `mapdamage2`; rationale lives in [domain/bam/docs/DEFAULT_SETTINGS.md](../../../domain/bam/docs/DEFAULT_SETTINGS.md).
+- References: mapDamage2.
 
 ### bam.recalibration {#bam-recalibration}
 - Status: planned.
@@ -229,7 +229,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - References: Picard GC-bias metrics.
 
 ### bam.overlap_correction {#bam-overlap-correction}
-- Status: planned.
+- Status: supported.
 - Purpose: correct overlapping paired-read evidence when clip/consensus rules are explicitly requested.
 - Inputs/Outputs: bam → overlap-correction report.
 - Metrics: overlap-corrected read pairs.
