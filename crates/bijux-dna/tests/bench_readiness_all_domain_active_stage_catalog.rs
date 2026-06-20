@@ -46,10 +46,10 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/active-stage-catalog.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(66));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(
         payload.get("stages_with_benchmark_ready_tools").and_then(serde_json::Value::as_u64),
-        Some(66)
+        Some(69)
     );
     assert_eq!(
         payload.get("not_benchmark_ready_only_stage_count").and_then(serde_json::Value::as_u64),
@@ -57,22 +57,22 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("stages_with_parser_rows").and_then(serde_json::Value::as_u64),
-        Some(66)
+        Some(69)
     );
-    assert_eq!(payload.get("stages_with_schema").and_then(serde_json::Value::as_u64), Some(66));
+    assert_eq!(payload.get("stages_with_schema").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(
         payload.get("stages_with_report_rows").and_then(serde_json::Value::as_u64),
-        Some(66)
+        Some(69)
     );
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(25));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(27));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(24));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(17));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(18));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 66);
+    assert_eq!(rows.len(), 69);
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -83,7 +83,7 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
             && row.get("parser_row_count").and_then(serde_json::Value::as_u64) == Some(6)
             && row.get("parser_covered_row_count").and_then(serde_json::Value::as_u64) == Some(6)
             && row.get("schema_present").and_then(serde_json::Value::as_bool) == Some(true)
-            && row.get("report_row_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("report_row_count").and_then(serde_json::Value::as_u64) == Some(6)
             && row.get("benchmark_statuses").and_then(serde_json::Value::as_array)
                 == Some(&vec![serde_json::Value::String("benchmark_ready".to_string())])
             && row.get("report_section_ids").and_then(serde_json::Value::as_array)
@@ -177,11 +177,18 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
                 == Some(&vec![serde_json::Value::String("population_structure".to_string())])
     }));
     assert!(
-        rows.iter().all(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) != Some("fastq.index_reference")
+        rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
-                    != Some("fastq.report_qc")
+                    == Some("fastq.report_qc")
+                && row.get("active_tool_count").and_then(serde_json::Value::as_u64) == Some(1)
+                && row.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64)
+                    == Some(1)
+                && row.get("benchmark_ready_tool_ids").and_then(serde_json::Value::as_array)
+                    == Some(&vec![serde_json::Value::String("multiqc".to_string())])
+                && row.get("report_section_ids").and_then(serde_json::Value::as_array)
+                    == Some(&vec![serde_json::Value::String("quality_profiling".to_string())])
         }),
-        "active stage catalog must exclude not-benchmark-ready-only stages"
+        "active stage catalog must retain the governed fastq.report_qc row"
     );
 }
