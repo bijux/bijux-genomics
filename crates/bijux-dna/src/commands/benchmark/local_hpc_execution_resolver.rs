@@ -137,6 +137,14 @@ pub(crate) fn render_hpc_execution_resolver(
     Ok(report)
 }
 
+pub(crate) fn collect_hpc_execution_resolver_report(
+    repo_root: &Path,
+) -> Result<LocalHpcExecutionResolverReport> {
+    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
+    let output_path = benchmark_paths.benchmark_hpc_dry_run_root().join("execution-resolver.tsv");
+    build_hpc_execution_resolver(repo_root, &output_path)
+}
+
 pub(crate) fn validate_hpc_execution_resolver_path(
     repo_root: &Path,
     manifest_path: &Path,

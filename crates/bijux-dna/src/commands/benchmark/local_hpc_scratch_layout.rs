@@ -238,6 +238,12 @@ pub(crate) fn render_hpc_scratch_layout(
     Ok(manifest)
 }
 
+pub(crate) fn collect_hpc_scratch_layout(repo_root: &Path) -> Result<LocalHpcScratchLayout> {
+    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
+    let output_path = benchmark_paths.benchmark_hpc_dry_run_root().join("scratch-layout.json");
+    build_hpc_scratch_layout(repo_root, &output_path)
+}
+
 pub(crate) fn load_validated_hpc_scratch_layout_path(
     repo_root: &Path,
     manifest_path: &Path,
