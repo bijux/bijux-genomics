@@ -24,6 +24,7 @@ mod execution_support;
 mod hpc;
 mod lab;
 mod smoke;
+mod test_selection;
 mod tooling;
 mod toy_support;
 mod verification;
@@ -43,6 +44,7 @@ use self::execution_support::{
     env_flag, read_json_value, read_utf8, run_program, run_program_with_env, run_programs_with_env,
     walk_file_list, write_json_pretty, write_utf8,
 };
+use self::test_selection::governed_fast_expression;
 use self::toy_support::{
     build_combined_toy_report, compare_toy_goldens, copy_dir_all, generate_toy_profile,
     temp_subdir, toy_profile_id, verify_toy_inputs,
@@ -119,21 +121,21 @@ fn ci_test_env(workspace: &Workspace, slow: bool) -> Result<Vec<(String, String)
     Ok(envs)
 }
 
-fn resolved_nextest_expression(fast_only: bool) -> Option<String> {
+fn resolved_nextest_expression(workspace: &Workspace, fast_only: bool) -> Result<Option<String>> {
     if let Ok(value) = std::env::var("NEXTEST_TEST_EXPR") {
         if !value.trim().is_empty() {
-            return Some(value);
+            return Ok(Some(value));
         }
     }
     if let Ok(value) = std::env::var("NEXTEST_FAST_EXPR") {
         if !value.trim().is_empty() {
-            return Some(value);
+            return Ok(Some(value));
         }
     }
     if fast_only || std::env::var("NEXTEST_PROFILE").ok().as_deref() == Some("fast-unit") {
-        return Some("not test(/::slow__/)".to_string());
+        return Ok(Some(governed_fast_expression(workspace)?));
     }
-    None
+    Ok(None)
 }
 
 fn resolved_nextest_profile(slow: bool) -> Result<String> {

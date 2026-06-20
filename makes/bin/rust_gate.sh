@@ -44,9 +44,33 @@ nextest_profile_slow="${NEXTEST_PROFILE_SLOW:-slow-integration}"
 nextest_profile_all="${NEXTEST_PROFILE_ALL:-full}"
 nextest_status_level="${NEXTEST_STATUS_LEVEL:-all}"
 nextest_final_status_level="${NEXTEST_FINAL_STATUS_LEVEL:-all}"
-nextest_fast_expr="${NEXTEST_FAST_EXPR:-not test(/::slow__/)}"
-nextest_slow_expr="${NEXTEST_SLOW_EXPR:-test(/::slow__/)}"
+nextest_expr_bin="${NEXTEST_EXPR_BIN:-makes/bin/nextest_expr.sh}"
+resolve_nextest_expr() {
+  local mode="$1"
+  if [ -n "${2:-}" ]; then
+    printf '%s\n' "$2"
+    return 0
+  fi
+  "${nextest_expr_bin}" "${mode}"
+}
+nextest_fast_expr="$(resolve_nextest_expr fast "${NEXTEST_FAST_EXPR:-}")"
+nextest_slow_expr="$(resolve_nextest_expr slow "${NEXTEST_SLOW_EXPR:-}")"
 rs_clippy_excludes="${RS_CLIPPY_EXCLUDES:-}"
+
+slow_skip_args() {
+  local roster_path="${workspace_root}/configs/rust/nextest-slow-roster.txt"
+  printf '%s\0' --skip "::slow__"
+  if [ ! -f "${roster_path}" ]; then
+    return 0
+  fi
+  while IFS= read -r slow_test_name; do
+    [ -n "${slow_test_name}" ] || continue
+    case "${slow_test_name}" in
+      \#*) continue ;;
+    esac
+    printf '%s\0%s\0' --skip "${slow_test_name}"
+  done < "${roster_path}"
+}
 
 default_fast_test_runner() {
   case "$(uname -s)" in
@@ -257,13 +281,14 @@ case "${command_name}" in
         --final-status-level "${nextest_final_status_level}" \
         -E "${nextest_fast_expr}"
     elif [ "${fast_test_runner}" = "cargo" ]; then
-      printf '%s\n' "run: cargo test --workspace --all-features --no-fail-fast -- --skip ::slow__"
+      mapfile -d '' -t cargo_skip_args < <(slow_skip_args)
+      printf '%s\n' "run: cargo test --workspace --all-features --no-fail-fast -- ${cargo_skip_args[*]}"
       run_cargo_test "${rs_test_report}" "${rs_target_dir}" cargo test \
         --workspace \
         --all-features \
         --no-fail-fast \
         -- \
-        --skip "::slow__"
+        "${cargo_skip_args[@]}"
     else
       require_tool cargo-nextest
       printf '%s\n' "run: cargo nextest run --workspace --all-features --profile ${nextest_profile_fast} -E ${nextest_fast_expr}"

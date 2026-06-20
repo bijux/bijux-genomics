@@ -1,3 +1,4 @@
+use super::super::test_selection::governed_slow_expression;
 use super::{
     artifact_env, artifact_root_path, ci_test_env, ensure_help_only, env_or_default, fs,
     merge_outcomes, read_coverage_runner_flag, resolved_nextest_expression,
@@ -151,7 +152,7 @@ pub(in super::super) fn tooling_ci_test(
     run_check_ids(&mut stdout, &["check-artifact-env-contract", "check-ssot-guardrails"])?;
     set_assets_readonly(workspace, true)?;
     let envs = ci_test_env(workspace, false)?;
-    let expr = resolved_nextest_expression(false);
+    let expr = resolved_nextest_expression(workspace, false)?;
     let nextest_config =
         env_or_default("NEXTEST_CONFIG", "--config-file configs/rust/nextest.toml");
     let test_features = env_or_default("TEST_FEATURES", "--all-features");
@@ -220,7 +221,7 @@ pub(in super::super) fn tooling_ci_test_slow(
             .map(ToOwned::to_owned),
     );
     nextest_args.push("-E".to_string());
-    nextest_args.push("test(/::slow__/)".to_string());
+    nextest_args.push(governed_slow_expression(workspace)?);
     let outcome = run_program_with_env(workspace, "cargo", &nextest_args, &envs);
     let restore = set_assets_readonly(workspace, false);
     let test_outcome = outcome?;

@@ -52,10 +52,12 @@ Rust gate artifact layout:
 - `make test-all-frozen` materializes the exact source snapshot under `artifacts/<sha>/frozen-repo/` so reports and code stay pinned to the same commit
 - `make test-all-frozen` isolates cargo state under `artifacts/<sha>/target`, `artifacts/<sha>/cargo/home`, and `artifacts/<sha>/tmp`
 - `make test-all-frozen` records launcher state under `artifacts/<sha>/background/`, including `test-all.console.log`, `test-all.pid`, and `test-all.exit.status`
+- `make test-all` and `make test-all-frozen` run the complete suite with no fast/slow filter expression and no slow timeout
 - `make lint` is the fast product-crate clippy lane and excludes `bijux-dna-dev`
 - workspace governance checks remain available through `make lint-workspace`
-- `make test` is the fast Rust lane: it excludes `slow__` tests and enforces a 10-second per-test budget
-- `make test-slow` and `make test-all` are the lanes for tests that exceed the fast-lane budget
+- `make test` is the fast Rust lane: it excludes named plus rostered slow tests above the 1-second threshold
+- `make test-slow` is the lane for tests that exceed the fast-lane budget
+- `make test-all` is the unfiltered, unbounded full-suite lane
 
 CI profile automation:
 - Fast: `cargo run -q -p bijux-dna-dev -- tooling run ci-fast`
