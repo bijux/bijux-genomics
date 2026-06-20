@@ -15,10 +15,10 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_EXECUTABLE_RESOLUTION_PATH: &str =
     "benchmarks/readiness/tools/executable-resolution.tsv";
 const EXECUTABLE_RESOLUTION_SCHEMA_VERSION: &str = "bijux.bench.readiness.executable_resolution.v1";
-const RESOLUTION_KIND_HOST_BINARY: &str = "host_binary";
-const RESOLUTION_KIND_DOCKER_IMAGE: &str = "docker_image";
-const RESOLUTION_KIND_APPTAINER_IMAGE: &str = "apptainer_image";
-const RESOLUTION_KIND_UNAVAILABLE: &str = "unavailable_with_reason";
+pub(crate) const RESOLUTION_KIND_HOST_BINARY: &str = "host_binary";
+pub(crate) const RESOLUTION_KIND_DOCKER_IMAGE: &str = "docker_image";
+pub(crate) const RESOLUTION_KIND_APPTAINER_IMAGE: &str = "apptainer_image";
+pub(crate) const RESOLUTION_KIND_UNAVAILABLE: &str = "unavailable_with_reason";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct ExecutableResolutionRow {
@@ -44,12 +44,12 @@ pub(crate) struct ExecutableResolutionReport {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct ExecutableResolutionSignature {
-    install_kind: String,
-    resolution_kind: String,
-    resolution_target: String,
-    command_entrypoint: Option<String>,
-    unavailable_reason: Option<String>,
+pub(crate) struct RuntimeResolutionSignature {
+    pub(crate) install_kind: String,
+    pub(crate) resolution_kind: String,
+    pub(crate) resolution_target: String,
+    pub(crate) command_entrypoint: Option<String>,
+    pub(crate) unavailable_reason: Option<String>,
 }
 
 pub(crate) fn run_render_executable_resolution(
@@ -116,7 +116,7 @@ fn resolve_executable_resolution_row(
     retained_row: &AllDomainRetainedToolRow,
 ) -> Result<ExecutableResolutionRow> {
     let mut runtime_probe_paths = Vec::<String>::new();
-    let mut resolved_signature = None::<ExecutableResolutionSignature>;
+    let mut resolved_signature = None::<RuntimeResolutionSignature>;
 
     for domain in &retained_row.domains {
         let loaded = load_runtime_probe_with_source(repo_root, domain, &retained_row.tool_id)
@@ -166,16 +166,16 @@ fn resolve_executable_resolution_row(
     })
 }
 
-fn resolve_runtime_probe_signature(
+pub(crate) fn resolve_runtime_probe_signature(
     tool_id: &str,
     probe: &super::tool_execution_modes::RuntimeProbe,
-) -> ExecutableResolutionSignature {
+) -> RuntimeResolutionSignature {
     let install_kind = probe.install_kind().to_string();
     let command_entrypoint = probe.command_entrypoint();
     let container_id = probe.container_id();
 
     match install_kind.clone().as_str() {
-        "workspace_binary" | "host_binary" => ExecutableResolutionSignature {
+        "workspace_binary" | "host_binary" => RuntimeResolutionSignature {
             install_kind,
             resolution_kind: RESOLUTION_KIND_HOST_BINARY.to_string(),
             resolution_target: command_entrypoint.clone().unwrap_or_else(|| tool_id.to_string()),
@@ -183,7 +183,7 @@ fn resolve_runtime_probe_signature(
             unavailable_reason: None,
         },
         "container" => match container_id {
-            Some(container_id) if is_external_reference(&container_id) => ExecutableResolutionSignature {
+            Some(container_id) if is_external_reference(&container_id) => RuntimeResolutionSignature {
                 install_kind,
                 resolution_kind: RESOLUTION_KIND_UNAVAILABLE.to_string(),
                 resolution_target: String::new(),
@@ -193,7 +193,7 @@ fn resolve_runtime_probe_signature(
                         .to_string(),
                 ),
             },
-            Some(container_id) if is_planned_reference(&container_id) => ExecutableResolutionSignature {
+            Some(container_id) if is_planned_reference(&container_id) => RuntimeResolutionSignature {
                 install_kind,
                 resolution_kind: RESOLUTION_KIND_UNAVAILABLE.to_string(),
                 resolution_target: String::new(),
@@ -203,21 +203,21 @@ fn resolve_runtime_probe_signature(
                         .to_string(),
                 ),
             },
-            Some(container_id) if is_apptainer_reference(&container_id) => ExecutableResolutionSignature {
+            Some(container_id) if is_apptainer_reference(&container_id) => RuntimeResolutionSignature {
                 install_kind,
                 resolution_kind: RESOLUTION_KIND_APPTAINER_IMAGE.to_string(),
                 resolution_target: container_id,
                 command_entrypoint,
                 unavailable_reason: None,
             },
-            Some(container_id) if is_docker_reference(&container_id) => ExecutableResolutionSignature {
+            Some(container_id) if is_docker_reference(&container_id) => RuntimeResolutionSignature {
                 install_kind,
                 resolution_kind: RESOLUTION_KIND_DOCKER_IMAGE.to_string(),
                 resolution_target: container_id,
                 command_entrypoint,
                 unavailable_reason: None,
             },
-            Some(container_id) => ExecutableResolutionSignature {
+            Some(container_id) => RuntimeResolutionSignature {
                 install_kind,
                 resolution_kind: RESOLUTION_KIND_UNAVAILABLE.to_string(),
                 resolution_target: String::new(),
@@ -226,7 +226,7 @@ fn resolve_runtime_probe_signature(
                     "runtime probe declares unsupported container reference `{container_id}`"
                 )),
             },
-            None => ExecutableResolutionSignature {
+            None => RuntimeResolutionSignature {
                 install_kind,
                 resolution_kind: RESOLUTION_KIND_UNAVAILABLE.to_string(),
                 resolution_target: String::new(),
@@ -237,7 +237,7 @@ fn resolve_runtime_probe_signature(
                 ),
             },
         },
-        unsupported => ExecutableResolutionSignature {
+        unsupported => RuntimeResolutionSignature {
             install_kind,
             resolution_kind: RESOLUTION_KIND_UNAVAILABLE.to_string(),
             resolution_target: String::new(),
