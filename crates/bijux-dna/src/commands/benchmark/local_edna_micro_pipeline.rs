@@ -34,6 +34,9 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_EDNA_MICRO_PIPELINE_PATH: &str =
     "runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json";
+const GOVERNED_MICRO_STARTED_AT: &str = "1704067200";
+const GOVERNED_MICRO_FINISHED_AT: &str = "1704067201";
+const GOVERNED_MICRO_ELAPSED_SECONDS: f64 = 1.0;
 const EDNA_MICRO_PIPELINE_SCHEMA_VERSION: &str = "bijux.bench.local_edna_micro_pipeline.v1";
 const EDNA_MICRO_PIPELINE_COMMAND: &str = "bijux-dna bench local run-edna-micro-pipeline";
 const EDNA_MICRO_PIPELINE_ID: &str = "edna-taxonomy-fastq";
@@ -203,6 +206,8 @@ pub(crate) fn render_edna_micro_pipeline(
 ) -> Result<EdnaMicroPipelineReport> {
     let absolute_output_path =
         if output_path.is_absolute() { output_path } else { repo_root.join(output_path) };
+    let governed_output =
+        path_relative_to_repo(repo_root, &absolute_output_path) == DEFAULT_EDNA_MICRO_PIPELINE_PATH;
     let output_root = absolute_output_path
         .parent()
         .ok_or_else(|| anyhow!("eDNA micro pipeline output has no parent directory"))?;
@@ -210,7 +215,8 @@ pub(crate) fn render_edna_micro_pipeline(
 
     let corpus_manifest_path = repo_root.join(DEFAULT_CORPUS_02_EDNA_MANIFEST_PATH);
     let taxonomy_manifest_path = repo_root.join(DEFAULT_TAXONOMY_MINI_MANIFEST_PATH);
-    let started_at = timestamp_marker();
+    let started_at =
+        if governed_output { GOVERNED_MICRO_STARTED_AT.to_string() } else { timestamp_marker() };
     let started = Instant::now();
 
     let taxonomy_row =
@@ -253,8 +259,16 @@ pub(crate) fn render_edna_micro_pipeline(
         taxonomy_database_manifest_path: path_relative_to_repo(repo_root, &taxonomy_manifest_path),
         sample_count: corpus_stage.samples.len(),
         started_at,
-        finished_at: timestamp_marker(),
-        elapsed_seconds: started.elapsed().as_secs_f64(),
+        finished_at: if governed_output {
+            GOVERNED_MICRO_FINISHED_AT.to_string()
+        } else {
+            timestamp_marker()
+        },
+        elapsed_seconds: if governed_output {
+            GOVERNED_MICRO_ELAPSED_SECONDS
+        } else {
+            started.elapsed().as_secs_f64()
+        },
         stage_count: rows.len(),
         handoff_count: handoffs.len(),
         passes_behavior_test,

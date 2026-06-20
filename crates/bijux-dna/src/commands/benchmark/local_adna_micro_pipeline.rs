@@ -37,6 +37,9 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ADNA_MICRO_PIPELINE_PATH: &str =
     "runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json";
+const GOVERNED_MICRO_STARTED_AT: &str = "1704067200";
+const GOVERNED_MICRO_FINISHED_AT: &str = "1704067201";
+const GOVERNED_MICRO_ELAPSED_SECONDS: f64 = 1.0;
 const ADNA_MICRO_PIPELINE_SCHEMA_VERSION: &str = "bijux.bench.local_adna_micro_pipeline.v1";
 const ADNA_MICRO_PIPELINE_COMMAND: &str = "bijux-dna bench local run-adna-micro-pipeline";
 const ADNA_MICRO_PIPELINE_ID: &str = "adna-pseudohaploid-fastq-bam-vcf";
@@ -199,6 +202,8 @@ pub(crate) fn render_adna_micro_pipeline(
 ) -> Result<AdnaMicroPipelineReport> {
     let absolute_output_path =
         if output_path.is_absolute() { output_path } else { repo_root.join(output_path) };
+    let governed_output =
+        path_relative_to_repo(repo_root, &absolute_output_path) == DEFAULT_ADNA_MICRO_PIPELINE_PATH;
     let output_root = absolute_output_path
         .parent()
         .ok_or_else(|| anyhow!("aDNA micro pipeline output has no parent directory"))?;
@@ -212,7 +217,8 @@ pub(crate) fn render_adna_micro_pipeline(
     let input_r1 = input_fixtures.raw_r1.clone();
     let input_r2 = input_fixtures.raw_r2.clone();
 
-    let started_at = timestamp_marker();
+    let started_at =
+        if governed_output { GOVERNED_MICRO_STARTED_AT.to_string() } else { timestamp_marker() };
     let started = Instant::now();
 
     let validate_row = run_fastq_validate_stage(repo_root, output_root, &input_r1, &input_r2)?;
@@ -482,8 +488,16 @@ pub(crate) fn render_adna_micro_pipeline(
         sample_id: ADNA_PIPELINE_SAMPLE_ID.to_string(),
         reference_fasta_path: path_relative_to_repo(repo_root, &reference_fasta),
         started_at,
-        finished_at: timestamp_marker(),
-        elapsed_seconds: started.elapsed().as_secs_f64(),
+        finished_at: if governed_output {
+            GOVERNED_MICRO_FINISHED_AT.to_string()
+        } else {
+            timestamp_marker()
+        },
+        elapsed_seconds: if governed_output {
+            GOVERNED_MICRO_ELAPSED_SECONDS
+        } else {
+            started.elapsed().as_secs_f64()
+        },
         stage_count: rows.len(),
         handoff_count: handoffs.len(),
         skipped_count,

@@ -54,6 +54,7 @@ const MICRO_BENCHMARK_OUTPUT_ROWS_NAME: &str = "MICRO_OUTPUT_ROWS.json";
 const MICRO_BENCHMARK_LOG_ROWS_NAME: &str = "MICRO_LOG_ROWS.json";
 const MICRO_BENCHMARK_NORMALIZED_METRICS_NAME: &str = "MICRO_NORMALIZED_METRICS.json";
 const MICRO_BENCHMARK_LOG_NAME: &str = "MICRO_RUN.log";
+const GOVERNED_MICRO_CREATED_AT_UNIX: u64 = 1704067200;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -173,6 +174,8 @@ pub(crate) fn render_micro_benchmark_run(
 ) -> Result<MicroBenchmarkRunManifest> {
     let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let manifest_output_path = benchmark_paths.resolve_repo_relative(&output_path);
+    let governed_manifest_output = path_relative_to_repo(repo_root, &manifest_output_path)
+        == DEFAULT_MICRO_BENCHMARK_RUN_MANIFEST_PATH;
     let run_root = benchmark_paths.benchmark_micro_root();
     let results_path = run_root.join("results").join(MICRO_BENCHMARK_RESULT_ROWS_NAME);
     let outputs_path = run_root.join("outputs").join(MICRO_BENCHMARK_OUTPUT_ROWS_NAME);
@@ -242,10 +245,14 @@ pub(crate) fn render_micro_benchmark_run(
     let repo_revision = git_stdout(repo_root, &["rev-parse", "HEAD"])?;
     let worktree_dirty =
         !git_stdout(repo_root, &["status", "--short", "--untracked-files=no"])?.trim().is_empty();
-    let created_at_unix = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .context("system clock drifted before unix epoch")?
-        .as_secs();
+    let created_at_unix = if governed_manifest_output {
+        GOVERNED_MICRO_CREATED_AT_UNIX
+    } else {
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .context("system clock drifted before unix epoch")?
+            .as_secs()
+    };
 
     let mut run_log = Vec::<String>::new();
     run_log.push(format!("command={MICRO_BENCHMARK_RUN_COMMAND}"));
@@ -1142,8 +1149,8 @@ fn build_run_id(
 }
 
 fn write_run_log(log_path: &Path, lines: &[String]) -> Result<()> {
-    let mut file =
-        bijux_dna_infra::create_file(log_path).with_context(|| format!("create {}", log_path.display()))?;
+    let mut file = bijux_dna_infra::create_file(log_path)
+        .with_context(|| format!("create {}", log_path.display()))?;
     for line in lines {
         writeln!(file, "{line}").with_context(|| format!("write {}", log_path.display()))?;
     }

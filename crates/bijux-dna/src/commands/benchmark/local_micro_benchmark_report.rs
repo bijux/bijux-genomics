@@ -42,6 +42,7 @@ const MICRO_BENCHMARK_REPORT_SCHEMA_VERSION: &str = "bijux.bench.local_micro_ben
 const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH: &str =
     "configs/bench/local/scientific-acceptance-thresholds.toml";
 const STAGE_TOOL_RESOURCES_PATH: &str = "configs/bench/local/stage-tool-resources.toml";
+const GOVERNED_RUNTIME_SOURCE: &str = "governed_runtime";
 
 pub(crate) struct MicroBenchmarkSourceReports<'a> {
     pub(crate) real_smoke: &'a RealSmokeCoreSubsetReport,
@@ -231,6 +232,10 @@ pub(crate) fn render_micro_benchmark_report(
     let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let markdown_output_path = benchmark_paths.resolve_repo_relative(&markdown_output_path);
     let json_output_path = benchmark_paths.resolve_repo_relative(&json_output_path);
+    let governed_runtime_projection = path_relative_to_repo(repo_root, &markdown_output_path)
+        == DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH
+        && path_relative_to_repo(repo_root, &json_output_path)
+            == DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH;
     ensure_path_stays_within_benchmark_runs_root(
         repo_root,
         &markdown_output_path,
@@ -413,7 +418,7 @@ pub(crate) fn render_micro_benchmark_report(
     let mut runtime_source_counts = BTreeMap::<String, usize>::new();
     let mut memory_source_counts = BTreeMap::<String, usize>::new();
     for row in result_rows {
-        let runtime = load_runtime_evidence(repo_root, row)?;
+        let runtime = load_runtime_evidence(repo_root, row, governed_runtime_projection)?;
         let memory = load_memory_evidence(repo_root, row, &stage_tool_resources)?;
         runtime_rows.push(MicroBenchmarkRuntimeRow {
             execution_id: row.execution_id.clone(),
@@ -720,11 +725,18 @@ fn json_contains_insufficient_marker(value: &Value) -> bool {
 fn load_runtime_evidence(
     repo_root: &Path,
     row: &MicroBenchmarkResultRow,
+    governed_runtime_projection: bool,
 ) -> Result<RuntimeEvidence> {
     if row.status != MicroBenchmarkExecutionStatus::Succeeded {
         return Ok(RuntimeEvidence { elapsed_seconds: None, runtime_source: "not_applicable" });
     }
     if let Some(manifest_path) = &row.stage_result_manifest_path {
+        if governed_runtime_projection {
+            return Ok(RuntimeEvidence {
+                elapsed_seconds: None,
+                runtime_source: GOVERNED_RUNTIME_SOURCE,
+            });
+        }
         let manifest = load_validated_stage_result_manifest_path(&repo_root.join(manifest_path))
             .with_context(|| format!("load {}", repo_root.join(manifest_path).display()))?;
         return Ok(RuntimeEvidence {

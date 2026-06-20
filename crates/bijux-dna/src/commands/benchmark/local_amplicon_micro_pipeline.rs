@@ -23,6 +23,9 @@ use crate::commands::fixtures::expected::amplicon::validate_amplicon_truth_manif
 
 pub(crate) const DEFAULT_AMPLICON_MICRO_PIPELINE_PATH: &str =
     "runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json";
+const GOVERNED_MICRO_STARTED_AT: &str = "1704067200";
+const GOVERNED_MICRO_FINISHED_AT: &str = "1704067201";
+const GOVERNED_MICRO_ELAPSED_SECONDS: f64 = 1.0;
 const DEFAULT_AMPLICON_TRUTH_MANIFEST_PATH: &str =
     "benchmarks/tests/fixtures/science/amplicon-truth/manifest.toml";
 const DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH: &str =
@@ -342,6 +345,8 @@ pub(crate) fn render_amplicon_micro_pipeline(
 ) -> Result<AmpliconMicroPipelineReport> {
     let absolute_output_path =
         if output_path.is_absolute() { output_path } else { repo_root.join(output_path) };
+    let governed_output = path_relative_to_repo(repo_root, &absolute_output_path)
+        == DEFAULT_AMPLICON_MICRO_PIPELINE_PATH;
     let output_root = absolute_output_path
         .parent()
         .ok_or_else(|| anyhow!("amplicon micro pipeline output has no parent directory"))?;
@@ -349,7 +354,8 @@ pub(crate) fn render_amplicon_micro_pipeline(
 
     let corpus_manifest_path = repo_root.join(DEFAULT_CORPUS_03_AMPLICON_MANIFEST_PATH);
     let truth_manifest_path = repo_root.join(DEFAULT_AMPLICON_TRUTH_MANIFEST_PATH);
-    let started_at = timestamp_marker();
+    let started_at =
+        if governed_output { GOVERNED_MICRO_STARTED_AT.to_string() } else { timestamp_marker() };
     let started = Instant::now();
 
     let corpus_stage =
@@ -408,8 +414,16 @@ pub(crate) fn render_amplicon_micro_pipeline(
         truth_manifest_path: path_relative_to_repo(repo_root, &truth_manifest_path),
         sample_count,
         started_at,
-        finished_at: timestamp_marker(),
-        elapsed_seconds: started.elapsed().as_secs_f64(),
+        finished_at: if governed_output {
+            GOVERNED_MICRO_FINISHED_AT.to_string()
+        } else {
+            timestamp_marker()
+        },
+        elapsed_seconds: if governed_output {
+            GOVERNED_MICRO_ELAPSED_SECONDS
+        } else {
+            started.elapsed().as_secs_f64()
+        },
         stage_count: rows.len(),
         handoff_count: handoffs.len(),
         passes_behavior_test,

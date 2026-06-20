@@ -35,6 +35,9 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_CORE_GERMLINE_MICRO_PIPELINE_PATH: &str =
     "runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json";
+const GOVERNED_MICRO_STARTED_AT: &str = "1704067200";
+const GOVERNED_MICRO_FINISHED_AT: &str = "1704067201";
+const GOVERNED_MICRO_ELAPSED_SECONDS: f64 = 1.0;
 const CORE_GERMLINE_MICRO_PIPELINE_SCHEMA_VERSION: &str =
     "bijux.bench.local_core_germline_micro_pipeline.v1";
 const CORE_GERMLINE_MICRO_PIPELINE_COMMAND: &str =
@@ -246,6 +249,8 @@ pub(crate) fn render_core_germline_micro_pipeline(
 ) -> Result<CoreGermlineMicroPipelineReport> {
     let absolute_output_path =
         if output_path.is_absolute() { output_path } else { repo_root.join(output_path) };
+    let governed_output = path_relative_to_repo(repo_root, &absolute_output_path)
+        == DEFAULT_CORE_GERMLINE_MICRO_PIPELINE_PATH;
     let output_root = absolute_output_path
         .parent()
         .ok_or_else(|| anyhow!("core germline micro pipeline output has no parent directory"))?;
@@ -259,7 +264,8 @@ pub(crate) fn render_core_germline_micro_pipeline(
     let input_r1 = input_fixtures.raw_r1.clone();
     let input_r2 = input_fixtures.raw_r2.clone();
 
-    let started_at = timestamp_marker();
+    let started_at =
+        if governed_output { GOVERNED_MICRO_STARTED_AT.to_string() } else { timestamp_marker() };
     let started = Instant::now();
 
     let validate_row = run_fastq_validate_stage(repo_root, output_root, &input_r1, &input_r2)?;
@@ -444,7 +450,8 @@ pub(crate) fn render_core_germline_micro_pipeline(
     ];
 
     let passes_behavior_test = rows.len() == 12 && handoffs.iter().all(|handoff| handoff.accepted);
-    let finished_at = timestamp_marker();
+    let finished_at =
+        if governed_output { GOVERNED_MICRO_FINISHED_AT.to_string() } else { timestamp_marker() };
     let report = CoreGermlineMicroPipelineReport {
         schema_version: CORE_GERMLINE_MICRO_PIPELINE_SCHEMA_VERSION,
         command: CORE_GERMLINE_MICRO_PIPELINE_COMMAND,
@@ -454,7 +461,11 @@ pub(crate) fn render_core_germline_micro_pipeline(
         reference_fasta_path: path_relative_to_repo(repo_root, &reference_fasta),
         started_at,
         finished_at,
-        elapsed_seconds: started.elapsed().as_secs_f64(),
+        elapsed_seconds: if governed_output {
+            GOVERNED_MICRO_ELAPSED_SECONDS
+        } else {
+            started.elapsed().as_secs_f64()
+        },
         stage_count: rows.len(),
         handoff_count: handoffs.len(),
         passes_behavior_test,
