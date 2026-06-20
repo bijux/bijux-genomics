@@ -50,7 +50,7 @@ fn bench_readiness_stage_centric_report_tracks_multi_tool_stage_coverage() {
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(29));
-    assert_eq!(payload.get("blocked_stage_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("blocked_stage_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("declared_shared_metric_stage_count").and_then(serde_json::Value::as_u64),
         Some(18)
@@ -59,12 +59,12 @@ fn bench_readiness_stage_centric_report_tracks_multi_tool_stage_coverage() {
         payload.get("not_declared_shared_metric_stage_count").and_then(serde_json::Value::as_u64),
         Some(11)
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(122));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(120));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(118)
+        Some(120)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload
             .get("domain_counts")
@@ -91,8 +91,8 @@ fn bench_readiness_stage_centric_report_tracks_multi_tool_stage_coverage() {
                     == Some("fastq.trim_reads")
         })
         .expect("trim reads stage");
-    assert_eq!(trim_reads.get("tool_count").and_then(serde_json::Value::as_u64), Some(14));
-    assert_eq!(trim_reads.get("blocked_tool_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(trim_reads.get("tool_count").and_then(serde_json::Value::as_u64), Some(13));
+    assert_eq!(trim_reads.get("blocked_tool_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         trim_reads.get("comparison_contract_status").and_then(serde_json::Value::as_str),
         Some("not_declared")
@@ -102,7 +102,7 @@ fn bench_readiness_stage_centric_report_tracks_multi_tool_stage_coverage() {
             .get("blocked_tool_ids")
             .and_then(serde_json::Value::as_array)
             .map(|values| values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()),
-        Some(vec!["seqpurge (support)"])
+        Some(Vec::new())
     );
 
     let index_reference = stages

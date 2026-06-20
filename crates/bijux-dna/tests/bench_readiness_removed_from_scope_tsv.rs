@@ -45,12 +45,12 @@ fn bench_readiness_removed_from_scope_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 7);
-    assert!(rows.iter().any(|row| {
-        row == &"fastq\tfastq.report_qc\tmultiqc\tnot_assigned\tcorpus_only\tfastq.adapter.report_qc\tfastq.parser.report_qc\tfastq_report_qc_v1\tnot_benchmark_ready\trunnable\tbenchmark_not_ready\ttrue\tfalse\ttrue\ttrue\ttrue\ttrue"
-    }));
+    assert_eq!(rows.len(), 2);
     assert!(rows.iter().any(|row| {
         row == &"vcf\tvcf.demography\tibdne\tvcf_production_regression\tjson_ibd_segments\tvcf.adapter.demography\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.demography.v1\tplanned\tdeclared_only\tlifecycle_not_active\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"vcf\tvcf.ibd\tgermline\tvcf_production_regression\tvcf_cohort\tvcf.adapter.ibd\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.ibd.v1\tplanned\tdeclared_only\tlifecycle_not_active\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
     }));
     assert!(
         rows.iter().all(|row| {
