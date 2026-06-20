@@ -5,9 +5,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
-use super::local_all_domain_slurm_submit_manifest::{
-    BenchLocalAllDomainSlurmSubmitJob, BenchLocalAllDomainSlurmSubmitResources,
-};
+use super::local_all_domain_slurm_submit_manifest::BenchLocalAllDomainSlurmSubmitJob;
 use super::local_hpc_input_discovery::{
     collect_local_hpc_job_source_inputs, collect_local_hpc_stage_input_hints, materialize_stage_id,
     path_relative_to_repo, LocalHpcDiscoveredSourceInput, LocalHpcStageInputHint,
@@ -15,6 +13,7 @@ use super::local_hpc_input_discovery::{
 use super::local_hpc_job_resources::{
     load_local_hpc_job_resource_hints, resolve_local_hpc_job_resource_hint,
 };
+use super::local_hpc_selected_jobs::load_local_hpc_selected_jobs;
 use super::path_resolution::{ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -27,8 +26,6 @@ const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH: &str =
     "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl";
 const DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_ARGV_PATH: &str =
     "benchmarks/readiness/essential-pipelines-rendered-commands.argv.jsonl";
-const DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH: &str =
-    "runs/bench/slurm-dry-run/all-domains/submit-manifest.json";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct LocalHpcScratchLayout {
@@ -162,37 +159,6 @@ struct LoadedLocalHpcScratchInputLink {
     checksum_sha256: String,
     size_bytes: u64,
     member_count: usize,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct LoadedAllDomainSlurmSubmitManifest {
-    jobs: Vec<LoadedAllDomainSlurmSubmitJob>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct LoadedAllDomainSlurmSubmitJob {
-    job_id_local: String,
-    domain: String,
-    stage_id: String,
-    pipeline_id: Option<String>,
-    node_id: Option<String>,
-    tool_id: String,
-    corpus_id: String,
-    asset_profile_id: String,
-    result_id: Option<String>,
-    script_path: String,
-    stdout: String,
-    stderr: String,
-    outputs: Vec<String>,
-    dependencies: Vec<String>,
-    resources: LoadedAllDomainSlurmSubmitResources,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct LoadedAllDomainSlurmSubmitResources {
-    cpus_per_task: u32,
-    memory_mb: u32,
-    time_limit: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -400,7 +366,7 @@ fn build_hpc_scratch_layout(
     let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let staging_root = benchmark_paths.benchmark_hpc_dry_run_root().join("staged");
     let scratch_root = benchmark_paths.benchmark_hpc_dry_run_root().join("scratch");
-    let submit_jobs = load_all_domain_slurm_submit_jobs(repo_root)?;
+    let submit_jobs = load_local_hpc_selected_jobs(repo_root)?;
 
     let benchmark_rows = load_all_domain_rendered_command_argv_rows(repo_root)?
         .into_iter()
@@ -508,40 +474,6 @@ fn build_hpc_scratch_layout(
     };
     ensure_scratch_layout_contract(&manifest)?;
     Ok(manifest)
-}
-
-fn load_all_domain_slurm_submit_jobs(
-    repo_root: &Path,
-) -> Result<Vec<BenchLocalAllDomainSlurmSubmitJob>> {
-    let path = repo_root.join(DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH);
-    let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    let loaded = serde_json::from_str::<LoadedAllDomainSlurmSubmitManifest>(&raw)
-        .with_context(|| format!("parse {}", path.display()))?;
-    Ok(loaded
-        .jobs
-        .into_iter()
-        .map(|job| BenchLocalAllDomainSlurmSubmitJob {
-            job_id_local: job.job_id_local,
-            domain: job.domain,
-            stage_id: job.stage_id,
-            pipeline_id: job.pipeline_id,
-            node_id: job.node_id,
-            tool_id: job.tool_id,
-            corpus_id: job.corpus_id,
-            asset_profile_id: job.asset_profile_id,
-            result_id: job.result_id,
-            script_path: job.script_path,
-            stdout: job.stdout,
-            stderr: job.stderr,
-            outputs: job.outputs,
-            dependencies: job.dependencies,
-            resources: BenchLocalAllDomainSlurmSubmitResources {
-                cpus_per_task: job.resources.cpus_per_task,
-                memory_mb: job.resources.memory_mb,
-                time_limit: job.resources.time_limit,
-            },
-        })
-        .collect())
 }
 
 fn load_all_domain_rendered_command_argv_rows(
