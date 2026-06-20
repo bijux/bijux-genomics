@@ -1308,6 +1308,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateHpcAssetStagingManifest(args) => {
+                        crate::commands::benchmark::local_hpc_asset_staging_manifest::run_validate_hpc_asset_staging_manifest(
+                            args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RenderHpcAssetStagingManifest(args) => {
                         crate::commands::benchmark::local_hpc_asset_staging_manifest::run_render_hpc_asset_staging_manifest(
                             args,

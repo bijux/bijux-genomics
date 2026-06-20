@@ -1989,6 +1989,12 @@ Visible aliases are part of the operator surface:
   checksum, size, member count for prefix bundles or directories, and the canonical consumer
   `result_id`, so hidden local benchmark dependencies stay explicit before any cluster transfer
   logic is added.
+- `bijux-dna bench local validate-hpc-asset-staging-manifest`
+  `validate-hpc-asset-staging-manifest` reloads
+  `runs/bench/hpc-dry-run/asset-staging-manifest.json`, enforces the governed schema and output
+  location, and then rebuilds the expected manifest from the current all-domain command argv slice.
+  The command fails closed if job counts, staged inputs, checksums, staged paths, or consumer
+  result ids drift from the governed dry-run source selection.
 - `bijux-dna bench local render-benchmark-summary`
   `render-benchmark-summary` writes both `benchmarks/readiness/local-ready/benchmark-summary.json` and
   `benchmarks/readiness/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51

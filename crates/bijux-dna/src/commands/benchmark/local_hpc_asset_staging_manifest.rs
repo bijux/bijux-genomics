@@ -161,6 +161,23 @@ pub(crate) fn run_render_hpc_asset_staging_manifest(
     Ok(())
 }
 
+pub(crate) fn run_validate_hpc_asset_staging_manifest(
+    args: &parse::BenchLocalValidateHpcAssetStagingManifestArgs,
+) -> Result<()> {
+    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
+    let manifest_path = args.manifest.clone().unwrap_or_else(|| {
+        benchmark_paths.benchmark_hpc_dry_run_root().join("asset-staging-manifest.json")
+    });
+    let manifest = validate_hpc_asset_staging_manifest_path(&repo_root, &manifest_path)?;
+    if args.json {
+        render::json::print_pretty(&manifest)?;
+    } else {
+        println!("{}", manifest.output_path);
+    }
+    Ok(())
+}
+
 pub(crate) fn render_hpc_asset_staging_manifest(
     repo_root: &Path,
     output_path: PathBuf,

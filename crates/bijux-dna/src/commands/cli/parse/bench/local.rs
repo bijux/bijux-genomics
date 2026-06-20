@@ -127,6 +127,8 @@ pub enum BenchLocalCommand {
     ValidateAllDomainSlurmScriptBodies(BenchLocalValidateAllDomainSlurmScriptBodiesArgs),
     #[command(name = "validate-all-domain-slurm-result-paths")]
     ValidateAllDomainSlurmResultPaths(BenchLocalValidateAllDomainSlurmResultPathsArgs),
+    #[command(name = "validate-hpc-asset-staging-manifest")]
+    ValidateHpcAssetStagingManifest(BenchLocalValidateHpcAssetStagingManifestArgs),
     #[command(name = "render-hpc-asset-staging-manifest")]
     RenderHpcAssetStagingManifest(BenchLocalRenderHpcAssetStagingManifestArgs),
     #[command(name = "render-all-domain-slurm-submit-manifest")]
@@ -207,6 +209,14 @@ pub struct BenchLocalRenderVcfSmokeRootArgs {
 pub struct BenchLocalRenderHpcAssetStagingManifestArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcAssetStagingManifestArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
