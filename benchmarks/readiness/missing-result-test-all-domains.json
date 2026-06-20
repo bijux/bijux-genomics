@@ -1,5 +1,5 @@
 {
-  "schema_version": "bijux.bench.readiness.all_domain_missing_result_test.v1",
+  "schema_version": "bijux.bench.readiness.all_domain_missing_result_audit.v1",
   "output_path": "benchmarks/readiness/missing-result-test-all-domains.json",
   "fake_result_root": "runs/bench/readiness-probes/all-domains/missing-result-test",
   "expected_row_count": 141,

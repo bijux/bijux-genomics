@@ -104,7 +104,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-mini:bam.align:sample-set:bowtie2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -272,7 +272,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-mini:bam.align:sample-set:bwa",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -356,7 +356,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:authenticct",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -482,7 +482,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:damageprofiler",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -566,7 +566,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:pmdtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -650,7 +650,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.bias_mitigation:sample-set:mapdamage2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -734,7 +734,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.complexity:sample-set:preseq",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -860,7 +860,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:contammix",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -944,7 +944,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:schmutzi",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -1028,7 +1028,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:verifybamid2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -1154,7 +1154,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.coverage:sample-set:bedtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -1238,7 +1238,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.coverage:sample-set:mosdepth",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -1322,7 +1322,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.coverage:sample-set:samtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "missing_result",
       "domain": "bam",
@@ -1511,7 +1511,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:addeam",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -1595,7 +1595,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:damageprofiler",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -1679,7 +1679,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:mapdamage2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -1763,7 +1763,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -1889,7 +1889,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -1973,7 +1973,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pydamage",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -2057,7 +2057,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.duplication_metrics:sample-set:picard",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -2141,7 +2141,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.duplication_metrics:sample-set:samtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -2225,7 +2225,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.endogenous_content:sample-set:samtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -2309,7 +2309,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.filter:sample-set:bamtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -2393,7 +2393,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.filter:sample-set:bedtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -2477,7 +2477,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.filter:sample-set:samtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -2603,7 +2603,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.gc_bias:sample-set:picard",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -2687,7 +2687,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -2792,7 +2792,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-bam-mini:bam.haplogroups:sample-set:yleaf",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -2876,7 +2876,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.insert_size:sample-set:picard",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -2960,7 +2960,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -3044,7 +3044,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -3128,7 +3128,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.length_filter:sample-set:picard",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -3212,7 +3212,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.length_filter:sample-set:samtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -3296,7 +3296,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:picard",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -3380,7 +3380,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:samtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -3527,7 +3527,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.mapq_filter:sample-set:bamtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -3611,7 +3611,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.mapq_filter:sample-set:samtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -3695,7 +3695,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.markdup:sample-set:picard",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -3779,7 +3779,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.markdup:sample-set:samtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -3863,7 +3863,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.overlap_correction:sample-set:bamutil",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -3947,7 +3947,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.qc_pre:sample-set:multiqc",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -4031,7 +4031,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.qc_pre:sample-set:samtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -4157,7 +4157,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.recalibration:sample-set:gatk",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -4283,7 +4283,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -4367,7 +4367,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-bam-mini:bam.sex:sample-set:rxy",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -4451,7 +4451,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-adna-bam-mini:bam.sex:sample-set:yleaf",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -4535,7 +4535,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.validate:sample-set:bamtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -4619,7 +4619,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.validate:sample-set:bedtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -4703,7 +4703,7 @@
     },
     {
       "record_id": "missing-audit:bam:corpus-01-bam-mini:bam.validate:sample-set:samtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "bam",
@@ -4892,7 +4892,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-03-amplicon-mini:fastq.cluster_otus:sample-set:vsearch",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -4997,7 +4997,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.correct_errors:sample-set:bayeshammer",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -5081,7 +5081,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.correct_errors:sample-set:lighter",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -5165,7 +5165,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.correct_errors:sample-set:musket",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -5249,7 +5249,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.correct_errors:sample-set:rcorrector",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -5333,7 +5333,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.deplete_host:sample-set:bowtie2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -5417,7 +5417,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.deplete_reference_contaminants:sample-set:bowtie2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -5501,7 +5501,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.deplete_rrna:sample-set:sortmerna",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -5585,7 +5585,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.detect_adapters:sample-set:fastqc",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -5690,7 +5690,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -5774,7 +5774,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.estimate_library_complexity_prealign:sample-set:bijux_dna",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -5858,7 +5858,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.extract_umis:sample-set:umi_tools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -5942,7 +5942,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:bbduk",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -6026,7 +6026,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:fastp",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -6110,7 +6110,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:prinseq",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -6194,7 +6194,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.filter_reads:sample-set:bbduk",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -6278,7 +6278,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.filter_reads:sample-set:fastp",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -6467,7 +6467,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.filter_reads:sample-set:prinseq",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -6551,7 +6551,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.filter_reads:sample-set:seqkit",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -6635,7 +6635,7 @@
     },
     {
       "record_id": "missing-audit:fastq:reference-index-assets:fastq.index_reference:asset-set:bowtie2_build",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -6719,7 +6719,7 @@
     },
     {
       "record_id": "missing-audit:fastq:reference-index-assets:fastq.index_reference:asset-set:star",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -6803,7 +6803,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-03-amplicon-mini:fastq.infer_asvs:sample-set:dada2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -6908,7 +6908,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.merge_pairs:sample-set:adapterremoval",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -6992,7 +6992,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.merge_pairs:sample-set:bbmerge",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -7076,7 +7076,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.merge_pairs:sample-set:flash2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -7160,7 +7160,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.merge_pairs:sample-set:leehom",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -7244,7 +7244,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.merge_pairs:sample-set:pear",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -7328,7 +7328,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.merge_pairs:sample-set:vsearch",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -7412,7 +7412,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-03-amplicon-mini:fastq.normalize_abundance:sample-set:seqkit",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -7517,7 +7517,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-03-amplicon-mini:fastq.normalize_primers:sample-set:cutadapt",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -7622,7 +7622,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastq_scan",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -7706,7 +7706,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:fastqc",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -7790,7 +7790,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -7874,7 +7874,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -7958,7 +7958,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:prinseq",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -8042,7 +8042,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqfu",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -8126,7 +8126,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit_stats",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -8210,7 +8210,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqfu",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -8294,7 +8294,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqkit",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -8378,7 +8378,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqkit_stats",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -8504,7 +8504,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-03-amplicon-mini:fastq.remove_chimeras:sample-set:vsearch",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -8609,7 +8609,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:clumpify",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -8735,7 +8735,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -8819,7 +8819,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -8945,7 +8945,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:centrifuge",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -9029,7 +9029,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kaiju",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -9113,7 +9113,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "missing_result",
       "domain": "fastq",
@@ -9218,7 +9218,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:krakenuniq",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -9302,7 +9302,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_polyg_tails:sample-set:bbduk",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -9386,7 +9386,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_polyg_tails:sample-set:fastp",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -9470,7 +9470,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_reads:sample-set:adapterremoval",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -9554,7 +9554,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_reads:sample-set:alientrimmer",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -9638,7 +9638,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_reads:sample-set:atropos",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -9722,7 +9722,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_reads:sample-set:bbduk",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -9869,7 +9869,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_reads:sample-set:cutadapt",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -9953,7 +9953,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_reads:sample-set:fastp",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -10037,7 +10037,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_reads:sample-set:fastx_clipper",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -10121,7 +10121,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_reads:sample-set:leehom",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -10205,7 +10205,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_reads:sample-set:prinseq",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -10289,7 +10289,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_reads:sample-set:seqkit",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -10373,7 +10373,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_reads:sample-set:skewer",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -10457,7 +10457,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_reads:sample-set:trim_galore",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -10541,7 +10541,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_reads:sample-set:trimmomatic",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -10625,7 +10625,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:adapterremoval",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -10709,7 +10709,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:cutadapt",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -10835,7 +10835,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -10919,7 +10919,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastq_scan",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -11003,7 +11003,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqc",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -11108,7 +11108,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqvalidator",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -11318,7 +11318,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.validate_reads:sample-set:fqtools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -11402,7 +11402,7 @@
     },
     {
       "record_id": "missing-audit:fastq:corpus-01-mini:fastq.validate_reads:sample-set:seqtk",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "fastq",
@@ -11486,7 +11486,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -11591,7 +11591,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -11717,7 +11717,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.call_diploid:bam_bundle:bcftools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -11822,7 +11822,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.call_gl:bam_bundle:bcftools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -11927,7 +11927,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.call_pseudohaploid:bam_bundle:bcftools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -12032,7 +12032,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.damage_filter:vcf_single_sample:bcftools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -12179,7 +12179,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -12347,7 +12347,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.gl_propagation:vcf_single_sample:bcftools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -12473,7 +12473,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -12578,7 +12578,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.impute:vcf_cohort_with_panel:beagle",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -12683,7 +12683,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -12767,7 +12767,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -12893,7 +12893,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -13019,7 +13019,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -13124,7 +13124,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -13208,7 +13208,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.prepare_reference_panel:vcf_reference_panel:bcftools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -13313,7 +13313,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.qc:vcf_cohort:bcftools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -13397,7 +13397,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -13481,7 +13481,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -13712,7 +13712,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "present",
       "domain": "vcf",
@@ -13838,7 +13838,7 @@
     },
     {
       "record_id": "missing-audit:vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",
-      "source_surface": "all_domain_missing_result_test",
+      "source_surface": "all_domain_missing_result_audit",
       "surface_kind": "missing_result_audit",
       "result_status": "missing_result",
       "domain": "vcf",

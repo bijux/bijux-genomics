@@ -1,5 +1,5 @@
 {
-  "schema_version": "bijux.bench.readiness.vcf_adapter_missing_input_tests.v1",
+  "schema_version": "bijux.bench.readiness.vcf_adapter_missing_input_audit.v1",
   "output_path": "benchmarks/readiness/vcf-adapter-missing-input-tests.json",
   "row_count": 10,
   "passed_row_count": 10,
