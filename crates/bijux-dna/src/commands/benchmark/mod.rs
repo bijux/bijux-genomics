@@ -62,6 +62,7 @@ pub(crate) mod local_hpc_job_completion;
 pub(crate) mod local_hpc_job_graph;
 pub(crate) mod local_hpc_job_resources;
 pub(crate) mod local_hpc_pipeline_node_array;
+pub(crate) mod local_hpc_result_collection_simulation;
 pub(crate) mod local_hpc_resume_simulation;
 pub(crate) mod local_hpc_scratch_layout;
 pub(crate) mod local_hpc_selected_jobs;

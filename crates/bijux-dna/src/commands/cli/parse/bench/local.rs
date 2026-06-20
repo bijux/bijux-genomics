@@ -147,6 +147,10 @@ pub enum BenchLocalCommand {
     ValidateHpcResumeSimulation(BenchLocalValidateHpcResumeSimulationArgs),
     #[command(name = "render-hpc-resume-simulation")]
     RenderHpcResumeSimulation(BenchLocalRenderHpcResumeSimulationArgs),
+    #[command(name = "validate-hpc-result-collection-simulation")]
+    ValidateHpcResultCollectionSimulation(BenchLocalValidateHpcResultCollectionSimulationArgs),
+    #[command(name = "render-hpc-result-collection-simulation")]
+    RenderHpcResultCollectionSimulation(BenchLocalRenderHpcResultCollectionSimulationArgs),
     #[command(name = "validate-hpc-stage-benchmark-array")]
     ValidateHpcStageBenchmarkArray(BenchLocalValidateHpcStageBenchmarkArrayArgs),
     #[command(name = "render-hpc-stage-benchmark-array")]
@@ -303,6 +307,22 @@ pub struct BenchLocalRenderHpcResumeSimulationArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalValidateHpcResumeSimulationArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcResultCollectionSimulationArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcResultCollectionSimulationArgs {
     #[arg(long)]
     pub manifest: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

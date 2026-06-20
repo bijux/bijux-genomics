@@ -1358,6 +1358,16 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateHpcResultCollectionSimulation(args) => {
+                        crate::commands::benchmark::local_hpc_result_collection_simulation::run_validate_hpc_result_collection_simulation(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcResultCollectionSimulation(args) => {
+                        crate::commands::benchmark::local_hpc_result_collection_simulation::run_render_hpc_result_collection_simulation(
+                            args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateHpcStageBenchmarkArray(args) => {
                         crate::commands::benchmark::local_hpc_stage_benchmark_array::run_validate_hpc_stage_benchmark_array(
                             args,
