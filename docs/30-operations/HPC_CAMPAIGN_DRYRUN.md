@@ -34,6 +34,34 @@ This runbook describes the campaign planning layer for HPC benchmark execution.
 
 ## Commands
 
+Local asset staging dry-run before cluster transfer planning:
+
+```bash
+make bench-hpc-asset-staging-dry-run
+```
+
+Render only the governed manifest of staged benchmark inputs:
+
+```bash
+make bench-hpc-asset-staging-render
+```
+
+Validate an existing staged-input manifest against the current governed all-domain command slice:
+
+```bash
+make bench-hpc-asset-staging-validate
+```
+
+Call the underlying CLI directly when a non-default manifest path is needed:
+
+```bash
+bijux-dna bench local render-hpc-asset-staging-manifest \
+  --output runs/bench/hpc-dry-run/asset-staging-manifest.json
+
+bijux-dna bench local validate-hpc-asset-staging-manifest \
+  --manifest runs/bench/hpc-dry-run/asset-staging-manifest.json
+```
+
 Generate baseline campaign profiles:
 
 ```bash
