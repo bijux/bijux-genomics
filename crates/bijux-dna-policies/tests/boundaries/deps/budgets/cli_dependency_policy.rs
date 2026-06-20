@@ -31,29 +31,41 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
 }
 
 #[test]
-fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_api_and_cli_support() {
+fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_documented_adapter_surface() {
     let root = repo_root();
     let manifest = root.join("crates/bijux-dna/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
     let allowlist = [
-        "bijux-dna-api",
-        "bijux-dna-domain-compiler",
-        "bijux-dna-runtime",
-        "bijux-dna-infra",
-        "bijux-dna-domain-vcf",
-        "bijux-dna-stages-vcf",
-        "bijux-dna-db-ena",
         "bijux-dna-analyze",
+        "bijux-dna-api",
+        "bijux-dna-core",
+        "bijux-dna-db-ref",
+        "bijux-dna-domain-compiler",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-domain-vcf",
+        "bijux-dna-db-ena",
+        "bijux-dna-infra",
+        "bijux-dna-planner-bam",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-planner-vcf",
+        "bijux-dna-stage-contract",
+        "bijux-dna-stages-fastq",
+        "bijux-dna-stages-vcf",
         "clap",
         "tracing",
         "anyhow",
         "serde",
         "serde_json",
+        "serde_yaml",
         "regex",
         "toml",
         "sha2",
         "tar",
         "flate2",
+        "schemars",
+        "noodles-bam",
+        "noodles-sam",
     ];
     let offenders: Vec<String> = deps
         .iter()
@@ -63,8 +75,8 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_api_and_cli_su
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "bijux-dna must depend only on bijux-dna-api + clap + logging (and minimal support libs).
-How to fix: move infra/runtime/runner dependencies behind bijux-dna-api or remove them.
+        "bijux-dna must depend only on its documented CLI adapter surface.
+How to fix: remove the dependency or update the documented CLI boundary first, then align this policy.
 Offenders:\n{}",
         offenders.join("\n")
     );
