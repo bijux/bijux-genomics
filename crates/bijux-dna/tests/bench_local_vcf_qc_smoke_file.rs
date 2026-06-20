@@ -1,6 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
+use std::{collections::BTreeSet, process::Command};
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
@@ -149,7 +149,29 @@ fn bench_local_vcf_qc_smoke_writes_governed_files() {
 
     let outputs =
         manifest.get("outputs").and_then(serde_json::Value::as_array).expect("outputs array");
-    assert_eq!(outputs.len(), 7);
+    let observed_output_ids = outputs
+        .iter()
+        .filter_map(|row| row.get("artifact_id").and_then(serde_json::Value::as_str))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        observed_output_ids,
+        BTreeSet::from([
+            "allele_frequency_afreq",
+            "hardy_weinberg_hardy",
+            "heterozygosity_het",
+            "imputation_qc_tsv",
+            "metrics_json",
+            "plink2_log",
+            "qc_histograms_json",
+            "qc_report",
+            "qc_report_json",
+            "qc_summary_json",
+            "qc_tables_tsv",
+            "sample_missingness_smiss",
+            "variant_missingness_vmiss",
+            "warnings_json",
+        ])
+    );
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("qc_report_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)

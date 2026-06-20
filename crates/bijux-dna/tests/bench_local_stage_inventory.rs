@@ -278,16 +278,18 @@ fn bench_local_materialize_stage_bam_qc_pre_json_writes_governed_smoke_bundle() 
 
     assert_eq!(
         summary.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bam.qc_pre.local_smoke.report.v1")
+        Some("bijux.bam.qc_pre.local_smoke.report.v2")
     );
-    assert_eq!(summary.get("case_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(summary.get("case_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(summary.get("all_cases_matched").and_then(serde_json::Value::as_bool), Some(true));
     assert!(
         summary.get("cases").and_then(serde_json::Value::as_array).is_some_and(|cases| {
-            cases.len() == 1
+            cases.len() == 2
                 && cases.iter().any(|case| {
                     case.get("sample_id").and_then(serde_json::Value::as_str)
                         == Some("human_like_duplicate_flagged_multicontig")
+                        && case.get("tool_id").and_then(serde_json::Value::as_str)
+                            == Some("samtools")
                         && case.get("total_reads").and_then(serde_json::Value::as_u64) == Some(3)
                         && case.get("mapped_reads").and_then(serde_json::Value::as_u64) == Some(3)
                         && case.get("unmapped_reads").and_then(serde_json::Value::as_u64) == Some(0)
@@ -314,8 +316,26 @@ fn bench_local_materialize_stage_bam_qc_pre_json_writes_governed_smoke_bundle() 
                                     ]
                             })
                 })
+                && cases.iter().any(|case| {
+                    case.get("sample_id").and_then(serde_json::Value::as_str)
+                        == Some("human_like_duplicate_flagged_multicontig")
+                        && case.get("tool_id").and_then(serde_json::Value::as_str)
+                            == Some("multiqc")
+                        && case.get("report_json").and_then(serde_json::Value::as_str)
+                            == Some(
+                                "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/qc_pre_report.json"
+                            )
+                        && case.get("multiqc_report").and_then(serde_json::Value::as_str)
+                            == Some(
+                                "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/multiqc_report.html"
+                            )
+                        && case.get("governed_qc_inputs_manifest").and_then(serde_json::Value::as_str)
+                            == Some(
+                                "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/governed_qc_inputs_manifest.json"
+                            )
+                })
         }),
-        "bam.qc_pre local smoke summary must preserve the governed count and contig contract"
+        "bam.qc_pre local smoke summary must preserve the governed samtools and multiqc case contracts"
     );
 }
 
@@ -1437,14 +1457,29 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/bam.contamination/plan.json")
+        Some("benchmarks/readiness/local-ready/bam.contamination/contamination.json")
     );
 
-    let artifact_path = repo_root.join(
+    let contamination_report_path = repo_root.join(
         payload.get("artifact_path").and_then(serde_json::Value::as_str).expect("artifact path"),
     );
+    assert!(
+        contamination_report_path.is_file(),
+        "bam.contamination materialize-stage must write the governed contamination report path"
+    );
+    let contamination_report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&contamination_report_path)
+            .expect("read bam.contamination report"),
+    )
+    .expect("parse bam.contamination report");
+    assert!(
+        contamination_report.is_object(),
+        "bam.contamination materialize-stage must emit a JSON report object"
+    );
+
+    let plan_path = repo_root.join("benchmarks/readiness/local-ready/bam.contamination/plan.json");
     let plan: serde_json::Value = serde_json::from_str(
-        &std::fs::read_to_string(&artifact_path).expect("read bam.contamination plan"),
+        &std::fs::read_to_string(&plan_path).expect("read bam.contamination plan"),
     )
     .expect("parse bam.contamination plan");
 
@@ -1483,6 +1518,16 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
         contamination_report["path"],
         serde_json::json!("benchmarks/readiness/local-ready/bam.contamination/contamination.json")
     );
+    for path in [
+        "benchmarks/readiness/local-ready/bam.contamination/contamination.estimate.json",
+        "benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json",
+        "benchmarks/readiness/local-ready/bam.contamination/stage.metrics.json",
+    ] {
+        assert!(
+            repo_root.join(path).is_file(),
+            "CLI materialized contamination bundle must expose governed artifact: {path}"
+        );
+    }
     assert!(
         plan["command"]["template"].as_array().is_some_and(|command| command.iter().any(
             |part| part.as_str().is_some_and(|shell| {

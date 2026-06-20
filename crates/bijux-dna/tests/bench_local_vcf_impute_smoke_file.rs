@@ -1,6 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
+use std::{collections::BTreeSet, process::Command};
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
@@ -170,7 +170,29 @@ fn bench_local_vcf_impute_smoke_writes_governed_files() {
 
     let outputs =
         manifest.get("outputs").and_then(serde_json::Value::as_array).expect("outputs array");
-    assert_eq!(outputs.len(), 13);
+    let observed_output_ids = outputs
+        .iter()
+        .filter_map(|row| row.get("artifact_id").and_then(serde_json::Value::as_str))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        observed_output_ids,
+        BTreeSet::from([
+            "imputation_accept_json",
+            "imputation_manifest_json",
+            "imputation_qc_json",
+            "imputation_qc_tsv",
+            "imputed_tbi",
+            "imputed_vcf",
+            "info_hist_json",
+            "logs_txt",
+            "maf_bin_quality_tsv",
+            "metrics_json",
+            "overlap_stats_json",
+            "panel_assets_json",
+            "panel_mismatch_diagnostics_json",
+            "warnings_json",
+        ])
+    );
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("imputed_vcf")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
