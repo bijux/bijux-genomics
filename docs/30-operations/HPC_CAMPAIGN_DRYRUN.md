@@ -79,6 +79,19 @@ Apptainer conversion map:
 make bench-hpc-execution-resolver-validate
 ```
 
+Render the governed dependency simulation report that proves failed jobs block only descendants
+while sibling branches and unrelated benchmark work continue:
+
+```bash
+make bench-hpc-dependency-simulation-render
+```
+
+Validate an existing dependency simulation report against the current governed HPC job graph:
+
+```bash
+make bench-hpc-dependency-simulation-validate
+```
+
 Render the governed benchmark-result SLURM array and its per-index manifest:
 
 ```bash
@@ -125,6 +138,12 @@ bijux-dna bench local render-hpc-execution-resolver \
 
 bijux-dna bench local validate-hpc-execution-resolver \
   --manifest runs/bench/hpc-dry-run/execution-resolver.tsv
+
+bijux-dna bench local render-hpc-dependency-simulation \
+  --output runs/bench/hpc-dry-run/slurm-dependency-simulation.json
+
+bijux-dna bench local validate-hpc-dependency-simulation \
+  --manifest runs/bench/hpc-dry-run/slurm-dependency-simulation.json
 
 bijux-dna bench local render-hpc-stage-benchmark-array \
   --output runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch

@@ -2021,6 +2021,20 @@ Visible aliases are part of the operator surface:
   mode assignments, runtime probes, and Apptainer map. The command fails closed if selected tool
   scope, lookup aliases, final resolution kind, target path, or unavailable reason drift from the
   governed dry-run execution plan.
+- `bijux-dna bench local render-hpc-dependency-simulation`
+  `render-hpc-dependency-simulation` writes
+  `runs/bench/hpc-dry-run/slurm-dependency-simulation.json`. The render consumes the governed HPC
+  job graph and proves two failure-isolation cases over the selected benchmark-result and
+  essential-pipeline-node scope: a failed node blocks only its descendants, sibling branches keep
+  running, and unrelated benchmark work continues. Each case records per-job status,
+  blocking-dependency evidence, descendant coverage, and simulated timing so dependency behavior is
+  explicit before any cluster submission occurs.
+- `bijux-dna bench local validate-hpc-dependency-simulation`
+  `validate-hpc-dependency-simulation` reloads
+  `runs/bench/hpc-dry-run/slurm-dependency-simulation.json` and rebuilds the expected simulation
+  report from the current governed HPC job graph. The command fails closed if failed-job choice,
+  descendant blocking, sibling continuation, benchmark continuation, or any per-job dependency
+  status drifts from the governed dry-run dependency contract.
 - `bijux-dna bench local render-hpc-stage-benchmark-array`
   `render-hpc-stage-benchmark-array` writes
   `runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch` together with
