@@ -11439,7 +11439,7 @@
       "evidence_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "manifest_path": null,
       "declared_output_count": 1,
-      "normalized_metric_count": 4,
+      "normalized_metric_count": 12,
       "detail": "canonical benchmark-ready result binding"
     },
     {
@@ -11481,7 +11481,7 @@
       "evidence_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.admixture/vcf_cohort/plink2/metrics.json",
       "manifest_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.admixture/vcf_cohort/plink2/stage-result.json",
       "declared_output_count": 4,
-      "normalized_metric_count": 4,
+      "normalized_metric_count": 12,
       "detail": "fake-run materialized via `vcf_plink_family_adapter`"
     },
     {
@@ -11502,7 +11502,7 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.admixture/vcf_cohort/plink2/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.admixture/vcf_cohort/plink2/stage-result.json",
       "declared_output_count": 4,
-      "normalized_metric_count": 4,
+      "normalized_metric_count": 12,
       "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2` remains present with a validated fake-run manifest"
     },
     {
@@ -12426,7 +12426,7 @@
       "evidence_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "manifest_path": null,
       "declared_output_count": 1,
-      "normalized_metric_count": 8,
+      "normalized_metric_count": 11,
       "detail": "canonical benchmark-ready result binding"
     },
     {
@@ -12468,7 +12468,7 @@
       "evidence_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/metrics.json",
       "manifest_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/stage-result.json",
       "declared_output_count": 8,
-      "normalized_metric_count": 8,
+      "normalized_metric_count": 11,
       "detail": "fake-run materialized via `vcf_imputation_family_adapter`"
     },
     {
@@ -12489,7 +12489,7 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.imputation_metrics/vcf_cohort_with_panel/beagle/stage-result.json",
       "declared_output_count": 8,
-      "normalized_metric_count": 8,
+      "normalized_metric_count": 11,
       "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle` remains present with a validated fake-run manifest"
     },
     {
@@ -12636,7 +12636,7 @@
       "evidence_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "manifest_path": null,
       "declared_output_count": 1,
-      "normalized_metric_count": 5,
+      "normalized_metric_count": 9,
       "detail": "canonical benchmark-ready result binding"
     },
     {
@@ -12678,7 +12678,7 @@
       "evidence_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/metrics.json",
       "manifest_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/stage-result.json",
       "declared_output_count": 9,
-      "normalized_metric_count": 5,
+      "normalized_metric_count": 9,
       "detail": "fake-run materialized via `vcf_eigensoft_adapter`"
     },
     {
@@ -12699,7 +12699,7 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/eigensoft/stage-result.json",
       "declared_output_count": 9,
-      "normalized_metric_count": 5,
+      "normalized_metric_count": 9,
       "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft` remains present with a validated fake-run manifest"
     },
     {
@@ -12720,7 +12720,7 @@
       "evidence_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "manifest_path": null,
       "declared_output_count": 1,
-      "normalized_metric_count": 5,
+      "normalized_metric_count": 9,
       "detail": "canonical benchmark-ready result binding"
     },
     {
@@ -12762,7 +12762,7 @@
       "evidence_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.pca/vcf_cohort/plink2/metrics.json",
       "manifest_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.pca/vcf_cohort/plink2/stage-result.json",
       "declared_output_count": 4,
-      "normalized_metric_count": 5,
+      "normalized_metric_count": 9,
       "detail": "fake-run materialized via `vcf_plink_family_adapter`"
     },
     {
@@ -12783,7 +12783,7 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/plink2/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.pca/vcf_cohort/plink2/stage-result.json",
       "declared_output_count": 4,
-      "normalized_metric_count": 5,
+      "normalized_metric_count": 9,
       "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2` remains present with a validated fake-run manifest"
     },
     {
@@ -12972,7 +12972,7 @@
       "evidence_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "manifest_path": null,
       "declared_output_count": 1,
-      "normalized_metric_count": 4,
+      "normalized_metric_count": 6,
       "detail": "canonical benchmark-ready result binding"
     },
     {
@@ -13014,7 +13014,7 @@
       "evidence_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/metrics.json",
       "manifest_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stage-result.json",
       "declared_output_count": 7,
-      "normalized_metric_count": 4,
+      "normalized_metric_count": 6,
       "detail": "fake-run materialized via `vcf_plink_family_adapter`"
     },
     {
@@ -13035,7 +13035,7 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stage-result.json",
       "declared_output_count": 7,
-      "normalized_metric_count": 4,
+      "normalized_metric_count": 6,
       "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2` remains present with a validated fake-run manifest"
     },
     {

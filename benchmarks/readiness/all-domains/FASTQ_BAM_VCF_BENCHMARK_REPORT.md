@@ -496,9 +496,9 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | command_failed | fastq | fastq.cluster_otus | vsearch | governed_command_failed_probe | command_failed | governed shell probe exits with code 23 after writing stderr |
 | insufficient_data | vcf | vcf.demography | ibdne | vcf_segment_fixture_bank | insufficient_data | ibdne |
-| missing_input | vcf | vcf.call | bcftools | vcf_adapter_missing_input_tests | missing_input | governed VCF missing-input probe removed `input_bam` and expected `required input `input_bam`` |
+| missing_input | vcf | vcf.call | bcftools | vcf_adapter_missing_input_audit | missing_input | governed VCF missing-input probe removed `input_bam` and expected `required input `input_bam`` |
 | missing_output | vcf | vcf.admixture | plink2 | governed_missing_output_probe | missing_output | runs/bench/readiness-probes/all-domains/failure-classification/missing-output/vcf/vcf.admixture/plink2/expected-output.json |
-| parser_failed | vcf | vcf.call | bcftools | vcf_parser_failure_tests | parser_failed | parse_bcftools_call_metrics expected `raw VCF is missing #CHROM header` |
+| parser_failed | vcf | vcf.call | bcftools | vcf_parser_failure_audit | parser_failed | parse_bcftools_call_metrics expected `raw VCF is missing #CHROM header` |
 | tool_not_found | bam | bam.align | bowtie2 | governed_tool_not_found_probe | tool_not_found | governed probe derived from a benchmark-ready binding uses an absent executable path |
 | unsupported_pair | vcf | vcf.filter | samtools | all_domain_stage_tool_table | unsupported_pair | unsupported-pair classification must remain explicit instead of collapsing into a generic failed status |
 

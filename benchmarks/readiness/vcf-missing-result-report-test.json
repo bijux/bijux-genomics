@@ -41,7 +41,15 @@
         "selected_k",
         "sample_count",
         "population_count",
-        "status"
+        "status",
+        "cluster_headers",
+        "maf_summary",
+        "rows",
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "execution_mode",
+        "tool_ok"
       ],
       "report_section": "population_structure",
       "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2` remains present with a validated stage-result manifest"
@@ -263,7 +271,10 @@
         "dosage_r2",
         "low_confidence_sites",
         "masked_truth_sites",
-        "missing_quality_fields"
+        "missing_quality_fields",
+        "sample_count",
+        "sample_ids",
+        "variant_count"
       ],
       "report_section": "imputation",
       "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle` remains present with a validated stage-result manifest"
@@ -321,7 +332,11 @@
         "variant_count",
         "excluded_samples",
         "unexpected_samples",
-        "eigenvalues"
+        "eigenvalues",
+        "status",
+        "rows",
+        "execution_mode",
+        "tool_ok"
       ],
       "report_section": "population_structure",
       "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft` remains present with a validated stage-result manifest"
@@ -347,7 +362,11 @@
         "variant_count",
         "excluded_samples",
         "unexpected_samples",
-        "eigenvalues"
+        "eigenvalues",
+        "status",
+        "rows",
+        "execution_mode",
+        "tool_ok"
       ],
       "report_section": "population_structure",
       "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2` remains present with a validated stage-result manifest"
@@ -398,10 +417,12 @@
         "population_structure_report"
       ],
       "expected_metrics": [
-        "sample_count",
-        "pair_count",
-        "within_population_pair_count",
-        "cross_population_pair_count"
+        "consumed_admixture",
+        "consumed_pca",
+        "distance_summary",
+        "sample_groups",
+        "status",
+        "variant_count"
       ],
       "report_section": "population_structure",
       "reason": "expected VCF benchmark row `vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2` remains present with a validated stage-result manifest"
