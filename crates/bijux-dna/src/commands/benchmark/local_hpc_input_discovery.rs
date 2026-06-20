@@ -65,6 +65,14 @@ pub(crate) fn collect_local_hpc_stage_input_hints(
             Err(error) if error.to_string().starts_with("unsupported local benchmark stage `") => {
                 continue;
             }
+            Err(error)
+                if error
+                    .to_string()
+                    .contains("requires the `bam_downstream` feature for rendered local benchmark metadata") =>
+            {
+                hints.insert(stage_id.clone(), bam_downstream_stage_input_hints(stage_id));
+                continue;
+            }
             Err(error) => return Err(error),
         };
         let mut stage_hints = stage_plans
@@ -90,6 +98,89 @@ pub(crate) fn collect_local_hpc_stage_input_hints(
         hints.insert(stage_id.clone(), stage_hints);
     }
     Ok(hints)
+}
+
+fn bam_downstream_stage_input_hints(stage_id: &str) -> Vec<LocalHpcStageInputHint> {
+    let hints = match stage_id {
+        "bam.bias_mitigation" => vec![
+            ("bam", "bam", "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_gc_window_ladder.sam"),
+            (
+                "reference",
+                "reference",
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/human_like_gc_window_ladder.fasta",
+            ),
+        ],
+        "bam.genotyping" => vec![
+            (
+                "bam",
+                "bam",
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam",
+            ),
+            (
+                "bam_bai",
+                "index",
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam.bai",
+            ),
+            (
+                "reference",
+                "reference",
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+            ),
+            (
+                "regions",
+                "reference",
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt",
+            ),
+            (
+                "sites",
+                "variant",
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf",
+            ),
+        ],
+        "bam.haplogroups" => vec![
+            (
+                "bam",
+                "bam",
+                "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam",
+            ),
+            (
+                "bam_bai",
+                "index",
+                "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam.bai",
+            ),
+            (
+                "reference",
+                "reference",
+                "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+            ),
+            (
+                "reference_panel",
+                "reference",
+                "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
+            ),
+        ],
+        "bam.kinship" => vec![
+            (
+                "bam",
+                "bam",
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_low_overlap_pair.sam",
+            ),
+            (
+                "bam",
+                "bam",
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_kinship_related_pair.sam",
+            ),
+        ],
+        _ => Vec::new(),
+    };
+    hints
+        .into_iter()
+        .map(|(artifact_id, artifact_role, source_path)| LocalHpcStageInputHint {
+            artifact_id: artifact_id.to_string(),
+            artifact_role: artifact_role.to_string(),
+            source_path: source_path.to_string(),
+        })
+        .collect()
 }
 
 pub(crate) fn collect_local_hpc_job_source_inputs<'a, I>(
