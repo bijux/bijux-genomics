@@ -158,6 +158,18 @@ validated pipeline DAGs, and scratch layout:
 make bench-hpc-pipeline-node-array-validate
 ```
 
+Render the governed final HPC dry-run readiness gate under `benchmarks/readiness/hpc/`:
+
+```bash
+make bench-hpc-dry-run-ready-render
+```
+
+Validate the governed final HPC dry-run readiness gate against the current dry-run inputs:
+
+```bash
+make bench-hpc-dry-run-ready-validate
+```
+
 Call the underlying CLI directly when a non-default manifest path is needed:
 
 ```bash
@@ -172,6 +184,12 @@ bijux-dna bench local render-hpc-candidate-run-manifest \
 
 bijux-dna bench local validate-hpc-candidate-run-manifest \
   --manifest benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json
+
+bijux-dna bench local render-hpc-dry-run-ready \
+  --output benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json
+
+bijux-dna bench local validate-hpc-dry-run-ready \
+  --manifest benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json
 
 bijux-dna bench local render-hpc-scratch-layout \
   --output runs/bench/hpc-dry-run/scratch-layout.json

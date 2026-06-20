@@ -2075,6 +2075,20 @@ Visible aliases are part of the operator surface:
   subset from the current dry-run inputs. The command fails closed if selected rows, exclusion
   reasons, small-job ceilings, or stop conditions drift from the governed first-run candidate
   contract.
+- `bijux-dna bench local render-hpc-dry-run-ready`
+  `render-hpc-dry-run-ready` writes
+  `benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json`. The render validates the governed dry-run
+  artifacts for Goals 481–489, cross-checks benchmark-job counts against the stage array and scratch
+  layout, cross-checks essential-pipeline counts against the pipeline-node array, and proves the
+  first-run candidate remains backed by known assets, explicit execution resolution, dependency
+  manifests, resume rules, and distinct result-collection statuses before any real cluster
+  submission begins.
+- `bijux-dna bench local validate-hpc-dry-run-ready`
+  `validate-hpc-dry-run-ready` reloads
+  `benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json` and rebuilds the expected gate report from
+  the current dry-run inputs. The command fails closed if any governed Goal 481–489 artifact drifts,
+  if cross-surface counts no longer align, or if the first HPC run still depends on manual or
+  ambiguous execution handling.
 - `bijux-dna bench local render-hpc-stage-benchmark-array`
   `render-hpc-stage-benchmark-array` writes
   `runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch` together with
