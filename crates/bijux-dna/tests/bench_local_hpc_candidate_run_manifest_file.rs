@@ -42,13 +42,8 @@ fn bench_local_validate_hpc_candidate_run_manifest_prints_validated_report_path(
     let (_temp_dir, report_path) = render_path(&repo_root, "validate-hpc-candidate-run-manifest-");
     let report_arg = report_path.to_string_lossy().into_owned();
 
-    let render_output = run_cli(&[
-        "bench",
-        "local",
-        "render-hpc-candidate-run-manifest",
-        "--output",
-        &report_arg,
-    ]);
+    let render_output =
+        run_cli(&["bench", "local", "render-hpc-candidate-run-manifest", "--output", &report_arg]);
     assert!(
         render_output.status.success(),
         "render command failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -89,13 +84,8 @@ fn bench_local_validate_hpc_candidate_run_manifest_rejects_stale_report_file() {
         render_path(&repo_root, "validate-hpc-candidate-run-manifest-stale-");
     let report_arg = report_path.to_string_lossy().into_owned();
 
-    let render_output = run_cli(&[
-        "bench",
-        "local",
-        "render-hpc-candidate-run-manifest",
-        "--output",
-        &report_arg,
-    ]);
+    let render_output =
+        run_cli(&["bench", "local", "render-hpc-candidate-run-manifest", "--output", &report_arg]);
     assert!(
         render_output.status.success(),
         "render command failed: {}\nstdout:\n{}\nstderr:\n{}",

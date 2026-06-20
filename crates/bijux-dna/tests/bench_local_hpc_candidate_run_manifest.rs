@@ -36,7 +36,10 @@ fn run_cli(args: &[&str]) -> std::process::Output {
         .expect("run cli")
 }
 
-fn row_by_group<'a>(rows: &'a [serde_json::Value], representative_group_id: &str) -> &'a serde_json::Value {
+fn row_by_group<'a>(
+    rows: &'a [serde_json::Value],
+    representative_group_id: &str,
+) -> &'a serde_json::Value {
     rows.iter()
         .find(|row| {
             row.get("representative_group_id").and_then(serde_json::Value::as_str)
@@ -51,13 +54,8 @@ fn bench_local_render_hpc_candidate_run_manifest_selects_small_representatives()
     let (_temp_dir, report_path) = render_path(&repo_root, "render-hpc-candidate-run-manifest-");
     let report_arg = report_path.to_string_lossy().into_owned();
 
-    let output = run_cli(&[
-        "bench",
-        "local",
-        "render-hpc-candidate-run-manifest",
-        "--output",
-        &report_arg,
-    ]);
+    let output =
+        run_cli(&["bench", "local", "render-hpc-candidate-run-manifest", "--output", &report_arg]);
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -88,9 +86,7 @@ fn bench_local_render_hpc_candidate_run_manifest_selects_small_representatives()
     );
     assert_eq!(report.get("selected_job_count").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(
-        report
-            .get("representative_group_count")
-            .and_then(serde_json::Value::as_u64),
+        report.get("representative_group_count").and_then(serde_json::Value::as_u64),
         Some(6)
     );
     assert_eq!(
@@ -125,9 +121,9 @@ fn bench_local_render_hpc_candidate_run_manifest_selects_small_representatives()
 
     let rows = report.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 6);
-    assert!(rows.iter().all(|row| {
-        row.get("domain").and_then(serde_json::Value::as_str) != Some("vcf")
-    }));
+    assert!(rows
+        .iter()
+        .all(|row| { row.get("domain").and_then(serde_json::Value::as_str) != Some("vcf") }));
     assert_eq!(
         row_by_group(rows, "bam:containerized")
             .get("result_id")
@@ -135,15 +131,11 @@ fn bench_local_render_hpc_candidate_run_manifest_selects_small_representatives()
         Some("bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:samtools")
     );
     assert_eq!(
-        row_by_group(rows, "bam:java")
-            .get("result_id")
-            .and_then(serde_json::Value::as_str),
+        row_by_group(rows, "bam:java").get("result_id").and_then(serde_json::Value::as_str),
         Some("bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:picard")
     );
     assert_eq!(
-        row_by_group(rows, "bam:python")
-            .get("result_id")
-            .and_then(serde_json::Value::as_str),
+        row_by_group(rows, "bam:python").get("result_id").and_then(serde_json::Value::as_str),
         Some("bam:corpus-01-bam-mini:bam.qc_pre:sample-set:multiqc")
     );
     assert_eq!(
@@ -153,15 +145,11 @@ fn bench_local_render_hpc_candidate_run_manifest_selects_small_representatives()
         Some("fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit")
     );
     assert_eq!(
-        row_by_group(rows, "fastq:internal")
-            .get("result_id")
-            .and_then(serde_json::Value::as_str),
+        row_by_group(rows, "fastq:internal").get("result_id").and_then(serde_json::Value::as_str),
         Some("fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna")
     );
     assert_eq!(
-        row_by_group(rows, "fastq:python")
-            .get("result_id")
-            .and_then(serde_json::Value::as_str),
+        row_by_group(rows, "fastq:python").get("result_id").and_then(serde_json::Value::as_str),
         Some("fastq:corpus-01-mini:fastq.trim_reads:sample-set:atropos")
     );
     assert!(

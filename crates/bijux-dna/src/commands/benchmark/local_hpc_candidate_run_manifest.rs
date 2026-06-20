@@ -15,9 +15,7 @@ use super::local_hpc_execution_resolver::{
     LocalHpcExecutionResolverRow,
 };
 use super::local_hpc_job_completion::resolve_local_hpc_job_result_paths;
-use super::local_hpc_job_resources::{
-    load_local_hpc_job_resource_hints, LocalHpcJobResourceHint,
-};
+use super::local_hpc_job_resources::{load_local_hpc_job_resource_hints, LocalHpcJobResourceHint};
 use super::local_hpc_selected_jobs::load_local_hpc_selected_jobs;
 use super::path_resolution::{
     ensure_path_stays_within_benchmark_readiness_root, BenchmarkPathResolver,
@@ -205,8 +203,8 @@ pub(crate) fn validate_hpc_candidate_run_manifest_path(
         repo_root.join(manifest_path)
     };
     let report = build_hpc_candidate_run_manifest(repo_root, &absolute_manifest_path)?;
-    let observed =
-        fs::read(&absolute_manifest_path).with_context(|| format!("read {}", absolute_manifest_path.display()))?;
+    let observed = fs::read(&absolute_manifest_path)
+        .with_context(|| format!("read {}", absolute_manifest_path.display()))?;
     let expected =
         serde_json::to_vec_pretty(&report).context("serialize governed HPC candidate manifest")?;
     if observed != expected {
@@ -338,26 +336,19 @@ fn select_candidate_run_rows(
             || walltime_minutes > SMALL_WALLTIME_MINUTES_MAX
             || resource_hint.scratch_gb > SMALL_SCRATCH_GB_MAX
         {
-            increment_count(
-                &mut exclusion_reason_counts,
-                EXCLUSION_RESOURCE_ENVELOPE_EXCEEDED,
-            );
+            increment_count(&mut exclusion_reason_counts, EXCLUSION_RESOURCE_ENVELOPE_EXCEEDED);
             continue;
         }
 
         let staged_input_total_bytes =
             staged_inputs.iter().map(|entry| entry.size_bytes).sum::<u64>();
         if staged_input_total_bytes > SMALL_INPUT_FOOTPRINT_MAX_BYTES {
-            increment_count(
-                &mut exclusion_reason_counts,
-                EXCLUSION_INPUT_FOOTPRINT_EXCEEDED,
-            );
+            increment_count(&mut exclusion_reason_counts, EXCLUSION_INPUT_FOOTPRINT_EXCEEDED);
             continue;
         }
 
         let result_paths = resolve_local_hpc_job_result_paths(repo_root, submit_job)?;
-        let representative_group_id =
-            format!("{}:{}", submit_job.domain, execution.execution_mode);
+        let representative_group_id = format!("{}:{}", submit_job.domain, execution.execution_mode);
         let selection_reason = format!(
             "smallest eligible dependency-free benchmark row for {} / {}",
             submit_job.domain, execution.execution_mode
@@ -384,10 +375,7 @@ fn select_candidate_run_rows(
     let mut selected_groups = BTreeSet::<String>::new();
     for row in eligible {
         if !selected_groups.insert(row.representative_group_id.clone()) {
-            increment_count(
-                &mut exclusion_reason_counts,
-                EXCLUSION_SUPERSEDED_REPRESENTATIVE,
-            );
+            increment_count(&mut exclusion_reason_counts, EXCLUSION_SUPERSEDED_REPRESENTATIVE);
             continue;
         }
         selected_rows.push(to_candidate_job(repo_root, row));
@@ -415,9 +403,9 @@ fn select_candidate_run_rows(
         only_benchmark_result_jobs: selected_rows.iter().all(|row| !row.result_id.is_empty()),
         only_dependency_free_jobs: true,
         only_known_assets: selected_rows.iter().all(|row| !row.staged_inputs.is_empty()),
-        only_known_execution_modes: selected_rows
-            .iter()
-            .all(|row| !row.execution_mode.trim().is_empty() && row.execution_mode != "unclassified"),
+        only_known_execution_modes: selected_rows.iter().all(|row| {
+            !row.execution_mode.trim().is_empty() && row.execution_mode != "unclassified"
+        }),
         only_available_execution_resolution: selected_rows
             .iter()
             .all(|row| !row.resolution_kind.contains("unavailable")),
@@ -481,7 +469,9 @@ fn select_candidate_run_rows(
     })
 }
 
-fn candidate_sort_key(row: &EligibleCandidateJob<'_>) -> (String, u64, u32, u32, u32, String, String, String) {
+fn candidate_sort_key(
+    row: &EligibleCandidateJob<'_>,
+) -> (String, u64, u32, u32, u32, String, String, String) {
     (
         row.representative_group_id.clone(),
         row.staged_input_total_bytes,
@@ -490,10 +480,7 @@ fn candidate_sort_key(row: &EligibleCandidateJob<'_>) -> (String, u64, u32, u32,
         row.walltime_minutes,
         row.submit_job.stage_id.clone(),
         row.submit_job.tool_id.clone(),
-        row.submit_job
-            .result_id
-            .clone()
-            .expect("eligible candidate rows always have result ids"),
+        row.submit_job.result_id.clone().expect("eligible candidate rows always have result ids"),
     )
 }
 
@@ -577,9 +564,7 @@ fn candidate_stop_conditions(
     ]
 }
 
-fn ensure_candidate_run_manifest_contract(
-    report: &LocalHpcCandidateRunManifest,
-) -> Result<()> {
+fn ensure_candidate_run_manifest_contract(report: &LocalHpcCandidateRunManifest) -> Result<()> {
     if report.selected_job_count != report.rows.len() {
         return Err(anyhow!(
             "HPC candidate run manifest must keep selected_job_count aligned with rows"
@@ -595,15 +580,10 @@ fn ensure_candidate_run_manifest_contract(
             "HPC candidate run manifest must keep one selected row per representative group"
         ));
     }
-    let unique_groups = report
-        .rows
-        .iter()
-        .map(|row| row.representative_group_id.as_str())
-        .collect::<BTreeSet<_>>();
+    let unique_groups =
+        report.rows.iter().map(|row| row.representative_group_id.as_str()).collect::<BTreeSet<_>>();
     if unique_groups.len() != report.rows.len() {
-        return Err(anyhow!(
-            "HPC candidate run manifest representative groups must stay unique"
-        ));
+        return Err(anyhow!("HPC candidate run manifest representative groups must stay unique"));
     }
     if report.selected_staged_input_count
         != report.rows.iter().map(|row| row.staged_input_count).sum::<usize>()
@@ -636,19 +616,13 @@ fn ensure_candidate_run_manifest_contract(
             "HPC candidate run manifest cannot admit VCF rows until execution modes are governed"
         ));
     }
-    if report
-        .rows
-        .iter()
-        .any(|row| row.resource_hint.walltime_minutes > SMALL_WALLTIME_MINUTES_MAX)
+    if report.rows.iter().any(|row| row.resource_hint.walltime_minutes > SMALL_WALLTIME_MINUTES_MAX)
     {
         return Err(anyhow!(
             "HPC candidate run manifest cannot admit rows outside the small walltime ceiling"
         ));
     }
-    if report
-        .rows
-        .iter()
-        .any(|row| row.staged_input_total_bytes > SMALL_INPUT_FOOTPRINT_MAX_BYTES)
+    if report.rows.iter().any(|row| row.staged_input_total_bytes > SMALL_INPUT_FOOTPRINT_MAX_BYTES)
     {
         return Err(anyhow!(
             "HPC candidate run manifest cannot admit rows outside the small input-footprint ceiling"
