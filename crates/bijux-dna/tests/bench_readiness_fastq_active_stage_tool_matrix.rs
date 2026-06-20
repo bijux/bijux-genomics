@@ -46,15 +46,15 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/fastq/fastq-active-stage-tool-matrix.tsv")
     );
-    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(73));
+    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(payload.get("retained_stage_count").and_then(serde_json::Value::as_u64), Some(27));
-    assert_eq!(payload.get("retained_tool_count").and_then(serde_json::Value::as_u64), Some(44));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(26));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(41));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(4));
-    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(3));
-    assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("retained_tool_count").and_then(serde_json::Value::as_u64), Some(42));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(42));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("removed_from_scope_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/removed-from-scope.tsv")
@@ -66,7 +66,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
         .expect("support_status_counts");
     assert_eq!(
         support_status_counts.get("governed_benchmark_cohort").and_then(serde_json::Value::as_u64),
-        Some(55)
+        Some(56)
     );
     assert_eq!(
         support_status_counts.get("governed_execution").and_then(serde_json::Value::as_u64),
@@ -76,7 +76,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
         support_status_counts
             .get("observer_specialized_benchmark")
             .and_then(serde_json::Value::as_u64),
-        Some(11)
+        Some(12)
     );
 
     let parser_status_counts = payload
@@ -85,11 +85,11 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
         .expect("parser_status_counts");
     assert_eq!(
         parser_status_counts.get("benchmark_normalized").and_then(serde_json::Value::as_u64),
-        Some(55)
+        Some(56)
     );
     assert_eq!(
         parser_status_counts.get("comparable").and_then(serde_json::Value::as_u64),
-        Some(11)
+        Some(12)
     );
     assert_eq!(
         parser_status_counts.get("parse_normalized").and_then(serde_json::Value::as_u64),
@@ -108,7 +108,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
     );
     assert_eq!(
         corpus_status_counts.get("fixture:corpus-01-mini").and_then(serde_json::Value::as_u64),
-        Some(58)
+        Some(60)
     );
     assert_eq!(
         corpus_status_counts.get("fixture:corpus-02-edna-mini").and_then(serde_json::Value::as_u64),
@@ -122,7 +122,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 69);
+    assert_eq!(rows.len(), 71);
 
     assert!(rows.iter().all(|row| {
         row.get("benchmark_status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
@@ -234,16 +234,4 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
             && row.get("corpus_status").and_then(serde_json::Value::as_str)
                 == Some("asset:reference-index-assets")
     }));
-    assert!(
-        rows.iter().all(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) != Some("fastq.report_qc")
-                && !(row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("fastq.trim_reads")
-                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqpurge"))
-                && !(row.get("stage_id").and_then(serde_json::Value::as_str)
-                    == Some("fastq.normalize_abundance")
-                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqfu"))
-        }),
-        "FASTQ active matrix must leave only non-active bindings in removed-from-scope"
-    );
 }

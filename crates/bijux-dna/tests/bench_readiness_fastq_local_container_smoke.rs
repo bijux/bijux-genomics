@@ -46,26 +46,26 @@ fn bench_readiness_fastq_local_container_smoke_reports_retained_wrapper_paths() 
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/fastq/fastq-local-container-smoke.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(26));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(41));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(42));
     assert_eq!(
         payload.get("host_stage_smoke_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
     assert_eq!(
         payload.get("container_smoke_row_count").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(71)
     );
 
     let runtime_counts = payload
         .get("runtime_counts")
         .and_then(serde_json::Value::as_object)
         .expect("runtime counts");
-    assert_eq!(runtime_counts.get("docker-arm64").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(runtime_counts.get("docker-arm64").and_then(serde_json::Value::as_u64), Some(71));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 69);
+    assert_eq!(rows.len(), 71);
 
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str)

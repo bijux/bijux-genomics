@@ -53,11 +53,11 @@ fn bench_readiness_fastq_report_map_reports_governed_expected_result_bindings() 
     );
     assert_eq!(
         payload.get("expected_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(71)
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(26));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(41));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(42));
     assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(6));
     assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(
@@ -65,18 +65,18 @@ fn bench_readiness_fastq_report_map_reports_governed_expected_result_bindings() 
             .get("section_counts")
             .and_then(|value| value.get("quality_profiling"))
             .and_then(serde_json::Value::as_u64),
-        Some(13)
+        Some(14)
     );
     assert_eq!(
         payload
             .get("section_counts")
             .and_then(|value| value.get("read_cleanup"))
             .and_then(serde_json::Value::as_u64),
-        Some(37)
+        Some(38)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 69);
+    assert_eq!(rows.len(), 71);
     let expected_fastq_rows = expected_payload
         .get("rows")
         .and_then(serde_json::Value::as_array)

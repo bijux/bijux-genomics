@@ -45,7 +45,7 @@ fn bench_readiness_fastq_local_container_smoke_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 69);
+    assert_eq!(rows.len(), 71);
     assert!(rows.iter().any(|row| {
         row == &"fastq.detect_duplicates_premerge\tbijux_dna\tbijux-dna\tproduction\tbenchmark_ready\tgoverned_execution\tfixture:corpus-01-mini\tdocker_container_smoke\tdocker-arm64\tbijux-dna\tbijux-dna env smoke docker-arm64 bijux-dna\tcontainers/docker/arm64/Dockerfile.bijux_dna\t\tbinding `fastq.detect_duplicates_premerge` / `bijux_dna` matches the governed FASTQ execution default tool, but no exact tiny-fixture stage smoke wrapper is checked in, so the governed container smoke wrapper is the available local exercise path for `fastq.detect_duplicates_premerge` / `bijux_dna`"
     }));

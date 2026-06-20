@@ -48,10 +48,10 @@ fn bench_readiness_fastq_parser_fixture_coverage_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/fastq/fastq-parser-fixture-coverage.tsv")
     );
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(26));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(41));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(42));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(payload.get("missing_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("parser_fixture_coverage_percent").and_then(serde_json::Value::as_f64),
@@ -59,7 +59,7 @@ fn bench_readiness_fastq_parser_fixture_coverage_reports_governed_rows() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 69);
+    assert_eq!(rows.len(), 71);
     assert!(rows.iter().all(|row| {
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
             && row.get("parser_fixture_reference_kind").and_then(serde_json::Value::as_str)
