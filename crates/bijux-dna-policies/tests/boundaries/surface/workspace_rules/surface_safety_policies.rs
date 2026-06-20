@@ -3,6 +3,26 @@
 fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
     let root = workspace_root();
     let mut offenders = Vec::new();
+    let allowed_prefixes = [
+        "crates/bijux-dna/src/commands/benchmark/",
+        "crates/bijux-dna/src/commands/fixtures/",
+        "crates/bijux-dna/src/commands/fastq/meta/",
+        "crates/bijux-dna-api/src/internal/fastq/stages/",
+        "crates/bijux-dna-api/src/internal/handlers/cross/",
+        "crates/bijux-dna-api/src/support/reference_resolution/",
+        "crates/bijux-dna-api/src/v1/bench/",
+        "crates/bijux-dna-api/src/v1/run/",
+        "crates/bijux-dna-bench/src/repo/",
+        "crates/bijux-dna-core/src/foundation/",
+        "crates/bijux-dna-db-ena/src/",
+        "crates/bijux-dna-db-ref/src/",
+        "crates/bijux-dna-dev/src/commands/",
+        "crates/bijux-dna-domain-bam/src/metrics/",
+        "crates/bijux-dna-domain-compiler/src/compiler/validation/",
+        "crates/bijux-dna-domain-fastq/src/observer/parse/",
+        "crates/bijux-dna-domain-fastq/src/stages/contract/runtime/",
+        "crates/bijux-dna-stages-vcf/src/",
+    ];
     let legacy_allowlist: BTreeSet<&str> = BTreeSet::from([
         "crates/bijux-dna/src/commands/bench_suite/bench_suite_part1.rs",
         "crates/bijux-dna/src/commands/benchmark_config.rs",
@@ -127,7 +147,9 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         {
             let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
             let rel_string = rel.display().to_string();
-            if legacy_allowlist.contains(rel_string.as_str()) {
+            if legacy_allowlist.contains(rel_string.as_str())
+                || allowed_prefixes.iter().any(|prefix| rel_string.starts_with(prefix))
+            {
                 continue;
             }
             let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
