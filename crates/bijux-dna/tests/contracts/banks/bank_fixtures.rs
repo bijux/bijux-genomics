@@ -13,8 +13,11 @@ use serde_json::{Map, Value};
 mod test_support;
 
 pub static CWD_LOCK: Mutex<()> = Mutex::new(());
+#[allow(dead_code)]
 const TEST_LOCK_ROOT: &str = "artifacts/test-locks";
+#[allow(dead_code)]
 const TEST_LOCK_WAIT_TIMEOUT: Duration = Duration::from_secs(300);
+#[allow(dead_code)]
 const TEST_LOCK_POLL_INTERVAL: Duration = Duration::from_millis(50);
 
 pub struct EnvGuard {
@@ -52,10 +55,12 @@ pub fn repo_root() -> Result<PathBuf> {
     test_support::repo_root()
 }
 
+#[allow(dead_code)]
 pub struct RepoProcessLock {
     path: PathBuf,
 }
 
+#[allow(dead_code)]
 impl RepoProcessLock {
     pub fn acquire(name: &str) -> Result<Self> {
         let repo_root = test_support::repo_root()?;
