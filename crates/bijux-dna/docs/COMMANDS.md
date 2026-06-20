@@ -2061,6 +2061,20 @@ Visible aliases are part of the operator surface:
   report from the current governed HPC job graph, stage-result contract, and execution resolver.
   The command fails closed if complete, failed, missing, insufficient, or unavailable row
   classification drifts from the governed dry-run result-collection contract.
+- `bijux-dna bench local render-hpc-candidate-run-manifest`
+  `render-hpc-candidate-run-manifest` writes
+  `benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json`. The render reloads the governed
+  selected-job, asset-staging, execution-resolver, and resource-hint surfaces, then selects the
+  smallest dependency-free benchmark representative for each admitted `(domain, execution_mode)`
+  pair. The manifest proves the first HPC candidate run stays limited to small jobs with known
+  assets, known execution mode, expected outputs, and explicit stop conditions while excluding VCF
+  rows until their execution modes are governed.
+- `bijux-dna bench local validate-hpc-candidate-run-manifest`
+  `validate-hpc-candidate-run-manifest` reloads
+  `benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json` and rebuilds the expected representative
+  subset from the current dry-run inputs. The command fails closed if selected rows, exclusion
+  reasons, small-job ceilings, or stop conditions drift from the governed first-run candidate
+  contract.
 - `bijux-dna bench local render-hpc-stage-benchmark-array`
   `render-hpc-stage-benchmark-array` writes
   `runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch` together with

@@ -52,6 +52,19 @@ Validate an existing staged-input manifest against the current governed all-doma
 make bench-hpc-asset-staging-validate
 ```
 
+Render the governed first-run HPC candidate manifest that keeps one smallest representative row
+per admitted `(domain, execution_mode)` pair and excludes unresolved or heavy jobs:
+
+```bash
+make bench-hpc-candidate-run-manifest-render
+```
+
+Validate an existing first-run HPC candidate manifest against the current governed dry-run inputs:
+
+```bash
+make bench-hpc-candidate-run-manifest-validate
+```
+
 Render the governed scratch-path, input-link, output-root, and cleanup layout for the same future
 HPC jobs:
 
@@ -153,6 +166,12 @@ bijux-dna bench local render-hpc-asset-staging-manifest \
 
 bijux-dna bench local validate-hpc-asset-staging-manifest \
   --manifest runs/bench/hpc-dry-run/asset-staging-manifest.json
+
+bijux-dna bench local render-hpc-candidate-run-manifest \
+  --output benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json
+
+bijux-dna bench local validate-hpc-candidate-run-manifest \
+  --manifest benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json
 
 bijux-dna bench local render-hpc-scratch-layout \
   --output runs/bench/hpc-dry-run/scratch-layout.json
