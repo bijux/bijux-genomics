@@ -345,11 +345,7 @@ pub(crate) fn render_amplicon_micro_pipeline(
     let output_root = absolute_output_path
         .parent()
         .ok_or_else(|| anyhow!("amplicon micro pipeline output has no parent directory"))?;
-    if output_root.exists() {
-        fs::remove_dir_all(output_root)
-            .with_context(|| format!("remove {}", output_root.display()))?;
-    }
-    fs::create_dir_all(output_root).with_context(|| format!("create {}", output_root.display()))?;
+    reset_generated_output_root(output_root)?;
 
     let corpus_manifest_path = repo_root.join(DEFAULT_CORPUS_03_AMPLICON_MANIFEST_PATH);
     let truth_manifest_path = repo_root.join(DEFAULT_AMPLICON_TRUTH_MANIFEST_PATH);
@@ -423,6 +419,24 @@ pub(crate) fn render_amplicon_micro_pipeline(
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)
         .with_context(|| format!("write {}", absolute_output_path.display()))?;
     Ok(report)
+}
+
+fn reset_generated_output_root(output_root: &Path) -> Result<()> {
+    fs::create_dir_all(output_root).with_context(|| format!("create {}", output_root.display()))?;
+    for entry in
+        fs::read_dir(output_root).with_context(|| format!("read {}", output_root.display()))?
+    {
+        let entry = entry.with_context(|| format!("read {}", output_root.display()))?;
+        let path = entry.path();
+        let file_type =
+            entry.file_type().with_context(|| format!("read file type {}", path.display()))?;
+        if file_type.is_dir() {
+            fs::remove_dir_all(&path).with_context(|| format!("remove {}", path.display()))?;
+        } else {
+            fs::remove_file(&path).with_context(|| format!("remove {}", path.display()))?;
+        }
+    }
+    Ok(())
 }
 
 fn run_amplicon_corpus_fixture_stage(

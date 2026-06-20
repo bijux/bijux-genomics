@@ -206,11 +206,7 @@ pub(crate) fn render_edna_micro_pipeline(
     let output_root = absolute_output_path
         .parent()
         .ok_or_else(|| anyhow!("eDNA micro pipeline output has no parent directory"))?;
-    if output_root.exists() {
-        fs::remove_dir_all(output_root)
-            .with_context(|| format!("remove {}", output_root.display()))?;
-    }
-    fs::create_dir_all(output_root).with_context(|| format!("create {}", output_root.display()))?;
+    reset_generated_output_root(output_root)?;
 
     let corpus_manifest_path = repo_root.join(DEFAULT_CORPUS_02_EDNA_MANIFEST_PATH);
     let taxonomy_manifest_path = repo_root.join(DEFAULT_TAXONOMY_MINI_MANIFEST_PATH);
@@ -268,6 +264,24 @@ pub(crate) fn render_edna_micro_pipeline(
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)
         .with_context(|| format!("write {}", absolute_output_path.display()))?;
     Ok(report)
+}
+
+fn reset_generated_output_root(output_root: &Path) -> Result<()> {
+    fs::create_dir_all(output_root).with_context(|| format!("create {}", output_root.display()))?;
+    for entry in
+        fs::read_dir(output_root).with_context(|| format!("read {}", output_root.display()))?
+    {
+        let entry = entry.with_context(|| format!("read {}", output_root.display()))?;
+        let path = entry.path();
+        let file_type =
+            entry.file_type().with_context(|| format!("read file type {}", path.display()))?;
+        if file_type.is_dir() {
+            fs::remove_dir_all(&path).with_context(|| format!("remove {}", path.display()))?;
+        } else {
+            fs::remove_file(&path).with_context(|| format!("remove {}", path.display()))?;
+        }
+    }
+    Ok(())
 }
 
 fn run_taxonomy_database_validation_stage(
@@ -952,7 +966,8 @@ fn write_screen_summary_tsv(path: &Path, entries: &[TaxonomyScreenSummaryEntryV1
 }
 
 fn write_empty_gzip(path: &Path) -> Result<()> {
-    let file = bijux_dna_infra::create_file(path).with_context(|| format!("create {}", path.display()))?;
+    let file =
+        bijux_dna_infra::create_file(path).with_context(|| format!("create {}", path.display()))?;
     let mut encoder = GzEncoder::new(file, Compression::default());
     encoder.write_all(&[]).with_context(|| format!("write {}", path.display()))?;
     encoder.finish().with_context(|| format!("finish {}", path.display()))?;

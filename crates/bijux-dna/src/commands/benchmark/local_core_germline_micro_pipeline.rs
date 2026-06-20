@@ -249,11 +249,7 @@ pub(crate) fn render_core_germline_micro_pipeline(
     let output_root = absolute_output_path
         .parent()
         .ok_or_else(|| anyhow!("core germline micro pipeline output has no parent directory"))?;
-    if output_root.exists() {
-        fs::remove_dir_all(output_root)
-            .with_context(|| format!("remove {}", output_root.display()))?;
-    }
-    fs::create_dir_all(output_root).with_context(|| format!("create {}", output_root.display()))?;
+    reset_generated_output_root(output_root)?;
 
     let reference_fasta = repo_root.join(REFERENCE_FASTA_PATH);
     if !reference_fasta.is_file() {
@@ -467,6 +463,24 @@ pub(crate) fn render_core_germline_micro_pipeline(
     };
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)?;
     Ok(report)
+}
+
+fn reset_generated_output_root(output_root: &Path) -> Result<()> {
+    fs::create_dir_all(output_root).with_context(|| format!("create {}", output_root.display()))?;
+    for entry in
+        fs::read_dir(output_root).with_context(|| format!("read {}", output_root.display()))?
+    {
+        let entry = entry.with_context(|| format!("read {}", output_root.display()))?;
+        let path = entry.path();
+        let file_type =
+            entry.file_type().with_context(|| format!("read file type {}", path.display()))?;
+        if file_type.is_dir() {
+            fs::remove_dir_all(&path).with_context(|| format!("remove {}", path.display()))?;
+        } else {
+            fs::remove_file(&path).with_context(|| format!("remove {}", path.display()))?;
+        }
+    }
+    Ok(())
 }
 
 fn run_fastq_validate_stage(
@@ -1786,8 +1800,8 @@ fn convert_coordinate_sam_to_bam(
         ))
     });
 
-    let bam_file =
-        bijux_dna_infra::create_file(output_bam).with_context(|| format!("create {}", output_bam.display()))?;
+    let bam_file = bijux_dna_infra::create_file(output_bam)
+        .with_context(|| format!("create {}", output_bam.display()))?;
     let mut writer = bam::io::Writer::new(bam_file);
     writer
         .write_header(&header)
@@ -1906,7 +1920,8 @@ fn write_fastq_records(path: &Path, records: &[FastqRecord]) -> Result<()> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
-    let file = bijux_dna_infra::create_file(path).with_context(|| format!("create {}", path.display()))?;
+    let file =
+        bijux_dna_infra::create_file(path).with_context(|| format!("create {}", path.display()))?;
     let mut writer = std::io::BufWriter::new(file);
     for record in records {
         writeln!(writer, "{}", record.header)?;

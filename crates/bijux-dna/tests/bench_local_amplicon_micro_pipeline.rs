@@ -9,6 +9,8 @@ mod support;
 #[test]
 fn bench_local_amplicon_micro_pipeline_reports_validated_amplicon_outputs() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _repo_lock =
+        support::RepoProcessLock::acquire("micro-benchmark-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
