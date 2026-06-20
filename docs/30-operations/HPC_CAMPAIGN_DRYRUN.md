@@ -92,6 +92,19 @@ Validate an existing dependency simulation report against the current governed H
 make bench-hpc-dependency-simulation-validate
 ```
 
+Render the governed resume simulation report that proves valid-completed jobs skip, failed or
+missing manifests rerun, and stale partial outputs are rejected:
+
+```bash
+make bench-hpc-resume-simulation-render
+```
+
+Validate an existing resume simulation report against the current governed HPC resume contract:
+
+```bash
+make bench-hpc-resume-simulation-validate
+```
+
 Render the governed benchmark-result SLURM array and its per-index manifest:
 
 ```bash
@@ -144,6 +157,12 @@ bijux-dna bench local render-hpc-dependency-simulation \
 
 bijux-dna bench local validate-hpc-dependency-simulation \
   --manifest runs/bench/hpc-dry-run/slurm-dependency-simulation.json
+
+bijux-dna bench local render-hpc-resume-simulation \
+  --output runs/bench/hpc-dry-run/resume-simulation.json
+
+bijux-dna bench local validate-hpc-resume-simulation \
+  --manifest runs/bench/hpc-dry-run/resume-simulation.json
 
 bijux-dna bench local render-hpc-stage-benchmark-array \
   --output runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch

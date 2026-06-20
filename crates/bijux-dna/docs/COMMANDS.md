@@ -2035,6 +2035,18 @@ Visible aliases are part of the operator surface:
   report from the current governed HPC job graph. The command fails closed if failed-job choice,
   descendant blocking, sibling continuation, benchmark continuation, or any per-job dependency
   status drifts from the governed dry-run dependency contract.
+- `bijux-dna bench local render-hpc-resume-simulation`
+  `render-hpc-resume-simulation` writes `runs/bench/hpc-dry-run/resume-simulation.json` together
+  with a sibling `resume-simulation-tree/` that mirrors the governed selected-job result layout.
+  The render seeds valid stage-result manifests for every governed HPC job, then injects one
+  failed manifest, one missing manifest, one stale partial-output case, and one downstream
+  dependency rerun so skip versus rerun behavior is explicit before any real cluster resume flow.
+- `bijux-dna bench local validate-hpc-resume-simulation`
+  `validate-hpc-resume-simulation` reloads `runs/bench/hpc-dry-run/resume-simulation.json` and
+  rebuilds the expected resume report from the current governed HPC job graph and stage-result
+  contract. The command fails closed if valid-completed skips, failed-manifest reruns,
+  missing-manifest reruns, stale partial-output reruns, or dependency-propagated reruns drift from
+  the governed dry-run resume contract.
 - `bijux-dna bench local render-hpc-stage-benchmark-array`
   `render-hpc-stage-benchmark-array` writes
   `runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch` together with
