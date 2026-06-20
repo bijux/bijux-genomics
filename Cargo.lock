@@ -494,6 +494,7 @@ name = "bijux-dna-domain-vcf"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-core",
  "bijux-dna-policies",
  "bijux-dna-testkit",
  "flate2",
