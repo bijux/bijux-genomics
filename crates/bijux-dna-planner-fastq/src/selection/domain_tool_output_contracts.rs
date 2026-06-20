@@ -156,8 +156,8 @@ mod tests {
     #[test]
     fn load_fastq_domain_tool_stage_output_contract_reads_profile_reads_outputs() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("fastq.profile_reads".to_string());
-        let tool_id = ToolId::new("seqkit_stats");
+        let stage_id = StageId::from_static("fastq.profile_reads");
+        let tool_id = ToolId::from_static("seqkit_stats");
 
         let contract =
             load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
@@ -177,8 +177,8 @@ mod tests {
     #[test]
     fn load_fastq_domain_tool_stage_output_contract_reads_merge_pairs_outputs() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("fastq.merge_pairs".to_string());
-        let tool_id = ToolId::new("vsearch");
+        let stage_id = StageId::from_static("fastq.merge_pairs");
+        let tool_id = ToolId::from_static("vsearch");
 
         let contract =
             load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
@@ -203,8 +203,8 @@ mod tests {
     #[test]
     fn load_fastq_domain_tool_stage_output_contract_reads_duplicate_signal_outputs() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("fastq.detect_duplicates_premerge".to_string());
-        let tool_id = ToolId::new("bijux_dna");
+        let stage_id = StageId::from_static("fastq.detect_duplicates_premerge");
+        let tool_id = ToolId::from_static("bijux_dna");
 
         let contract =
             load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
@@ -229,8 +229,8 @@ mod tests {
     #[test]
     fn load_fastq_domain_tool_stage_output_contract_includes_optional_mate_outputs() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("fastq.correct_errors".to_string());
-        let tool_id = ToolId::new("bayeshammer");
+        let stage_id = StageId::from_static("fastq.correct_errors");
+        let tool_id = ToolId::from_static("bayeshammer");
 
         let contract =
             load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
@@ -250,8 +250,8 @@ mod tests {
     fn load_fastq_domain_tool_stage_output_contract_prefers_stage_execution_contract() -> Result<()>
     {
         let repo_root = repo_root();
-        let stage_id = StageId::new("fastq.profile_read_lengths".to_string());
-        let tool_id = ToolId::new("fastp");
+        let stage_id = StageId::from_static("fastq.profile_read_lengths");
+        let tool_id = ToolId::from_static("fastp");
 
         let contract =
             load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
@@ -271,8 +271,8 @@ mod tests {
     fn load_fastq_domain_tool_stage_output_contract_keeps_profile_reads_tool_specific() -> Result<()>
     {
         let repo_root = repo_root();
-        let stage_id = StageId::new("fastq.profile_reads".to_string());
-        let tool_id = ToolId::new("seqkit");
+        let stage_id = StageId::from_static("fastq.profile_reads");
+        let tool_id = ToolId::from_static("seqkit");
 
         let contract =
             load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
@@ -292,8 +292,8 @@ mod tests {
     fn load_fastq_domain_tool_stage_output_contract_keeps_terminal_damage_mate_optional(
     ) -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("fastq.trim_terminal_damage".to_string());
-        let tool_id = ToolId::new("adapterremoval");
+        let stage_id = StageId::from_static("fastq.trim_terminal_damage");
+        let tool_id = ToolId::from_static("adapterremoval");
 
         let contract =
             load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;

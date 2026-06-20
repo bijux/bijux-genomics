@@ -240,8 +240,8 @@ mod tests {
     fn load_fastq_domain_tool_execution_spec_accepts_supported_workspace_binary_stage() -> Result<()>
     {
         let repo_root = repo_root();
-        let stage_id = StageId::new("fastq.detect_duplicates_premerge".to_string());
-        let tool_id = ToolId::new("bijux_dna");
+        let stage_id = StageId::from_static("fastq.detect_duplicates_premerge");
+        let tool_id = ToolId::from_static("bijux_dna");
 
         let spec = load_fastq_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -255,7 +255,7 @@ mod tests {
     #[test]
     fn load_fastq_domain_tool_contract_metadata_reads_supported_stage_status() -> Result<()> {
         let repo_root = repo_root();
-        let tool_id = ToolId::new("krakenuniq");
+        let tool_id = ToolId::from_static("krakenuniq");
 
         let metadata = load_fastq_domain_tool_contract_metadata(&repo_root, &tool_id)?;
 
@@ -266,9 +266,7 @@ mod tests {
             "krakenuniq metadata must retain direct FASTQ stage admissions"
         );
         assert_eq!(
-            metadata
-                .pair_support_level(&StageId::new("fastq.screen_taxonomy".to_string()))
-                .as_str(),
+            metadata.pair_support_level(&StageId::from_static("fastq.screen_taxonomy")).as_str(),
             "supported"
         );
         Ok(())
@@ -277,7 +275,7 @@ mod tests {
     #[test]
     fn load_fastq_domain_tool_contract_metadata_reads_planned_tool_status() -> Result<()> {
         let repo_root = repo_root();
-        let tool_id = ToolId::new("seqpurge");
+        let tool_id = ToolId::from_static("seqpurge");
 
         let metadata = load_fastq_domain_tool_contract_metadata(&repo_root, &tool_id)?;
 
@@ -288,7 +286,7 @@ mod tests {
             "seqpurge metadata must retain admitted FASTQ stages"
         );
         assert_eq!(
-            metadata.pair_support_level(&StageId::new("fastq.trim_reads".to_string())).as_str(),
+            metadata.pair_support_level(&StageId::from_static("fastq.trim_reads")).as_str(),
             "planned"
         );
         Ok(())
@@ -298,7 +296,7 @@ mod tests {
     fn load_fastq_domain_tool_contract_metadata_keeps_seqfu_on_supported_profile_routes(
     ) -> Result<()> {
         let repo_root = repo_root();
-        let tool_id = ToolId::new("seqfu");
+        let tool_id = ToolId::from_static("seqfu");
         let metadata = load_fastq_domain_tool_contract_metadata(&repo_root, &tool_id)?;
 
         assert_eq!(metadata.support_level, FastqDomainToolSupportLevel::Supported);
@@ -311,7 +309,7 @@ mod tests {
             "seqfu must not retain any planned stage admission once normalize-abundance is removed"
         );
         assert_eq!(
-            metadata.pair_support_level(&StageId::new("fastq.profile_reads".to_string())).as_str(),
+            metadata.pair_support_level(&StageId::from_static("fastq.profile_reads")).as_str(),
             "supported"
         );
         Ok(())
@@ -320,8 +318,8 @@ mod tests {
     #[test]
     fn load_fastq_domain_tool_execution_spec_accepts_supported_container_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("fastq.trim_terminal_damage".to_string());
-        let tool_id = ToolId::new("cutadapt");
+        let stage_id = StageId::from_static("fastq.trim_terminal_damage");
+        let tool_id = ToolId::from_static("cutadapt");
 
         let spec = load_fastq_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -336,8 +334,8 @@ mod tests {
     fn load_fastq_domain_tool_execution_spec_accepts_container_stage_without_command_template(
     ) -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("fastq.deplete_host".to_string());
-        let tool_id = ToolId::new("bowtie2");
+        let stage_id = StageId::from_static("fastq.deplete_host");
+        let tool_id = ToolId::from_static("bowtie2");
 
         let spec = load_fastq_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -351,8 +349,8 @@ mod tests {
     #[test]
     fn load_fastq_domain_tool_execution_spec_accepts_seqfu_profile_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("fastq.profile_read_lengths".to_string());
-        let tool_id = ToolId::new("seqfu");
+        let stage_id = StageId::from_static("fastq.profile_read_lengths");
+        let tool_id = ToolId::from_static("seqfu");
 
         let spec = load_fastq_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 

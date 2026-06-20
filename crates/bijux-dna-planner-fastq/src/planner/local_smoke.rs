@@ -2713,7 +2713,7 @@ pub fn local_report_qc_smoke_plan(
     repo_root: &Path,
 ) -> Result<bijux_dna_stage_contract::StagePlanV1> {
     let config = load_local_report_qc_smoke_plan_config(repo_root)?;
-    let stage_id = StageId::new("fastq.report_qc".to_string());
+    let stage_id = StageId::from_static("fastq.report_qc");
     let tool_id = ToolId::try_from(config.tool_id.as_str())
         .map_err(|error| anyhow!("invalid local-smoke tool_id `{}`: {error}", config.tool_id))?;
     let normalized_tools = crate::tool_adapters::fastq::report_qc::normalize_qc_post_tool_list(

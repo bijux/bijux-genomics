@@ -267,8 +267,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_execution_spec_accepts_supported_bwa_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.align".to_string());
-        let tool_id = ToolId::new("bwa");
+        let stage_id = StageId::from_static("bam.align");
+        let tool_id = ToolId::from_static("bwa");
 
         let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -282,9 +282,9 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_contract_metadata_reads_supported_stage_status() -> Result<()> {
         let repo_root = repo_root();
-        let tool_id = ToolId::new("samtools");
-        let validate_stage = StageId::new("bam.validate".to_string());
-        let align_stage = StageId::new("bam.align".to_string());
+        let tool_id = ToolId::from_static("samtools");
+        let validate_stage = StageId::from_static("bam.validate");
+        let align_stage = StageId::from_static("bam.align");
 
         let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
 
@@ -305,7 +305,7 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_contract_metadata_reads_supported_multiqc_qc_pre_stage() -> Result<()> {
         let repo_root = repo_root();
-        let tool_id = ToolId::new("multiqc");
+        let tool_id = ToolId::from_static("multiqc");
 
         let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
 
@@ -321,7 +321,7 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_contract_metadata_reads_supported_picard_status() -> Result<()> {
         let repo_root = repo_root();
-        let tool_id = ToolId::new("picard");
+        let tool_id = ToolId::from_static("picard");
 
         let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
 
@@ -332,7 +332,7 @@ mod tests {
             "picard metadata must retain admitted BAM stages"
         );
         assert_eq!(
-            metadata.pair_support_level(&StageId::new("bam.gc_bias".to_string())).as_str(),
+            metadata.pair_support_level(&StageId::from_static("bam.gc_bias")).as_str(),
             "supported"
         );
         Ok(())
@@ -341,8 +341,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_planning_spec_accepts_insert_size_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.insert_size".to_string());
-        let tool_id = ToolId::new("picard");
+        let stage_id = StageId::from_static("bam.insert_size");
+        let tool_id = ToolId::from_static("picard");
 
         let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
         assert!(
@@ -360,8 +360,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_planning_spec_accepts_gc_bias_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.gc_bias".to_string());
-        let tool_id = ToolId::new("picard");
+        let stage_id = StageId::from_static("bam.gc_bias");
+        let tool_id = ToolId::from_static("picard");
 
         let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
         assert!(
@@ -380,8 +380,8 @@ mod tests {
     fn load_bam_domain_tool_execution_spec_accepts_supported_picard_mapping_summary_stage(
     ) -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.mapping_summary".to_string());
-        let tool_id = ToolId::new("picard");
+        let stage_id = StageId::from_static("bam.mapping_summary");
+        let tool_id = ToolId::from_static("picard");
 
         let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -395,8 +395,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_planning_spec_accepts_endogenous_content_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.endogenous_content".to_string());
-        let tool_id = ToolId::new("samtools");
+        let stage_id = StageId::from_static("bam.endogenous_content");
+        let tool_id = ToolId::from_static("samtools");
 
         let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
         assert!(
@@ -415,8 +415,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_planning_spec_accepts_overlap_correction_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.overlap_correction".to_string());
-        let tool_id = ToolId::new("bamutil");
+        let stage_id = StageId::from_static("bam.overlap_correction");
+        let tool_id = ToolId::from_static("bamutil");
 
         let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
         assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Supported);
@@ -436,8 +436,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_execution_spec_accepts_overlap_correction_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.overlap_correction".to_string());
-        let tool_id = ToolId::new("bamutil");
+        let stage_id = StageId::from_static("bam.overlap_correction");
+        let tool_id = ToolId::from_static("bamutil");
 
         let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -451,7 +451,7 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_planning_spec_accepts_damage_stage_tools() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.damage".to_string());
+        let stage_id = StageId::from_static("bam.damage");
 
         let supported_tools =
             ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"];
@@ -476,8 +476,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_execution_spec_accepts_supported_bowtie2_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.align".to_string());
-        let tool_id = ToolId::new("bowtie2");
+        let stage_id = StageId::from_static("bam.align");
+        let tool_id = ToolId::from_static("bowtie2");
 
         let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -491,8 +491,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_execution_spec_accepts_addeam_damage_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.damage".to_string());
-        let tool_id = ToolId::new("addeam");
+        let stage_id = StageId::from_static("bam.damage");
+        let tool_id = ToolId::from_static("addeam");
 
         let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -533,8 +533,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_execution_spec_accepts_supported_yleaf_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.haplogroups".to_string());
-        let tool_id = ToolId::new("yleaf");
+        let stage_id = StageId::from_static("bam.haplogroups");
+        let tool_id = ToolId::from_static("yleaf");
 
         let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -549,8 +549,8 @@ mod tests {
     fn load_bam_domain_tool_execution_spec_accepts_supported_angsd_genotyping_stage() -> Result<()>
     {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.genotyping".to_string());
-        let tool_id = ToolId::new("angsd");
+        let stage_id = StageId::from_static("bam.genotyping");
+        let tool_id = ToolId::from_static("angsd");
 
         let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -564,8 +564,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_execution_spec_accepts_supported_king_kinship_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.kinship".to_string());
-        let tool_id = ToolId::new("king");
+        let stage_id = StageId::from_static("bam.kinship");
+        let tool_id = ToolId::from_static("king");
 
         let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -579,8 +579,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_execution_spec_accepts_supported_multiqc_qc_pre_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.qc_pre".to_string());
-        let tool_id = ToolId::new("multiqc");
+        let stage_id = StageId::from_static("bam.qc_pre");
+        let tool_id = ToolId::from_static("multiqc");
 
         let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -597,8 +597,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_execution_spec_accepts_supported_authenticct_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.authenticity".to_string());
-        let tool_id = ToolId::new("authenticct");
+        let stage_id = StageId::from_static("bam.authenticity");
+        let tool_id = ToolId::from_static("authenticct");
 
         let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -618,7 +618,7 @@ mod tests {
             ("mosdepth", "bijuxdna/mosdepth:0.3.10"),
             ("samtools", "bijuxdna/samtools:1.21"),
         ] {
-            let stage_id = StageId::new("bam.coverage".to_string());
+            let stage_id = StageId::from_static("bam.coverage");
             let tool_id = ToolId::new(tool_name);
 
             let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
@@ -636,8 +636,8 @@ mod tests {
     fn load_bam_domain_tool_planning_spec_accepts_validate_stage_with_container_metadata(
     ) -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.validate".to_string());
-        let tool_id = ToolId::new("samtools");
+        let stage_id = StageId::from_static("bam.validate");
+        let tool_id = ToolId::from_static("samtools");
 
         let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -651,8 +651,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_planning_spec_accepts_supported_multiqc_qc_pre_stage() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.qc_pre".to_string());
-        let tool_id = ToolId::new("multiqc");
+        let stage_id = StageId::from_static("bam.qc_pre");
+        let tool_id = ToolId::from_static("multiqc");
 
         let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -670,8 +670,8 @@ mod tests {
     fn load_bam_domain_tool_planning_spec_accepts_supported_picard_mapping_summary_stage(
     ) -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.mapping_summary".to_string());
-        let tool_id = ToolId::new("picard");
+        let stage_id = StageId::from_static("bam.mapping_summary");
+        let tool_id = ToolId::from_static("picard");
 
         let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
 
@@ -685,7 +685,7 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_planning_spec_accepts_supported_filter_stage_tools() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.filter".to_string());
+        let stage_id = StageId::from_static("bam.filter");
 
         for (tool, expected_image) in [
             ("samtools", "bijuxdna/samtools:1.21"),
@@ -707,7 +707,7 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_planning_spec_accepts_supported_coverage_stage_tools() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.coverage".to_string());
+        let stage_id = StageId::from_static("bam.coverage");
 
         for (tool, expected_image) in [
             ("mosdepth", "bijuxdna/mosdepth:0.3.10"),
@@ -730,7 +730,7 @@ mod tests {
     fn load_bam_domain_tool_planning_spec_accepts_supported_mapq_filter_stage_tools() -> Result<()>
     {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.mapq_filter".to_string());
+        let stage_id = StageId::from_static("bam.mapq_filter");
 
         for (tool, expected_image) in
             [("samtools", "bijuxdna/samtools:1.21"), ("bamtools", "bijuxdna/bamtools:2.5.2")]
@@ -751,7 +751,7 @@ mod tests {
     fn load_bam_domain_tool_planning_spec_accepts_supported_length_filter_stage_tools() -> Result<()>
     {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.length_filter".to_string());
+        let stage_id = StageId::from_static("bam.length_filter");
 
         for tool in ["samtools", "picard"] {
             let tool_id = ToolId::new(tool);
@@ -774,7 +774,7 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_planning_spec_accepts_supported_markdup_stage_tools() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.markdup".to_string());
+        let stage_id = StageId::from_static("bam.markdup");
 
         for tool in ["samtools", "picard"] {
             let tool_id = ToolId::new(tool);
@@ -798,7 +798,7 @@ mod tests {
     fn load_bam_domain_tool_planning_spec_accepts_supported_duplication_metrics_stage_tools(
     ) -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.duplication_metrics".to_string());
+        let stage_id = StageId::from_static("bam.duplication_metrics");
 
         for tool in ["samtools", "picard"] {
             let tool_id = ToolId::new(tool);
@@ -821,8 +821,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_execution_spec_accepts_supported_complexity_stage_tool() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.complexity".to_string());
-        let tool_id = ToolId::new("preseq");
+        let stage_id = StageId::from_static("bam.complexity");
+        let tool_id = ToolId::from_static("preseq");
 
         let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
