@@ -14,8 +14,8 @@ fn policy__contracts__assets_scope_policy__assets_contains_data_only_no_code() {
     let mut offenders = Vec::new();
     let allowed = [
         "yaml", "yml", "json", "jsonl", "toml", "txt", "md", "fasta", "fa", "fna", "sam", "bam",
-        "bai", "bed", "bt2", "dat", "dict", "fai", "fastq", "fq", "tsv", "csv", "gz", "vcf",
-        "html", "sha256",
+        "bai", "bed", "bt2", "dat", "dict", "dmp", "fai", "fastq", "fq", "tsv", "csv", "gz", "vcf",
+        "html", "sha256", "amb", "ann", "bwt", "pac", "sa",
     ];
     for entry in WalkDir::new(&assets)
         .into_iter()
