@@ -103,9 +103,9 @@ fn bench_local_fake_run_essential_pipelines_json_reports_governed_pipeline_slice
             node.get("node_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc")
         })
         .expect("fastq.report_qc node");
-    assert_eq!(report_qc.get("tool_id").and_then(serde_json::Value::as_str), Some("bijux-dna"));
+    assert_eq!(report_qc.get("tool_id").and_then(serde_json::Value::as_str), Some("multiqc"));
     assert_eq!(
         report_qc.get("command_source").and_then(serde_json::Value::as_str),
-        Some("local_stage_materialization")
+        Some("fastq_governed_stage_command")
     );
 }
