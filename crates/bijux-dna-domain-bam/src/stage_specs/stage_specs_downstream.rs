@@ -122,12 +122,7 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
             stage,
             required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
-                required_outputs: &[
-                    "haplogroups",
-                    "haplogroup_report",
-                    "summary",
-                    "stage_metrics",
-                ],
+                required_outputs: &["haplogroups", "haplogroup_report", "summary", "stage_metrics"],
                 required_audit: super::required_audit_artifacts(stage),
             },
             default_params: BamEffectiveParams::Haplogroups(HaplogroupEffectiveParams {

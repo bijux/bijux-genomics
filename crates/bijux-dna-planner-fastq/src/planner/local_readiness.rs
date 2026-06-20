@@ -20,12 +20,10 @@ use crate::{DepleteHostStageParams, DepleteRrnaStageParams, IndexReferenceStageP
 
 const LOCAL_DEPLETE_REFERENCE_CONTAMINANTS_CONFIG_PATH: &str =
     "configs/bench/local/fastq-deplete-reference-contaminants.toml";
-const LOCAL_INDEX_REFERENCE_CONFIG_PATH: &str =
-    "configs/bench/local/fastq-index-reference.toml";
+const LOCAL_INDEX_REFERENCE_CONFIG_PATH: &str = "configs/bench/local/fastq-index-reference.toml";
 const LOCAL_DEPLETE_HOST_CONFIG_PATH: &str = "configs/bench/local/fastq-deplete-host.toml";
 const LOCAL_DEPLETE_RRNA_CONFIG_PATH: &str = "configs/bench/local/fastq-deplete-rrna.toml";
-const LOCAL_SCREEN_TAXONOMY_CONFIG_PATH: &str =
-    "configs/bench/local/fastq-screen-taxonomy.toml";
+const LOCAL_SCREEN_TAXONOMY_CONFIG_PATH: &str = "configs/bench/local/fastq-screen-taxonomy.toml";
 const LOCAL_RUNTIME_PROFILE_PATH: &str = "configs/runtime/profiles/local.toml";
 const DEFAULT_LOCAL_DEPLETE_REFERENCE_CONTAMINANTS_OUTPUT_DIR: &str =
     "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants";

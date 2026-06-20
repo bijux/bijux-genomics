@@ -66,9 +66,9 @@ pub(crate) fn collect_local_hpc_stage_input_hints(
                 continue;
             }
             Err(error)
-                if error
-                    .to_string()
-                    .contains("requires the `bam_downstream` feature for rendered local benchmark metadata") =>
+                if error.to_string().contains(
+                    "requires the `bam_downstream` feature for rendered local benchmark metadata",
+                ) =>
             {
                 hints.insert(stage_id.clone(), bam_downstream_stage_input_hints(stage_id));
                 continue;

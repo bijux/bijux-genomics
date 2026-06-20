@@ -459,10 +459,7 @@ mod tests {
             row.stage_id == "vcf.postprocess"
                 && row.tool_id == "bcftools"
                 && row.parser_fixture_parser_id == "parse_bcftools_postprocess_metrics"
-                && row
-                    .raw_fixture_paths
-                    .iter()
-                    .any(|path| path.ends_with("raw.postprocess.vcf"))
+                && row.raw_fixture_paths.iter().any(|path| path.ends_with("raw.postprocess.vcf"))
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.pca"

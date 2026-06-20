@@ -375,11 +375,7 @@ mod tests {
                 && row.unit == "fraction"
                 && row.direction == "higher_is_better"
                 && row.tools_covered
-                    == vec![
-                        "bcftools".to_string(),
-                        "plink".to_string(),
-                        "plink2".to_string(),
-                    ]
+                    == vec!["bcftools".to_string(), "plink".to_string(), "plink2".to_string()]
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.phasing"

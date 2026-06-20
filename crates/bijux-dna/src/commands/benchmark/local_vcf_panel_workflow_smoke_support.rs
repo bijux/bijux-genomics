@@ -90,9 +90,8 @@ pub(crate) fn with_governed_vcf_panel_materialization_lock<T>(
 ) -> Result<T> {
     static MATERIALIZATION_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
     let lock = MATERIALIZATION_LOCK.get_or_init(|| Mutex::new(()));
-    let _guard = lock
-        .lock()
-        .map_err(|_| anyhow!("governed VCF panel materialization lock is poisoned"))?;
+    let _guard =
+        lock.lock().map_err(|_| anyhow!("governed VCF panel materialization lock is poisoned"))?;
     action()
 }
 

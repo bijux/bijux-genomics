@@ -1,7 +1,7 @@
 pub(crate) mod active_scope;
+pub(crate) mod adapter_missing_input_audit;
 #[cfg(test)]
 mod adapter_missing_input_contracts;
-pub(crate) mod adapter_missing_input_audit;
 pub(crate) mod all_domain_active_scope_blockers;
 pub(crate) mod all_domain_active_scope_complete;
 pub(crate) mod all_domain_active_stage_catalog;

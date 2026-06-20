@@ -880,8 +880,8 @@ mod tests {
         let output_path = temp_dir.path().join("stage-scoring.toml");
         let relative_output_path =
             output_path.strip_prefix(&repo_root).expect("relative output path").to_path_buf();
-        let report =
-            render_stage_scoring(&repo_root, relative_output_path.clone()).expect("render stage scoring");
+        let report = render_stage_scoring(&repo_root, relative_output_path.clone())
+            .expect("render stage scoring");
 
         assert_eq!(report.config_path, relative_output_path.to_string_lossy());
         assert_eq!(report.row_count, 69);
@@ -903,8 +903,8 @@ mod tests {
         let output_path = temp_dir.path().join("stage-scoring.toml");
         let relative_output_path =
             output_path.strip_prefix(&repo_root).expect("relative output path").to_path_buf();
-        let report = render_stage_scoring(&repo_root, relative_output_path)
-            .expect("render stage scoring");
+        let report =
+            render_stage_scoring(&repo_root, relative_output_path).expect("render stage scoring");
 
         let row = report
             .rows
@@ -933,8 +933,8 @@ mod tests {
         let output_path = temp_dir.path().join("stage-scoring.toml");
         let relative_output_path =
             output_path.strip_prefix(&repo_root).expect("relative output path").to_path_buf();
-        let report = render_stage_scoring(&repo_root, relative_output_path)
-            .expect("render stage scoring");
+        let report =
+            render_stage_scoring(&repo_root, relative_output_path).expect("render stage scoring");
 
         let row = report
             .rows
