@@ -89,8 +89,8 @@ fn bench_readiness_benchmark_readiness_dashboard_tracks_governed_summary_counts(
 
     let corpora = payload.get("corpora").expect("corpus summary");
     assert_eq!(corpora.get("corpus_family_count").and_then(serde_json::Value::as_u64), Some(8));
-    assert_eq!(corpora.get("assigned_stage_count").and_then(serde_json::Value::as_u64), Some(50));
-    assert_eq!(corpora.get("blocked_pair_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(corpora.get("assigned_stage_count").and_then(serde_json::Value::as_u64), Some(51));
+    assert_eq!(corpora.get("blocked_pair_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         corpora
             .get("corpus_family_ids")
