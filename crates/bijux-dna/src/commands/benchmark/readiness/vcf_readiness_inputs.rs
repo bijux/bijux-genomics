@@ -114,15 +114,19 @@ pub(crate) fn materialize_reference_fasta_with_index(
         .file_name()
         .ok_or_else(|| anyhow!("reference FASTA has no file name: {}", source_fasta.display()))?;
     let materialized_fasta = output_root.join(file_name);
-    fs::copy(&source_fasta, &materialized_fasta).with_context(|| {
-        format!(
-            "copy governed reference {} to {}",
-            source_fasta.display(),
-            materialized_fasta.display()
-        )
-    })?;
+    let fasta_payload =
+        fs::read(&source_fasta).with_context(|| format!("read {}", source_fasta.display()))?;
+    bijux_dna_infra::atomic_write_bytes(&materialized_fasta, &fasta_payload).with_context(
+        || {
+            format!(
+                "materialize governed reference {} into {}",
+                source_fasta.display(),
+                materialized_fasta.display()
+            )
+        },
+    )?;
     let fai_path = PathBuf::from(format!("{}.fai", materialized_fasta.display()));
-    let fai_payload = build_fasta_index_payload(&materialized_fasta)?;
+    let fai_payload = build_fasta_index_payload_from_bytes(&fasta_payload, &materialized_fasta)?;
     bijux_dna_infra::atomic_write_bytes(&fai_path, fai_payload.as_bytes())?;
     Ok((
         path_relative_to_repo(repo_root, &materialized_fasta),
@@ -144,6 +148,10 @@ pub(crate) fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 
 fn build_fasta_index_payload(fasta_path: &Path) -> Result<String> {
     let raw = fs::read(fasta_path).with_context(|| format!("read {}", fasta_path.display()))?;
+    build_fasta_index_payload_from_bytes(&raw, fasta_path)
+}
+
+fn build_fasta_index_payload_from_bytes(raw: &[u8], fasta_path: &Path) -> Result<String> {
     let mut rows = Vec::new();
     let mut offset = 0usize;
     let mut current_name: Option<String> = None;
