@@ -4,7 +4,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
 ---
 {
   "domain": "bam",
-  "graph_hash": "b600a661d0d5d90a7d48f1d95939843bb4428e88478f9c70241e80820f9b0784",
+  "graph_hash": "3ef16e193ba7acd4dfc483e18b4c00c0257e9f514873e4c2ac515ade17e7112c",
   "ordered_steps": [
     {
       "advisory": false,
@@ -331,9 +331,21 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "optional": false,
           "path": "<TMPDIR>/<TMP>/out/bam_damage/stage.metrics.json",
           "role": "metrics_json"
+        },
+        {
+          "artifact_id": "damage_profile",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_damage/damage_profile.json",
+          "role": "unknown"
+        },
+        {
+          "artifact_id": "damage_plot",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_damage/damage_plot.json",
+          "role": "unknown"
         }
       ],
-      "cache_key": "a359ef08e3a133261148b68fcc55d083a248c75d0035694036a78566c1d7c721",
+      "cache_key": "043d1542ed52dfd7ccdc83a3f58f93489877a979bc06d9bd808335429433a36f",
       "dependencies": [
         "bam.coverage"
       ],
@@ -421,7 +433,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
     }
   ],
   "pipeline_id": "bam-to-bam__default__v1",
-  "plan_fingerprint": "f6d5e304bea84efbdb41e4542b1aa85c58dc654fd1dd0c98d469f1c7a7f80d2f",
+  "plan_fingerprint": "57ba6b739e6e6e273f26acb81cea7bfeaaf353abcf1145faf41d571aba565330",
   "planner_version": "bijux-dna-planner-bam.v1",
   "policy": "PreferAccuracy",
   "profile_id": "bam-to-bam__default__v1",

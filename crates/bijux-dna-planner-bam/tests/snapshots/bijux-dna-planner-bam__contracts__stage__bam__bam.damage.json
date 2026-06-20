@@ -54,6 +54,18 @@
         "optional": false,
         "path": "out/stage.metrics.json",
         "role": "metrics_json"
+      },
+      {
+        "name": "damage_profile",
+        "optional": false,
+        "path": "out/damage_profile.json",
+        "role": "unknown"
+      },
+      {
+        "name": "damage_plot",
+        "optional": false,
+        "path": "out/damage_plot.json",
+        "role": "unknown"
       }
     ]
   },
@@ -72,7 +84,7 @@
   "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "24c5eb9d5b1e8bc15726472f94fe20c31d57529ae3929f3bb42fffc0baa1f5f8",
+      "contract_hash": "6e426fa449e4f1ea431de685dc60c124c12281d42b1994c46a647e60e6aa7fac",
       "defaults_diff": {},
       "resource_plan": {
         "cpu_threads": 2,

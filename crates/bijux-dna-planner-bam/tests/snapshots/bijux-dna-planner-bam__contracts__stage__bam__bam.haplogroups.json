@@ -52,6 +52,12 @@
         "optional": false,
         "path": "out/stage.metrics.json",
         "role": "metrics_json"
+      },
+      {
+        "name": "haplogroup_report",
+        "optional": false,
+        "path": "out/haplogroup_report.json",
+        "role": "report_json"
       }
     ]
   },
@@ -69,7 +75,7 @@
   "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "63e4908d24fe9e5100542e30aa421212754517c94031411751b165c94082ef78",
+      "contract_hash": "98608fd81ac352c20ddf33b0e94c1a75ae0ee78036aa4700303dc50f8646d3c5",
       "defaults_diff": {},
       "resource_plan": {
         "cpu_threads": 4,
