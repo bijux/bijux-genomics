@@ -205,19 +205,27 @@ fn validate_tool_execution_modes_contract(config: &ToolExecutionModesConfig) -> 
     Ok(())
 }
 
-#[derive(Debug, Clone)]
-struct ModeAssignment {
-    execution_mode: String,
-    expected_install_kind: String,
-    required_runtime_fields: Vec<String>,
-    summary: String,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct ToolExecutionModeAssignment {
+    pub(crate) execution_mode: String,
+    pub(crate) expected_install_kind: String,
+    pub(crate) required_runtime_fields: Vec<String>,
+    pub(crate) summary: String,
+}
+
+pub(crate) fn load_tool_execution_mode_assignments(
+    config_path: &Path,
+) -> Result<BTreeMap<String, ToolExecutionModeAssignment>> {
+    let config = load_tool_execution_modes_config(config_path)?;
+    validate_tool_execution_modes_contract(&config)?;
+    build_mode_assignment_index(&config)
 }
 
 fn build_mode_assignment_index(
     config: &ToolExecutionModesConfig,
-) -> Result<BTreeMap<String, ModeAssignment>> {
+) -> Result<BTreeMap<String, ToolExecutionModeAssignment>> {
     let mut seen_modes = BTreeSet::<String>::new();
-    let mut assignments = BTreeMap::<String, ModeAssignment>::new();
+    let mut assignments = BTreeMap::<String, ToolExecutionModeAssignment>::new();
     for mode in &config.modes {
         validate_mode_definition(mode)?;
         if !seen_modes.insert(mode.execution_mode.clone()) {
@@ -237,7 +245,7 @@ fn build_mode_assignment_index(
             }
             assignments.insert(
                 tool_id.clone(),
-                ModeAssignment {
+                ToolExecutionModeAssignment {
                     execution_mode: mode.execution_mode.clone(),
                     expected_install_kind: mode.expected_install_kind.clone(),
                     required_runtime_fields: mode.required_runtime_fields.clone(),
