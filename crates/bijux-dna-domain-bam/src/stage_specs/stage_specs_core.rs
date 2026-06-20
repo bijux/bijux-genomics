@@ -135,6 +135,10 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
         ],
         BamStage::Contamination => &[
             AuditArtifact { name: "contamination_report", filename: "contamination.json" },
+            AuditArtifact {
+                name: "contamination_estimate",
+                filename: "contamination.estimate.json",
+            },
             AuditArtifact { name: "summary", filename: "contamination.summary.json" },
             AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
@@ -274,6 +278,8 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                     "filtered_bai",
                     "flagstat_before",
                     "flagstat_after",
+                    "idxstats_before",
+                    "idxstats_after",
                     "summary",
                     "stage_metrics",
                 ],
@@ -292,7 +298,16 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
             stage,
             required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
-                required_outputs: &["filtered_bam", "filtered_bai", "summary", "stage_metrics"],
+                required_outputs: &[
+                    "filtered_bam",
+                    "filtered_bai",
+                    "flagstat_before",
+                    "flagstat_after",
+                    "idxstats_before",
+                    "idxstats_after",
+                    "summary",
+                    "stage_metrics",
+                ],
                 required_audit: required_audit_artifacts(stage),
             },
             default_params: BamEffectiveParams::LengthFilter(FilterEffectiveParams {
@@ -429,6 +444,10 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &[
                     "overlap_corrected_bam",
                     "overlap_corrected_bai",
+                    "flagstat_before",
+                    "flagstat_after",
+                    "idxstats_before",
+                    "idxstats_after",
                     "summary",
                     "stage_metrics",
                 ],

@@ -266,14 +266,8 @@ pub mod contamination {
         );
         let report = out_dir.join("contamination.json");
         let summary = out_dir.join("contamination.summary.json");
-        let contamination_estimate = out_dir.join("contamination.estimate.json");
         let contammix_report = out_dir.join("contammix.report.txt");
         let mt_consensus = out_dir.join("mt_consensus.fasta");
-        outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
-            ArtifactId::from_static("contamination_estimate"),
-            contamination_estimate.clone(),
-            ArtifactRole::ReportJson,
-        ));
         match tool.tool_id.as_str() {
             "contammix" => outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
                 ArtifactId::from_static("contammix_report"),

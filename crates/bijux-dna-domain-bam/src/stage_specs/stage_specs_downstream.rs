@@ -49,7 +49,12 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
             stage,
             required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
-                required_outputs: &["contamination_report", "summary", "stage_metrics"],
+                required_outputs: &[
+                    "contamination_report",
+                    "contamination_estimate",
+                    "summary",
+                    "stage_metrics",
+                ],
                 required_audit: super::required_audit_artifacts(stage),
             },
             default_params: BamEffectiveParams::Contamination(ContaminationEffectiveParams {
@@ -117,7 +122,12 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
             stage,
             required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
-                required_outputs: &["haplogroups", "summary", "stage_metrics"],
+                required_outputs: &[
+                    "haplogroups",
+                    "haplogroup_report",
+                    "summary",
+                    "stage_metrics",
+                ],
                 required_audit: super::required_audit_artifacts(stage),
             },
             default_params: BamEffectiveParams::Haplogroups(HaplogroupEffectiveParams {
@@ -132,7 +142,15 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
             stage,
             required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
-                required_outputs: &["genotyping_report", "summary", "stage_metrics"],
+                required_outputs: &[
+                    "genotyping_bcf",
+                    "genotyping_vcf",
+                    "genotyping_vcf_tbi",
+                    "genotyping_gl",
+                    "genotyping_report",
+                    "summary",
+                    "stage_metrics",
+                ],
                 required_audit: super::required_audit_artifacts(stage),
             },
             default_params: BamEffectiveParams::Genotyping(GenotypingEffectiveParams {

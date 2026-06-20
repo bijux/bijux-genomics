@@ -138,30 +138,26 @@ pub mod genotyping {
         let vcf_gz = out_dir.join("genotyping.vcf.gz");
         let tbi = out_dir.join("genotyping.vcf.gz.tbi");
         let gl_json = out_dir.join("genotyping.gl.json");
-        let emit_bcf_contract =
-            context.reference.is_some() || context.sites.is_some() || context.regions.is_some();
-        if emit_bcf_contract {
-            outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
-                ArtifactId::from_static("genotyping_bcf"),
-                bcf.clone(),
-                ArtifactRole::Variant,
-            ));
-            outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
-                ArtifactId::from_static("genotyping_vcf"),
-                vcf_gz.clone(),
-                ArtifactRole::Variant,
-            ));
-            outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
-                ArtifactId::from_static("genotyping_vcf_tbi"),
-                tbi.clone(),
-                ArtifactRole::Index,
-            ));
-            outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
-                ArtifactId::from_static("genotyping_gl"),
-                gl_json.clone(),
-                ArtifactRole::ReportJson,
-            ));
-        }
+        outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("genotyping_bcf"),
+            bcf.clone(),
+            ArtifactRole::Variant,
+        ));
+        outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("genotyping_vcf"),
+            vcf_gz.clone(),
+            ArtifactRole::Variant,
+        ));
+        outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("genotyping_vcf_tbi"),
+            tbi.clone(),
+            ArtifactRole::Index,
+        ));
+        outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("genotyping_gl"),
+            gl_json.clone(),
+            ArtifactRole::ReportJson,
+        ));
         let report = out_dir.join("genotyping.json");
         let summary = out_dir.join("genotyping.summary.json");
         let mut inputs = vec![bijux_dna_stage_contract::ArtifactRef::required(
@@ -217,7 +213,7 @@ pub mod genotyping {
                     crate::tool_adapters::tools::genotyping::GenotypingOutputs {
                         report: &report,
                         summary: &summary,
-                        bcf: emit_bcf_contract.then_some(bcf.as_path()),
+                        bcf: Some(bcf.as_path()),
                         vcf_gz: &vcf_gz,
                         tbi: &tbi,
                         gl_json: &gl_json,
@@ -238,7 +234,7 @@ pub mod genotyping {
                 "min_posterior": params.min_posterior,
                 "min_call_rate": params.min_call_rate,
                 "producer_contract": {
-                    "bcf": emit_bcf_contract.then_some(&bcf),
+                    "bcf": &bcf,
                     "vcf": vcf_gz,
                     "tbi": tbi,
                     "gl": gl_json,
@@ -387,20 +383,10 @@ pub mod bias_mitigation {
         out_dir: &Path,
         params: &BiasMitigationEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
-        let mut outputs = crate::tool_adapters::stages_support::audit_outputs(
+        let outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::BiasMitigation,
             out_dir,
         );
-        outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
-            ArtifactId::from_static("damage_profile"),
-            out_dir.join("damage_profile.json"),
-            ArtifactRole::ReportJson,
-        ));
-        outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
-            ArtifactId::from_static("damage_plot"),
-            out_dir.join("damage_plot.json"),
-            ArtifactRole::ReportJson,
-        ));
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_instance_id: None,
@@ -439,7 +425,7 @@ pub mod bias_mitigation {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &["bias_report", "summary", "stage_metrics", "damage_profile", "damage_plot"],
+            &["bias_report", "summary", "stage_metrics"],
         )
     }
 }
