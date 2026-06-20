@@ -234,6 +234,7 @@ fn mutate_fastq_local_ready_config(
         missing_path_for_role(probe_root, probe, "input_r1"),
         probe.missing_input_role == "input_r1",
     )?;
+    rewrite_optional_path_field(table, "input_r2", repo_root)?;
 
     match probe.stage_id {
         "fastq.deplete_host" | "fastq.deplete_reference_contaminants" => {
@@ -516,6 +517,19 @@ fn rewrite_path_field(
         .ok_or_else(|| anyhow!("probe config missing string field `{key}`"))?;
     let path =
         if use_missing_path { missing_path } else { absolute_config_path(repo_root, original) };
+    set_string(table, key, path.display().to_string());
+    Ok(())
+}
+
+fn rewrite_optional_path_field(
+    table: &mut toml::map::Map<String, Value>,
+    key: &str,
+    repo_root: &Path,
+) -> Result<()> {
+    let Some(original) = table.get(key).and_then(Value::as_str) else {
+        return Ok(());
+    };
+    let path = absolute_config_path(repo_root, original);
     set_string(table, key, path.display().to_string());
     Ok(())
 }
