@@ -349,6 +349,19 @@ bench-fastq-tool-scores-dry-run: ## Render then validate the governed FASTQ tool
 	@$(MAKE) bench-fastq-tool-scores-render
 	@$(MAKE) bench-fastq-tool-scores-validate
 
+bench-bam-tool-scores-render: ## Render the governed BAM tool score table under runs/bench/micro/bam/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-bam-tool-scores-render
+
+bench-bam-tool-scores-validate: ## Validate the governed BAM tool score table against current evidence contracts.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-bam-tool-scores-validate
+
+bench-bam-tool-scores-dry-run: ## Render then validate the governed BAM tool score table.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-bam-tool-scores-render
+	@$(MAKE) bench-bam-tool-scores-validate
+
 bench-hpc-asset-staging-render: ## Render the governed HPC asset staging manifest under runs/bench/hpc-dry-run/.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-asset-staging-render
@@ -656,7 +669,7 @@ refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/gol
 		_test-fast \
 		_clippy _clippy-executors _lint _lint-rustfmt _lint-configs _lint-docs _lint-automation _lint-clippy _lint-clippy-executors \
 		realness-gate \
-		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness bench-active-fast bench-parser-fast bench-adapter-fast bench-stage-scoring-render bench-stage-scoring-validate bench-stage-scoring-dry-run bench-fastq-tool-scores-render bench-fastq-tool-scores-validate bench-fastq-tool-scores-dry-run bench-hpc-asset-staging-render bench-hpc-asset-staging-validate bench-hpc-asset-staging-dry-run bench-hpc-candidate-run-manifest-render bench-hpc-candidate-run-manifest-validate bench-hpc-candidate-run-manifest-dry-run bench-hpc-scratch-layout-render bench-hpc-scratch-layout-validate bench-hpc-scratch-layout-dry-run bench-hpc-execution-resolver-render bench-hpc-execution-resolver-validate bench-hpc-execution-resolver-dry-run bench-hpc-dependency-simulation-render bench-hpc-dependency-simulation-validate bench-hpc-dependency-simulation-dry-run bench-hpc-resume-simulation-render bench-hpc-resume-simulation-validate bench-hpc-resume-simulation-dry-run bench-hpc-result-collection-simulation-render bench-hpc-result-collection-simulation-validate bench-hpc-result-collection-simulation-dry-run bench-hpc-stage-benchmark-array-render bench-hpc-stage-benchmark-array-validate bench-hpc-stage-benchmark-array-dry-run bench-hpc-pipeline-node-array-render bench-hpc-pipeline-node-array-validate bench-hpc-pipeline-node-array-dry-run science-fixtures-fast _ci-fast _ci-slow _ci-profile-fast _ci-profile-slow _quick _install-ci-tools release-gate \
+		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness bench-active-fast bench-parser-fast bench-adapter-fast bench-stage-scoring-render bench-stage-scoring-validate bench-stage-scoring-dry-run bench-fastq-tool-scores-render bench-fastq-tool-scores-validate bench-fastq-tool-scores-dry-run bench-bam-tool-scores-render bench-bam-tool-scores-validate bench-bam-tool-scores-dry-run bench-hpc-asset-staging-render bench-hpc-asset-staging-validate bench-hpc-asset-staging-dry-run bench-hpc-candidate-run-manifest-render bench-hpc-candidate-run-manifest-validate bench-hpc-candidate-run-manifest-dry-run bench-hpc-scratch-layout-render bench-hpc-scratch-layout-validate bench-hpc-scratch-layout-dry-run bench-hpc-execution-resolver-render bench-hpc-execution-resolver-validate bench-hpc-execution-resolver-dry-run bench-hpc-dependency-simulation-render bench-hpc-dependency-simulation-validate bench-hpc-dependency-simulation-dry-run bench-hpc-resume-simulation-render bench-hpc-resume-simulation-validate bench-hpc-resume-simulation-dry-run bench-hpc-result-collection-simulation-render bench-hpc-result-collection-simulation-validate bench-hpc-result-collection-simulation-dry-run bench-hpc-stage-benchmark-array-render bench-hpc-stage-benchmark-array-validate bench-hpc-stage-benchmark-array-dry-run bench-hpc-pipeline-node-array-render bench-hpc-pipeline-node-array-validate bench-hpc-pipeline-node-array-dry-run science-fixtures-fast _ci-fast _ci-slow _ci-profile-fast _ci-profile-slow _quick _install-ci-tools release-gate \
 		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _control-plane-inventory _config-inventory _smoke-fastq _smoke-bam local-certification-gate _test-slow _policy-index _policy-only-fast-gate gate-essential gate-execute gate-evidence gate-compatibility gate-release-essential \
 		certify-fastq certify-bam certify-vcf certify-all \
 		refresh-assets-toy refresh-assets-golden flake-hunt
