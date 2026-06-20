@@ -48,9 +48,9 @@ fn bench_readiness_all_domain_local_operational_benchmark_complete_writes_gate_f
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(payload.get("blocker_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(140));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(141));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(140)
+        Some(141)
     );
 }

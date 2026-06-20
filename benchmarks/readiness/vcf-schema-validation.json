@@ -7,7 +7,7 @@
   "passes_gate": true,
   "shared_schema_matches": true,
   "stage_count": 20,
-  "required_stage_count": 17,
+  "required_stage_count": 18,
   "exact_stage_schema_file_count": 20,
   "missing_stage_schema_files": [],
   "unexpected_stage_schema_files": [],

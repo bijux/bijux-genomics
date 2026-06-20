@@ -191,7 +191,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 report.decision_counts.get("future_not_benchmark_ready").copied().unwrap_or(0);
             let limit_to_specialized_tool =
                 report.decision_counts.get("limit_to_specialized_tool").copied().unwrap_or(0);
-            if future_not_benchmark_ready != 9 || limit_to_specialized_tool != 1 {
+            if future_not_benchmark_ready != 8 || limit_to_specialized_tool != 2 {
                 bail!(
                     "VCF undercovered-stage decisions drifted: future_not_benchmark_ready={future_not_benchmark_ready}, limit_to_specialized_tool={limit_to_specialized_tool}"
                 );

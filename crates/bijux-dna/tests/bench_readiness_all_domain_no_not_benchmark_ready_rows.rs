@@ -59,10 +59,10 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
     assert_eq!(executable_active_row_count, active_row_count + removed_row_count);
     assert_eq!(
         payload.get("executable_active_row_count").and_then(serde_json::Value::as_u64),
-        Some(140)
+        Some(141)
     );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(140));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(68));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(141));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(removed_row_count, 0);
     assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(0));

@@ -209,9 +209,23 @@ pub fn vcf_normalize_headers(input: &Path, output: &Path) -> Result<()> {
 /// # Errors
 /// Returns an error if bgzip/tabix indexing fails.
 pub fn vcf_index_bgzip_tabix(input_vcf: &Path, output_vcfgz: &Path) -> Result<PathBuf> {
+    let parent = output_vcfgz
+        .parent()
+        .ok_or_else(|| anyhow!("vcf_index_bgzip_tabix: output has no parent: {}", output_vcfgz.display()))?;
+    std::fs::create_dir_all(parent)
+        .with_context(|| format!("create {}", parent.display()))?;
+    let nonce = format!(
+        "{}-{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .context("read system clock for bgzip temp path")?
+            .as_nanos()
+    );
     let output_tbi = PathBuf::from(format!("{}.tbi", output_vcfgz.display()));
-    let tmp_vcfgz = PathBuf::from(format!("{}.tmp", output_vcfgz.display()));
-    let tmp_plain_vcf = PathBuf::from(format!("{}.bgzip.tmp.vcf", output_vcfgz.display()));
+    let tmp_vcfgz = PathBuf::from(format!("{}.{}.tmp", output_vcfgz.display(), nonce));
+    let tmp_plain_vcf =
+        PathBuf::from(format!("{}.{}.bgzip.tmp.vcf", output_vcfgz.display(), nonce));
     std::fs::copy(input_vcf, &tmp_plain_vcf)
         .with_context(|| format!("copy {} -> {}", input_vcf.display(), tmp_plain_vcf.display()))?;
     let tmp_plain_vcf_s =

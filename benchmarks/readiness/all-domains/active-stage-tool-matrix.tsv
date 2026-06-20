@@ -138,4 +138,5 @@ vcf	vcf.prepare_reference_panel	bcftools	vcf_production_regression	vcf_reference
 vcf	vcf.qc	bcftools	vcf_production_regression	vcf_cohort	vcf.adapter.quality_control	vcf.parser.qc_report	bijux.schemas.bench.vcf-normalized-metrics.qc.v1	benchmark_ready
 vcf	vcf.qc	plink	vcf_production_regression	vcf_cohort	vcf.adapter.quality_control	vcf.parser.qc_report	bijux.schemas.bench.vcf-normalized-metrics.qc.v1	benchmark_ready
 vcf	vcf.qc	plink2	vcf_production_regression	vcf_cohort	vcf.adapter.quality_control	vcf.parser.qc_report	bijux.schemas.bench.vcf-normalized-metrics.qc.v1	benchmark_ready
+vcf	vcf.roh	plink2	vcf_production_regression	vcf_cohort	vcf.adapter.roh	vcf.parser.report_json	bijux.schemas.bench.vcf-normalized-metrics.roh.v1	benchmark_ready
 vcf	vcf.stats	bcftools	vcf_production_regression	vcf_cohort	vcf.adapter.quality_control	vcf.parser.stats_report	bijux.schemas.bench.vcf-normalized-metrics.stats.v1	benchmark_ready

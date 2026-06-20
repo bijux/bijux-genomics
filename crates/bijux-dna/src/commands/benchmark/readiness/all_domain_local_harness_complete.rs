@@ -223,7 +223,7 @@ pub(crate) fn render_all_domain_local_harness_complete(
                 .context("goal 279 stage tool table report is required")?;
             if report.row_count != benchmark_ready_binding_count
                 || report.result_id_count != benchmark_ready_binding_count
-                || report.stage_count != 68
+                || report.stage_count != 69
                 || report.tool_count != 71
                 || report.corpus_count != 10
                 || report.asset_profile_count != 14
@@ -410,7 +410,7 @@ pub(crate) fn render_all_domain_local_harness_complete(
                 || report.real_smoke_row_count != 4
                 || report.domain_counts.get("fastq").copied() != Some(72)
                 || report.domain_counts.get("bam").copied() != Some(50)
-                || report.domain_counts.get("vcf").copied() != Some(22)
+                || report.domain_counts.get("vcf").copied() != Some(23)
             {
                 bail!(
                     "all-domain parser collector drifted from the governed fake-run and smoke set"

@@ -313,7 +313,7 @@ fn ensure_vcf_undercovered_stage_contract(rows: &[VcfUndercoveredStageRow]) -> R
             &["phasing"][..],
             &["shapeit5"][..],
             &["beagle", "eagle", "shapeit"][..],
-            "future_not_benchmark_ready",
+            "limit_to_specialized_tool",
         ),
         (
             "vcf.population_structure",
@@ -443,7 +443,7 @@ mod tests {
                 && row.registered_tools == vec!["shapeit5".to_string()]
                 && row.missing_tools
                     == vec!["beagle".to_string(), "eagle".to_string(), "shapeit".to_string()]
-                && row.decision == "future_not_benchmark_ready"
+                && row.decision == "limit_to_specialized_tool"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.admixture"

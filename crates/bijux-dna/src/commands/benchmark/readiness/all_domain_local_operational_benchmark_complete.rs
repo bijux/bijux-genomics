@@ -473,8 +473,8 @@ mod tests {
         );
         assert_eq!(report.checked_surface_count, 3);
         assert_eq!(report.failed_surface_count, 0);
-        assert_eq!(report.active_row_count, 140);
-        assert_eq!(report.benchmark_ready_row_count, 140);
+        assert_eq!(report.active_row_count, 141);
+        assert_eq!(report.benchmark_ready_row_count, 141);
         assert_eq!(report.blocker_count, 0);
     }
 }

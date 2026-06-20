@@ -4,8 +4,8 @@
   "checked_surface_count": 3,
   "passed_surface_count": 3,
   "failed_surface_count": 0,
-  "active_row_count": 140,
-  "benchmark_ready_row_count": 140,
+  "active_row_count": 141,
+  "benchmark_ready_row_count": 141,
   "blocker_count": 0,
   "ok": true,
   "checks": [
@@ -26,7 +26,7 @@
         "benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json"
       ],
       "ok": true,
-      "detail": "active_row_count=140, failed_surface_count=0"
+      "detail": "active_row_count=141, failed_surface_count=0"
     },
     {
       "surface_id": "operational_benchmark_ready",
@@ -35,7 +35,7 @@
         "benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json"
       ],
       "ok": true,
-      "detail": "benchmark_ready_row_count=140, blocker_count=0, active_row_count=140"
+      "detail": "benchmark_ready_row_count=141, blocker_count=0, active_row_count=141"
     }
   ],
   "blockers": []

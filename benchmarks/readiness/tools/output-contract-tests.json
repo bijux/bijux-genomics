@@ -1,18 +1,18 @@
 {
   "schema_version": "bijux.bench.readiness.output_contract_tests.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
-  "row_count": 140,
-  "passed_row_count": 140,
+  "row_count": 141,
+  "passed_row_count": 141,
   "failed_row_count": 0,
   "domain_counts": {
     "bam": 49,
     "fastq": 71,
-    "vcf": 20
+    "vcf": 21
   },
   "output_proof_surface_counts": {
-    "direct_declared_output_proof": 5,
-    "direct_tool_smoke": 20,
-    "shared_stage_smoke": 115
+    "direct_declared_output_proof": 8,
+    "direct_tool_smoke": 21,
+    "shared_stage_smoke": 112
   },
   "failed_stage_ids": [],
   "failed_tool_ids": [],
@@ -2655,8 +2655,8 @@
       "tool_id": "angsd",
       "corpus_id": "corpus-01-adna-bam-mini",
       "asset_profile_id": "reference_fasta",
-      "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/angsd/sex.json",
+      "output_proof_surface": "direct_declared_output_proof",
+      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd (result ids: bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd)",
       "proof_tool_id": "angsd",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/angsd/stage-result.json",
@@ -2679,10 +2679,10 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/angsd/population_metrics.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/angsd/sex.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/angsd/sex.summary.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/angsd/stage.metrics.json"
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd/population_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd/sex_report/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd/stage_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/angsd/summary/proof.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -2703,7 +2703,7 @@
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": true,
-      "reason": "binding `bam.sex` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
+      "reason": "binding `bam.sex` / `angsd` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:rxy",
@@ -2712,8 +2712,8 @@
       "tool_id": "rxy",
       "corpus_id": "corpus-01-adna-bam-mini",
       "asset_profile_id": "reference_fasta",
-      "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.json",
+      "output_proof_surface": "direct_declared_output_proof",
+      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/rxy (result ids: bam:corpus-01-adna-bam-mini:bam.sex:sample-set:rxy)",
       "proof_tool_id": "rxy",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/rxy/stage-result.json",
@@ -2736,10 +2736,10 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.summary.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex_estimate.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/stage.metrics.json"
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/rxy/sex_estimate/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/rxy/sex_report/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/rxy/stage_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/rxy/summary/proof.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -2760,7 +2760,7 @@
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": true,
-      "reason": "binding `bam.sex` / `rxy` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
+      "reason": "binding `bam.sex` / `rxy` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:yleaf",
@@ -2769,8 +2769,8 @@
       "tool_id": "yleaf",
       "corpus_id": "corpus-01-adna-bam-mini",
       "asset_profile_id": "reference_fasta",
-      "output_proof_surface": "shared_stage_smoke",
-      "output_proof_path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/yleaf/sex.json",
+      "output_proof_surface": "direct_declared_output_proof",
+      "output_proof_path": "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/yleaf (result ids: bam:corpus-01-adna-bam-mini:bam.sex:sample-set:yleaf)",
       "proof_tool_id": "yleaf",
       "runtime_path_proof_surface": "expected_benchmark_result_paths",
       "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/sample-set/yleaf/stage-result.json",
@@ -2793,10 +2793,10 @@
       "declared_index_output_ids": [],
       "observed_index_output_ids": [],
       "observed_output_paths": [
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/yleaf/haplogroup_report.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/yleaf/sex.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/yleaf/sex.summary.json",
-        "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/yleaf/stage.metrics.json"
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/yleaf/haplogroup_report/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/yleaf/sex_report/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/yleaf/stage_metrics/proof.json",
+        "runs/bench/readiness-probes/tools/output-contract-tests/bam.sex/yleaf/summary/proof.json"
       ],
       "stage_undeclared_output_ids": [],
       "declared_logs": [
@@ -2817,7 +2817,7 @@
       "no_undeclared_outputs": true,
       "independent_execution_proven": true,
       "passed": true,
-      "reason": "binding `bam.sex` / `yleaf` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `shared_stage_smoke` plus `expected_benchmark_result_paths`"
+      "reason": "binding `bam.sex` / `yleaf` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_declared_output_proof` plus `expected_benchmark_result_paths`"
     },
     {
       "result_id": "bam:corpus-01-bam-mini:bam.validate:sample-set:bamtools",
@@ -8149,6 +8149,60 @@
       "independent_execution_proven": true,
       "passed": true,
       "reason": "binding `vcf.qc` / `plink2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.roh",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "output_proof_surface": "direct_tool_smoke",
+      "output_proof_path": "runs/bench/local-smoke/vcf.roh/plink2/stage-result.json",
+      "proof_tool_id": "plink2",
+      "runtime_path_proof_surface": "declared_vcf_result_paths",
+      "runtime_path_proof_path": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stage-result.json",
+      "declared_raw_output_ids": [
+        "roh_hom",
+        "logs_txt"
+      ],
+      "observed_raw_output_ids": [
+        "roh_hom",
+        "logs_txt"
+      ],
+      "declared_normalized_metric_ids": [
+        "roh_report"
+      ],
+      "observed_normalized_metric_ids": [
+        "roh_report"
+      ],
+      "declared_index_output_ids": [],
+      "observed_index_output_ids": [],
+      "observed_output_paths": [
+        "runs/bench/local-smoke/vcf.roh/plink2/source_logs.txt",
+        "runs/bench/local-smoke/vcf.roh/plink2/source_roh.json",
+        "runs/bench/local-smoke/vcf.roh/plink2/source_roh_segments.tsv"
+      ],
+      "stage_undeclared_output_ids": [],
+      "declared_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stderr.log"
+      ],
+      "observed_logs": [
+        "stdout=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stdout.log",
+        "stderr=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stderr.log"
+      ],
+      "declared_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stage-result.json",
+      "observed_manifest": "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stage-result.json",
+      "raw_outputs_matched": true,
+      "normalized_metrics_matched": true,
+      "index_outputs_matched": true,
+      "logs_matched": true,
+      "manifest_matched": true,
+      "no_undeclared_outputs": true,
+      "independent_execution_proven": true,
+      "passed": true,
+      "reason": "binding `vcf.roh` / `plink2` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `direct_tool_smoke` plus `declared_vcf_result_paths`"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",

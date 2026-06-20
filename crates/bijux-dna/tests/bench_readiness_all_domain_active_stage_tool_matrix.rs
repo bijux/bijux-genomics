@@ -51,13 +51,13 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
         Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(68));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(71));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(21));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let status_counts = support::json_object(&payload, "status_counts");
@@ -157,6 +157,14 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
                 == Some("vcf.parser.report_json")
             && row.get("schema_id").and_then(serde_json::Value::as_str)
                 == Some("bijux.schemas.bench.vcf-normalized-metrics.population-structure.v1")
+            && row.get("status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.roh")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
+            && row.get("asset_profile_id").and_then(serde_json::Value::as_str)
+                == Some("vcf_cohort")
             && row.get("status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
     }));
 

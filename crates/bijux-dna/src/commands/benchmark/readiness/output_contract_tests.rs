@@ -364,6 +364,18 @@ fn collect_fastq_bam_stage_proofs(
                 .get(tool_key)
                 .expect("declared fastq/bam ids exist for collected proof");
             let declared_ids = &declared_bundle.declared_ids;
+            if supports_direct_declared_output_proof(&tool_key.stage_id) {
+                proofs.insert(
+                    tool_key.clone(),
+                    collect_direct_declared_output_proof(
+                        repo_root,
+                        &tool_key.stage_id,
+                        &tool_key.tool_id,
+                        declared_bundle,
+                    )?,
+                );
+                continue;
+            }
             if let Some(tool_plans) = plans_by_tool.get(&tool_key.tool_id) {
                 proofs.insert(
                     tool_key.clone(),
@@ -438,7 +450,10 @@ fn collect_fastq_bam_stage_proofs(
 }
 
 fn supports_direct_declared_output_proof(stage_id: &str) -> bool {
-    matches!(stage_id, "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship")
+    matches!(
+        stage_id,
+        "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship" | "bam.sex"
+    )
 }
 
 fn local_stage_output_contract_proof_plans(
@@ -1031,7 +1046,7 @@ mod tests {
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.output_contract_tests.v1");
         assert_eq!(report.output_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH);
-        assert_eq!(report.row_count, 140);
+        assert_eq!(report.row_count, 141);
         assert!(report.passed_row_count > 0, "report should keep real passing rows");
         assert!(
             report.output_proof_surface_counts.contains_key("shared_stage_smoke"),

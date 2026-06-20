@@ -47,8 +47,8 @@ fn bench_readiness_output_contract_tests_report_governs_all_retained_bindings() 
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/tools/output-contract-tests.json")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(140));
-    assert_eq!(payload.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(140));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(141));
+    assert_eq!(payload.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(141));
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let proof_surface_counts = payload
@@ -57,21 +57,21 @@ fn bench_readiness_output_contract_tests_report_governs_all_retained_bindings() 
         .expect("proof surface counts");
     assert_eq!(
         proof_surface_counts.get("shared_stage_smoke").and_then(serde_json::Value::as_u64),
-        Some(115)
+        Some(112)
     );
     assert_eq!(
         proof_surface_counts.get("direct_tool_smoke").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(21)
     );
     assert_eq!(
         proof_surface_counts
             .get("direct_declared_output_proof")
             .and_then(serde_json::Value::as_u64),
-        Some(5)
+        Some(8)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 140);
+    assert_eq!(rows.len(), 141);
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -104,6 +104,14 @@ fn bench_readiness_output_contract_tests_report_governs_all_retained_bindings() 
                 == Some("direct_tool_smoke")
             && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
     }));
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.roh")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
+            && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
+                == Some("direct_tool_smoke")
+            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+    }));
 }
 
 #[test]
@@ -131,7 +139,7 @@ fn bench_readiness_output_contract_tests_write_governed_json_file() {
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.output_contract_tests.v1")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(140));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(141));
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");

@@ -53,7 +53,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     assert_eq!(support::json_u64(&payload, "result_id_count"), Some(row_count));
-    assert_eq!(support::json_u64(&payload, "stage_count"), Some(68));
+    assert_eq!(support::json_u64(&payload, "stage_count"), Some(69));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(14));
@@ -61,7 +61,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(21));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let section_counts = support::json_object(&payload, "report_section_counts");
@@ -71,6 +71,12 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     assert_eq!(
         section_counts.get("population_structure").and_then(serde_json::Value::as_u64),
         Some(4)
+    );
+    assert_eq!(
+        section_counts
+            .get("runs_of_homozygosity")
+            .and_then(serde_json::Value::as_u64),
+        Some(1)
     );
 
     let rows = support::json_array(&payload, "rows");
@@ -238,6 +244,18 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     assert_eq!(
         vcf_pca.get("report_section").and_then(serde_json::Value::as_str),
         Some("population_structure")
+    );
+
+    let vcf_roh = rows
+        .iter()
+        .find(|row| {
+            row.get("result_id").and_then(serde_json::Value::as_str)
+                == Some("vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2")
+        })
+        .expect("VCF roh result row");
+    assert_eq!(
+        vcf_roh.get("report_section").and_then(serde_json::Value::as_str),
+        Some("runs_of_homozygosity")
     );
     let population_structure = rows
         .iter()
