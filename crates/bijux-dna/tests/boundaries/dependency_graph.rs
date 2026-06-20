@@ -34,8 +34,15 @@ const NORMAL_DEPS: &[&str] = &[
     "tracing",
 ];
 
-const DEV_DEPS: &[&str] =
-    &["bijux-dna-policies", "bijux-dna-testkit", "filetime", "insta", "predicates", "tempfile"];
+const DEV_DEPS: &[&str] = &[
+    "bijux-dna-policies",
+    "bijux-dna-testkit",
+    "filetime",
+    "insta",
+    "predicates",
+    "tempfile",
+    "walkdir",
+];
 
 #[test]
 fn normal_dependency_graph_stays_cli_facing() {
