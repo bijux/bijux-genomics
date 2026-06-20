@@ -207,7 +207,7 @@ fn build_vcf_imputation_metrics_ready_report(
 
     let report = VcfImputationMetricsReadyReport {
         schema_version: VCF_IMPUTATION_METRICS_READY_SCHEMA_VERSION,
-        output_path: path_relative_to_repo(repo_root, output_path),
+        output_path: display_output_path(repo_root, output_path),
         retained_row_count: rows.len(),
         active_row_count,
         complete_row_count,
@@ -576,6 +576,15 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
+}
+
+fn display_output_path(repo_root: &Path, output_path: &Path) -> String {
+    let normalized = output_path.to_string_lossy().replace('\\', "/");
+    if normalized.ends_with(DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH) {
+        DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH.to_string()
+    } else {
+        path_relative_to_repo(repo_root, output_path)
+    }
 }
 
 #[cfg(test)]

@@ -196,13 +196,16 @@ pub(crate) fn render_vcf_parser_failure_tests(
 }
 
 fn collect_vcf_parser_failure_rows(repo_root: &Path) -> Result<Vec<VcfParserFailureTestRow>> {
-    let scratch_root = repo_root.join("artifacts/bench-readiness/vcf-parser-failure-tests");
-    fs::create_dir_all(&scratch_root)
-        .with_context(|| format!("create {}", scratch_root.display()))?;
+    let published_root = repo_root.join("artifacts/bench-readiness/vcf-parser-failure-tests");
+    let working_root_parent = published_root.join("runs");
+    fs::create_dir_all(&working_root_parent)
+        .with_context(|| format!("create {}", working_root_parent.display()))?;
+    let working_root = bijux_dna_infra::temp_dir_in(&working_root_parent, "run-")
+        .with_context(|| format!("create scratch root under {}", working_root_parent.display()))?;
 
     let mut rows = VCF_PARSER_FAILURE_CASES
         .iter()
-        .map(|case| evaluate_case(repo_root, &scratch_root, case))
+        .map(|case| evaluate_case(repo_root, working_root.path(), &published_root, case))
         .collect::<Result<Vec<_>>>()?;
     rows.sort_by(|left, right| {
         left.stage_id
@@ -216,22 +219,27 @@ fn collect_vcf_parser_failure_rows(repo_root: &Path) -> Result<Vec<VcfParserFail
 
 fn evaluate_case(
     repo_root: &Path,
-    scratch_root: &Path,
+    working_root: &Path,
+    published_root: &Path,
     case: &VcfParserFailureCase,
 ) -> Result<VcfParserFailureTestRow> {
     let fixture_source = repo_root.join(case.fixture_dir);
-    let case_root = scratch_root.join(case.case_id);
-    if case_root.exists() {
-        fs::remove_dir_all(&case_root)
-            .with_context(|| format!("remove {}", case_root.display()))?;
-    }
-    let probe_root = case_root.join("fixture");
-    copy_fixture_dir(&fixture_source, &probe_root)?;
-    let probe_artifact_path = materialize_failure_probe(&probe_root, case)?;
-    let observed = parse_case(case, &probe_root);
+    let working_probe_root = working_root.join(case.case_id).join("fixture");
+    copy_fixture_dir(&fixture_source, &working_probe_root)?;
+    materialize_failure_probe(&working_probe_root, case)?;
+    let published_probe_root = published_root.join(case.case_id).join("fixture");
+    copy_fixture_dir(&working_probe_root, &published_probe_root)?;
+    let published_probe_artifact_path = published_probe_root.join(case.probe_artifact);
+    let observed = parse_case(case, &working_probe_root);
     let observed_error = match observed {
-        Ok(()) => format!("parser unexpectedly accepted {}", probe_artifact_path.display()),
-        Err(error) => error.to_string(),
+        Ok(()) => {
+            format!("parser unexpectedly accepted {}", published_probe_artifact_path.display())
+        }
+        Err(error) => normalize_probe_error_path(
+            &error.to_string(),
+            &working_probe_root,
+            &published_probe_root,
+        ),
     };
     let passed = observed_error.contains(case.expected_error_fragment)
         && !observed_error.starts_with("parser unexpectedly accepted");
@@ -243,7 +251,7 @@ fn evaluate_case(
         parser_id: case.parser_id.to_string(),
         failure_reason: failure_reason_label(case.failure_reason).to_string(),
         fixture_path: path_relative_to_repo(repo_root, &fixture_source),
-        probe_artifact_path: path_relative_to_repo(repo_root, &probe_artifact_path),
+        probe_artifact_path: path_relative_to_repo(repo_root, &published_probe_artifact_path),
         expected_error_fragment: case.expected_error_fragment.to_string(),
         observed_error,
         passed,
@@ -366,6 +374,12 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
+}
+
+fn normalize_probe_error_path(message: &str, working_root: &Path, published_root: &Path) -> String {
+    let working_root = working_root.to_string_lossy();
+    let published_root = published_root.to_string_lossy();
+    message.replace(working_root.as_ref(), published_root.as_ref())
 }
 
 #[cfg(test)]
