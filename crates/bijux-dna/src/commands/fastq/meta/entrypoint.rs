@@ -1328,6 +1328,16 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateHpcDryRunReady(args) => {
+                        crate::commands::benchmark::local_hpc_dry_run_ready::run_validate_hpc_dry_run_ready(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcDryRunReady(args) => {
+                        crate::commands::benchmark::local_hpc_dry_run_ready::run_render_hpc_dry_run_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::ValidateHpcScratchLayout(args) => {
                         crate::commands::benchmark::local_hpc_scratch_layout::run_validate_hpc_scratch_layout(
                             args,

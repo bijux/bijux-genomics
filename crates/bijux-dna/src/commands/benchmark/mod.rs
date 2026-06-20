@@ -57,6 +57,7 @@ pub(crate) mod local_hpc_array_support;
 pub(crate) mod local_hpc_asset_staging_manifest;
 pub(crate) mod local_hpc_candidate_run_manifest;
 pub(crate) mod local_hpc_dependency_simulation;
+pub(crate) mod local_hpc_dry_run_ready;
 pub(crate) mod local_hpc_execution_resolver;
 pub(crate) mod local_hpc_input_discovery;
 pub(crate) mod local_hpc_job_completion;
