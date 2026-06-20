@@ -50,7 +50,7 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
         payload.get("fixture_backed_stage_count").and_then(serde_json::Value::as_u64),
-        Some(49)
+        Some(50)
     );
     assert_eq!(
         payload.get("asset_backed_stage_count").and_then(serde_json::Value::as_u64),
@@ -58,13 +58,13 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
     );
     assert_eq!(
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(0)
     );
     let corpus_family_counts = payload
         .get("corpus_family_counts")
         .and_then(serde_json::Value::as_object)
         .expect("family counts");
-    assert_eq!(corpus_family_counts.get("corpus-01"), Some(&serde_json::json!(20)));
+    assert_eq!(corpus_family_counts.get("corpus-01"), Some(&serde_json::json!(21)));
     assert_eq!(corpus_family_counts.get("corpus-01-bam"), Some(&serde_json::json!(16)));
     assert_eq!(corpus_family_counts.get("corpus-01-adna-bam"), Some(&serde_json::json!(5)));
     assert_eq!(corpus_family_counts.get("corpus-01-genotyping"), Some(&serde_json::json!(1)));
@@ -443,9 +443,10 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
         stages.iter().any(|stage| {
             stage.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc")
                 && stage.get("compatibility_kind").and_then(serde_json::Value::as_str)
-                    == Some("planner_only")
-                && stage.get("fixture_id").is_some_and(serde_json::Value::is_null)
+                    == Some("fixture")
+                && stage.get("fixture_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-01-mini")
         }),
-        "report_qc must stay explicit about its planner-only corpus gap"
+        "report_qc must stay explicit about its governed general FASTQ fixture ownership"
     );
 }
