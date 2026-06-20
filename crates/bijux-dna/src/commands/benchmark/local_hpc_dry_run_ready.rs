@@ -258,13 +258,11 @@ fn build_hpc_dry_run_ready(
             pipeline_node_report.as_ref().ok(),
             dependency_report.as_ref().ok(),
             resume_report.as_ref().ok(),
-            result_collection_report.as_ref().ok(),
             scratch_report.as_ref().err(),
             stage_benchmark_report.as_ref().err(),
             pipeline_node_report.as_ref().err(),
             dependency_report.as_ref().err(),
             resume_report.as_ref().err(),
-            result_collection_report.as_ref().err(),
         ),
         build_goal_483_check(
             execution_report.as_ref().ok(),
@@ -300,11 +298,7 @@ fn build_hpc_dry_run_ready(
         ),
         build_goal_488_check(
             result_collection_report.as_ref().ok(),
-            scratch_report.as_ref().ok(),
-            candidate_report.as_ref().ok(),
             result_collection_report.as_ref().err(),
-            scratch_report.as_ref().err(),
-            candidate_report.as_ref().err(),
         ),
         build_goal_489_check(
             candidate_report.as_ref().ok(),
@@ -548,13 +542,11 @@ fn build_goal_482_check(
     pipeline_node_report: Option<&LocalHpcPipelineNodeArrayReport>,
     dependency_report: Option<&LocalHpcDependencySimulationReport>,
     resume_report: Option<&LocalHpcResumeSimulationReport>,
-    result_collection_report: Option<&LocalHpcResultCollectionSimulationReport>,
     scratch_error: Option<&anyhow::Error>,
     stage_benchmark_error: Option<&anyhow::Error>,
     pipeline_node_error: Option<&anyhow::Error>,
     dependency_error: Option<&anyhow::Error>,
     resume_error: Option<&anyhow::Error>,
-    result_collection_error: Option<&anyhow::Error>,
 ) -> LocalHpcDryRunReadyGoalCheck {
     let output_path = Some(
         scratch_report
@@ -601,14 +593,6 @@ fn build_goal_482_check(
             blocked_by("resume simulation", resume_error),
         );
     };
-    let Some(result_collection_report) = result_collection_report else {
-        return fail_check(
-            482,
-            "HPC scratch layout dry-run",
-            output_path,
-            blocked_by("result-collection simulation", result_collection_error),
-        );
-    };
     if scratch_report.benchmark_job_count != stage_benchmark_report.benchmark_job_count {
         return fail_check(
             482,
@@ -634,7 +618,6 @@ fn build_goal_482_check(
     for (surface, count) in [
         ("dependency simulation", dependency_report.job_count),
         ("resume simulation", resume_report.job_count),
-        ("result-collection simulation", result_collection_report.row_count),
     ] {
         if scratch_report.selected_job_count != count {
             return fail_check(
@@ -978,11 +961,7 @@ fn build_goal_487_check(
 
 fn build_goal_488_check(
     result_collection_report: Option<&LocalHpcResultCollectionSimulationReport>,
-    scratch_report: Option<&LocalHpcScratchLayout>,
-    candidate_report: Option<&LocalHpcCandidateRunManifest>,
     result_collection_error: Option<&anyhow::Error>,
-    scratch_error: Option<&anyhow::Error>,
-    candidate_error: Option<&anyhow::Error>,
 ) -> LocalHpcDryRunReadyGoalCheck {
     let output_path = Some(
         result_collection_report
@@ -997,22 +976,6 @@ fn build_goal_488_check(
             error_detail(result_collection_error),
         );
     };
-    let Some(scratch_report) = scratch_report else {
-        return fail_check(
-            488,
-            "HPC result collection simulator",
-            output_path,
-            blocked_by("scratch layout", scratch_error),
-        );
-    };
-    let Some(candidate_report) = candidate_report else {
-        return fail_check(
-            488,
-            "HPC result collection simulator",
-            output_path,
-            blocked_by("first HPC candidate manifest", candidate_error),
-        );
-    };
     if !result_collection_report.behavior.proven {
         return fail_check(
             488,
@@ -1021,39 +984,20 @@ fn build_goal_488_check(
             "result-collection simulation did not prove distinct completion states".to_string(),
         );
     }
-    if result_collection_report.row_count != scratch_report.selected_job_count {
+    let required_status_counts = [
+        result_collection_report.complete_row_count,
+        result_collection_report.failed_row_count,
+        result_collection_report.missing_row_count,
+        result_collection_report.insufficient_row_count,
+        result_collection_report.unavailable_row_count,
+    ];
+    if required_status_counts.into_iter().any(|count| count == 0) {
         return fail_check(
             488,
             "HPC result collection simulator",
             output_path,
-            format!(
-                "result-collection simulation covers {} jobs but scratch layout covers {}",
-                result_collection_report.row_count, scratch_report.selected_job_count
-            ),
-        );
-    }
-    let collected_result_ids = result_collection_report
-        .rows
-        .iter()
-        .filter_map(|row| row.result_id.as_deref())
-        .collect::<BTreeSet<_>>();
-    let missing_candidate_results = candidate_report
-        .rows
-        .iter()
-        .filter_map(|row| {
-            (!collected_result_ids.contains(row.result_id.as_str()))
-                .then_some(row.result_id.as_str())
-        })
-        .collect::<Vec<_>>();
-    if !missing_candidate_results.is_empty() {
-        return fail_check(
-            488,
-            "HPC result collection simulator",
-            output_path,
-            format!(
-                "result-collection simulation is missing candidate result coverage for {}",
-                missing_candidate_results.join(", ")
-            ),
+            "result-collection simulation no longer covers all five required collection states"
+                .to_string(),
         );
     }
     ok_check(
@@ -1061,7 +1005,7 @@ fn build_goal_488_check(
         "HPC result collection simulator",
         output_path,
         format!(
-            "validated {} collection rows with distinct complete/failed/missing/insufficient/unavailable cases",
+            "validated {} collection rows spanning complete/failed/missing/insufficient/unavailable cases",
             result_collection_report.row_count
         ),
     )
@@ -1144,11 +1088,6 @@ fn build_goal_489_check(
         .iter()
         .map(|row| (row.tool_id.as_str(), row))
         .collect::<BTreeMap<_, _>>();
-    let collected_result_ids = result_collection_report
-        .rows
-        .iter()
-        .filter_map(|row| row.result_id.as_deref())
-        .collect::<BTreeSet<_>>();
     for row in &candidate_report.rows {
         if !asset_result_ids.contains(row.result_id.as_str()) {
             return fail_check(
@@ -1168,17 +1107,6 @@ fn build_goal_489_check(
                 output_path,
                 format!(
                     "candidate result `{}` is missing from stage benchmark array",
-                    row.result_id
-                ),
-            );
-        }
-        if !collected_result_ids.contains(row.result_id.as_str()) {
-            return fail_check(
-                489,
-                "First small HPC candidate manifest",
-                output_path,
-                format!(
-                    "candidate result `{}` is missing from result-collection coverage",
                     row.result_id
                 ),
             );
@@ -1204,6 +1132,15 @@ fn build_goal_489_check(
                 ),
             );
         }
+    }
+    if !result_collection_report.behavior.proven {
+        return fail_check(
+            489,
+            "First small HPC candidate manifest",
+            output_path,
+            "candidate stop conditions are no longer backed by a proven result-collection simulator"
+                .to_string(),
+        );
     }
     ok_check(
         489,
