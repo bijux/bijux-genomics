@@ -139,6 +139,10 @@ pub enum BenchLocalCommand {
     ValidateHpcExecutionResolver(BenchLocalValidateHpcExecutionResolverArgs),
     #[command(name = "render-hpc-execution-resolver")]
     RenderHpcExecutionResolver(BenchLocalRenderHpcExecutionResolverArgs),
+    #[command(name = "validate-hpc-dependency-simulation")]
+    ValidateHpcDependencySimulation(BenchLocalValidateHpcDependencySimulationArgs),
+    #[command(name = "render-hpc-dependency-simulation")]
+    RenderHpcDependencySimulation(BenchLocalRenderHpcDependencySimulationArgs),
     #[command(name = "validate-hpc-stage-benchmark-array")]
     ValidateHpcStageBenchmarkArray(BenchLocalValidateHpcStageBenchmarkArrayArgs),
     #[command(name = "render-hpc-stage-benchmark-array")]
@@ -263,6 +267,22 @@ pub struct BenchLocalRenderHpcExecutionResolverArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalValidateHpcExecutionResolverArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcDependencySimulationArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcDependencySimulationArgs {
     #[arg(long)]
     pub manifest: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
