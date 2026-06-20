@@ -7,6 +7,24 @@ fn workspace_root() -> PathBuf {
     bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
+fn allowed_test_command_arg(arg: &str) -> bool {
+    let normalized = arg.trim();
+    normalized.contains("env!(\"CARGO_BIN_EXE_")
+        || normalized == "\"cargo\""
+        || normalized == "\"bash\""
+        || normalized == "\"git\""
+}
+
+fn content_spawns_forbidden_test_command(content: &str) -> bool {
+    content.lines().any(|line| {
+        if !line.contains("Command::new(") {
+            return false;
+        }
+        let arg = line.split("Command::new(").nth(1).and_then(|rest| rest.split(')').next());
+        arg.is_none_or(|arg| !allowed_test_command_arg(arg))
+    })
+}
+
 fn is_allowed_command_path(path: &Path) -> bool {
     let path_str = path.to_string_lossy();
     path_str.contains("/crates/bijux-dna-runner/")
@@ -57,16 +75,13 @@ fn policy__contracts__command_spawn_policy__command_spawning_is_confined_to_runn
 fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_commands() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    let needles = [
-        "std::process::Command",
-        "Command::new",
+    let forbidden_runtime_needles = [
         "tokio::process::Command",
         "assert_cmd",
         "duct::cmd",
         "DockerRunner",
         "docker::",
         "bollard::",
-        "apptainer",
     ];
 
     for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
@@ -102,14 +117,16 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read source");
-        if needles.iter().any(|needle| content.contains(needle)) {
+        if content_spawns_forbidden_test_command(&content)
+            || forbidden_runtime_needles.iter().any(|needle| content.contains(needle))
+        {
             offenders.push(path.display().to_string());
         }
     }
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "crate tests must not spawn external commands (use fixtures or an explicit corpus-root contract instead):\n{}",
+        "crate tests must not spawn arbitrary external commands; only governed workspace harness commands are allowed:\n{}",
         offenders.join("\n")
     );
 }

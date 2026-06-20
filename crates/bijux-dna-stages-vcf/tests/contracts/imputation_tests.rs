@@ -1,3 +1,8 @@
+fn read_vcf_text(path: &std::path::Path) -> String {
+    bijux_dna_stages_vcf::vcf_io::read_vcf_text(path)
+        .unwrap_or_else(|err| panic!("read VCF {}: {err}", path.display()))
+}
+
 #[test]
 fn impute_stage_runs_glimpse_for_lowcov_gl_input() {
     let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
@@ -576,16 +581,7 @@ fn beagle_impute_fills_masked_truth_site_from_donor_support() {
     )
     .unwrap_or_else(|err| panic!("run beagle impute: {err}"));
 
-    let viewed = std::process::Command::new("bcftools")
-        .args(["view", &out.imputed_vcf.display().to_string()])
-        .output()
-        .unwrap_or_else(|err| panic!("bcftools view imputed output: {err}"));
-    assert!(
-        viewed.status.success(),
-        "bcftools view failed: {}",
-        String::from_utf8_lossy(&viewed.stderr)
-    );
-    let imputed_vcf = String::from_utf8_lossy(&viewed.stdout);
+    let imputed_vcf = read_vcf_text(&out.imputed_vcf);
     let first_record = imputed_vcf
         .lines()
         .find(|line| !line.starts_with('#'))
