@@ -1995,6 +1995,19 @@ Visible aliases are part of the operator surface:
   location, and then rebuilds the expected manifest from the current all-domain command argv slice.
   The command fails closed if job counts, staged inputs, checksums, staged paths, or consumer
   result ids drift from the governed dry-run source selection.
+- `bijux-dna bench local render-hpc-scratch-layout`
+  `render-hpc-scratch-layout` writes `runs/bench/hpc-dry-run/scratch-layout.json`, using the
+  governed all-domain SLURM submit manifest together with the rendered benchmark and essential
+  pipeline command argv slices. Each selected job keeps a job-scoped scratch root, an `inputs/`
+  link tree rooted under scratch, the governed output and log roots copied back from the submit
+  manifest, explicit scratch resource ceilings, and a durable cleanup policy so future HPC job
+  layouts never depend on unclear shared paths.
+- `bijux-dna bench local validate-hpc-scratch-layout`
+  `validate-hpc-scratch-layout` reloads `runs/bench/hpc-dry-run/scratch-layout.json`, enforces
+  the governed schema and output location, and then rebuilds the expected layout from the current
+  submit manifest, command argv slices, staged-input discovery rules, and resource hints. The
+  command fails closed if scratch roots, input-link paths, output or log roots, scratch resource
+  ceilings, or cleanup policy rows drift from the governed dry-run layout.
 - `bijux-dna bench local render-benchmark-summary`
   `render-benchmark-summary` writes both `benchmarks/readiness/local-ready/benchmark-summary.json` and
   `benchmarks/readiness/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51

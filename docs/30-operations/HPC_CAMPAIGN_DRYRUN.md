@@ -52,6 +52,20 @@ Validate an existing staged-input manifest against the current governed all-doma
 make bench-hpc-asset-staging-validate
 ```
 
+Render the governed scratch-path, input-link, output-root, and cleanup layout for the same future
+HPC jobs:
+
+```bash
+make bench-hpc-scratch-layout-render
+```
+
+Validate an existing scratch layout against the current governed submit manifest and command
+surfaces:
+
+```bash
+make bench-hpc-scratch-layout-validate
+```
+
 Call the underlying CLI directly when a non-default manifest path is needed:
 
 ```bash
@@ -60,6 +74,12 @@ bijux-dna bench local render-hpc-asset-staging-manifest \
 
 bijux-dna bench local validate-hpc-asset-staging-manifest \
   --manifest runs/bench/hpc-dry-run/asset-staging-manifest.json
+
+bijux-dna bench local render-hpc-scratch-layout \
+  --output runs/bench/hpc-dry-run/scratch-layout.json
+
+bijux-dna bench local validate-hpc-scratch-layout \
+  --manifest runs/bench/hpc-dry-run/scratch-layout.json
 ```
 
 Generate baseline campaign profiles:
