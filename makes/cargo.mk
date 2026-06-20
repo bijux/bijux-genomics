@@ -349,6 +349,19 @@ bench-hpc-candidate-run-manifest-dry-run: ## Render then validate the governed f
 	@$(MAKE) bench-hpc-candidate-run-manifest-render
 	@$(MAKE) bench-hpc-candidate-run-manifest-validate
 
+bench-hpc-dry-run-ready-render: ## Render the governed final HPC dry-run readiness gate under benchmarks/readiness/hpc/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-dry-run-ready-render
+
+bench-hpc-dry-run-ready-validate: ## Validate the governed final HPC dry-run readiness gate against current dry-run inputs.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-dry-run-ready-validate
+
+bench-hpc-dry-run-ready-dry-run: ## Render then validate the governed final HPC dry-run readiness gate.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-hpc-dry-run-ready-render
+	@$(MAKE) bench-hpc-dry-run-ready-validate
+
 bench-hpc-scratch-layout-render: ## Render the governed HPC scratch layout under runs/bench/hpc-dry-run/.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-scratch-layout-render
