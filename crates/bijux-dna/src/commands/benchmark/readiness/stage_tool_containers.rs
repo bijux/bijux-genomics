@@ -594,7 +594,7 @@ mod tests {
             row.stage_id == "bam.overlap_correction"
                 && row.tool_id == "bamutil"
                 && row.execution_mode == "containerized"
-                && row.command_entrypoint.as_deref() == Some("bam")
+                && row.command_entrypoint.as_deref() == Some("bamutil")
                 && row.container_id.as_deref() == Some("bijuxdna/bamutil:1.0.15")
         }));
         for (tool_id, container_id) in [
