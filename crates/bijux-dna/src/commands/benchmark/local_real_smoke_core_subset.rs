@@ -81,7 +81,8 @@ pub(crate) fn render_real_smoke_core_subset(
 ) -> Result<RealSmokeCoreSubsetReport> {
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
 
     let mut rows = Vec::with_capacity(4);

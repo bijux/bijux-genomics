@@ -130,9 +130,11 @@ pub(crate) fn render_hpc_execution_resolver(
         if output_path.is_absolute() { output_path } else { repo_root.join(&output_path) };
     let report = build_hpc_execution_resolver(repo_root, &absolute_output)?;
     if let Some(parent) = absolute_output.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&absolute_output, render_hpc_execution_resolver_tsv(&report.rows))
+    let rendered = render_hpc_execution_resolver_tsv(&report.rows);
+    bijux_dna_infra::write_bytes(&absolute_output, rendered.as_bytes())
         .with_context(|| format!("write {}", absolute_output.display()))?;
     Ok(report)
 }

@@ -83,7 +83,8 @@ pub(crate) fn render_bam_micro_smoke_subset(
 ) -> Result<BamMicroSmokeSubsetReport> {
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
 
     let smoke_rows = collect_bam_local_container_smoke_rows(repo_root)?;
