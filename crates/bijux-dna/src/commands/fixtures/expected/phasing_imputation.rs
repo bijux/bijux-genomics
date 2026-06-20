@@ -6,9 +6,9 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_domain_vcf::{
-    parse_imputation_stage_metrics, parse_phasing_stage_metrics, summarize_vcf_imputation_output_truth,
-    summarize_vcf_phasing_output_truth, VcfDomainStage, VcfImputationOutputTruthSummaryV1,
-    VcfPhasingOutputTruthSummaryV1,
+    parse_imputation_stage_metrics, parse_phasing_stage_metrics,
+    summarize_vcf_imputation_output_truth, summarize_vcf_phasing_output_truth, VcfDomainStage,
+    VcfImputationOutputTruthSummaryV1, VcfPhasingOutputTruthSummaryV1,
 };
 use serde::{Deserialize, Serialize};
 
@@ -168,16 +168,10 @@ pub(crate) fn validate_phasing_imputation_truth_manifest_path(
     validate_bundle_contract(&manifest, &expected, &expected_path)?;
 
     let actual = build_actual_truth_bundle(repo_root, &manifest)?;
-    let expected_map = expected
-        .cases
-        .iter()
-        .map(|case| (case.case_id.as_str(), case))
-        .collect::<BTreeMap<_, _>>();
-    let actual_map = actual
-        .cases
-        .iter()
-        .map(|case| (case.case_id.as_str(), case))
-        .collect::<BTreeMap<_, _>>();
+    let expected_map =
+        expected.cases.iter().map(|case| (case.case_id.as_str(), case)).collect::<BTreeMap<_, _>>();
+    let actual_map =
+        actual.cases.iter().map(|case| (case.case_id.as_str(), case)).collect::<BTreeMap<_, _>>();
     if expected_map.len() != actual_map.len() {
         return Err(anyhow!(
             "phasing/imputation truth case count drifted: expected {}, observed {}",
@@ -187,16 +181,10 @@ pub(crate) fn validate_phasing_imputation_truth_manifest_path(
     }
     for case in &manifest.cases {
         let expected_case = expected_map.get(case.case_id.as_str()).ok_or_else(|| {
-            anyhow!(
-                "expected phasing/imputation truth is missing case `{}`",
-                case.case_id
-            )
+            anyhow!("expected phasing/imputation truth is missing case `{}`", case.case_id)
         })?;
         let actual_case = actual_map.get(case.case_id.as_str()).ok_or_else(|| {
-            anyhow!(
-                "observed phasing/imputation truth is missing case `{}`",
-                case.case_id
-            )
+            anyhow!("observed phasing/imputation truth is missing case `{}`", case.case_id)
         })?;
         if expected_case != actual_case {
             return Err(anyhow!(
@@ -219,8 +207,8 @@ pub(crate) fn validate_phasing_imputation_truth_manifest_path(
 }
 
 fn load_manifest(manifest_path: &Path) -> Result<PhasingImputationTruthManifest> {
-    let raw =
-        fs::read_to_string(manifest_path).with_context(|| format!("read {}", manifest_path.display()))?;
+    let raw = fs::read_to_string(manifest_path)
+        .with_context(|| format!("read {}", manifest_path.display()))?;
     toml::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))
 }
 
@@ -290,7 +278,10 @@ fn validate_case_contract(
     case: &PhasingImputationTruthCase,
     manifest_path: &Path,
 ) -> Result<()> {
-    if case.case_id.trim().is_empty() || case.stage_id.trim().is_empty() || case.tool_id.trim().is_empty() {
+    if case.case_id.trim().is_empty()
+        || case.stage_id.trim().is_empty()
+        || case.tool_id.trim().is_empty()
+    {
         return Err(anyhow!(
             "phasing/imputation truth manifest `{}` contains a case with empty identity fields",
             manifest_path.display()
@@ -314,7 +305,11 @@ fn validate_case_contract(
     }
     let stage = parse_supported_stage(&case.stage_id)?;
     match (case.tool_id.as_str(), stage, case.truth_kind) {
-        ("shapeit5" | "eagle" | "beagle", VcfDomainStage::Phasing, PhasingImputationTruthKind::PhasingOutput) => {
+        (
+            "shapeit5" | "eagle" | "beagle",
+            VcfDomainStage::Phasing,
+            PhasingImputationTruthKind::PhasingOutput,
+        ) => {
             if case.truth_vcf_path.is_some() {
                 return Err(anyhow!(
                     "phasing/imputation truth case `{}` must not declare truth_vcf_path for phasing output",
@@ -322,7 +317,11 @@ fn validate_case_contract(
                 ));
             }
         }
-        ("beagle" | "glimpse" | "impute5" | "minimac4", VcfDomainStage::Impute | VcfDomainStage::ImputationMetrics, PhasingImputationTruthKind::ImputationOutput) => {
+        (
+            "beagle" | "glimpse" | "impute5" | "minimac4",
+            VcfDomainStage::Impute | VcfDomainStage::ImputationMetrics,
+            PhasingImputationTruthKind::ImputationOutput,
+        ) => {
             let truth_vcf_path = case.truth_vcf_path.as_ref().ok_or_else(|| {
                 anyhow!(
                     "phasing/imputation truth case `{}` must declare truth_vcf_path for imputation output",
@@ -352,8 +351,8 @@ fn validate_case_contract(
 }
 
 fn load_bundle(expected_path: &Path) -> Result<PhasingImputationTruthBundle> {
-    let raw =
-        fs::read_to_string(expected_path).with_context(|| format!("read {}", expected_path.display()))?;
+    let raw = fs::read_to_string(expected_path)
+        .with_context(|| format!("read {}", expected_path.display()))?;
     serde_json::from_str(&raw).with_context(|| format!("parse {}", expected_path.display()))
 }
 
@@ -378,16 +377,10 @@ fn validate_bundle_contract(
             manifest.fixture_id
         ));
     }
-    let expected_case_ids = manifest
-        .cases
-        .iter()
-        .map(|case| case.case_id.as_str())
-        .collect::<BTreeSet<_>>();
-    let bundle_case_ids = bundle
-        .cases
-        .iter()
-        .map(|case| case.case_id.as_str())
-        .collect::<BTreeSet<_>>();
+    let expected_case_ids =
+        manifest.cases.iter().map(|case| case.case_id.as_str()).collect::<BTreeSet<_>>();
+    let bundle_case_ids =
+        bundle.cases.iter().map(|case| case.case_id.as_str()).collect::<BTreeSet<_>>();
     if expected_case_ids != bundle_case_ids {
         return Err(anyhow!(
             "phasing/imputation truth bundle case ids do not match manifest `{}`",
@@ -406,19 +399,20 @@ fn build_actual_truth_bundle(
         let stage = parse_supported_stage(&case.stage_id)?;
         let artifact_root = resolve_repo_relative_path(repo_root, &case.artifact_root_path);
         let output_vcf = resolve_repo_relative_path(repo_root, &case.output_vcf_path);
-        let truth_vcf = case
-            .truth_vcf_path
-            .as_ref()
-            .map(|path| resolve_repo_relative_path(repo_root, path));
+        let truth_vcf =
+            case.truth_vcf_path.as_ref().map(|path| resolve_repo_relative_path(repo_root, path));
         let case_truth = match stage {
             VcfDomainStage::Phasing => {
                 let raw = parse_phasing_stage_metrics(&case.tool_id, &artifact_root)?;
                 let mut output_truth =
                     summarize_vcf_phasing_output_truth(&output_vcf, &case.stage_id, &case.tool_id)?;
-                output_truth.input_vcf = PathBuf::from(path_relative_to_repo(repo_root, &output_vcf));
+                output_truth.input_vcf =
+                    PathBuf::from(path_relative_to_repo(repo_root, &output_vcf));
                 PhasingImputationTruthCaseTruth {
                     case_id: case.case_id.clone(),
-                    phasing_metrics: Some(serde_json::from_value(raw).context("deserialize phasing truth metrics")?),
+                    phasing_metrics: Some(
+                        serde_json::from_value(raw).context("deserialize phasing truth metrics")?,
+                    ),
                     impute_metrics: None,
                     imputation_metrics: None,
                     phasing_output_truth: Some(output_truth),
@@ -433,14 +427,17 @@ fn build_actual_truth_bundle(
                     &case.stage_id,
                     &case.tool_id,
                 )?;
-                output_truth.input_vcf = PathBuf::from(path_relative_to_repo(repo_root, &output_vcf));
+                output_truth.input_vcf =
+                    PathBuf::from(path_relative_to_repo(repo_root, &output_vcf));
                 output_truth.truth_vcf = truth_vcf
                     .as_ref()
                     .map(|path| PathBuf::from(path_relative_to_repo(repo_root, path)));
                 PhasingImputationTruthCaseTruth {
                     case_id: case.case_id.clone(),
                     phasing_metrics: None,
-                    impute_metrics: Some(serde_json::from_value(raw).context("deserialize impute truth metrics")?),
+                    impute_metrics: Some(
+                        serde_json::from_value(raw).context("deserialize impute truth metrics")?,
+                    ),
                     imputation_metrics: None,
                     phasing_output_truth: None,
                     imputation_output_truth: Some(output_truth),
@@ -454,7 +451,8 @@ fn build_actual_truth_bundle(
                     &case.stage_id,
                     &case.tool_id,
                 )?;
-                output_truth.input_vcf = PathBuf::from(path_relative_to_repo(repo_root, &output_vcf));
+                output_truth.input_vcf =
+                    PathBuf::from(path_relative_to_repo(repo_root, &output_vcf));
                 output_truth.truth_vcf = truth_vcf
                     .as_ref()
                     .map(|path| PathBuf::from(path_relative_to_repo(repo_root, path)));
@@ -463,7 +461,8 @@ fn build_actual_truth_bundle(
                     phasing_metrics: None,
                     impute_metrics: None,
                     imputation_metrics: Some(
-                        serde_json::from_value(raw).context("deserialize imputation-metrics truth")?,
+                        serde_json::from_value(raw)
+                            .context("deserialize imputation-metrics truth")?,
                     ),
                     phasing_output_truth: None,
                     imputation_output_truth: Some(output_truth),
@@ -504,9 +503,7 @@ fn collect_stage_ids(cases: &[PhasingImputationTruthCaseTruth]) -> Vec<String> {
                 .map(|metrics| metrics.stage_id.clone())
                 .or_else(|| case.impute_metrics.as_ref().map(|metrics| metrics.stage_id.clone()))
                 .or_else(|| {
-                    case.imputation_metrics
-                        .as_ref()
-                        .map(|metrics| metrics.stage_id.clone())
+                    case.imputation_metrics.as_ref().map(|metrics| metrics.stage_id.clone())
                 })
                 .expect("case truth must carry metrics")
         })
@@ -524,11 +521,7 @@ fn collect_tool_ids(cases: &[PhasingImputationTruthCaseTruth]) -> Vec<String> {
                 .as_ref()
                 .map(|metrics| metrics.tool_id.clone())
                 .or_else(|| case.impute_metrics.as_ref().map(|metrics| metrics.tool_id.clone()))
-                .or_else(|| {
-                    case.imputation_metrics
-                        .as_ref()
-                        .map(|metrics| metrics.tool_id.clone())
-                })
+                .or_else(|| case.imputation_metrics.as_ref().map(|metrics| metrics.tool_id.clone()))
                 .expect("case truth must carry metrics")
         })
         .collect::<Vec<_>>();
@@ -538,16 +531,21 @@ fn collect_tool_ids(cases: &[PhasingImputationTruthCaseTruth]) -> Vec<String> {
 }
 
 fn resolve_repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() { path.to_path_buf() } else { repo_root.join(path) }
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
 }
 
 fn resolve_fixture_path(fixture_root: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() { path.to_path_buf() } else { fixture_root.join(path) }
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        fixture_root.join(path)
+    }
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }

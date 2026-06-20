@@ -781,9 +781,5 @@ fn policy__contracts__bam_science_docs_policy__closure_ledger_does_not_leave_ful
         }
     }
 
-    assert!(
-        offenders.is_empty(),
-        "BAM closure ledger promotion drift:\n{}",
-        offenders.join("\n")
-    );
+    assert!(offenders.is_empty(), "BAM closure ledger promotion drift:\n{}", offenders.join("\n"));
 }

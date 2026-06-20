@@ -113,10 +113,7 @@ fn bench_local_render_hpc_pipeline_node_array_reports_governed_dependency_manife
     );
     assert_eq!(
         vcf_qc.get("dependency_job_ids").and_then(serde_json::Value::as_array).map(|values| {
-            values
-                .iter()
-                .filter_map(serde_json::Value::as_str)
-                .collect::<Vec<_>>()
+            values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()
         }),
         Some(vec![
             "pipeline:core-germline-fastq-bam-vcf:vcf.filter",
@@ -125,18 +122,13 @@ fn bench_local_render_hpc_pipeline_node_array_reports_governed_dependency_manife
     );
     assert_eq!(
         vcf_qc.get("upstream_result_ids").and_then(serde_json::Value::as_array).map(|values| {
-            values
-                .iter()
-                .filter_map(serde_json::Value::as_str)
-                .collect::<Vec<_>>()
+            values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()
         }),
         Some(vec!["filtered_vcf", "filtered_vcf_tbi", "stats_json"])
     );
 
-    let dependencies = vcf_qc
-        .get("dependencies")
-        .and_then(serde_json::Value::as_array)
-        .expect("dependency array");
+    let dependencies =
+        vcf_qc.get("dependencies").and_then(serde_json::Value::as_array).expect("dependency array");
     let vcf_filter = dependencies
         .iter()
         .find(|dependency| {
@@ -144,47 +136,37 @@ fn bench_local_render_hpc_pipeline_node_array_reports_governed_dependency_manife
         })
         .expect("vcf.filter dependency");
     assert_eq!(
-        vcf_filter
-            .get("upstream_result_ids")
-            .and_then(serde_json::Value::as_array)
-            .map(|values| {
-                values
-                    .iter()
-                    .filter_map(serde_json::Value::as_str)
-                    .collect::<Vec<_>>()
-            }),
+        vcf_filter.get("upstream_result_ids").and_then(serde_json::Value::as_array).map(|values| {
+            values.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>()
+        }),
         Some(vec!["filtered_vcf", "filtered_vcf_tbi"])
     );
     assert!(
-        vcf_filter
-            .get("expected_outputs")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|outputs| outputs.iter().any(|output| {
+        vcf_filter.get("expected_outputs").and_then(serde_json::Value::as_array).is_some_and(
+            |outputs| outputs.iter().any(|output| {
                 output.get("output_id").and_then(serde_json::Value::as_str) == Some("filtered_vcf")
-                    && output
-                        .get("output_path")
-                        .and_then(serde_json::Value::as_str)
-                        .is_some_and(|path| {
+                    && output.get("output_path").and_then(serde_json::Value::as_str).is_some_and(
+                        |path| {
                             path.contains("/core-germline-fastq-bam-vcf/vcf.filter/")
                                 && path.ends_with("/outputs/filtered_vcf.json")
-                        })
-            })),
+                        },
+                    )
+            })
+        ),
         "dependency manifest must map vcf.filter to the exact governed filtered VCF output path"
     );
     assert!(
-        vcf_qc
-            .get("expected_outputs")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|outputs| outputs.iter().any(|output| {
+        vcf_qc.get("expected_outputs").and_then(serde_json::Value::as_array).is_some_and(
+            |outputs| outputs.iter().any(|output| {
                 output.get("output_id").and_then(serde_json::Value::as_str) == Some("qc_report")
-                    && output
-                        .get("output_path")
-                        .and_then(serde_json::Value::as_str)
-                        .is_some_and(|path| {
+                    && output.get("output_path").and_then(serde_json::Value::as_str).is_some_and(
+                        |path| {
                             path.contains("/core-germline-fastq-bam-vcf/vcf.qc/")
                                 && path.ends_with("/outputs/qc_report.json")
-                        })
-            })),
+                        },
+                    )
+            })
+        ),
         "pipeline node rows must preserve exact expected output paths for the governed node"
     );
 

@@ -141,8 +141,7 @@ fn bench_local_fastq_micro_smoke_subset_reports_one_governed_row_per_family() {
     let read_profiling = rows
         .iter()
         .find(|row| {
-            row.get("family_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.read_profiling")
+            row.get("family_id").and_then(serde_json::Value::as_str) == Some("fastq.read_profiling")
         })
         .expect("fastq.read_profiling family row");
     assert_eq!(

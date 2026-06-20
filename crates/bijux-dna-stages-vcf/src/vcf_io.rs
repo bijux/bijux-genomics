@@ -209,11 +209,10 @@ pub fn vcf_normalize_headers(input: &Path, output: &Path) -> Result<()> {
 /// # Errors
 /// Returns an error if bgzip/tabix indexing fails.
 pub fn vcf_index_bgzip_tabix(input_vcf: &Path, output_vcfgz: &Path) -> Result<PathBuf> {
-    let parent = output_vcfgz
-        .parent()
-        .ok_or_else(|| anyhow!("vcf_index_bgzip_tabix: output has no parent: {}", output_vcfgz.display()))?;
-    std::fs::create_dir_all(parent)
-        .with_context(|| format!("create {}", parent.display()))?;
+    let parent = output_vcfgz.parent().ok_or_else(|| {
+        anyhow!("vcf_index_bgzip_tabix: output has no parent: {}", output_vcfgz.display())
+    })?;
+    std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     let nonce = format!(
         "{}-{}",
         std::process::id(),

@@ -163,8 +163,7 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
             && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.roh")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
-            && row.get("asset_profile_id").and_then(serde_json::Value::as_str)
-                == Some("vcf_cohort")
+            && row.get("asset_profile_id").and_then(serde_json::Value::as_str) == Some("vcf_cohort")
             && row.get("status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
     }));
 

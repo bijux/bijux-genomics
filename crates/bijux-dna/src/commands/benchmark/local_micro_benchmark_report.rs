@@ -6,9 +6,7 @@ use anyhow::{bail, Context, Result};
 use serde::Serialize;
 use serde_json::Value;
 
-use super::local_adna_micro_pipeline::{
-    AdnaMicroPipelineReport, AdnaMicroPipelineRow,
-};
+use super::local_adna_micro_pipeline::{AdnaMicroPipelineReport, AdnaMicroPipelineRow};
 use super::local_amplicon_micro_pipeline::{AmpliconMicroPipelineReport, AmpliconMicroPipelineRow};
 use super::local_bam_micro_smoke_subset::{BamMicroSmokeFamilyRow, BamMicroSmokeSubsetReport};
 use super::local_core_germline_micro_pipeline::{

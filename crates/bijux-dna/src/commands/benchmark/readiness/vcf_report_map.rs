@@ -301,13 +301,7 @@ fn ensure_vcf_report_map_contract(rows: &[VcfReportMapRow]) -> Result<()> {
         "population_structure",
         "population_structure_metrics",
     )?;
-    require_row_mapping(
-        rows,
-        "vcf.roh",
-        "plink2",
-        "runs_of_homozygosity",
-        "roh_metrics",
-    )?;
+    require_row_mapping(rows, "vcf.roh", "plink2", "runs_of_homozygosity", "roh_metrics")?;
     require_row_mapping(
         rows,
         "vcf.population_structure",

@@ -88,8 +88,7 @@ fn bench_readiness_all_domain_active_scope_blockers_reports_exact_removed_bindin
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
-            && row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("vcf.demography")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.demography")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ibdne")
             && row.get("corpus_id").and_then(serde_json::Value::as_str)
                 == Some("vcf_production_regression")

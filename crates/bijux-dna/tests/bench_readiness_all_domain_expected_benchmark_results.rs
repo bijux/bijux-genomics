@@ -73,9 +73,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
         Some(4)
     );
     assert_eq!(
-        section_counts
-            .get("runs_of_homozygosity")
-            .and_then(serde_json::Value::as_u64),
+        section_counts.get("runs_of_homozygosity").and_then(serde_json::Value::as_u64),
         Some(1)
     );
 

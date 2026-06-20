@@ -15,8 +15,7 @@ use serde::{Deserialize, Serialize};
 pub(crate) const VCF_GENOTYPE_TRUTH_FIXTURE_ID: &str = "vcf-genotype-truth";
 pub(crate) const VCF_GENOTYPE_TRUTH_MANIFEST_SCHEMA_VERSION: &str =
     "bijux.bench.vcf_genotype_truth.v1";
-const VCF_GENOTYPE_TRUTH_BUNDLE_SCHEMA_VERSION: &str =
-    "bijux.bench.vcf_genotype_truth.expected.v1";
+const VCF_GENOTYPE_TRUTH_BUNDLE_SCHEMA_VERSION: &str = "bijux.bench.vcf_genotype_truth.expected.v1";
 const VCF_GENOTYPE_TRUTH_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.vcf_genotype_truth.validation.v1";
 
@@ -147,33 +146,21 @@ pub(crate) fn validate_vcf_genotype_truth_manifest_path(
     validate_manifest_contract(repo_root, &manifest, manifest_path)?;
 
     let fixture_root = manifest_path.parent().ok_or_else(|| {
-        anyhow!(
-            "VCF genotype truth manifest has no parent directory: {}",
-            manifest_path.display()
-        )
+        anyhow!("VCF genotype truth manifest has no parent directory: {}", manifest_path.display())
     })?;
     let expected_path = resolve_fixture_path(fixture_root, &manifest.expected_path);
     if !expected_path.is_file() {
-        return Err(anyhow!(
-            "VCF genotype truth bundle is missing: {}",
-            expected_path.display()
-        ));
+        return Err(anyhow!("VCF genotype truth bundle is missing: {}", expected_path.display()));
     }
 
     let expected = load_vcf_genotype_truth_bundle(&expected_path)?;
     validate_bundle_contract(&manifest, &expected, &expected_path)?;
 
     let actual = build_actual_truth_bundle(repo_root, &manifest)?;
-    let expected_map = expected
-        .cases
-        .iter()
-        .map(|case| (case.case_id.as_str(), case))
-        .collect::<BTreeMap<_, _>>();
-    let actual_map = actual
-        .cases
-        .iter()
-        .map(|case| (case.case_id.as_str(), case))
-        .collect::<BTreeMap<_, _>>();
+    let expected_map =
+        expected.cases.iter().map(|case| (case.case_id.as_str(), case)).collect::<BTreeMap<_, _>>();
+    let actual_map =
+        actual.cases.iter().map(|case| (case.case_id.as_str(), case)).collect::<BTreeMap<_, _>>();
     if expected_map.len() != actual_map.len() {
         return Err(anyhow!(
             "VCF genotype truth case count drifted: expected {}, observed {}",
@@ -183,16 +170,10 @@ pub(crate) fn validate_vcf_genotype_truth_manifest_path(
     }
     for case in &manifest.cases {
         let expected_case = expected_map.get(case.case_id.as_str()).ok_or_else(|| {
-            anyhow!(
-                "expected VCF genotype truth is missing case `{}`",
-                case.case_id
-            )
+            anyhow!("expected VCF genotype truth is missing case `{}`", case.case_id)
         })?;
         let actual_case = actual_map.get(case.case_id.as_str()).ok_or_else(|| {
-            anyhow!(
-                "observed VCF genotype truth is missing case `{}`",
-                case.case_id
-            )
+            anyhow!("observed VCF genotype truth is missing case `{}`", case.case_id)
         })?;
         if expected_case != actual_case {
             return Err(anyhow!(
@@ -274,10 +255,7 @@ fn validate_manifest_contract(
     for case in &manifest.cases {
         validate_case_contract(repo_root, case, manifest_path)?;
         if !case_ids.insert(case.case_id.clone()) {
-            return Err(anyhow!(
-                "VCF genotype truth manifest repeats case_id `{}`",
-                case.case_id
-            ));
+            return Err(anyhow!("VCF genotype truth manifest repeats case_id `{}`", case.case_id));
         }
     }
     Ok(())
@@ -374,16 +352,10 @@ fn validate_bundle_contract(
             manifest.fixture_id
         ));
     }
-    let expected_case_ids = manifest
-        .cases
-        .iter()
-        .map(|case| case.case_id.as_str())
-        .collect::<BTreeSet<_>>();
-    let bundle_case_ids = bundle
-        .cases
-        .iter()
-        .map(|case| case.case_id.as_str())
-        .collect::<BTreeSet<_>>();
+    let expected_case_ids =
+        manifest.cases.iter().map(|case| case.case_id.as_str()).collect::<BTreeSet<_>>();
+    let bundle_case_ids =
+        bundle.cases.iter().map(|case| case.case_id.as_str()).collect::<BTreeSet<_>>();
     if expected_case_ids != bundle_case_ids {
         return Err(anyhow!(
             "VCF genotype truth bundle case ids do not match manifest `{}`",
@@ -430,18 +402,14 @@ fn build_actual_truth_bundle(
             } else {
                 None
             };
-        let likelihood_boundary = if case.evaluation_kind == VcfGenotypeEvaluationKind::Likelihood
-        {
+        let likelihood_boundary = if case.evaluation_kind == VcfGenotypeEvaluationKind::Likelihood {
             Some(evaluate_genotype_likelihood_workflow_boundary(
                 summary.likelihood_fields_present.iter().any(|field| field == "GL"),
                 summary
                     .likelihood_fields_present
                     .iter()
                     .any(|field| matches!(field.as_str(), "GP" | "PL")),
-                command
-                    .as_ref()
-                    .and_then(|value| value.likelihood_model.as_deref())
-                    .is_some(),
+                command.as_ref().and_then(|value| value.likelihood_model.as_deref()).is_some(),
                 case.downstream_gl_compatible,
                 case.uncertainty_reported,
             ))
@@ -471,14 +439,13 @@ fn summarize_command(
     let absolute_path = resolve_repo_relative_path(repo_root, command_path);
     let raw = fs::read_to_string(&absolute_path)
         .with_context(|| format!("read {}", absolute_path.display()))?;
-    let command: RawVcfGenotypeTruthCommand = serde_json::from_str(&raw)
-        .with_context(|| format!("parse {}", absolute_path.display()))?;
+    let command: RawVcfGenotypeTruthCommand =
+        serde_json::from_str(&raw).with_context(|| format!("parse {}", absolute_path.display()))?;
     let seed_argument = extract_seed_argument(&command.argv);
-    let seed_argument_matches_random_seed =
-        match (command.random_seed, seed_argument) {
-            (Some(random_seed), Some(seed_argument)) => Some(random_seed == seed_argument),
-            _ => None,
-        };
+    let seed_argument_matches_random_seed = match (command.random_seed, seed_argument) {
+        (Some(random_seed), Some(seed_argument)) => Some(random_seed == seed_argument),
+        _ => None,
+    };
     Ok(VcfGenotypeTruthCommandSummary {
         command_path: path_relative_to_repo(repo_root, &absolute_path),
         stage_id: command.stage_id,
@@ -499,38 +466,37 @@ fn extract_seed_argument(argv: &[String]) -> Option<u64> {
 }
 
 fn collect_stage_ids(cases: &[VcfGenotypeTruthCaseTruth]) -> Vec<String> {
-    let mut values = cases
-        .iter()
-        .map(|case| case.summary.stage_id.clone())
-        .collect::<Vec<_>>();
+    let mut values = cases.iter().map(|case| case.summary.stage_id.clone()).collect::<Vec<_>>();
     values.sort();
     values.dedup();
     values
 }
 
 fn collect_tool_ids(cases: &[VcfGenotypeTruthCaseTruth]) -> Vec<String> {
-    let mut values = cases
-        .iter()
-        .map(|case| case.summary.tool_id.clone())
-        .collect::<Vec<_>>();
+    let mut values = cases.iter().map(|case| case.summary.tool_id.clone()).collect::<Vec<_>>();
     values.sort();
     values.dedup();
     values
 }
 
 fn resolve_repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() { path.to_path_buf() } else { repo_root.join(path) }
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
 }
 
 fn resolve_fixture_path(fixture_root: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() { path.to_path_buf() } else { fixture_root.join(path) }
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        fixture_root.join(path)
+    }
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
 
 #[cfg(test)]

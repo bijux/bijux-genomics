@@ -77,14 +77,7 @@ fn bench_readiness_vcf_adapter_output_coverage_writes_governed_tsv_columns() {
         "TSV must retain the governed bcftools QC output row"
     );
     assert!(
-        has_row(
-            "vcf.phasing",
-            "shapeit5",
-            "complete",
-            "benchmark_ready",
-            "phased_vcf=",
-            ".tbi"
-        ),
+        has_row("vcf.phasing", "shapeit5", "complete", "benchmark_ready", "phased_vcf=", ".tbi"),
         "TSV must retain the governed shapeit5 phasing output row"
     );
     assert!(

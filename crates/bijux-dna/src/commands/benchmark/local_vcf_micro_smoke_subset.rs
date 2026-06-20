@@ -85,9 +85,7 @@ pub(crate) fn run_vcf_micro_smoke_subset(
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let report = render_vcf_micro_smoke_subset(
         &repo_root,
-        args.output
-            .clone()
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_MICRO_SMOKE_SUMMARY_PATH)),
+        args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_MICRO_SMOKE_SUMMARY_PATH)),
     )?;
     if args.json {
         render::json::print_pretty(&report)?;
@@ -182,35 +180,38 @@ fn materialize_family_row(
     let support_path = normalize_optional_string(&representative.smoke_support_path);
     let default_tool_id = default_tool_id(&representative.stage_id);
 
-    let (execution_status, evidence_path, evidence_format, parsed_schema_version) = if default_tool_id
-        .as_deref()
-        == Some(representative.tool_id.as_str())
-        && representative.smoke_path_kind == "host_stage_smoke"
-    {
-        let manifest_path =
-            run_local_vcf_smoke_manifest(repo_root, &representative.stage_id, &representative.tool_id)
-                .with_context(|| {
-                    format!(
-                        "materialize VCF micro smoke subset artifact for family `{}` via `{}` / `{}`",
-                        family.family_id, representative.stage_id, representative.tool_id
-                    )
-                })?;
-        let evidence_path = path_relative_to_repo(repo_root, &manifest_path);
-        let (evidence_format, parsed_schema_version) = describe_evidence_artifact(&manifest_path)?;
-        (
-            VcfMicroSmokeExecutionStatus::LocalSmoke,
-            Some(evidence_path),
-            Some(evidence_format),
-            parsed_schema_version,
-        )
-    } else if matches!(
-        representative.smoke_path_kind.as_str(),
-        "docker_container_smoke" | "apptainer_container_smoke"
-    ) {
-        (VcfMicroSmokeExecutionStatus::ContainerNeeded, None, None, None)
-    } else {
-        (VcfMicroSmokeExecutionStatus::Unavailable, None, None, None)
-    };
+    let (execution_status, evidence_path, evidence_format, parsed_schema_version) =
+        if default_tool_id.as_deref() == Some(representative.tool_id.as_str())
+            && representative.smoke_path_kind == "host_stage_smoke"
+        {
+            let manifest_path = run_local_vcf_smoke_manifest(
+                repo_root,
+                &representative.stage_id,
+                &representative.tool_id,
+            )
+            .with_context(|| {
+                format!(
+                    "materialize VCF micro smoke subset artifact for family `{}` via `{}` / `{}`",
+                    family.family_id, representative.stage_id, representative.tool_id
+                )
+            })?;
+            let evidence_path = path_relative_to_repo(repo_root, &manifest_path);
+            let (evidence_format, parsed_schema_version) =
+                describe_evidence_artifact(&manifest_path)?;
+            (
+                VcfMicroSmokeExecutionStatus::LocalSmoke,
+                Some(evidence_path),
+                Some(evidence_format),
+                parsed_schema_version,
+            )
+        } else if matches!(
+            representative.smoke_path_kind.as_str(),
+            "docker_container_smoke" | "apptainer_container_smoke"
+        ) {
+            (VcfMicroSmokeExecutionStatus::ContainerNeeded, None, None, None)
+        } else {
+            (VcfMicroSmokeExecutionStatus::Unavailable, None, None, None)
+        };
 
     Ok(VcfMicroSmokeFamilyRow {
         family_id: family.family_id.to_string(),
@@ -236,7 +237,8 @@ fn ensure_vcf_micro_smoke_subset_contract(
     repo_root: &Path,
     mut report: VcfMicroSmokeSubsetReport,
 ) -> Result<VcfMicroSmokeSubsetReport> {
-    if report.family_count != VCF_STAGE_FAMILIES.len() || report.rows.len() != VCF_STAGE_FAMILIES.len()
+    if report.family_count != VCF_STAGE_FAMILIES.len()
+        || report.rows.len() != VCF_STAGE_FAMILIES.len()
     {
         return Err(anyhow!(
             "VCF micro smoke subset must keep exactly {} family rows, found family_count={} rows={}",
@@ -436,8 +438,8 @@ fn describe_evidence_artifact(artifact_path: &Path) -> Result<(String, Option<St
         Some("json") => {
             let payload = fs::read_to_string(artifact_path)
                 .with_context(|| format!("read {}", artifact_path.display()))?;
-            let parsed: Value =
-                serde_json::from_str(&payload).with_context(|| format!("parse {}", artifact_path.display()))?;
+            let parsed: Value = serde_json::from_str(&payload)
+                .with_context(|| format!("parse {}", artifact_path.display()))?;
             let schema_version = parsed
                 .get("schema_version")
                 .and_then(Value::as_str)
@@ -459,22 +461,34 @@ fn describe_evidence_artifact(artifact_path: &Path) -> Result<(String, Option<St
     }
 }
 
-fn run_local_vcf_smoke_manifest(repo_root: &Path, stage_id: &str, tool_id: &str) -> Result<PathBuf> {
+fn run_local_vcf_smoke_manifest(
+    repo_root: &Path,
+    stage_id: &str,
+    tool_id: &str,
+) -> Result<PathBuf> {
     let manifest_path = match stage_id {
-        "vcf.admixture" => local_vcf_admixture_smoke::run_local_vcf_admixture_smoke(
-            repo_root, tool_id,
-        )?
-        .stage_result_manifest_path,
-        "vcf.call" => local_vcf_call_smoke::run_local_vcf_call_smoke(repo_root, tool_id)?
-            .stage_result_manifest_path,
+        "vcf.admixture" => {
+            local_vcf_admixture_smoke::run_local_vcf_admixture_smoke(repo_root, tool_id)?
+                .stage_result_manifest_path
+        }
+        "vcf.call" => {
+            local_vcf_call_smoke::run_local_vcf_call_smoke(repo_root, tool_id)?
+                .stage_result_manifest_path
+        }
         "vcf.call_diploid" => {
             local_vcf_call_diploid_smoke::run_local_vcf_call_diploid_smoke(repo_root, tool_id)?
                 .stage_result_manifest_path
         }
-        "vcf.call_gl" => local_vcf_call_gl_smoke::run_local_vcf_call_gl_smoke(repo_root, tool_id)?
-            .stage_result_manifest_path,
-        "vcf.call_pseudohaploid" => local_vcf_call_pseudohaploid_smoke::run_local_vcf_call_pseudohaploid_smoke(repo_root, tool_id)?
-            .stage_result_manifest_path,
+        "vcf.call_gl" => {
+            local_vcf_call_gl_smoke::run_local_vcf_call_gl_smoke(repo_root, tool_id)?
+                .stage_result_manifest_path
+        }
+        "vcf.call_pseudohaploid" => {
+            local_vcf_call_pseudohaploid_smoke::run_local_vcf_call_pseudohaploid_smoke(
+                repo_root, tool_id,
+            )?
+            .stage_result_manifest_path
+        }
         "vcf.damage_filter" => {
             local_vcf_damage_filter_smoke::run_local_vcf_damage_filter_smoke(repo_root, tool_id)?
                 .stage_result_manifest_path
@@ -483,26 +497,36 @@ fn run_local_vcf_smoke_manifest(repo_root: &Path, stage_id: &str, tool_id: &str)
             local_vcf_demography_smoke::run_local_vcf_demography_smoke(repo_root, tool_id)?
                 .stage_result_manifest_path
         }
-        "vcf.filter" => local_vcf_filter_smoke::run_local_vcf_filter_smoke(repo_root, tool_id)?
-            .stage_result_manifest_path,
+        "vcf.filter" => {
+            local_vcf_filter_smoke::run_local_vcf_filter_smoke(repo_root, tool_id)?
+                .stage_result_manifest_path
+        }
         "vcf.gl_propagation" => {
             local_vcf_gl_propagation_smoke::run_local_vcf_gl_propagation_smoke(repo_root, tool_id)?
                 .stage_result_manifest_path
         }
-        "vcf.ibd" => local_vcf_ibd_smoke::run_local_vcf_ibd_smoke(repo_root, tool_id)?
-            .stage_result_manifest_path,
+        "vcf.ibd" => {
+            local_vcf_ibd_smoke::run_local_vcf_ibd_smoke(repo_root, tool_id)?
+                .stage_result_manifest_path
+        }
         "vcf.imputation_metrics" => {
             local_vcf_imputation_metrics_smoke::run_local_vcf_imputation_metrics_smoke(
                 repo_root, tool_id,
             )?
             .stage_result_manifest_path
         }
-        "vcf.impute" => local_vcf_impute_smoke::run_local_vcf_impute_smoke(repo_root, tool_id)?
-            .stage_result_manifest_path,
-        "vcf.pca" => local_vcf_pca_smoke::run_local_vcf_pca_smoke(repo_root, tool_id)?
-            .stage_result_manifest_path,
-        "vcf.phasing" => local_vcf_phasing_smoke::run_local_vcf_phasing_smoke(repo_root, tool_id)?
-            .stage_result_manifest_path,
+        "vcf.impute" => {
+            local_vcf_impute_smoke::run_local_vcf_impute_smoke(repo_root, tool_id)?
+                .stage_result_manifest_path
+        }
+        "vcf.pca" => {
+            local_vcf_pca_smoke::run_local_vcf_pca_smoke(repo_root, tool_id)?
+                .stage_result_manifest_path
+        }
+        "vcf.phasing" => {
+            local_vcf_phasing_smoke::run_local_vcf_phasing_smoke(repo_root, tool_id)?
+                .stage_result_manifest_path
+        }
         "vcf.population_structure" => {
             local_vcf_population_structure_smoke::run_local_vcf_population_structure_smoke(
                 repo_root, tool_id,
@@ -519,13 +543,21 @@ fn run_local_vcf_smoke_manifest(repo_root: &Path, stage_id: &str, tool_id: &str)
             )?
             .stage_result_manifest_path
         }
-        "vcf.qc" => local_vcf_qc_smoke::run_local_vcf_qc_smoke(repo_root, tool_id)?
-            .stage_result_manifest_path,
-        "vcf.roh" => local_vcf_roh_smoke::run_local_vcf_roh_smoke(repo_root, tool_id)?
-            .stage_result_manifest_path,
-        "vcf.stats" => local_vcf_stats_smoke::run_local_vcf_stats_smoke(repo_root, tool_id)?
-            .stage_result_manifest_path,
-        other => bail!("VCF micro smoke subset does not have a governed local smoke wrapper for `{other}`"),
+        "vcf.qc" => {
+            local_vcf_qc_smoke::run_local_vcf_qc_smoke(repo_root, tool_id)?
+                .stage_result_manifest_path
+        }
+        "vcf.roh" => {
+            local_vcf_roh_smoke::run_local_vcf_roh_smoke(repo_root, tool_id)?
+                .stage_result_manifest_path
+        }
+        "vcf.stats" => {
+            local_vcf_stats_smoke::run_local_vcf_stats_smoke(repo_root, tool_id)?
+                .stage_result_manifest_path
+        }
+        other => bail!(
+            "VCF micro smoke subset does not have a governed local smoke wrapper for `{other}`"
+        ),
     };
     Ok(repo_root.join(manifest_path))
 }

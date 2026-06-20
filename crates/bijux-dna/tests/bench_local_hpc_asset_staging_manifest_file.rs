@@ -101,20 +101,19 @@ fn bench_local_validate_hpc_asset_staging_manifest_rejects_stale_manifest_file()
         String::from_utf8_lossy(&render_output.stderr)
     );
 
-    let rendered =
-        serde_json::from_slice::<serde_json::Value>(&fs::read(&manifest_path).expect("read manifest"))
-            .expect("parse manifest");
+    let rendered = serde_json::from_slice::<serde_json::Value>(
+        &fs::read(&manifest_path).expect("read manifest"),
+    )
+    .expect("parse manifest");
     let selected_job_count = rendered
         .get("selected_job_count")
         .and_then(serde_json::Value::as_u64)
         .expect("selected job count");
-    let stale_body = fs::read_to_string(&manifest_path)
-        .expect("read manifest body")
-        .replacen(
-            &format!("\"selected_job_count\": {selected_job_count}"),
-            &format!("\"selected_job_count\": {}", selected_job_count.saturating_sub(1)),
-            1,
-        );
+    let stale_body = fs::read_to_string(&manifest_path).expect("read manifest body").replacen(
+        &format!("\"selected_job_count\": {selected_job_count}"),
+        &format!("\"selected_job_count\": {}", selected_job_count.saturating_sub(1)),
+        1,
+    );
     fs::write(&manifest_path, stale_body).expect("write stale manifest body");
 
     let validate_output = run_cli(&[

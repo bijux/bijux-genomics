@@ -48,10 +48,7 @@ fn bench_local_vcf_micro_smoke_subset_reports_one_governed_row_per_family() {
     );
     assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("local_smoke_count").and_then(serde_json::Value::as_u64), Some(8));
-    assert_eq!(
-        payload.get("container_needed_count").and_then(serde_json::Value::as_u64),
-        Some(0)
-    );
+    assert_eq!(payload.get("container_needed_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("passes_behavior_test").and_then(serde_json::Value::as_bool),
@@ -95,14 +92,9 @@ fn bench_local_vcf_micro_smoke_subset_reports_one_governed_row_per_family() {
         calling.get("representative_tool_id").and_then(serde_json::Value::as_str),
         Some("bcftools")
     );
+    assert_eq!(calling.get("evidence_format").and_then(serde_json::Value::as_str), Some("json"));
     assert_eq!(
-        calling.get("evidence_format").and_then(serde_json::Value::as_str),
-        Some("json")
-    );
-    assert_eq!(
-        calling
-            .get("parsed_schema_version")
-            .and_then(serde_json::Value::as_str),
+        calling.get("parsed_schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.stage_result.v2")
     );
 
@@ -122,14 +114,9 @@ fn bench_local_vcf_micro_smoke_subset_reports_one_governed_row_per_family() {
         phasing.get("representative_tool_id").and_then(serde_json::Value::as_str),
         Some("shapeit5")
     );
-    assert!(
-        phasing
-            .get("smoke_command")
-            .and_then(serde_json::Value::as_str)
-            .is_some_and(|command| {
-                command == "bijux-dna bench local run-vcf-phasing-smoke --tool-id shapeit5"
-            })
-    );
+    assert!(phasing.get("smoke_command").and_then(serde_json::Value::as_str).is_some_and(
+        |command| { command == "bijux-dna bench local run-vcf-phasing-smoke --tool-id shapeit5" }
+    ));
     assert!(
         phasing.get("goal_id").is_none(),
         "VCF micro report must not leak backlog goal ids into repo artifacts"

@@ -702,15 +702,13 @@ fn bench_local_validate_bam_corpus_fixture_json_reports_governed_corpus_01_adna_
                     .get("observed_header_sample_ids")
                     .and_then(serde_json::Value::as_array)
                     .is_some_and(|sample_ids| {
-                        sample_ids
-                            == &vec![serde_json::json!("adna_y_haplogroup_partial_panel")]
+                        sample_ids == &vec![serde_json::json!("adna_y_haplogroup_partial_panel")]
                     })
                 && sample
                     .get("observed_read_group_ids")
                     .and_then(serde_json::Value::as_array)
                     .is_some_and(|read_groups| {
-                        read_groups
-                            == &vec![serde_json::json!("rg-haplogroups-adna-partial")]
+                        read_groups == &vec![serde_json::json!("rg-haplogroups-adna-partial")]
                     })
                 && sample.get("observed_record_count").and_then(serde_json::Value::as_u64)
                     == Some(2)

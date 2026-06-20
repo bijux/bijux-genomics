@@ -49,10 +49,8 @@ fn bench_local_edna_micro_pipeline_writes_governed_summary_file() {
             Some("succeeded"),
             "eDNA micro pipeline rows must all succeed"
         );
-        let evidence_path = row
-            .get("evidence_path")
-            .and_then(serde_json::Value::as_str)
-            .expect("evidence path");
+        let evidence_path =
+            row.get("evidence_path").and_then(serde_json::Value::as_str).expect("evidence path");
         assert!(
             repo_root.join(evidence_path).is_file(),
             "evidence path must exist: {evidence_path}"
@@ -60,7 +58,9 @@ fn bench_local_edna_micro_pipeline_writes_governed_summary_file() {
         let outputs =
             row.get("outputs").and_then(serde_json::Value::as_object).expect("outputs object");
         assert!(
-            outputs.values().all(|value| value.as_str().is_some_and(|path| repo_root.join(path).exists())),
+            outputs
+                .values()
+                .all(|value| value.as_str().is_some_and(|path| repo_root.join(path).exists())),
             "every declared pipeline output must exist"
         );
     }

@@ -10,8 +10,8 @@ use bijux_dna_domain_fastq::params::filter::FilterEffectiveParams;
 use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
 use bijux_dna_domain_fastq::params::validate::{PairSyncPolicy, ValidationMode};
 use bijux_dna_domain_fastq::{
-    validation_artifact_paths, FilterReadsReportV1, PairedMode,
-    FILTER_READS_REPORT_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
+    validation_artifact_paths, FilterReadsReportV1, PairedMode, FILTER_READS_REPORT_SCHEMA_VERSION,
+    VALIDATION_REPORT_SCHEMA_VERSION,
 };
 use bijux_dna_domain_vcf::params::{VcfCallParams, VcfFilterParams, VcfStatsParams};
 use bijux_dna_stages_vcf::metrics::parse_vcf_call_summary;
@@ -26,7 +26,9 @@ use serde::Serialize;
 use serde_json::{json, Value};
 
 use super::local_stage_result_manifest::path_relative_to_repo;
-use super::local_vcf_call_bam_smoke_support::{materialize_reference_fasta, parse_output_sample_count};
+use super::local_vcf_call_bam_smoke_support::{
+    materialize_reference_fasta, parse_output_sample_count,
+};
 use crate::commands::benchmark::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -242,11 +244,8 @@ pub(crate) fn render_core_germline_micro_pipeline(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<CoreGermlineMicroPipelineReport> {
-    let absolute_output_path = if output_path.is_absolute() {
-        output_path
-    } else {
-        repo_root.join(output_path)
-    };
+    let absolute_output_path =
+        if output_path.is_absolute() { output_path } else { repo_root.join(output_path) };
     let output_root = absolute_output_path
         .parent()
         .ok_or_else(|| anyhow!("core germline micro pipeline output has no parent directory"))?;
@@ -270,7 +269,8 @@ pub(crate) fn render_core_germline_micro_pipeline(
     let validate_row = run_fastq_validate_stage(repo_root, output_root, &input_r1, &input_r2)?;
     let profile_row =
         run_fastq_profile_stage(repo_root, output_root, &input_r1, &input_r2, &validate_row)?;
-    let trim_row = run_fastq_trim_stage(repo_root, output_root, &input_r1, &input_r2, &validate_row)?;
+    let trim_row =
+        run_fastq_trim_stage(repo_root, output_root, &input_r1, &input_r2, &validate_row)?;
     let filter_row = run_fastq_filter_stage(repo_root, output_root, &trim_row)?;
     let align_row = run_bam_align_stage(
         repo_root,
@@ -294,7 +294,8 @@ pub(crate) fn render_core_germline_micro_pipeline(
     )?;
     let filter_vcf_row = run_vcf_filter_stage(repo_root, output_root, &call_row, &vcf_tool_ids)?;
     let stats_row = run_vcf_stats_stage(repo_root, output_root, &filter_vcf_row, &vcf_tool_ids)?;
-    let qc_row = run_vcf_qc_stage(repo_root, output_root, &filter_vcf_row, &stats_row, &vcf_tool_ids)?;
+    let qc_row =
+        run_vcf_qc_stage(repo_root, output_root, &filter_vcf_row, &stats_row, &vcf_tool_ids)?;
 
     let rows = vec![
         validate_row,
@@ -312,24 +313,136 @@ pub(crate) fn render_core_germline_micro_pipeline(
     ];
 
     let handoffs = vec![
-        validate_handoff(repo_root, &rows, "fastq.validate_reads", "validated_reads_r1_path", "fastq.profile_reads", "validated_reads_r1_path")?,
-        validate_handoff(repo_root, &rows, "fastq.validate_reads", "validated_reads_r2_path", "fastq.profile_reads", "validated_reads_r2_path")?,
-        validate_handoff(repo_root, &rows, "fastq.validate_reads", "validated_reads_r1_path", "fastq.trim_reads", "validated_reads_r1_path")?,
-        validate_handoff(repo_root, &rows, "fastq.validate_reads", "validated_reads_r2_path", "fastq.trim_reads", "validated_reads_r2_path")?,
-        validate_handoff(repo_root, &rows, "fastq.trim_reads", "trimmed_reads_r1_path", "fastq.filter_reads", "trimmed_reads_r1_path")?,
-        validate_handoff(repo_root, &rows, "fastq.trim_reads", "trimmed_reads_r2_path", "fastq.filter_reads", "trimmed_reads_r2_path")?,
-        validate_handoff(repo_root, &rows, "fastq.filter_reads", "filtered_reads_r1_path", "bam.align", "filtered_reads_r1_path")?,
-        validate_handoff(repo_root, &rows, "fastq.filter_reads", "filtered_reads_r2_path", "bam.align", "filtered_reads_r2_path")?,
-        validate_handoff(repo_root, &rows, "bam.align", "aligned_bam", "bam.validate", "aligned_bam")?,
-        validate_handoff(repo_root, &rows, "bam.validate", "bam_validation_report", "bam.qc_pre", "bam_validation_report")?,
-        validate_handoff(repo_root, &rows, "bam.qc_pre", "qc_pre_report", "bam.coverage", "qc_pre_report")?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "fastq.validate_reads",
+            "validated_reads_r1_path",
+            "fastq.profile_reads",
+            "validated_reads_r1_path",
+        )?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "fastq.validate_reads",
+            "validated_reads_r2_path",
+            "fastq.profile_reads",
+            "validated_reads_r2_path",
+        )?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "fastq.validate_reads",
+            "validated_reads_r1_path",
+            "fastq.trim_reads",
+            "validated_reads_r1_path",
+        )?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "fastq.validate_reads",
+            "validated_reads_r2_path",
+            "fastq.trim_reads",
+            "validated_reads_r2_path",
+        )?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "fastq.trim_reads",
+            "trimmed_reads_r1_path",
+            "fastq.filter_reads",
+            "trimmed_reads_r1_path",
+        )?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "fastq.trim_reads",
+            "trimmed_reads_r2_path",
+            "fastq.filter_reads",
+            "trimmed_reads_r2_path",
+        )?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "fastq.filter_reads",
+            "filtered_reads_r1_path",
+            "bam.align",
+            "filtered_reads_r1_path",
+        )?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "fastq.filter_reads",
+            "filtered_reads_r2_path",
+            "bam.align",
+            "filtered_reads_r2_path",
+        )?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "bam.align",
+            "aligned_bam",
+            "bam.validate",
+            "aligned_bam",
+        )?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "bam.validate",
+            "bam_validation_report",
+            "bam.qc_pre",
+            "bam_validation_report",
+        )?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "bam.qc_pre",
+            "qc_pre_report",
+            "bam.coverage",
+            "qc_pre_report",
+        )?,
         validate_handoff(repo_root, &rows, "bam.align", "aligned_bam", "vcf.call", "aligned_bam")?,
-        validate_handoff(repo_root, &rows, "bam.coverage", "coverage_report_json", "vcf.call", "coverage_report_json")?,
-        validate_handoff(repo_root, &rows, "bam.coverage", "coverage_regions_json", "vcf.call", "coverage_regions_json")?,
-        validate_handoff(repo_root, &rows, "vcf.call", "call_metrics_json", "vcf.filter", "call_metrics_json")?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "bam.coverage",
+            "coverage_report_json",
+            "vcf.call",
+            "coverage_report_json",
+        )?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "bam.coverage",
+            "coverage_regions_json",
+            "vcf.call",
+            "coverage_regions_json",
+        )?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "vcf.call",
+            "call_metrics_json",
+            "vcf.filter",
+            "call_metrics_json",
+        )?,
         validate_handoff(repo_root, &rows, "vcf.call", "called_vcf", "vcf.filter", "called_vcf")?,
-        validate_handoff(repo_root, &rows, "vcf.filter", "filter_report_json", "vcf.stats", "filter_report_json")?,
-        validate_handoff(repo_root, &rows, "vcf.filter", "filtered_vcf", "vcf.stats", "filtered_vcf")?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "vcf.filter",
+            "filter_report_json",
+            "vcf.stats",
+            "filter_report_json",
+        )?,
+        validate_handoff(
+            repo_root,
+            &rows,
+            "vcf.filter",
+            "filtered_vcf",
+            "vcf.stats",
+            "filtered_vcf",
+        )?,
         validate_handoff(repo_root, &rows, "vcf.filter", "filtered_vcf", "vcf.qc", "filtered_vcf")?,
         validate_handoff(repo_root, &rows, "vcf.stats", "stats_json", "vcf.qc", "stats_json")?,
     ];
@@ -414,10 +527,7 @@ fn run_fastq_validate_stage(
         ]),
         metrics: BTreeMap::from([
             ("validated_reads_r1".to_string(), Value::from(report.validated_reads_r1)),
-            (
-                "validated_reads_r2".to_string(),
-                Value::from(report.validated_reads_r2.unwrap_or(0)),
-            ),
+            ("validated_reads_r2".to_string(), Value::from(report.validated_reads_r2.unwrap_or(0))),
             ("validated_pairs".to_string(), Value::from(report.validated_pairs.unwrap_or(0))),
             ("strict_pass".to_string(), Value::from(report.strict_pass)),
             ("exit_code".to_string(), Value::from(report.exit_code)),
@@ -655,8 +765,9 @@ fn run_bam_align_stage(
 
     fs::create_dir_all(&stage_root).with_context(|| format!("create {}", stage_root.display()))?;
     let semantic_sam = stage_root.join("align.semantic.sam");
-    fs::copy(&semantic_sam_path, &semantic_sam)
-        .with_context(|| format!("copy {} to {}", semantic_sam_path.display(), semantic_sam.display()))?;
+    fs::copy(&semantic_sam_path, &semantic_sam).with_context(|| {
+        format!("copy {} to {}", semantic_sam_path.display(), semantic_sam.display())
+    })?;
     let aligned_sam = stage_root.join("align.sam");
     write_mapped_sam_from_fastqs(
         reference_fasta,
@@ -769,14 +880,8 @@ fn run_bam_validate_stage(
                 "validation_report_present".to_string(),
                 Value::from(report.validation_report_present),
             ),
-            (
-                "total_reads".to_string(),
-                Value::from(report.flagstat.total_reads.unwrap_or(0)),
-            ),
-            (
-                "mapped_reads".to_string(),
-                Value::from(report.flagstat.mapped_reads.unwrap_or(0)),
-            ),
+            ("total_reads".to_string(), Value::from(report.flagstat.total_reads.unwrap_or(0))),
+            ("mapped_reads".to_string(), Value::from(report.flagstat.mapped_reads.unwrap_or(0))),
             (
                 "refusal_code_count".to_string(),
                 Value::from(u64::try_from(report.refusal_codes.len()).unwrap_or(u64::MAX)),
@@ -821,10 +926,7 @@ fn run_bam_qc_pre_stage(
             ("total_reads".to_string(), Value::from(summary.total_reads)),
             ("mapped_reads".to_string(), Value::from(summary.mapped_reads)),
             ("unmapped_reads".to_string(), Value::from(summary.unmapped_reads)),
-            (
-                "duplicate_flagged_reads".to_string(),
-                Value::from(summary.duplicate_flagged_reads),
-            ),
+            ("duplicate_flagged_reads".to_string(), Value::from(summary.duplicate_flagged_reads)),
         ]),
     })
 }
@@ -840,8 +942,11 @@ fn run_bam_coverage_stage(
     let aligned_bam = repo_root.join(required_output(align_row, "aligned_bam")?);
     let regions_bed = stage_root.join("coverage_regions.bed");
     write_full_reference_bed(&aligned_bam, &regions_bed)?;
-    let (summary, region_rows) =
-        bijux_dna_domain_bam::summarize_tiny_bam_coverage_regions(&aligned_bam, Some(&regions_bed), &[1])?;
+    let (summary, region_rows) = bijux_dna_domain_bam::summarize_tiny_bam_coverage_regions(
+        &aligned_bam,
+        Some(&regions_bed),
+        &[1],
+    )?;
     let report_path = stage_root.join("coverage.summary.json");
     let regions_path = stage_root.join("coverage.regions.json");
     bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
@@ -858,23 +963,17 @@ fn run_bam_coverage_stage(
             ("aligned_bam".to_string(), required_output(align_row, "aligned_bam")?),
             ("aligned_bai".to_string(), required_output(align_row, "aligned_bai")?),
             ("qc_pre_report".to_string(), required_output(qc_pre_row, "qc_pre_report")?),
-            ("coverage_region_contract".to_string(), path_relative_to_repo(repo_root, &regions_bed)),
+            (
+                "coverage_region_contract".to_string(),
+                path_relative_to_repo(repo_root, &regions_bed),
+            ),
         ]),
         outputs: BTreeMap::from([
-            (
-                "coverage_report_json".to_string(),
-                path_relative_to_repo(repo_root, &report_path),
-            ),
-            (
-                "coverage_regions_json".to_string(),
-                path_relative_to_repo(repo_root, &regions_path),
-            ),
+            ("coverage_report_json".to_string(), path_relative_to_repo(repo_root, &report_path)),
+            ("coverage_regions_json".to_string(), path_relative_to_repo(repo_root, &regions_path)),
         ]),
         metrics: BTreeMap::from([
-            (
-                "mean_depth".to_string(),
-                Value::from(summary.mean_depth.unwrap_or_default()),
-            ),
+            ("mean_depth".to_string(), Value::from(summary.mean_depth.unwrap_or_default())),
             (
                 "region_count".to_string(),
                 Value::from(u64::try_from(region_rows.len()).unwrap_or(u64::MAX)),
@@ -897,11 +996,14 @@ fn run_vcf_call_stage(
 ) -> Result<CoreGermlineMicroPipelineRow> {
     let stage_root = output_root.join("artifacts/vcf.call");
     let runtime_root = stage_root.join("runtime");
-    fs::create_dir_all(&runtime_root).with_context(|| format!("create {}", runtime_root.display()))?;
+    fs::create_dir_all(&runtime_root)
+        .with_context(|| format!("create {}", runtime_root.display()))?;
     let aligned_bam = repo_root.join(required_output(align_row, "aligned_bam")?);
     let materialized_reference = materialize_reference_fasta(reference_fasta, &runtime_root)?;
-    let coverage_report_path = repo_root.join(required_output(coverage_row, "coverage_report_json")?);
-    let coverage_regions_path = repo_root.join(required_output(coverage_row, "coverage_regions_json")?);
+    let coverage_report_path =
+        repo_root.join(required_output(coverage_row, "coverage_report_json")?);
+    let coverage_regions_path =
+        repo_root.join(required_output(coverage_row, "coverage_regions_json")?);
     let coverage_regions = read_json_document(&coverage_regions_path)?;
     let coverage_gate_passed = coverage_regions.as_array().is_some_and(|rows| {
         rows.iter().any(|row| {
@@ -1047,7 +1149,10 @@ fn run_vcf_filter_stage(
         consumed_call_metrics_path: required_output(call_row, "call_metrics_json")?,
         output_vcf_path: path_relative_to_repo(repo_root, &stage_outputs.filtered_vcf),
         output_tbi_path: path_relative_to_repo(repo_root, &stage_outputs.filtered_tbi),
-        filter_breakdown_path: path_relative_to_repo(repo_root, &stage_outputs.filter_breakdown_json),
+        filter_breakdown_path: path_relative_to_repo(
+            repo_root,
+            &stage_outputs.filter_breakdown_json,
+        ),
         filter_breakdown_tsv_path: path_relative_to_repo(
             repo_root,
             &stage_outputs.filter_breakdown_tsv,
@@ -1099,7 +1204,10 @@ fn run_vcf_stats_stage(
     let stats = run_stats_stage_real(
         &filtered_vcf,
         &stage_root,
-        &VcfStatsParams { sample_name: PIPELINE_SAMPLE_ID.to_string(), ..VcfStatsParams::default() },
+        &VcfStatsParams {
+            sample_name: PIPELINE_SAMPLE_ID.to_string(),
+            ..VcfStatsParams::default()
+        },
     )?;
     let report = VcfStatsStageReport {
         schema_version: "bijux.bench.local_core_germline_micro_pipeline.vcf_stats.v1".to_string(),
@@ -1139,10 +1247,7 @@ fn run_vcf_stats_stage(
             ("snp_count".to_string(), Value::from(report.snp_count)),
             ("indel_count".to_string(), Value::from(report.indel_count)),
             ("sample_count".to_string(), Value::from(report.sample_count)),
-            (
-                "ti_tv".to_string(),
-                report.ti_tv.map_or(Value::Null, Value::from),
-            ),
+            ("ti_tv".to_string(), report.ti_tv.map_or(Value::Null, Value::from)),
         ]),
     })
 }
@@ -1223,7 +1328,9 @@ fn run_vcf_qc_stage(
             ),
             (
                 "variant_missingness_row_count".to_string(),
-                Value::from(u64::try_from(report.variant_missingness_row_count).unwrap_or(u64::MAX)),
+                Value::from(
+                    u64::try_from(report.variant_missingness_row_count).unwrap_or(u64::MAX),
+                ),
             ),
             (
                 "excluded_sample_count".to_string(),
@@ -1253,22 +1360,21 @@ fn validate_handoff(
         .iter()
         .find(|row| row.stage_id == target_stage_id)
         .ok_or_else(|| anyhow!("missing target stage row `{target_stage_id}`"))?;
-    let source_path = source_row
-        .outputs
-        .get(source_output_id)
-        .cloned()
-        .ok_or_else(|| anyhow!("stage `{source_stage_id}` is missing output `{source_output_id}`"))?;
-    let target_path = target_row
-        .consumed_inputs
-        .get(target_input_id)
-        .cloned()
-        .ok_or_else(|| anyhow!("stage `{target_stage_id}` is missing consumed input `{target_input_id}`"))?;
+    let source_path = source_row.outputs.get(source_output_id).cloned().ok_or_else(|| {
+        anyhow!("stage `{source_stage_id}` is missing output `{source_output_id}`")
+    })?;
+    let target_path =
+        target_row.consumed_inputs.get(target_input_id).cloned().ok_or_else(|| {
+            anyhow!("stage `{target_stage_id}` is missing consumed input `{target_input_id}`")
+        })?;
     let source_exists = repo_root.join(&source_path).exists();
     let target_exists = repo_root.join(&target_path).exists();
     let exact_path_match = source_path == target_path;
     let accepted = source_exists && target_exists && exact_path_match;
     Ok(CoreGermlineMicroPipelineHandoff {
-        handoff_id: format!("{source_stage_id}:{source_output_id}->{target_stage_id}:{target_input_id}"),
+        handoff_id: format!(
+            "{source_stage_id}:{source_output_id}->{target_stage_id}:{target_input_id}"
+        ),
         source_stage_id: source_stage_id.to_string(),
         target_stage_id: target_stage_id.to_string(),
         source_output_id: source_output_id.to_string(),
@@ -1287,7 +1393,10 @@ fn validate_handoff(
     })
 }
 
-fn build_profile_report(input_r1: &Path, input_r2: Option<&Path>) -> Result<FastqProfileStageReport> {
+fn build_profile_report(
+    input_r1: &Path,
+    input_r2: Option<&Path>,
+) -> Result<FastqProfileStageReport> {
     let records_r1 = read_fastq_records(input_r1)?;
     let records_r2 = input_r2.map(read_fastq_records).transpose()?;
     let bases_r1 = total_bases(&records_r1);
@@ -1299,7 +1408,8 @@ fn build_profile_report(input_r1: &Path, input_r2: Option<&Path>) -> Result<Fast
         .unwrap_or(0);
     let length_histogram = length_histogram(&records_r1, records_r2.as_deref());
     Ok(FastqProfileStageReport {
-        schema_version: "bijux.bench.local_core_germline_micro_pipeline.fastq_profile.v1".to_string(),
+        schema_version: "bijux.bench.local_core_germline_micro_pipeline.fastq_profile.v1"
+            .to_string(),
         stage_id: "fastq.profile_reads".to_string(),
         tool_id: FASTQ_PROFILE_TOOL_ID.to_string(),
         sample_id: PIPELINE_SAMPLE_ID.to_string(),
@@ -1387,9 +1497,8 @@ fn write_filter_reads_report(
         .count() as u64;
     let reads_in = u64::try_from(input_records.len() + mate_records.as_ref().map_or(0, Vec::len))
         .context("count FASTQ filter input reads")?;
-    let reads_out =
-        u64::try_from(retained_r1.len() + retained_r2.as_ref().map_or(0, Vec::len))
-            .context("count FASTQ filter output reads")?;
+    let reads_out = u64::try_from(retained_r1.len() + retained_r2.as_ref().map_or(0, Vec::len))
+        .context("count FASTQ filter output reads")?;
     let bases_in = total_bases(&input_records) + mate_records.as_deref().map_or(0, total_bases);
     let bases_out = total_bases(&retained_r1) + retained_r2.as_deref().map_or(0, total_bases);
     let backend_metrics = json!({
@@ -1454,7 +1563,10 @@ fn write_filter_reads_report(
     Ok(report)
 }
 
-fn filter_drop_reason(record: &FastqRecord, effective_params: &FilterEffectiveParams) -> Option<FilterDropReason> {
+fn filter_drop_reason(
+    record: &FastqRecord,
+    effective_params: &FilterEffectiveParams,
+) -> Option<FilterDropReason> {
     let max_n_count = effective_params.max_n_count.or(effective_params.max_n);
     if let Some(limit) = max_n_count {
         let n_count =
@@ -1488,10 +1600,7 @@ fn materialize_pipeline_input_fastqs(
     let window_start = 900usize;
     let read_length = 30usize;
     if reference_sequence.len() < window_start + read_length {
-        bail!(
-            "reference {} is too short to synthesize pipeline FASTQs",
-            reference_fasta.display()
-        );
+        bail!("reference {} is too short to synthesize pipeline FASTQs", reference_fasta.display());
     }
 
     let mut variant_sequence =
@@ -1499,10 +1608,8 @@ fn materialize_pipeline_input_fastqs(
     let variant_offset = read_length / 2;
     let reference_base = variant_sequence.as_bytes()[variant_offset];
     let alt_base = alternate_base(reference_base);
-    variant_sequence.replace_range(
-        variant_offset..variant_offset + 1,
-        &char::from(alt_base).to_string(),
-    );
+    variant_sequence
+        .replace_range(variant_offset..variant_offset + 1, &char::from(alt_base).to_string());
     let quality = "F".repeat(read_length);
 
     let records_r1 = vec![
@@ -1550,10 +1657,7 @@ fn materialize_pipeline_input_fastqs(
             "read2/1".to_string(),
             SyntheticReadPlacement { reference_name: reference_name.clone(), position },
         ),
-        (
-            "read2/2".to_string(),
-            SyntheticReadPlacement { reference_name, position },
-        ),
+        ("read2/2".to_string(), SyntheticReadPlacement { reference_name, position }),
     ]);
 
     Ok(PipelineInputFixtures { raw_r1, raw_r2, placements })
@@ -1569,8 +1673,8 @@ fn local_complexity_score(sequence: &str) -> f64 {
 }
 
 fn read_first_reference_contig(reference_fasta: &Path) -> Result<(String, String)> {
-    let payload =
-        fs::read_to_string(reference_fasta).with_context(|| format!("read {}", reference_fasta.display()))?;
+    let payload = fs::read_to_string(reference_fasta)
+        .with_context(|| format!("read {}", reference_fasta.display()))?;
     let mut current_name = None::<String>;
     let mut current_sequence = String::new();
     for line in payload.lines() {
@@ -1641,15 +1745,22 @@ fn write_mapped_sam_from_fastqs(
     Ok(())
 }
 
-fn convert_coordinate_sam_to_bam(input_sam: &Path, output_bam: &Path, output_bai: &Path) -> Result<()> {
-    use noodles_sam::header::record::value::{map, Map};
-    use noodles_sam::header::record::value::map::header::{sort_order::COORDINATE, tag::SORT_ORDER};
+fn convert_coordinate_sam_to_bam(
+    input_sam: &Path,
+    output_bam: &Path,
+    output_bai: &Path,
+) -> Result<()> {
     use noodles_sam::alignment::io::Write as _;
+    use noodles_sam::header::record::value::map::header::{
+        sort_order::COORDINATE, tag::SORT_ORDER,
+    };
+    use noodles_sam::header::record::value::{map, Map};
 
     let file = fs::File::open(input_sam)
         .with_context(|| format!("open semantic alignment SAM {}", input_sam.display()))?;
     let mut reader = sam::io::Reader::new(BufReader::new(file));
-    let mut header = reader.read_header().with_context(|| format!("read {}", input_sam.display()))?;
+    let mut header =
+        reader.read_header().with_context(|| format!("read {}", input_sam.display()))?;
     *header.header_mut() = Some(
         Map::<map::Header>::builder()
             .insert(SORT_ORDER, COORDINATE)
@@ -1668,8 +1779,11 @@ fn convert_coordinate_sam_to_bam(input_sam: &Path, output_bam: &Path, output_bai
         .map(|(index, name)| (String::from_utf8_lossy(name.as_ref()).into_owned(), index))
         .collect::<HashMap<_, _>>();
     records.sort_by(|left, right| {
-        sam_record_sort_key(left, &header, &reference_order)
-            .cmp(&sam_record_sort_key(right, &header, &reference_order))
+        sam_record_sort_key(left, &header, &reference_order).cmp(&sam_record_sort_key(
+            right,
+            &header,
+            &reference_order,
+        ))
     });
 
     let bam_file =
@@ -1804,7 +1918,10 @@ fn write_fastq_records(path: &Path, records: &[FastqRecord]) -> Result<()> {
     Ok(())
 }
 
-fn length_histogram(records_r1: &[FastqRecord], records_r2: Option<&[FastqRecord]>) -> Vec<FastqLengthBin> {
+fn length_histogram(
+    records_r1: &[FastqRecord],
+    records_r2: Option<&[FastqRecord]>,
+) -> Vec<FastqLengthBin> {
     let mut bins = BTreeMap::<u64, u64>::new();
     for record in records_r1 {
         *bins.entry(u64::try_from(record.sequence.len()).unwrap_or(u64::MAX)).or_insert(0) += 1;
@@ -1893,10 +2010,7 @@ mod tests {
         let report = render_core_germline_micro_pipeline(&repo_root, output_path.clone())
             .expect("render core germline micro pipeline");
 
-        assert_eq!(
-            report.schema_version,
-            "bijux.bench.local_core_germline_micro_pipeline.v1"
-        );
+        assert_eq!(report.schema_version, "bijux.bench.local_core_germline_micro_pipeline.v1");
         assert_eq!(report.pipeline_id, "core-germline-fastq-bam-vcf");
         assert_eq!(report.stage_count, 12);
         assert_eq!(report.handoff_count, 20);

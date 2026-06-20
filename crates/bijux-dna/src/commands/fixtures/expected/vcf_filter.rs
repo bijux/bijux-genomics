@@ -12,8 +12,7 @@ use bijux_dna_domain_vcf::{
 use serde::{Deserialize, Serialize};
 
 pub(crate) const VCF_FILTER_TRUTH_FIXTURE_ID: &str = "vcf-filter-truth";
-pub(crate) const VCF_FILTER_TRUTH_MANIFEST_SCHEMA_VERSION: &str =
-    "bijux.bench.vcf_filter_truth.v1";
+pub(crate) const VCF_FILTER_TRUTH_MANIFEST_SCHEMA_VERSION: &str = "bijux.bench.vcf_filter_truth.v1";
 const VCF_FILTER_TRUTH_BUNDLE_SCHEMA_VERSION: &str = "bijux.bench.vcf_filter_truth.expected.v1";
 const VCF_FILTER_TRUTH_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.vcf_filter_truth.validation.v1";
@@ -121,33 +120,21 @@ pub(crate) fn validate_vcf_filter_truth_manifest_path(
     validate_manifest_contract(repo_root, &manifest, manifest_path)?;
 
     let fixture_root = manifest_path.parent().ok_or_else(|| {
-        anyhow!(
-            "VCF filter truth manifest has no parent directory: {}",
-            manifest_path.display()
-        )
+        anyhow!("VCF filter truth manifest has no parent directory: {}", manifest_path.display())
     })?;
     let expected_path = resolve_fixture_path(fixture_root, &manifest.expected_path);
     if !expected_path.is_file() {
-        return Err(anyhow!(
-            "VCF filter truth bundle is missing: {}",
-            expected_path.display()
-        ));
+        return Err(anyhow!("VCF filter truth bundle is missing: {}", expected_path.display()));
     }
 
     let expected = load_vcf_filter_truth_bundle(&expected_path)?;
     validate_bundle_contract(&manifest, &expected, &expected_path)?;
 
     let actual = build_actual_truth_bundle(repo_root, &manifest)?;
-    let expected_map = expected
-        .cases
-        .iter()
-        .map(|case| (case.case_id.as_str(), case))
-        .collect::<BTreeMap<_, _>>();
-    let actual_map = actual
-        .cases
-        .iter()
-        .map(|case| (case.case_id.as_str(), case))
-        .collect::<BTreeMap<_, _>>();
+    let expected_map =
+        expected.cases.iter().map(|case| (case.case_id.as_str(), case)).collect::<BTreeMap<_, _>>();
+    let actual_map =
+        actual.cases.iter().map(|case| (case.case_id.as_str(), case)).collect::<BTreeMap<_, _>>();
     if expected_map.len() != actual_map.len() {
         return Err(anyhow!(
             "VCF filter truth case count drifted: expected {}, observed {}",
@@ -223,10 +210,7 @@ fn validate_manifest_contract(
     for source_path in &manifest.source_paths {
         let resolved = resolve_repo_relative_path(repo_root, source_path);
         if !resolved.is_file() {
-            return Err(anyhow!(
-                "VCF filter truth source path is missing: {}",
-                resolved.display()
-            ));
+            return Err(anyhow!("VCF filter truth source path is missing: {}", resolved.display()));
         }
     }
     if manifest.cases.is_empty() {
@@ -240,10 +224,7 @@ fn validate_manifest_contract(
     for case in &manifest.cases {
         validate_case_contract(repo_root, case, manifest_path)?;
         if !case_ids.insert(case.case_id.clone()) {
-            return Err(anyhow!(
-                "VCF filter truth manifest repeats case_id `{}`",
-                case.case_id
-            ));
+            return Err(anyhow!("VCF filter truth manifest repeats case_id `{}`", case.case_id));
         }
     }
     Ok(())
@@ -254,7 +235,10 @@ fn validate_case_contract(
     case: &VcfFilterTruthCase,
     manifest_path: &Path,
 ) -> Result<()> {
-    if case.case_id.trim().is_empty() || case.stage_id.trim().is_empty() || case.tool_id.trim().is_empty() {
+    if case.case_id.trim().is_empty()
+        || case.stage_id.trim().is_empty()
+        || case.tool_id.trim().is_empty()
+    {
         return Err(anyhow!(
             "VCF filter truth manifest `{}` contains a case with empty identity fields",
             manifest_path.display()
@@ -323,16 +307,10 @@ fn validate_bundle_contract(
             manifest.fixture_id
         ));
     }
-    let expected_case_ids = manifest
-        .cases
-        .iter()
-        .map(|case| case.case_id.as_str())
-        .collect::<BTreeSet<_>>();
-    let bundle_case_ids = bundle
-        .cases
-        .iter()
-        .map(|case| case.case_id.as_str())
-        .collect::<BTreeSet<_>>();
+    let expected_case_ids =
+        manifest.cases.iter().map(|case| case.case_id.as_str()).collect::<BTreeSet<_>>();
+    let bundle_case_ids =
+        bundle.cases.iter().map(|case| case.case_id.as_str()).collect::<BTreeSet<_>>();
     if expected_case_ids != bundle_case_ids {
         return Err(anyhow!(
             "VCF filter truth bundle case ids do not match manifest `{}`",
@@ -364,7 +342,11 @@ fn build_actual_truth_bundle(
         let case_truth = match case.truth_kind {
             VcfFilterTruthKind::FilterLabels => VcfFilterTruthCaseTruth {
                 case_id: case.case_id.clone(),
-                filter_metrics: Some(parse_filter_metrics_truth(&case.tool_id, stage, &artifact_root)?),
+                filter_metrics: Some(parse_filter_metrics_truth(
+                    &case.tool_id,
+                    stage,
+                    &artifact_root,
+                )?),
                 damage_filter_metrics: None,
                 output_truth,
             },
@@ -436,7 +418,9 @@ fn collect_stage_ids(cases: &[VcfFilterTruthCaseTruth]) -> Vec<String> {
             case.filter_metrics
                 .as_ref()
                 .map(|metrics| metrics.stage_id.clone())
-                .or_else(|| case.damage_filter_metrics.as_ref().map(|metrics| metrics.stage_id.clone()))
+                .or_else(|| {
+                    case.damage_filter_metrics.as_ref().map(|metrics| metrics.stage_id.clone())
+                })
                 .expect("case truth must carry metrics")
         })
         .collect::<Vec<_>>();
@@ -452,7 +436,9 @@ fn collect_tool_ids(cases: &[VcfFilterTruthCaseTruth]) -> Vec<String> {
             case.filter_metrics
                 .as_ref()
                 .map(|metrics| metrics.tool_id.clone())
-                .or_else(|| case.damage_filter_metrics.as_ref().map(|metrics| metrics.tool_id.clone()))
+                .or_else(|| {
+                    case.damage_filter_metrics.as_ref().map(|metrics| metrics.tool_id.clone())
+                })
                 .expect("case truth must carry metrics")
         })
         .collect::<Vec<_>>();
@@ -462,16 +448,21 @@ fn collect_tool_ids(cases: &[VcfFilterTruthCaseTruth]) -> Vec<String> {
 }
 
 fn resolve_repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() { path.to_path_buf() } else { repo_root.join(path) }
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
 }
 
 fn resolve_fixture_path(fixture_root: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() { path.to_path_buf() } else { fixture_root.join(path) }
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        fixture_root.join(path)
+    }
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .replace('\\', "/")
+    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }

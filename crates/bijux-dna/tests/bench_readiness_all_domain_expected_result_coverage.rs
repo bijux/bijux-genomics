@@ -90,9 +90,7 @@ fn bench_readiness_all_domain_expected_result_coverage_reports_complete_active_r
         Some(1)
     );
     assert_eq!(
-        report_section_counts
-            .get("runs_of_homozygosity")
-            .and_then(serde_json::Value::as_u64),
+        report_section_counts.get("runs_of_homozygosity").and_then(serde_json::Value::as_u64),
         Some(1)
     );
 

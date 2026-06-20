@@ -235,10 +235,7 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
         roh.get("section_id").and_then(serde_json::Value::as_str),
         Some("runs_of_homozygosity")
     );
-    assert_eq!(
-        roh.get("summary_table").and_then(serde_json::Value::as_str),
-        Some("roh_metrics")
-    );
+    assert_eq!(roh.get("summary_table").and_then(serde_json::Value::as_str), Some("roh_metrics"));
 
     let pca = rows
         .iter()

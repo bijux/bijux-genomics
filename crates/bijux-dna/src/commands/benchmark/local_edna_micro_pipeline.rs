@@ -219,7 +219,8 @@ pub(crate) fn render_edna_micro_pipeline(
 
     let taxonomy_row =
         run_taxonomy_database_validation_stage(repo_root, output_root, &taxonomy_manifest_path)?;
-    let corpus_stage = run_edna_corpus_validation_stage(repo_root, output_root, &corpus_manifest_path)?;
+    let corpus_stage =
+        run_edna_corpus_validation_stage(repo_root, output_root, &corpus_manifest_path)?;
     let validate_stage = run_fastq_validate_stage(repo_root, output_root, &corpus_stage.samples)?;
     let screen_stage = run_fastq_screen_taxonomy_stage(
         repo_root,
@@ -242,7 +243,8 @@ pub(crate) fn render_edna_micro_pipeline(
         screen_stage.row.clone(),
         judgment_row.clone(),
     ];
-    let handoffs = build_handoffs(repo_root, &taxonomy_row, &corpus_stage, &validate_stage, &screen_stage);
+    let handoffs =
+        build_handoffs(repo_root, &taxonomy_row, &corpus_stage, &validate_stage, &screen_stage);
     let passes_behavior_test =
         passes_behavior_test(&rows, &handoffs, corpus_stage.samples.len(), &screen_stage.tool_id);
 
@@ -280,24 +282,12 @@ fn run_taxonomy_database_validation_stage(
     bijux_dna_infra::atomic_write_json(&evidence_path, &report)?;
 
     let mut outputs = BTreeMap::from([
-        (
-            "taxonomy_database_manifest".to_string(),
-            path_relative_to_repo(repo_root, manifest_path),
-        ),
-        (
-            "lineage_table".to_string(),
-            report.lineage_table_path.clone(),
-        ),
-        (
-            "validation_report".to_string(),
-            path_relative_to_repo(repo_root, &evidence_path),
-        ),
+        ("taxonomy_database_manifest".to_string(), path_relative_to_repo(repo_root, manifest_path)),
+        ("lineage_table".to_string(), report.lineage_table_path.clone()),
+        ("validation_report".to_string(), path_relative_to_repo(repo_root, &evidence_path)),
     ]);
     for backend in &report.classifier_backends {
-        outputs.insert(
-            format!("{}_backend_index", backend.classifier),
-            backend.index_path.clone(),
-        );
+        outputs.insert(format!("{}_backend_index", backend.classifier), backend.index_path.clone());
     }
 
     Ok(succeeded_row(
@@ -348,18 +338,9 @@ fn run_edna_corpus_validation_stage(
         .collect::<Vec<_>>();
 
     let mut outputs = BTreeMap::from([
-        (
-            "corpus_manifest".to_string(),
-            path_relative_to_repo(repo_root, manifest_path),
-        ),
-        (
-            "expected_taxa".to_string(),
-            path_relative_to_repo(repo_root, &expected_taxa_path),
-        ),
-        (
-            "validation_report".to_string(),
-            path_relative_to_repo(repo_root, &evidence_path),
-        ),
+        ("corpus_manifest".to_string(), path_relative_to_repo(repo_root, manifest_path)),
+        ("expected_taxa".to_string(), path_relative_to_repo(repo_root, &expected_taxa_path)),
+        ("validation_report".to_string(), path_relative_to_repo(repo_root, &evidence_path)),
     ]);
     for sample in &samples {
         outputs.insert(
@@ -382,13 +363,21 @@ fn run_edna_corpus_validation_stage(
         outputs,
         BTreeMap::from([
             ("sample_count".to_string(), Value::from(report.sample_count)),
-            ("expected_taxa_row_count".to_string(), Value::from(report.expected_taxa_output_row_count)),
+            (
+                "expected_taxa_row_count".to_string(),
+                Value::from(report.expected_taxa_output_row_count),
+            ),
             ("valid".to_string(), Value::from(report.valid)),
         ]),
         "validated the governed eDNA corpus fixture and expected taxa table".to_string(),
     );
 
-    Ok(EdnaCorpusStageArtifacts { row, manifest_path: manifest_path.to_path_buf(), expected_taxa_path, samples })
+    Ok(EdnaCorpusStageArtifacts {
+        row,
+        manifest_path: manifest_path.to_path_buf(),
+        expected_taxa_path,
+        samples,
+    })
 }
 
 fn run_fastq_validate_stage(
@@ -421,7 +410,8 @@ fn run_fastq_validate_stage(
         )?;
         report.input_r1 = path_relative_to_repo(repo_root, &sample.fastq_path);
         report.input_r2 = None;
-        report.validation_log_r1 = path_relative_to_repo(repo_root, &artifact_paths.validation_log_r1);
+        report.validation_log_r1 =
+            path_relative_to_repo(repo_root, &artifact_paths.validation_log_r1);
         report.validation_log_r2 = None;
         bijux_dna_infra::atomic_write_json(&artifact_paths.report_json, &report)?;
 
@@ -507,8 +497,9 @@ fn run_fastq_screen_taxonomy_stage(
     let stage_root = output_root.join("artifacts/fastq.screen_taxonomy");
     fs::create_dir_all(&stage_root).with_context(|| format!("create {}", stage_root.display()))?;
     let plan = bijux_dna_planner_fastq::stage_api::local_screen_taxonomy_plan(repo_root)?;
-    let effective_params: ScreenEffectiveParams = serde_json::from_value(plan.effective_params.clone())
-        .context("parse governed screen_taxonomy effective params")?;
+    let effective_params: ScreenEffectiveParams =
+        serde_json::from_value(plan.effective_params.clone())
+            .context("parse governed screen_taxonomy effective params")?;
     let taxonomy_manifest = repo_root.join(DEFAULT_TAXONOMY_MINI_MANIFEST_PATH);
     let taxonomy_report =
         validate_taxonomy_database_fixture_manifest_path(repo_root, &taxonomy_manifest)?;
@@ -571,7 +562,10 @@ fn run_fastq_screen_taxonomy_stage(
             input_r1: path_relative_to_repo(repo_root, &sample.validated_fastq_path),
             input_r2: None,
             screen_report_tsv: path_relative_to_repo(repo_root, &screen_report_tsv),
-            classification_report_json: path_relative_to_repo(repo_root, &classification_report_json),
+            classification_report_json: path_relative_to_repo(
+                repo_root,
+                &classification_report_json,
+            ),
             unclassified_reads_r1: Some(path_relative_to_repo(repo_root, &unclassified_reads_r1)),
             unclassified_reads_r2: None,
             reads_in: Some(stats.reads),
@@ -598,7 +592,10 @@ fn run_fastq_screen_taxonomy_stage(
             sample_id: sample.sample_id.clone(),
             input_fastq_path: path_relative_to_repo(repo_root, &sample.validated_fastq_path),
             screen_report_tsv: path_relative_to_repo(repo_root, &screen_report_tsv),
-            classification_report_json: path_relative_to_repo(repo_root, &classification_report_json),
+            classification_report_json: path_relative_to_repo(
+                repo_root,
+                &classification_report_json,
+            ),
             unclassified_reads_r1: path_relative_to_repo(repo_root, &unclassified_reads_r1),
             reads_in: stats.reads,
             bases_in: stats.bases,
@@ -693,7 +690,8 @@ fn run_taxonomy_output_judgment_stage(
         evidence_path.clone(),
     )?;
 
-    let false_positive_count = report.samples.iter().map(|sample| sample.false_positive_count).sum::<usize>();
+    let false_positive_count =
+        report.samples.iter().map(|sample| sample.false_positive_count).sum::<usize>();
     let observed_unclassified_read_count =
         report.samples.iter().map(|sample| sample.observed_unclassified_read_count).sum::<u64>();
 
@@ -881,9 +879,7 @@ fn passes_behavior_test(
         return false;
     }
     let screen_row = rows.iter().find(|row| row.stage_id == "fastq.screen_taxonomy");
-    let judgment_row = rows
-        .iter()
-        .find(|row| row.stage_id == "benchmark.taxonomy_output_judgment");
+    let judgment_row = rows.iter().find(|row| row.stage_id == "benchmark.taxonomy_output_judgment");
     let validate_row = rows.iter().find(|row| row.stage_id == "fastq.validate_reads");
     let taxonomy_row =
         rows.iter().find(|row| row.stage_id == "benchmark.taxonomy_database_fixture");
@@ -891,22 +887,13 @@ fn passes_behavior_test(
     match (screen_row, judgment_row, validate_row, taxonomy_row, corpus_row) {
         (Some(screen), Some(judgment), Some(validate), Some(taxonomy), Some(corpus)) => {
             screen.tool_id == expected_tool_id
-                && screen
-                    .metrics
-                    .get("unclassified_output_count")
-                    .and_then(Value::as_u64)
+                && screen.metrics.get("unclassified_output_count").and_then(Value::as_u64)
                     == Some(sample_count as u64)
                 && judgment.metrics.get("false_positive_count").and_then(Value::as_u64) == Some(0)
-                && judgment
-                    .metrics
-                    .get("mismatched_expectation_count")
-                    .and_then(Value::as_u64)
+                && judgment.metrics.get("mismatched_expectation_count").and_then(Value::as_u64)
                     == Some(0)
                 && judgment.metrics.get("valid").and_then(Value::as_bool) == Some(true)
-                && validate
-                    .metrics
-                    .get("validated_sample_count")
-                    .and_then(Value::as_u64)
+                && validate.metrics.get("validated_sample_count").and_then(Value::as_u64)
                     == Some(sample_count as u64)
                 && taxonomy.metrics.get("valid").and_then(Value::as_bool) == Some(true)
                 && corpus.metrics.get("valid").and_then(Value::as_bool) == Some(true)
@@ -915,7 +902,9 @@ fn passes_behavior_test(
     }
 }
 
-fn load_observed_fixture_taxonomy_report(report_path: &Path) -> Result<ObservedFixtureTaxonomyReport> {
+fn load_observed_fixture_taxonomy_report(
+    report_path: &Path,
+) -> Result<ObservedFixtureTaxonomyReport> {
     let raw = fs::read_to_string(report_path)
         .with_context(|| format!("read {}", report_path.display()))?;
     let payload: serde_json::Value =
@@ -924,7 +913,9 @@ fn load_observed_fixture_taxonomy_report(report_path: &Path) -> Result<ObservedF
         .get("summary_entries")
         .or_else(|| payload.get("top_taxa"))
         .and_then(serde_json::Value::as_array)
-        .ok_or_else(|| anyhow!("{} is missing `summary_entries` or `top_taxa`", report_path.display()))?;
+        .ok_or_else(|| {
+            anyhow!("{} is missing `summary_entries` or `top_taxa`", report_path.display())
+        })?;
     let mut summary_entries = Vec::new();
     let mut top_taxa = Vec::new();
     let mut unclassified_percent = 0.0_f64;
@@ -933,11 +924,13 @@ fn load_observed_fixture_taxonomy_report(report_path: &Path) -> Result<ObservedF
             .get("label")
             .or_else(|| entry.get("name"))
             .and_then(serde_json::Value::as_str)
-            .ok_or_else(|| anyhow!("{} contains an entry without `label` or `name`", report_path.display()))?;
-        let percent = entry
-            .get("percent")
-            .and_then(serde_json::Value::as_f64)
-            .ok_or_else(|| anyhow!("{} contains an entry without numeric `percent`", report_path.display()))?;
+            .ok_or_else(|| {
+                anyhow!("{} contains an entry without `label` or `name`", report_path.display())
+            })?;
+        let percent =
+            entry.get("percent").and_then(serde_json::Value::as_f64).ok_or_else(|| {
+                anyhow!("{} contains an entry without numeric `percent`", report_path.display())
+            })?;
         let summary = TaxonomyScreenSummaryEntryV1 { label: label.to_string(), percent };
         summary_entries.push(summary.clone());
         if label.eq_ignore_ascii_case("unclassified") {
@@ -949,10 +942,7 @@ fn load_observed_fixture_taxonomy_report(report_path: &Path) -> Result<ObservedF
     Ok(ObservedFixtureTaxonomyReport { summary_entries, top_taxa, unclassified_percent })
 }
 
-fn write_screen_summary_tsv(
-    path: &Path,
-    entries: &[TaxonomyScreenSummaryEntryV1],
-) -> Result<()> {
+fn write_screen_summary_tsv(path: &Path, entries: &[TaxonomyScreenSummaryEntryV1]) -> Result<()> {
     let payload = std::iter::once("label\tpercent".to_string())
         .chain(entries.iter().map(|entry| format!("{}\t{:.6}", entry.label, entry.percent)))
         .collect::<Vec<_>>()

@@ -62,9 +62,10 @@ fn bench_local_render_hpc_asset_staging_manifest_reports_governed_inputs() {
             .expect("manifest path relative to repo root")
             .to_string_lossy()
     );
-    let payload =
-        serde_json::from_slice::<serde_json::Value>(&fs::read(&manifest_path).expect("read manifest"))
-            .expect("parse manifest");
+    let payload = serde_json::from_slice::<serde_json::Value>(
+        &fs::read(&manifest_path).expect("read manifest"),
+    )
+    .expect("parse manifest");
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),

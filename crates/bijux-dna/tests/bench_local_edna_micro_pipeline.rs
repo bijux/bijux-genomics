@@ -69,9 +69,9 @@ fn bench_local_edna_micro_pipeline_reports_taxonomy_handoffs() {
             "fastq.validate_reads",
         ])
     );
-    assert!(rows.iter().all(|row| {
-        row.get("status").and_then(serde_json::Value::as_str) == Some("succeeded")
-    }));
+    assert!(rows
+        .iter()
+        .all(|row| { row.get("status").and_then(serde_json::Value::as_str) == Some("succeeded") }));
     assert!(rows.iter().all(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) != Some("bam")
             && row.get("domain").and_then(serde_json::Value::as_str) != Some("vcf")

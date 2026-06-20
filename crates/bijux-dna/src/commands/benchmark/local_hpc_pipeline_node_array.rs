@@ -190,8 +190,7 @@ fn build_hpc_pipeline_node_array(
         absolute_script_path,
         "HPC pipeline node array output",
     )?;
-    let manifest_path =
-        manifest_path_for_script("HPC pipeline node array", absolute_script_path)?;
+    let manifest_path = manifest_path_for_script("HPC pipeline node array", absolute_script_path)?;
     ensure_path_stays_within_benchmark_runs_root(
         repo_root,
         &manifest_path,
@@ -363,10 +362,7 @@ fn build_pipeline_node_array_row(
         )
     })?;
     let node_id = job.node_id.clone().ok_or_else(|| {
-        anyhow!(
-            "HPC pipeline node array selected job `{}` is missing node_id",
-            job.job_id_local
-        )
+        anyhow!("HPC pipeline node array selected job `{}` is missing node_id", job.job_id_local)
     })?;
     if pipeline_id != pipeline.pipeline_id || node_id != node.node_id {
         return Err(anyhow!(
@@ -415,10 +411,8 @@ fn build_pipeline_node_array_row(
             .into_iter()
             .map(|output| (output.output_id.clone(), output))
             .collect::<BTreeMap<_, _>>();
-        let upstream_result_ids = upstream_result_ids_by_dependency
-            .get(dependency_node_id)
-            .cloned()
-            .unwrap_or_default();
+        let upstream_result_ids =
+            upstream_result_ids_by_dependency.get(dependency_node_id).cloned().unwrap_or_default();
         let expected_outputs = if upstream_result_ids.is_empty() {
             dependency_output_by_id.into_values().collect::<Vec<_>>()
         } else {
@@ -442,7 +436,8 @@ fn build_pipeline_node_array_row(
         });
     }
 
-    let pipeline_node_argv = rendered_essential_pipeline_node_execution_argv(&pipeline_id, &node_id);
+    let pipeline_node_argv =
+        rendered_essential_pipeline_node_execution_argv(&pipeline_id, &node_id);
     let pipeline_node_command = render_shell_command(&pipeline_node_argv);
     Ok(LocalHpcPipelineNodeArrayRow {
         array_index,
@@ -503,8 +498,7 @@ fn group_upstream_result_ids_by_dependency(
     node: &LocalPipelineDagValidationNodeReport,
     output_producers: &BTreeMap<String, String>,
 ) -> Result<BTreeMap<String, Vec<String>>> {
-    let declared_dependencies =
-        node.depends_on.iter().map(String::as_str).collect::<BTreeSet<_>>();
+    let declared_dependencies = node.depends_on.iter().map(String::as_str).collect::<BTreeSet<_>>();
     let mut upstream_result_ids_by_dependency = BTreeMap::<String, Vec<String>>::new();
     for upstream_result_id in &node.upstream_inputs {
         let producer_node_id = output_producers.get(upstream_result_id).ok_or_else(|| {
@@ -534,9 +528,7 @@ fn ensure_pipeline_node_array_contract(rows: &[LocalHpcPipelineNodeArrayRow]) ->
         ));
     }
     if rows.iter().enumerate().any(|(index, row)| row.array_index != index) {
-        return Err(anyhow!(
-            "HPC pipeline node array indexes must stay contiguous and zero-based"
-        ));
+        return Err(anyhow!("HPC pipeline node array indexes must stay contiguous and zero-based"));
     }
     let unique_job_ids = rows.iter().map(|row| row.job_id_local.as_str()).collect::<BTreeSet<_>>();
     if unique_job_ids.len() != rows.len() {
@@ -614,11 +606,12 @@ fn compute_resource_envelope(
     let max_time_limit = rows
         .iter()
         .max_by_key(|row| {
-            time_limit_to_seconds("HPC pipeline node array", &row.resources.time_limit)
-                .unwrap_or(0)
+            time_limit_to_seconds("HPC pipeline node array", &row.resources.time_limit).unwrap_or(0)
         })
         .map(|row| row.resources.time_limit.clone())
-        .ok_or_else(|| anyhow!("HPC pipeline node array cannot compute an empty resource envelope"))?;
+        .ok_or_else(|| {
+            anyhow!("HPC pipeline node array cannot compute an empty resource envelope")
+        })?;
     Ok(LocalHpcArrayResources {
         cpus_per_task: rows.iter().map(|row| row.resources.cpus_per_task).max().unwrap_or(1),
         memory_mb: rows.iter().map(|row| row.resources.memory_mb).max().unwrap_or(1024),
@@ -728,5 +721,9 @@ sh -c \"$EXECUTION_COMMAND\" >\"$STDOUT_PATH\" 2>\"$STDERR_PATH\"\n",
 }
 
 fn csv_or_none(values: &[String]) -> String {
-    if values.is_empty() { "none".to_string() } else { values.join(",") }
+    if values.is_empty() {
+        "none".to_string()
+    } else {
+        values.join(",")
+    }
 }

@@ -318,15 +318,7 @@ fn ensure_corpus_centric_report_contract(corpora: &[CorpusCentricCorpusReport]) 
     }
 
     ensure_corpus(corpora, "reference-index-assets", 1, 2, 0, &["reference-index-assets"], &[])?;
-    ensure_corpus(
-        corpora,
-        "corpus-01",
-        21,
-        62,
-        0,
-        &["corpus-01-mini"],
-        &[],
-    )?;
+    ensure_corpus(corpora, "corpus-01", 21, 62, 0, &["corpus-01-mini"], &[])?;
     ensure_corpus(corpora, "corpus-02", 1, 4, 0, &["corpus-02-edna-mini"], &[])?;
     ensure_corpus(corpora, "corpus-03", 5, 5, 0, &["corpus-03-amplicon-mini"], &[])?;
     ensure_corpus(

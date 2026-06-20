@@ -333,7 +333,8 @@ pub(crate) fn render_science_truth_sets_complete_from_prerequisites(
         science_stage_ids.extend(stage_ids.iter().cloned());
         acceptance_stage_ids.extend(acceptance_stage_ids_for_surface.iter().cloned());
         accepted_stage_ids.extend(accepted_stage_ids_for_surface.iter().cloned());
-        missing_acceptance_stage_ids.extend(missing_acceptance_stage_ids_for_surface.iter().cloned());
+        missing_acceptance_stage_ids
+            .extend(missing_acceptance_stage_ids_for_surface.iter().cloned());
 
         let status = if truth_fixture_valid && missing_acceptance_stage_ids_for_surface.is_empty() {
             ScienceTruthSurfaceStatus::Pass
@@ -367,7 +368,9 @@ pub(crate) fn render_science_truth_sets_complete_from_prerequisites(
 
     let extra_validated_truth_fixture_ids = expected_truth_rows_by_fixture
         .iter()
-        .filter(|(fixture_id, row)| row.valid && !required_truth_fixture_ids.contains(fixture_id.as_str()))
+        .filter(|(fixture_id, row)| {
+            row.valid && !required_truth_fixture_ids.contains(fixture_id.as_str())
+        })
         .map(|(fixture_id, _)| fixture_id.clone())
         .collect::<Vec<_>>();
     let cross_domain_consistency_status = cross_domain_report.status.clone();
@@ -484,10 +487,11 @@ mod tests {
     use tempfile::tempdir;
 
     use super::{
-        render_science_truth_sets_complete_from_prerequisites, ScienceTruthSurfaceStatus,
+        render_science_truth_sets_complete_from_prerequisites,
         BenchmarkFixtureRootValidationReport, BenchmarkFixtureRootValidationRow,
-        CrossDomainSampleConsistencyReport, ScientificAcceptanceThresholdsReport,
-        DEFAULT_SCIENCE_TRUTH_SETS_COMPLETE_PATH, SCIENCE_TRUTH_REQUIREMENTS,
+        CrossDomainSampleConsistencyReport, ScienceTruthSurfaceStatus,
+        ScientificAcceptanceThresholdsReport, DEFAULT_SCIENCE_TRUTH_SETS_COMPLETE_PATH,
+        SCIENCE_TRUTH_REQUIREMENTS,
     };
     use crate::commands::benchmark::local_corpus_fixture::bam::DEFAULT_CORPUS_01_VCF_COHORT_BAM_MINI_MANIFEST_PATH;
     use crate::commands::benchmark::local_corpus_fixture::fastq::DEFAULT_CORPUS_01_VCF_COHORT_FASTQ_MINI_MANIFEST_PATH;
@@ -552,11 +556,7 @@ mod tests {
         assert!(report.missing_acceptance_stage_ids.is_empty());
         assert_eq!(report.cross_domain_consistency_status, "compatible");
         assert_eq!(report.science_surface_count, SCIENCE_TRUTH_REQUIREMENTS.len());
-        assert!(
-            report
-                .extra_validated_truth_fixture_ids
-                .contains(&"vcf-mini".to_string())
-        );
+        assert!(report.extra_validated_truth_fixture_ids.contains(&"vcf-mini".to_string()));
 
         let vcf_genotyping = report
             .rows
@@ -582,9 +582,7 @@ mod tests {
         let fixture_validation_report = synthetic_fixture_validation_report();
         let cross_domain_report = synthetic_cross_domain_report();
         let mut scientific_acceptance_report = synthetic_scientific_acceptance_report();
-        scientific_acceptance_report
-            .rows
-            .retain(|row| row.stage_id != "bam.align");
+        scientific_acceptance_report.rows.retain(|row| row.stage_id != "bam.align");
         scientific_acceptance_report.row_count = scientific_acceptance_report.rows.len();
         scientific_acceptance_report.comparable_metric_count =
             scientific_acceptance_report.rows.len();
@@ -609,10 +607,7 @@ mod tests {
             .find(|row| row.surface_id == "bam_alignment")
             .expect("bam_alignment row");
         assert_eq!(bam_alignment.status, ScienceTruthSurfaceStatus::Fail);
-        assert_eq!(
-            bam_alignment.missing_acceptance_stage_ids,
-            vec!["bam.align".to_string()]
-        );
+        assert_eq!(bam_alignment.missing_acceptance_stage_ids, vec!["bam.align".to_string()]);
     }
 
     fn synthetic_fixture_validation_report() -> BenchmarkFixtureRootValidationReport {

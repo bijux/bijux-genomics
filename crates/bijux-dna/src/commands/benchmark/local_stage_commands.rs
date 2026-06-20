@@ -430,14 +430,13 @@ fn build_local_stage_command_entry(
     let primary_tool_id = bundle
         .plans
         .first()
-        .ok_or_else(|| anyhow!("local benchmark stage `{}` did not yield any governed plans", bundle.stage_id))?
+        .ok_or_else(|| {
+            anyhow!("local benchmark stage `{}` did not yield any governed plans", bundle.stage_id)
+        })?
         .tool_id
         .clone();
-    let plans = bundle
-        .plans
-        .into_iter()
-        .filter(|plan| plan.tool_id == primary_tool_id)
-        .collect::<Vec<_>>();
+    let plans =
+        bundle.plans.into_iter().filter(|plan| plan.tool_id == primary_tool_id).collect::<Vec<_>>();
     if plans.is_empty() {
         return Err(anyhow!(
             "local benchmark stage `{}` did not yield any governed plans",

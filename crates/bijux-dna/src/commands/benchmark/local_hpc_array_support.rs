@@ -14,9 +14,7 @@ pub(crate) struct LocalHpcArrayResources {
 pub(crate) fn time_limit_to_seconds(surface: &str, value: &str) -> Result<u64> {
     let parts = value.split(':').collect::<Vec<_>>();
     if parts.len() != 3 {
-        return Err(anyhow!(
-            "{surface} encountered malformed time limit `{value}`"
-        ));
+        return Err(anyhow!("{surface} encountered malformed time limit `{value}`"));
     }
     let hours = parts[0].parse::<u64>().with_context(|| format!("parse hours from `{value}`"))?;
     let minutes =
@@ -31,10 +29,7 @@ pub(crate) fn manifest_path_for_script(surface: &str, script_path: &Path) -> Res
         .parent()
         .ok_or_else(|| anyhow!("{surface} output `{}` has no parent", script_path.display()))?;
     let stem = script_path.file_stem().and_then(|value| value.to_str()).ok_or_else(|| {
-        anyhow!(
-            "{surface} output `{}` has no valid file stem",
-            script_path.display()
-        )
+        anyhow!("{surface} output `{}` has no valid file stem", script_path.display())
     })?;
     Ok(parent.join(format!("{stem}-manifest.json")))
 }

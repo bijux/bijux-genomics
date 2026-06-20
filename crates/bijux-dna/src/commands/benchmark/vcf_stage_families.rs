@@ -14,22 +14,12 @@ pub(crate) const VCF_STAGE_FAMILIES: &[VcfStageFamily] = &[
     VcfStageFamily {
         family_id: "vcf.calling",
         surface_label: "vcf calling",
-        stage_ids: &[
-            "vcf.call",
-            "vcf.call_diploid",
-            "vcf.call_gl",
-            "vcf.call_pseudohaploid",
-        ],
+        stage_ids: &["vcf.call", "vcf.call_diploid", "vcf.call_gl", "vcf.call_pseudohaploid"],
     },
     VcfStageFamily {
         family_id: "vcf.variant_curation",
         surface_label: "vcf variant curation",
-        stage_ids: &[
-            "vcf.damage_filter",
-            "vcf.filter",
-            "vcf.gl_propagation",
-            "vcf.postprocess",
-        ],
+        stage_ids: &["vcf.damage_filter", "vcf.filter", "vcf.gl_propagation", "vcf.postprocess"],
     },
     VcfStageFamily {
         family_id: "vcf.quality_control",

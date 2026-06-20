@@ -54,14 +54,12 @@ fn bench_local_core_germline_micro_pipeline_writes_governed_summary_file() {
             "evidence path must exist: {evidence_path}"
         );
 
-        let outputs = row
-            .get("outputs")
-            .and_then(serde_json::Value::as_object)
-            .expect("outputs object");
+        let outputs =
+            row.get("outputs").and_then(serde_json::Value::as_object).expect("outputs object");
         assert!(
-            outputs.values().all(|value| {
-                value.as_str().is_some_and(|path| repo_root.join(path).exists())
-            }),
+            outputs
+                .values()
+                .all(|value| { value.as_str().is_some_and(|path| repo_root.join(path).exists()) }),
             "every declared pipeline output must exist"
         );
     }
