@@ -30,8 +30,14 @@ pub(crate) const DEFAULT_VCF_POPULATION_STRUCTURE_READY_PATH: &str =
 const VCF_POPULATION_STRUCTURE_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_population_structure_ready.v1";
 const VCF_POPULATION_STRUCTURE_STAGE_ID: &str = "vcf.population_structure";
-const REQUIRED_METRIC_NAMES: [&str; 4] =
-    ["sample_count", "pair_count", "within_population_pair_count", "cross_population_pair_count"];
+const REQUIRED_METRIC_NAMES: [&str; 6] = [
+    "consumed_admixture",
+    "consumed_pca",
+    "distance_summary",
+    "sample_groups",
+    "status",
+    "variant_count",
+];
 const REQUIRED_STATUS: &str = "complete";
 const REQUIRED_SAMPLE_COUNT: u64 = 4;
 const REQUIRED_PAIR_COUNT: u64 = 6;

@@ -27,8 +27,20 @@ pub(crate) const DEFAULT_VCF_ADMIXTURE_READY_PATH: &str =
     "benchmarks/readiness/vcf/admixture-ready.json";
 const VCF_ADMIXTURE_READY_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_admixture_ready.v1";
 const VCF_ADMIXTURE_STAGE_ID: &str = "vcf.admixture";
-const REQUIRED_METRIC_NAMES: [&str; 4] =
-    ["selected_k", "sample_count", "population_count", "status"];
+const REQUIRED_METRIC_NAMES: [&str; 12] = [
+    "selected_k",
+    "sample_count",
+    "population_count",
+    "status",
+    "cluster_headers",
+    "maf_summary",
+    "rows",
+    "variant_count",
+    "sample_missingness",
+    "variant_missingness",
+    "execution_mode",
+    "tool_ok",
+];
 const REQUIRED_STATUS: &str = "complete";
 const REQUIRED_SELECTED_K: usize = 2;
 const REQUIRED_SAMPLE_COUNT: u64 = 4;

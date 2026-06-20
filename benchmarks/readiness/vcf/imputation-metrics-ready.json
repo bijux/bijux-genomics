@@ -14,7 +14,10 @@
     "dosage_r2",
     "low_confidence_sites",
     "masked_truth_sites",
-    "missing_quality_fields"
+    "missing_quality_fields",
+    "sample_count",
+    "sample_ids",
+    "variant_count"
   ],
   "tool_status_counts": {
     "production": 1
@@ -91,7 +94,10 @@
         "dosage_r2",
         "low_confidence_sites",
         "masked_truth_sites",
-        "missing_quality_fields"
+        "missing_quality_fields",
+        "sample_count",
+        "sample_ids",
+        "variant_count"
       ],
       "report_section_id": "imputation",
       "report_ready": true,
@@ -105,7 +111,10 @@
         "dosage_r2",
         "low_confidence_sites",
         "masked_truth_sites",
-        "missing_quality_fields"
+        "missing_quality_fields",
+        "sample_count",
+        "sample_ids",
+        "variant_count"
       ],
       "smoke_ready": true,
       "smoke_command": "bijux-dna bench local run-vcf-imputation-metrics-smoke --tool-id beagle",
@@ -131,7 +140,10 @@
         "dosage_r2",
         "low_confidence_sites",
         "masked_truth_sites",
-        "missing_quality_fields"
+        "missing_quality_fields",
+        "sample_count",
+        "sample_ids",
+        "variant_count"
       ],
       "missing_surfaces": [],
       "coverage_status": "complete",

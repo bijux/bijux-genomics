@@ -10,7 +10,15 @@
     "selected_k",
     "sample_count",
     "population_count",
-    "status"
+    "status",
+    "cluster_headers",
+    "maf_summary",
+    "rows",
+    "variant_count",
+    "sample_missingness",
+    "variant_missingness",
+    "execution_mode",
+    "tool_ok"
   ],
   "tool_status_counts": {
     "experimental,production": 1
@@ -73,7 +81,15 @@
         "selected_k",
         "sample_count",
         "population_count",
-        "status"
+        "status",
+        "cluster_headers",
+        "maf_summary",
+        "rows",
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "execution_mode",
+        "tool_ok"
       ],
       "report_section_id": "population_structure",
       "report_ready": true,
@@ -83,7 +99,15 @@
         "selected_k",
         "sample_count",
         "population_count",
-        "status"
+        "status",
+        "cluster_headers",
+        "maf_summary",
+        "rows",
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "execution_mode",
+        "tool_ok"
       ],
       "smoke_ready": true,
       "smoke_command": "bijux-dna bench local run-vcf-admixture-smoke --tool-id plink2",
@@ -154,7 +178,15 @@
         "selected_k",
         "sample_count",
         "population_count",
-        "status"
+        "status",
+        "cluster_headers",
+        "maf_summary",
+        "rows",
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "execution_mode",
+        "tool_ok"
       ],
       "missing_surfaces": [],
       "coverage_status": "complete",

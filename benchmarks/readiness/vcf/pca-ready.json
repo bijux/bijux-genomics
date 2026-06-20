@@ -11,7 +11,11 @@
     "variant_count",
     "excluded_samples",
     "unexpected_samples",
-    "eigenvalues"
+    "eigenvalues",
+    "status",
+    "rows",
+    "execution_mode",
+    "tool_ok"
   ],
   "tool_status_counts": {
     "experimental,production": 2
@@ -86,7 +90,11 @@
         "variant_count",
         "excluded_samples",
         "unexpected_samples",
-        "eigenvalues"
+        "eigenvalues",
+        "status",
+        "rows",
+        "execution_mode",
+        "tool_ok"
       ],
       "report_section_id": "population_structure",
       "report_ready": true,
@@ -97,7 +105,11 @@
         "variant_count",
         "excluded_samples",
         "unexpected_samples",
-        "eigenvalues"
+        "eigenvalues",
+        "status",
+        "rows",
+        "execution_mode",
+        "tool_ok"
       ],
       "smoke_ready": true,
       "smoke_command": "bijux-dna bench local run-vcf-pca-smoke --tool-id eigensoft",
@@ -162,7 +174,11 @@
         "variant_count",
         "excluded_samples",
         "unexpected_samples",
-        "eigenvalues"
+        "eigenvalues",
+        "status",
+        "rows",
+        "execution_mode",
+        "tool_ok"
       ],
       "missing_surfaces": [],
       "coverage_status": "complete",
@@ -221,7 +237,11 @@
         "variant_count",
         "excluded_samples",
         "unexpected_samples",
-        "eigenvalues"
+        "eigenvalues",
+        "status",
+        "rows",
+        "execution_mode",
+        "tool_ok"
       ],
       "report_section_id": "population_structure",
       "report_ready": true,
@@ -232,7 +252,11 @@
         "variant_count",
         "excluded_samples",
         "unexpected_samples",
-        "eigenvalues"
+        "eigenvalues",
+        "status",
+        "rows",
+        "execution_mode",
+        "tool_ok"
       ],
       "smoke_ready": true,
       "smoke_command": "bijux-dna bench local run-vcf-pca-smoke --tool-id plink2",
@@ -297,7 +321,11 @@
         "variant_count",
         "excluded_samples",
         "unexpected_samples",
-        "eigenvalues"
+        "eigenvalues",
+        "status",
+        "rows",
+        "execution_mode",
+        "tool_ok"
       ],
       "missing_surfaces": [],
       "coverage_status": "complete",

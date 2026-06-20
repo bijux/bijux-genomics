@@ -58,6 +58,9 @@ fn bench_readiness_vcf_imputation_metrics_ready_reports_active_quality_gate() {
         .expect("required metrics");
     assert!(required_metrics.iter().any(|value| value.as_str() == Some("concordance")));
     assert!(required_metrics.iter().any(|value| value.as_str() == Some("dosage_r2")));
+    assert!(required_metrics.iter().any(|value| value.as_str() == Some("sample_count")));
+    assert!(required_metrics.iter().any(|value| value.as_str() == Some("sample_ids")));
+    assert!(required_metrics.iter().any(|value| value.as_str() == Some("variant_count")));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     assert_eq!(rows.len(), 1);
@@ -80,6 +83,9 @@ fn bench_readiness_vcf_imputation_metrics_ready_reports_active_quality_gate() {
         .expect("expected metrics");
     assert!(expected_metrics.iter().any(|value| value.as_str() == Some("concordance")));
     assert!(expected_metrics.iter().any(|value| value.as_str() == Some("dosage_r2")));
+    assert!(expected_metrics.iter().any(|value| value.as_str() == Some("sample_count")));
+    assert!(expected_metrics.iter().any(|value| value.as_str() == Some("sample_ids")));
+    assert!(expected_metrics.iter().any(|value| value.as_str() == Some("variant_count")));
 
     let report_metric_columns = row
         .get("report_metric_columns")
@@ -87,4 +93,7 @@ fn bench_readiness_vcf_imputation_metrics_ready_reports_active_quality_gate() {
         .expect("report metric columns");
     assert!(report_metric_columns.iter().any(|value| value.as_str() == Some("concordance")));
     assert!(report_metric_columns.iter().any(|value| value.as_str() == Some("dosage_r2")));
+    assert!(report_metric_columns.iter().any(|value| value.as_str() == Some("sample_count")));
+    assert!(report_metric_columns.iter().any(|value| value.as_str() == Some("sample_ids")));
+    assert!(report_metric_columns.iter().any(|value| value.as_str() == Some("variant_count")));
 }

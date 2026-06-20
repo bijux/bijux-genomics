@@ -16,10 +16,12 @@ required_inputs: ["filtered_vcf"]
 required_outputs: ["population_structure_report"]
 tool_capability_requirements: []
 metrics:
-  - name: "sample_count"
-  - name: "pair_count"
-  - name: "within_population_pair_count"
-  - name: "cross_population_pair_count"
+  - name: "consumed_admixture"
+  - name: "consumed_pca"
+  - name: "distance_summary"
+  - name: "sample_groups"
+  - name: "status"
+  - name: "variant_count"
 compatible_tools: ["plink", "plink2", "eigensoft"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:

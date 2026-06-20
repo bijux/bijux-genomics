@@ -27,7 +27,7 @@ pub(crate) const DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH: &str =
 const VCF_IMPUTATION_METRICS_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_imputation_metrics_ready.v1";
 const VCF_IMPUTATION_METRICS_STAGE_ID: &str = "vcf.imputation_metrics";
-const REQUIRED_METRIC_NAMES: [&str; 8] = [
+const REQUIRED_METRIC_NAMES: [&str; 11] = [
     "status",
     "concordance",
     "mean_info_score",
@@ -36,6 +36,9 @@ const REQUIRED_METRIC_NAMES: [&str; 8] = [
     "low_confidence_sites",
     "masked_truth_sites",
     "missing_quality_fields",
+    "sample_count",
+    "sample_ids",
+    "variant_count",
 ];
 const REQUIRED_CONCORDANCE: f64 = 1.0;
 const REQUIRED_MEAN_INFO_SCORE: f64 = 0.825;

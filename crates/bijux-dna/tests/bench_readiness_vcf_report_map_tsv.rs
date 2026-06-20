@@ -48,7 +48,7 @@ fn bench_readiness_vcf_report_map_writes_governed_tsv_file() {
     }));
     assert!(payload.lines().any(|line| {
         line
-            == "vcf.population_structure\tplink2\tpopulation_structure\tpopulation_structure_metrics\tsample_count,pair_count,within_population_pair_count,cross_population_pair_count\tresult_status,reason,parser_id,failure_reason,observed_error"
+            == "vcf.population_structure\tplink2\tpopulation_structure\tpopulation_structure_metrics\tconsumed_admixture,consumed_pca,distance_summary,sample_groups,status,variant_count\tresult_status,reason,parser_id,failure_reason,observed_error"
     }));
     assert!(payload.lines().any(|line| {
         line

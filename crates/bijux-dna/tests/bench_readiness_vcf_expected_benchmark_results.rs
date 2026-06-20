@@ -98,7 +98,9 @@ fn bench_readiness_vcf_expected_benchmark_results_tracks_governed_rows() {
             && row
                 .get("expected_metrics")
                 .and_then(serde_json::Value::as_array)
-                .is_some_and(|items| items.iter().any(|item| item.as_str() == Some("pair_count")))
+                .is_some_and(|items| {
+                    items.iter().any(|item| item.as_str() == Some("sample_groups"))
+                })
             && row.get("report_section").and_then(serde_json::Value::as_str)
                 == Some("population_structure")
     }));

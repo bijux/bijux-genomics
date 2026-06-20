@@ -21,6 +21,10 @@ metrics:
   - name: "excluded_samples"
   - name: "unexpected_samples"
   - name: "eigenvalues"
+  - name: "status"
+  - name: "rows"
+  - name: "execution_mode"
+  - name: "tool_ok"
 compatible_tools: ["plink2", "eigensoft"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:

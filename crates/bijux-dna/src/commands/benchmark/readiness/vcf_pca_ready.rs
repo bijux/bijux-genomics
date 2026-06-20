@@ -38,8 +38,17 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_VCF_PCA_READY_PATH: &str = "benchmarks/readiness/vcf/pca-ready.json";
 const VCF_PCA_READY_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_pca_ready.v1";
 const VCF_PCA_STAGE_ID: &str = "vcf.pca";
-const REQUIRED_METRIC_NAMES: [&str; 5] =
-    ["sample_count", "variant_count", "excluded_samples", "unexpected_samples", "eigenvalues"];
+const REQUIRED_METRIC_NAMES: [&str; 9] = [
+    "sample_count",
+    "variant_count",
+    "excluded_samples",
+    "unexpected_samples",
+    "eigenvalues",
+    "status",
+    "rows",
+    "execution_mode",
+    "tool_ok",
+];
 const REQUIRED_VARIANT_COUNT: u64 = 2;
 const REQUIRED_SAMPLE_COUNT: u64 = 4;
 const REQUIRED_SAMPLE_IDS: [&str; 4] = ["sample_a", "sample_b", "sample_c", "sample_d"];

@@ -86,6 +86,9 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
         "low_confidence_sites",
         "masked_truth_sites",
         "missing_quality_fields",
+        "sample_count",
+        "sample_ids",
+        "variant_count",
     ];
     const IMPUTE_METRICS: &[&str] = &[
         "variant_count",
@@ -101,15 +104,38 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
         "sample_ids",
     ];
     const POPULATION_STRUCTURE_METRICS: &[&str] = &[
-        "sample_count",
-        "pair_count",
-        "within_population_pair_count",
-        "cross_population_pair_count",
+        "consumed_admixture",
+        "consumed_pca",
+        "distance_summary",
+        "sample_groups",
+        "status",
+        "variant_count",
     ];
-    const PCA_METRICS: &[&str] =
-        &["sample_count", "variant_count", "excluded_samples", "unexpected_samples", "eigenvalues"];
-    const ADMIXTURE_METRICS: &[&str] =
-        &["selected_k", "sample_count", "population_count", "status"];
+    const PCA_METRICS: &[&str] = &[
+        "sample_count",
+        "variant_count",
+        "excluded_samples",
+        "unexpected_samples",
+        "eigenvalues",
+        "status",
+        "rows",
+        "execution_mode",
+        "tool_ok",
+    ];
+    const ADMIXTURE_METRICS: &[&str] = &[
+        "selected_k",
+        "sample_count",
+        "population_count",
+        "status",
+        "cluster_headers",
+        "maf_summary",
+        "rows",
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "execution_mode",
+        "tool_ok",
+    ];
     const IBD_METRICS: &[&str] =
         &["pair_count", "rows", "status", "insufficient_reason", "insufficient_overlap_probe"];
     const ROH_METRICS: &[&str] = &[

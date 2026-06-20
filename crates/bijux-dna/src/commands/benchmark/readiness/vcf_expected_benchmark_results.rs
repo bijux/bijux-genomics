@@ -392,7 +392,7 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "vcf_production_regression",
             "vcf_cohort",
             "population_structure_report",
-            "pair_count",
+            "sample_groups",
             "population_structure",
         ),
         (
@@ -595,7 +595,7 @@ mod tests {
                 && row.tool_id == "plink2"
                 && row.asset_profile_id == "vcf_cohort"
                 && row.expected_outputs == vec!["population_structure_report".to_string()]
-                && row.expected_metrics.iter().any(|metric| metric == "pair_count")
+                && row.expected_metrics.iter().any(|metric| metric == "sample_groups")
                 && row.report_section == "population_structure"
         }));
         assert!(report.rows.iter().any(|row| {

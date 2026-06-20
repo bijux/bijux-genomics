@@ -46,7 +46,8 @@ fn bench_readiness_vcf_adapter_missing_input_audit_writes_governed_json_file() {
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert!(
         rows.iter().any(|row| {
-            row.get("missing_input_role").and_then(serde_json::Value::as_str) == Some("fai")
+            row.get("missing_input_role").and_then(serde_json::Value::as_str)
+                == Some("reference_fai")
                 && row.get("artifact_id").and_then(serde_json::Value::as_str)
                     == Some("reference_fai")
                 && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
@@ -56,7 +57,7 @@ fn bench_readiness_vcf_adapter_missing_input_audit_writes_governed_json_file() {
     assert!(
         rows.iter().any(|row| {
             row.get("missing_input_role").and_then(serde_json::Value::as_str)
-                == Some("sample_metadata")
+                == Some("sample_metadata_manifest")
                 && row.get("artifact_id").and_then(serde_json::Value::as_str)
                     == Some("sample_metadata_manifest")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")

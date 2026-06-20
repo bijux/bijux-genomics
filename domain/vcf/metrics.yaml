@@ -6,6 +6,7 @@ metrics:
 - id: admixture_k_selected
 - id: admixture_status
 - id: called_variants
+- id: cluster_headers
 - id: cluster_assignments
 - id: ct_ga_masked_sites
 - id: damage_bias_before_after_summary
@@ -67,6 +68,7 @@ metrics:
 - id: time_bins
 - id: total_length
 - id: ti_tv
+- id: tool_ok
 - id: within_population_pair_count
 - id: cross_population_pair_count
 - id: population_count
@@ -85,12 +87,16 @@ metrics:
 - id: called_genotypes
 - id: called_sites
 - id: concordance
+- id: consumed_admixture
+- id: consumed_pca
 - id: contigs_consistent_with_species_context
 - id: covered_sites
 - id: damage_context_rule
 - id: damage_ratio_filtered_variants
+- id: distance_summary
 - id: depth_threshold
 - id: dosage_r2
+- id: execution_mode
 - id: duplicate_sites_removed
 - id: failed_variants
 - id: filter_ids
@@ -136,6 +142,7 @@ metrics:
 - id: retained_variants
 - id: sample_consistent
 - id: sample_ids
+- id: sample_groups
 - id: samples_with_likelihoods
 - id: sampling_policy
 - id: site_count_after

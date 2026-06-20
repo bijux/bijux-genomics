@@ -53,6 +53,17 @@ fn bench_readiness_vcf_population_structure_ready_reports_complete_active_retain
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(
+        payload.get("required_metric_names").and_then(serde_json::Value::as_array),
+        Some(&vec![
+            serde_json::Value::String("consumed_admixture".to_string()),
+            serde_json::Value::String("consumed_pca".to_string()),
+            serde_json::Value::String("distance_summary".to_string()),
+            serde_json::Value::String("sample_groups".to_string()),
+            serde_json::Value::String("status".to_string()),
+            serde_json::Value::String("variant_count".to_string()),
+        ])
+    );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     assert_eq!(rows.len(), 1);
@@ -95,8 +106,10 @@ fn bench_readiness_vcf_population_structure_ready_reports_complete_active_retain
     assert_eq!(row.get("smoke_sample_group_count").and_then(serde_json::Value::as_u64), Some(4));
     assert!(row.get("expected_metrics").and_then(serde_json::Value::as_array).is_some_and(
         |items| {
-            items.iter().any(|item| item.as_str() == Some("pair_count"))
-                && items.iter().any(|item| item.as_str() == Some("sample_count"))
+            items.iter().any(|item| item.as_str() == Some("sample_groups"))
+                && items.iter().any(|item| item.as_str() == Some("distance_summary"))
+                && items.iter().any(|item| item.as_str() == Some("consumed_pca"))
+                && items.iter().any(|item| item.as_str() == Some("consumed_admixture"))
         }
     ));
     assert!(row.get("raw_outputs").and_then(serde_json::Value::as_array).is_some_and(|items| {
