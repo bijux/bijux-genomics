@@ -6,7 +6,7 @@ use std::process::Command;
 mod support;
 
 #[test]
-fn dev_crates_parser_no_execution_writes_the_governed_audit_report() {
+fn dev_crates_parser_effect_audit_writes_the_governed_audit_report() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
