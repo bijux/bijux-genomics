@@ -68,15 +68,14 @@ fn toolset_selection_uses_execution_modes_for_governed_and_benchmark_paths() -> 
 }
 
 #[test]
-fn toolset_selection_keeps_declared_bindings_and_governed_infer_asvs_explicit() -> anyhow::Result<()>
-{
+fn toolset_selection_keeps_governed_bindings_and_infer_asvs_explicit() -> anyhow::Result<()> {
     let trim_pipeline = single_stage_graph("fastq.trim_reads");
     let all_bindings = bijux_dna_planner_fastq::select_preprocess_toolsets(
         &trim_pipeline,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::AllBindings,
         false,
     )?;
-    assert!(all_bindings[0].tool_ids.iter().any(|tool_id| tool_id == "seqpurge"));
+    assert!(!all_bindings[0].tool_ids.iter().any(|tool_id| tool_id == "seqpurge"));
 
     let infer_pipeline = single_stage_graph("fastq.infer_asvs");
     let governed = bijux_dna_planner_fastq::select_preprocess_toolsets(
