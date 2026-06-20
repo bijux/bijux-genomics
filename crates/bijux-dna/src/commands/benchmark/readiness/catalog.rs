@@ -366,6 +366,7 @@ mod tests {
             vec![
                 "addeam".to_string(),
                 "damageprofiler".to_string(),
+                "ngsbriggs".to_string(),
                 "pmdtools".to_string(),
                 "pydamage".to_string()
             ]
