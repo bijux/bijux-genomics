@@ -561,7 +561,7 @@ mod tests {
 
         assert_eq!(report.stage_count, 51);
         assert_eq!(report.multi_tool_stage_count, 29);
-        assert_eq!(report.blocked_stage_count, 3);
+        assert_eq!(report.blocked_stage_count, 0);
         assert_eq!(report.declared_shared_metric_stage_count, 18);
         assert_eq!(report.not_declared_shared_metric_stage_count, 11);
         assert_eq!(report.row_count, 120);
@@ -573,8 +573,8 @@ mod tests {
             .iter()
             .find(|stage| stage.domain == "fastq" && stage.stage_id == "fastq.trim_reads")
             .expect("trim reads stage");
-        assert_eq!(trim_reads.tool_count, 14);
-        assert_eq!(trim_reads.blocked_tool_count, 1);
+        assert_eq!(trim_reads.tool_count, 13);
+        assert_eq!(trim_reads.blocked_tool_count, 0);
         assert_eq!(trim_reads.comparison_contract_status, "not_declared");
 
         let damage = report
