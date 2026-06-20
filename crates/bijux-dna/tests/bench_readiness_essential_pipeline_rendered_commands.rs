@@ -134,9 +134,7 @@ fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_n
     assert!(
         report_qc_row.get("script_commands").and_then(serde_json::Value::as_array).is_some_and(
             |commands| commands.iter().any(|item| {
-                item.as_str().is_some_and(|command| {
-                    command.contains("multiqc -o")
-                })
+                item.as_str().is_some_and(|command| command.contains("multiqc -o"))
             })
         ),
         "fastq.report_qc row must render the governed multiqc aggregation command"

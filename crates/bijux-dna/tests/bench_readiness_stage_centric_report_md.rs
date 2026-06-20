@@ -48,7 +48,9 @@ fn bench_readiness_stage_centric_report_writes_named_stage_sections() {
     assert!(markdown.contains("- Stage-tool rows: 120"));
     assert!(markdown.contains("- Benchmark-ready rows: 120"));
     assert!(markdown.contains("- Blocked rows: 0"));
-    assert!(markdown.contains("| fastq | fastq.trim_reads | Read Cleanup | 13 | 13 | 0 | not_declared | none |"));
+    assert!(markdown.contains(
+        "| fastq | fastq.trim_reads | Read Cleanup | 13 | 13 | 0 | not_declared | none |"
+    ));
     assert!(markdown.contains("| fastq | fastq.index_reference | Reference Preparation | 2 | 2 | 0 | index_build_exit_code | none |"));
     assert!(markdown.contains("| fastq | fastq.normalize_abundance | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |"));
 

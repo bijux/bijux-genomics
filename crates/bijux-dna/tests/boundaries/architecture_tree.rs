@@ -300,25 +300,24 @@ fn dna_tree_matches_architecture_contract() {
     );
 
     let bench_parse_entries = dir_entries(&root.join("src/commands/cli/parse/bench"));
-    let expected_bench_parse: BTreeSet<_> =
-        [
-            "active_scope.rs",
-            "config.rs",
-            "corpus_fastq.rs",
-            "fastq/",
-            "local.rs",
-            "matrix.rs",
-            "micro.rs",
-            "mod.rs",
-            "paths.rs",
-            "publication.rs",
-            "readiness.rs",
-            "schema_validation.rs",
-            "suite.rs",
-        ]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_bench_parse: BTreeSet<_> = [
+        "active_scope.rs",
+        "config.rs",
+        "corpus_fastq.rs",
+        "fastq/",
+        "local.rs",
+        "matrix.rs",
+        "micro.rs",
+        "mod.rs",
+        "paths.rs",
+        "publication.rs",
+        "readiness.rs",
+        "schema_validation.rs",
+        "suite.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(
         bench_parse_entries, expected_bench_parse,
         "bench parse tree must keep config, publication, suite, and fastq parsing separate"
@@ -466,21 +465,9 @@ fn dna_tree_matches_architecture_contract() {
         required_test_entries.is_subset(&tests_entries),
         "dna tests tree must retain the governed grouped suite roots"
     );
-    let allowed_root_test_files = [
-        "boundaries.rs",
-        "contracts.rs",
-        "guardrails.rs",
-        "schemas.rs",
-        "snapshots.rs",
-    ];
-    let allowed_root_test_prefixes = [
-        "bench_",
-        "ci_",
-        "config_",
-        "dev_",
-        "fixtures_",
-        "plan_",
-    ];
+    let allowed_root_test_files =
+        ["boundaries.rs", "contracts.rs", "guardrails.rs", "schemas.rs", "snapshots.rs"];
+    let allowed_root_test_prefixes = ["bench_", "ci_", "config_", "dev_", "fixtures_", "plan_"];
     for entry in &tests_entries {
         if required_test_entries.contains(entry) {
             continue;

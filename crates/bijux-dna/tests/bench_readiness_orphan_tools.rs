@@ -52,10 +52,7 @@ fn bench_readiness_orphan_tools_reports_governed_decisions() {
         .get("domain_counts")
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
-    assert_eq!(
-        domain_counts.get("fastq").and_then(serde_json::Value::as_u64),
-        Some(2)
-    );
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(2));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 2);
