@@ -21,7 +21,7 @@ use crate::commands::cli::render;
 const LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION: &str = "bijux.bench.local_stage_commands.v3";
 const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
     "benchmarks/readiness/local-ready/rendered-stage-commands.sh";
-const LOCAL_REPORT_QC_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-report-qc.toml";
+const LOCAL_REPORT_QC_CONFIG_PATH: &str = "configs/bench/local/fastq-report-qc.toml";
 const LOCAL_REPORT_QC_CONFIG_SCHEMA_VERSION: &str = "bijux.bench.fastq.local_report_qc.v1";
 const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.report_qc";
 
@@ -263,13 +263,14 @@ pub(crate) fn has_bam_local_ready_only_contract(stage_id: &str) -> bool {
 }
 
 #[cfg(feature = "bam_downstream")]
-fn materialize_feature_gated_stage(repo_root: &Path, stage_id: &str) -> Result<PathBuf> {
+fn materialize_feature_gated_stage(_repo_root: &Path, stage_id: &str) -> Result<PathBuf> {
     match stage_id {
-        "bam.bias_mitigation" | "bam.kinship" => {
-            materialize_local_stage_from_plans(repo_root, stage_id)
+        "bam.bias_mitigation" => {
+            bijux_dna_api::v1::api::bam::write_local_bias_mitigation_smoke_report()
         }
         "bam.genotyping" => bijux_dna_api::v1::api::bam::write_local_genotyping_plan(),
         "bam.haplogroups" => bijux_dna_api::v1::api::bam::write_local_haplogroups_plan(),
+        "bam.kinship" => bijux_dna_api::v1::api::bam::write_local_kinship_smoke_report(),
         other => Err(anyhow!("unsupported local benchmark stage `{other}`")),
     }
 }
