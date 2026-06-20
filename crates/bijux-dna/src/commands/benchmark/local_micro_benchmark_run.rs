@@ -243,8 +243,7 @@ pub(crate) fn render_micro_benchmark_run(
     }
 
     let repo_revision = git_stdout(repo_root, &["rev-parse", "HEAD"])?;
-    let worktree_dirty =
-        !git_stdout(repo_root, &["status", "--short", "--untracked-files=no"])?.trim().is_empty();
+    let worktree_dirty = worktree_has_source_changes(repo_root)?;
     let created_at_unix = if governed_manifest_output {
         GOVERNED_MICRO_CREATED_AT_UNIX
     } else {
@@ -1169,6 +1168,23 @@ fn git_stdout(repo_root: &Path, args: &[&str]) -> Result<String> {
         bail!("git {} failed: {}", args.join(" "), output.stderr.trim());
     }
     Ok(output.stdout.trim().to_string())
+}
+
+fn worktree_has_source_changes(repo_root: &Path) -> Result<bool> {
+    Ok(!git_stdout(
+        repo_root,
+        &[
+            "status",
+            "--short",
+            "--untracked-files=no",
+            "--",
+            ".",
+            ":(exclude)runs/bench/micro",
+            ":(exclude)benchmarks/readiness/micro",
+        ],
+    )?
+    .trim()
+    .is_empty())
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
