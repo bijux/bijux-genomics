@@ -35,6 +35,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "outputs": [
     "haplogroups",
+    "haplogroup_report",
     "summary",
     "stage_metrics"
   ],

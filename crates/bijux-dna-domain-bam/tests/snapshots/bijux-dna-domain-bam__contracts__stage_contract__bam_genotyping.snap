@@ -34,6 +34,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "sorting": "requires_coordinate_sorted_input"
   },
   "outputs": [
+    "genotyping_bcf",
+    "genotyping_vcf",
+    "genotyping_vcf_tbi",
+    "genotyping_gl",
     "genotyping_report",
     "summary",
     "stage_metrics"

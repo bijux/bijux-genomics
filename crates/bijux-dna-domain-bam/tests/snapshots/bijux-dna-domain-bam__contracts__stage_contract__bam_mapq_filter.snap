@@ -50,6 +50,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "filtered_bai",
     "flagstat_before",
     "flagstat_after",
+    "idxstats_before",
+    "idxstats_after",
     "summary",
     "stage_metrics"
   ],

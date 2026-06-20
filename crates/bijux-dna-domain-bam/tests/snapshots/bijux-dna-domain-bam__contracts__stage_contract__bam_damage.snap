@@ -19,6 +19,26 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     {
       "filename": "stage.metrics.json",
       "name": "stage_metrics"
+    },
+    {
+      "filename": "damage_profile.json",
+      "name": "damage_profile"
+    },
+    {
+      "filename": "damage_plot.json",
+      "name": "damage_plot"
+    },
+    {
+      "filename": "damage_clusters.json",
+      "name": "damage_clusters"
+    },
+    {
+      "filename": "damage_parameters.json",
+      "name": "damage_parameters"
+    },
+    {
+      "filename": "pmd_scores.json",
+      "name": "pmd_scores"
     }
   ],
   "inputs": [
