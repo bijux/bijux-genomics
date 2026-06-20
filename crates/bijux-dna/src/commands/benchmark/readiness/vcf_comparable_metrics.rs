@@ -74,9 +74,11 @@ pub(crate) fn render_vcf_comparable_metrics(
     }
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&output_path, render_vcf_comparable_metrics_tsv(&rows))
+    let rendered = render_vcf_comparable_metrics_tsv(&rows);
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", output_path.display()))?;
 
     Ok(VcfComparableMetricsReport {
@@ -150,7 +152,7 @@ fn collect_vcf_comparable_metric_rows(
 
 fn collect_retained_tools_by_stage(repo_root: &Path) -> Result<BTreeMap<String, BTreeSet<String>>> {
     let scratch_root = repo_root.join("artifacts/bench-readiness/vcf-comparable-metrics");
-    fs::create_dir_all(&scratch_root)
+    bijux_dna_infra::ensure_dir(&scratch_root)
         .with_context(|| format!("create {}", scratch_root.display()))?;
 
     let mut stage_tools = BTreeMap::<String, BTreeSet<String>>::new();

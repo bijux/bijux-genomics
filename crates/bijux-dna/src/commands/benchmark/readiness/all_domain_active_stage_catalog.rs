@@ -99,9 +99,11 @@ pub(crate) fn render_all_domain_active_stage_catalog(
     let rows = collect_all_domain_active_stage_catalog_rows(repo_root)?;
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&output_path, render_all_domain_active_stage_catalog_tsv(&rows))
+    let rendered = render_all_domain_active_stage_catalog_tsv(&rows);
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", output_path.display()))?;
 
     let row_count = rows.len();

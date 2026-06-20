@@ -50,7 +50,8 @@ pub(crate) fn render_commands(
     let rows = collect_rendered_command_rows(repo_root)?;
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
     let rendered = render_commands_shell_script(&rows);
     bijux_dna_infra::atomic_write_bytes(&output_path, rendered.as_bytes())?;

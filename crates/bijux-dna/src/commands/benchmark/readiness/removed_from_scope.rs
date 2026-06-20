@@ -105,9 +105,11 @@ pub(crate) fn render_removed_from_scope(
     let report = build_removed_from_scope_report(repo_root, &output_path)?;
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&output_path, render_removed_from_scope_tsv(&report.rows))
+    let rendered = render_removed_from_scope_tsv(&report.rows);
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", output_path.display()))?;
     if !report.ok {
         return Err(anyhow!("removed-from-scope rows leaked into governed active surfaces"));
