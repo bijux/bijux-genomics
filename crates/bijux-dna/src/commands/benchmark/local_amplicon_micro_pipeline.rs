@@ -27,6 +27,8 @@ const DEFAULT_AMPLICON_TRUTH_MANIFEST_PATH: &str =
     "benchmarks/tests/fixtures/science/amplicon-truth/manifest.toml";
 const DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH: &str =
     "benchmarks/tests/fixtures/science/amplicon-truth/expected.json";
+const DEFAULT_AMPLICON_SINGLE_END_NORMALIZED_FASTQ_PATH: &str =
+    "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-se.fastq.gz";
 const AMPLICON_MICRO_PIPELINE_SCHEMA_VERSION: &str = "bijux.bench.local_amplicon_micro_pipeline.v1";
 const AMPLICON_MICRO_PIPELINE_COMMAND: &str = "bijux-dna bench local run-amplicon-micro-pipeline";
 const AMPLICON_MICRO_PIPELINE_ID: &str = "amplicon-asv-otu-no-vcf";
@@ -519,10 +521,11 @@ fn run_normalize_primers_stage(
             .ok_or_else(|| anyhow!("normalize primers source report is missing amplicon-16s-se"))?;
 
     let stage_root = stage_root(output_root, "fastq.normalize_primers");
-    let normalized_reads_r1 = copy_repo_relative_file(
+    let normalized_reads_r1 = copy_repo_relative_file_with_absolute_fallback(
         repo_root,
         &stage_root,
         &source_case.normalized_reads_r1,
+        &repo_root.join(DEFAULT_AMPLICON_SINGLE_END_NORMALIZED_FASTQ_PATH),
         "amplicon-16s-se/cutadapt/primer_normalized.fastq.gz",
     )?;
     let report_json = copy_repo_relative_file(
@@ -1511,6 +1514,26 @@ fn copy_repo_relative_file(
         &repo_root.join(source_relative_path),
         destination_relative_path,
     )
+}
+
+fn copy_repo_relative_file_with_absolute_fallback(
+    repo_root: &Path,
+    stage_root: &Path,
+    source_relative_path: &str,
+    fallback_source_path: &Path,
+    destination_relative_path: &str,
+) -> Result<PathBuf> {
+    let source_path = repo_root.join(source_relative_path);
+    let resolved_source_path = if source_path
+        .metadata()
+        .map(|metadata| metadata.is_file() && metadata.len() > 0)
+        .unwrap_or(false)
+    {
+        source_path
+    } else {
+        fallback_source_path.to_path_buf()
+    };
+    copy_absolute_file(repo_root, stage_root, &resolved_source_path, destination_relative_path)
 }
 
 fn copy_absolute_file(
