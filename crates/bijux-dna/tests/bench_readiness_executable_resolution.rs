@@ -52,16 +52,16 @@ fn bench_readiness_executable_resolution_reports_governed_runtime_locations() {
         .and_then(serde_json::Value::as_object)
         .expect("resolution counts");
     assert_eq!(resolution_counts.get("host_binary").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(resolution_counts.get("docker_image").and_then(serde_json::Value::as_u64), Some(67));
+    assert_eq!(resolution_counts.get("docker_image").and_then(serde_json::Value::as_u64), Some(66));
     assert_eq!(
         resolution_counts.get("apptainer_image").and_then(serde_json::Value::as_u64),
         Some(2)
     );
     assert_eq!(
         resolution_counts.get("unavailable_with_reason").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(2)
     );
-    assert_eq!(payload.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(payload.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(2));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     assert_eq!(rows.len(), 71);
@@ -95,5 +95,21 @@ fn bench_readiness_executable_resolution_reports_governed_runtime_locations() {
                 .get("unavailable_reason")
                 .and_then(serde_json::Value::as_str)
                 .is_some_and(|reason| reason.contains("external container source"))
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink")
+            && row.get("resolution_kind").and_then(serde_json::Value::as_str)
+                == Some("unavailable_with_reason")
+            && row
+                .get("unavailable_reason")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|reason| reason.contains("planned container source"))
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
+            && row
+                .get("active_stage_ids")
+                .and_then(serde_json::Value::as_array)
+                .is_some_and(|items| items.iter().any(|value| value.as_str() == Some("vcf.roh")))
     }));
 }

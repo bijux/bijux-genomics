@@ -72,7 +72,7 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
     let domain_counts = support::json_object(&payload, "domain_counts");
     assert_eq!(support::object_u64(domain_counts, "fastq"), Some(71));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
-    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(20));
+    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(21));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let proof_source_counts = payload
@@ -91,7 +91,7 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
     );
     assert_eq!(
         proof_source_counts.get("vcf_parser_fixture_coverage").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(21)
     );
     assert_eq!(
         proof_source_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
