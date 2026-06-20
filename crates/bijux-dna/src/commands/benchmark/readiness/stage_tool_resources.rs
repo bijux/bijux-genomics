@@ -368,7 +368,7 @@ mod tests {
         assert_eq!(report.classification_scope, "benchmark_ready_command_resources");
         assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.nonzero_resource_row_count, report.row_count);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&69));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&71));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
         assert_eq!(report.domain_counts.get("vcf"), Some(&21));
         assert!(report.rows.iter().all(|row| {
@@ -607,7 +607,7 @@ mod tests {
 
         assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION);
         assert_eq!(config.classification_scope, STAGE_TOOL_RESOURCES_SCOPE);
-        assert_eq!(config.rows.len(), 120);
+        assert_eq!(config.rows.len(), 141);
         assert!(config.rows.iter().all(|row| {
             row.threads > 0 && row.memory_gb > 0 && row.walltime_minutes > 0 && row.scratch_gb > 0
         }));
