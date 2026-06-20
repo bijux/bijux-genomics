@@ -1,6 +1,8 @@
 # bijux-dna-pipelines
 
-Repository policy: apply `README.md` and `README.md` before changing this crate.
+This crate follows repository governance documentation. Re-read
+[../../README.md](../../README.md) before editing this crate or making commits in this
+repository.
 
 ## What this crate does
 Defines canonical pipeline profiles, defaults ledgers, manifests, and registry lookups for FASTQ, BAM, VCF, and cross-domain handoffs.

@@ -3,9 +3,9 @@
 `bijux-dna-bench` turns governed benchmark observations into deterministic
 summaries, gate decisions, comparisons, and persisted benchmark artifacts.
 
-This crate follows repository governance documentation. `README.md` and
-`README.md`; re-read those files before editing this child
-repository and before committing.
+This crate follows repository governance documentation. Re-read
+[../../README.md](../../README.md) before editing this crate or making commits in this
+repository.
 
 ## Scope
 

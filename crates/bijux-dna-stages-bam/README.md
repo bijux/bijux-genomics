@@ -4,9 +4,9 @@
 and deterministic metrics-envelope materialization for already-planned BAM
 stages.
 
-This crate follows repository governance documentation. `README.md` and
-`README.md`; re-read those files before editing this child
-repository and before committing.
+This crate follows repository governance documentation. Re-read
+[../../README.md](../../README.md) before editing this crate or making commits in this
+repository.
 
 ## What this crate does
 
