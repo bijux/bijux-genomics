@@ -5,9 +5,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
-use super::local_hpc_job_graph::{
-    collect_local_hpc_job_graph, LocalHpcJobGraph,
-};
+use super::local_hpc_job_graph::{collect_local_hpc_job_graph, LocalHpcJobGraph};
 use super::path_resolution::{ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -24,8 +22,7 @@ const REFERENCE_PANEL_FAILURE_JOB_ID: &str =
     "pipeline:reference-panel-imputation:vcf.prepare_reference_panel";
 const REFERENCE_PANEL_BLOCKED_DESCENDANT_JOB_ID: &str =
     "pipeline:reference-panel-imputation:vcf.phasing";
-const REFERENCE_PANEL_CONTINUED_SIBLING_JOB_ID: &str =
-    "pipeline:reference-panel-imputation:vcf.qc";
+const REFERENCE_PANEL_CONTINUED_SIBLING_JOB_ID: &str = "pipeline:reference-panel-imputation:vcf.qc";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum LocalHpcDependencySimulationStatus {
@@ -225,7 +222,9 @@ fn simulate_failure_case(
         .map(|node| (node.job_id_local.clone(), node))
         .collect::<BTreeMap<_, _>>();
     let _failed_node = nodes_by_job_id.get(failed_job_id).ok_or_else(|| {
-        anyhow!("HPC dependency simulation case `{case_id}` is missing failed job `{failed_job_id}`")
+        anyhow!(
+            "HPC dependency simulation case `{case_id}` is missing failed job `{failed_job_id}`"
+        )
     })?;
     let descendant_job_ids = descendants_of(graph, failed_job_id)?;
     let descendant_set = descendant_job_ids.iter().cloned().collect::<BTreeSet<_>>();
@@ -292,7 +291,8 @@ fn simulate_failure_case(
             blocking_dependencies,
             status: status.as_str().to_string(),
             descendant_of_failed_job,
-            unrelated_to_failed_job: node.job_id_local != failed_job_id && !descendant_of_failed_job,
+            unrelated_to_failed_job: node.job_id_local != failed_job_id
+                && !descendant_of_failed_job,
             start_second,
             finish_second,
             duration_seconds,
@@ -321,15 +321,14 @@ fn simulate_failure_case(
         })
         .map(|job| job.job_id_local.clone())
         .collect::<Vec<_>>();
-    let blocked_only_descendants = blocked_job_ids
+    let blocked_only_descendants =
+        blocked_job_ids.iter().all(|job_id_local| descendant_set.contains(job_id_local));
+    let unrelated_branches_continue = continued_unrelated_job_ids
         .iter()
-        .all(|job_id_local| descendant_set.contains(job_id_local));
-    let unrelated_branches_continue =
-        continued_unrelated_job_ids.iter().any(|job_id_local| job_id_local == continued_sibling_job_id);
+        .any(|job_id_local| job_id_local == continued_sibling_job_id);
     let benchmark_jobs_continue = !continued_benchmark_job_ids.is_empty();
-    let blocked_expected_descendant = blocked_job_ids
-        .iter()
-        .any(|job_id_local| job_id_local == blocked_descendant_job_id);
+    let blocked_expected_descendant =
+        blocked_job_ids.iter().any(|job_id_local| job_id_local == blocked_descendant_job_id);
     let failed_status_ok = jobs.iter().any(|job| {
         job.job_id_local == failed_job_id
             && job.status == LocalHpcDependencySimulationStatus::Failed.as_str()
@@ -369,7 +368,9 @@ fn descendants_of(graph: &LocalHpcJobGraph, failed_job_id: &str) -> Result<Vec<S
     let mut queue = nodes_by_job_id
         .get(failed_job_id)
         .map(|node| node.dependents.iter().cloned().collect::<VecDeque<_>>())
-        .ok_or_else(|| anyhow!("HPC dependency simulation is missing failed job `{failed_job_id}`"))?;
+        .ok_or_else(|| {
+            anyhow!("HPC dependency simulation is missing failed job `{failed_job_id}`")
+        })?;
     let mut descendants = Vec::new();
 
     while let Some(job_id_local) = queue.pop_front() {
@@ -406,11 +407,8 @@ fn ensure_hpc_dependency_simulation_contract(
             "HPC dependency simulation report must keep at least one proven case row"
         ));
     }
-    let valid_job_ids = graph
-        .nodes
-        .iter()
-        .map(|node| node.job_id_local.as_str())
-        .collect::<BTreeSet<_>>();
+    let valid_job_ids =
+        graph.nodes.iter().map(|node| node.job_id_local.as_str()).collect::<BTreeSet<_>>();
     for case_report in &report.cases {
         if case_report.jobs.len() != graph.job_count {
             return Err(anyhow!(

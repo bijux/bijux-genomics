@@ -57,9 +57,7 @@ pub(crate) fn collect_local_hpc_job_graph(repo_root: &Path) -> Result<LocalHpcJo
             "benchmark_result" => benchmark_job_count += 1,
             "essential_pipeline_node" => essential_pipeline_job_count += 1,
             _ => {
-                return Err(anyhow!(
-                    "HPC job graph encountered unsupported job kind `{job_kind}`"
-                ))
+                return Err(anyhow!("HPC job graph encountered unsupported job kind `{job_kind}`"))
             }
         }
         if node_index.contains_key(&job.job_id_local) {
@@ -106,22 +104,13 @@ pub(crate) fn collect_local_hpc_job_graph(repo_root: &Path) -> Result<LocalHpcJo
     }
     for (job_id_local, dependencies) in &dependency_index {
         for dependency in dependencies {
-            dependent_index
-                .entry(dependency.clone())
-                .or_default()
-                .push(job_id_local.clone());
+            dependent_index.entry(dependency.clone()).or_default().push(job_id_local.clone());
         }
     }
 
     for node in node_index.values_mut() {
-        let dependencies = dependency_index
-            .get(&node.job_id_local)
-            .cloned()
-            .unwrap_or_default();
-        let dependents = dependent_index
-            .get(&node.job_id_local)
-            .cloned()
-            .unwrap_or_default();
+        let dependencies = dependency_index.get(&node.job_id_local).cloned().unwrap_or_default();
+        let dependents = dependent_index.get(&node.job_id_local).cloned().unwrap_or_default();
         node.dependency_count = dependencies.len();
         node.dependent_count = dependents.len();
         node.dependencies = dependencies;
@@ -133,14 +122,15 @@ pub(crate) fn collect_local_hpc_job_graph(repo_root: &Path) -> Result<LocalHpcJo
         .iter()
         .filter_map(|job_id_local| {
             node_index.get(job_id_local).and_then(|node| {
-                if node.dependencies.is_empty() { Some(job_id_local.clone()) } else { None }
+                if node.dependencies.is_empty() {
+                    Some(job_id_local.clone())
+                } else {
+                    None
+                }
             })
         })
         .collect::<Vec<_>>();
-    let dependency_count = node_index
-        .values()
-        .map(|node| node.dependencies.len())
-        .sum::<usize>();
+    let dependency_count = node_index.values().map(|node| node.dependencies.len()).sum::<usize>();
     let nodes = topological_order
         .iter()
         .map(|job_id_local| {
@@ -185,18 +175,22 @@ fn topological_sort(nodes: &BTreeMap<String, LocalHpcJobGraphNode>) -> Result<Ve
         .collect::<BTreeMap<_, _>>();
     let mut ready = indegree
         .iter()
-        .filter_map(|(job_id_local, degree)| {
-            if *degree == 0 { Some(job_id_local.clone()) } else { None }
-        })
+        .filter_map(
+            |(job_id_local, degree)| {
+                if *degree == 0 {
+                    Some(job_id_local.clone())
+                } else {
+                    None
+                }
+            },
+        )
         .collect::<VecDeque<_>>();
     let mut order = Vec::with_capacity(nodes.len());
 
     while let Some(job_id_local) = ready.pop_front() {
         order.push(job_id_local.clone());
-        let dependents = nodes
-            .get(&job_id_local)
-            .map(|node| node.dependents.clone())
-            .unwrap_or_default();
+        let dependents =
+            nodes.get(&job_id_local).map(|node| node.dependents.clone()).unwrap_or_default();
         for dependent in dependents {
             let degree = indegree.get_mut(&dependent).ok_or_else(|| {
                 anyhow!("HPC job graph indegree index is missing dependent job `{dependent}`")
@@ -238,15 +232,10 @@ fn ensure_hpc_job_graph_contract(graph: &LocalHpcJobGraph) -> Result<()> {
             "HPC job graph must keep one node and one topological row per selected job"
         ));
     }
-    let unique_job_ids = graph
-        .nodes
-        .iter()
-        .map(|node| node.job_id_local.as_str())
-        .collect::<BTreeSet<_>>();
+    let unique_job_ids =
+        graph.nodes.iter().map(|node| node.job_id_local.as_str()).collect::<BTreeSet<_>>();
     if unique_job_ids.len() != graph.job_count {
-        return Err(anyhow!(
-            "HPC job graph must keep one unique local job id per node"
-        ));
+        return Err(anyhow!("HPC job graph must keep one unique local job id per node"));
     }
     for node in &graph.nodes {
         if node.dependencies.len() != node.dependency_count {
