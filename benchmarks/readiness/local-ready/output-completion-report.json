@@ -302,8 +302,8 @@
       "stage_id": "bam.bias_mitigation",
       "readiness_kind": "smoke",
       "tool_id": "mapdamage2",
-      "declared_output_count": 5,
-      "present_output_count": 5,
+      "declared_output_count": 3,
+      "present_output_count": 3,
       "missing_output_count": 0,
       "complete": true,
       "missing_outputs": []

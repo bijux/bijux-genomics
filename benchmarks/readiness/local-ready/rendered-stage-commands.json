@@ -2032,18 +2032,6 @@
           "optional": false
         },
         {
-          "artifact_id": "damage_plot",
-          "path": "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/damage_plot.json",
-          "role": "report_json",
-          "optional": false
-        },
-        {
-          "artifact_id": "damage_profile",
-          "path": "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/damage_profile.json",
-          "role": "report_json",
-          "optional": false
-        },
-        {
           "artifact_id": "stage_metrics",
           "path": "runs/bench/local-smoke/bam.bias_mitigation/human_like_gc_window_ladder/mapdamage2/stage.metrics.json",
           "role": "metrics_json",
@@ -2166,7 +2154,7 @@
         {
           "artifact_id": "contamination_estimate",
           "path": "benchmarks/readiness/local-ready/bam.contamination/contamination.estimate.json",
-          "role": "report_json",
+          "role": "unknown",
           "optional": false
         },
         {

@@ -304,8 +304,8 @@
       "tool_id": "mapdamage2",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages/bam.bias_mitigation/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 5,
-      "present_output_count": 5,
+      "declared_output_count": 3,
+      "present_output_count": 3,
       "complete": true
     },
     {
