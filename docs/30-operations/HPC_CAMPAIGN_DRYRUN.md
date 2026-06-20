@@ -66,6 +66,19 @@ surfaces:
 make bench-hpc-scratch-layout-validate
 ```
 
+Render the governed execution-resolution surface for the selected future HPC jobs:
+
+```bash
+make bench-hpc-execution-resolver-render
+```
+
+Validate an existing execution resolver against the current submit manifest, runtime probes, and
+Apptainer conversion map:
+
+```bash
+make bench-hpc-execution-resolver-validate
+```
+
 Call the underlying CLI directly when a non-default manifest path is needed:
 
 ```bash
@@ -80,6 +93,12 @@ bijux-dna bench local render-hpc-scratch-layout \
 
 bijux-dna bench local validate-hpc-scratch-layout \
   --manifest runs/bench/hpc-dry-run/scratch-layout.json
+
+bijux-dna bench local render-hpc-execution-resolver \
+  --output runs/bench/hpc-dry-run/execution-resolver.tsv
+
+bijux-dna bench local validate-hpc-execution-resolver \
+  --manifest runs/bench/hpc-dry-run/execution-resolver.tsv
 ```
 
 Generate baseline campaign profiles:

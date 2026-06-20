@@ -2008,6 +2008,19 @@ Visible aliases are part of the operator surface:
   submit manifest, command argv slices, staged-input discovery rules, and resource hints. The
   command fails closed if scratch roots, input-link paths, output or log roots, scratch resource
   ceilings, or cleanup policy rows drift from the governed dry-run layout.
+- `bijux-dna bench local render-hpc-execution-resolver`
+  `render-hpc-execution-resolver` writes `runs/bench/hpc-dry-run/execution-resolver.tsv`, using
+  the governed all-domain SLURM submit manifest as the selected future HPC job roster together
+  with the governed execution-mode map, runtime probes, and Apptainer conversion map. Each row
+  records the selected tool scope, the lookup tool id used for runtime resolution, whether the
+  selected job resolves as a host binary, a governed Apptainer image, or an explicit unavailable
+  reason, so cluster execution never depends on ambiguous operator runtime assumptions.
+- `bijux-dna bench local validate-hpc-execution-resolver`
+  `validate-hpc-execution-resolver` reloads `runs/bench/hpc-dry-run/execution-resolver.tsv` and
+  rebuilds the expected selected-tool runtime surface from the current submit manifest, execution
+  mode assignments, runtime probes, and Apptainer map. The command fails closed if selected tool
+  scope, lookup aliases, final resolution kind, target path, or unavailable reason drift from the
+  governed dry-run execution plan.
 - `bijux-dna bench local render-benchmark-summary`
   `render-benchmark-summary` writes both `benchmarks/readiness/local-ready/benchmark-summary.json` and
   `benchmarks/readiness/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51
