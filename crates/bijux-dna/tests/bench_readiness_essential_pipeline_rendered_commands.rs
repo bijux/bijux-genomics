@@ -152,11 +152,11 @@ fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_n
         .expect("bam.genotyping row");
     assert_eq!(
         bam_genotyping_row.get("tool_id").and_then(serde_json::Value::as_str),
-        Some("angsd")
+        Some("bijux-dna")
     );
     assert_eq!(
         bam_genotyping_row.get("command_source").and_then(serde_json::Value::as_str),
-        Some("bam_governed_stage_command")
+        Some("local_stage_materialization")
     );
     assert!(
         bam_genotyping_row
@@ -164,11 +164,9 @@ fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_n
             .and_then(serde_json::Value::as_array)
             .is_some_and(|commands| commands.iter().any(|item| {
                 item.as_str().is_some_and(|command| {
-                    command.contains(
-                        "angsd -i benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
-                    )
+                    command.contains("cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.genotyping")
                 })
             })),
-        "bam.genotyping row must render the governed angsd genotyping command"
+        "bam.genotyping row must render the governed local stage materialization command"
     );
 }

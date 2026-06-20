@@ -48,7 +48,7 @@ fn bench_readiness_essential_pipeline_rendered_commands_write_bash_parseable_scr
     assert!(script.contains("# edna-taxonomy-no-vcf / fastq.report_qc / fastq.report_qc / multiqc"));
     assert!(script.contains("multiqc -o"));
     assert!(script.contains(
-        "angsd -i benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
+        "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.genotyping"
     ));
     assert!(!script.to_ascii_lowercase().contains("todo"));
     assert!(!script.to_ascii_lowercase().contains("placeholder"));
