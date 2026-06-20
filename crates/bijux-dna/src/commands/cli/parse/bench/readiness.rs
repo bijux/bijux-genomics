@@ -86,6 +86,8 @@ pub enum BenchReadinessCommand {
     RenderBamParserFixtureCoverage(BenchReadinessRenderBamParserFixtureCoverageArgs),
     #[command(name = "render-bam-report-map")]
     RenderBamReportMap(BenchReadinessRenderBamReportMapArgs),
+    #[command(name = "render-bam-tool-scores")]
+    RenderBamToolScores(BenchReadinessRenderBamToolScoresArgs),
     #[command(name = "render-bam-all-retained-tools-complete")]
     RenderBamAllRetainedToolsComplete(BenchReadinessRenderBamAllRetainedToolsCompleteArgs),
     #[command(name = "render-expected-benchmark-results")]
@@ -336,6 +338,8 @@ pub enum BenchReadinessCommand {
     ValidateToolExecutionModes(BenchReadinessValidateToolExecutionModesArgs),
     #[command(name = "validate-stage-scoring")]
     ValidateStageScoring(BenchReadinessValidateStageScoringArgs),
+    #[command(name = "validate-bam-tool-scores")]
+    ValidateBamToolScores(BenchReadinessValidateBamToolScoresArgs),
     #[command(name = "validate-fastq-tool-scores")]
     ValidateFastqToolScores(BenchReadinessValidateFastqToolScoresArgs),
     #[command(name = "render-tool-id-normalization")]
@@ -710,6 +714,14 @@ pub struct BenchReadinessRenderBamParserFixtureCoverageArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamReportMapArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamToolScoresArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
@@ -1636,6 +1648,14 @@ pub struct BenchReadinessValidateToolExecutionModesArgs {
 pub struct BenchReadinessValidateStageScoringArgs {
     #[arg(long)]
     pub config: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessValidateBamToolScoresArgs {
+    #[arg(long)]
+    pub input: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

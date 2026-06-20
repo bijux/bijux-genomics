@@ -385,6 +385,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderBamToolScores(args) => {
+                        crate::commands::benchmark::readiness::bam_tool_scores::run_render_bam_tool_scores(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamAllRetainedToolsComplete(args) => {
                         crate::commands::benchmark::readiness::bam_all_retained_tools_complete::run_render_bam_all_retained_tools_complete(
                             args,
@@ -977,6 +982,11 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchReadinessCommand::ValidateStageScoring(args) => {
                         crate::commands::benchmark::readiness::stage_scoring::run_validate_stage_scoring(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::ValidateBamToolScores(args) => {
+                        crate::commands::benchmark::readiness::bam_tool_scores::run_validate_bam_tool_scores(
                             args,
                         )?;
                     }

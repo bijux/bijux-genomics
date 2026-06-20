@@ -57,6 +57,7 @@ pub(crate) mod bam_report_map;
 pub(crate) mod bam_science_thresholds_ready;
 pub(crate) mod bam_sex_complete;
 pub(crate) mod bam_stage_decision_table;
+pub(crate) mod bam_tool_scores;
 pub(crate) mod benchmark_command_rows;
 pub(crate) mod benchmark_readiness_dashboard;
 pub(crate) mod catalog;

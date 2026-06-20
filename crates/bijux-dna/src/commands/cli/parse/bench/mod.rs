@@ -138,10 +138,11 @@ pub use self::readiness::{
     BenchReadinessRenderBamRecalibrationCompleteArgs,
     BenchReadinessRenderBamRecalibrationGenotypingReadyArgs, BenchReadinessRenderBamReportMapArgs,
     BenchReadinessRenderBamScienceThresholdsReadyArgs, BenchReadinessRenderBamSexCompleteArgs,
-    BenchReadinessRenderBamStageDecisionTableArgs, BenchReadinessRenderBamToolServingMapArgs,
-    BenchReadinessRenderBenchmarkReadinessDashboardArgs, BenchReadinessRenderCommandArgvArgs,
-    BenchReadinessRenderCommandsArgs, BenchReadinessRenderCorpusAssetCoverageGateArgs,
-    BenchReadinessRenderCorpusCentricReportArgs, BenchReadinessRenderCorpusIncompatibilityArgs,
+    BenchReadinessRenderBamStageDecisionTableArgs, BenchReadinessRenderBamToolScoresArgs,
+    BenchReadinessRenderBamToolServingMapArgs, BenchReadinessRenderBenchmarkReadinessDashboardArgs,
+    BenchReadinessRenderCommandArgvArgs, BenchReadinessRenderCommandsArgs,
+    BenchReadinessRenderCorpusAssetCoverageGateArgs, BenchReadinessRenderCorpusCentricReportArgs,
+    BenchReadinessRenderCorpusIncompatibilityArgs,
     BenchReadinessRenderEssentialPipelineCommandsArgs,
     BenchReadinessRenderEssentialPipelineCorpusAssetsArgs,
     BenchReadinessRenderEssentialPipelineFailureIsolationArgs,
@@ -209,8 +210,9 @@ pub use self::readiness::{
     BenchReadinessRenderVcfStatsReadyArgs, BenchReadinessRenderVcfToolServingMapArgs,
     BenchReadinessRenderVcfUndercoveredStagesArgs, BenchReadinessRenderVersionProbesArgs,
     BenchReadinessRunContainerToolSmokeArgs, BenchReadinessRunHostToolSmokeArgs,
-    BenchReadinessValidateFastqToolScoresArgs, BenchReadinessValidateStageScoringArgs,
-    BenchReadinessValidateToolExecutionModesArgs, BenchReadinessValidateToolFamiliesArgs,
+    BenchReadinessValidateBamToolScoresArgs, BenchReadinessValidateFastqToolScoresArgs,
+    BenchReadinessValidateStageScoringArgs, BenchReadinessValidateToolExecutionModesArgs,
+    BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::schema_validation::{BenchSchemaDomainArg, BenchValidateSchemasArgs};
 pub use self::suite::BenchRunArgs;
