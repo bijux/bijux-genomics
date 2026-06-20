@@ -222,10 +222,21 @@ mod tests {
             .expect("render orphan tools");
 
         assert_eq!(report.schema_version, ORPHAN_TOOLS_SCHEMA_VERSION);
-        assert_eq!(report.orphan_count, 0);
-        assert!(
-            report.rows.is_empty(),
-            "orphan tool report must be empty once the active benchmark scope is fully registered"
-        );
+        assert_eq!(report.orphan_count, 2);
+        assert_eq!(report.rows.len(), 2);
+        assert!(report.rows.iter().any(|row| {
+            row.domain == "fastq"
+                && row.tool_id == "dustmasker"
+                && row.decision == "future_tool"
+                && row.declared_stage_ids == vec!["fastq.filter_low_complexity".to_string()]
+                && row.benchmark_stage_ids.is_empty()
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.domain == "fastq"
+                && row.tool_id == "seqpurge"
+                && row.decision == "future_tool"
+                && row.declared_stage_ids == vec!["fastq.trim_reads".to_string()]
+                && row.benchmark_stage_ids.is_empty()
+        }));
     }
 }

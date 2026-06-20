@@ -245,21 +245,12 @@ mod tests {
         .expect("render stage registry extra pairs");
 
         assert_eq!(report.schema_version, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_VERSION);
-        assert_eq!(report.extra_pair_count, 1);
-        assert!(!report.ok, "report must fail while registry-only benchmark pairs remain");
-        assert_eq!(report.domain_counts.get("bam"), Some(&1));
-        assert!(report.rows.iter().any(|row| {
-            row.domain == "bam"
-                && row.stage_id == "bam.haplogroups"
-                && row.tool_id == "samtools"
-                && row.contract_status == "pair_missing_from_contract"
-                && row.documented_exception_status == "none"
-        }));
+        assert_eq!(report.extra_pair_count, 0);
+        assert!(report.ok, "report must pass once registry-only benchmark pairs are retired");
+        assert!(report.domain_counts.is_empty());
         assert!(
-            !report.rows.iter().any(|row| {
-                row.domain == "bam" && row.stage_id == "bam.qc_pre" && row.tool_id == "multiqc"
-            }),
-            "bam.qc_pre / multiqc must no longer remain a registry-only pair once the BAM tool contract exists"
+            report.rows.is_empty(),
+            "stage-registry extra-pairs report must be empty once the active benchmark scope is fully contracted"
         );
     }
 }
