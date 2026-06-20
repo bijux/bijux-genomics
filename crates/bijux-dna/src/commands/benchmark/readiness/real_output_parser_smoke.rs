@@ -1812,14 +1812,40 @@ mod tests {
     use super::{build_real_output_parser_smoke_report, DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH};
     use anyhow::Result;
     use std::path::PathBuf;
+    use std::sync::{Mutex, OnceLock};
+
+    fn cwd_lock() -> &'static Mutex<()> {
+        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        LOCK.get_or_init(|| Mutex::new(()))
+    }
+
+    struct CurrentDirGuard {
+        original: PathBuf,
+    }
+
+    impl CurrentDirGuard {
+        fn switch_to(path: &PathBuf) -> Result<Self> {
+            let original = std::env::current_dir()?;
+            std::env::set_current_dir(path)?;
+            Ok(Self { original })
+        }
+    }
+
+    impl Drop for CurrentDirGuard {
+        fn drop(&mut self) {
+            let _ = std::env::set_current_dir(&self.original);
+        }
+    }
 
     #[test]
     fn build_real_output_parser_smoke_report_covers_active_families() -> Result<()> {
+        let _guard = cwd_lock().lock().expect("cwd lock");
         let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .and_then(|path| path.parent())
             .map(std::path::Path::to_path_buf)
             .expect("resolve workspace root from crate manifest dir");
+        let _cwd = CurrentDirGuard::switch_to(&repo_root)?;
         let output_path = repo_root.join(DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH);
         let probe_root =
             repo_root.join("runs/bench/readiness-probes/tests/real-output-parser-smoke");
