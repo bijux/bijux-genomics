@@ -64,4 +64,10 @@ mod tests {
             Some(FASTQ_AMPLICON_EXECUTOR)
         );
     }
+
+    #[test]
+    fn stage_executor_registry_tracks_supported_vcf_population_executors() {
+        assert!(has_executor(id_catalog::VCF_ADMIXTURE));
+        assert!(has_executor(id_catalog::VCF_ROH));
+    }
 }

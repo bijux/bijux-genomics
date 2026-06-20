@@ -43,7 +43,20 @@ fn config_stage_rows_by_id(root: &Path) -> BTreeMap<String, toml::Value> {
     ] {
         for row in stage_rows(&root.join(rel)) {
             if let Some(id) = row.get("id").and_then(toml::Value::as_str) {
-                out.insert(id.to_string(), row.clone());
+                match out.get(id) {
+                    None => {
+                        out.insert(id.to_string(), row.clone());
+                    }
+                    Some(existing)
+                        if existing.get("status").and_then(toml::Value::as_str)
+                            != Some("supported")
+                            && row.get("status").and_then(toml::Value::as_str)
+                                == Some("supported") =>
+                    {
+                        out.insert(id.to_string(), row.clone());
+                    }
+                    _ => {}
+                }
             }
         }
     }
