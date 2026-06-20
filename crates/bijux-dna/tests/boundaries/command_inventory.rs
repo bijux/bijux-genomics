@@ -317,6 +317,8 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench local render-hpc-execution-resolver",
     "bijux-dna bench local validate-hpc-stage-benchmark-array",
     "bijux-dna bench local render-hpc-stage-benchmark-array",
+    "bijux-dna bench local validate-hpc-pipeline-node-array",
+    "bijux-dna bench local render-hpc-pipeline-node-array",
     "bijux-dna bench local render-all-domain-slurm-submit-manifest",
     "bijux-dna bench local render-slurm-submit-manifest",
     "bijux-dna bench local render-benchmark-summary",
