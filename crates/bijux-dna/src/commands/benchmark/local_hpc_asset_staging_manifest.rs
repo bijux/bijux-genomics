@@ -10,6 +10,9 @@ use super::local_hpc_input_discovery::{
     path_relative_to_repo, LocalHpcDiscoveredSourceInput, LocalHpcStageInputHint,
 };
 use super::path_resolution::{ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver};
+use crate::commands::benchmark::readiness::all_domain_rendered_commands::{
+    render_all_domain_commands, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH,
+};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -310,6 +313,10 @@ fn build_hpc_asset_staging_manifest(
 
 fn load_rendered_command_argv_rows(repo_root: &Path) -> Result<Vec<RenderedCommandArgvFileRow>> {
     let argv_path = repo_root.join(DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH);
+    if !argv_path.is_file() {
+        render_all_domain_commands(repo_root, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH.into())
+            .with_context(|| format!("render {}", argv_path.display()))?;
+    }
     let body =
         fs::read_to_string(&argv_path).with_context(|| format!("read {}", argv_path.display()))?;
     let mut rows = body

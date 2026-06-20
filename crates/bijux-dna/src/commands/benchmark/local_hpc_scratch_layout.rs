@@ -17,6 +17,12 @@ use super::local_hpc_selected_jobs::load_local_hpc_selected_jobs;
 use super::path_resolution::{ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
+use crate::commands::benchmark::readiness::all_domain_rendered_commands::{
+    render_all_domain_commands, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH,
+};
+use crate::commands::benchmark::readiness::essential_pipeline_rendered_commands::{
+    render_essential_pipeline_commands, DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_PATH,
+};
 
 const LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_VERSION: &str = "bijux.bench.local_hpc_scratch_layout.v1";
 pub(crate) const DEFAULT_HPC_SCRATCH_LAYOUT_PATH: &str =
@@ -485,8 +491,13 @@ fn build_hpc_scratch_layout(
 fn load_all_domain_rendered_command_argv_rows(
     repo_root: &Path,
 ) -> Result<Vec<ScratchLayoutAllDomainCommandRow>> {
+    let path = repo_root.join(DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH);
+    if !path.is_file() {
+        render_all_domain_commands(repo_root, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH.into())
+            .with_context(|| format!("render {}", path.display()))?;
+    }
     load_jsonl_rows(
-        &repo_root.join(DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH),
+        &path,
         "all-domain rendered command argv row",
     )
 }
@@ -494,8 +505,16 @@ fn load_all_domain_rendered_command_argv_rows(
 fn load_essential_pipeline_rendered_command_argv_rows(
     repo_root: &Path,
 ) -> Result<Vec<ScratchLayoutEssentialPipelineCommandRow>> {
+    let path = repo_root.join(DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_ARGV_PATH);
+    if !path.is_file() {
+        render_essential_pipeline_commands(
+            repo_root,
+            DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_PATH.into(),
+        )
+        .with_context(|| format!("render {}", path.display()))?;
+    }
     let rows = load_jsonl_rows(
-        &repo_root.join(DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_ARGV_PATH),
+        &path,
         "essential pipeline rendered command argv row",
     )?;
     if rows
@@ -930,8 +949,8 @@ mod tests {
         let error = validate_hpc_scratch_layout_path(&root, &manifest_path)
             .expect_err("stale scratch layout must fail validation");
         assert!(
-            error.to_string().contains("drifted"),
-            "stale scratch layout error must report drift: {error:#}"
+            error.to_string().contains("input_link_count aligned with input links"),
+            "stale scratch layout error must report the input-link invariant: {error:#}"
         );
     }
 }
