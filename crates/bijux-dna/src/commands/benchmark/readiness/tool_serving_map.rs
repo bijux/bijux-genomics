@@ -575,14 +575,6 @@ mod tests {
                 "benchmark_normalized",
                 "fixture:corpus-03-amplicon-mini",
             ),
-            (
-                "seqfu",
-                "fastq.normalize_abundance",
-                "planned_contract",
-                "declared_only",
-                "not_normalized",
-                "fixture:corpus-03-amplicon-mini",
-            ),
         ] {
             assert!(report.rows.iter().any(|row| {
                 row.tool_id == tool_id
@@ -598,6 +590,12 @@ mod tests {
                 && row.stage_id == "fastq.report_qc"
                 && row.corpus_status == "fixture:corpus-01-mini"
         }));
+        assert!(
+            !report.rows.iter().any(|row| {
+                row.tool_id == "seqfu" && row.stage_id == "fastq.normalize_abundance"
+            }),
+            "fastq.normalize_abundance must only retain admitted governed rows in the active serving map"
+        );
         for tool_id in ["fastq_scan", "fastqc", "seqkit"] {
             assert!(report.rows.iter().any(|row| {
                 row.tool_id == tool_id
