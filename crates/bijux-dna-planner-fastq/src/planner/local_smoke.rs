@@ -90,72 +90,72 @@ use crate::tool_adapters::fastq::validate_reads::{
 };
 
 const LOCAL_DETECT_ADAPTERS_CONFIG_PATH: &str =
-    "benchmarks/configs/local/fastq-detect-adapters.toml";
+    "configs/bench/local/fastq-detect-adapters.toml";
 const DEFAULT_LOCAL_DETECT_ADAPTERS_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.detect_adapters";
-const LOCAL_CORRECT_ERRORS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-correct-errors.toml";
+const LOCAL_CORRECT_ERRORS_CONFIG_PATH: &str = "configs/bench/local/fastq-correct-errors.toml";
 const DEFAULT_LOCAL_CORRECT_ERRORS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.correct_errors";
-const LOCAL_EXTRACT_UMIS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-extract-umis.toml";
+const LOCAL_EXTRACT_UMIS_CONFIG_PATH: &str = "configs/bench/local/fastq-extract-umis.toml";
 const DEFAULT_LOCAL_EXTRACT_UMIS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.extract_umis";
 const LOCAL_DETECT_DUPLICATES_PREMERGE_CONFIG_PATH: &str =
-    "benchmarks/configs/local/fastq-detect-duplicates-premerge.toml";
+    "configs/bench/local/fastq-detect-duplicates-premerge.toml";
 const DEFAULT_LOCAL_DETECT_DUPLICATES_PREMERGE_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.detect_duplicates_premerge";
 const LOCAL_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_CONFIG_PATH: &str =
-    "benchmarks/configs/local/fastq-estimate-library-complexity-prealign.toml";
+    "configs/bench/local/fastq-estimate-library-complexity-prealign.toml";
 const DEFAULT_LOCAL_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign";
 const LOCAL_FILTER_LOW_COMPLEXITY_CONFIG_PATH: &str =
-    "benchmarks/configs/local/fastq-filter-low-complexity.toml";
+    "configs/bench/local/fastq-filter-low-complexity.toml";
 const DEFAULT_LOCAL_FILTER_LOW_COMPLEXITY_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.filter_low_complexity";
-const LOCAL_FILTER_READS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-filter-reads.toml";
+const LOCAL_FILTER_READS_CONFIG_PATH: &str = "configs/bench/local/fastq-filter-reads.toml";
 const DEFAULT_LOCAL_FILTER_READS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.filter_reads";
-const LOCAL_CLUSTER_OTUS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-cluster-otus.toml";
+const LOCAL_CLUSTER_OTUS_CONFIG_PATH: &str = "configs/bench/local/fastq-cluster-otus.toml";
 const DEFAULT_LOCAL_CLUSTER_OTUS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.cluster_otus";
-const LOCAL_INFER_ASVS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-infer-asvs.toml";
+const LOCAL_INFER_ASVS_CONFIG_PATH: &str = "configs/bench/local/fastq-infer-asvs.toml";
 const DEFAULT_LOCAL_INFER_ASVS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.infer_asvs";
-const LOCAL_MERGE_PAIRS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-merge-pairs.toml";
+const LOCAL_MERGE_PAIRS_CONFIG_PATH: &str = "configs/bench/local/fastq-merge-pairs.toml";
 const DEFAULT_LOCAL_MERGE_PAIRS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.merge_pairs";
 const LOCAL_NORMALIZE_ABUNDANCE_CONFIG_PATH: &str =
-    "benchmarks/configs/local/fastq-normalize-abundance.toml";
+    "configs/bench/local/fastq-normalize-abundance.toml";
 const DEFAULT_LOCAL_NORMALIZE_ABUNDANCE_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.normalize_abundance";
 const LOCAL_NORMALIZE_PRIMERS_CONFIG_PATH: &str =
-    "benchmarks/configs/local/fastq-normalize-primers.toml";
+    "configs/bench/local/fastq-normalize-primers.toml";
 const DEFAULT_LOCAL_NORMALIZE_PRIMERS_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.normalize_primers";
-const LOCAL_PROFILE_READS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-profile-reads.toml";
+const LOCAL_PROFILE_READS_CONFIG_PATH: &str = "configs/bench/local/fastq-profile-reads.toml";
 const DEFAULT_LOCAL_PROFILE_READS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.profile_reads";
-const LOCAL_REPORT_QC_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-report-qc.toml";
+const LOCAL_REPORT_QC_CONFIG_PATH: &str = "configs/bench/local/fastq-report-qc.toml";
 const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.report_qc";
 const LOCAL_PROFILE_OVERREPRESENTED_SEQUENCES_CONFIG_PATH: &str =
-    "benchmarks/configs/local/fastq-profile-overrepresented-sequences.toml";
+    "configs/bench/local/fastq-profile-overrepresented-sequences.toml";
 const DEFAULT_LOCAL_PROFILE_OVERREPRESENTED_SEQUENCES_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.profile_overrepresented_sequences";
 const LOCAL_PROFILE_READ_LENGTHS_CONFIG_PATH: &str =
-    "benchmarks/configs/local/fastq-profile-read-lengths.toml";
+    "configs/bench/local/fastq-profile-read-lengths.toml";
 const DEFAULT_LOCAL_PROFILE_READ_LENGTHS_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.profile_read_lengths";
 const LOCAL_REMOVE_DUPLICATES_CONFIG_PATH: &str =
-    "benchmarks/configs/local/fastq-remove-duplicates.toml";
+    "configs/bench/local/fastq-remove-duplicates.toml";
 const DEFAULT_LOCAL_REMOVE_DUPLICATES_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.remove_duplicates";
 const LOCAL_REMOVE_CHIMERAS_CONFIG_PATH: &str =
-    "benchmarks/configs/local/fastq-remove-chimeras.toml";
+    "configs/bench/local/fastq-remove-chimeras.toml";
 const DEFAULT_LOCAL_REMOVE_CHIMERAS_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.remove_chimeras";
-const LOCAL_TRIM_READS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-trim-reads.toml";
+const LOCAL_TRIM_READS_CONFIG_PATH: &str = "configs/bench/local/fastq-trim-reads.toml";
 const DEFAULT_LOCAL_TRIM_READS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.trim_reads";
 const LOCAL_TRIM_POLYG_TAILS_CONFIG_PATH: &str =
-    "benchmarks/configs/local/fastq-trim-polyg-tails.toml";
+    "configs/bench/local/fastq-trim-polyg-tails.toml";
 const DEFAULT_LOCAL_TRIM_POLYG_TAILS_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.trim_polyg_tails";
 const LOCAL_TRIM_TERMINAL_DAMAGE_CONFIG_PATH: &str =
-    "benchmarks/configs/local/fastq-trim-terminal-damage.toml";
+    "configs/bench/local/fastq-trim-terminal-damage.toml";
 const DEFAULT_LOCAL_TRIM_TERMINAL_DAMAGE_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.trim_terminal_damage";
-const LOCAL_VALIDATE_READS_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-validate-reads.toml";
+const LOCAL_VALIDATE_READS_CONFIG_PATH: &str = "configs/bench/local/fastq-validate-reads.toml";
 const DEFAULT_LOCAL_VALIDATE_READS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.validate_reads";
 const BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
 

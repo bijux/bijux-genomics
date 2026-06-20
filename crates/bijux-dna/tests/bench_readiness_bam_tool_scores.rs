@@ -49,7 +49,7 @@ fn bench_readiness_bam_tool_scores_report_governs_real_bam_evidence() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/configs/local/stage-scoring.toml")
+        Some("configs/bench/local/stage-scoring.toml")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(49));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(24));

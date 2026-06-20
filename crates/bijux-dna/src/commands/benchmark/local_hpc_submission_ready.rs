@@ -357,7 +357,7 @@ fn evaluate_fastq_inventory_goal(
                 1,
                 "stage_matrices",
                 "FASTQ stage matrix covers the governed local inventory",
-                Some("benchmarks/configs/local/fastq-stage-matrix.toml".to_string()),
+                Some("configs/bench/local/fastq-stage-matrix.toml".to_string()),
                 format!("{err:#}"),
             ));
             None
@@ -395,7 +395,7 @@ fn evaluate_bam_inventory_goal(
                 28,
                 "stage_matrices",
                 "BAM stage matrix covers the governed local inventory",
-                Some("benchmarks/configs/local/bam-stage-matrix.toml".to_string()),
+                Some("configs/bench/local/bam-stage-matrix.toml".to_string()),
                 format!("{err:#}"),
             ));
             None

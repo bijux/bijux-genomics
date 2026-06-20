@@ -27,7 +27,7 @@ use crate::commands::benchmark::local_vcf_stage_matrix::build_vcf_stage_matrix_r
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_STAGE_SCORING_PATH: &str = "benchmarks/configs/local/stage-scoring.toml";
+pub(crate) const DEFAULT_STAGE_SCORING_PATH: &str = "configs/bench/local/stage-scoring.toml";
 const STAGE_SCORING_SCHEMA_VERSION: &str = "bijux.bench.local_stage_scoring.v1";
 const STAGE_SCORING_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.stage_scoring.v1";
 const STAGE_SCORING_FULL_BENCHMARK_SOURCE: &str =
@@ -38,7 +38,7 @@ const STAGE_SCORING_FAILURE_CLASS_SOURCE: &str =
 const STAGE_SCORING_ACTIVE_STAGE_SOURCE: &str =
     "benchmarks/readiness/all-domains/active-stage-catalog.tsv";
 const STAGE_SCORING_THRESHOLD_SOURCE: &str =
-    "benchmarks/configs/local/scientific-acceptance-thresholds.toml";
+    "configs/bench/local/scientific-acceptance-thresholds.toml";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]

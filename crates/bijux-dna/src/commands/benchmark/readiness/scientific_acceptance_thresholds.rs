@@ -25,7 +25,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH: &str =
-    "benchmarks/configs/local/scientific-acceptance-thresholds.toml";
+    "configs/bench/local/scientific-acceptance-thresholds.toml";
 pub(crate) const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_VERSION: &str =
     "bijux.bench.local_scientific_acceptance_thresholds.v1";
 const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_VERSION: &str =

@@ -13,7 +13,7 @@
   "cross_domain_consistency_path": "benchmarks/readiness/science/cross-domain-sample-consistency.json",
   "cross_domain_consistency_status": "compatible",
   "cross_domain_source_link_failure_count": 0,
-  "scientific_acceptance_config_path": "benchmarks/configs/local/scientific-acceptance-thresholds.toml",
+  "scientific_acceptance_config_path": "configs/bench/local/scientific-acceptance-thresholds.toml",
   "scientific_acceptance_row_count": 91,
   "scientific_acceptance_stage_count": 30,
   "science_surface_count": 17,

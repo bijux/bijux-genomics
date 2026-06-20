@@ -1,6 +1,6 @@
 schema_version = "bijux.bench.local_stage_scoring.v1"
 active_stage_catalog_path = "benchmarks/readiness/all-domains/active-stage-catalog.tsv"
-scientific_threshold_config_path = "benchmarks/configs/local/scientific-acceptance-thresholds.toml"
+scientific_threshold_config_path = "configs/bench/local/scientific-acceptance-thresholds.toml"
 full_benchmark_report_path = "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json"
 micro_benchmark_report_path = "runs/bench/micro/MICRO_BENCHMARK_REPORT.json"
 failure_class_report_path = "benchmarks/readiness/failure-classification-all-domains.json"
@@ -76,7 +76,7 @@ metric_ids = [
 minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "alignment_rate",
@@ -162,7 +162,7 @@ metric_ids = [
 minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "confidence",
@@ -241,7 +241,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -315,7 +315,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -397,7 +397,7 @@ metric_ids = [
 minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "ci_high",
@@ -483,7 +483,7 @@ metric_ids = [
 minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "breadth_1x",
@@ -572,7 +572,7 @@ metric_ids = [
 minimum_present_result_rows = 6
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "damage_signal",
@@ -657,7 +657,7 @@ metric_ids = [
 minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "duplicate_count",
@@ -735,7 +735,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -817,7 +817,7 @@ metric_ids = [
 minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "input_reads",
@@ -895,7 +895,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -969,7 +969,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -1043,7 +1043,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -1117,7 +1117,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -1199,7 +1199,7 @@ metric_ids = [
 minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "observed_max_overlap_snps",
@@ -1285,7 +1285,7 @@ metric_ids = [
 minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "kept_reads",
@@ -1372,7 +1372,7 @@ metric_ids = [
 minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "mapped_reads",
@@ -1459,7 +1459,7 @@ metric_ids = [
 minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "kept_reads",
@@ -1543,7 +1543,7 @@ metric_ids = [
 minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "duplicate_count",
@@ -1620,7 +1620,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -1702,7 +1702,7 @@ metric_ids = [
 minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "duplicate_flagged_reads",
@@ -1781,7 +1781,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -1866,7 +1866,7 @@ metric_ids = [
 minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "autosomal_coverage",
@@ -1955,7 +1955,7 @@ metric_ids = [
 minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "validation_errors",
@@ -2033,7 +2033,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -2112,7 +2112,7 @@ metric_ids = []
 minimum_present_result_rows = 4
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -2186,7 +2186,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -2260,7 +2260,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -2334,7 +2334,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -2408,7 +2408,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -2482,7 +2482,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -2556,7 +2556,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -2630,7 +2630,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -2708,7 +2708,7 @@ metric_ids = []
 minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -2787,7 +2787,7 @@ metric_ids = []
 minimum_present_result_rows = 4
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -2864,7 +2864,7 @@ metric_ids = ["index_build_exit_code"]
 minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = ["index_build_exit_code"]
 gate = "must_pass_all_required_stage_thresholds"
@@ -2938,7 +2938,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -3019,7 +3019,7 @@ metric_ids = []
 minimum_present_result_rows = 6
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -3093,7 +3093,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -3167,7 +3167,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -3249,7 +3249,7 @@ metric_ids = [
 minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "flagged_sequences",
@@ -3332,7 +3332,7 @@ metric_ids = []
 minimum_present_result_rows = 4
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -3410,7 +3410,7 @@ metric_ids = []
 minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -3484,7 +3484,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -3561,7 +3561,7 @@ metric_ids = []
 minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -3635,7 +3635,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -3714,7 +3714,7 @@ metric_ids = []
 minimum_present_result_rows = 4
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -3791,7 +3791,7 @@ metric_ids = []
 minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -3879,7 +3879,7 @@ metric_ids = []
 minimum_present_result_rows = 13
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -3957,7 +3957,7 @@ metric_ids = []
 minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -4037,7 +4037,7 @@ metric_ids = ["format_validation_pass_rate"]
 minimum_present_result_rows = 5
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = ["format_validation_pass_rate"]
 gate = "must_pass_all_required_stage_thresholds"
@@ -4115,7 +4115,7 @@ metric_ids = [
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "population_count",
@@ -4193,7 +4193,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -4267,7 +4267,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -4344,7 +4344,7 @@ metric_ids = [
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "missing_likelihoods",
@@ -4424,7 +4424,7 @@ metric_ids = [
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "called_sites",
@@ -4505,7 +4505,7 @@ metric_ids = [
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "removed_variants",
@@ -4583,7 +4583,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -4661,7 +4661,7 @@ metric_ids = [
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "sample_count",
@@ -4745,7 +4745,7 @@ metric_ids = [
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "concordance",
@@ -4832,7 +4832,7 @@ metric_ids = [
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "imputed_genotypes",
@@ -4919,7 +4919,7 @@ metric_ids = [
 minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "sample_count",
@@ -4999,7 +4999,7 @@ metric_ids = [
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "phase_block_n50",
@@ -5079,7 +5079,7 @@ metric_ids = [
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "pair_count",
@@ -5156,7 +5156,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -5230,7 +5230,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -5313,7 +5313,7 @@ metric_ids = [
 minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "required"
 metric_ids = [
     "concordance",
@@ -5392,7 +5392,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"
@@ -5466,7 +5466,7 @@ metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
-source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
 applicability = "not_applicable"
 metric_ids = []
 gate = "not_applicable"

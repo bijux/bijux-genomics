@@ -24,7 +24,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_TOOL_ASSETS_PATH: &str =
-    "benchmarks/configs/local/stage-tool-assets.toml";
+    "configs/bench/local/stage-tool-assets.toml";
 pub(crate) const LOCAL_STAGE_TOOL_ASSETS_SCHEMA_VERSION: &str =
     "bijux.bench.local_stage_tool_assets.v1";
 const STAGE_TOOL_ASSETS_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.stage_tool_assets.v1";
@@ -1111,7 +1111,7 @@ mod tests {
             .expect("render stage-tool assets");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_assets.v1");
-        assert_eq!(report.config_path, "benchmarks/configs/local/stage-tool-assets.toml");
+        assert_eq!(report.config_path, "configs/bench/local/stage-tool-assets.toml");
         assert_eq!(report.classification_scope, "governed_benchmark_command_assets");
         assert_eq!(report.row_count, 38);
         assert_eq!(report.declared_stage_tool_row_count, 20);

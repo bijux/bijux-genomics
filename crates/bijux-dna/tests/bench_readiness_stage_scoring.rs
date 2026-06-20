@@ -45,7 +45,7 @@ fn bench_readiness_stage_scoring_reports_governed_stage_decision_contracts() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/configs/local/stage-scoring.toml")
+        Some("configs/bench/local/stage-scoring.toml")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(31));
@@ -202,7 +202,7 @@ fn bench_readiness_stage_scoring_validation_reports_governed_config_contract() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/configs/local/stage-scoring.toml")
+        Some("configs/bench/local/stage-scoring.toml")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(payload.get("scientific_stage_count").and_then(serde_json::Value::as_u64), Some(29));

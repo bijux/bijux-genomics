@@ -99,7 +99,7 @@ fn local_mapq_filter_smoke_stage_api_surface_stays_callable() {
 }
 
 fn write_local_mapq_filter_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("benchmarks/configs/local");
+    let config_dir = root.join("configs/bench/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-mapq-filter.toml"), body)?;
     Ok(())

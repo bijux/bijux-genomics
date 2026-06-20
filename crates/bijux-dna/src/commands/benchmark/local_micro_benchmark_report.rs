@@ -40,8 +40,8 @@ pub(crate) const DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH: &str =
 
 const MICRO_BENCHMARK_REPORT_SCHEMA_VERSION: &str = "bijux.bench.local_micro_benchmark_report.v1";
 const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH: &str =
-    "benchmarks/configs/local/scientific-acceptance-thresholds.toml";
-const STAGE_TOOL_RESOURCES_PATH: &str = "benchmarks/configs/local/stage-tool-resources.toml";
+    "configs/bench/local/scientific-acceptance-thresholds.toml";
+const STAGE_TOOL_RESOURCES_PATH: &str = "configs/bench/local/stage-tool-resources.toml";
 
 pub(crate) struct MicroBenchmarkSourceReports<'a> {
     pub(crate) real_smoke: &'a RealSmokeCoreSubsetReport,
@@ -1159,7 +1159,7 @@ mod tests {
         let temp = tempdir().expect("tempdir");
         let repo_root = temp.path();
 
-        fs::create_dir_all(repo_root.join("benchmarks/configs/local")).expect("create configs");
+        fs::create_dir_all(repo_root.join("configs/bench/local")).expect("create configs");
         fs::write(
             repo_root.join(SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH),
             r#"

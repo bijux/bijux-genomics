@@ -323,7 +323,7 @@ bench-adapter-fast: ## Render governed adapter command surfaces and missing-inpu
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-adapter-fast
 
-bench-stage-scoring-render: ## Render the governed stage-scoring config under benchmarks/configs/local/.
+bench-stage-scoring-render: ## Render the governed stage-scoring config under configs/bench/local/.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-stage-scoring-render
 

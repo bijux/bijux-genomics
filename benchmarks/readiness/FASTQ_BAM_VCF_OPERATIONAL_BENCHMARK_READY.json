@@ -67,7 +67,7 @@
     },
     {
       "surface_id": "stage_tool_resources",
-      "output_path": "benchmarks/configs/local/stage-tool-resources.toml",
+      "output_path": "configs/bench/local/stage-tool-resources.toml",
       "ok": true,
       "detail": "row_count=141, nonzero_resource_row_count=141"
     },

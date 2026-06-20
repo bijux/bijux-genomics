@@ -13,7 +13,7 @@ use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_TOOL_FAMILIES_PATH: &str = "benchmarks/configs/local/tool-families.toml";
+pub(crate) const DEFAULT_TOOL_FAMILIES_PATH: &str = "configs/bench/local/tool-families.toml";
 pub(crate) const LOCAL_TOOL_FAMILIES_SCHEMA_VERSION: &str = "bijux.bench.local_tool_families.v1";
 const TOOL_FAMILIES_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.tool_families_validation.v1";

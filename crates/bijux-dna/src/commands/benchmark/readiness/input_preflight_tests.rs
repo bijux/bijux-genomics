@@ -368,7 +368,7 @@ fn collect_manual_bam_probe_artifacts(
         "bam.bias_mitigation" => {
             let config = load_toml_config::<LocalCaseConfig>(
                 repo_root,
-                "benchmarks/configs/local/bam-bias-mitigation.toml",
+                "configs/bench/local/bam-bias-mitigation.toml",
             )?;
             let case = config.cases.first().ok_or_else(|| {
                 anyhow!("local bam.bias_mitigation config must keep at least one governed case")
@@ -392,7 +392,7 @@ fn collect_manual_bam_probe_artifacts(
         "bam.contamination" => {
             let config = load_toml_config::<LocalContaminationInputs>(
                 repo_root,
-                "benchmarks/configs/local/bam-contamination.toml",
+                "configs/bench/local/bam-contamination.toml",
             )?;
             Ok(vec![
                 ProbeArtifact {
@@ -412,7 +412,7 @@ fn collect_manual_bam_probe_artifacts(
         "bam.genotyping" => {
             let config = load_toml_config::<LocalGenotypingInputs>(
                 repo_root,
-                "benchmarks/configs/local/bam-genotyping.toml",
+                "configs/bench/local/bam-genotyping.toml",
             )?;
             Ok(vec![
                 ProbeArtifact {
@@ -432,7 +432,7 @@ fn collect_manual_bam_probe_artifacts(
         "bam.haplogroups" => {
             let config = load_toml_config::<LocalHaplogroupsInputs>(
                 repo_root,
-                "benchmarks/configs/local/bam-haplogroups.toml",
+                "configs/bench/local/bam-haplogroups.toml",
             )?;
             Ok(vec![
                 ProbeArtifact {
@@ -452,7 +452,7 @@ fn collect_manual_bam_probe_artifacts(
         "bam.kinship" => {
             let config = load_toml_config::<LocalCaseConfig>(
                 repo_root,
-                "benchmarks/configs/local/bam-kinship.toml",
+                "configs/bench/local/bam-kinship.toml",
             )?;
             let case = config.cases.first().ok_or_else(|| {
                 anyhow!("local bam.kinship config must keep at least one governed case")

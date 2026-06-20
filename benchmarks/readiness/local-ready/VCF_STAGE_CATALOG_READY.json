@@ -10,14 +10,14 @@
     {
       "goal_id": 201,
       "surface": "vcf stage catalog",
-      "output_path": "benchmarks/configs/local/vcf-stage-catalog.toml",
+      "output_path": "configs/bench/local/vcf-stage-catalog.toml",
       "ok": true,
       "detail": "wrote 20 rows with 18 supported and 2 planned stages"
     },
     {
       "goal_id": 202,
       "surface": "vcf stage matrix",
-      "output_path": "benchmarks/configs/local/vcf-stage-matrix.toml",
+      "output_path": "configs/bench/local/vcf-stage-matrix.toml",
       "ok": true,
       "detail": "validated 20 rows across 20 stages in strict mode using 16 required tools"
     },

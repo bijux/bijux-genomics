@@ -14,7 +14,7 @@
       "goal_id": 1,
       "category": "stage_matrices",
       "surface": "FASTQ stage matrix covers the governed local inventory",
-      "output_path": "benchmarks/configs/local/fastq-stage-matrix.toml",
+      "output_path": "configs/bench/local/fastq-stage-matrix.toml",
       "ok": true,
       "detail": "FASTQ inventory contains 27 stages"
     },
@@ -22,7 +22,7 @@
       "goal_id": 28,
       "category": "stage_matrices",
       "surface": "BAM stage matrix covers the governed local inventory",
-      "output_path": "benchmarks/configs/local/bam-stage-matrix.toml",
+      "output_path": "configs/bench/local/bam-stage-matrix.toml",
       "ok": true,
       "detail": "BAM inventory contains 24 stages"
     },
@@ -606,7 +606,7 @@
       "goal_id": 75,
       "category": "corpora",
       "surface": "corpus-stage compatibility matrix validates all 51 governed stages",
-      "output_path": "benchmarks/configs/local/corpus-stage-compatibility.toml",
+      "output_path": "configs/bench/local/corpus-stage-compatibility.toml",
       "ok": true,
       "detail": "compatibility matrix validates 51 stages across 8 fixtures"
     },

@@ -13,7 +13,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn write_local_bias_mitigation_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("benchmarks/configs/local");
+    let config_dir = root.join("configs/bench/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-bias-mitigation.toml"), body)?;
     Ok(())

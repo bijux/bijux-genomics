@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 pub(crate) const BENCHMARK_ROOT_ENV: &str = "BIJUX_BENCHMARK_ROOT";
 pub(crate) const DEFAULT_BENCHMARK_ROOT_RELATIVE: &str = "benchmarks";
 pub(crate) const DEFAULT_BENCHMARK_CONFIG_ROOT_SUFFIX: &str = "configs";
-pub(crate) const DEFAULT_BENCHMARK_LOCAL_CONFIG_ROOT_SUFFIX: &str = "configs/local";
+pub(crate) const DEFAULT_BENCHMARK_LOCAL_CONFIG_ROOT_RELATIVE: &str = "configs/bench/local";
 pub(crate) const DEFAULT_BENCHMARK_PIPELINE_CONFIG_ROOT_SUFFIX: &str = "configs/pipelines/local";
 pub(crate) const DEFAULT_BENCHMARK_HPC_CAMPAIGN_ROOT_SUFFIX: &str = "configs/hpc/campaign";
 pub(crate) const DEFAULT_BENCHMARK_SCHEMA_ROOT_SUFFIX: &str = "schemas";
@@ -53,7 +53,7 @@ impl BenchmarkPathResolver {
     }
 
     pub(crate) fn benchmark_local_config_root(&self) -> PathBuf {
-        self.benchmark_root.join(DEFAULT_BENCHMARK_LOCAL_CONFIG_ROOT_SUFFIX)
+        self.repo_root.join(DEFAULT_BENCHMARK_LOCAL_CONFIG_ROOT_RELATIVE)
     }
 
     pub(crate) fn benchmark_pipeline_config_root(&self) -> PathBuf {

@@ -44,7 +44,7 @@ fn bench_readiness_tool_families_report_governs_all_benchmark_tools() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/configs/local/tool-families.toml")
+        Some("configs/bench/local/tool-families.toml")
     );
     assert_eq!(
         payload.get("classification_scope").and_then(serde_json::Value::as_str),

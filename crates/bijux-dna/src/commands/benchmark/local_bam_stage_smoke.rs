@@ -82,7 +82,7 @@ pub(crate) fn governed_bam_local_smoke_tool_id(
         anyhow!("BAM stage smoke expected a `bam.*` stage id, found `{stage_id}`")
     })?;
     let config_path =
-        repo_root.join(format!("benchmarks/configs/local/bam-{}.toml", suffix.replace('_', "-")));
+        repo_root.join(format!("configs/bench/local/bam-{}.toml", suffix.replace('_', "-")));
     let raw = fs::read_to_string(&config_path)
         .with_context(|| format!("read {}", config_path.display()))?;
     let parsed: toml::Value =

@@ -29,9 +29,9 @@ pub(crate) const DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH: &str =
 const REAL_OUTPUT_PARSER_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.real_output_parser_smoke.v1";
 const DEFAULT_PROBE_ROOT: &str = "runs/bench/readiness-probes/tools/real-output-parser-smoke";
-const LOCAL_BAM_GENOTYPING_CONFIG_PATH: &str = "benchmarks/configs/local/bam-genotyping.toml";
-const LOCAL_BAM_KINSHIP_CONFIG_PATH: &str = "benchmarks/configs/local/bam-kinship.toml";
-const LOCAL_BAM_SEX_CONFIG_PATH: &str = "benchmarks/configs/local/bam-sex.toml";
+const LOCAL_BAM_GENOTYPING_CONFIG_PATH: &str = "configs/bench/local/bam-genotyping.toml";
+const LOCAL_BAM_KINSHIP_CONFIG_PATH: &str = "configs/bench/local/bam-kinship.toml";
+const LOCAL_BAM_SEX_CONFIG_PATH: &str = "configs/bench/local/bam-sex.toml";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct RealOutputParserSmokeRow {

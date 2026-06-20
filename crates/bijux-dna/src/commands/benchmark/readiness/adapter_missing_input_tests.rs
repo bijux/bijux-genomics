@@ -593,7 +593,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "input_r1",
             "fastq",
             "input FASTQ is missing",
-            "benchmarks/configs/local/fastq-deplete-host.toml",
+            "configs/bench/local/fastq-deplete-host.toml",
         ),
         fastq_probe(
             "fastq.deplete_host",
@@ -601,7 +601,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "reference_index",
             "reference",
             "reference index prefix is incomplete",
-            "benchmarks/configs/local/fastq-deplete-host.toml",
+            "configs/bench/local/fastq-deplete-host.toml",
         ),
         fastq_probe(
             "fastq.deplete_reference_contaminants",
@@ -609,7 +609,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "input_r1",
             "fastq",
             "input FASTQ is missing",
-            "benchmarks/configs/local/fastq-deplete-reference-contaminants.toml",
+            "configs/bench/local/fastq-deplete-reference-contaminants.toml",
         ),
         fastq_probe(
             "fastq.deplete_reference_contaminants",
@@ -617,7 +617,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "reference_index",
             "reference",
             "reference index prefix is incomplete",
-            "benchmarks/configs/local/fastq-deplete-reference-contaminants.toml",
+            "configs/bench/local/fastq-deplete-reference-contaminants.toml",
         ),
         fastq_probe(
             "fastq.deplete_rrna",
@@ -625,7 +625,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "input_r1",
             "fastq",
             "input FASTQ is missing",
-            "benchmarks/configs/local/fastq-deplete-rrna.toml",
+            "configs/bench/local/fastq-deplete-rrna.toml",
         ),
         fastq_probe(
             "fastq.deplete_rrna",
@@ -633,7 +633,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "rrna_db",
             "reference",
             "rRNA reference is missing",
-            "benchmarks/configs/local/fastq-deplete-rrna.toml",
+            "configs/bench/local/fastq-deplete-rrna.toml",
         ),
         fastq_probe(
             "fastq.screen_taxonomy",
@@ -641,7 +641,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "input_r1",
             "fastq",
             "input FASTQ is missing",
-            "benchmarks/configs/local/fastq-screen-taxonomy.toml",
+            "configs/bench/local/fastq-screen-taxonomy.toml",
         ),
         fastq_probe(
             "fastq.screen_taxonomy",
@@ -649,7 +649,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "database_root",
             "database",
             "taxonomy database root is missing",
-            "benchmarks/configs/local/fastq-screen-taxonomy.toml",
+            "configs/bench/local/fastq-screen-taxonomy.toml",
         ),
         fastq_probe(
             "fastq.screen_taxonomy",
@@ -657,7 +657,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "input_r1",
             "fastq",
             "input FASTQ is missing",
-            "benchmarks/configs/local/fastq-screen-taxonomy.toml",
+            "configs/bench/local/fastq-screen-taxonomy.toml",
         ),
         fastq_probe(
             "fastq.screen_taxonomy",
@@ -665,7 +665,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "database_root",
             "database",
             "taxonomy database root is missing",
-            "benchmarks/configs/local/fastq-screen-taxonomy.toml",
+            "configs/bench/local/fastq-screen-taxonomy.toml",
         ),
         fastq_probe(
             "fastq.screen_taxonomy",
@@ -673,7 +673,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "input_r1",
             "fastq",
             "input FASTQ is missing",
-            "benchmarks/configs/local/fastq-screen-taxonomy.toml",
+            "configs/bench/local/fastq-screen-taxonomy.toml",
         ),
         fastq_probe(
             "fastq.screen_taxonomy",
@@ -681,7 +681,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "database_root",
             "database",
             "taxonomy database root is missing",
-            "benchmarks/configs/local/fastq-screen-taxonomy.toml",
+            "configs/bench/local/fastq-screen-taxonomy.toml",
         ),
         fastq_probe(
             "fastq.screen_taxonomy",
@@ -689,7 +689,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "input_r1",
             "fastq",
             "input FASTQ is missing",
-            "benchmarks/configs/local/fastq-screen-taxonomy.toml",
+            "configs/bench/local/fastq-screen-taxonomy.toml",
         ),
         fastq_probe(
             "fastq.screen_taxonomy",
@@ -697,7 +697,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "database_root",
             "database",
             "taxonomy database root is missing",
-            "benchmarks/configs/local/fastq-screen-taxonomy.toml",
+            "configs/bench/local/fastq-screen-taxonomy.toml",
         ),
         bam_ready_probe(
             "bam.contamination",
@@ -705,7 +705,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "bam",
             "bam",
             "bam is missing",
-            "benchmarks/configs/local/bam-contamination.toml",
+            "configs/bench/local/bam-contamination.toml",
         ),
         bam_ready_probe(
             "bam.contamination",
@@ -713,7 +713,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "reference_fasta",
             "reference",
             "reference FASTA is missing",
-            "benchmarks/configs/local/bam-contamination.toml",
+            "configs/bench/local/bam-contamination.toml",
         ),
         bam_ready_probe(
             "bam.contamination",
@@ -721,7 +721,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "reference_panel",
             "reference",
             "reference panel is missing",
-            "benchmarks/configs/local/bam-contamination.toml",
+            "configs/bench/local/bam-contamination.toml",
         ),
         bam_ready_probe(
             "bam.contamination",
@@ -729,7 +729,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "bam",
             "bam",
             "bam is missing",
-            "benchmarks/configs/local/bam-contamination.toml",
+            "configs/bench/local/bam-contamination.toml",
         ),
         bam_ready_probe(
             "bam.contamination",
@@ -737,7 +737,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "reference_fasta",
             "reference",
             "reference FASTA is missing",
-            "benchmarks/configs/local/bam-contamination.toml",
+            "configs/bench/local/bam-contamination.toml",
         ),
         bam_ready_probe(
             "bam.contamination",
@@ -745,7 +745,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "reference_panel",
             "reference",
             "reference panel is missing",
-            "benchmarks/configs/local/bam-contamination.toml",
+            "configs/bench/local/bam-contamination.toml",
         ),
         bam_ready_probe(
             "bam.contamination",
@@ -753,7 +753,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "bam",
             "bam",
             "bam is missing",
-            "benchmarks/configs/local/bam-contamination.toml",
+            "configs/bench/local/bam-contamination.toml",
         ),
         bam_ready_probe(
             "bam.contamination",
@@ -761,7 +761,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "reference_fasta",
             "reference",
             "reference FASTA is missing",
-            "benchmarks/configs/local/bam-contamination.toml",
+            "configs/bench/local/bam-contamination.toml",
         ),
         bam_ready_probe(
             "bam.contamination",
@@ -769,7 +769,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "reference_panel",
             "reference",
             "reference panel is missing",
-            "benchmarks/configs/local/bam-contamination.toml",
+            "configs/bench/local/bam-contamination.toml",
         ),
         bam_smoke_probe(
             "bam.recalibration",
@@ -777,7 +777,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "bam",
             "bam",
             "BAM fixture is missing",
-            "benchmarks/configs/local/bam-recalibration.toml",
+            "configs/bench/local/bam-recalibration.toml",
         ),
         bam_smoke_probe(
             "bam.recalibration",
@@ -785,7 +785,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "reference",
             "reference",
             "reference fixture is missing",
-            "benchmarks/configs/local/bam-recalibration.toml",
+            "configs/bench/local/bam-recalibration.toml",
         ),
         bam_smoke_probe(
             "bam.recalibration",
@@ -793,7 +793,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             "known_sites",
             "reference",
             "known-sites fixture is missing",
-            "benchmarks/configs/local/bam-recalibration.toml",
+            "configs/bench/local/bam-recalibration.toml",
         ),
     ]);
 
@@ -806,7 +806,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
                 "bam",
                 "bam",
                 "bam is missing",
-                "benchmarks/configs/local/bam-genotyping.toml",
+                "configs/bench/local/bam-genotyping.toml",
             ),
             bam_ready_probe(
                 "bam.genotyping",
@@ -814,7 +814,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
                 "reference_fasta",
                 "reference",
                 "reference FASTA is missing",
-                "benchmarks/configs/local/bam-genotyping.toml",
+                "configs/bench/local/bam-genotyping.toml",
             ),
             bam_ready_probe(
                 "bam.genotyping",
@@ -822,7 +822,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
                 "sites_vcf",
                 "reference",
                 "sites VCF is missing",
-                "benchmarks/configs/local/bam-genotyping.toml",
+                "configs/bench/local/bam-genotyping.toml",
             ),
             bam_ready_probe(
                 "bam.genotyping",
@@ -830,7 +830,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
                 "regions",
                 "reference",
                 "regions list is missing",
-                "benchmarks/configs/local/bam-genotyping.toml",
+                "configs/bench/local/bam-genotyping.toml",
             ),
             bam_ready_probe(
                 "bam.haplogroups",
@@ -838,7 +838,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
                 "bam",
                 "bam",
                 "bam is missing",
-                "benchmarks/configs/local/bam-haplogroups.toml",
+                "configs/bench/local/bam-haplogroups.toml",
             ),
             bam_ready_probe(
                 "bam.haplogroups",
@@ -846,7 +846,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
                 "reference_fasta",
                 "reference",
                 "reference FASTA is missing",
-                "benchmarks/configs/local/bam-haplogroups.toml",
+                "configs/bench/local/bam-haplogroups.toml",
             ),
             bam_ready_probe(
                 "bam.haplogroups",
@@ -854,7 +854,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
                 "reference_panel",
                 "reference",
                 "reference panel is missing",
-                "benchmarks/configs/local/bam-haplogroups.toml",
+                "configs/bench/local/bam-haplogroups.toml",
             ),
         ]);
     }

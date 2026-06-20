@@ -11,7 +11,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn write_local_sex_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("benchmarks/configs/local");
+    let config_dir = root.join("configs/bench/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-sex.toml"), body)?;
     Ok(())

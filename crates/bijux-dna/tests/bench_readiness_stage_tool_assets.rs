@@ -45,7 +45,7 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/configs/local/stage-tool-assets.toml")
+        Some("configs/bench/local/stage-tool-assets.toml")
     );
     assert_eq!(
         payload.get("classification_scope").and_then(serde_json::Value::as_str),

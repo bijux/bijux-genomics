@@ -44,7 +44,7 @@ fn bench_local_corpus_stage_compatibility_reports_governed_51_stage_slice() {
     );
     assert_eq!(
         payload.get("matrix_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/configs/local/corpus-stage-compatibility.toml")
+        Some("configs/bench/local/corpus-stage-compatibility.toml")
     );
     assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));

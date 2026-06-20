@@ -1,6 +1,6 @@
 {
   "schema_version": "bijux.bench.local_corpus_skip_report.v1",
-  "matrix_path": "benchmarks/configs/local/corpus-stage-compatibility.toml",
+  "matrix_path": "configs/bench/local/corpus-stage-compatibility.toml",
   "output_path": "benchmarks/readiness/local-ready/corpus-skip-report.json",
   "fixture_count": 8,
   "stage_count": 51,
