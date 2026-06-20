@@ -65,6 +65,7 @@ pub(crate) mod local_hpc_pipeline_node_array;
 pub(crate) mod local_hpc_resume_simulation;
 pub(crate) mod local_hpc_scratch_layout;
 pub(crate) mod local_hpc_selected_jobs;
+pub(crate) mod local_hpc_simulation_tree;
 pub(crate) mod local_hpc_stage_benchmark_array;
 pub(crate) mod local_hpc_submission_ready;
 pub(crate) mod local_micro_benchmark_report;
