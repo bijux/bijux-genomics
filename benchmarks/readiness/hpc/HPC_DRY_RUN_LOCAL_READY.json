@@ -1,0 +1,102 @@
+{
+  "schema_version": "bijux.bench.local_hpc_dry_run_ready.v1",
+  "output_path": "benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json",
+  "checked_goal_count": 9,
+  "passed_goal_count": 9,
+  "failed_goal_count": 0,
+  "failing_goal_ids": [],
+  "ready_for_first_hpc_run": true,
+  "summary": {
+    "benchmark_job_count": 141,
+    "essential_pipeline_job_count": 93,
+    "staged_input_count": 218,
+    "execution_resolver_row_count": 74,
+    "execution_unclassified_tool_count": 8,
+    "stage_benchmark_row_count": 141,
+    "pipeline_node_row_count": 93,
+    "dependency_case_count": 2,
+    "resume_rerun_job_count": 4,
+    "result_collection_row_count": 5,
+    "candidate_job_count": 6,
+    "candidate_representative_group_count": 6,
+    "candidate_selected_input_bytes": 1408
+  },
+  "behavior": {
+    "goals_481_to_489_validated": true,
+    "benchmark_jobs_keep_known_assets": true,
+    "benchmark_jobs_keep_scratch_layout": true,
+    "benchmark_jobs_keep_explicit_execution_resolution": true,
+    "pipeline_nodes_keep_dependency_manifests": true,
+    "dependency_failures_block_descendants_only": true,
+    "resume_rules_are_explicit": true,
+    "result_collection_statuses_are_distinct": true,
+    "first_run_candidate_is_small_and_governed": true,
+    "no_manual_steps_or_ambiguity": true,
+    "proven": true
+  },
+  "checks": [
+    {
+      "goal_id": 481,
+      "surface": "HPC asset staging dry-run",
+      "output_path": "runs/bench/hpc-dry-run/asset-staging-manifest.json",
+      "ok": true,
+      "detail": "validated 141 benchmark jobs with 218 staged inputs and candidate coverage for all 6 first-run rows"
+    },
+    {
+      "goal_id": 482,
+      "surface": "HPC scratch layout dry-run",
+      "output_path": "runs/bench/hpc-dry-run/scratch-layout.json",
+      "ok": true,
+      "detail": "validated 234 total jobs with 141 benchmark roots, 93 pipeline roots, and 363 staged input links"
+    },
+    {
+      "goal_id": 483,
+      "surface": "HPC execution resolver",
+      "output_path": "runs/bench/hpc-dry-run/execution-resolver.tsv",
+      "ok": true,
+      "detail": "validated 74 selected-tool rows; first-run candidate resolves 6 tools without ambiguity"
+    },
+    {
+      "goal_id": 484,
+      "surface": "SLURM array script for stage benchmarks",
+      "output_path": "runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch",
+      "ok": true,
+      "detail": "validated contiguous array mapping for 141 benchmark rows with governed manifest runs/bench/hpc-dry-run/slurm/stage-benchmark-array-manifest.json"
+    },
+    {
+      "goal_id": 485,
+      "surface": "SLURM array script for pipeline nodes",
+      "output_path": "runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch",
+      "ok": true,
+      "detail": "validated 93 pipeline-node rows with 135 explicit dependency edges"
+    },
+    {
+      "goal_id": 486,
+      "surface": "SLURM dependency simulator",
+      "output_path": "runs/bench/hpc-dry-run/slurm-dependency-simulation.json",
+      "ok": true,
+      "detail": "validated 2 failure cases across 234 governed HPC jobs"
+    },
+    {
+      "goal_id": 487,
+      "surface": "HPC resume simulator",
+      "output_path": "runs/bench/hpc-dry-run/resume-simulation.json",
+      "ok": true,
+      "detail": "validated explicit resume behavior across 234 jobs with 4 reruns and 230 skips"
+    },
+    {
+      "goal_id": 488,
+      "surface": "HPC result collection simulator",
+      "output_path": "runs/bench/hpc-dry-run/result-collection-simulation.json",
+      "ok": true,
+      "detail": "validated 5 collection rows spanning complete/failed/missing/insufficient/unavailable cases"
+    },
+    {
+      "goal_id": 489,
+      "surface": "First small HPC candidate manifest",
+      "output_path": "benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json",
+      "ok": true,
+      "detail": "validated 6 first-run rows across 6 representative groups with 1408 staged input bytes"
+    }
+  ]
+}
