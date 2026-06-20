@@ -105,6 +105,20 @@ Validate an existing resume simulation report against the current governed HPC r
 make bench-hpc-resume-simulation-validate
 ```
 
+Render the governed result-collection simulation report that proves complete, failed, missing,
+insufficient, and unavailable rows stay distinct in report input:
+
+```bash
+make bench-hpc-result-collection-simulation-render
+```
+
+Validate an existing result-collection simulation report against the current governed HPC
+collection contract:
+
+```bash
+make bench-hpc-result-collection-simulation-validate
+```
+
 Render the governed benchmark-result SLURM array and its per-index manifest:
 
 ```bash
@@ -163,6 +177,12 @@ bijux-dna bench local render-hpc-resume-simulation \
 
 bijux-dna bench local validate-hpc-resume-simulation \
   --manifest runs/bench/hpc-dry-run/resume-simulation.json
+
+bijux-dna bench local render-hpc-result-collection-simulation \
+  --output runs/bench/hpc-dry-run/result-collection-simulation.json
+
+bijux-dna bench local validate-hpc-result-collection-simulation \
+  --manifest runs/bench/hpc-dry-run/result-collection-simulation.json
 
 bijux-dna bench local render-hpc-stage-benchmark-array \
   --output runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch

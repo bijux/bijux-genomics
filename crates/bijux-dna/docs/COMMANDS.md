@@ -2047,6 +2047,20 @@ Visible aliases are part of the operator surface:
   contract. The command fails closed if valid-completed skips, failed-manifest reruns,
   missing-manifest reruns, stale partial-output reruns, or dependency-propagated reruns drift from
   the governed dry-run resume contract.
+- `bijux-dna bench local render-hpc-result-collection-simulation`
+  `render-hpc-result-collection-simulation` writes
+  `runs/bench/hpc-dry-run/result-collection-simulation.json` together with a sibling
+  `result-collection-simulation-tree/` that mirrors the governed selected-job result layout. The
+  render seeds valid stage-result manifests for the governed jobs, then injects one failed
+  manifest, one missing manifest, one insufficient-data output, and one unavailable execution case
+  so report-input collection proves complete, failed, missing, insufficient, and unavailable rows
+  stay distinct before any real cluster result import occurs.
+- `bijux-dna bench local validate-hpc-result-collection-simulation`
+  `validate-hpc-result-collection-simulation` reloads
+  `runs/bench/hpc-dry-run/result-collection-simulation.json` and rebuilds the expected collection
+  report from the current governed HPC job graph, stage-result contract, and execution resolver.
+  The command fails closed if complete, failed, missing, insufficient, or unavailable row
+  classification drifts from the governed dry-run result-collection contract.
 - `bijux-dna bench local render-hpc-stage-benchmark-array`
   `render-hpc-stage-benchmark-array` writes
   `runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch` together with
