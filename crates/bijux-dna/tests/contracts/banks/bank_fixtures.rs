@@ -1,7 +1,10 @@
 use std::collections::BTreeMap;
 use std::ffi::OsString;
+use std::fs;
+use std::io::ErrorKind;
 use std::path::PathBuf;
 use std::sync::Mutex;
+use std::time::{Duration, Instant};
 
 use anyhow::{anyhow, Result};
 use serde_json::{Map, Value};
@@ -10,6 +13,9 @@ use serde_json::{Map, Value};
 mod test_support;
 
 pub static CWD_LOCK: Mutex<()> = Mutex::new(());
+const TEST_LOCK_ROOT: &str = "artifacts/test-locks";
+const TEST_LOCK_WAIT_TIMEOUT: Duration = Duration::from_secs(300);
+const TEST_LOCK_POLL_INTERVAL: Duration = Duration::from_millis(50);
 
 pub struct EnvGuard {
     cwd: PathBuf,
@@ -44,6 +50,41 @@ pub fn crate_root(name: &str) -> Result<PathBuf> {
 
 pub fn repo_root() -> Result<PathBuf> {
     test_support::repo_root()
+}
+
+pub struct RepoProcessLock {
+    path: PathBuf,
+}
+
+impl RepoProcessLock {
+    pub fn acquire(name: &str) -> Result<Self> {
+        let repo_root = test_support::repo_root()?;
+        let lock_root = repo_root.join(TEST_LOCK_ROOT);
+        fs::create_dir_all(&lock_root)?;
+        let path = lock_root.join(name);
+        let deadline = Instant::now() + TEST_LOCK_WAIT_TIMEOUT;
+
+        loop {
+            match fs::create_dir(&path) {
+                Ok(()) => return Ok(Self { path }),
+                Err(error) if error.kind() == ErrorKind::AlreadyExists => {
+                    if Instant::now() >= deadline {
+                        return Err(anyhow!("timed out waiting for repo test lock `{}`", path.display()));
+                    }
+                    std::thread::sleep(TEST_LOCK_POLL_INTERVAL);
+                }
+                Err(error) => {
+                    return Err(anyhow!("create repo test lock `{}`: {error}", path.display()));
+                }
+            }
+        }
+    }
+}
+
+impl Drop for RepoProcessLock {
+    fn drop(&mut self) {
+        let _ = fs::remove_dir(&self.path);
+    }
 }
 
 #[allow(dead_code)]

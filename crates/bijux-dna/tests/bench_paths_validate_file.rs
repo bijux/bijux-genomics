@@ -8,6 +8,8 @@ mod support;
 #[test]
 fn bench_paths_validate_writes_governed_validation_report() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _repo_lock =
+        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
