@@ -357,8 +357,8 @@ mod tests {
         assert_eq!(report.output_path, DEFAULT_VCF_COMPARABLE_METRICS_PATH);
         assert_eq!(report.stage_count, 12);
         assert_eq!(report.multi_tool_stage_count, 12);
-        assert_eq!(report.retained_tool_row_count, 30);
-        assert_eq!(report.row_count, 33);
+        assert_eq!(report.retained_tool_row_count, 31);
+        assert_eq!(report.row_count, 35);
 
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.call_gl"
@@ -374,7 +374,12 @@ mod tests {
                 && row.metric_id == "concordance"
                 && row.unit == "fraction"
                 && row.direction == "higher_is_better"
-                && row.tools_covered == vec!["plink".to_string(), "plink2".to_string()]
+                && row.tools_covered
+                    == vec![
+                        "bcftools".to_string(),
+                        "plink".to_string(),
+                        "plink2".to_string(),
+                    ]
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.phasing"

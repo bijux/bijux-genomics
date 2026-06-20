@@ -656,9 +656,9 @@ mod tests {
             &root.join(DEFAULT_VCF_PARSERS_REPORT_READY_PATH),
             checks,
             39,
-            19,
-            20,
-            20,
+            21,
+            21,
+            21,
             35,
         );
 

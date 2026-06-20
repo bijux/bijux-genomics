@@ -970,7 +970,7 @@ mod tests {
         assert_eq!(report.tool_id, "plink");
         assert_eq!(report.tool_status, "experimental");
         assert_eq!(report.row_count, 2);
-        assert_eq!(report.benchmark_ready_row_count, 0);
+        assert_eq!(report.benchmark_ready_row_count, 1);
         assert_eq!(report.parser_output_row_count, 2);
         assert_eq!(report.normalized_metrics_row_count, 2);
         assert_eq!(report.raw_output_declared_row_count, 2);

@@ -432,7 +432,7 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.admixture"
                 && row.tool_id == "plink2"
-                && row.parser_fixture_parser_id == "parse_plink2_admixture_report"
+                && row.parser_fixture_parser_id == "parse_plink2_admixture_metrics"
                 && row.parser_fixture_schema_id == "bijux.vcf.admixture.v1"
         }));
         assert!(report.rows.iter().any(|row| {
@@ -462,7 +462,7 @@ mod tests {
                 && row
                     .raw_fixture_paths
                     .iter()
-                    .any(|path| path.ends_with("raw.postprocess_summary.json"))
+                    .any(|path| path.ends_with("raw.postprocess.vcf"))
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.pca"
