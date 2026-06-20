@@ -49,29 +49,52 @@ fn write_local_deplete_reference_contaminants_plan_materializes_governed_target_
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
+    let inputs = payload["io"]["inputs"]
+        .as_array()
+        .unwrap_or_else(|| panic!("plan inputs missing"));
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.deplete_reference_contaminants"));
     assert_eq!(payload["tool_id"], serde_json::json!("bowtie2"));
     assert_eq!(payload["resources"]["threads"], serde_json::json!(4));
     assert_eq!(payload["resources"]["mem_gb"], serde_json::json!(8));
     assert_eq!(
-        payload["io"]["inputs"][0]["path"],
+        inputs
+            .iter()
+            .find(|artifact| artifact["name"] == "reads_r1")
+            .unwrap_or_else(|| panic!("reads_r1 input missing"))["path"],
         serde_json::json!("assets/toy/core-v1/fastq/reads_1.fastq")
     );
     assert_eq!(
-        payload["io"]["inputs"][1]["path"],
+        inputs
+            .iter()
+            .find(|artifact| artifact["name"] == "reads_r2")
+            .unwrap_or_else(|| panic!("reads_r2 input missing"))["path"],
+        serde_json::json!("assets/toy/core-v1/fastq/reads_2.fastq")
+    );
+    assert_eq!(
+        inputs
+            .iter()
+            .find(|artifact| artifact["name"] == "reference_index")
+            .unwrap_or_else(|| panic!("reference_index input missing"))["path"],
         serde_json::json!("assets/reference/contaminants/references/toy_contaminant_reference")
     );
     assert_eq!(payload["params"]["decoy_mode"], serde_json::json!("phix_and_spikeins"));
     assert_eq!(
         payload["params"]["removed_reads_r1"],
         serde_json::json!(
-            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant.fastq.gz"
+            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R1.fastq.gz"
+        )
+    );
+    assert_eq!(
+        payload["params"]["removed_reads_r2"],
+        serde_json::json!(
+            "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R2.fastq.gz"
         )
     );
     assert_eq!(
         payload["effective_params"]["reference_catalog_id"],
         serde_json::json!("contaminant_reference")
     );
+    assert_eq!(payload["effective_params"]["paired_mode"], serde_json::json!("paired_end"));
     assert!(
         payload["command"]["template"]
             .as_array()
@@ -82,7 +105,7 @@ fn write_local_deplete_reference_contaminants_plan_materializes_governed_target_
                     == "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/bowtie2.contaminant.metrics.txt"
             }) && command.iter().any(|part| {
                 part
-                    == "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant.fastq.gz"
+                    == "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R%.fastq.gz"
             })),
         "local-ready plan command must carry the governed Bowtie2 contaminant-depletion command"
     );
