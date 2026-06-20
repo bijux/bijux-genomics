@@ -175,11 +175,11 @@ pub use self::readiness::{
     BenchReadinessRenderScienceTruthSetsCompleteArgs,
     BenchReadinessRenderScientificAcceptanceThresholdsArgs,
     BenchReadinessRenderStageCentricReportArgs, BenchReadinessRenderStageRegistryExtraPairsArgs,
-    BenchReadinessRenderStageToolAliasCheckArgs, BenchReadinessRenderStageToolAssetsArgs,
-    BenchReadinessRenderStageToolBenchmarkReadyArgs, BenchReadinessRenderStageToolContainersArgs,
-    BenchReadinessRenderStageToolResourcesArgs, BenchReadinessRenderToolCentricReportArgs,
-    BenchReadinessRenderToolIdNormalizationArgs, BenchReadinessRenderUndercoveredStagesArgs,
-    BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
+    BenchReadinessRenderStageScoringArgs, BenchReadinessRenderStageToolAliasCheckArgs,
+    BenchReadinessRenderStageToolAssetsArgs, BenchReadinessRenderStageToolBenchmarkReadyArgs,
+    BenchReadinessRenderStageToolContainersArgs, BenchReadinessRenderStageToolResourcesArgs,
+    BenchReadinessRenderToolCentricReportArgs, BenchReadinessRenderToolIdNormalizationArgs,
+    BenchReadinessRenderUndercoveredStagesArgs, BenchReadinessRenderUnregisteredBenchmarkPairsArgs,
     BenchReadinessRenderVcfActiveStageToolMatrixArgs,
     BenchReadinessRenderVcfAdapterMissingInputTestsArgs,
     BenchReadinessRenderVcfAdapterOutputCoverageArgs, BenchReadinessRenderVcfAdaptersReadyArgs,
@@ -209,7 +209,8 @@ pub use self::readiness::{
     BenchReadinessRenderVcfStatsReadyArgs, BenchReadinessRenderVcfToolServingMapArgs,
     BenchReadinessRenderVcfUndercoveredStagesArgs, BenchReadinessRenderVersionProbesArgs,
     BenchReadinessRunContainerToolSmokeArgs, BenchReadinessRunHostToolSmokeArgs,
-    BenchReadinessValidateToolExecutionModesArgs, BenchReadinessValidateToolFamiliesArgs,
+    BenchReadinessValidateStageScoringArgs, BenchReadinessValidateToolExecutionModesArgs,
+    BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::schema_validation::{BenchSchemaDomainArg, BenchValidateSchemasArgs};
 pub use self::suite::BenchRunArgs;

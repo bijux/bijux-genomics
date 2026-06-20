@@ -350,6 +350,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderStageScoring(args) => {
+                        crate::commands::benchmark::readiness::stage_scoring::run_render_stage_scoring(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderScientificAcceptanceThresholds(args) => {
                         crate::commands::benchmark::readiness::scientific_acceptance_thresholds::run_render_scientific_acceptance_thresholds(
                             args,
@@ -962,6 +967,11 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchReadinessCommand::ValidateToolExecutionModes(args) => {
                         crate::commands::benchmark::readiness::tool_execution_modes::run_validate_tool_execution_modes(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::ValidateStageScoring(args) => {
+                        crate::commands::benchmark::readiness::stage_scoring::run_validate_stage_scoring(
                             args,
                         )?;
                     }

@@ -72,6 +72,8 @@ pub enum BenchReadinessCommand {
     RenderStageToolBenchmarkReady(BenchReadinessRenderStageToolBenchmarkReadyArgs),
     #[command(name = "render-bam-comparable-metrics")]
     RenderBamComparableMetrics(BenchReadinessRenderBamComparableMetricsArgs),
+    #[command(name = "render-stage-scoring")]
+    RenderStageScoring(BenchReadinessRenderStageScoringArgs),
     #[command(name = "render-scientific-acceptance-thresholds")]
     RenderScientificAcceptanceThresholds(BenchReadinessRenderScientificAcceptanceThresholdsArgs),
     #[command(name = "render-science-truth-sets-complete")]
@@ -330,6 +332,8 @@ pub enum BenchReadinessCommand {
     RenderStageRegistryExtraPairs(BenchReadinessRenderStageRegistryExtraPairsArgs),
     #[command(name = "validate-tool-execution-modes")]
     ValidateToolExecutionModes(BenchReadinessValidateToolExecutionModesArgs),
+    #[command(name = "validate-stage-scoring")]
+    ValidateStageScoring(BenchReadinessValidateStageScoringArgs),
     #[command(name = "render-tool-id-normalization")]
     RenderToolIdNormalization(BenchReadinessRenderToolIdNormalizationArgs),
     #[command(name = "validate-tool-families")]
@@ -580,6 +584,14 @@ pub struct BenchReadinessRenderStageToolBenchmarkReadyArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamComparableMetricsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderStageScoringArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
@@ -1602,6 +1614,14 @@ pub struct BenchReadinessRenderStageRegistryExtraPairsArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessValidateToolExecutionModesArgs {
+    #[arg(long)]
+    pub config: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessValidateStageScoringArgs {
     #[arg(long)]
     pub config: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

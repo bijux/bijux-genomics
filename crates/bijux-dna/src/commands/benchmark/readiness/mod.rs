@@ -111,6 +111,7 @@ pub(crate) mod science_truth_sets_complete;
 pub(crate) mod scientific_acceptance_thresholds;
 pub(crate) mod stage_centric_report;
 pub(crate) mod stage_registry_extra_pairs;
+pub(crate) mod stage_scoring;
 pub(crate) mod stage_tool_alias_check;
 pub(crate) mod stage_tool_assets;
 pub(crate) mod stage_tool_benchmark_ready;
