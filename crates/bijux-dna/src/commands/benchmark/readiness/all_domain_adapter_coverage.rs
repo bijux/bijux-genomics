@@ -480,7 +480,8 @@ mod tests {
         assert_eq!(report.command_source_counts.get("vcf_eigensoft_adapter"), Some(&1));
         assert_eq!(report.command_source_counts.get("vcf_imputation_family_adapter"), Some(&2));
         assert_eq!(report.command_source_counts.get("vcf_phasing_family_adapter"), Some(&1));
-        assert_eq!(report.command_source_counts.get("vcf_plink_family_adapter"), Some(&6));
+        assert_eq!(report.command_source_counts.get("vcf_plink_family_adapter"), Some(&5));
+        assert_eq!(report.command_source_counts.get("vcf_descent_family_adapter"), Some(&1));
         assert_eq!(report.coverage_status_counts.get("covered"), Some(&report.row_count));
         assert_eq!(report.violation_count, 0);
         assert!(report.ok);
