@@ -336,7 +336,7 @@ mod tests {
     use crate::contract::execution::io::StageIO;
     use crate::contract::tooling::ToolConstraints;
     use crate::foundation::{CommandSpecV1, ContainerImageRefV1};
-    use crate::ids::{ArtifactId, StageId, StepId};
+    use crate::ids::{ArtifactId, DomainKind, StageId, StepId};
 
     use super::*;
 
@@ -353,6 +353,10 @@ mod tests {
             expected_artifact_ids: Vec::new(),
             metrics_schema_ids: Vec::new(),
         }
+    }
+
+    fn domain_stage_id(domain: DomainKind, stage_name: &str) -> String {
+        format!("{}.{}", domain.as_str(), stage_name)
     }
 
     #[test]
@@ -469,7 +473,7 @@ mod tests {
     #[test]
     fn typed_artifact_handoffs_reject_reads_declared_with_bam_paths() {
         let step = step(
-            "fastq.validate_reads",
+            &domain_stage_id(DomainKind::Fastq, "validate_reads"),
             vec![ArtifactSpec::required(
                 ArtifactId::new("reads"),
                 PathBuf::from("aligned.bam"),

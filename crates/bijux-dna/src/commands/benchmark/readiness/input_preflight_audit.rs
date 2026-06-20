@@ -6,11 +6,12 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::validate_typed_input_handoffs;
 use bijux_dna_core::contract::ExecutionStep;
-use bijux_dna_core::ids::{ArtifactId, StageId, StepId};
+use bijux_dna_core::ids::{ArtifactId, StageId, StepId, ToolId};
 use bijux_dna_core::prelude::{
     ArtifactRole, ArtifactSpec, CommandSpecV1, ContainerImageRefV1, StageIO, ToolConstraints,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 use super::all_domain_active_stage_tool_matrix::{
     collect_all_domain_active_stage_tool_matrix_rows, AllDomainActiveStageToolMatrixRow,
@@ -28,7 +29,7 @@ use super::vcf_plink_family_adapter::render_vcf_plink_family_adapter;
 use crate::commands::benchmark::local_stage_commands::local_stage_plans;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
-use bijux_dna_stage_contract::StagePlanV1;
+use bijux_dna_stage_contract::{execution_step_from_stage_plan, StagePlanV1};
 
 pub(crate) const DEFAULT_INPUT_PREFLIGHT_TESTS_PATH: &str =
     "benchmarks/readiness/tools/input-preflight-tests.json";
@@ -501,22 +502,30 @@ fn build_probe_step(
             Ok(ArtifactSpec::required(artifact.name.clone(), validation_path, validation_role))
         })
         .collect::<Result<Vec<_>>>()?;
-    Ok(ExecutionStep {
-        step_id: StepId::new(format!(
+    let plan = StagePlanV1 {
+        stage_id: StageId::new(row.stage_id.clone()),
+        stage_instance_id: Some(StepId::new(format!(
             "bench.readiness.{}.{}",
             row.stage_id.replace('.', "_"),
             row.tool_id
-        )),
-        stage_id: StageId::new(row.stage_id.clone()),
-        command: CommandSpecV1 { template: vec!["true".to_string()] },
+        ))),
+        stage_version: bijux_dna_core::ids::StageVersion(1),
+        tool_id: ToolId::new(row.tool_id.clone()),
+        tool_version: "preflight".to_string(),
         image: ContainerImageRefV1 { image: "bijuxdna/preflight:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["true".to_string()] },
         resources: ToolConstraints::default(),
         io: StageIO { inputs, outputs: Vec::new() },
         out_dir: repo_root.join("artifacts/bench-readiness/input-preflight-tests"),
+        params: json!({}),
+        effective_params: json!({}),
+        operating_mode: Default::default(),
         aux_images: BTreeMap::new(),
-        expected_artifact_ids: Vec::new(),
-        metrics_schema_ids: Vec::new(),
-    })
+        canonical_contract: None,
+        provenance: None,
+        reason: Default::default(),
+    };
+    Ok(execution_step_from_stage_plan(&plan))
 }
 
 fn run_runtime_probe(
