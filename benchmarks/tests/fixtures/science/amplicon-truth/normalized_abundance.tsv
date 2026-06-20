@@ -1,0 +1,5 @@
+sample_id	feature_id	normalized_abundance
+corpus-03-amplicon-se	otu_001	0.25000000
+corpus-03-amplicon-se	otu_002	0.75000000
+corpus-03-otu-cluster-se	otu_001	0.50000000
+corpus-03-otu-cluster-se	otu_003	0.50000000

@@ -3,17 +3,17 @@ fixture_id = "amplicon-truth"
 description = "Governed amplicon truth bundle for primer rows, chimera expectations, ASV rows, representative sequences, OTU abundance rows, and normalized abundance values."
 expected_path = "expected.json"
 corpus_manifest_path = "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml"
-asv_representatives_path = "runs/bench/local-smoke/fastq.infer_asvs/representatives.fasta"
-non_chimeric_representatives_path = "runs/bench/local-smoke/fastq.remove_chimeras/non_chimeric.fasta"
-otu_representatives_path = "runs/bench/local-smoke/fastq.cluster_otus/otu_representatives.fasta"
-normalized_abundance_path = "runs/bench/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit/abundance_normalized.tsv"
+asv_representatives_path = "benchmarks/tests/fixtures/science/amplicon-truth/asv_representatives.fasta"
+non_chimeric_representatives_path = "benchmarks/tests/fixtures/science/amplicon-truth/non_chimeric_representatives.fasta"
+otu_representatives_path = "benchmarks/tests/fixtures/science/amplicon-truth/otu_representatives.fasta"
+normalized_abundance_path = "benchmarks/tests/fixtures/science/amplicon-truth/normalized_abundance.tsv"
 source_paths = [
   "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv",
   "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv",
   "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv",
   "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv",
-  "runs/bench/local-smoke/fastq.infer_asvs/representatives.fasta",
-  "runs/bench/local-smoke/fastq.remove_chimeras/non_chimeric.fasta",
-  "runs/bench/local-smoke/fastq.cluster_otus/otu_representatives.fasta",
-  "runs/bench/local-smoke/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit/abundance_normalized.tsv",
+  "benchmarks/tests/fixtures/science/amplicon-truth/asv_representatives.fasta",
+  "benchmarks/tests/fixtures/science/amplicon-truth/non_chimeric_representatives.fasta",
+  "benchmarks/tests/fixtures/science/amplicon-truth/otu_representatives.fasta",
+  "benchmarks/tests/fixtures/science/amplicon-truth/normalized_abundance.tsv",
 ]
