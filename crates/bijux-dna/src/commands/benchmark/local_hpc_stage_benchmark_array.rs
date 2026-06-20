@@ -8,6 +8,9 @@ use serde::Serialize;
 use super::local_all_domain_job_execution::{
     render_shell_command, rendered_benchmark_result_execution_argv,
 };
+use super::local_hpc_array_support::{
+    manifest_path_for_script, shell_quote, time_limit_to_seconds, LocalHpcArrayResources,
+};
 use super::local_hpc_execution_resolver::{
     collect_hpc_execution_resolver_report, LocalHpcExecutionResolverRow,
 };
@@ -23,14 +26,6 @@ const LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_VERSION: &str =
 pub(crate) const DEFAULT_HPC_STAGE_BENCHMARK_ARRAY_SCRIPT_PATH: &str =
     "runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch";
 const STAGE_BENCHMARK_ARRAY_JOB_NAME: &str = "bijux-stage-benchmark-array";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcStageBenchmarkArrayResources {
-    pub(crate) cpus_per_task: u32,
-    pub(crate) memory_mb: u32,
-    pub(crate) time_limit: String,
-    pub(crate) scratch_gb: u32,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct LocalHpcStageBenchmarkArrayRow {
@@ -57,7 +52,7 @@ pub(crate) struct LocalHpcStageBenchmarkArrayRow {
     pub(crate) stdout_path: String,
     pub(crate) stderr_path: String,
     pub(crate) output_paths: Vec<String>,
-    pub(crate) resources: LocalHpcStageBenchmarkArrayResources,
+    pub(crate) resources: LocalHpcArrayResources,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -68,7 +63,7 @@ pub(crate) struct LocalHpcStageBenchmarkArrayReport {
     pub(crate) wrapper_log_root: String,
     pub(crate) array_spec: String,
     pub(crate) benchmark_job_count: usize,
-    pub(crate) resource_envelope: LocalHpcStageBenchmarkArrayResources,
+    pub(crate) resource_envelope: LocalHpcArrayResources,
     pub(crate) rows: Vec<LocalHpcStageBenchmarkArrayRow>,
 }
 
@@ -177,7 +172,8 @@ fn build_hpc_stage_benchmark_array(
         absolute_script_path,
         "HPC stage benchmark array output",
     )?;
-    let manifest_path = manifest_path_for_script(absolute_script_path)?;
+    let manifest_path =
+        manifest_path_for_script("HPC stage benchmark array", absolute_script_path)?;
     ensure_path_stays_within_benchmark_runs_root(
         repo_root,
         &manifest_path,
@@ -307,7 +303,7 @@ fn build_stage_benchmark_array_row(
         stdout_path: scratch.stdout_path.clone(),
         stderr_path: scratch.stderr_path.clone(),
         output_paths: job.outputs.clone(),
-        resources: LocalHpcStageBenchmarkArrayResources {
+        resources: LocalHpcArrayResources {
             cpus_per_task: scratch.resources.cpus_per_task,
             memory_mb: scratch.resources.memory_mb,
             time_limit: scratch.resources.time_limit.clone(),
@@ -373,45 +369,23 @@ fn ensure_stage_benchmark_array_contract(rows: &[LocalHpcStageBenchmarkArrayRow]
 
 fn compute_resource_envelope(
     rows: &[LocalHpcStageBenchmarkArrayRow],
-) -> Result<LocalHpcStageBenchmarkArrayResources> {
+) -> Result<LocalHpcArrayResources> {
     let max_time_limit = rows
         .iter()
-        .max_by_key(|row| time_limit_to_seconds(&row.resources.time_limit).unwrap_or(0))
+        .max_by_key(|row| {
+            time_limit_to_seconds("HPC stage benchmark array", &row.resources.time_limit)
+                .unwrap_or(0)
+        })
         .map(|row| row.resources.time_limit.clone())
         .ok_or_else(|| {
             anyhow!("HPC stage benchmark array cannot compute an empty resource envelope")
         })?;
-    Ok(LocalHpcStageBenchmarkArrayResources {
+    Ok(LocalHpcArrayResources {
         cpus_per_task: rows.iter().map(|row| row.resources.cpus_per_task).max().unwrap_or(1),
         memory_mb: rows.iter().map(|row| row.resources.memory_mb).max().unwrap_or(1024),
         time_limit: max_time_limit,
         scratch_gb: rows.iter().map(|row| row.resources.scratch_gb).max().unwrap_or(1),
     })
-}
-
-fn time_limit_to_seconds(value: &str) -> Result<u64> {
-    let parts = value.split(':').collect::<Vec<_>>();
-    if parts.len() != 3 {
-        return Err(anyhow!(
-            "HPC stage benchmark array encountered malformed time limit `{value}`"
-        ));
-    }
-    let hours = parts[0].parse::<u64>().with_context(|| format!("parse hours from `{value}`"))?;
-    let minutes =
-        parts[1].parse::<u64>().with_context(|| format!("parse minutes from `{value}`"))?;
-    let seconds =
-        parts[2].parse::<u64>().with_context(|| format!("parse seconds from `{value}`"))?;
-    Ok(hours * 3600 + minutes * 60 + seconds)
-}
-
-fn manifest_path_for_script(script_path: &Path) -> Result<PathBuf> {
-    let parent = script_path.parent().ok_or_else(|| {
-        anyhow!("stage benchmark array output `{}` has no parent", script_path.display())
-    })?;
-    let stem = script_path.file_stem().and_then(|value| value.to_str()).ok_or_else(|| {
-        anyhow!("stage benchmark array output `{}` has no valid file stem", script_path.display())
-    })?;
-    Ok(parent.join(format!("{stem}-manifest.json")))
 }
 
 fn render_stage_benchmark_array_script(
@@ -519,14 +493,4 @@ BIJUX_HPC_UNAVAILABLE_REASON=\"$UNAVAILABLE_REASON\" \\\n\
 sh -c \"$EXECUTION_COMMAND\" >\"$STDOUT_PATH\" 2>\"$STDERR_PATH\"\n",
     );
     Ok(rendered)
-}
-
-fn shell_quote(value: &str) -> String {
-    if value.chars().all(|ch| {
-        ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.' | '/' | ':' | '+' | '%')
-    }) {
-        value.to_string()
-    } else {
-        format!("'{}'", value.replace('\'', "'\\''"))
-    }
 }
