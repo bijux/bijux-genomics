@@ -852,19 +852,38 @@ fn first_stage_scoring_drift(parsed: &StageScoringConfig, expected: &StageScorin
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+    use std::sync::{Mutex, OnceLock};
+
     use super::{
         render_stage_scoring, StageScoringApplicability, StageScoringCorrectnessSignal,
-        StageScoringDecisionMode, DEFAULT_STAGE_SCORING_PATH,
+        StageScoringDecisionMode,
     };
+
+    fn repo_root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .expect("canonicalize repo root")
+    }
+
+    fn test_lock() -> &'static Mutex<()> {
+        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        LOCK.get_or_init(|| Mutex::new(()))
+    }
 
     #[test]
     fn render_stage_scoring_covers_all_active_stages() {
-        let repo_root = std::env::current_dir().expect("repo root");
-        let temp_dir = tempfile::tempdir().expect("tempdir");
-        let output_path = temp_dir.path().join(DEFAULT_STAGE_SCORING_PATH);
-        let report = render_stage_scoring(&repo_root, output_path).expect("render stage scoring");
+        let _guard = test_lock().lock().expect("stage scoring unit lock");
+        let repo_root = repo_root();
+        let temp_dir = tempfile::tempdir_in(repo_root.join("artifacts")).expect("tempdir");
+        let output_path = temp_dir.path().join("stage-scoring.toml");
+        let relative_output_path =
+            output_path.strip_prefix(&repo_root).expect("relative output path").to_path_buf();
+        let report =
+            render_stage_scoring(&repo_root, relative_output_path.clone()).expect("render stage scoring");
 
-        assert_eq!(report.config_path, DEFAULT_STAGE_SCORING_PATH);
+        assert_eq!(report.config_path, relative_output_path.to_string_lossy());
         assert_eq!(report.row_count, 69);
         assert_eq!(report.multi_tool_stage_count, 31);
         assert_eq!(report.single_tool_stage_count, 38);
@@ -878,11 +897,14 @@ mod tests {
 
     #[test]
     fn render_stage_scoring_preserves_multi_tool_ranking_contracts() {
-        let repo_root = std::env::current_dir().expect("repo root");
-        let temp_dir = tempfile::tempdir().expect("tempdir");
-        let report =
-            render_stage_scoring(&repo_root, temp_dir.path().join(DEFAULT_STAGE_SCORING_PATH))
-                .expect("render stage scoring");
+        let _guard = test_lock().lock().expect("stage scoring unit lock");
+        let repo_root = repo_root();
+        let temp_dir = tempfile::tempdir_in(repo_root.join("artifacts")).expect("tempdir");
+        let output_path = temp_dir.path().join("stage-scoring.toml");
+        let relative_output_path =
+            output_path.strip_prefix(&repo_root).expect("relative output path").to_path_buf();
+        let report = render_stage_scoring(&repo_root, relative_output_path)
+            .expect("render stage scoring");
 
         let row = report
             .rows
@@ -905,11 +927,14 @@ mod tests {
 
     #[test]
     fn render_stage_scoring_preserves_single_tool_acceptance_contracts() {
-        let repo_root = std::env::current_dir().expect("repo root");
-        let temp_dir = tempfile::tempdir().expect("tempdir");
-        let report =
-            render_stage_scoring(&repo_root, temp_dir.path().join(DEFAULT_STAGE_SCORING_PATH))
-                .expect("render stage scoring");
+        let _guard = test_lock().lock().expect("stage scoring unit lock");
+        let repo_root = repo_root();
+        let temp_dir = tempfile::tempdir_in(repo_root.join("artifacts")).expect("tempdir");
+        let output_path = temp_dir.path().join("stage-scoring.toml");
+        let relative_output_path =
+            output_path.strip_prefix(&repo_root).expect("relative output path").to_path_buf();
+        let report = render_stage_scoring(&repo_root, relative_output_path)
+            .expect("render stage scoring");
 
         let row = report
             .rows
