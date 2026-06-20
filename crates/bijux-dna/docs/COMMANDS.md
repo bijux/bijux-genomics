@@ -2036,6 +2036,21 @@ Visible aliases are part of the operator surface:
   scratch layout, and execution resolver. The command fails closed if the array index mapping,
   benchmark-result execution commands, resource envelope, wrapper script, log paths, or declared
   outputs drift from the governed dry-run stage benchmark plan.
+- `bijux-dna bench local render-hpc-pipeline-node-array`
+  `render-hpc-pipeline-node-array` writes
+  `runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch` together with
+  `runs/bench/hpc-dry-run/slurm/pipeline-node-array-manifest.json`. The render consumes the
+  governed essential-pipeline nodes from the selected-job manifest, validated pipeline DAGs, and
+  HPC scratch layout so each zero-based array index maps to one exact pipeline node execution
+  command, dependency job list, upstream result ids, dependency output paths, and node expected
+  outputs before any cluster submission or dependency simulation occurs.
+- `bijux-dna bench local validate-hpc-pipeline-node-array`
+  `validate-hpc-pipeline-node-array` reloads
+  `runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch` and its companion manifest, then
+  rebuilds the expected array dispatch surface from the current selected essential-pipeline jobs,
+  validated DAGs, and HPC scratch layout. The command fails closed if dependency ordering,
+  upstream result bindings, expected output paths, wrapper script, or per-node execution commands
+  drift from the governed dry-run pipeline plan.
 - `bijux-dna bench local render-benchmark-summary`
   `render-benchmark-summary` writes both `benchmarks/readiness/local-ready/benchmark-summary.json` and
   `benchmarks/readiness/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51

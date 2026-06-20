@@ -92,6 +92,19 @@ layout, and execution resolver:
 make bench-hpc-stage-benchmark-array-validate
 ```
 
+Render the governed essential-pipeline-node SLURM array and its dependency manifest:
+
+```bash
+make bench-hpc-pipeline-node-array-render
+```
+
+Validate an existing essential-pipeline-node SLURM array against the current selected jobs,
+validated pipeline DAGs, and scratch layout:
+
+```bash
+make bench-hpc-pipeline-node-array-validate
+```
+
 Call the underlying CLI directly when a non-default manifest path is needed:
 
 ```bash
@@ -118,6 +131,12 @@ bijux-dna bench local render-hpc-stage-benchmark-array \
 
 bijux-dna bench local validate-hpc-stage-benchmark-array \
   --script runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch
+
+bijux-dna bench local render-hpc-pipeline-node-array \
+  --output runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch
+
+bijux-dna bench local validate-hpc-pipeline-node-array \
+  --script runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch
 ```
 
 Generate baseline campaign profiles:
