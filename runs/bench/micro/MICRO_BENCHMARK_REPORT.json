@@ -19,9 +19,9 @@
     "unavailable": 3
   },
   "runtime_source_counts": {
+    "governed_runtime": 2,
     "not_applicable": 9,
-    "not_available": 66,
-    "stage_result_manifest": 2
+    "not_available": 66
   },
   "memory_source_counts": {
     "declared_stage_tool_resource": 57,
@@ -251,7 +251,7 @@
       "command": "bijux-dna bench local run-amplicon-micro-pipeline",
       "reason": "copied governed OTU-clustering smoke outputs into the amplicon micro pipeline",
       "normalized_metric_count": 4,
-      "output_count": 6,
+      "output_count": 7,
       "log_count": 0
     },
     {
@@ -1755,8 +1755,8 @@
       "stage_id": "vcf.call",
       "tool_id": "bcftools",
       "execution_status": "succeeded",
-      "elapsed_seconds": 0.204813084,
-      "runtime_source": "stage_result_manifest"
+      "elapsed_seconds": null,
+      "runtime_source": "governed_runtime"
     },
     {
       "execution_id": "fastq.validate_reads",
@@ -1775,8 +1775,8 @@
       "stage_id": "vcf.stats",
       "tool_id": "bcftools",
       "execution_status": "succeeded",
-      "elapsed_seconds": 0.033641375,
-      "runtime_source": "stage_result_manifest"
+      "elapsed_seconds": null,
+      "runtime_source": "governed_runtime"
     },
     {
       "execution_id": "vcf.calling",

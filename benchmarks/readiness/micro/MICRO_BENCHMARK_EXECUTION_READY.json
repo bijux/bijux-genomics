@@ -19,7 +19,7 @@
       "surface": "local micro-benchmark command",
       "output_path": "runs/bench/micro/MICRO_BENCHMARK_RUN.json",
       "ok": true,
-      "detail": "validated 77 result rows, 198 outputs, 1 logs, 19 normalized metrics across 8 component reports"
+      "detail": "validated 77 result rows, 199 outputs, 1 logs, 19 normalized metrics across 8 component reports"
     },
     {
       "goal_id": 472,

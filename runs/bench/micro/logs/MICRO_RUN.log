@@ -1,6 +1,6 @@
 command=bijux-dna bench run-micro
-repo_revision=c14805b68a13951bb375715a0ec6f878200571df
-worktree_dirty=true
+repo_revision=22b428e3e70b47f345ca415b47cfe8aab7420bc1
+worktree_dirty=false
 real_smoke_core_subset=runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json
 fastq_micro_smoke_subset=runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json
 bam_micro_smoke_subset=runs/bench/micro/bam/MICRO_BAM_SUMMARY.json
@@ -10,6 +10,6 @@ adna_micro_pipeline=runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json
 edna_micro_pipeline=runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json
 core_germline_micro_pipeline=runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json
 result_row_count=77
-output_row_count=198
+output_row_count=199
 log_row_count=1
 normalized_metric_row_count=19

@@ -29,7 +29,7 @@
 | benchmark.amplicon_corpus_fixture | amplicon_micro_pipeline | benchmark | benchmark.amplicon_corpus_fixture | bijux | 7 | 5 | 0 | validated governed amplicon corpus fixture contract |
 | benchmark.amplicon_output_judgment | amplicon_micro_pipeline | benchmark | benchmark.amplicon_output_judgment | bijux | 12 | 2 | 0 | validated amplicon primer, ASV, chimera, OTU, and abundance outputs against governed truth |
 | benchmark.amplicon_truth_fixture | amplicon_micro_pipeline | benchmark | benchmark.amplicon_truth_fixture | bijux | 3 | 2 | 0 | validated governed amplicon truth bundle contract |
-| fastq.cluster_otus | amplicon_micro_pipeline | fastq | fastq.cluster_otus | vsearch | 4 | 6 | 0 | copied governed OTU-clustering smoke outputs into the amplicon micro pipeline |
+| fastq.cluster_otus | amplicon_micro_pipeline | fastq | fastq.cluster_otus | vsearch | 4 | 7 | 0 | copied governed OTU-clustering smoke outputs into the amplicon micro pipeline |
 | fastq.infer_asvs | amplicon_micro_pipeline | fastq | fastq.infer_asvs | dada2 | 3 | 7 | 0 | copied governed ASV inference smoke outputs into the amplicon micro pipeline |
 | fastq.normalize_abundance | amplicon_micro_pipeline | fastq | fastq.normalize_abundance | seqkit | 5 | 4 | 0 | copied governed abundance-normalization smoke outputs into the amplicon micro pipeline |
 | fastq.normalize_primers | amplicon_micro_pipeline | fastq | fastq.normalize_primers | cutadapt | 6 | 5 | 0 | copied governed primer-normalization smoke outputs into the amplicon micro pipeline |
@@ -182,9 +182,9 @@
 | fastq.trimming | fastq_micro_smoke_subset | fastq | fastq.trim_terminal_damage | cutadapt | succeeded |  | not_available |
 | fastq.validate_reads | fastq_micro_smoke_subset | fastq | fastq.validate_reads | fastqvalidator | succeeded |  | not_available |
 | bam.validate | real_smoke_core_subset | bam | bam.validate | samtools | succeeded |  | not_available |
-| bridge:bam-to-vcf.call | real_smoke_core_subset | vcf | vcf.call | bcftools | succeeded | 0.205 | stage_result_manifest |
+| bridge:bam-to-vcf.call | real_smoke_core_subset | vcf | vcf.call | bcftools | succeeded |  | governed_runtime |
 | fastq.validate_reads | real_smoke_core_subset | fastq | fastq.validate_reads | fastqc | succeeded |  | not_available |
-| vcf.stats | real_smoke_core_subset | vcf | vcf.stats | bcftools | succeeded | 0.034 | stage_result_manifest |
+| vcf.stats | real_smoke_core_subset | vcf | vcf.stats | bcftools | succeeded |  | governed_runtime |
 | vcf.calling | vcf_micro_smoke_subset | vcf | vcf.call | bcftools | succeeded |  | not_available |
 | vcf.descent_and_demography | vcf_micro_smoke_subset | vcf | vcf.ibd | germline | succeeded |  | not_available |
 | vcf.imputation | vcf_micro_smoke_subset | vcf | vcf.impute | beagle | succeeded |  | not_available |

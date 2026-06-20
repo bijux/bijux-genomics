@@ -695,6 +695,15 @@
   {
     "execution_id": "fastq.cluster_otus",
     "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "raw_backend_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/otu_clusters.uc",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.cluster_otus",
+    "component_id": "amplicon_micro_pipeline",
     "artifact_id": "taxonomy_ready_fasta",
     "role": "pipeline_stage_output",
     "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fasta",

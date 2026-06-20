@@ -357,7 +357,7 @@
     "evidence_path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/report.json",
     "stage_result_manifest_path": null,
     "normalized_metric_count": 4,
-    "output_count": 6,
+    "output_count": 7,
     "log_count": 0
   },
   {
