@@ -131,6 +131,10 @@ pub enum BenchLocalCommand {
     ValidateHpcAssetStagingManifest(BenchLocalValidateHpcAssetStagingManifestArgs),
     #[command(name = "render-hpc-asset-staging-manifest")]
     RenderHpcAssetStagingManifest(BenchLocalRenderHpcAssetStagingManifestArgs),
+    #[command(name = "validate-hpc-candidate-run-manifest")]
+    ValidateHpcCandidateRunManifest(BenchLocalValidateHpcCandidateRunManifestArgs),
+    #[command(name = "render-hpc-candidate-run-manifest")]
+    RenderHpcCandidateRunManifest(BenchLocalRenderHpcCandidateRunManifestArgs),
     #[command(name = "validate-hpc-scratch-layout")]
     ValidateHpcScratchLayout(BenchLocalValidateHpcScratchLayoutArgs),
     #[command(name = "render-hpc-scratch-layout")]
@@ -243,6 +247,22 @@ pub struct BenchLocalRenderHpcAssetStagingManifestArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalValidateHpcAssetStagingManifestArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcCandidateRunManifestArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcCandidateRunManifestArgs {
     #[arg(long)]
     pub manifest: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
