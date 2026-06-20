@@ -113,9 +113,15 @@ pub fn write_local_filter_reads_smoke_report() -> Result<PathBuf> {
 
     let output_root = repo_root.join("runs/bench/local-smoke/fastq.filter_reads");
     bijux_dna_infra::ensure_dir(&output_root)?;
-    let summary = materialize_local_filter_reads_smoke_case(&repo_root, case, &output_root)?;
+    let summary =
+        materialize_local_filter_reads_smoke_case(&repo_root, case, &output_root, true)?;
     for extra_case in &cases[1..] {
-        let _ = materialize_local_filter_reads_smoke_case(&repo_root, extra_case, &output_root)?;
+        let _ = materialize_local_filter_reads_smoke_case(
+            &repo_root,
+            extra_case,
+            &output_root,
+            false,
+        )?;
     }
     let report_path = output_root.join("report.json");
     bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
@@ -127,6 +133,7 @@ fn materialize_local_filter_reads_smoke_case(
     repo_root: &Path,
     case: &bijux_dna_planner_fastq::LocalFilterReadsSmokeCasePlan,
     output_root: &Path,
+    publish_top_level: bool,
 ) -> Result<LocalFilterReadsSmokeReport> {
     let effective_params =
         serde_json::from_value::<FilterEffectiveParams>(case.plan.effective_params.clone())
@@ -290,14 +297,19 @@ fn materialize_local_filter_reads_smoke_case(
         &backend_metrics,
     )?;
 
-    let top_level_filtered = output_root.join("filtered.fastq.gz");
-    std::fs::copy(&output_r1, &top_level_filtered).with_context(|| {
-        format!(
-            "copy local filter smoke output from {} to {}",
-            output_r1.display(),
-            top_level_filtered.display()
-        )
-    })?;
+    let published_filtered = if publish_top_level {
+        let top_level_filtered = output_root.join("filtered.fastq.gz");
+        std::fs::copy(&output_r1, &top_level_filtered).with_context(|| {
+            format!(
+                "copy local filter smoke output from {} to {}",
+                output_r1.display(),
+                top_level_filtered.display()
+            )
+        })?;
+        top_level_filtered
+    } else {
+        output_r1.clone()
+    };
 
     Ok(LocalFilterReadsSmokeReport {
         schema_version: LOCAL_FILTER_READS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
@@ -315,7 +327,7 @@ fn materialize_local_filter_reads_smoke_case(
         reads_removed_by_kmer: 0,
         reads_removed_contaminant_kmer: 0,
         reads_removed_by_length: 0,
-        filtered_fastq_gz: path_relative_to_repo(repo_root, &top_level_filtered),
+        filtered_fastq_gz: path_relative_to_repo(repo_root, &published_filtered),
         report_json: path_relative_to_repo(repo_root, &report_path),
         raw_backend_report: path_relative_to_repo(repo_root, &raw_backend_report),
         used_fallback: true,

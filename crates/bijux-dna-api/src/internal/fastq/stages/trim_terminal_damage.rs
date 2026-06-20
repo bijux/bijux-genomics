@@ -110,13 +110,18 @@ pub fn write_local_trim_terminal_damage_smoke_report() -> Result<PathBuf> {
 
     let output_root = repo_root.join("runs/bench/local-smoke/fastq.trim_terminal_damage");
     bijux_dna_infra::ensure_dir(&output_root)?;
-    let metrics =
-        materialize_local_trim_terminal_damage_smoke_case(&repo_root, case, &output_root)?;
+    let metrics = materialize_local_trim_terminal_damage_smoke_case(
+        &repo_root,
+        case,
+        &output_root,
+        true,
+    )?;
     for extra_case in &cases[1..] {
         let _ = materialize_local_trim_terminal_damage_smoke_case(
             &repo_root,
             extra_case,
             &output_root,
+            false,
         )?;
     }
     let metrics_path = output_root.join("metrics.json");
@@ -377,6 +382,7 @@ fn materialize_local_trim_terminal_damage_smoke_case(
     repo_root: &Path,
     case: &bijux_dna_planner_fastq::LocalTrimTerminalDamageSmokeCasePlan,
     output_root: &Path,
+    publish_top_level: bool,
 ) -> Result<LocalTrimTerminalDamageSmokeMetrics> {
     let effective_params =
         serde_json::from_value::<TrimTerminalDamageParams>(case.plan.effective_params.clone())
@@ -443,8 +449,13 @@ fn materialize_local_trim_terminal_damage_smoke_case(
         write_local_fastq_records(output_r2, trimmed_records_r2)?;
     }
 
-    let top_level_trimmed = output_root.join("trimmed.fastq.gz");
-    write_local_fastq_records(&top_level_trimmed, &trimmed_records)?;
+    let published_trimmed = if publish_top_level {
+        let top_level_trimmed = output_root.join("trimmed.fastq.gz");
+        write_local_fastq_records(&top_level_trimmed, &trimmed_records)?;
+        top_level_trimmed
+    } else {
+        output_r1.clone()
+    };
 
     let input_reads =
         u64::try_from(input_records.len() + input_records_r2.as_ref().map_or(0, Vec::len))
@@ -541,7 +552,7 @@ fn materialize_local_trim_terminal_damage_smoke_case(
         trim_5p_bases: effective_params.trim_5p_bases,
         trim_3p_bases: effective_params.trim_3p_bases,
         bases_removed: input_bases.saturating_sub(output_bases),
-        trimmed_fastq_gz: path_relative_to_repo(repo_root, &top_level_trimmed),
+        trimmed_fastq_gz: path_relative_to_repo(repo_root, &published_trimmed),
         report_json: path_relative_to_repo(repo_root, &report_path),
         used_fallback: true,
     })

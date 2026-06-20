@@ -94,12 +94,13 @@ pub fn write_local_filter_low_complexity_smoke_report() -> Result<PathBuf> {
     let output_root = repo_root.join("runs/bench/local-smoke/fastq.filter_low_complexity");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let summary =
-        materialize_local_filter_low_complexity_smoke_case(&repo_root, case, &output_root)?;
+        materialize_local_filter_low_complexity_smoke_case(&repo_root, case, &output_root, true)?;
     for extra_case in &cases[1..] {
         let _ = materialize_local_filter_low_complexity_smoke_case(
             &repo_root,
             extra_case,
             &output_root,
+            false,
         )?;
     }
     let report_path = output_root.join("report.json");
@@ -111,6 +112,7 @@ fn materialize_local_filter_low_complexity_smoke_case(
     repo_root: &Path,
     case: &bijux_dna_planner_fastq::LocalFilterLowComplexitySmokeCasePlan,
     output_root: &Path,
+    publish_top_level: bool,
 ) -> Result<LocalFilterLowComplexitySmokeReport> {
     let planned_effective_params = serde_json::from_value::<
         PlannedFilterLowComplexityEffectiveParams,
@@ -161,14 +163,19 @@ fn materialize_local_filter_low_complexity_smoke_case(
         Some(&raw_backend_report),
     )?;
 
-    let top_level_filtered = output_root.join("filtered.fastq.gz");
-    std::fs::copy(&output_r1, &top_level_filtered).with_context(|| {
-        format!(
-            "copy local filter-low-complexity smoke output from {} to {}",
-            output_r1.display(),
-            top_level_filtered.display()
-        )
-    })?;
+    let published_filtered = if publish_top_level {
+        let top_level_filtered = output_root.join("filtered.fastq.gz");
+        std::fs::copy(&output_r1, &top_level_filtered).with_context(|| {
+            format!(
+                "copy local filter-low-complexity smoke output from {} to {}",
+                output_r1.display(),
+                top_level_filtered.display()
+            )
+        })?;
+        top_level_filtered
+    } else {
+        output_r1.clone()
+    };
 
     Ok(LocalFilterLowComplexitySmokeReport {
         schema_version: LOCAL_FILTER_LOW_COMPLEXITY_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
@@ -181,7 +188,7 @@ fn materialize_local_filter_low_complexity_smoke_case(
         input_reads: report.reads_in,
         reads_removed_low_complexity: report.reads_removed_low_complexity,
         output_reads: report.reads_out,
-        filtered_fastq_gz: path_relative_to_repo(repo_root, &top_level_filtered),
+        filtered_fastq_gz: path_relative_to_repo(repo_root, &published_filtered),
         case_report_json: path_relative_to_repo(repo_root, &case_report_json),
         raw_backend_report: path_relative_to_repo(repo_root, &raw_backend_report),
     })
