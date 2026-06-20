@@ -1,10 +1,10 @@
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_api::v1::api::run::run_command_with_context;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_yaml::Value as YamlValue;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::time::Instant;
 
 const DEFAULT_NO_REPEATED_FAST_GATE_PATH: &str =
@@ -561,13 +561,14 @@ pub(crate) fn budget_check(
             anyhow!("target `{target_id}` missing from {}", absolute_budget_file.display())
         })?;
         let started = Instant::now();
-        let status = Command::new("sh")
-            .arg("-lc")
-            .arg(&target_budget.command)
-            .current_dir(repo_root)
-            .status()
-            .with_context(|| format!("run `{}`", target_budget.command))?;
-        if !status.success() {
+        let status = run_command_with_context(
+            "sh",
+            &["-lc".to_string(), target_budget.command.clone()],
+            Some(repo_root),
+            None,
+        )
+        .with_context(|| format!("run `{}`", target_budget.command))?;
+        if status.exit_code != 0 {
             bail!("budget target `{target_id}` failed while running `{}`", target_budget.command);
         }
         let observed_seconds = started.elapsed().as_secs_f64();
@@ -621,26 +622,26 @@ pub(crate) fn gate_fast_no_bleeding(
 
     let repeated =
         audit_workflow_no_repeated_target(repo_root, &absolute_workflow, "make ci-fast", None)?;
-    let active_status = Command::new("make")
-        .arg("bench-active-fast")
-        .current_dir(repo_root)
-        .status()
-        .context("run `make bench-active-fast`")?;
-    let parser_status = Command::new("make")
-        .arg("bench-parser-fast")
-        .current_dir(repo_root)
-        .status()
-        .context("run `make bench-parser-fast`")?;
-    let adapter_status = Command::new("make")
-        .arg("bench-adapter-fast")
-        .current_dir(repo_root)
-        .status()
-        .context("run `make bench-adapter-fast`")?;
-    let science_status = Command::new("make")
-        .arg("science-fixtures-fast")
-        .current_dir(repo_root)
-        .status()
-        .context("run `make science-fixtures-fast`")?;
+    let active_status =
+        run_command_with_context("make", &["bench-active-fast".to_string()], Some(repo_root), None)
+            .context("run `make bench-active-fast`")?;
+    let parser_status =
+        run_command_with_context("make", &["bench-parser-fast".to_string()], Some(repo_root), None)
+            .context("run `make bench-parser-fast`")?;
+    let adapter_status = run_command_with_context(
+        "make",
+        &["bench-adapter-fast".to_string()],
+        Some(repo_root),
+        None,
+    )
+    .context("run `make bench-adapter-fast`")?;
+    let science_status = run_command_with_context(
+        "make",
+        &["science-fixtures-fast".to_string()],
+        Some(repo_root),
+        None,
+    )
+    .context("run `make science-fixtures-fast`")?;
     let changed_paths = changed_path_commands(repo_root, &absolute_changed_paths_fixture)?;
     let budget = budget_check(repo_root, "fast", Some(&absolute_budget_file))?;
     let features = audit_default_features(repo_root, "default-fast", None)?;
@@ -654,22 +655,22 @@ pub(crate) fn gate_fast_no_bleeding(
         },
         GateCheckReport {
             goal_id: "402".to_string(),
-            ok: active_status.success(),
+            ok: active_status.exit_code == 0,
             detail: "make bench-active-fast".to_string(),
         },
         GateCheckReport {
             goal_id: "403".to_string(),
-            ok: parser_status.success(),
+            ok: parser_status.exit_code == 0,
             detail: "make bench-parser-fast".to_string(),
         },
         GateCheckReport {
             goal_id: "404".to_string(),
-            ok: adapter_status.success(),
+            ok: adapter_status.exit_code == 0,
             detail: "make bench-adapter-fast".to_string(),
         },
         GateCheckReport {
             goal_id: "405".to_string(),
-            ok: science_status.success(),
+            ok: science_status.exit_code == 0,
             detail: "make science-fixtures-fast".to_string(),
         },
         GateCheckReport {

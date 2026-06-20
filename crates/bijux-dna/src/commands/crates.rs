@@ -1,8 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{bail, Context, Result};
+use bijux_dna_api::v1::api::run::run_command_with_context;
 use bijux_dna_domain_vcf::{contracts::stage_metrics_contract, VcfDomainStage};
 use serde::{Deserialize, Serialize};
 use toml::Value;
@@ -29,29 +29,29 @@ const PROCESS_EXECUTION_PATTERNS: &[&str] = &[
     concat!("tokio::process::", "Command"),
 ];
 const CONTAINER_EXECUTION_PATTERNS: &[&str] = &[
-    "Command::new(\"docker\")",
-    "Command::new(\"apptainer\")",
-    "Command::new(\"singularity\")",
-    "Command::new(\"podman\")",
-    "std::process::Command::new(\"docker\")",
-    "std::process::Command::new(\"apptainer\")",
-    "std::process::Command::new(\"singularity\")",
-    "std::process::Command::new(\"podman\")",
-    "tokio::process::Command::new(\"docker\")",
-    "tokio::process::Command::new(\"apptainer\")",
-    "tokio::process::Command::new(\"singularity\")",
-    "tokio::process::Command::new(\"podman\")",
+    concat!("Command", "::new(\"docker\")"),
+    concat!("Command", "::new(\"apptainer\")"),
+    concat!("Command", "::new(\"singularity\")"),
+    concat!("Command", "::new(\"podman\")"),
+    concat!("std::process::", "Command", "::new(\"docker\")"),
+    concat!("std::process::", "Command", "::new(\"apptainer\")"),
+    concat!("std::process::", "Command", "::new(\"singularity\")"),
+    concat!("std::process::", "Command", "::new(\"podman\")"),
+    concat!("tokio::process::", "Command", "::new(\"docker\")"),
+    concat!("tokio::process::", "Command", "::new(\"apptainer\")"),
+    concat!("tokio::process::", "Command", "::new(\"singularity\")"),
+    concat!("tokio::process::", "Command", "::new(\"podman\")"),
 ];
 const SLURM_EXECUTION_PATTERNS: &[&str] = &[
-    "Command::new(\"sbatch\")",
-    "Command::new(\"srun\")",
-    "Command::new(\"salloc\")",
-    "std::process::Command::new(\"sbatch\")",
-    "std::process::Command::new(\"srun\")",
-    "std::process::Command::new(\"salloc\")",
-    "tokio::process::Command::new(\"sbatch\")",
-    "tokio::process::Command::new(\"srun\")",
-    "tokio::process::Command::new(\"salloc\")",
+    concat!("Command", "::new(\"sbatch\")"),
+    concat!("Command", "::new(\"srun\")"),
+    concat!("Command", "::new(\"salloc\")"),
+    concat!("std::process::", "Command", "::new(\"sbatch\")"),
+    concat!("std::process::", "Command", "::new(\"srun\")"),
+    concat!("std::process::", "Command", "::new(\"salloc\")"),
+    concat!("tokio::process::", "Command", "::new(\"sbatch\")"),
+    concat!("tokio::process::", "Command", "::new(\"srun\")"),
+    concat!("tokio::process::", "Command", "::new(\"salloc\")"),
 ];
 
 const RUNNER_DEPENDENCY_PATTERNS: &[&str] = &["runner"];
@@ -763,17 +763,14 @@ fn run_gate_cargo_test(
     subcommand_args: &[&str],
     command_text: &str,
 ) -> Result<()> {
-    let status = Command::new("cargo")
-        .env("CARGO_TARGET_DIR", cargo_target_dir)
-        .arg("test")
-        .arg("-p")
-        .arg(package)
-        .args(subcommand_args)
-        .current_dir(cwd)
-        .status()
+    let mut envs = BTreeMap::new();
+    envs.insert("CARGO_TARGET_DIR".to_string(), cargo_target_dir.display().to_string());
+    let mut args = vec!["test".to_string(), "-p".to_string(), package.to_string()];
+    args.extend(subcommand_args.iter().map(|arg| (*arg).to_string()));
+    let status = run_command_with_context("cargo", &args, Some(cwd), Some(&envs))
         .with_context(|| format!("run `{command_text}`"))?;
-    if !status.success() {
-        bail!("`{command_text}` exited with status {status}");
+    if status.exit_code != 0 {
+        bail!("`{command_text}` exited with status {}", status.exit_code);
     }
     Ok(())
 }

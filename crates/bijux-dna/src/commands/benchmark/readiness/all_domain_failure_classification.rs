@@ -2,9 +2,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::run::run_command_with_context;
 use serde::Serialize;
 
 use super::all_domain_expected_benchmark_results::{
@@ -245,13 +245,13 @@ fn classify_tool_not_found(
     fs::write(&command_script_path, format!("{} --version\n", missing_executable_path.display()))
         .with_context(|| format!("write {}", command_script_path.display()))?;
 
-    let observed = Command::new(&missing_executable_path).arg("--version").output();
+    let observed = std::fs::metadata(&missing_executable_path);
     let (triggered, observed_status, observed_error) = match observed {
         Ok(_) => (
             false,
             "unexpected_success".to_string(),
             format!(
-                "tool-not-found probe unexpectedly executed `{}`",
+                "tool-not-found probe unexpectedly resolved `{}`",
                 missing_executable_path.display()
             ),
         ),
@@ -303,15 +303,18 @@ fn classify_command_failed(
     let command_script_path = probe_root.join("command.sh");
     fs::write(&command_script_path, "printf 'governed command-failed probe\\n' >&2\nexit 23\n")
         .with_context(|| format!("write {}", command_script_path.display()))?;
-    let output = Command::new("sh")
-        .arg(&command_script_path)
-        .output()
-        .with_context(|| format!("run {}", command_script_path.display()))?;
+    let output = run_command_with_context(
+        "sh",
+        &[command_script_path.display().to_string()],
+        Some(repo_root),
+        None,
+    )
+    .with_context(|| format!("run {}", command_script_path.display()))?;
     let stderr_path = probe_root.join("stderr.txt");
-    fs::write(&stderr_path, &output.stderr)
+    fs::write(&stderr_path, output.stderr.as_bytes())
         .with_context(|| format!("write {}", stderr_path.display()))?;
-    let observed_error = String::from_utf8_lossy(&output.stderr).trim().to_string();
-    let exit_code = output.status.code();
+    let observed_error = output.stderr.trim().to_string();
+    let exit_code = output.exit_code;
     Ok(AllDomainFailureClassificationRow {
         class_id: "command_failed".to_string(),
         domain: binding.domain,
@@ -320,14 +323,14 @@ fn classify_command_failed(
         result_id: Some(binding.result_id),
         source_surface: "governed_command_failed_probe".to_string(),
         evidence_path: path_relative_to_repo(repo_root, &stderr_path),
-        observed_status: if exit_code == Some(23) {
+        observed_status: if exit_code == 23 {
             "command_failed".to_string()
         } else {
             "unexpected_success".to_string()
         },
         observed_error,
         detail: "governed shell probe exits with code 23 after writing stderr".to_string(),
-        triggered: exit_code == Some(23),
+        triggered: exit_code == 23,
     })
 }
 

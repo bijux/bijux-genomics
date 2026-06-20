@@ -1,8 +1,8 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_api::v1::api::run::run_command_with_context;
 use serde::Serialize;
 
 use super::vcf_active_stage_tool_matrix::collect_vcf_active_stage_tool_matrix_rows;
@@ -550,16 +550,17 @@ pub(crate) fn render_vcf_adapters_ready(
             }
             let script_path = repo_root.join(&report.output_path);
             let argv_path = repo_root.join(&report.argv_output_path);
-            let syntax = Command::new("bash")
-                .arg("-n")
-                .arg(&script_path)
-                .current_dir(repo_root)
-                .output()
-                .with_context(|| format!("run bash -n on {}", script_path.display()))?;
-            if !syntax.status.success() {
+            let syntax = run_command_with_context(
+                "bash",
+                &["-n".to_string(), script_path.display().to_string()],
+                Some(repo_root),
+                None,
+            )
+            .with_context(|| format!("run bash -n on {}", script_path.display()))?;
+            if syntax.exit_code != 0 {
                 bail!(
                     "VCF rendered commands shell script is not parseable by bash -n:\n{}",
-                    String::from_utf8_lossy(&syntax.stderr)
+                    syntax.stderr
                 );
             }
             let argv_lines = std::fs::read_to_string(&argv_path)

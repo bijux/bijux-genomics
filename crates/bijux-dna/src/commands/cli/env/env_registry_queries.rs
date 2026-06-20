@@ -1,7 +1,6 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::time::{Duration, SystemTime};
 
 use anyhow::{anyhow, Context, Result};
@@ -9,6 +8,7 @@ use bijux_dna_api::v1::api::env::{
     available_runners, cache_dir, docker_image_exists, load_image_catalog, load_platform,
     resolve_image, run_shell_capture, PlatformSpec, RuntimeKind, ToolImageSpec,
 };
+use bijux_dna_api::v1::api::run::run_command;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -335,22 +335,25 @@ fn ensure_local_docker_image<S: ::std::hash::BuildHasher>(
 
     let oci_created = capture_optional_shell("date -u +%Y-%m-%dT%H:%M:%SZ");
     let version = spec.version.trim();
-    let output = Command::new("docker")
-        .arg("build")
-        .arg("-t")
-        .arg(&local_image_name)
-        .arg("--build-arg")
-        .arg(format!("OCI_REVISION={git_revision}"))
-        .arg("--build-arg")
-        .arg(format!("OCI_CREATED={oci_created}"))
-        .arg("--build-arg")
-        .arg(format!("TOOL_VERSION={version}"))
-        .arg("-f")
-        .arg(&dockerfile_path)
-        .arg(&container_dir)
-        .output()
-        .with_context(|| format!("docker build {}", local_image_name))?;
-    if output.status.success() {
+    let output = run_command(
+        "docker",
+        &[
+            "build".to_string(),
+            "-t".to_string(),
+            local_image_name.clone(),
+            "--build-arg".to_string(),
+            format!("OCI_REVISION={git_revision}"),
+            "--build-arg".to_string(),
+            format!("OCI_CREATED={oci_created}"),
+            "--build-arg".to_string(),
+            format!("TOOL_VERSION={version}"),
+            "-f".to_string(),
+            dockerfile_path.display().to_string(),
+            container_dir.display().to_string(),
+        ],
+    )
+    .with_context(|| format!("docker build {}", local_image_name))?;
+    if output.exit_code == 0 {
         if let Some(parent) = build_state_path.parent() {
             std::fs::create_dir_all(parent)
                 .with_context(|| format!("create {}", parent.display()))?;
@@ -388,12 +391,8 @@ fn docker_build_state_path(repo_root: &Path, runtime: &str, tool_id: &str) -> Pa
 }
 
 fn local_docker_image_exists(image_name: &str) -> bool {
-    Command::new("docker")
-        .arg("image")
-        .arg("inspect")
-        .arg(image_name)
-        .output()
-        .is_ok_and(|output| output.status.success())
+    run_command("docker", &["image".to_string(), "inspect".to_string(), image_name.to_string()])
+        .is_ok_and(|output| output.exit_code == 0)
 }
 
 fn docker_build_state_matches(
@@ -460,30 +459,35 @@ fn resolved_probe_command(primary: Option<&str>, fallback: Option<&str>, default
 
 fn run_docker_probe(image_name: &str, probe: &str, expected_bin: Option<&str>) -> Result<String> {
     let output = match docker_probe_invocation(probe, expected_bin) {
-        DockerProbeInvocation::EntrypointArgs(args) => Command::new("docker")
-            .arg("run")
-            .arg("--rm")
-            .arg("--network")
-            .arg("none")
-            .arg(image_name)
-            .args(args)
-            .output()
-            .with_context(|| format!("docker run {}", image_name))?,
-        DockerProbeInvocation::Shell(command) => Command::new("docker")
-            .arg("run")
-            .arg("--rm")
-            .arg("--network")
-            .arg("none")
-            .arg("--entrypoint")
-            .arg("/bin/sh")
-            .arg(image_name)
-            .arg("-lc")
-            .arg(command)
-            .output()
-            .with_context(|| format!("docker run {}", image_name))?,
+        DockerProbeInvocation::EntrypointArgs(args) => {
+            let mut argv = vec![
+                "run".to_string(),
+                "--rm".to_string(),
+                "--network".to_string(),
+                "none".to_string(),
+                image_name.to_string(),
+            ];
+            argv.extend(args);
+            run_command("docker", &argv).with_context(|| format!("docker run {}", image_name))?
+        }
+        DockerProbeInvocation::Shell(command) => run_command(
+            "docker",
+            &[
+                "run".to_string(),
+                "--rm".to_string(),
+                "--network".to_string(),
+                "none".to_string(),
+                "--entrypoint".to_string(),
+                "/bin/sh".to_string(),
+                image_name.to_string(),
+                "-lc".to_string(),
+                command,
+            ],
+        )
+        .with_context(|| format!("docker run {}", image_name))?,
     };
     let merged = merge_command_output(&output.stdout, &output.stderr);
-    if output.status.success() {
+    if output.exit_code == 0 {
         return Ok(merged);
     }
     Err(anyhow!(merged))
@@ -509,9 +513,9 @@ fn docker_probe_invocation(probe: &str, expected_bin: Option<&str>) -> DockerPro
     }
 }
 
-fn merge_command_output(stdout: &[u8], stderr: &[u8]) -> String {
-    let stdout = String::from_utf8_lossy(stdout).trim().to_string();
-    let stderr = String::from_utf8_lossy(stderr).trim().to_string();
+fn merge_command_output(stdout: &str, stderr: &str) -> String {
+    let stdout = stdout.trim().to_string();
+    let stderr = stderr.trim().to_string();
     match (stdout.is_empty(), stderr.is_empty()) {
         (true, true) => String::new(),
         (false, true) => stdout,

@@ -2,6 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_api::v1::api::run::{run_command_with_context, CommandOutputV1};
 use regex::Regex;
 use serde::Serialize;
 
@@ -174,13 +175,13 @@ fn build_host_tool_smoke_manifest(
 
     let applied_command = resolve_host_command(repo_root, row, &declared_command)?;
     let output = run_host_command(repo_root, &applied_command)?;
-    let stdout = String::from_utf8(output.stdout).context("decode stdout utf8")?;
-    let stderr = String::from_utf8(output.stderr).context("decode stderr utf8")?;
+    let stdout = output.stdout;
+    let stderr = output.stderr;
     let combined_output = combined_output(&stdout, &stderr);
     let version = parse_first_version(&combined_output);
     let version_matches_regex = expected_version_regex.is_match(&combined_output);
-    let exit_code = output.status.code().unwrap_or(-1);
-    let status = if !output.status.success() {
+    let exit_code = output.exit_code;
+    let status = if output.exit_code != 0 {
         HOST_TOOL_SMOKE_STATUS_COMMAND_FAILED
     } else if version.is_none() {
         HOST_TOOL_SMOKE_STATUS_VERSION_PARSE_FAILED
@@ -239,15 +240,11 @@ fn resolve_host_command(
     Ok(vec!["sh".to_string(), "-lc".to_string(), declared_command.to_string()])
 }
 
-fn run_host_command(repo_root: &Path, applied_command: &[String]) -> Result<std::process::Output> {
+fn run_host_command(repo_root: &Path, applied_command: &[String]) -> Result<CommandOutputV1> {
     let Some(program) = applied_command.first() else {
         bail!("host smoke attempted to run an empty command");
     };
-    let mut command = std::process::Command::new(program);
-    command.args(applied_command.iter().skip(1));
-    command.current_dir(repo_root);
-    command
-        .output()
+    run_command_with_context(program, &applied_command[1..], Some(repo_root), None)
         .with_context(|| format!("run host smoke command `{}`", applied_command.join(" ")))
 }
 

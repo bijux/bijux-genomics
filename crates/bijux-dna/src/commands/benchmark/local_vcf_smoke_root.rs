@@ -2,9 +2,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_api::v1::api::run::run_command_with_context;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
@@ -205,15 +205,17 @@ fn build_run_id(repo_revision: &str, corpus_id: &str, rows: &[LocalVcfSmokeRootR
 }
 
 fn git_stdout(repo_root: &Path, args: &[&str]) -> Result<String> {
-    let output = Command::new("git")
-        .current_dir(repo_root)
-        .args(args)
-        .output()
-        .with_context(|| format!("run git {}", args.join(" ")))?;
-    if !output.status.success() {
-        bail!("git {} failed: {}", args.join(" "), String::from_utf8_lossy(&output.stderr).trim());
+    let output = run_command_with_context(
+        "git",
+        &args.iter().map(|arg| (*arg).to_string()).collect::<Vec<_>>(),
+        Some(repo_root),
+        None,
+    )
+    .with_context(|| format!("run git {}", args.join(" ")))?;
+    if output.exit_code != 0 {
+        bail!("git {} failed: {}", args.join(" "), output.stderr.trim());
     }
-    Ok(String::from_utf8(output.stdout).context("decode git stdout")?.trim().to_string())
+    Ok(output.stdout.trim().to_string())
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {

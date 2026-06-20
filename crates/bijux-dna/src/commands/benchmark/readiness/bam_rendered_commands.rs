@@ -1,9 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_api::v1::api::run::run_command_with_context;
 use serde::Serialize;
 
 use super::all_domain_active_stage_tool_matrix::collect_all_domain_active_stage_tool_matrix_rows;
@@ -331,17 +331,15 @@ fn render_bam_command_argv_jsonl(rows: &[BamRenderedCommandRow]) -> Result<Strin
 }
 
 fn validate_bash_syntax(script_path: &Path) -> Result<()> {
-    let output = Command::new("bash")
-        .arg("-n")
-        .arg(script_path)
-        .output()
-        .with_context(|| format!("run bash -n {}", script_path.display()))?;
-    if !output.status.success() {
-        bail!(
-            "bash -n failed for {}: {}",
-            script_path.display(),
-            String::from_utf8_lossy(&output.stderr)
-        );
+    let output = run_command_with_context(
+        "bash",
+        &["-n".to_string(), script_path.display().to_string()],
+        None,
+        None,
+    )
+    .with_context(|| format!("run bash -n {}", script_path.display()))?;
+    if output.exit_code != 0 {
+        bail!("bash -n failed for {}: {}", script_path.display(), output.stderr);
     }
     Ok(())
 }

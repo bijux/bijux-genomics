@@ -1,10 +1,10 @@
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 use std::time::Duration;
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_api::v1::api::run::run_command;
 use serde::Serialize;
 
 use super::tool_smoke_support::{
@@ -434,13 +434,7 @@ fn smoke_command_env(
 }
 
 fn command_on_path(program: &str) -> bool {
-    Command::new(program)
-        .arg("--version")
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()
-        .is_ok()
+    run_command(program, &["--version".to_string()]).is_ok()
 }
 
 fn parse_requested_tools(requested_tools: Option<&str>) -> BTreeSet<String> {

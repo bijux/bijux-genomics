@@ -1,7 +1,7 @@
 use std::path::Path;
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::run::run_command_with_context;
 use serde::Serialize;
 
 use super::readiness::all_domain_rendered_commands::collect_all_domain_rendered_command_rows;
@@ -114,21 +114,22 @@ fn execute_script_commands(repo_root: &Path, commands: &[String]) -> Result<()> 
 }
 
 fn run_shell_command(repo_root: &Path, command: &str) -> Result<()> {
-    let output = Command::new("sh")
-        .current_dir(repo_root)
-        .arg("-c")
-        .arg(command)
-        .output()
-        .with_context(|| format!("run shell command `{command}`"))?;
-    if output.status.success() {
+    let output = run_command_with_context(
+        "sh",
+        &["-c".to_string(), command.to_string()],
+        Some(repo_root),
+        None,
+    )
+    .with_context(|| format!("run shell command `{command}`"))?;
+    if output.exit_code == 0 {
         Ok(())
     } else {
         Err(anyhow!(
             "shell command failed with status {}: {}\nstdout:\n{}\nstderr:\n{}",
-            output.status.code().map_or_else(|| "signal".to_string(), |value| value.to_string()),
+            output.exit_code,
             command,
-            String::from_utf8_lossy(&output.stdout),
-            String::from_utf8_lossy(&output.stderr)
+            output.stdout,
+            output.stderr
         ))
     }
 }

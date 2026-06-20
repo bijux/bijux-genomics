@@ -1,8 +1,8 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_api::v1::api::run::{run_command_with_context, CommandOutputV1};
 use serde::Serialize;
 
 use crate::commands::cli::parse;
@@ -345,23 +345,8 @@ fn delete_disposable_root(
 }
 
 fn remove_directory_tree(path: &Path) -> Result<()> {
-    #[cfg(unix)]
-    {
-        let status = Command::new("rm")
-            .arg("-rf")
-            .arg(path)
-            .status()
-            .with_context(|| format!("remove directory {}", path.display()))?;
-        if !status.success() {
-            bail!("remove directory {} returned {}", path.display(), status);
-        }
-        Ok(())
-    }
-    #[cfg(not(unix))]
-    {
-        std::fs::remove_dir_all(path)
-            .with_context(|| format!("remove directory {}", path.display()))
-    }
+    bijux_dna_infra::remove_dir_all(path)
+        .with_context(|| format!("remove directory {}", path.display()))
 }
 
 fn legacy_fixture_wrapper_status(
@@ -558,26 +543,17 @@ fn collect_readiness_snapshots_recursive(
 }
 
 fn git_list_tracked_paths(repo_root: &Path) -> Result<BTreeSet<String>> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repo_root)
-        .args(["ls-files", "-z"])
-        .output()
+    let output = run_git(repo_root, &["ls-files", "-z"])
         .with_context(|| format!("run git ls-files for {}", repo_root.display()))?;
-    if !output.status.success() {
+    if output.exit_code != 0 {
         return Err(anyhow!(
             "git ls-files returned {} for {}: {}",
-            output.status,
+            output.exit_code,
             repo_root.display(),
-            String::from_utf8_lossy(&output.stderr).trim()
+            output.stderr.trim()
         ));
     }
-    Ok(output
-        .stdout
-        .split(|byte| *byte == b'\0')
-        .filter(|path| !path.is_empty())
-        .map(|path| String::from_utf8_lossy(path).into_owned())
-        .collect())
+    Ok(output.stdout.split('\0').filter(|path| !path.is_empty()).map(ToOwned::to_owned).collect())
 }
 
 fn count_regular_files_without_following_symlinks(path: &Path) -> Result<usize> {
@@ -602,41 +578,39 @@ fn count_regular_files_without_following_symlinks(path: &Path) -> Result<usize> 
 }
 
 fn git_check_ignored(repo_root: &Path, relative_path: &str) -> Result<bool> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repo_root)
-        .args(["check-ignore", "-q", "--no-index", relative_path])
-        .output()
+    let output = run_git(repo_root, &["check-ignore", "-q", "--no-index", relative_path])
         .with_context(|| format!("run git check-ignore for {relative_path}"))?;
-    match output.status.code() {
-        Some(0) => Ok(true),
-        Some(1) => Ok(false),
-        Some(code) => Err(anyhow!(
+    match output.exit_code {
+        0 => Ok(true),
+        1 => Ok(false),
+        code => Err(anyhow!(
             "git check-ignore returned {code} for {relative_path}: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
+            output.stderr.trim()
         )),
-        None => {
-            Err(anyhow!("git check-ignore terminated without an exit code for {relative_path}"))
-        }
     }
 }
 
 fn git_check_tracked(repo_root: &Path, relative_path: &str) -> Result<bool> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repo_root)
-        .args(["ls-files", "--error-unmatch", relative_path])
-        .output()
+    let output = run_git(repo_root, &["ls-files", "--error-unmatch", relative_path])
         .with_context(|| format!("run git ls-files for {relative_path}"))?;
-    match output.status.code() {
-        Some(0) => Ok(true),
-        Some(1) => Ok(false),
-        Some(code) => Err(anyhow!(
+    match output.exit_code {
+        0 => Ok(true),
+        1 => Ok(false),
+        code => Err(anyhow!(
             "git ls-files returned {code} for {relative_path}: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
+            output.stderr.trim()
         )),
-        None => Err(anyhow!("git ls-files terminated without an exit code for {relative_path}")),
     }
+}
+
+fn run_git(repo_root: &Path, args: &[&str]) -> Result<CommandOutputV1> {
+    run_command_with_context(
+        "git",
+        &args.iter().map(|arg| (*arg).to_string()).collect::<Vec<_>>(),
+        Some(repo_root),
+        None,
+    )
+    .with_context(|| format!("run git {}", args.join(" ")))
 }
 
 #[cfg(test)]
@@ -656,45 +630,20 @@ mod tests {
     }
 
     fn init_repo(root: &Path) {
-        let output = std::process::Command::new("git")
-            .arg("-C")
-            .arg(root)
-            .args(["init", "-q"])
-            .output()
-            .expect("git init");
-        assert!(
-            output.status.success(),
-            "git init failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        let output = std::process::Command::new("git")
-            .arg("-C")
-            .arg(root)
-            .args(["config", "user.email", "benchmarks@example.test"])
-            .output()
+        let output = super::run_git(root, &["init", "-q"]).expect("git init");
+        assert!(output.exit_code == 0, "git init failed: {}", output.stderr);
+        let output = super::run_git(root, &["config", "user.email", "benchmarks@example.test"])
             .expect("git config user.email");
-        assert!(output.status.success());
-        let output = std::process::Command::new("git")
-            .arg("-C")
-            .arg(root)
-            .args(["config", "user.name", "benchmarks"])
-            .output()
+        assert_eq!(output.exit_code, 0);
+        let output = super::run_git(root, &["config", "user.name", "benchmarks"])
             .expect("git config user.name");
-        assert!(output.status.success());
+        assert_eq!(output.exit_code, 0);
     }
 
     fn stage_all(root: &Path) {
-        let output = std::process::Command::new("git")
-            .arg("-C")
-            .arg(root)
-            .args(["add", "benchmarks", "tests", ".gitignore"])
-            .output()
-            .expect("git add");
-        assert!(
-            output.status.success(),
-            "git add failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
+        let output =
+            super::run_git(root, &["add", "benchmarks", "tests", ".gitignore"]).expect("git add");
+        assert!(output.exit_code == 0, "git add failed: {}", output.stderr);
     }
 
     fn write_benchmark_root(root: &Path) {
