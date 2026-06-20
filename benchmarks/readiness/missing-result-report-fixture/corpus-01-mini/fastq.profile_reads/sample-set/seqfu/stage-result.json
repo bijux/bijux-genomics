@@ -22,38 +22,6 @@
   },
   "outputs": [
     {
-      "artifact_id": "report_json",
-      "declared_path": "outputs/report_json.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.profile_reads/sample-set/seqfu/outputs/report_json.json",
-      "role": "benchmark_output",
-      "optional": false,
-      "exists": true
-    },
-    {
-      "artifact_id": "length_distribution_tsv",
-      "declared_path": "outputs/length_distribution_tsv.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.profile_reads/sample-set/seqfu/outputs/length_distribution_tsv.json",
-      "role": "benchmark_output",
-      "optional": false,
-      "exists": true
-    },
-    {
-      "artifact_id": "length_distribution_json",
-      "declared_path": "outputs/length_distribution_json.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.profile_reads/sample-set/seqfu/outputs/length_distribution_json.json",
-      "role": "benchmark_output",
-      "optional": false,
-      "exists": true
-    },
-    {
-      "artifact_id": "normalized_abundance_tsv",
-      "declared_path": "outputs/normalized_abundance_tsv.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.profile_reads/sample-set/seqfu/outputs/normalized_abundance_tsv.json",
-      "role": "benchmark_output",
-      "optional": false,
-      "exists": true
-    },
-    {
       "artifact_id": "qc_json",
       "declared_path": "outputs/qc_json.json",
       "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.profile_reads/sample-set/seqfu/outputs/qc_json.json",
