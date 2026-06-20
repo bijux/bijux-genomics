@@ -38,7 +38,7 @@ fn run_cli_json_with_repo_root(args: &[&str]) -> (PathBuf, serde_json::Value) {
 }
 
 #[test]
-fn bench_readiness_all_domain_missing_result_test_writes_governed_report_and_fixture_tree() {
+fn bench_readiness_all_domain_missing_result_audit_writes_governed_report_and_fixture_tree() {
     let (repo_root, payload) = run_cli_json_with_repo_root(&[
         "bench",
         "readiness",

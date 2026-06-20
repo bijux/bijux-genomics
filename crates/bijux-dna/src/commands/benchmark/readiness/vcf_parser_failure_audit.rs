@@ -15,7 +15,7 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH: &str =
     "benchmarks/readiness/vcf-parser-failure-tests.json";
 const VCF_PARSER_FAILURE_TESTS_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.vcf_parser_failure_tests.v1";
+    "bijux.bench.readiness.vcf_parser_failure_audit.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct VcfParserFailureTestRow {
@@ -139,11 +139,11 @@ const VCF_PARSER_FAILURE_CASES: &[VcfParserFailureCase] = &[
     },
 ];
 
-pub(crate) fn run_render_vcf_parser_failure_tests(
+pub(crate) fn run_render_vcf_parser_failure_audit(
     args: &parse::BenchReadinessRenderVcfParserFailureTestsArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let report = render_vcf_parser_failure_tests(
+    let report = render_vcf_parser_failure_audit(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH)),
     )?;
@@ -155,7 +155,7 @@ pub(crate) fn run_render_vcf_parser_failure_tests(
     Ok(())
 }
 
-pub(crate) fn render_vcf_parser_failure_tests(
+pub(crate) fn render_vcf_parser_failure_audit(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<VcfParserFailureTestsReport> {
@@ -387,7 +387,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        render_vcf_parser_failure_tests, DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH,
+        render_vcf_parser_failure_audit, DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH,
         VCF_PARSER_FAILURE_TESTS_SCHEMA_VERSION,
     };
 
@@ -399,9 +399,9 @@ mod tests {
     }
 
     #[test]
-    fn render_vcf_parser_failure_tests_reports_governed_case_set() {
+    fn render_vcf_parser_failure_audit_reports_governed_case_set() {
         let root = repo_root();
-        let report = render_vcf_parser_failure_tests(
+        let report = render_vcf_parser_failure_audit(
             &root,
             PathBuf::from(DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH),
         )

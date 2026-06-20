@@ -1,4 +1,4 @@
-use super::super::test_selection::governed_slow_expression;
+use super::super::suite_selection::governed_slow_expression;
 use super::{
     artifact_env, artifact_root_path, ci_test_env, ensure_help_only, env_or_default, fs,
     merge_outcomes, read_coverage_runner_flag, resolved_nextest_expression,

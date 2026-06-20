@@ -14,12 +14,12 @@ use super::all_domain_stage_tool_table::{
     render_all_domain_stage_tool_table, AllDomainStageToolTableReport,
     DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH,
 };
-use super::vcf_adapter_missing_input_tests::{
-    render_vcf_adapter_missing_input_tests, VcfAdapterMissingInputTestsReport,
+use super::vcf_adapter_missing_input_audit::{
+    render_vcf_adapter_missing_input_audit, VcfAdapterMissingInputTestsReport,
     DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH,
 };
-use super::vcf_parser_failure_tests::{
-    render_vcf_parser_failure_tests, VcfParserFailureTestsReport,
+use super::vcf_parser_failure_audit::{
+    render_vcf_parser_failure_audit, VcfParserFailureTestsReport,
     DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH,
 };
 use crate::commands::benchmark::local_stage_fake_runs::path_relative_to_repo;
@@ -168,11 +168,11 @@ fn collect_all_domain_failure_classification_rows(
     repo_root: &Path,
     fixture_root: &Path,
 ) -> Result<Vec<AllDomainFailureClassificationRow>> {
-    let missing_input_report = render_vcf_adapter_missing_input_tests(
+    let missing_input_report = render_vcf_adapter_missing_input_audit(
         repo_root,
         PathBuf::from(DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH),
     )?;
-    let parser_failure_report = render_vcf_parser_failure_tests(
+    let parser_failure_report = render_vcf_parser_failure_audit(
         repo_root,
         PathBuf::from(DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH),
     )?;
@@ -207,7 +207,7 @@ fn classify_missing_input(
         stage_id: row.stage_id.clone(),
         tool_id: row.tool_id.clone(),
         result_id: None,
-        source_surface: "vcf_adapter_missing_input_tests".to_string(),
+        source_surface: "vcf_adapter_missing_input_audit".to_string(),
         evidence_path: row.artifact_path.clone(),
         observed_status: if row.passed {
             "missing_input".to_string()
@@ -409,7 +409,7 @@ fn classify_parser_failed(
         stage_id: row.stage_id.clone(),
         tool_id: row.tool_id.clone(),
         result_id: None,
-        source_surface: "vcf_parser_failure_tests".to_string(),
+        source_surface: "vcf_parser_failure_audit".to_string(),
         evidence_path: row.probe_artifact_path.clone(),
         observed_status: if row.passed {
             "parser_failed".to_string()

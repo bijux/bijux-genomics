@@ -36,12 +36,12 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_output_contract_tests_report_governs_all_retained_bindings() {
+fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() {
     let payload = run_cli_json(&["bench", "readiness", "render-output-contract-tests", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.output_contract_tests.v1")
+        Some("bijux.bench.readiness.output_contract_audit.v1")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -115,7 +115,7 @@ fn bench_readiness_output_contract_tests_report_governs_all_retained_bindings() 
 }
 
 #[test]
-fn bench_readiness_output_contract_tests_write_governed_json_file() {
+fn bench_readiness_output_contract_audit_write_governed_json_file() {
     let output = run_cli(&["bench", "readiness", "render-output-contract-tests"]);
     assert!(
         output.status.success(),
@@ -137,7 +137,7 @@ fn bench_readiness_output_contract_tests_write_governed_json_file() {
             .expect("parse report json");
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.output_contract_tests.v1")
+        Some("bijux.bench.readiness.output_contract_audit.v1")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(141));
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));

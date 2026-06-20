@@ -34,12 +34,12 @@ fn run_cli_json() -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_input_preflight_tests_report_governed_retained_tool_coverage() {
+fn bench_readiness_input_preflight_audit_report_governed_retained_tool_coverage() {
     let payload = run_cli_json();
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.input_preflight_tests.v1")
+        Some("bijux.bench.readiness.input_preflight_audit.v1")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -147,7 +147,7 @@ fn bench_readiness_input_preflight_tests_report_governed_retained_tool_coverage(
 }
 
 #[test]
-fn bench_readiness_input_preflight_tests_write_governed_json_file() {
+fn bench_readiness_input_preflight_audit_write_governed_json_file() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
@@ -183,7 +183,7 @@ fn bench_readiness_input_preflight_tests_write_governed_json_file() {
             .expect("parse report json");
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.input_preflight_tests.v1")
+        Some("bijux.bench.readiness.input_preflight_audit.v1")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(258));
     assert_eq!(payload.get("covered_tool_count").and_then(serde_json::Value::as_u64), Some(71));

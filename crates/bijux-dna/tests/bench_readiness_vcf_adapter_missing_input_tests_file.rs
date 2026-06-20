@@ -6,7 +6,7 @@ use std::process::Command;
 mod support;
 
 #[test]
-fn bench_readiness_vcf_adapter_missing_input_tests_writes_governed_json_file() {
+fn bench_readiness_vcf_adapter_missing_input_audit_writes_governed_json_file() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
@@ -39,7 +39,7 @@ fn bench_readiness_vcf_adapter_missing_input_tests_writes_governed_json_file() {
             .expect("parse report json");
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.vcf_adapter_missing_input_tests.v1")
+        Some("bijux.bench.readiness.vcf_adapter_missing_input_audit.v1")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(10));
 

@@ -15,8 +15,8 @@ use super::all_domain_expected_benchmark_results::{
 use super::all_domain_failure_classification::{
     render_all_domain_failure_classification, DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH,
 };
-use super::all_domain_missing_result_test::{
-    render_all_domain_missing_result_test, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH,
+use super::all_domain_missing_result_audit::{
+    render_all_domain_missing_result_audit, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH,
 };
 use super::all_domain_output_declarations::{
     render_all_domain_output_declarations, AllDomainOutputDeclarationsReport,
@@ -430,7 +430,7 @@ pub(crate) fn render_all_domain_local_harness_complete(
         "all-domain missing-result test",
         Some(DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH.to_string()),
         || {
-            let report = render_all_domain_missing_result_test(
+            let report = render_all_domain_missing_result_audit(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH),
             )?;
@@ -586,7 +586,7 @@ fn validate_all_domain_harness_alignment(
     fake_failures_report: &crate::commands::benchmark::local_all_domain_fake_failures::AllDomainFakeFailuresManifest,
     completion_check_report: &crate::commands::benchmark::readiness::all_domain_completion_check::AllDomainCompletionCheckReport,
     parser_collector_report: &AllDomainParserCollectorReport,
-    missing_result_report: &crate::commands::benchmark::readiness::all_domain_missing_result_test::AllDomainMissingResultTestReport,
+    missing_result_report: &crate::commands::benchmark::readiness::all_domain_missing_result_audit::AllDomainMissingResultTestReport,
 ) -> Result<()> {
     let expected_result_ids = expected_results_report
         .rows

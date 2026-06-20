@@ -37,12 +37,12 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_parser_failure_tests_report_structures_parser_errors() {
+fn bench_readiness_parser_failure_audit_report_structures_parser_errors() {
     let payload = run_cli_json(&["bench", "readiness", "render-parser-failure-tests", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.parser_failure_tests.v1")
+        Some("bijux.bench.readiness.parser_failure_audit.v1")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),

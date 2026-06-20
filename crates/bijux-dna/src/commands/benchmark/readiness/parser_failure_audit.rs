@@ -16,7 +16,7 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_PARSER_FAILURE_TESTS_PATH: &str =
     "benchmarks/readiness/parser-failure-tests.json";
-const PARSER_FAILURE_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.parser_failure_tests.v1";
+const PARSER_FAILURE_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.parser_failure_audit.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct ParserFailureTestRow {
@@ -43,11 +43,11 @@ pub(crate) struct ParserFailureTestsReport {
     pub(crate) rows: Vec<ParserFailureTestRow>,
 }
 
-pub(crate) fn run_render_parser_failure_tests(
+pub(crate) fn run_render_parser_failure_audit(
     args: &parse::BenchReadinessRenderParserFailureTestsArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let report = render_parser_failure_tests(
+    let report = render_parser_failure_audit(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_PARSER_FAILURE_TESTS_PATH)),
     )?;
@@ -59,7 +59,7 @@ pub(crate) fn run_render_parser_failure_tests(
     Ok(())
 }
 
-pub(crate) fn render_parser_failure_tests(
+pub(crate) fn render_parser_failure_audit(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<ParserFailureTestsReport> {
@@ -179,7 +179,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        render_parser_failure_tests, DEFAULT_PARSER_FAILURE_TESTS_PATH,
+        render_parser_failure_audit, DEFAULT_PARSER_FAILURE_TESTS_PATH,
         PARSER_FAILURE_TESTS_SCHEMA_VERSION,
     };
 
@@ -191,10 +191,10 @@ mod tests {
     }
 
     #[test]
-    fn render_parser_failure_tests_reports_structured_missing_empty_and_malformed_rows() {
+    fn render_parser_failure_audit_reports_structured_missing_empty_and_malformed_rows() {
         let root = repo_root();
         let report =
-            render_parser_failure_tests(&root, PathBuf::from(DEFAULT_PARSER_FAILURE_TESTS_PATH))
+            render_parser_failure_audit(&root, PathBuf::from(DEFAULT_PARSER_FAILURE_TESTS_PATH))
                 .expect("render parser failure tests");
 
         assert_eq!(report.schema_version, PARSER_FAILURE_TESTS_SCHEMA_VERSION);

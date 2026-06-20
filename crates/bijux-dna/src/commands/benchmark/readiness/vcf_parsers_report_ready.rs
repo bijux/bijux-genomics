@@ -15,8 +15,8 @@ use super::vcf_missing_result_report::{
     render_vcf_missing_result_report, DEFAULT_VCF_MISSING_RESULT_REPORT_TEST_PATH,
 };
 use super::vcf_normalized_metrics_schema::render_vcf_normalized_metrics_schema;
-use super::vcf_parser_failure_tests::{
-    render_vcf_parser_failure_tests, DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH,
+use super::vcf_parser_failure_audit::{
+    render_vcf_parser_failure_audit, DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH,
 };
 use super::vcf_parser_fixture_coverage::{
     render_vcf_parser_fixture_coverage, DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH,
@@ -275,7 +275,7 @@ pub(crate) fn render_vcf_parsers_report_ready(
         "vcf parser failure tests",
         Some(DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH.to_string()),
         || {
-            let report = render_vcf_parser_failure_tests(
+            let report = render_vcf_parser_failure_audit(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH),
             )?;

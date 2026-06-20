@@ -12,11 +12,11 @@ use super::executable_resolution::{
     render_executable_resolution, DEFAULT_EXECUTABLE_RESOLUTION_PATH,
 };
 use super::host_tool_smoke::DEFAULT_HOST_TOOL_SMOKE_ROOT;
-use super::input_preflight_tests::{
-    render_input_preflight_tests, DEFAULT_INPUT_PREFLIGHT_TESTS_PATH,
+use super::input_preflight_audit::{
+    render_input_preflight_audit, DEFAULT_INPUT_PREFLIGHT_TESTS_PATH,
 };
-use super::output_contract_tests::{
-    render_output_contract_tests, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
+use super::output_contract_audit::{
+    render_output_contract_audit, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
 };
 use super::real_output_parser_smoke::{
     render_real_output_parser_smoke, DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH,
@@ -204,7 +204,7 @@ pub(crate) fn render_retained_toolset_executable_local(
         "retained_tool_input_preflight",
         Some(DEFAULT_INPUT_PREFLIGHT_TESTS_PATH.to_string()),
         || {
-            let report = render_input_preflight_tests(
+            let report = render_input_preflight_audit(
                 repo_root,
                 PathBuf::from(DEFAULT_INPUT_PREFLIGHT_TESTS_PATH),
             )?;
@@ -220,7 +220,7 @@ pub(crate) fn render_retained_toolset_executable_local(
         "retained_tool_output_contracts",
         Some(DEFAULT_OUTPUT_CONTRACT_TESTS_PATH.to_string()),
         || {
-            let report = render_output_contract_tests(
+            let report = render_output_contract_audit(
                 repo_root,
                 PathBuf::from(DEFAULT_OUTPUT_CONTRACT_TESTS_PATH),
             )?;

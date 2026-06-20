@@ -12,7 +12,7 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_ADAPTER_MISSING_INPUT_TESTS_PATH: &str =
     "benchmarks/readiness/adapter-missing-input-tests.json";
 const ADAPTER_MISSING_INPUT_TESTS_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.adapter_missing_input_tests.v1";
+    "bijux.bench.readiness.adapter_missing_input_audit.v1";
 const FASTQ_DOMAIN: &str = "fastq";
 const BAM_DOMAIN: &str = "bam";
 const PROBE_KIND_LOCAL_READY: &str = "local_ready";
@@ -54,11 +54,11 @@ struct AdapterMissingInputProbe {
     expected_error_fragment: &'static str,
 }
 
-pub(crate) fn run_render_adapter_missing_input_tests(
+pub(crate) fn run_render_adapter_missing_input_audit(
     args: &parse::BenchReadinessRenderAdapterMissingInputTestsArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let report = render_adapter_missing_input_tests(
+    let report = render_adapter_missing_input_audit(
         &repo_root,
         args.output
             .clone()
@@ -72,7 +72,7 @@ pub(crate) fn run_render_adapter_missing_input_tests(
     Ok(())
 }
 
-pub(crate) fn render_adapter_missing_input_tests(
+pub(crate) fn render_adapter_missing_input_audit(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<AdapterMissingInputTestsReport> {

@@ -34,12 +34,12 @@ fn run_cli_json() -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_vcf_adapter_missing_input_tests_report_governed_roles() {
+fn bench_readiness_vcf_adapter_missing_input_audit_report_governed_roles() {
     let payload = run_cli_json();
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.vcf_adapter_missing_input_tests.v1")
+        Some("bijux.bench.readiness.vcf_adapter_missing_input_audit.v1")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),

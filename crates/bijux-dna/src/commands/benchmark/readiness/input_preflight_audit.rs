@@ -17,7 +17,7 @@ use super::all_domain_active_stage_tool_matrix::{
 };
 use super::all_domain_retained_tools::collect_all_domain_retained_tool_rows;
 use super::stage_tool_assets::{collect_stage_tool_asset_rows, StageToolAssetRow};
-use super::vcf_adapter_missing_input_tests::render_vcf_adapter_missing_input_tests;
+use super::vcf_adapter_missing_input_audit::render_vcf_adapter_missing_input_audit;
 use super::vcf_angsd_adapter::render_vcf_angsd_adapter;
 use super::vcf_bcftools_adapter::render_vcf_bcftools_adapter;
 use super::vcf_descent_family_adapter::render_vcf_descent_family_adapter;
@@ -32,7 +32,7 @@ use bijux_dna_stage_contract::StagePlanV1;
 
 pub(crate) const DEFAULT_INPUT_PREFLIGHT_TESTS_PATH: &str =
     "benchmarks/readiness/tools/input-preflight-tests.json";
-const INPUT_PREFLIGHT_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.input_preflight_tests.v1";
+const INPUT_PREFLIGHT_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.input_preflight_audit.v1";
 const REQUIRED_INPUT_CLASSES: [&str; 6] = ["fastq", "bam", "vcf", "reference", "database", "panel"];
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -103,11 +103,11 @@ struct LocalCaseConfig {
     cases: Vec<LocalCaseInputs>,
 }
 
-pub(crate) fn run_render_input_preflight_tests(
+pub(crate) fn run_render_input_preflight_audit(
     args: &parse::BenchReadinessRenderInputPreflightTestsArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let report = render_input_preflight_tests(
+    let report = render_input_preflight_audit(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_INPUT_PREFLIGHT_TESTS_PATH)),
     )?;
@@ -119,7 +119,7 @@ pub(crate) fn run_render_input_preflight_tests(
     Ok(())
 }
 
-pub(crate) fn render_input_preflight_tests(
+pub(crate) fn render_input_preflight_audit(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<InputPreflightTestsReport> {
@@ -730,7 +730,7 @@ fn collect_vcf_input_preflight_rows(repo_root: &Path) -> Result<Vec<InputPreflig
         )
     }));
 
-    let support_report = render_vcf_adapter_missing_input_tests(
+    let support_report = render_vcf_adapter_missing_input_audit(
         repo_root,
         temp_root.join("adapter-missing-input-support.json"),
     )?;

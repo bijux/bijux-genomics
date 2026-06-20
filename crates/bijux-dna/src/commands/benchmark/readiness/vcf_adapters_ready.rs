@@ -6,8 +6,8 @@ use bijux_dna_api::v1::api::run::run_command_with_context;
 use serde::Serialize;
 
 use super::vcf_active_stage_tool_matrix::collect_vcf_active_stage_tool_matrix_rows;
-use super::vcf_adapter_missing_input_tests::{
-    render_vcf_adapter_missing_input_tests, DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH,
+use super::vcf_adapter_missing_input_audit::{
+    render_vcf_adapter_missing_input_audit, DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH,
 };
 use super::vcf_adapter_output_coverage::{
     render_vcf_adapter_output_coverage, VcfAdapterOutputCoverageStatus,
@@ -517,7 +517,7 @@ pub(crate) fn render_vcf_adapters_ready(
         "vcf adapter missing-input tests",
         Some(DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH.to_string()),
         || {
-            let report = render_vcf_adapter_missing_input_tests(
+            let report = render_vcf_adapter_missing_input_audit(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH),
             )?;

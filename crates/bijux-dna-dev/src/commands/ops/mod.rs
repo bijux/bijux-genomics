@@ -24,7 +24,7 @@ mod execution_support;
 mod hpc;
 mod lab;
 mod smoke;
-mod test_selection;
+mod suite_selection;
 mod tooling;
 mod toy_support;
 mod verification;
@@ -44,7 +44,7 @@ use self::execution_support::{
     env_flag, read_json_value, read_utf8, run_program, run_program_with_env, run_programs_with_env,
     walk_file_list, write_json_pretty, write_utf8,
 };
-use self::test_selection::governed_fast_expression;
+use self::suite_selection::governed_fast_expression;
 use self::toy_support::{
     build_combined_toy_report, compare_toy_goldens, copy_dir_all, generate_toy_profile,
     temp_subdir, toy_profile_id, verify_toy_inputs,

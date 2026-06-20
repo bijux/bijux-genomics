@@ -27,7 +27,7 @@ pub(crate) const DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH: &str =
 const DEFAULT_ALL_DOMAIN_MISSING_RESULT_FIXTURE_ROOT: &str =
     "runs/bench/readiness-probes/all-domains/missing-result-test";
 const ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_missing_result_test.v1";
+    "bijux.bench.readiness.all_domain_missing_result_audit.v1";
 
 const FASTQ_REMOVED_RESULT_ID: &str =
     "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2";
@@ -81,12 +81,12 @@ struct AllDomainMissingResultFixture {
     removed_manifest_paths: Vec<PathBuf>,
 }
 
-pub(crate) fn run_render_all_domain_missing_result_test(
+pub(crate) fn run_render_all_domain_missing_result_audit(
     args: &parse::BenchReadinessRenderAllDomainMissingResultTestArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
-    let report = render_all_domain_missing_result_test(
+    let report = render_all_domain_missing_result_audit(
         &repo_root,
         args.output.clone().unwrap_or_else(|| {
             benchmark_paths.benchmark_readiness_root().join("missing-result-test-all-domains.json")
@@ -100,7 +100,7 @@ pub(crate) fn run_render_all_domain_missing_result_test(
     Ok(())
 }
 
-pub(crate) fn render_all_domain_missing_result_test(
+pub(crate) fn render_all_domain_missing_result_audit(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<AllDomainMissingResultTestReport> {
@@ -438,7 +438,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        render_all_domain_missing_result_test, AllDomainMissingResultStatus,
+        render_all_domain_missing_result_audit, AllDomainMissingResultStatus,
         ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION, BAM_REMOVED_RESULT_ID,
         DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH, FASTQ_REMOVED_RESULT_ID,
         VCF_REMOVED_RESULT_ID,
@@ -470,10 +470,10 @@ mod tests {
     }
 
     #[test]
-    fn all_domain_missing_result_test_tracks_removed_rows_per_domain() {
+    fn all_domain_missing_result_audit_tracks_removed_rows_per_domain() {
         let root = repo_root();
         let _cwd_guard = CurrentDirGuard::change_to(&root);
-        let report = render_all_domain_missing_result_test(
+        let report = render_all_domain_missing_result_audit(
             &root,
             PathBuf::from(DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH),
         )

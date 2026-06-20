@@ -35,13 +35,13 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_missing_result_test_tracks_three_governed_missing_rows() {
+fn bench_readiness_all_domain_missing_result_audit_tracks_three_governed_missing_rows() {
     let payload =
         run_cli_json(&["bench", "readiness", "render-all-domain-missing-result-test", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.all_domain_missing_result_test.v1")
+        Some("bijux.bench.readiness.all_domain_missing_result_audit.v1")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),

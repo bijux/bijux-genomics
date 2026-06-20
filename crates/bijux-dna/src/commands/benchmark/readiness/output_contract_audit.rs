@@ -40,7 +40,7 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_OUTPUT_CONTRACT_TESTS_PATH: &str =
     "benchmarks/readiness/tools/output-contract-tests.json";
-const OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.output_contract_tests.v1";
+const OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.output_contract_audit.v1";
 const PROOF_SURFACE_SHARED_STAGE_SMOKE: &str = "shared_stage_smoke";
 const PROOF_SURFACE_DIRECT_TOOL_SMOKE: &str = "direct_tool_smoke";
 const PROOF_SURFACE_DIRECT_DECLARED_OUTPUT_PROOF: &str = "direct_declared_output_proof";
@@ -152,11 +152,11 @@ struct FastqBamDeclaredOutputBundle {
     result_ids: Vec<String>,
 }
 
-pub(crate) fn run_render_output_contract_tests(
+pub(crate) fn run_render_output_contract_audit(
     args: &parse::BenchReadinessRenderOutputContractTestsArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let report = render_output_contract_tests(
+    let report = render_output_contract_audit(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_OUTPUT_CONTRACT_TESTS_PATH)),
     )?;
@@ -168,12 +168,12 @@ pub(crate) fn run_render_output_contract_tests(
     Ok(())
 }
 
-pub(crate) fn render_output_contract_tests(
+pub(crate) fn render_output_contract_audit(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<OutputContractTestsReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
-    let report = build_output_contract_tests_report(repo_root, &output_path)?;
+    let report = build_output_contract_audit_report(repo_root, &output_path)?;
     if let Some(parent) = output_path.parent() {
         std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
@@ -187,7 +187,7 @@ pub(crate) fn render_output_contract_tests(
     Ok(report)
 }
 
-fn build_output_contract_tests_report(
+fn build_output_contract_audit_report(
     repo_root: &Path,
     output_path: &Path,
 ) -> Result<OutputContractTestsReport> {
@@ -1026,7 +1026,7 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::path::PathBuf;
 
-    use super::{build_output_contract_tests_report, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH};
+    use super::{build_output_contract_audit_report, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH};
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -1036,15 +1036,15 @@ mod tests {
     }
 
     #[test]
-    fn build_output_contract_tests_report_records_governed_proof_surfaces() {
+    fn build_output_contract_audit_report_records_governed_proof_surfaces() {
         let root = repo_root();
-        let report = build_output_contract_tests_report(
+        let report = build_output_contract_audit_report(
             &root,
             &root.join(DEFAULT_OUTPUT_CONTRACT_TESTS_PATH),
         )
         .expect("build output contract tests report");
 
-        assert_eq!(report.schema_version, "bijux.bench.readiness.output_contract_tests.v1");
+        assert_eq!(report.schema_version, "bijux.bench.readiness.output_contract_audit.v1");
         assert_eq!(report.output_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH);
         assert_eq!(report.row_count, 141);
         assert!(report.passed_row_count > 0, "report should keep real passing rows");

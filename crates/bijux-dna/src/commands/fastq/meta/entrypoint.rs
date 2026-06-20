@@ -181,7 +181,7 @@ pub(crate) fn handle_meta_commands(
                 }
                 BenchCommand::Readiness { command } => match command {
                     cli::BenchReadinessCommand::RenderAdapterMissingInputTests(args) => {
-                        crate::commands::benchmark::readiness::adapter_missing_input_tests::run_render_adapter_missing_input_tests(
+                        crate::commands::benchmark::readiness::adapter_missing_input_audit::run_render_adapter_missing_input_audit(
                             args,
                         )?;
                     }
@@ -466,7 +466,7 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderParserFailureTests(args) => {
-                        crate::commands::benchmark::readiness::parser_failure_tests::run_render_parser_failure_tests(
+                        crate::commands::benchmark::readiness::parser_failure_audit::run_render_parser_failure_audit(
                             args,
                         )?;
                     }
@@ -601,7 +601,7 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderAllDomainMissingResultTest(args) => {
-                        crate::commands::benchmark::readiness::all_domain_missing_result_test::run_render_all_domain_missing_result_test(
+                        crate::commands::benchmark::readiness::all_domain_missing_result_audit::run_render_all_domain_missing_result_audit(
                             args,
                         )?;
                     }
@@ -721,12 +721,12 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderInputPreflightTests(args) => {
-                        crate::commands::benchmark::readiness::input_preflight_tests::run_render_input_preflight_tests(
+                        crate::commands::benchmark::readiness::input_preflight_audit::run_render_input_preflight_audit(
                             args,
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderOutputContractTests(args) => {
-                        crate::commands::benchmark::readiness::output_contract_tests::run_render_output_contract_tests(
+                        crate::commands::benchmark::readiness::output_contract_audit::run_render_output_contract_audit(
                             args,
                         )?;
                     }
@@ -806,12 +806,12 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderVcfParserFailureTests(args) => {
-                        crate::commands::benchmark::readiness::vcf_parser_failure_tests::run_render_vcf_parser_failure_tests(
+                        crate::commands::benchmark::readiness::vcf_parser_failure_audit::run_render_vcf_parser_failure_audit(
                             args,
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderVcfAdapterMissingInputTests(args) => {
-                        crate::commands::benchmark::readiness::vcf_adapter_missing_input_tests::run_render_vcf_adapter_missing_input_tests(
+                        crate::commands::benchmark::readiness::vcf_adapter_missing_input_audit::run_render_vcf_adapter_missing_input_audit(
                             args,
                         )?;
                     }

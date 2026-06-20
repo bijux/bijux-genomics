@@ -17,7 +17,7 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH: &str =
     "benchmarks/readiness/vcf-adapter-missing-input-tests.json";
 const VCF_ADAPTER_MISSING_INPUT_TESTS_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.vcf_adapter_missing_input_tests.v1";
+    "bijux.bench.readiness.vcf_adapter_missing_input_audit.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct VcfAdapterMissingInputTestRow {
@@ -53,11 +53,11 @@ struct ProbeInput {
     path: String,
 }
 
-pub(crate) fn run_render_vcf_adapter_missing_input_tests(
+pub(crate) fn run_render_vcf_adapter_missing_input_audit(
     args: &parse::BenchReadinessRenderVcfAdapterMissingInputTestsArgs,
 ) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
-    let report = render_vcf_adapter_missing_input_tests(
+    let report = render_vcf_adapter_missing_input_audit(
         &repo_root,
         args.output
             .clone()
@@ -71,7 +71,7 @@ pub(crate) fn run_render_vcf_adapter_missing_input_tests(
     Ok(())
 }
 
-pub(crate) fn render_vcf_adapter_missing_input_tests(
+pub(crate) fn render_vcf_adapter_missing_input_audit(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<VcfAdapterMissingInputTestsReport> {
@@ -459,7 +459,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        render_vcf_adapter_missing_input_tests, DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH,
+        render_vcf_adapter_missing_input_audit, DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH,
         VCF_ADAPTER_MISSING_INPUT_TESTS_SCHEMA_VERSION,
     };
 
@@ -471,9 +471,9 @@ mod tests {
     }
 
     #[test]
-    fn vcf_adapter_missing_input_tests_track_required_roles() {
+    fn vcf_adapter_missing_input_audit_track_required_roles() {
         let repo_root = repo_root();
-        let report = render_vcf_adapter_missing_input_tests(
+        let report = render_vcf_adapter_missing_input_audit(
             &repo_root,
             repo_root.join(DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH),
         )
