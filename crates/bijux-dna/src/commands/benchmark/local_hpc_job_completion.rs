@@ -90,11 +90,7 @@ pub(crate) fn resolve_local_hpc_job_result_paths(
         .filter(|path| *path != stage_result_manifest_path)
         .collect::<Vec<_>>();
 
-    Ok(LocalHpcJobResultPaths {
-        result_root,
-        stage_result_manifest_path,
-        declared_output_paths,
-    })
+    Ok(LocalHpcJobResultPaths { result_root, stage_result_manifest_path, declared_output_paths })
 }
 
 pub(crate) fn classify_local_hpc_job_completion(
@@ -162,7 +158,9 @@ pub(crate) fn classify_local_hpc_job_completion(
             let manifest_output_paths = manifest
                 .outputs
                 .iter()
-                .map(|output| resolve_repo_relative_path(repo_root, Path::new(&output.realized_path)))
+                .map(|output| {
+                    resolve_repo_relative_path(repo_root, Path::new(&output.realized_path))
+                })
                 .collect::<Vec<_>>();
             if manifest_output_paths.len() != result_paths.declared_output_paths.len() {
                 return LocalHpcJobCompletionClassification {
@@ -187,7 +185,8 @@ pub(crate) fn classify_local_hpc_job_completion(
                 .filter_map(|(output, expected_path)| {
                     let realized_path =
                         resolve_repo_relative_path(repo_root, Path::new(&output.realized_path));
-                    if realized_path != *expected_path || !output.exists || !realized_path.exists() {
+                    if realized_path != *expected_path || !output.exists || !realized_path.exists()
+                    {
                         Some(path_relative_to_repo(repo_root, expected_path))
                     } else {
                         None
@@ -370,7 +369,8 @@ mod tests {
         assert!(paths
             .declared_output_paths
             .iter()
-            .all(|path| path.file_name().and_then(|value| value.to_str()) != Some("stage-result.json")));
+            .all(|path| path.file_name().and_then(|value| value.to_str())
+                != Some("stage-result.json")));
     }
 
     #[test]
