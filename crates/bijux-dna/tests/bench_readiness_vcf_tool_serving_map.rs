@@ -51,11 +51,11 @@ fn bench_readiness_vcf_tool_serving_map_reports_owned_matrix_rows() {
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(21)
     );
     assert_eq!(
         payload.get("not_benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(3)
+        Some(2)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -280,6 +280,19 @@ fn bench_readiness_vcf_tool_serving_map_reports_owned_matrix_rows() {
             "benchmark_ready",
         ),
         "VCF tool-serving map must retain the governed population-structure row"
+    );
+    assert!(
+        has_row(
+            "plink2",
+            "vcf.roh",
+            "supported",
+            "runnable",
+            "parse_normalized",
+            "fixture:vcf_production_regression",
+            "assigned",
+            "benchmark_ready",
+        ),
+        "VCF tool-serving map must retain the governed runs-of-homozygosity row"
     );
     assert!(
         has_row(

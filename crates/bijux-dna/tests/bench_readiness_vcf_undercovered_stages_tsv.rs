@@ -51,7 +51,7 @@ fn bench_readiness_vcf_undercovered_stages_writes_governed_tsv_columns() {
         "vcf.ibd\tdemography,relatedness\tgermline\tibdhap,ibdne,ibdseq\tfuture_not_benchmark_ready",
         "vcf.imputation_metrics\timputation,phasing\tbeagle\tglimpse,impute5,minimac4\tfuture_not_benchmark_ready",
         "vcf.impute\timputation,phasing\tbeagle\tglimpse,impute5,minimac4\tfuture_not_benchmark_ready",
-        "vcf.phasing\tphasing\tshapeit5\tbeagle,eagle,shapeit\tfuture_not_benchmark_ready",
+        "vcf.phasing\tphasing\tshapeit5\tbeagle,eagle,shapeit\tlimit_to_specialized_tool",
         "vcf.population_structure\tcohort_analysis,population_structure\tplink2\teigensoft,plink\tlimit_to_specialized_tool",
     ] {
         assert!(

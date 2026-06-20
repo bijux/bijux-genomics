@@ -251,7 +251,7 @@ fn bench_readiness_vcf_expected_benchmark_results_tracks_governed_rows() {
                 .get("expected_outputs")
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|items| items.iter().any(|item| item.as_str() == Some("roh_report")))
-            && row.get("comparable_metrics").and_then(serde_json::Value::as_array).is_some_and(
+            && row.get("expected_metrics").and_then(serde_json::Value::as_array).is_some_and(
                 |items| items.iter().any(|item| item.as_str() == Some("segment_count")),
             )
             && row.get("report_section").and_then(serde_json::Value::as_str)

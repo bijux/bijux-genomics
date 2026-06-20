@@ -44,7 +44,7 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 20);
+    assert_eq!(rows.len(), 21);
     assert!(
         rows.iter().any(|row| {
             row == &"vcf\tvcf.admixture\tplink2\tvcf_production_regression\tvcf_cohort\tadmixture_report\tselected_k,sample_count,population_count,status\tpopulation_structure"
@@ -116,5 +116,11 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
             row == &"vcf\tvcf.stats\tbcftools\tvcf_production_regression\tvcf_cohort\tstats_json\tvariant_count,snp_count,indel_count,transition_count,transversion_count,ti_tv,sample_count\tquality_control"
         }),
         "TSV must retain the governed VCF stats expected-result row"
+    );
+    assert!(
+        rows.iter().any(|row| {
+            row == &"vcf\tvcf.roh\tplink2\tvcf_production_regression\tvcf_cohort\troh_report\tsample_count,segment_count,total_length,segments,per_sample_summary,status\truns_of_homozygosity"
+        }),
+        "TSV must retain the governed VCF runs-of-homozygosity expected-result row"
     );
 }
