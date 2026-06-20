@@ -38,7 +38,7 @@ const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_VERSION: &str =
 const INSUFFICIENT_DATA_FIXTURE_PATH: &str =
     "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/insufficient_data/expected.normalized.json";
 
-const REQUIRED_FAILURE_CLASSES: [&str; 7] = [
+pub(crate) const REQUIRED_FAILURE_CLASSES: [&str; 7] = [
     "missing_input",
     "tool_not_found",
     "command_failed",
