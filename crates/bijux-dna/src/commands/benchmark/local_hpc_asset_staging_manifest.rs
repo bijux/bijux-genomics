@@ -1,13 +1,14 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use regex::Regex;
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 
-use super::local_stage_commands::local_stage_plans;
+use super::local_hpc_input_discovery::{
+    collect_local_hpc_job_source_inputs, collect_local_hpc_stage_input_hints, materialize_stage_id,
+    path_relative_to_repo, LocalHpcDiscoveredSourceInput, LocalHpcStageInputHint,
+};
 use super::path_resolution::{ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -18,23 +19,6 @@ pub(crate) const DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH: &str =
     "runs/bench/hpc-dry-run/asset-staging-manifest.json";
 const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH: &str =
     "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl";
-const GENERATED_BENCHMARK_OUTPUT_ROOTS: [&str; 1] = ["benchmarks/readiness/stage-tool-commands/"];
-
-const SOURCE_ROOTS: [&str; 3] = ["assets/", "benchmarks/", "runs/"];
-const OUTPUT_FLAG_ARGS: [&str; 12] = [
-    "-o",
-    "-O",
-    "--out",
-    "--output",
-    "--output-dir",
-    "--output-root",
-    "--output-prefix",
-    "--prefix",
-    "--stdout",
-    "--stderr",
-    "--report",
-    "--summary",
-];
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct LocalHpcAssetStagingManifest {
@@ -69,28 +53,6 @@ pub(crate) struct LocalHpcAssetStagingInput {
     pub(crate) size_bytes: u64,
     pub(crate) member_count: usize,
     pub(crate) consumer_result_id: String,
-}
-
-#[derive(Debug, Clone)]
-struct LocalStageInputHint {
-    artifact_id: String,
-    artifact_role: String,
-    source_path: String,
-}
-
-#[derive(Debug, Clone)]
-struct ResolvedSourceAsset {
-    source_kind: String,
-    source_path: String,
-    checksum_sha256: String,
-    size_bytes: u64,
-    member_count: usize,
-}
-
-#[derive(Debug, Default)]
-struct StepPathUsage {
-    consumed: BTreeSet<String>,
-    produced: BTreeSet<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -193,8 +155,11 @@ pub(crate) fn load_validated_hpc_asset_staging_manifest_path(
     repo_root: &Path,
     manifest_path: &Path,
 ) -> Result<LocalHpcAssetStagingManifest> {
-    let absolute_manifest_path =
-        if manifest_path.is_absolute() { manifest_path.to_path_buf() } else { repo_root.join(manifest_path) };
+    let absolute_manifest_path = if manifest_path.is_absolute() {
+        manifest_path.to_path_buf()
+    } else {
+        repo_root.join(manifest_path)
+    };
     let raw = fs::read_to_string(&absolute_manifest_path)
         .with_context(|| format!("read {}", absolute_manifest_path.display()))?;
     let loaded = serde_json::from_str::<LoadedLocalHpcAssetStagingManifest>(&raw)
@@ -259,9 +224,13 @@ pub(crate) fn validate_hpc_asset_staging_manifest_path(
     repo_root: &Path,
     manifest_path: &Path,
 ) -> Result<LocalHpcAssetStagingManifest> {
-    let absolute_manifest_path =
-        if manifest_path.is_absolute() { manifest_path.to_path_buf() } else { repo_root.join(manifest_path) };
-    let observed = load_validated_hpc_asset_staging_manifest_path(repo_root, &absolute_manifest_path)?;
+    let absolute_manifest_path = if manifest_path.is_absolute() {
+        manifest_path.to_path_buf()
+    } else {
+        repo_root.join(manifest_path)
+    };
+    let observed =
+        load_validated_hpc_asset_staging_manifest_path(repo_root, &absolute_manifest_path)?;
     let expected = build_hpc_asset_staging_manifest(repo_root, &absolute_manifest_path)?;
     ensure_manifest_matches_expected(&absolute_manifest_path, &observed, &expected)?;
     Ok(observed)
@@ -273,7 +242,7 @@ fn build_hpc_asset_staging_manifest(
 ) -> Result<LocalHpcAssetStagingManifest> {
     ensure_path_stays_within_benchmark_runs_root(
         repo_root,
-        &absolute_output,
+        absolute_output,
         "HPC asset staging manifest output",
     )?;
     let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
@@ -291,7 +260,7 @@ fn build_hpc_asset_staging_manifest(
         .filter_map(|step| materialize_stage_id(&step.argv))
         .chain(command_rows.iter().map(|row| row.stage_id.clone()))
         .collect::<BTreeSet<_>>();
-    let stage_input_hints = collect_local_stage_input_hints(repo_root, &stage_ids)?;
+    let stage_input_hints = collect_local_hpc_stage_input_hints(repo_root, &stage_ids)?;
     let mut jobs = Vec::with_capacity(command_rows.len());
     let mut unique_source_paths = BTreeSet::new();
     let mut staged_input_count = 0usize;
@@ -328,7 +297,7 @@ fn build_hpc_asset_staging_manifest(
 
     let manifest = LocalHpcAssetStagingManifest {
         schema_version: LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION,
-        output_path: path_relative_to_repo(repo_root, &absolute_output),
+        output_path: path_relative_to_repo(repo_root, absolute_output),
         staging_root: path_relative_to_repo(repo_root, &staging_root),
         selected_job_count: jobs.len(),
         staged_input_count,
@@ -366,470 +335,43 @@ fn load_rendered_command_argv_rows(repo_root: &Path) -> Result<Vec<RenderedComma
     Ok(rows)
 }
 
-fn collect_local_stage_input_hints(
-    repo_root: &Path,
-    stage_ids: &BTreeSet<String>,
-) -> Result<BTreeMap<String, Vec<LocalStageInputHint>>> {
-    let mut hints = BTreeMap::<String, Vec<LocalStageInputHint>>::new();
-    for stage_id in stage_ids {
-        let stage_plans = match local_stage_plans(repo_root, stage_id) {
-            Ok(stage_plans) => stage_plans,
-            Err(error) if error.to_string().starts_with("unsupported local benchmark stage `") => {
-                continue;
-            }
-            Err(error) => return Err(error),
-        };
-        let mut stage_hints = stage_plans
-            .into_iter()
-            .flat_map(|plan| plan.io.inputs.into_iter())
-            .map(|input| LocalStageInputHint {
-                artifact_id: input.name.as_str().to_string(),
-                artifact_role: input.role.as_str().to_string(),
-                source_path: path_relative_to_repo(repo_root, &input.path),
-            })
-            .collect::<Vec<_>>();
-        stage_hints.sort_by(|left, right| {
-            left.source_path
-                .cmp(&right.source_path)
-                .then_with(|| left.artifact_id.cmp(&right.artifact_id))
-                .then_with(|| left.artifact_role.cmp(&right.artifact_role))
-        });
-        stage_hints.dedup_by(|left, right| {
-            left.source_path == right.source_path
-                && left.artifact_id == right.artifact_id
-                && left.artifact_role == right.artifact_role
-        });
-        hints.insert(stage_id.clone(), stage_hints);
-    }
-    Ok(hints)
-}
-
 fn collect_job_staged_inputs(
     repo_root: &Path,
     staging_root: &Path,
     row: &RenderedCommandArgvFileRow,
-    stage_input_hints: &BTreeMap<String, Vec<LocalStageInputHint>>,
+    stage_input_hints: &std::collections::BTreeMap<String, Vec<LocalHpcStageInputHint>>,
 ) -> Result<Vec<LocalHpcAssetStagingInput>> {
-    let mut staged_by_source = BTreeMap::<String, LocalHpcAssetStagingInput>::new();
-    let mut produced_paths = BTreeSet::<String>::new();
-
-    for step in &row.command_steps {
-        if let Some(stage_id) = materialize_stage_id(&step.argv) {
-            let hints = stage_input_hints.get(&stage_id).ok_or_else(|| {
-                anyhow!("missing local stage input hints for materialized stage `{stage_id}`")
-            })?;
-            for hint in hints {
-                let resolved =
-                    resolve_source_asset(repo_root, &hint.source_path)?.ok_or_else(|| {
-                        anyhow!(
-                            "materialized stage `{stage_id}` depends on unresolved source `{}`",
-                            hint.source_path
-                        )
-                    })?;
-                merge_staged_input(
-                    &mut staged_by_source,
-                    row,
-                    repo_root,
-                    staging_root,
-                    resolved,
-                    Some(hint.artifact_id.clone()),
-                    Some(hint.artifact_role.clone()),
-                );
-            }
-            continue;
-        }
-
-        let usage = collect_step_path_usage(&step.argv)?;
-        for source_path in usage.consumed.difference(&usage.produced) {
-            if produced_paths.contains(source_path.as_str()) {
-                continue;
-            }
-            if let Some(resolved) = resolve_source_asset(repo_root, source_path)? {
-                merge_staged_input(
-                    &mut staged_by_source,
-                    row,
-                    repo_root,
-                    staging_root,
-                    resolved,
-                    None,
-                    None,
-                );
-            }
-        }
-        produced_paths.extend(usage.produced);
-    }
-
-    if staged_by_source.is_empty() {
-        if let Some(hints) = stage_input_hints.get(&row.stage_id) {
-            for hint in hints {
-                let resolved =
-                    resolve_source_asset(repo_root, &hint.source_path)?.ok_or_else(|| {
-                        anyhow!(
-                            "stage `{}` depends on unresolved source `{}`",
-                            row.stage_id,
-                            hint.source_path
-                        )
-                    })?;
-                merge_staged_input(
-                    &mut staged_by_source,
-                    row,
-                    repo_root,
-                    staging_root,
-                    resolved,
-                    Some(hint.artifact_id.clone()),
-                    Some(hint.artifact_role.clone()),
-                );
-            }
-        }
-    }
-
-    if staged_by_source.is_empty() {
-        return Err(anyhow!(
-            "HPC asset staging manifest found no source inputs for `{}`",
-            row.result_id
-        ));
-    }
-
-    Ok(staged_by_source.into_values().collect())
+    collect_local_hpc_job_source_inputs(
+        repo_root,
+        &row.result_id,
+        &row.stage_id,
+        row.command_steps.iter().map(|step| step.argv.as_slice()),
+        stage_input_hints,
+    )?
+    .into_iter()
+    .map(|input| to_staged_input(repo_root, staging_root, &row.result_id, input))
+    .collect()
 }
 
-fn merge_staged_input(
-    staged_by_source: &mut BTreeMap<String, LocalHpcAssetStagingInput>,
-    row: &RenderedCommandArgvFileRow,
+fn to_staged_input(
     repo_root: &Path,
     staging_root: &Path,
-    resolved: ResolvedSourceAsset,
-    artifact_id: Option<String>,
-    artifact_role: Option<String>,
-) {
-    let staged_path = path_relative_to_repo(repo_root, &staging_root.join(&resolved.source_path));
-    staged_by_source
-        .entry(resolved.source_path.clone())
-        .and_modify(|entry| {
-            if entry.artifact_id.is_none() {
-                entry.artifact_id = artifact_id.clone();
-            }
-            if entry.artifact_role.is_none() {
-                entry.artifact_role = artifact_role.clone();
-            }
-        })
-        .or_insert(LocalHpcAssetStagingInput {
-            artifact_id,
-            artifact_role,
-            source_kind: resolved.source_kind,
-            source_path: resolved.source_path,
-            staged_path,
-            checksum_sha256: resolved.checksum_sha256,
-            size_bytes: resolved.size_bytes,
-            member_count: resolved.member_count,
-            consumer_result_id: row.result_id.clone(),
-        });
-}
-
-fn materialize_stage_id(argv: &[String]) -> Option<String> {
-    if !argv.iter().any(|arg| arg == "materialize-stage") {
-        return None;
-    }
-    argv.windows(2).find(|window| window[0] == "--stage-id").map(|window| window[1].clone())
-}
-
-fn shell_step_body(argv: &[String]) -> Option<&str> {
-    let [shell, flag, body, ..] = argv else {
-        return None;
-    };
-    let shell_name = Path::new(shell).file_name()?.to_str()?;
-    if !matches!(shell_name, "sh" | "bash" | "zsh") {
-        return None;
-    }
-    if !flag.starts_with('-') || !flag.contains('c') {
-        return None;
-    }
-
-    Some(body)
-}
-
-fn collect_step_path_usage(argv: &[String]) -> Result<StepPathUsage> {
-    if let Some(body) = shell_step_body(argv) {
-        return collect_shell_step_path_usage(body);
-    }
-    Ok(collect_tokenized_step_path_usage(argv))
-}
-
-fn collect_tokenized_step_path_usage(argv: &[String]) -> StepPathUsage {
-    let mut usage = StepPathUsage::default();
-    let mut previous_flag: Option<&str> = None;
-
-    for arg in argv {
-        if let Some((assignment_key, path)) = assignment_repo_path(arg) {
-            if is_generated_benchmark_output_path(path) || is_output_flag(assignment_key) {
-                usage.produced.insert(path.to_string());
-            } else {
-                usage.consumed.insert(path.to_string());
-            }
-        } else if let Some(path) = candidate_repo_path(arg) {
-            if is_generated_benchmark_output_path(path) || previous_flag.is_some_and(is_output_flag)
-            {
-                usage.produced.insert(path.to_string());
-            } else {
-                usage.consumed.insert(path.to_string());
-            }
-        }
-
-        previous_flag = if arg.starts_with('-') { Some(arg.as_str()) } else { None };
-    }
-
-    usage
-}
-
-fn collect_shell_step_path_usage(shell_command: &str) -> Result<StepPathUsage> {
-    let matcher = Regex::new(
-        r#"'((?:assets|benchmarks|runs)/[^']+)'|"((?:assets|benchmarks|runs)/[^"]+)"|((?:assets|benchmarks|runs)/[A-Za-z0-9_./@+-]+)"#,
-    )
-        .context("compile HPC asset path matcher")?;
-    let mut usage = StepPathUsage::default();
-
-    for captures in matcher.captures_iter(shell_command) {
-        let matched = captures.get(0).expect("shell path capture must include full match");
-        let source_path = captures
-            .get(1)
-            .or_else(|| captures.get(2))
-            .or_else(|| captures.get(3))
-            .expect("shell path capture must include a repo-relative path")
-            .as_str()
-            .trim_end_matches('.');
-        if !is_repo_source_path(source_path) {
-            continue;
-        }
-        if is_generated_benchmark_output_path(source_path)
-            || is_output_context(shell_command, matched.start())
-        {
-            usage.produced.insert(source_path.to_string());
-        } else {
-            usage.consumed.insert(source_path.to_string());
-        }
-    }
-
-    Ok(usage)
-}
-
-fn strip_heredoc_bodies(shell_command: &str) -> String {
-    let mut stripped = String::new();
-    let mut active_delimiter: Option<String> = None;
-
-    for line in shell_command.lines() {
-        if let Some(delimiter) = active_delimiter.as_ref() {
-            if line.trim() == delimiter {
-                active_delimiter = None;
-            }
-            continue;
-        }
-
-        stripped.push_str(line);
-        stripped.push('\n');
-        if let Some(delimiter) = heredoc_delimiter(line) {
-            active_delimiter = Some(delimiter);
-        }
-    }
-
-    stripped
-}
-
-fn heredoc_delimiter(line: &str) -> Option<String> {
-    let marker = line.find("<<")?;
-    let remainder = line.get(marker + 2..)?.trim_start_matches('-').trim_start();
-    let mut delimiter = String::new();
-    let mut started = false;
-
-    for ch in remainder.chars() {
-        if !started && matches!(ch, '\'' | '"') {
-            started = true;
-            continue;
-        }
-        if ch.is_ascii_alphanumeric() || ch == '_' {
-            delimiter.push(ch);
-            started = true;
-            continue;
-        }
-        break;
-    }
-
-    if delimiter.is_empty() {
-        None
-    } else {
-        Some(delimiter)
-    }
-}
-
-fn is_output_context(body: &str, start: usize) -> bool {
-    let prefix = body.get(..start).unwrap_or(body).trim_end();
-    if prefix.ends_with('>') || prefix.ends_with("1>") || prefix.ends_with("2>") {
-        return true;
-    }
-
-    last_shell_token(prefix).is_some_and(is_output_flag)
-}
-
-fn last_shell_token(prefix: &str) -> Option<&str> {
-    prefix.rsplit(|ch: char| ch.is_whitespace()).find(|segment| !segment.is_empty())
-}
-
-fn is_output_flag(flag: &str) -> bool {
-    OUTPUT_FLAG_ARGS.contains(&flag)
-}
-
-fn candidate_repo_path(value: &str) -> Option<&str> {
-    if is_repo_source_path(value) {
-        Some(value)
-    } else {
-        None
-    }
-}
-
-fn assignment_repo_path(value: &str) -> Option<(&str, &str)> {
-    let (key, path) = value.split_once('=')?;
-    candidate_repo_path(path).map(|path| (key, path))
-}
-
-fn is_repo_source_path(value: &str) -> bool {
-    SOURCE_ROOTS.iter().any(|root| value.starts_with(root))
-}
-
-fn is_generated_benchmark_output_path(value: &str) -> bool {
-    GENERATED_BENCHMARK_OUTPUT_ROOTS.iter().any(|root| value.starts_with(root))
-}
-
-fn resolve_source_asset(
-    repo_root: &Path,
-    source_path: &str,
-) -> Result<Option<ResolvedSourceAsset>> {
-    let absolute_source = repo_root.join(source_path);
-    if absolute_source.is_file() {
-        let checksum_sha256 = bijux_dna_infra::hash_file_sha256(&absolute_source)
-            .map_err(|err| anyhow!(err.to_string()))?;
-        let size_bytes = absolute_source
-            .metadata()
-            .with_context(|| format!("read metadata for {}", absolute_source.display()))?
-            .len();
-        return Ok(Some(ResolvedSourceAsset {
-            source_kind: "file".to_string(),
-            source_path: source_path.to_string(),
-            checksum_sha256,
-            size_bytes,
-            member_count: 1,
-        }));
-    }
-    if absolute_source.is_dir() {
-        let (checksum_sha256, size_bytes, member_count) =
-            digest_directory_members(&absolute_source, &absolute_source)?;
-        return Ok(Some(ResolvedSourceAsset {
-            source_kind: "directory".to_string(),
-            source_path: source_path.to_string(),
-            checksum_sha256,
-            size_bytes,
-            member_count,
-        }));
-    }
-
-    resolve_prefix_bundle(&absolute_source, source_path)
-}
-
-fn resolve_prefix_bundle(
-    absolute_source: &Path,
-    source_path: &str,
-) -> Result<Option<ResolvedSourceAsset>> {
-    let Some(parent) = absolute_source.parent() else {
-        return Ok(None);
-    };
-    if !parent.exists() {
-        return Ok(None);
-    }
-    let Some(prefix) = absolute_source.file_name().and_then(|value| value.to_str()) else {
-        return Ok(None);
-    };
-
-    let mut members = fs::read_dir(parent)
-        .with_context(|| format!("read {}", parent.display()))?
-        .filter_map(|entry| entry.ok())
-        .map(|entry| entry.path())
-        .filter(|path| path.is_file())
-        .filter(|path| {
-            path.file_name()
-                .and_then(|value| value.to_str())
-                .is_some_and(|name| name.starts_with(&format!("{prefix}.")))
-        })
-        .collect::<Vec<_>>();
-    members.sort();
-
-    if members.is_empty() {
-        return Ok(None);
-    }
-
-    let (checksum_sha256, size_bytes, member_count) = digest_explicit_members(&members, parent)?;
-    Ok(Some(ResolvedSourceAsset {
-        source_kind: "prefix_bundle".to_string(),
-        source_path: source_path.to_string(),
-        checksum_sha256,
-        size_bytes,
-        member_count,
-    }))
-}
-
-fn digest_directory_members(root: &Path, path: &Path) -> Result<(String, u64, usize)> {
-    let mut members = Vec::new();
-    collect_directory_files(path, &mut members)?;
-    members.sort();
-    digest_explicit_members(&members, root)
-}
-
-fn collect_directory_files(path: &Path, members: &mut Vec<PathBuf>) -> Result<()> {
-    for entry in fs::read_dir(path).with_context(|| format!("read {}", path.display()))? {
-        let entry = entry.with_context(|| format!("read entry in {}", path.display()))?;
-        let entry_path = entry.path();
-        if entry_path.is_dir() {
-            collect_directory_files(&entry_path, members)?;
-        } else if entry_path.is_file() {
-            members.push(entry_path);
-        }
-    }
-    Ok(())
-}
-
-fn digest_explicit_members(
-    members: &[PathBuf],
-    relative_root: &Path,
-) -> Result<(String, u64, usize)> {
-    let mut hasher = Sha256::new();
-    let mut size_bytes = 0u64;
-
-    for member in members {
-        let digest =
-            bijux_dna_infra::hash_file_sha256(member).map_err(|err| anyhow!(err.to_string()))?;
-        let metadata =
-            member.metadata().with_context(|| format!("read metadata for {}", member.display()))?;
-        let relative_member = member
-            .strip_prefix(relative_root)
-            .unwrap_or(member)
-            .to_string_lossy()
-            .replace('\\', "/");
-        size_bytes += metadata.len();
-        hasher.update(relative_member.as_bytes());
-        hasher.update([0]);
-        hasher.update(digest.as_bytes());
-        hasher.update([0]);
-        hasher.update(metadata.len().to_string().as_bytes());
-        hasher.update([b'\n']);
-    }
-
-    Ok((hex_sha256_digest(hasher), size_bytes, members.len()))
-}
-
-fn hex_sha256_digest(hasher: Sha256) -> String {
-    let digest = hasher.finalize();
-    let mut hex = String::with_capacity(digest.len() * 2);
-    for byte in digest {
-        hex.push_str(&format!("{byte:02x}"));
-    }
-    hex
+    consumer_result_id: &str,
+    input: LocalHpcDiscoveredSourceInput,
+) -> Result<LocalHpcAssetStagingInput> {
+    let staged_path =
+        path_relative_to_repo(repo_root, &staging_root.join(&input.source_asset.source_path));
+    Ok(LocalHpcAssetStagingInput {
+        artifact_id: input.artifact_id,
+        artifact_role: input.artifact_role,
+        source_kind: input.source_asset.source_kind,
+        source_path: input.source_asset.source_path,
+        staged_path,
+        checksum_sha256: input.source_asset.checksum_sha256,
+        size_bytes: input.source_asset.size_bytes,
+        member_count: input.source_asset.member_count,
+        consumer_result_id: consumer_result_id.to_string(),
+    })
 }
 
 fn ensure_manifest_contract(manifest: &LocalHpcAssetStagingManifest) -> Result<()> {
@@ -935,7 +477,9 @@ fn ensure_manifest_matches_expected(
         ));
     }
 
-    for (index, (observed_job, expected_job)) in observed.jobs.iter().zip(expected.jobs.iter()).enumerate() {
+    for (index, (observed_job, expected_job)) in
+        observed.jobs.iter().zip(expected.jobs.iter()).enumerate()
+    {
         if observed_job.result_id != expected_job.result_id
             || observed_job.domain != expected_job.domain
             || observed_job.stage_id != expected_job.stage_id
@@ -970,11 +514,8 @@ fn ensure_manifest_matches_expected(
                 expected_job.staged_inputs.len()
             ));
         }
-        for (input_index, (observed_input, expected_input)) in observed_job
-            .staged_inputs
-            .iter()
-            .zip(expected_job.staged_inputs.iter())
-            .enumerate()
+        for (input_index, (observed_input, expected_input)) in
+            observed_job.staged_inputs.iter().zip(expected_job.staged_inputs.iter()).enumerate()
         {
             if observed_input != expected_input {
                 return Err(anyhow!(
@@ -989,13 +530,6 @@ fn ensure_manifest_matches_expected(
     }
 
     Ok(())
-}
-
-fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).map_or_else(
-        |_| path.to_string_lossy().replace('\\', "/"),
-        |relative| relative.to_string_lossy().replace('\\', "/"),
-    )
 }
 
 #[cfg(all(test, feature = "bam_downstream"))]
@@ -1095,14 +629,15 @@ mod tests {
             PathBuf::from(DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH),
         )
         .expect("render HPC asset staging manifest");
-        let stale_body = std::fs::read_to_string(&manifest_path).expect("read manifest body").replacen(
-            &format!("\"selected_job_count\": {}", rendered.selected_job_count),
-            &format!(
-                "\"selected_job_count\": {}",
-                rendered.selected_job_count.saturating_sub(1)
-            ),
-            1,
-        );
+        let stale_body =
+            std::fs::read_to_string(&manifest_path).expect("read manifest body").replacen(
+                &format!("\"selected_job_count\": {}", rendered.selected_job_count),
+                &format!(
+                    "\"selected_job_count\": {}",
+                    rendered.selected_job_count.saturating_sub(1)
+                ),
+                1,
+            );
         std::fs::write(&manifest_path, stale_body).expect("write stale manifest body");
 
         let error = validate_hpc_asset_staging_manifest_path(&root, &manifest_path)
