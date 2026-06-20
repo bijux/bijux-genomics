@@ -238,6 +238,18 @@ pub(crate) fn load_validated_hpc_asset_staging_manifest_path(
     Ok(manifest)
 }
 
+pub(crate) fn validate_hpc_asset_staging_manifest_path(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> Result<LocalHpcAssetStagingManifest> {
+    let absolute_manifest_path =
+        if manifest_path.is_absolute() { manifest_path.to_path_buf() } else { repo_root.join(manifest_path) };
+    let observed = load_validated_hpc_asset_staging_manifest_path(repo_root, &absolute_manifest_path)?;
+    let expected = build_hpc_asset_staging_manifest(repo_root, &absolute_manifest_path)?;
+    ensure_manifest_matches_expected(&absolute_manifest_path, &observed, &expected)?;
+    Ok(observed)
+}
+
 fn build_hpc_asset_staging_manifest(
     repo_root: &Path,
     absolute_output: &Path,
@@ -852,6 +864,116 @@ fn ensure_manifest_contract(manifest: &LocalHpcAssetStagingManifest) -> Result<(
     Ok(())
 }
 
+fn ensure_manifest_matches_expected(
+    manifest_path: &Path,
+    observed: &LocalHpcAssetStagingManifest,
+    expected: &LocalHpcAssetStagingManifest,
+) -> Result<()> {
+    if observed.output_path != expected.output_path {
+        return Err(anyhow!(
+            "HPC asset staging manifest `{}` drifted in output_path: observed `{}` expected `{}`",
+            manifest_path.display(),
+            observed.output_path,
+            expected.output_path
+        ));
+    }
+    if observed.staging_root != expected.staging_root {
+        return Err(anyhow!(
+            "HPC asset staging manifest `{}` drifted in staging_root: observed `{}` expected `{}`",
+            manifest_path.display(),
+            observed.staging_root,
+            expected.staging_root
+        ));
+    }
+    if observed.selected_job_count != expected.selected_job_count {
+        return Err(anyhow!(
+            "HPC asset staging manifest `{}` drifted in selected_job_count: observed {} expected {}",
+            manifest_path.display(),
+            observed.selected_job_count,
+            expected.selected_job_count
+        ));
+    }
+    if observed.staged_input_count != expected.staged_input_count {
+        return Err(anyhow!(
+            "HPC asset staging manifest `{}` drifted in staged_input_count: observed {} expected {}",
+            manifest_path.display(),
+            observed.staged_input_count,
+            expected.staged_input_count
+        ));
+    }
+    if observed.unique_source_path_count != expected.unique_source_path_count {
+        return Err(anyhow!(
+            "HPC asset staging manifest `{}` drifted in unique_source_path_count: observed {} expected {}",
+            manifest_path.display(),
+            observed.unique_source_path_count,
+            expected.unique_source_path_count
+        ));
+    }
+    if observed.jobs.len() != expected.jobs.len() {
+        return Err(anyhow!(
+            "HPC asset staging manifest `{}` drifted in job count: observed {} expected {}",
+            manifest_path.display(),
+            observed.jobs.len(),
+            expected.jobs.len()
+        ));
+    }
+
+    for (index, (observed_job, expected_job)) in observed.jobs.iter().zip(expected.jobs.iter()).enumerate() {
+        if observed_job.result_id != expected_job.result_id
+            || observed_job.domain != expected_job.domain
+            || observed_job.stage_id != expected_job.stage_id
+            || observed_job.tool_id != expected_job.tool_id
+            || observed_job.corpus_id != expected_job.corpus_id
+            || observed_job.asset_profile_id != expected_job.asset_profile_id
+        {
+            return Err(anyhow!(
+                "HPC asset staging manifest `{}` drifted in job {}: observed `{}` / `{}` / `{}` / `{}` / `{}` / `{}` expected `{}` / `{}` / `{}` / `{}` / `{}` / `{}`",
+                manifest_path.display(),
+                index,
+                observed_job.result_id,
+                observed_job.domain,
+                observed_job.stage_id,
+                observed_job.tool_id,
+                observed_job.corpus_id,
+                observed_job.asset_profile_id,
+                expected_job.result_id,
+                expected_job.domain,
+                expected_job.stage_id,
+                expected_job.tool_id,
+                expected_job.corpus_id,
+                expected_job.asset_profile_id
+            ));
+        }
+        if observed_job.staged_inputs.len() != expected_job.staged_inputs.len() {
+            return Err(anyhow!(
+                "HPC asset staging manifest `{}` drifted in staged input count for `{}`: observed {} expected {}",
+                manifest_path.display(),
+                observed_job.result_id,
+                observed_job.staged_inputs.len(),
+                expected_job.staged_inputs.len()
+            ));
+        }
+        for (input_index, (observed_input, expected_input)) in observed_job
+            .staged_inputs
+            .iter()
+            .zip(expected_job.staged_inputs.iter())
+            .enumerate()
+        {
+            if observed_input != expected_input {
+                return Err(anyhow!(
+                    "HPC asset staging manifest `{}` drifted in staged input {} for `{}` at source `{}`",
+                    manifest_path.display(),
+                    input_index,
+                    observed_job.result_id,
+                    expected_input.source_path
+                ));
+            }
+        }
+    }
+
+    Ok(())
+}
+
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).map_or_else(
         |_| path.to_string_lossy().replace('\\', "/"),
@@ -865,7 +987,7 @@ mod tests {
 
     use super::{
         load_rendered_command_argv_rows, load_validated_hpc_asset_staging_manifest_path,
-        render_hpc_asset_staging_manifest,
+        render_hpc_asset_staging_manifest, validate_hpc_asset_staging_manifest_path,
         DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH, LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION,
     };
 
@@ -945,5 +1067,32 @@ mod tests {
 
         assert_eq!(loaded, rendered);
         assert_eq!(loaded.output_path, "runs/bench/hpc-dry-run/asset-staging-manifest.json");
+    }
+
+    #[test]
+    fn validated_hpc_asset_staging_manifest_rejects_stale_selected_job_count() {
+        let root = repo_root();
+        let manifest_path = root.join(DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH);
+        let rendered = render_hpc_asset_staging_manifest(
+            &root,
+            PathBuf::from(DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH),
+        )
+        .expect("render HPC asset staging manifest");
+        let stale_body = std::fs::read_to_string(&manifest_path).expect("read manifest body").replacen(
+            &format!("\"selected_job_count\": {}", rendered.selected_job_count),
+            &format!(
+                "\"selected_job_count\": {}",
+                rendered.selected_job_count.saturating_sub(1)
+            ),
+            1,
+        );
+        std::fs::write(&manifest_path, stale_body).expect("write stale manifest body");
+
+        let error = validate_hpc_asset_staging_manifest_path(&root, &manifest_path)
+            .expect_err("stale manifest must fail validation");
+        assert!(
+            error.to_string().contains("selected_job_count"),
+            "stale manifest error must name the drifted field: {error:#}"
+        );
     }
 }
