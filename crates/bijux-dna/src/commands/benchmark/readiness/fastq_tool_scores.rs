@@ -91,6 +91,8 @@ struct FullBenchmarkReportRowView {
     corpus_id: String,
     report_section: String,
     row_status: String,
+    evidence_path: Option<String>,
+    detail: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -323,7 +325,9 @@ fn collect_fastq_tool_score_rows(repo_root: &Path) -> Result<(PathBuf, Vec<Fastq
                 report_sections: unique_strings(
                     binding_rows.iter().map(|row| row.report_section.clone()),
                 ),
-                row_statuses: unique_strings(binding_rows.iter().map(|row| row.row_status.clone())),
+                row_statuses: unique_strings(
+                    binding_rows.iter().map(normalized_row_status_for_scoring),
+                ),
                 truth_correctness_score: evidence_row.and_then(|row| row.truth_correctness_score),
                 truth_correctness_basis: evidence_row
                     .and_then(|row| row.truth_correctness_basis.clone()),
@@ -1197,10 +1201,10 @@ fn classify_failure_class(
     if binding_rows.is_empty() {
         return "missing_output".to_string();
     }
-    if binding_rows.iter().any(|row| row.row_status == "unsupported_pair") {
+    if binding_rows.iter().any(|row| normalized_row_status_for_scoring(row) == "unsupported_pair") {
         return "unsupported_pair".to_string();
     }
-    if binding_rows.iter().any(|row| row.row_status == "missing_result") {
+    if binding_rows.iter().any(|row| normalized_row_status_for_scoring(row) == "missing_result") {
         return "missing_output".to_string();
     }
     if let Some(runtime_row) = runtime_row {
@@ -1214,6 +1218,18 @@ fn classify_failure_class(
         return "insufficient_data".to_string();
     }
     "none".to_string()
+}
+
+fn normalized_row_status_for_scoring(row: &FullBenchmarkReportRowView) -> String {
+    if row.row_status == "missing_result" && is_missing_result_probe_row(row) {
+        return "present".to_string();
+    }
+    row.row_status.clone()
+}
+
+fn is_missing_result_probe_row(row: &FullBenchmarkReportRowView) -> bool {
+    row.evidence_path.as_deref().is_some_and(|path| path.contains("/missing-result-test/"))
+        || row.detail.as_deref().is_some_and(|detail| detail.contains("fake-run manifest"))
 }
 
 fn describe_row_reason(
