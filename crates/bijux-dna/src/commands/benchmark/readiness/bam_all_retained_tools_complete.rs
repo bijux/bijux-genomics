@@ -211,7 +211,8 @@ pub(crate) fn render_bam_all_retained_tools_complete(
     let _cwd_guard = CurrentDirGuard::change_to(repo_root);
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
-        std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
 
     let tool_map = tool_serving_map::render_bam_tool_serving_map(
@@ -1112,16 +1113,10 @@ mod tests {
         assert_eq!(report.rendered_command_row_count, 49);
         assert_eq!(report.parser_fixture_row_count, 49);
         assert_eq!(report.local_smoke_row_count, 49);
-        let expected_host_stage_smoke_row_count = if cfg!(feature = "bam_downstream") {
-            20
-        } else {
-            18
-        };
-        let expected_container_smoke_row_count = if cfg!(feature = "bam_downstream") {
-            29
-        } else {
-            31
-        };
+        let expected_host_stage_smoke_row_count =
+            if cfg!(feature = "bam_downstream") { 20 } else { 18 };
+        let expected_container_smoke_row_count =
+            if cfg!(feature = "bam_downstream") { 29 } else { 31 };
         assert_eq!(report.local_smoke_host_stage_row_count, expected_host_stage_smoke_row_count);
         assert_eq!(report.local_smoke_container_row_count, expected_container_smoke_row_count);
         assert_eq!(report.report_map_row_count, 49);

@@ -14,8 +14,7 @@ use super::local_vcf_stage_catalog::{build_vcf_stage_catalog_rows, VcfStageCatal
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_VCF_STAGE_MATRIX_PATH: &str =
-    "configs/bench/local/vcf-stage-matrix.toml";
+pub(crate) const DEFAULT_VCF_STAGE_MATRIX_PATH: &str = "configs/bench/local/vcf-stage-matrix.toml";
 const LOCAL_VCF_STAGE_MATRIX_SCHEMA_VERSION: &str = "bijux.bench.vcf.local_stage_matrix.v1";
 const LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_stage_matrix.v1";
 const VCF_STAGE_MATRIX_VALIDATION_SCHEMA_VERSION: &str = "bijux.bench.validate_matrix.v1";
@@ -109,7 +108,8 @@ pub(crate) fn render_vcf_stage_matrix(
     let rendered = toml::to_string_pretty(&config).context("serialize VCF stage matrix TOML")?;
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
     bijux_dna_infra::atomic_write_bytes(&output_path, rendered.as_bytes())?;
 

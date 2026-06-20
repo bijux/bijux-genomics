@@ -126,9 +126,11 @@ pub(crate) fn render_stage_centric_report(
     }
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&output_path, render_stage_centric_markdown(&stages))
+    let rendered = render_stage_centric_markdown(&stages);
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", output_path.display()))?;
 
     Ok(StageCentricReport {
@@ -284,7 +286,7 @@ fn load_shared_metric_fields_by_stage(
             .unwrap_or_default()
             .as_nanos()
     ));
-    fs::create_dir_all(&scratch_root)
+    bijux_dna_infra::ensure_dir(&scratch_root)
         .with_context(|| format!("create {}", scratch_root.display()))?;
     let fastq_report = render_fastq_comparable_metrics(
         repo_root,
@@ -298,7 +300,7 @@ fn load_shared_metric_fields_by_stage(
     for row in bam_report.rows {
         by_stage.insert(("bam".to_string(), row.stage_id), row.shared_metric_fields);
     }
-    let _ = fs::remove_dir_all(&scratch_root);
+    let _ = bijux_dna_infra::remove_dir_all(&scratch_root);
     Ok(by_stage)
 }
 

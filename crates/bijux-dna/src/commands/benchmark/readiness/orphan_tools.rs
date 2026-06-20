@@ -117,9 +117,11 @@ pub(crate) fn render_orphan_tools(
     });
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&output_path, render_orphan_tools_tsv(&rows))
+    let rendered = render_orphan_tools_tsv(&rows);
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", output_path.display()))?;
 
     let mut domain_counts = BTreeMap::<String, usize>::new();

@@ -95,9 +95,11 @@ pub(crate) fn render_all_domain_adapter_coverage(
     let report = build_all_domain_adapter_coverage_report(repo_root, &output_path)?;
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&output_path, render_all_domain_adapter_coverage_tsv(&report.rows))
+    let rendered = render_all_domain_adapter_coverage_tsv(&report.rows);
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", output_path.display()))?;
     if !report.ok {
         return Err(anyhow!(

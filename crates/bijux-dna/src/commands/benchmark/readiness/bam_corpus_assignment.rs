@@ -36,10 +36,8 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_BAM_CORPUS_ASSIGNMENT_PATH: &str =
     "benchmarks/readiness/bam-corpus-assignment.tsv";
 const BAM_CORPUS_ASSIGNMENT_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_corpus_assignment.v3";
-const DEFAULT_LOCAL_AUTHENTICITY_CONFIG_PATH: &str =
-    "configs/bench/local/bam-authenticity.toml";
-const DEFAULT_LOCAL_CONTAMINATION_CONFIG_PATH: &str =
-    "configs/bench/local/bam-contamination.toml";
+const DEFAULT_LOCAL_AUTHENTICITY_CONFIG_PATH: &str = "configs/bench/local/bam-authenticity.toml";
+const DEFAULT_LOCAL_CONTAMINATION_CONFIG_PATH: &str = "configs/bench/local/bam-contamination.toml";
 const DEFAULT_LOCAL_DAMAGE_CONFIG_PATH: &str = "configs/bench/local/bam-damage.toml";
 const DEFAULT_LOCAL_GENOTYPING_CONFIG_PATH: &str = "configs/bench/local/bam-genotyping.toml";
 const DEFAULT_LOCAL_HAPLOGROUPS_CONFIG_PATH: &str = "configs/bench/local/bam-haplogroups.toml";
@@ -119,9 +117,11 @@ pub(crate) fn render_bam_corpus_assignment(
     let (_, tool_count, rows) = collect_bam_corpus_assignment_rows(repo_root)?;
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&output_path, render_bam_corpus_assignment_tsv(&rows))
+    let rendered = render_bam_corpus_assignment_tsv(&rows);
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", output_path.display()))?;
 
     let benchmark_ready_row_count =
