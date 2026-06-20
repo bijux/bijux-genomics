@@ -1328,6 +1328,16 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateHpcExecutionResolver(args) => {
+                        crate::commands::benchmark::local_hpc_execution_resolver::run_validate_hpc_execution_resolver(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcExecutionResolver(args) => {
+                        crate::commands::benchmark::local_hpc_execution_resolver::run_render_hpc_execution_resolver(
+                            args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RenderAllDomainSlurmSubmitManifest(args) => {
                         crate::commands::benchmark::local_all_domain_slurm_submit_manifest::run_render_all_domain_slurm_submit_manifest(
                             args,

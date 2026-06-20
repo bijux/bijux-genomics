@@ -135,6 +135,10 @@ pub enum BenchLocalCommand {
     ValidateHpcScratchLayout(BenchLocalValidateHpcScratchLayoutArgs),
     #[command(name = "render-hpc-scratch-layout")]
     RenderHpcScratchLayout(BenchLocalRenderHpcScratchLayoutArgs),
+    #[command(name = "validate-hpc-execution-resolver")]
+    ValidateHpcExecutionResolver(BenchLocalValidateHpcExecutionResolverArgs),
+    #[command(name = "render-hpc-execution-resolver")]
+    RenderHpcExecutionResolver(BenchLocalRenderHpcExecutionResolverArgs),
     #[command(name = "render-all-domain-slurm-submit-manifest")]
     RenderAllDomainSlurmSubmitManifest(BenchLocalRenderAllDomainSlurmSubmitManifestArgs),
     #[command(name = "render-slurm-submit-manifest")]
@@ -235,6 +239,22 @@ pub struct BenchLocalRenderHpcScratchLayoutArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalValidateHpcScratchLayoutArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcExecutionResolverArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcExecutionResolverArgs {
     #[arg(long)]
     pub manifest: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
