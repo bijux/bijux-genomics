@@ -5,21 +5,37 @@ const NORMAL_DEPS: &[&str] = &[
     "anyhow",
     "bijux-dna-analyze",
     "bijux-dna-api",
+    "bijux-dna-core",
     "bijux-dna-db-ena",
+    "bijux-dna-db-ref",
+    "bijux-dna-domain-bam",
     "bijux-dna-domain-compiler",
+    "bijux-dna-domain-fastq",
+    "bijux-dna-domain-vcf",
     "bijux-dna-infra",
+    "bijux-dna-planner-bam",
+    "bijux-dna-planner-fastq",
+    "bijux-dna-planner-vcf",
+    "bijux-dna-stage-contract",
+    "bijux-dna-stages-fastq",
+    "bijux-dna-stages-vcf",
     "clap",
     "flate2",
+    "noodles-bam",
+    "noodles-sam",
     "regex",
+    "schemars",
     "serde",
     "serde_json",
+    "serde_yaml",
     "sha2",
     "tar",
     "toml",
     "tracing",
 ];
 
-const DEV_DEPS: &[&str] = &["bijux-dna-policies", "filetime", "insta", "predicates", "tempfile"];
+const DEV_DEPS: &[&str] =
+    &["bijux-dna-policies", "bijux-dna-testkit", "filetime", "insta", "predicates", "tempfile"];
 
 #[test]
 fn normal_dependency_graph_stays_cli_facing() {

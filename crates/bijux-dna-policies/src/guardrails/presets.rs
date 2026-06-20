@@ -17,6 +17,7 @@ pub(super) fn for_crate(name: &str) -> GuardrailConfig {
         config.allow_mod_only_dirs = vec!["/src/vcf".to_string()];
     }
     if name == "bijux-dna" {
+        config.max_pub_items_per_file = 220;
         config.allow_mod_only_dirs = vec![
             "/src/commands/corpus".to_string(),
             "/src/commands/planning".to_string(),

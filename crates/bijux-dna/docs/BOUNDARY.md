@@ -3,7 +3,7 @@
 Owner: CLI
 Scope: User-facing command adapter over stable API, registry, environment, and operator helpers
 Allowed inputs: CLI arguments, current working directory, repository configs, explicit environment variables, API responses
-Forbidden dependencies: engine internals, runner internals, runtime internals, direct stage execution crates, direct domain semantics ownership
+Forbidden dependencies: engine internals, runner internals, runtime internals, and undeclared internal crates that bypass owned benchmark and fixture workflows
 Forbidden effects: undeclared writes, undeclared network access, process spawning, hidden runtime mutation
 Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --no-default-features`
 
@@ -17,6 +17,7 @@ renders human/JSON output, and exits with categorized operator failures.
 - Terminal/JSON rendering at the CLI boundary.
 - Help text, command snapshots, and operator-facing error categorization.
 - Thin adapters for environment, registry, corpus, benchmark, status, BAM, FASTQ, and VCF commands.
+- Benchmark-readiness validation, governed fixture regeneration, and local smoke orchestration that this crate publishes as operator-facing benchmark surfaces.
 
 ## What this crate must not own
 - Scientific domain truth, stage catalogs, or tool semantics.
@@ -28,15 +29,18 @@ renders human/JSON output, and exits with categorized operator failures.
 ## Allowed dependencies
 - `bijux-dna-api` for stable planning, runtime, report, environment, and domain-facing contracts.
 - `bijux-dna-infra` for declared filesystem helpers.
+- `bijux-dna-core`, domain, planner, stage-contract, and selected stage crates when the CLI owns benchmark-readiness validation, fixture truth generation, or local smoke evidence for governed outputs.
 - Explicit data access adapters when the CLI command owns that operator workflow, such as ENA corpus
   materialization.
 - CLI support libraries for parsing, serialization, rendering, and deterministic archives.
 - Debug/operator helper crates only when explicitly justified by command ownership.
 
 ## Forbidden dependency shape
-The CLI must not directly depend on stage execution crates, engine crates, runner crates, runtime
-internals, or domain crates to run science logic. Domain or stage logic needed for a command must
-move behind `bijux-dna-api` or a smaller owning crate before the CLI calls it.
+The CLI must not directly depend on engine crates, runner crates, runtime internals, or unrelated
+internal crates to run science logic. Direct domain, planner, stage-contract, and selected stage
+crate edges are allowed only for benchmark-owned validation, fixture, and local smoke commands
+whose durable outputs are governed by this crate; broader runtime execution paths must still move
+behind `bijux-dna-api` or a smaller owning crate before the CLI calls them.
 
 ## Allowed effects
 - Read repository configs and governed domain/assets files through declared paths.
