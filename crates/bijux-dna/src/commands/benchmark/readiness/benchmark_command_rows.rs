@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::env;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -289,7 +290,7 @@ fn render_fastq_stage_tool_argv(
         let out_dir = benchmark_command_out_dir("fastq", stage_id, tool_id).with_context(|| {
             format!("build benchmark command output dir for `{stage_id}` / `{tool_id}`")
         })?;
-        let plan =
+        let plan = with_repo_root_current_dir(repo_root, || {
             bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_with_qc_inputs(
                 &tool,
                 &qc_inputs,
@@ -305,9 +306,8 @@ fn render_fastq_stage_tool_argv(
                     .map(|path| resolve_repo_input_path(repo_root, path))
                     .as_deref(),
             )
-            .with_context(|| {
-                format!("plan FASTQ benchmark command row `{stage_id}` / `{tool_id}`")
-            })?;
+        })
+        .with_context(|| format!("plan FASTQ benchmark command row `{stage_id}` / `{tool_id}`"))?;
         return Ok(plan.command.template);
     }
     let params = project_fastq_benchmark_params_for_tool(
@@ -346,25 +346,27 @@ fn render_fastq_stage_tool_argv(
     let out_dir = benchmark_command_out_dir("fastq", stage_id, tool_id).with_context(|| {
         format!("build benchmark command output dir for `{stage_id}` / `{tool_id}`")
     })?;
-    let plan = bijux_dna_planner_fastq::plan_fastq_stage_binding_with_explicit_inputs(
-        bijux_dna_planner_fastq::FastqStageBinding {
-            stage_id: stage_id.to_string(),
-            stage_instance_id: None,
-            tool,
-            reason: None,
-            params,
-        },
-        &std::collections::BTreeMap::new(),
-        adapter_bank.as_ref(),
-        polyx_bank.as_ref(),
-        contaminant_bank.as_ref(),
-        false,
-        &fallback_r1,
-        fallback_r2.as_deref(),
-        reference_fasta.as_deref(),
-        &explicit_inputs,
-        &out_dir,
-    )
+    let plan = with_repo_root_current_dir(repo_root, || {
+        bijux_dna_planner_fastq::plan_fastq_stage_binding_with_explicit_inputs(
+            bijux_dna_planner_fastq::FastqStageBinding {
+                stage_id: stage_id.to_string(),
+                stage_instance_id: None,
+                tool,
+                reason: None,
+                params,
+            },
+            &std::collections::BTreeMap::new(),
+            adapter_bank.as_ref(),
+            polyx_bank.as_ref(),
+            contaminant_bank.as_ref(),
+            false,
+            &fallback_r1,
+            fallback_r2.as_deref(),
+            reference_fasta.as_deref(),
+            &explicit_inputs,
+            &out_dir,
+        )
+    })
     .with_context(|| format!("plan FASTQ benchmark command row `{stage_id}` / `{tool_id}`"))?;
     Ok(plan.command.template)
 }
@@ -419,17 +421,19 @@ fn render_bam_stage_tool_argv(
     let out_dir = benchmark_command_out_dir("bam", stage_id, tool_id).with_context(|| {
         format!("build benchmark command output dir for `{stage_id}` / `{tool_id}`")
     })?;
-    let plan = bijux_dna_planner_bam::plan_stage(bijux_dna_planner_bam::StagePlanRequest {
-        stage_id,
-        tool: &tool,
-        out_dir: &out_dir,
-        bam: bam.as_deref(),
-        bam_index: bam_index.as_deref(),
-        r1: r1.as_deref(),
-        r2: r2.as_deref(),
-        reference: reference.as_deref(),
-        sample_id,
-        params: params_ref,
+    let plan = with_repo_root_current_dir(repo_root, || {
+        bijux_dna_planner_bam::plan_stage(bijux_dna_planner_bam::StagePlanRequest {
+            stage_id,
+            tool: &tool,
+            out_dir: &out_dir,
+            bam: bam.as_deref(),
+            bam_index: bam_index.as_deref(),
+            r1: r1.as_deref(),
+            r2: r2.as_deref(),
+            reference: reference.as_deref(),
+            sample_id,
+            params: params_ref,
+        })
     })
     .with_context(|| format!("plan BAM benchmark command row `{stage_id}` / `{tool_id}`"))?;
     Ok(plan.command.template)
@@ -1019,6 +1023,26 @@ fn find_bam_corpus_reference(repo_root: &Path, plan: &StagePlanV1) -> Option<Pat
     let raw = std::fs::read_to_string(&manifest_path).ok()?;
     let manifest: BamCorpusManifestReference = toml::from_str(&raw).ok()?;
     Some(corpus_root.join(manifest.reference_fasta))
+}
+
+fn with_repo_root_current_dir<T>(
+    repo_root: &Path,
+    action: impl FnOnce() -> Result<T>,
+) -> Result<T> {
+    struct CurrentDirGuard(PathBuf);
+
+    impl Drop for CurrentDirGuard {
+        fn drop(&mut self) {
+            let _ = env::set_current_dir(&self.0);
+        }
+    }
+
+    let previous =
+        env::current_dir().context("resolve current directory before benchmark command render")?;
+    env::set_current_dir(repo_root)
+        .with_context(|| format!("set current directory to {}", repo_root.display()))?;
+    let _guard = CurrentDirGuard(previous);
+    action()
 }
 
 fn explicit_input_source_tool_id(

@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::sync::{Mutex, OnceLock};
 
 use anyhow::{anyhow, bail, Result};
 use bijux_dna_db_ref::public_api::{materialize_vcf_panel_assets, VcfPanelMaterializationReport};
@@ -82,6 +83,17 @@ pub(crate) fn materialize_governed_vcf_panel_assets(
         Some(GOVERNED_VCF_MAP_ID),
         materialization_root,
     )
+}
+
+pub(crate) fn with_governed_vcf_panel_materialization_lock<T>(
+    action: impl FnOnce() -> Result<T>,
+) -> Result<T> {
+    static MATERIALIZATION_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+    let lock = MATERIALIZATION_LOCK.get_or_init(|| Mutex::new(()));
+    let _guard = lock
+        .lock()
+        .map_err(|_| anyhow!("governed VCF panel materialization lock is poisoned"))?;
+    action()
 }
 
 pub(crate) fn governed_vcf_panel_species_context() -> SpeciesContext {
