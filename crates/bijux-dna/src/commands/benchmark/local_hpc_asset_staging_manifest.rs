@@ -36,7 +36,7 @@ const OUTPUT_FLAG_ARGS: [&str; 12] = [
     "--summary",
 ];
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct LocalHpcAssetStagingManifest {
     pub(crate) schema_version: &'static str,
     pub(crate) output_path: String,
@@ -47,7 +47,7 @@ pub(crate) struct LocalHpcAssetStagingManifest {
     pub(crate) jobs: Vec<LocalHpcAssetStagingJob>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct LocalHpcAssetStagingJob {
     pub(crate) result_id: String,
     pub(crate) domain: String,
@@ -58,7 +58,7 @@ pub(crate) struct LocalHpcAssetStagingJob {
     pub(crate) staged_inputs: Vec<LocalHpcAssetStagingInput>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct LocalHpcAssetStagingInput {
     pub(crate) artifact_id: Option<String>,
     pub(crate) artifact_role: Option<String>,
@@ -109,6 +109,41 @@ struct RenderedCommandArgvFileRow {
     command_steps: Vec<RenderedCommandArgvStepFileRow>,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+struct LoadedLocalHpcAssetStagingManifest {
+    schema_version: String,
+    output_path: String,
+    staging_root: String,
+    selected_job_count: usize,
+    staged_input_count: usize,
+    unique_source_path_count: usize,
+    jobs: Vec<LoadedLocalHpcAssetStagingJob>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct LoadedLocalHpcAssetStagingJob {
+    result_id: String,
+    domain: String,
+    stage_id: String,
+    tool_id: String,
+    corpus_id: String,
+    asset_profile_id: String,
+    staged_inputs: Vec<LoadedLocalHpcAssetStagingInput>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct LoadedLocalHpcAssetStagingInput {
+    artifact_id: Option<String>,
+    artifact_role: Option<String>,
+    source_kind: String,
+    source_path: String,
+    staged_path: String,
+    checksum_sha256: String,
+    size_bytes: u64,
+    member_count: usize,
+    consumer_result_id: String,
+}
+
 pub(crate) fn run_render_hpc_asset_staging_manifest(
     args: &parse::BenchLocalRenderHpcAssetStagingManifestArgs,
 ) -> Result<()> {
@@ -132,6 +167,81 @@ pub(crate) fn render_hpc_asset_staging_manifest(
 ) -> Result<LocalHpcAssetStagingManifest> {
     let absolute_output =
         if output_path.is_absolute() { output_path } else { repo_root.join(&output_path) };
+    let manifest = build_hpc_asset_staging_manifest(repo_root, &absolute_output)?;
+    bijux_dna_infra::atomic_write_json(&absolute_output, &manifest)?;
+    Ok(manifest)
+}
+
+pub(crate) fn load_validated_hpc_asset_staging_manifest_path(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> Result<LocalHpcAssetStagingManifest> {
+    let absolute_manifest_path =
+        if manifest_path.is_absolute() { manifest_path.to_path_buf() } else { repo_root.join(manifest_path) };
+    let raw = fs::read_to_string(&absolute_manifest_path)
+        .with_context(|| format!("read {}", absolute_manifest_path.display()))?;
+    let loaded = serde_json::from_str::<LoadedLocalHpcAssetStagingManifest>(&raw)
+        .with_context(|| format!("parse {}", absolute_manifest_path.display()))?;
+    if loaded.schema_version != LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "HPC asset staging manifest `{}` uses schema `{}` instead of `{}`",
+            absolute_manifest_path.display(),
+            loaded.schema_version,
+            LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION
+        ));
+    }
+    let manifest = LocalHpcAssetStagingManifest {
+        schema_version: LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION,
+        output_path: loaded.output_path,
+        staging_root: loaded.staging_root,
+        selected_job_count: loaded.selected_job_count,
+        staged_input_count: loaded.staged_input_count,
+        unique_source_path_count: loaded.unique_source_path_count,
+        jobs: loaded
+            .jobs
+            .into_iter()
+            .map(|job| LocalHpcAssetStagingJob {
+                result_id: job.result_id,
+                domain: job.domain,
+                stage_id: job.stage_id,
+                tool_id: job.tool_id,
+                corpus_id: job.corpus_id,
+                asset_profile_id: job.asset_profile_id,
+                staged_inputs: job
+                    .staged_inputs
+                    .into_iter()
+                    .map(|input| LocalHpcAssetStagingInput {
+                        artifact_id: input.artifact_id,
+                        artifact_role: input.artifact_role,
+                        source_kind: input.source_kind,
+                        source_path: input.source_path,
+                        staged_path: input.staged_path,
+                        checksum_sha256: input.checksum_sha256,
+                        size_bytes: input.size_bytes,
+                        member_count: input.member_count,
+                        consumer_result_id: input.consumer_result_id,
+                    })
+                    .collect(),
+            })
+            .collect(),
+    };
+    ensure_manifest_contract(&manifest)?;
+    let expected_output_path = path_relative_to_repo(repo_root, &absolute_manifest_path);
+    if manifest.output_path != expected_output_path {
+        return Err(anyhow!(
+            "HPC asset staging manifest `{}` declares output_path `{}` but is stored at `{}`",
+            absolute_manifest_path.display(),
+            manifest.output_path,
+            expected_output_path
+        ));
+    }
+    Ok(manifest)
+}
+
+fn build_hpc_asset_staging_manifest(
+    repo_root: &Path,
+    absolute_output: &Path,
+) -> Result<LocalHpcAssetStagingManifest> {
     ensure_path_stays_within_benchmark_runs_root(
         repo_root,
         &absolute_output,
@@ -197,7 +307,6 @@ pub(crate) fn render_hpc_asset_staging_manifest(
         jobs,
     };
     ensure_manifest_contract(&manifest)?;
-    bijux_dna_infra::atomic_write_json(&absolute_output, &manifest)?;
     Ok(manifest)
 }
 
@@ -755,7 +864,8 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        load_rendered_command_argv_rows, render_hpc_asset_staging_manifest,
+        load_rendered_command_argv_rows, load_validated_hpc_asset_staging_manifest_path,
+        render_hpc_asset_staging_manifest,
         DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH, LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION,
     };
 
@@ -817,5 +927,23 @@ mod tests {
                 == "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam"
                 && entry.source_kind == "file"
         }));
+    }
+
+    #[test]
+    fn loaded_hpc_asset_staging_manifest_matches_governed_render() {
+        let root = repo_root();
+        let rendered = render_hpc_asset_staging_manifest(
+            &root,
+            PathBuf::from(DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH),
+        )
+        .expect("render HPC asset staging manifest");
+        let loaded = load_validated_hpc_asset_staging_manifest_path(
+            &root,
+            &root.join(DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH),
+        )
+        .expect("load validated HPC asset staging manifest");
+
+        assert_eq!(loaded, rendered);
+        assert_eq!(loaded.output_path, "runs/bench/hpc-dry-run/asset-staging-manifest.json");
     }
 }
