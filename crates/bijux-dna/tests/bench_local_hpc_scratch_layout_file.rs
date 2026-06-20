@@ -113,7 +113,7 @@ fn bench_local_validate_hpc_scratch_layout_rejects_stale_manifest_file() {
     );
     let stderr = String::from_utf8_lossy(&validate_output.stderr);
     assert!(
-        stderr.contains("drifted"),
-        "stale manifest failure must identify drift, got:\n{stderr}"
+        stderr.contains("input_link_count aligned with input links"),
+        "stale manifest failure must identify the input-link invariant, got:\n{stderr}"
     );
 }
