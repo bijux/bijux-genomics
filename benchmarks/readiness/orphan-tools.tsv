@@ -1,1 +1,3 @@
 domain	tool_id	decision	declared_stage_ids	benchmark_stage_ids	reason
+fastq	dustmasker	future_tool	fastq.filter_low_complexity		tool `dustmasker` only declares non-benchmarked stages fastq.filter_low_complexity; keep it visible for future benchmark expansion
+fastq	seqpurge	future_tool	fastq.trim_reads		tool `seqpurge` only declares non-benchmarked stages fastq.trim_reads; keep it visible for future benchmark expansion

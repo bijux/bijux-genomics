@@ -51,19 +51,19 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("governed_benchmark_command_assets")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(36));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(38));
     assert_eq!(
         payload.get("declared_stage_tool_row_count").and_then(serde_json::Value::as_u64),
-        Some(19)
+        Some(20)
     );
-    assert_eq!(payload.get("asset_id_row_count").and_then(serde_json::Value::as_u64), Some(36));
+    assert_eq!(payload.get("asset_id_row_count").and_then(serde_json::Value::as_u64), Some(38));
     assert_eq!(payload.get("unique_asset_id_count").and_then(serde_json::Value::as_u64), Some(15));
     assert_eq!(
         payload
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(16)
+        Some(18)
     );
     assert_eq!(
         payload
@@ -98,7 +98,7 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
             .get("asset_role_counts")
             .and_then(|value| value.get("reference_index_output"))
             .and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(2)
     );
     assert_eq!(
         payload
@@ -112,7 +112,7 @@ fn bench_readiness_stage_tool_assets_reports_governed_asset_rows() {
             .get("asset_role_counts")
             .and_then(|value| value.get("reference_fasta"))
             .and_then(serde_json::Value::as_u64),
-        Some(12)
+        Some(13)
     );
     assert_eq!(
         payload

@@ -46,14 +46,27 @@ fn bench_readiness_orphan_tools_reports_governed_decisions() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/orphan-tools.tsv")
     );
-    assert_eq!(payload.get("orphan_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("orphan_count").and_then(serde_json::Value::as_u64), Some(2));
 
     let domain_counts = payload
         .get("domain_counts")
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
-    assert!(domain_counts.is_empty(), "the orphan-tool slice must now be empty");
+    assert_eq!(
+        domain_counts.get("fastq").and_then(serde_json::Value::as_u64),
+        Some(2)
+    );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert!(rows.is_empty(), "the governed orphan slice must now be empty");
+    assert_eq!(rows.len(), 2);
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("dustmasker")
+            && row.get("decision").and_then(serde_json::Value::as_str) == Some("future_tool")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqpurge")
+            && row.get("decision").and_then(serde_json::Value::as_str) == Some("future_tool")
+    }));
 }

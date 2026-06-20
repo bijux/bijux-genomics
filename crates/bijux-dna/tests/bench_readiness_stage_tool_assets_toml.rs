@@ -49,7 +49,7 @@ fn bench_readiness_stage_tool_assets_writes_governed_toml_file() {
     );
 
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 36);
+    assert_eq!(rows.len(), 38);
     assert!(rows.iter().all(|row| {
         row.get("asset_id")
             .and_then(toml::Value::as_str)
