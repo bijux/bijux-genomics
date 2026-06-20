@@ -117,9 +117,10 @@ printf '%s\n' "cargo target dir: ${artifact_target_dir}"
 printf '%s\n' "nextest report: ${nextest_report}"
 
 status=0
-if ! make test-all; then
-  status=\$?
-fi
+set +e
+make test-all
+status=\$?
+set -e
 
 printf '%s\n' "\${status}" >"${status_file}"
 printf '%s\n' "frozen test-all exit: \${status}"
