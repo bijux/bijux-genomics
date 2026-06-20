@@ -45,7 +45,8 @@ fn bench_readiness_essential_pipeline_rendered_commands_write_bash_parseable_scr
     assert!(script.contains("# reference-panel-imputation / vcf.phasing / vcf.phasing / shapeit5"));
     assert!(script.contains("bcftools mpileup"));
     assert!(script.contains("shapeit5 phase_common"));
-    assert!(script.contains("bench local materialize-stage --stage-id fastq.report_qc"));
+    assert!(script.contains("# edna-taxonomy-no-vcf / fastq.report_qc / fastq.report_qc / multiqc"));
+    assert!(script.contains("multiqc -o"));
     assert!(script.contains("bench local materialize-stage --stage-id bam.genotyping"));
     assert!(!script.to_ascii_lowercase().contains("todo"));
     assert!(!script.to_ascii_lowercase().contains("placeholder"));
