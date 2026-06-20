@@ -59,6 +59,7 @@ pub(crate) mod local_hpc_input_discovery;
 pub(crate) mod local_hpc_job_resources;
 pub(crate) mod local_hpc_scratch_layout;
 pub(crate) mod local_hpc_selected_jobs;
+pub(crate) mod local_hpc_stage_benchmark_array;
 pub(crate) mod local_hpc_submission_ready;
 pub(crate) mod local_micro_benchmark_report;
 pub(crate) mod local_micro_benchmark_run;

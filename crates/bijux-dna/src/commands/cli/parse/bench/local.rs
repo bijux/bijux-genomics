@@ -139,6 +139,10 @@ pub enum BenchLocalCommand {
     ValidateHpcExecutionResolver(BenchLocalValidateHpcExecutionResolverArgs),
     #[command(name = "render-hpc-execution-resolver")]
     RenderHpcExecutionResolver(BenchLocalRenderHpcExecutionResolverArgs),
+    #[command(name = "validate-hpc-stage-benchmark-array")]
+    ValidateHpcStageBenchmarkArray(BenchLocalValidateHpcStageBenchmarkArrayArgs),
+    #[command(name = "render-hpc-stage-benchmark-array")]
+    RenderHpcStageBenchmarkArray(BenchLocalRenderHpcStageBenchmarkArrayArgs),
     #[command(name = "render-all-domain-slurm-submit-manifest")]
     RenderAllDomainSlurmSubmitManifest(BenchLocalRenderAllDomainSlurmSubmitManifestArgs),
     #[command(name = "render-slurm-submit-manifest")]
@@ -257,6 +261,22 @@ pub struct BenchLocalRenderHpcExecutionResolverArgs {
 pub struct BenchLocalValidateHpcExecutionResolverArgs {
     #[arg(long)]
     pub manifest: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcStageBenchmarkArrayArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcStageBenchmarkArrayArgs {
+    #[arg(long)]
+    pub script: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
