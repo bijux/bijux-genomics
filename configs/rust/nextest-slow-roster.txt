@@ -1,6 +1,5 @@
 # Governed slow test roster for fast and slow Rust test lanes.
-# Entries are Rust test function names observed above the 1 second slow threshold in the frozen full-suite report.
-# Source report commit: ff11cecbc
+# Entries are Rust test function names classified outside the 1 second fast-lane budget.
 # Keep entries sorted and unique.
 all_domain_rendered_commands_report_tracks_governed_rows
 api_tree_matches_architecture_contract
@@ -9,6 +8,7 @@ bench_active_scope_validate_fast_reports_complete_fast_surface
 bench_active_scope_validate_fast_writes_disposable_report_file
 bench_local_adna_micro_pipeline_reports_real_stage_handoffs
 bench_local_adna_micro_pipeline_writes_governed_summary_file
+bench_local_amplicon_micro_pipeline_reports_validated_amplicon_outputs
 bench_local_bam_micro_smoke_subset_reports_one_governed_row_per_family
 bench_local_bam_micro_smoke_subset_writes_governed_summary_file
 bench_local_check_manifest_completion_json_reports_governed_51_stage_slice_complete

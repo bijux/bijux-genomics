@@ -60,8 +60,12 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         "profile.full must keep the full suite deterministic"
     );
     bijux_dna_policies::policy_assert!(
-        !full_profile.contains("slow-timeout"),
-        "profile.full must not impose a slow timeout on the complete suite"
+        full_profile.contains("slow-timeout = \"1s\""),
+        "profile.full must classify tests over 1 second as slow during the complete suite"
+    );
+    bijux_dna_policies::policy_assert!(
+        !full_profile.contains("terminate-after"),
+        "profile.full must not terminate long-running tests during the complete suite"
     );
     bijux_dna_policies::policy_assert!(
         cargo_mk.contains("NEXTEST_PROFILE_ALL ?= full"),

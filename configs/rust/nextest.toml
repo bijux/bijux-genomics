@@ -24,6 +24,7 @@ status-level = "pass"
 retries = { count = 0, backoff = "fixed", delay = "1s" }
 fail-fast = false
 test-threads = 1
+slow-timeout = "1s"
 failure-output = "immediate"
 success-output = "never"
 status-level = "pass"
