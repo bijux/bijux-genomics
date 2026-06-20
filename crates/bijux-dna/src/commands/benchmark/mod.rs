@@ -55,6 +55,7 @@ pub(crate) mod local_essential_pipeline_fake_runs;
 pub(crate) mod local_fastq_micro_smoke_subset;
 pub(crate) mod local_hpc_array_support;
 pub(crate) mod local_hpc_asset_staging_manifest;
+pub(crate) mod local_hpc_job_completion;
 pub(crate) mod local_hpc_dependency_simulation;
 pub(crate) mod local_hpc_execution_resolver;
 pub(crate) mod local_hpc_input_discovery;
