@@ -143,6 +143,10 @@ pub enum BenchLocalCommand {
     ValidateHpcStageBenchmarkArray(BenchLocalValidateHpcStageBenchmarkArrayArgs),
     #[command(name = "render-hpc-stage-benchmark-array")]
     RenderHpcStageBenchmarkArray(BenchLocalRenderHpcStageBenchmarkArrayArgs),
+    #[command(name = "validate-hpc-pipeline-node-array")]
+    ValidateHpcPipelineNodeArray(BenchLocalValidateHpcPipelineNodeArrayArgs),
+    #[command(name = "render-hpc-pipeline-node-array")]
+    RenderHpcPipelineNodeArray(BenchLocalRenderHpcPipelineNodeArrayArgs),
     #[command(name = "render-all-domain-slurm-submit-manifest")]
     RenderAllDomainSlurmSubmitManifest(BenchLocalRenderAllDomainSlurmSubmitManifestArgs),
     #[command(name = "render-slurm-submit-manifest")]
@@ -275,6 +279,22 @@ pub struct BenchLocalRenderHpcStageBenchmarkArrayArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchLocalValidateHpcStageBenchmarkArrayArgs {
+    #[arg(long)]
+    pub script: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcPipelineNodeArrayArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcPipelineNodeArrayArgs {
     #[arg(long)]
     pub script: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

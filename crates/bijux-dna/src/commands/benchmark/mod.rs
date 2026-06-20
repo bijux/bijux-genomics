@@ -58,6 +58,7 @@ pub(crate) mod local_hpc_asset_staging_manifest;
 pub(crate) mod local_hpc_execution_resolver;
 pub(crate) mod local_hpc_input_discovery;
 pub(crate) mod local_hpc_job_resources;
+pub(crate) mod local_hpc_pipeline_node_array;
 pub(crate) mod local_hpc_scratch_layout;
 pub(crate) mod local_hpc_selected_jobs;
 pub(crate) mod local_hpc_stage_benchmark_array;

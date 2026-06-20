@@ -1348,6 +1348,16 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchLocalCommand::ValidateHpcPipelineNodeArray(args) => {
+                        crate::commands::benchmark::local_hpc_pipeline_node_array::run_validate_hpc_pipeline_node_array(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcPipelineNodeArray(args) => {
+                        crate::commands::benchmark::local_hpc_pipeline_node_array::run_render_hpc_pipeline_node_array(
+                            args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RenderAllDomainSlurmSubmitManifest(args) => {
                         crate::commands::benchmark::local_all_domain_slurm_submit_manifest::run_render_all_domain_slurm_submit_manifest(
                             args,
