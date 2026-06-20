@@ -15,7 +15,7 @@ dir = "artifacts/rust/test/nextest-store"
 retries = { count = 0, backoff = "fixed", delay = "1s" }
 fail-fast = false
 test-threads = 1
-slow-timeout = { period = "10s", terminate-after = 1 }
+slow-timeout = { period = "1s", terminate-after = 1 }
 failure-output = "immediate"
 success-output = "never"
 status-level = "pass"
@@ -24,6 +24,7 @@ status-level = "pass"
 retries = { count = 0, backoff = "fixed", delay = "1s" }
 fail-fast = false
 test-threads = 1
+slow-timeout = { period = "1s", terminate-after = 1 }
 failure-output = "immediate"
 success-output = "never"
 status-level = "pass"
@@ -49,7 +50,7 @@ status-level = "fail"
 retries = { count = 0, backoff = "fixed", delay = "1s" }
 fail-fast = true
 test-threads = 8
-slow-timeout = { period = "10s", terminate-after = 1 }
+slow-timeout = { period = "1s", terminate-after = 1 }
 failure-output = "immediate-final"
 success-output = "never"
 status-level = "pass"

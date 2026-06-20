@@ -23,8 +23,8 @@ fn policy__contracts__nextest_determinism_policy__ci_profile_disables_flaky_orde
         "profile.ci must disable retries for deterministic failure surfaces"
     );
     bijux_dna_policies::policy_assert!(
-        config.contains("slow-timeout = { period = \"10s\", terminate-after = 1 }"),
-        "fast nextest profiles must enforce the 10-second budget contract"
+        config.contains("slow-timeout = { period = \"1s\", terminate-after = 1 }"),
+        "fast nextest profiles must classify tests over 1 second as slow"
     );
 }
 
@@ -39,6 +39,10 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
     bijux_dna_policies::policy_assert!(
         config.contains("[profile.full]"),
         "configs/rust/nextest.toml must define [profile.full] for test-all and coverage"
+    );
+    bijux_dna_policies::policy_assert!(
+        config.contains("[profile.full]\nretries = { count = 0, backoff = \"fixed\", delay = \"1s\" }\nfail-fast = false\ntest-threads = 1\nslow-timeout = { period = \"1s\", terminate-after = 1 }"),
+        "profile.full must classify tests over 1 second as slow"
     );
     bijux_dna_policies::policy_assert!(
         cargo_mk.contains("NEXTEST_PROFILE_ALL ?= full"),
