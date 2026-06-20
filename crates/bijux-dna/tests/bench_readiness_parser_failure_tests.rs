@@ -48,15 +48,15 @@ fn bench_readiness_parser_failure_tests_report_structures_parser_errors() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/parser-failure-tests.json")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(96));
-    assert_eq!(payload.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(96));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(99));
+    assert_eq!(payload.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(99));
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload
             .get("domain_row_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(45)
+        Some(48)
     );
     assert_eq!(
         payload
@@ -70,25 +70,25 @@ fn bench_readiness_parser_failure_tests_report_structures_parser_errors() {
             .get("expected_failure_class_counts")
             .and_then(|value| value.get("missing_raw_output"))
             .and_then(serde_json::Value::as_u64),
-        Some(32)
+        Some(33)
     );
     assert_eq!(
         payload
             .get("expected_failure_class_counts")
             .and_then(|value| value.get("empty_raw_output"))
             .and_then(serde_json::Value::as_u64),
-        Some(32)
+        Some(33)
     );
     assert_eq!(
         payload
             .get("expected_failure_class_counts")
             .and_then(|value| value.get("malformed_raw_output"))
             .and_then(serde_json::Value::as_u64),
-        Some(32)
+        Some(33)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 96);
+    assert_eq!(rows.len(), 99);
     assert!(rows.iter().all(|row| {
         row.get("passed") == Some(&serde_json::Value::Bool(true))
             && row
@@ -127,4 +127,12 @@ fn bench_readiness_parser_failure_tests_report_structures_parser_errors() {
         .get("observed_error")
         .and_then(serde_json::Value::as_str)
         .is_some_and(|value| value.contains("flagstat summary missing `in total` line")));
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+            && row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("fastq.filter_low_complexity")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("dustmasker")
+            && row.get("expected_failure_class").and_then(serde_json::Value::as_str)
+                == Some("missing_raw_output")
+    }));
 }

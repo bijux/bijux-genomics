@@ -47,8 +47,8 @@ fn bench_readiness_parser_failure_tests_file_writes_self_describing_report() {
         report.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.parser_failure_tests.v1")
     );
-    assert_eq!(report.get("row_count").and_then(serde_json::Value::as_u64), Some(96));
-    assert_eq!(report.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(96));
+    assert_eq!(report.get("row_count").and_then(serde_json::Value::as_u64), Some(99));
+    assert_eq!(report.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(99));
     assert_eq!(report.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(report.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(96));
+    assert_eq!(report.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(99));
 }

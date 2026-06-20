@@ -199,14 +199,14 @@ mod tests {
 
         assert_eq!(report.schema_version, PARSER_FAILURE_TESTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_PARSER_FAILURE_TESTS_PATH);
-        assert_eq!(report.row_count, 96);
-        assert_eq!(report.passed_row_count, 96);
+        assert_eq!(report.row_count, 99);
+        assert_eq!(report.passed_row_count, 99);
         assert_eq!(report.failed_row_count, 0);
-        assert_eq!(report.domain_row_counts.get("fastq"), Some(&45));
+        assert_eq!(report.domain_row_counts.get("fastq"), Some(&48));
         assert_eq!(report.domain_row_counts.get("bam"), Some(&51));
-        assert_eq!(report.expected_failure_class_counts.get("missing_raw_output"), Some(&32));
-        assert_eq!(report.expected_failure_class_counts.get("empty_raw_output"), Some(&32));
-        assert_eq!(report.expected_failure_class_counts.get("malformed_raw_output"), Some(&32));
+        assert_eq!(report.expected_failure_class_counts.get("missing_raw_output"), Some(&33));
+        assert_eq!(report.expected_failure_class_counts.get("empty_raw_output"), Some(&33));
+        assert_eq!(report.expected_failure_class_counts.get("malformed_raw_output"), Some(&33));
         assert!(!report.observed_failure_class_counts.contains_key("unexpected_success"));
         assert!(report.rows.iter().all(|row| row.passed));
         assert!(report.rows.iter().any(|row| {
