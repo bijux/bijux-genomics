@@ -168,6 +168,19 @@ pub(crate) fn ensure_path_stays_outside_benchmark_readiness_root(
     Ok(())
 }
 
+pub(crate) fn ensure_path_stays_within_benchmark_readiness_root(
+    repo_root: &Path,
+    candidate: &Path,
+    output_kind: &str,
+) -> Result<()> {
+    let resolved = absolutize(repo_root, candidate);
+    let readiness_root = repo_root.join(DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE);
+    if resolved == readiness_root || resolved.starts_with(&readiness_root) {
+        return Ok(());
+    }
+    bail!("{output_kind} must resolve inside `{DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE}`");
+}
+
 pub(crate) fn ensure_path_stays_within_benchmark_runs_root(
     repo_root: &Path,
     candidate: &Path,
@@ -186,6 +199,7 @@ pub(crate) fn ensure_path_stays_within_benchmark_runs_root(
 mod tests {
     use super::{
         ensure_path_stays_outside_benchmark_readiness_root,
+        ensure_path_stays_within_benchmark_readiness_root,
         ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver, BENCHMARK_ROOT_ENV,
         DEFAULT_BENCHMARK_HPC_DRY_RUN_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE,
@@ -330,6 +344,35 @@ mod tests {
 
         assert!(
             error.to_string().contains("must remain disposable and must not resolve inside"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn benchmark_path_guard_accepts_paths_under_readiness_root() {
+        let repo_root = Path::new("/workspace/repo");
+
+        ensure_path_stays_within_benchmark_readiness_root(
+            repo_root,
+            Path::new("benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json"),
+            "candidate manifest output",
+        )
+        .expect("readiness-root output should be accepted");
+    }
+
+    #[test]
+    fn benchmark_path_guard_rejects_paths_outside_readiness_root() {
+        let repo_root = Path::new("/workspace/repo");
+
+        let error = ensure_path_stays_within_benchmark_readiness_root(
+            repo_root,
+            Path::new("runs/bench/hpc-dry-run/result-collection-simulation.json"),
+            "candidate manifest output",
+        )
+        .expect_err("non-readiness output should be rejected");
+
+        assert!(
+            error.to_string().contains("must resolve inside `benchmarks/readiness`"),
             "unexpected error: {error}"
         );
     }
