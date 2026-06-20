@@ -15,14 +15,14 @@ use super::local_hpc_job_resources::{
 };
 use super::local_hpc_selected_jobs::load_local_hpc_selected_jobs;
 use super::path_resolution::{ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver};
-use crate::commands::cli::parse;
-use crate::commands::cli::render;
 use crate::commands::benchmark::readiness::all_domain_rendered_commands::{
     render_all_domain_commands, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH,
 };
 use crate::commands::benchmark::readiness::essential_pipeline_rendered_commands::{
     render_essential_pipeline_commands, DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_PATH,
 };
+use crate::commands::cli::parse;
+use crate::commands::cli::render;
 
 const LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_VERSION: &str = "bijux.bench.local_hpc_scratch_layout.v1";
 pub(crate) const DEFAULT_HPC_SCRATCH_LAYOUT_PATH: &str =
@@ -496,10 +496,7 @@ fn load_all_domain_rendered_command_argv_rows(
         render_all_domain_commands(repo_root, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH.into())
             .with_context(|| format!("render {}", path.display()))?;
     }
-    load_jsonl_rows(
-        &path,
-        "all-domain rendered command argv row",
-    )
+    load_jsonl_rows(&path, "all-domain rendered command argv row")
 }
 
 fn load_essential_pipeline_rendered_command_argv_rows(
@@ -513,10 +510,7 @@ fn load_essential_pipeline_rendered_command_argv_rows(
         )
         .with_context(|| format!("render {}", path.display()))?;
     }
-    let rows = load_jsonl_rows(
-        &path,
-        "essential pipeline rendered command argv row",
-    )?;
+    let rows = load_jsonl_rows(&path, "essential pipeline rendered command argv row")?;
     if rows
         .iter()
         .any(|row: &ScratchLayoutEssentialPipelineCommandRow| row.render_status != "rendered")
@@ -944,7 +938,7 @@ mod tests {
                 &format!("\"input_link_count\": {}", rendered.input_link_count.saturating_sub(1)),
                 1,
             );
-        std::fs::write(&manifest_path, stale_body).expect("write stale manifest body");
+        bijux_dna_infra::write_payload(&manifest_path, stale_body).expect("write stale manifest body");
 
         let error = validate_hpc_scratch_layout_path(&root, &manifest_path)
             .expect_err("stale scratch layout must fail validation");

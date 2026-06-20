@@ -330,7 +330,7 @@ mod tests {
     fn likelihood_summary_counts_present_and_missing_gl_values() {
         let dir = tempfile::tempdir().expect("tempdir");
         let fixture_vcf = dir.path().join("gl_fixture.vcf");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &fixture_vcf,
             "##fileformat=VCFv4.2\n##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n##FORMAT=<ID=PL,Number=G,Type=Integer,Description=\"Likelihoods\">\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\ts2\nchr1\t1\t.\tA\tG\t60\tPASS\t.\tGT:PL\t0/1:0,10,20\t0/0:.,.,.\nchr1\t2\t.\tC\tT\t60\tPASS\t.\tGT:PL\t1/1:5,6,0\t0/1:9,0,12\n",
         )
@@ -347,7 +347,7 @@ mod tests {
     fn likelihood_summary_rejects_hard_genotype_only_rows() {
         let dir = tempfile::tempdir().expect("tempdir");
         let fixture_vcf = dir.path().join("gt_only.vcf");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &fixture_vcf,
             "##fileformat=VCFv4.2\n##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\nchr1\t1\t.\tA\tG\t60\tPASS\t.\tGT\t0/1\n",
         )

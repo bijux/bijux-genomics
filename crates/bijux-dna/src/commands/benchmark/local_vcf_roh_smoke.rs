@@ -719,7 +719,7 @@ mod tests {
     fn roh_segments_parser_rejects_unexpected_samples() {
         let temp = tempfile::tempdir().expect("tempdir");
         let path = temp.path().join("segments.tsv");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &path,
             "sample\tcontig\tstart\tend\tlength_bp\tn_sites\npanel_ref_1\tchr1\t10\t20\t10\t2\n",
         )
@@ -733,7 +733,7 @@ mod tests {
     fn roh_per_sample_parser_rejects_duplicate_samples() {
         let temp = tempfile::tempdir().expect("tempdir");
         let path = temp.path().join("per-sample.tsv");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &path,
             "sample\tsegment_count\ttotal_length_bp\tmean_length_bp\nsample_a\t1\t20\t20.0\nsample_a\t0\t0\t0.0\n",
         )

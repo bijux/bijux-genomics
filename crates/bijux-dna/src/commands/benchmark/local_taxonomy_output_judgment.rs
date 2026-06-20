@@ -429,7 +429,7 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let sample_a = temp.path().join("sample-a.json");
         let sample_b = temp.path().join("sample-b.json");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &sample_a,
             serde_json::to_string_pretty(&serde_json::json!({
                 "summary_entries": [
@@ -441,7 +441,7 @@ mod tests {
             .expect("encode sample a"),
         )
         .expect("write sample a");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &sample_b,
             serde_json::to_string_pretty(&serde_json::json!({
                 "summary_entries": [
@@ -487,7 +487,7 @@ mod tests {
         let root = repo_root();
         let temp = tempfile::tempdir().expect("tempdir");
         let sample_a = temp.path().join("sample-a.json");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &sample_a,
             serde_json::to_string_pretty(&serde_json::json!({
                 "summary_entries": [
@@ -520,7 +520,7 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let sample_a = temp.path().join("sample-a.json");
         let sample_b = temp.path().join("sample-b.json");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &sample_a,
             serde_json::to_string_pretty(&serde_json::json!({
                 "summary_entries": [
@@ -532,7 +532,7 @@ mod tests {
             .expect("encode sample a"),
         )
         .expect("write sample a");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &sample_b,
             serde_json::to_string_pretty(&serde_json::json!({
                 "summary_entries": [

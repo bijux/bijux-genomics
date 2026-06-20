@@ -1213,7 +1213,7 @@ fn write_fastq_as_fasta(input_fastq: &Path, output_fasta: &Path) -> Result<()> {
         fasta.push_str(&sequence);
         fasta.push('\n');
     }
-    std::fs::write(output_fasta, fasta)
+    bijux_dna_infra::write_payload(output_fasta, fasta)
         .with_context(|| format!("write FASTA {}", output_fasta.display()))?;
     Ok(())
 }

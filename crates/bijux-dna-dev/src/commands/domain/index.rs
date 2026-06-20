@@ -819,7 +819,7 @@ mod tests {
         let dom_dir = temp.path().join("vcf");
         std::fs::create_dir_all(dom_dir.join("docs"))
             .unwrap_or_else(|error| panic!("create docs dir: {error}"));
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             dom_dir.join("docs/DEFAULT_SETTINGS.md"),
             "## Blessed Defaults And Rationale\n\
 - `vcf.phasing` default: `shapeit5`. rationale: phasing stays on the governed dedicated backend.\n\

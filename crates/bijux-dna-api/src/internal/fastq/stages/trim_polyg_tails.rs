@@ -797,7 +797,7 @@ fn write_fastq_records(path: &Path, records: &[FastqRecord]) -> Result<()> {
         .and_then(|ext| ext.to_str())
         .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
     {
-        let file = std::fs::File::create(path)?;
+        let file = bijux_dna_infra::create_file(path)?;
         let mut encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
         for record in records {
             writeln!(encoder, "{}", record.header)?;
@@ -807,7 +807,7 @@ fn write_fastq_records(path: &Path, records: &[FastqRecord]) -> Result<()> {
         }
         encoder.finish()?;
     } else {
-        let file = std::fs::File::create(path)?;
+        let file = bijux_dna_infra::create_file(path)?;
         let mut writer = std::io::BufWriter::new(file);
         for record in records {
             writeln!(writer, "{}", record.header)?;

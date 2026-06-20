@@ -113,15 +113,10 @@ pub fn write_local_filter_reads_smoke_report() -> Result<PathBuf> {
 
     let output_root = repo_root.join("runs/bench/local-smoke/fastq.filter_reads");
     bijux_dna_infra::ensure_dir(&output_root)?;
-    let summary =
-        materialize_local_filter_reads_smoke_case(&repo_root, case, &output_root, true)?;
+    let summary = materialize_local_filter_reads_smoke_case(&repo_root, case, &output_root, true)?;
     for extra_case in &cases[1..] {
-        let _ = materialize_local_filter_reads_smoke_case(
-            &repo_root,
-            extra_case,
-            &output_root,
-            false,
-        )?;
+        let _ =
+            materialize_local_filter_reads_smoke_case(&repo_root, extra_case, &output_root, false)?;
     }
     let report_path = output_root.join("report.json");
     bijux_dna_infra::atomic_write_json(&report_path, &summary)?;
@@ -437,7 +432,7 @@ fn write_local_fastq_records(path: &Path, records: &[LocalFastqRecord]) -> Resul
         .and_then(|ext| ext.to_str())
         .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
     {
-        let file = std::fs::File::create(path)?;
+        let file = bijux_dna_infra::create_file(path)?;
         let mut encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
         for record in records {
             writeln!(encoder, "{}", record.header)?;
@@ -447,7 +442,7 @@ fn write_local_fastq_records(path: &Path, records: &[LocalFastqRecord]) -> Resul
         }
         encoder.finish()?;
     } else {
-        let file = std::fs::File::create(path)?;
+        let file = bijux_dna_infra::create_file(path)?;
         let mut writer = std::io::BufWriter::new(file);
         for record in records {
             writeln!(writer, "{}", record.header)?;

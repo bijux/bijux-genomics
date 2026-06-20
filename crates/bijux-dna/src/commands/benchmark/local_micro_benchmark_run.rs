@@ -1,5 +1,4 @@
 use std::fmt::Write as _;
-use std::fs;
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -1144,7 +1143,7 @@ fn build_run_id(
 
 fn write_run_log(log_path: &Path, lines: &[String]) -> Result<()> {
     let mut file =
-        fs::File::create(log_path).with_context(|| format!("create {}", log_path.display()))?;
+        bijux_dna_infra::create_file(log_path).with_context(|| format!("create {}", log_path.display()))?;
     for line in lines {
         writeln!(file, "{line}").with_context(|| format!("write {}", log_path.display()))?;
     }

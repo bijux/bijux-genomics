@@ -693,7 +693,7 @@ mod tests {
     fn build_detect_report_uses_governed_adapter_identity_fields() {
         let temp = bijux_dna_infra::temp_dir("bijux-api-detect-adapters").expect("temp dir");
         let r1 = temp.path().join("reads.fastq");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &r1,
             "@r1\nACGTAGATCGGAAGAGCTTT\n+\nIIIIIIIIIIIIIIIIIIII\n@r2\nACGTACGT\n+\nIIIIIIII\n",
         )
@@ -701,7 +701,7 @@ mod tests {
 
         let out_dir = temp.path().join("out");
         std::fs::create_dir_all(out_dir.join("fastqc")).expect("create fastqc dir");
-        std::fs::write(out_dir.join("fastqc/fastqc_data.txt"), "adapter content")
+        bijux_dna_infra::write_payload(out_dir.join("fastqc/fastqc_data.txt"), "adapter content")
             .expect("write raw report");
 
         let bench_inputs = TrimBenchInputs {

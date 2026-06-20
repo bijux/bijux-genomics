@@ -645,7 +645,7 @@ mod tests {
                 ),
                 1,
             );
-        std::fs::write(&manifest_path, stale_body).expect("write stale manifest body");
+        bijux_dna_infra::write_payload(&manifest_path, stale_body).expect("write stale manifest body");
 
         let error = validate_hpc_asset_staging_manifest_path(&root, &manifest_path)
             .expect_err("stale manifest must fail validation");

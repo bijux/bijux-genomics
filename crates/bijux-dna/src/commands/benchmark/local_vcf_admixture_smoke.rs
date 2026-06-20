@@ -819,7 +819,7 @@ mod tests {
     fn admixture_rows_reject_duplicate_samples() {
         let temp = tempfile::tempdir().expect("tempdir");
         let table = temp.path().join("admixture.tsv");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &table,
             "sample\tcluster_1\tcluster_2\nsample_a\t0.4\t0.6\nsample_a\t0.3\t0.7\n",
         )
@@ -853,7 +853,7 @@ mod tests {
     fn admixture_rows_require_ancestry_sum_to_one() {
         let temp = tempfile::tempdir().expect("tempdir");
         let table = temp.path().join("admixture.tsv");
-        std::fs::write(&table, "sample\tcluster_1\tcluster_2\nsample_a\t0.4\t0.5\n")
+        bijux_dna_infra::write_payload(&table, "sample\tcluster_1\tcluster_2\nsample_a\t0.4\t0.5\n")
             .expect("write admixture table");
         let mut metadata = BTreeMap::new();
         metadata.insert(

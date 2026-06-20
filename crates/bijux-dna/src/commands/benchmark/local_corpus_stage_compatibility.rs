@@ -626,7 +626,7 @@ mod tests {
         );
         let temp = tempfile::tempdir().expect("tempdir");
         let temp_matrix = temp.path().join("corpus-stage-compatibility.toml");
-        std::fs::write(&temp_matrix, drifted).expect("write drifted matrix");
+        bijux_dna_infra::write_payload(&temp_matrix, drifted).expect("write drifted matrix");
 
         let error = validate_corpus_stage_compatibility_path(&repo_root, &temp_matrix)
             .expect_err("unknown stage should fail validation");

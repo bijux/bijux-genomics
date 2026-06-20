@@ -1787,7 +1787,7 @@ fn convert_coordinate_sam_to_bam(
     });
 
     let bam_file =
-        fs::File::create(output_bam).with_context(|| format!("create {}", output_bam.display()))?;
+        bijux_dna_infra::create_file(output_bam).with_context(|| format!("create {}", output_bam.display()))?;
     let mut writer = bam::io::Writer::new(bam_file);
     writer
         .write_header(&header)
@@ -1906,7 +1906,7 @@ fn write_fastq_records(path: &Path, records: &[FastqRecord]) -> Result<()> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
-    let file = fs::File::create(path).with_context(|| format!("create {}", path.display()))?;
+    let file = bijux_dna_infra::create_file(path).with_context(|| format!("create {}", path.display()))?;
     let mut writer = std::io::BufWriter::new(file);
     for record in records {
         writeln!(writer, "{}", record.header)?;

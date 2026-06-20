@@ -1911,7 +1911,7 @@ fn convert_coordinate_sam_to_bam(
     });
 
     let bam_file =
-        fs::File::create(output_bam).with_context(|| format!("create {}", output_bam.display()))?;
+        bijux_dna_infra::create_file(output_bam).with_context(|| format!("create {}", output_bam.display()))?;
     let mut writer = bam::io::Writer::new(bam_file);
     writer
         .write_header(&header)

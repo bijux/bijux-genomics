@@ -440,7 +440,7 @@ mod tests {
     fn pseudohaploid_site_summary_counts_missing_sites() {
         let dir = tempfile::tempdir().expect("tempdir");
         let fixture_vcf = dir.path().join("pseudohaploid.vcf");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &fixture_vcf,
             "##fileformat=VCFv4.2\n##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\nchr1\t1\t.\tA\tG\t60\tPASS\tDP=8\tGT\t1\nchr1\t2\t.\tC\tT\t60\tPASS\tDP=2\tGT\t.\nchr1\t3\t.\tG\tA\t60\tPASS\tDP=5\tGT\t0\n",
         )
@@ -458,7 +458,7 @@ mod tests {
     fn pseudohaploid_site_summary_rejects_diploid_genotypes() {
         let dir = tempfile::tempdir().expect("tempdir");
         let fixture_vcf = dir.path().join("invalid_pseudohaploid.vcf");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &fixture_vcf,
             "##fileformat=VCFv4.2\n##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\nchr1\t1\t.\tA\tG\t60\tPASS\tDP=8\tGT\t0/1\n",
         )

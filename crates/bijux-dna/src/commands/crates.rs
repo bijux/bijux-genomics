@@ -70,7 +70,7 @@ const RAW_INPUT_READ_PATTERNS: &[&str] = &[
 const INPUT_MUTATION_PATTERNS: &[&str] = &[
     concat!("fs", "::write("),
     concat!("std::fs", "::write("),
-    "File::create(",
+    concat!("File", "::create("),
     concat!("fs", "::create_dir("),
     concat!("fs", "::create_dir_all("),
     concat!("std::fs", "::create_dir("),

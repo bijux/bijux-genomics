@@ -952,7 +952,7 @@ fn write_screen_summary_tsv(path: &Path, entries: &[TaxonomyScreenSummaryEntryV1
 }
 
 fn write_empty_gzip(path: &Path) -> Result<()> {
-    let file = fs::File::create(path).with_context(|| format!("create {}", path.display()))?;
+    let file = bijux_dna_infra::create_file(path).with_context(|| format!("create {}", path.display()))?;
     let mut encoder = GzEncoder::new(file, Compression::default());
     encoder.write_all(&[]).with_context(|| format!("write {}", path.display()))?;
     encoder.finish().with_context(|| format!("finish {}", path.display()))?;
