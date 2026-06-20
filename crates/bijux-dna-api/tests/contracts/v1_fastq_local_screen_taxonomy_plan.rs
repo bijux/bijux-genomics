@@ -44,9 +44,8 @@ fn write_local_screen_taxonomy_plan_materializes_governed_target_output() -> Res
     assert!(plan_path.is_file(), "local-ready taxonomy plan artifact must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
-    let inputs = payload["io"]["inputs"]
-        .as_array()
-        .unwrap_or_else(|| panic!("plan inputs missing"));
+    let inputs =
+        payload["io"]["inputs"].as_array().unwrap_or_else(|| panic!("plan inputs missing"));
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.screen_taxonomy"));
     assert_eq!(payload["tool_id"], serde_json::json!("kraken2"));
     assert_eq!(payload["resources"]["threads"], serde_json::json!(4));

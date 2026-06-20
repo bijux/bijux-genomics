@@ -44,12 +44,10 @@ fn write_local_deplete_host_plan_materializes_governed_target_output() -> Result
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
-    let inputs = payload["io"]["inputs"]
-        .as_array()
-        .unwrap_or_else(|| panic!("plan inputs missing"));
-    let outputs = payload["io"]["outputs"]
-        .as_array()
-        .unwrap_or_else(|| panic!("plan outputs missing"));
+    let inputs =
+        payload["io"]["inputs"].as_array().unwrap_or_else(|| panic!("plan inputs missing"));
+    let outputs =
+        payload["io"]["outputs"].as_array().unwrap_or_else(|| panic!("plan outputs missing"));
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.deplete_host"));
     assert_eq!(payload["tool_id"], serde_json::json!("bowtie2"));
     assert_eq!(payload["resources"]["threads"], serde_json::json!(4));

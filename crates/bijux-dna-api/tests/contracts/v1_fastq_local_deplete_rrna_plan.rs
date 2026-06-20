@@ -44,9 +44,8 @@ fn write_local_deplete_rrna_plan_materializes_governed_target_output() -> Result
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
-    let inputs = payload["io"]["inputs"]
-        .as_array()
-        .unwrap_or_else(|| panic!("plan inputs missing"));
+    let inputs =
+        payload["io"]["inputs"].as_array().unwrap_or_else(|| panic!("plan inputs missing"));
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.deplete_rrna"));
     assert_eq!(payload["tool_id"], serde_json::json!("sortmerna"));
     assert_eq!(payload["resources"]["threads"], serde_json::json!(4));
@@ -87,10 +86,11 @@ fn write_local_deplete_rrna_plan_materializes_governed_target_output() -> Result
     assert_eq!(payload["effective_params"]["emit_removed_reads"], serde_json::json!(true));
     assert_eq!(payload["effective_params"]["paired_mode"], serde_json::json!("paired_end"));
     assert!(
-        payload["command"]["template"][2].as_str().is_some_and(|script| script
-            .contains("sortmerna")
-            && script.contains("removed_rrna_R1.fastq.gz")
-            && script.contains("removed_rrna_R2.fastq.gz")),
+        payload["command"]["template"][2]
+            .as_str()
+            .is_some_and(|script| script.contains("sortmerna")
+                && script.contains("removed_rrna_R1.fastq.gz")
+                && script.contains("removed_rrna_R2.fastq.gz")),
         "local-ready plan command must carry the governed SortMeRNA dry-run command"
     );
     Ok(())

@@ -90,10 +90,7 @@ fn write_local_trim_terminal_damage_smoke_report_materializes_governed_outputs()
     );
     assert!(trimmed_fastq.is_file(), "top-level trimmed FASTQ must exist");
     let sequences = read_gz_fastq_sequences(&trimmed_fastq)?;
-    assert_eq!(
-        sequences,
-        vec!["GTTGCAACG".to_string(), "CATGCATGC".to_string(),]
-    );
+    assert_eq!(sequences, vec!["GTTGCAACG".to_string(), "CATGCATGC".to_string(),]);
 
     let report_json = repo_root
         .join(payload["report_json"].as_str().unwrap_or_else(|| panic!("report_json missing")));
