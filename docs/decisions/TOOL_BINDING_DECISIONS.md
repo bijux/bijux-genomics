@@ -48,6 +48,11 @@ This record captures tools whose binding shape spans multiple domains or differs
   - reason: ancient-DNA overlap merge and adapter cleanup are coupled in this backend and need stage-specific governed outputs.
   - affected bindings: `fastq.trim_reads`, `fastq.merge_pairs`.
   - date: 2026-04-27.
+- multiqc:
+  - decision: keep explicit cross-domain bindings for BAM pre-QC reporting and FASTQ QC aggregation.
+  - reason: the reporting surface legitimately spans BAM and FASTQ evidence without changing either stage's governed output contract.
+  - affected bindings: `bam.qc_pre`, `fastq.report_qc`.
+  - date: 2026-06-20.
 - pmdtools:
   - decision: keep BAM authenticity/damage role binding.
   - reason: PMD signal interpretation is BAM-domain specific.
