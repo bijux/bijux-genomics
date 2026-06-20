@@ -39,6 +39,7 @@
       ],
       "stage_output_ids": [
         "haplogroups",
+        "haplogroup_report",
         "summary",
         "stage_metrics"
       ],

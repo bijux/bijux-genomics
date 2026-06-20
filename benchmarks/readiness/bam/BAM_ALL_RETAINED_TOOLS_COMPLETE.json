@@ -14,8 +14,8 @@
   "rendered_command_row_count": 49,
   "parser_fixture_row_count": 49,
   "local_smoke_row_count": 49,
-  "local_smoke_host_stage_row_count": 18,
-  "local_smoke_container_row_count": 31,
+  "local_smoke_host_stage_row_count": 20,
+  "local_smoke_container_row_count": 29,
   "report_map_row_count": 49,
   "active_row_consistency_surface_count": 6,
   "micro_smoke_family_count": 12,
@@ -69,7 +69,7 @@
       "surface": "bam.haplogroups",
       "output_path": "benchmarks/readiness/bam/stages/bam.haplogroups.complete.json",
       "ok": true,
-      "detail": "validated checked-in `bam.haplogroups` completion artifact across 1/1 retained row(s) and 14 governed surface(s) because the local binary was built without `bam_downstream`"
+      "detail": "validated `bam.haplogroups` completion across 1/1 retained row(s) and 14 governed surface(s)"
     },
     {
       "goal_id": 438,
@@ -83,21 +83,21 @@
       "surface": "bam.genotyping",
       "output_path": "benchmarks/readiness/bam/stages/bam.genotyping.complete.json",
       "ok": true,
-      "detail": "validated checked-in `bam.genotyping` completion artifact across 1/1 retained row(s) and 15 governed surface(s) because the local binary was built without `bam_downstream`"
+      "detail": "validated `bam.genotyping` completion across 1/1 retained row(s) and 15 governed surface(s)"
     },
     {
       "goal_id": 440,
       "surface": "bam.kinship",
       "output_path": "benchmarks/readiness/bam/stages/bam.kinship.complete.json",
       "ok": true,
-      "detail": "validated checked-in `bam.kinship` completion artifact across 2/2 retained row(s) and 19 governed surface(s) because the local binary was built without `bam_downstream`"
+      "detail": "validated `bam.kinship` completion across 2/2 retained row(s) and 19 governed surface(s)"
     },
     {
       "goal_id": 441,
       "surface": "bam local and container smoke coverage",
       "output_path": "benchmarks/readiness/bam/bam-local-container-smoke.tsv",
       "ok": true,
-      "detail": "validated host-vs-container smoke coverage for every retained BAM binding with 18 host smoke row(s) and 31 container smoke row(s)"
+      "detail": "validated host-vs-container smoke coverage for every retained BAM binding with 20 host smoke row(s) and 29 container smoke row(s)"
     },
     {
       "goal_id": 442,
@@ -146,7 +146,7 @@
       "surface": "bam real micro smoke subset",
       "output_path": "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json",
       "ok": true,
-      "detail": "validated one representative retained BAM micro smoke per stage family with 9 host-local row(s), 3 container-needed row(s), and 0 unavailable row(s)"
+      "detail": "validated one representative retained BAM micro smoke per stage family with 10 host-local row(s), 2 container-needed row(s), and 0 unavailable row(s)"
     },
     {
       "goal_id": 449,

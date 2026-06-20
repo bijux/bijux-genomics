@@ -86,6 +86,10 @@
         "stage_metrics"
       ],
       "stage_output_ids": [
+        "genotyping_bcf",
+        "genotyping_vcf",
+        "genotyping_vcf_tbi",
+        "genotyping_gl",
         "genotyping_report",
         "summary",
         "stage_metrics"

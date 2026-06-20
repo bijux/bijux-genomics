@@ -55,6 +55,10 @@
       "stage_output_ids": [
         "overlap_corrected_bam",
         "overlap_corrected_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
         "summary",
         "stage_metrics"
       ],

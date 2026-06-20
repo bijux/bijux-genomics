@@ -96,6 +96,7 @@
       ],
       "stage_output_ids": [
         "contamination_report",
+        "contamination_estimate",
         "summary",
         "stage_metrics"
       ],
@@ -249,6 +250,7 @@
       ],
       "stage_output_ids": [
         "contamination_report",
+        "contamination_estimate",
         "summary",
         "stage_metrics"
       ],
@@ -402,6 +404,7 @@
       ],
       "stage_output_ids": [
         "contamination_report",
+        "contamination_estimate",
         "summary",
         "stage_metrics"
       ],
@@ -555,6 +558,7 @@
       ],
       "stage_output_ids": [
         "haplogroups",
+        "haplogroup_report",
         "summary",
         "stage_metrics"
       ],
