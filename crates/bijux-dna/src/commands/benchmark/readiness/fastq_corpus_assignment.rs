@@ -595,7 +595,9 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.report_qc"
                 && row.tool_id == "multiqc"
-                && row.excluded_reason.as_deref() == Some("governed_multiqc_bundle_fixture_missing")
+                && row.corpus_family_id.as_deref() == Some("corpus-01")
+                && row.fixture_id.as_deref() == Some("corpus-01-mini")
+                && row.excluded_reason.is_none()
         }));
     }
 }

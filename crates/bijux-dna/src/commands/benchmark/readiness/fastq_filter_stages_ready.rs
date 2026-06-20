@@ -44,7 +44,7 @@ const REQUIRED_REPORT_SECTION_ID: &str = "read_cleanup";
 const REQUIRED_SUMMARY_TABLE_ID: &str = "cleanup_retention";
 
 const FILTER_READS_TOOL_IDS: [&str; 4] = ["bbduk", "fastp", "prinseq", "seqkit"];
-const FILTER_LOW_COMPLEXITY_TOOL_IDS: [&str; 2] = ["bbduk", "prinseq"];
+const FILTER_LOW_COMPLEXITY_TOOL_IDS: [&str; 3] = ["bbduk", "fastp", "prinseq"];
 
 const FILTER_READS_REQUIRED_OUTPUT_IDS: [&str; 1] = ["filtered_reads_r1"];
 const FILTER_LOW_COMPLEXITY_REQUIRED_OUTPUT_IDS: [&str; 1] = ["filtered_fastq_r1"];
@@ -799,14 +799,14 @@ mod tests {
 
         assert_eq!(report.schema_version, FASTQ_FILTER_STAGES_READY_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_FASTQ_FILTER_STAGES_READY_PATH);
-        assert_eq!(report.active_row_count, 6);
-        assert_eq!(report.complete_row_count, 6);
+        assert_eq!(report.active_row_count, 7);
+        assert_eq!(report.complete_row_count, 7);
         assert_eq!(report.incomplete_row_count, 0);
         assert_eq!(report.checked_surface_count, 7);
         assert_eq!(report.stage_count, 2);
         assert_eq!(report.violation_count, 0);
         assert!(report.ok);
-        assert_eq!(report.coverage_status_counts.get("complete"), Some(&6));
+        assert_eq!(report.coverage_status_counts.get("complete"), Some(&7));
 
         let row = report
             .rows
@@ -826,5 +826,10 @@ mod tests {
         assert!(row.schema_required_fields.iter().any(|field| field == "reads_retained"));
         assert!(row.schema_required_fields.iter().any(|field| field == "reads_removed"));
         assert_eq!(row.expected_normalized_metrics_output_id, "filter_report_json");
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "fastq.filter_low_complexity"
+                && row.tool_id == "fastp"
+                && row.coverage_status == "complete"
+        }));
     }
 }

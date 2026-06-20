@@ -42,8 +42,8 @@ fn bench_readiness_fastq_filter_stages_ready_writes_governed_json_file() {
         report.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.fastq_filter_stages_ready.v1")
     );
-    assert_eq!(report.get("active_row_count").and_then(serde_json::Value::as_u64), Some(6));
-    assert_eq!(report.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(report.get("active_row_count").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(report.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let row = report

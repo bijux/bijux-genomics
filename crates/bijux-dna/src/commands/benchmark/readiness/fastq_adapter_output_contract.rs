@@ -451,7 +451,11 @@ mod tests {
                 && super::output_contract_status_label(row.output_contract_status) == "complete"
                 && row.stage_output_ids == vec!["duplicate_signal_report".to_string()]
                 && row.stage_expected_artifact_ids == vec!["duplicate_signal_report".to_string()]
-                && row.declared_output_ids == vec!["duplicate_signal_report".to_string()]
+                && row.declared_output_ids
+                    == vec![
+                        "duplicate_signal_report".to_string(),
+                        "library_complexity_report".to_string(),
+                    ]
                 && row.execution_expected_output_ids == vec!["duplicate_signal_report".to_string()]
                 && row.raw_output_artifact_ids == vec!["duplicate_signal_report".to_string()]
                 && row.normalized_metrics_output_id.as_deref() == Some("duplicate_signal_report")

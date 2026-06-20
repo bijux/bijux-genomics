@@ -46,8 +46,8 @@ fn bench_readiness_fastq_filter_stages_ready_reports_complete_filter_bindings() 
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/fastq/filter-stages-ready.json")
     );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(6));
-    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(2));
@@ -78,7 +78,7 @@ fn bench_readiness_fastq_filter_stages_ready_reports_complete_filter_bindings() 
         }));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 6);
+    assert_eq!(rows.len(), 7);
     assert!(rows.iter().all(|row| {
         row.get("active_scope_ready").and_then(serde_json::Value::as_bool) == Some(true)
             && row.get("command_ready").and_then(serde_json::Value::as_bool) == Some(true)
@@ -116,4 +116,10 @@ fn bench_readiness_fastq_filter_stages_ready_reports_complete_filter_bindings() 
                 && fields.iter().any(|field| field.as_str() == Some("reads_removed"))
                 && fields.iter().any(|field| field.as_str() == Some("reads_removed_low_complexity"))
         }));
+    assert!(payload
+        .get("expected_tool_ids_by_stage")
+        .and_then(serde_json::Value::as_object)
+        .and_then(|stages| stages.get("fastq.filter_low_complexity"))
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|tools| tools.iter().any(|tool| tool.as_str() == Some("fastp"))));
 }

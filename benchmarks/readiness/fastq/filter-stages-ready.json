@@ -1,14 +1,15 @@
 {
   "schema_version": "bijux.bench.readiness.fastq_filter_stages_ready.v1",
   "output_path": "benchmarks/readiness/fastq/filter-stages-ready.json",
-  "active_row_count": 6,
-  "complete_row_count": 6,
+  "active_row_count": 7,
+  "complete_row_count": 7,
   "incomplete_row_count": 0,
   "checked_surface_count": 7,
   "stage_count": 2,
   "expected_tool_ids_by_stage": {
     "fastq.filter_low_complexity": [
       "bbduk",
+      "fastp",
       "prinseq"
     ],
     "fastq.filter_reads": [
@@ -47,7 +48,7 @@
     ]
   },
   "coverage_status_counts": {
-    "complete": 6
+    "complete": 7
   },
   "violation_count": 0,
   "ok": true,
@@ -124,6 +125,73 @@
       "coverage_status": "complete",
       "missing_surfaces": [],
       "reason": "filter binding `fastq.filter_low_complexity` / `bbduk` keeps active scope, command, output, parser, expected-result, report, and schema proof for `fastq.filter_low_complexity`"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:fastp",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "fastp",
+      "corpus_id": "corpus-01-mini",
+      "sample_scope": "sample-set",
+      "benchmark_status": "benchmark_ready",
+      "support_status": "governed_benchmark_cohort",
+      "adapter_status": "runnable",
+      "parser_status": "benchmark_normalized",
+      "corpus_status": "fixture:corpus-01-mini",
+      "report_section_id": "read_cleanup",
+      "summary_table_id": "cleanup_retention",
+      "command_readiness_kind": "smoke",
+      "expected_outputs": [
+        "filtered_fastq_r1",
+        "filter_report_json",
+        "filtered_fastq_r2"
+      ],
+      "required_output_ids": [
+        "filtered_fastq_r1"
+      ],
+      "raw_output_artifact_ids": [
+        "filtered_fastq_r1",
+        "filtered_fastq_r2"
+      ],
+      "normalized_metrics_output_id": "filter_report_json",
+      "expected_normalized_metrics_output_id": "filter_report_json",
+      "schema_extension_id": "fastq_low_complexity_v1",
+      "required_metric_fields": [
+        "filtered_fastq_r1",
+        "reads_retained",
+        "reads_dropped",
+        "reads_removed",
+        "reads_removed_low_complexity"
+      ],
+      "schema_required_fields": [
+        "filtered_fastq_r1",
+        "reads_dropped",
+        "reads_in",
+        "reads_out",
+        "reads_removed",
+        "reads_removed_low_complexity",
+        "reads_retained",
+        "report_json",
+        "schema_version",
+        "stage",
+        "tool"
+      ],
+      "active_scope_proof_path": "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv",
+      "command_proof_path": "benchmarks/readiness/fastq-command-adapter-coverage.tsv",
+      "output_contract_proof_path": "benchmarks/readiness/fastq-adapter-output-contract.tsv",
+      "parser_proof_path": "benchmarks/readiness/fastq-parser-coverage.tsv",
+      "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
+      "report_map_proof_path": "benchmarks/readiness/fastq/fastq-report-map.tsv",
+      "schema_proof_path": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
+      "active_scope_ready": true,
+      "command_ready": true,
+      "output_ready": true,
+      "parser_ready": true,
+      "expected_result_ready": true,
+      "report_ready": true,
+      "schema_ready": true,
+      "coverage_status": "complete",
+      "missing_surfaces": [],
+      "reason": "filter binding `fastq.filter_low_complexity` / `fastp` keeps active scope, command, output, parser, expected-result, report, and schema proof for `fastq.filter_low_complexity`"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:prinseq",
