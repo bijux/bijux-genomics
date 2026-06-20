@@ -2021,6 +2021,21 @@ Visible aliases are part of the operator surface:
   mode assignments, runtime probes, and Apptainer map. The command fails closed if selected tool
   scope, lookup aliases, final resolution kind, target path, or unavailable reason drift from the
   governed dry-run execution plan.
+- `bijux-dna bench local render-hpc-stage-benchmark-array`
+  `render-hpc-stage-benchmark-array` writes
+  `runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch` together with
+  `runs/bench/hpc-dry-run/slurm/stage-benchmark-array-manifest.json`. The render consumes the
+  governed selected benchmark-result jobs, HPC scratch layout, and execution resolver so each
+  zero-based array index maps to one exact `result_id`, benchmark-result execution argv, resource
+  request, stdout and stderr paths, declared outputs, and execution-resolution metadata before any
+  real cluster submission occurs.
+- `bijux-dna bench local validate-hpc-stage-benchmark-array`
+  `validate-hpc-stage-benchmark-array` reloads
+  `runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch` and its companion manifest, then
+  rebuilds the expected array dispatch surface from the current selected benchmark jobs, HPC
+  scratch layout, and execution resolver. The command fails closed if the array index mapping,
+  benchmark-result execution commands, resource envelope, wrapper script, log paths, or declared
+  outputs drift from the governed dry-run stage benchmark plan.
 - `bijux-dna bench local render-benchmark-summary`
   `render-benchmark-summary` writes both `benchmarks/readiness/local-ready/benchmark-summary.json` and
   `benchmarks/readiness/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51

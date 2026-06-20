@@ -79,6 +79,19 @@ Apptainer conversion map:
 make bench-hpc-execution-resolver-validate
 ```
 
+Render the governed benchmark-result SLURM array and its per-index manifest:
+
+```bash
+make bench-hpc-stage-benchmark-array-render
+```
+
+Validate an existing benchmark-result SLURM array against the current selected jobs, scratch
+layout, and execution resolver:
+
+```bash
+make bench-hpc-stage-benchmark-array-validate
+```
+
 Call the underlying CLI directly when a non-default manifest path is needed:
 
 ```bash
@@ -99,6 +112,12 @@ bijux-dna bench local render-hpc-execution-resolver \
 
 bijux-dna bench local validate-hpc-execution-resolver \
   --manifest runs/bench/hpc-dry-run/execution-resolver.tsv
+
+bijux-dna bench local render-hpc-stage-benchmark-array \
+  --output runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch
+
+bijux-dna bench local validate-hpc-stage-benchmark-array \
+  --script runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch
 ```
 
 Generate baseline campaign profiles:
