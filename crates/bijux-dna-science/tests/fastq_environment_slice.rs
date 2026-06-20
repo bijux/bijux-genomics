@@ -52,10 +52,12 @@ fn assert_fastq_slice_rows(compiled: &CompiledScience) {
     assert!(compiled.fastq_download_backlog_rows.iter().any(|row| {
         row.tool_id == "fastp" && row.source_id == "source.fastq.tool.fastp.upstream"
     }));
-    assert!(
-        !compiled.fastq_download_backlog_rows.iter().any(|row| row.tool_id == "diamond"),
-        "diamond must stay out of the FASTQ benchmark download backlog once its taxonomy binding is removed"
-    );
+    assert!(compiled.fastq_download_backlog_rows.iter().any(|row| {
+        row.tool_id == "diamond"
+            && row.stage_ids == "fastq.screen_taxonomy"
+            && row.source_id == "source.fastq.tool.diamond.upstream"
+            && row.backlog_status == "ready"
+    }));
     assert!(compiled.fastq_download_backlog_rows.iter().any(|row| {
         row.tool_id == "dustmasker"
             && row.backlog_status == "ready"
