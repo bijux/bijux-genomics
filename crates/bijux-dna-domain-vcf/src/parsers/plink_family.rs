@@ -3,6 +3,7 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_core::ids::parse_variant_id;
 
 use crate::taxonomy::VcfDomainStage;
 
@@ -678,7 +679,8 @@ fn parse_variant_missingness_table(path: &Path) -> Result<Vec<VariantMissingness
                         field(&row, alt_idx, path)?.to_string(),
                     )
                 } else {
-                    parse_variant_id(&variant_id)?
+                    let parsed = parse_variant_id(&variant_id)?;
+                    (parsed.contig, parsed.position, parsed.reference, parsed.alternate)
                 };
             Ok(VariantMissingnessRow {
                 variant_id,
@@ -928,19 +930,6 @@ fn find_index(header: &[String], aliases: &[&str]) -> Option<usize> {
         let normalized = normalize_header(column);
         aliases.iter().any(|alias| normalized == normalize_header(alias))
     })
-}
-
-fn parse_variant_id(value: &str) -> Result<(String, u64, String, String)> {
-    let parts = value.split(':').collect::<Vec<_>>();
-    if parts.len() != 4 {
-        bail!("variant id `{value}` must follow contig:position:reference:alternate");
-    }
-    Ok((
-        parts[0].to_string(),
-        parse_u64(parts[1], "variant position")?,
-        parts[2].to_string(),
-        parts[3].to_string(),
-    ))
 }
 
 fn sample_missingness_json(row: &SampleMissingnessRow) -> serde_json::Value {

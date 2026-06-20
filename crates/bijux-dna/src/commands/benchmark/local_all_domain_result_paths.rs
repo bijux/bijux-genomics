@@ -1,16 +1,17 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
+use bijux_dna_core::ids::DomainKind;
 
 pub(crate) const LOCAL_ALL_DOMAIN_SLURM_RUN_ID: &str = "all-domain-benchmark-dry-run";
 
 pub(crate) fn benchmark_sample_scope(domain: &str, result_id: &str) -> Result<Option<String>> {
     let parsed =
         crate::commands::benchmark::benchmark_result_ids::parse_benchmark_result_id(result_id)?;
-    if parsed.domain != domain {
+    if parsed.domain.as_str() != domain {
         return Err(anyhow!(
             "all-domain result paths expected domain `{domain}` but result id `{result_id}` belongs to `{}`",
-            parsed.domain
+            parsed.domain.as_str()
         ));
     }
     match parsed.scope_kind {
@@ -44,10 +45,10 @@ pub(crate) fn benchmark_result_matches_identity(
 ) -> Result<bool> {
     let parsed =
         crate::commands::benchmark::benchmark_result_ids::parse_benchmark_result_id(result_id)?;
-    Ok(parsed.domain == domain
+    Ok(parsed.domain.as_str() == domain
         && parsed.corpus_id == corpus_id
-        && parsed.stage_id == stage_id
-        && parsed.tool_id == tool_id)
+        && parsed.stage_id.as_str() == stage_id
+        && parsed.tool_id.as_str() == tool_id)
 }
 
 pub(crate) fn benchmark_result_asset_profile_id(
@@ -66,10 +67,9 @@ pub(crate) fn benchmark_result_sample_scope(
     domain: &str,
     result_id: &str,
 ) -> Result<Option<String>> {
-    match domain {
-        "fastq" | "bam" | "vcf" => benchmark_sample_scope(domain, result_id),
-        other => Err(anyhow!("all-domain result paths do not support legacy domain `{other}`")),
-    }
+    let _ = DomainKind::try_from(domain)
+        .map_err(|_| anyhow!("all-domain result paths do not support legacy domain `{domain}`"))?;
+    benchmark_sample_scope(domain, result_id)
 }
 
 pub(crate) fn benchmark_result_root(

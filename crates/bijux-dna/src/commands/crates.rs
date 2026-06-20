@@ -1133,8 +1133,8 @@ fn collect_canonical_result_id_rows(
             &row.result_id,
         )?;
         if canonical.domain != row.domain
-            || canonical.stage_id != row.stage_id
-            || canonical.tool_id != row.tool_id
+            || canonical.stage_id != row.stage_id.as_str()
+            || canonical.tool_id != row.tool_id.as_str()
             || canonical.corpus_id != row.corpus_id
             || canonical.scope_kind != parsed.scope_kind
             || canonical.scope_id != parsed.scope_id
