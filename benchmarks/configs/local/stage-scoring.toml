@@ -1,0 +1,5511 @@
+schema_version = "bijux.bench.local_stage_scoring.v1"
+active_stage_catalog_path = "benchmarks/readiness/all-domains/active-stage-catalog.tsv"
+scientific_threshold_config_path = "benchmarks/configs/local/scientific-acceptance-thresholds.toml"
+full_benchmark_report_path = "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json"
+micro_benchmark_report_path = "runs/bench/micro/MICRO_BENCHMARK_REPORT.json"
+failure_class_report_path = "benchmarks/readiness/failure-classification-all-domains.json"
+
+[[failure_classes]]
+class_id = "missing_input"
+effect = "block_recommendation"
+detail = "required benchmark inputs are absent, so the tool cannot be compared honestly"
+
+[[failure_classes]]
+class_id = "tool_not_found"
+effect = "block_recommendation"
+detail = "the executable is unresolved, so the tool must be excluded from recommendation"
+
+[[failure_classes]]
+class_id = "command_failed"
+effect = "block_recommendation"
+detail = "the tool invocation failed before governed outputs were materialized"
+
+[[failure_classes]]
+class_id = "missing_output"
+effect = "block_recommendation"
+detail = "the stage did not produce all governed outputs, so completeness is broken"
+
+[[failure_classes]]
+class_id = "parser_failed"
+effect = "block_recommendation"
+detail = "raw tool output could not be normalized into the governed report contract"
+
+[[failure_classes]]
+class_id = "insufficient_data"
+effect = "mark_insufficient_evidence"
+detail = "the stage completed but the benchmark evidence is not strong enough to rank tools"
+
+[[failure_classes]]
+class_id = "unsupported_pair"
+effect = "block_recommendation"
+detail = "the stage/tool binding is outside the governed benchmark surface"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.align"
+readiness_kind = "dry_or_smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "bwa"
+benchmark_ready_tool_ids = [
+    "bowtie2",
+    "bwa",
+]
+report_section_ids = ["alignment_intake"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "alignment_rate",
+    "mapped_reads",
+]
+minimum_present_result_rows = 2
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "alignment_rate",
+    "mapped_reads",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.authenticity"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 3
+benchmark_ready_tool_count = 3
+default_tool_id = "authenticct"
+benchmark_ready_tool_ids = [
+    "authenticct",
+    "damageprofiler",
+    "pmdtools",
+]
+report_section_ids = ["ancient_signal"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "confidence",
+    "pmd_like_signal_present",
+    "score",
+    "status",
+]
+minimum_present_result_rows = 3
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "confidence",
+    "pmd_like_signal_present",
+    "score",
+    "status",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.bias_mitigation"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "mapdamage2"
+benchmark_ready_tool_ids = ["mapdamage2"]
+report_section_ids = ["downstream_readiness"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.complexity"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "preseq"
+benchmark_ready_tool_ids = ["preseq"]
+report_section_ids = ["library_complexity"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.contamination"
+readiness_kind = "dry_or_smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 3
+benchmark_ready_tool_count = 3
+default_tool_id = "schmutzi"
+benchmark_ready_tool_ids = [
+    "contammix",
+    "schmutzi",
+    "verifybamid2",
+]
+report_section_ids = ["ancient_signal"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "ci_high",
+    "ci_low",
+    "estimate",
+]
+minimum_present_result_rows = 3
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "ci_high",
+    "ci_low",
+    "estimate",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.coverage"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 3
+benchmark_ready_tool_count = 3
+default_tool_id = "mosdepth"
+benchmark_ready_tool_ids = [
+    "bedtools",
+    "mosdepth",
+    "samtools",
+]
+report_section_ids = ["coverage_quality"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "breadth_1x",
+    "covered_bases",
+    "mean_depth",
+]
+minimum_present_result_rows = 3
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "breadth_1x",
+    "covered_bases",
+    "mean_depth",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 6
+benchmark_ready_tool_count = 6
+default_tool_id = "mapdamage2"
+benchmark_ready_tool_ids = [
+    "addeam",
+    "damageprofiler",
+    "mapdamage2",
+    "ngsbriggs",
+    "pmdtools",
+    "pydamage",
+]
+report_section_ids = ["ancient_signal"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "damage_signal",
+    "terminal_c_to_t_5p",
+    "terminal_g_to_a_3p",
+]
+minimum_present_result_rows = 6
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "damage_signal",
+    "terminal_c_to_t_5p",
+    "terminal_g_to_a_3p",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.duplication_metrics"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "samtools"
+benchmark_ready_tool_ids = [
+    "picard",
+    "samtools",
+]
+report_section_ids = ["library_complexity"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "duplicate_count",
+    "duplicate_fraction",
+    "estimated_library_size",
+]
+minimum_present_result_rows = 2
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "duplicate_count",
+    "duplicate_fraction",
+    "estimated_library_size",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.endogenous_content"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "samtools"
+benchmark_ready_tool_ids = ["samtools"]
+report_section_ids = ["coverage_quality"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.filter"
+readiness_kind = "dry_or_smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 3
+benchmark_ready_tool_count = 3
+default_tool_id = "samtools"
+benchmark_ready_tool_ids = [
+    "bamtools",
+    "bedtools",
+    "samtools",
+]
+report_section_ids = ["alignment_refinement"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "input_reads",
+    "kept_reads",
+    "removed_reads",
+]
+minimum_present_result_rows = 3
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "input_reads",
+    "kept_reads",
+    "removed_reads",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.gc_bias"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "picard"
+benchmark_ready_tool_ids = ["picard"]
+report_section_ids = ["coverage_quality"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.genotyping"
+readiness_kind = "dry_or_smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "angsd"
+benchmark_ready_tool_ids = ["angsd"]
+report_section_ids = ["downstream_readiness"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.haplogroups"
+readiness_kind = "dry_or_smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "yleaf"
+benchmark_ready_tool_ids = ["yleaf"]
+report_section_ids = ["sample_identity"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.insert_size"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "picard"
+benchmark_ready_tool_ids = ["picard"]
+report_section_ids = ["coverage_quality"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.kinship"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "king"
+benchmark_ready_tool_ids = [
+    "angsd",
+    "king",
+]
+report_section_ids = ["sample_identity"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "observed_max_overlap_snps",
+    "pair_count",
+    "pairwise_results",
+    "status",
+]
+minimum_present_result_rows = 2
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "observed_max_overlap_snps",
+    "pair_count",
+    "pairwise_results",
+    "status",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.length_filter"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "samtools"
+benchmark_ready_tool_ids = [
+    "picard",
+    "samtools",
+]
+report_section_ids = ["alignment_refinement"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "kept_reads",
+    "min_length_threshold",
+    "removed_reads",
+]
+minimum_present_result_rows = 2
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "kept_reads",
+    "min_length_threshold",
+    "removed_reads",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapping_summary"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "samtools"
+benchmark_ready_tool_ids = [
+    "picard",
+    "samtools",
+]
+report_section_ids = ["alignment_intake"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "mapped_reads",
+    "mapping_fraction",
+    "secondary_reads",
+    "supplementary_reads",
+    "unmapped_reads",
+]
+minimum_present_result_rows = 2
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "mapped_reads",
+    "mapping_fraction",
+    "secondary_reads",
+    "supplementary_reads",
+    "unmapped_reads",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapq_filter"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "samtools"
+benchmark_ready_tool_ids = [
+    "bamtools",
+    "samtools",
+]
+report_section_ids = ["alignment_refinement"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "kept_reads",
+    "mapq_threshold",
+    "removed_reads",
+]
+minimum_present_result_rows = 2
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "kept_reads",
+    "mapq_threshold",
+    "removed_reads",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.markdup"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "samtools"
+benchmark_ready_tool_ids = [
+    "picard",
+    "samtools",
+]
+report_section_ids = ["library_complexity"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "duplicate_count",
+    "duplicate_fraction",
+]
+minimum_present_result_rows = 2
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "duplicate_count",
+    "duplicate_fraction",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.overlap_correction"
+readiness_kind = "dry_or_smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bamutil"
+benchmark_ready_tool_ids = ["bamutil"]
+report_section_ids = ["alignment_refinement"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.qc_pre"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "samtools"
+benchmark_ready_tool_ids = [
+    "multiqc",
+    "samtools",
+]
+report_section_ids = ["alignment_intake"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "duplicate_flagged_reads",
+    "mapped_reads",
+    "total_reads",
+    "unmapped_reads",
+]
+minimum_present_result_rows = 2
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "duplicate_flagged_reads",
+    "mapped_reads",
+    "total_reads",
+    "unmapped_reads",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.recalibration"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "gatk"
+benchmark_ready_tool_ids = ["gatk"]
+report_section_ids = ["downstream_readiness"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 3
+benchmark_ready_tool_count = 3
+default_tool_id = "rxy"
+benchmark_ready_tool_ids = [
+    "angsd",
+    "rxy",
+    "yleaf",
+]
+report_section_ids = ["sample_identity"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "autosomal_coverage",
+    "call",
+    "confidence",
+    "status",
+    "x_coverage",
+    "y_coverage",
+]
+minimum_present_result_rows = 3
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "autosomal_coverage",
+    "call",
+    "confidence",
+    "status",
+    "x_coverage",
+    "y_coverage",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.validate"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 3
+benchmark_ready_tool_count = 3
+default_tool_id = "samtools"
+benchmark_ready_tool_ids = [
+    "bamtools",
+    "bedtools",
+    "samtools",
+]
+report_section_ids = ["alignment_intake"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "validation_errors",
+    "validation_status",
+    "validation_warnings",
+]
+minimum_present_result_rows = 3
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "validation_errors",
+    "validation_status",
+    "validation_warnings",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.cluster_otus"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "vsearch"
+benchmark_ready_tool_ids = ["vsearch"]
+report_section_ids = ["amplicon_interpretation"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.correct_errors"
+readiness_kind = "dry_or_smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 4
+benchmark_ready_tool_count = 4
+default_tool_id = "rcorrector"
+benchmark_ready_tool_ids = [
+    "bayeshammer",
+    "lighter",
+    "musket",
+    "rcorrector",
+]
+report_section_ids = ["read_cleanup"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 4
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.deplete_host"
+readiness_kind = "dry_or_smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bowtie2"
+benchmark_ready_tool_ids = ["bowtie2"]
+report_section_ids = ["contamination_screening"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.deplete_reference_contaminants"
+readiness_kind = "dry_or_smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bowtie2"
+benchmark_ready_tool_ids = ["bowtie2"]
+report_section_ids = ["contamination_screening"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.deplete_rrna"
+readiness_kind = "dry_or_smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "sortmerna"
+benchmark_ready_tool_ids = ["sortmerna"]
+report_section_ids = ["contamination_screening"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.detect_adapters"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "fastqc"
+benchmark_ready_tool_ids = ["fastqc"]
+report_section_ids = ["quality_profiling"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.detect_duplicates_premerge"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bijux_dna"
+benchmark_ready_tool_ids = ["bijux_dna"]
+report_section_ids = ["quality_profiling"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.estimate_library_complexity_prealign"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bijux_dna"
+benchmark_ready_tool_ids = ["bijux_dna"]
+report_section_ids = ["quality_profiling"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.extract_umis"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "umi_tools"
+benchmark_ready_tool_ids = ["umi_tools"]
+report_section_ids = ["read_cleanup"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_low_complexity"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 3
+benchmark_ready_tool_count = 3
+default_tool_id = "bbduk"
+benchmark_ready_tool_ids = [
+    "bbduk",
+    "fastp",
+    "prinseq",
+]
+report_section_ids = ["read_cleanup"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 3
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.filter_reads"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 4
+benchmark_ready_tool_count = 4
+default_tool_id = "fastp"
+benchmark_ready_tool_ids = [
+    "bbduk",
+    "fastp",
+    "prinseq",
+    "seqkit",
+]
+report_section_ids = ["read_cleanup"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 4
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.index_reference"
+readiness_kind = "dry_run"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "bowtie2_build"
+benchmark_ready_tool_ids = [
+    "bowtie2_build",
+    "star",
+]
+report_section_ids = ["reference_preparation"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = ["index_build_exit_code"]
+minimum_present_result_rows = 2
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = ["index_build_exit_code"]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.infer_asvs"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "dada2"
+benchmark_ready_tool_ids = ["dada2"]
+report_section_ids = ["amplicon_interpretation"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.merge_pairs"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 6
+benchmark_ready_tool_count = 6
+default_tool_id = "pear"
+benchmark_ready_tool_ids = [
+    "adapterremoval",
+    "bbmerge",
+    "flash2",
+    "leehom",
+    "pear",
+    "vsearch",
+]
+report_section_ids = ["read_cleanup"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 6
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.normalize_abundance"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "seqkit"
+benchmark_ready_tool_ids = ["seqkit"]
+report_section_ids = ["amplicon_interpretation"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.normalize_primers"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "cutadapt"
+benchmark_ready_tool_ids = ["cutadapt"]
+report_section_ids = ["amplicon_interpretation"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_overrepresented_sequences"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 3
+benchmark_ready_tool_count = 3
+default_tool_id = "fastqc"
+benchmark_ready_tool_ids = [
+    "fastq_scan",
+    "fastqc",
+    "seqkit",
+]
+report_section_ids = ["quality_profiling"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "flagged_sequences",
+    "sequence_count",
+    "top_fraction",
+]
+minimum_present_result_rows = 3
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "flagged_sequences",
+    "sequence_count",
+    "top_fraction",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_read_lengths"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 4
+benchmark_ready_tool_count = 4
+default_tool_id = "seqkit_stats"
+benchmark_ready_tool_ids = [
+    "fastp",
+    "prinseq",
+    "seqfu",
+    "seqkit_stats",
+]
+report_section_ids = ["quality_profiling"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 4
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_reads"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 3
+benchmark_ready_tool_count = 3
+default_tool_id = "seqkit_stats"
+benchmark_ready_tool_ids = [
+    "seqfu",
+    "seqkit",
+    "seqkit_stats",
+]
+report_section_ids = ["quality_profiling"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 3
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.remove_chimeras"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "vsearch"
+benchmark_ready_tool_ids = ["vsearch"]
+report_section_ids = ["amplicon_interpretation"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.remove_duplicates"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "clumpify"
+benchmark_ready_tool_ids = [
+    "clumpify",
+    "fastuniq",
+]
+report_section_ids = ["read_cleanup"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 2
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.report_qc"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "multiqc"
+benchmark_ready_tool_ids = ["multiqc"]
+report_section_ids = ["quality_profiling"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.screen_taxonomy"
+readiness_kind = "dry_or_smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 4
+benchmark_ready_tool_count = 4
+default_tool_id = "kraken2"
+benchmark_ready_tool_ids = [
+    "centrifuge",
+    "kaiju",
+    "kraken2",
+    "krakenuniq",
+]
+report_section_ids = ["contamination_screening"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 4
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_polyg_tails"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "fastp"
+benchmark_ready_tool_ids = [
+    "bbduk",
+    "fastp",
+]
+report_section_ids = ["read_cleanup"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 2
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_reads"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 13
+benchmark_ready_tool_count = 13
+default_tool_id = "fastp"
+benchmark_ready_tool_ids = [
+    "adapterremoval",
+    "alientrimmer",
+    "atropos",
+    "bbduk",
+    "cutadapt",
+    "fastp",
+    "fastx_clipper",
+    "leehom",
+    "prinseq",
+    "seqkit",
+    "skewer",
+    "trim_galore",
+    "trimmomatic",
+]
+report_section_ids = ["read_cleanup"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 13
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.trim_terminal_damage"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 3
+benchmark_ready_tool_count = 3
+default_tool_id = "cutadapt"
+benchmark_ready_tool_ids = [
+    "adapterremoval",
+    "cutadapt",
+    "seqkit",
+]
+report_section_ids = ["read_cleanup"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 3
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 5
+benchmark_ready_tool_count = 5
+default_tool_id = "fastqvalidator"
+benchmark_ready_tool_ids = [
+    "fastq_scan",
+    "fastqc",
+    "fastqvalidator",
+    "fqtools",
+    "seqtk",
+]
+report_section_ids = ["input_readiness"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = ["format_validation_pass_rate"]
+minimum_present_result_rows = 5
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = ["format_validation_pass_rate"]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.admixture"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "plink2"
+benchmark_ready_tool_ids = ["plink2"]
+report_section_ids = ["population_structure"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "population_count",
+    "sample_count",
+    "selected_k",
+]
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "population_count",
+    "sample_count",
+    "selected_k",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bcftools"
+benchmark_ready_tool_ids = ["bcftools"]
+report_section_ids = ["variant_calling"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_diploid"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bcftools"
+benchmark_ready_tool_ids = ["bcftools"]
+report_section_ids = ["variant_calling"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_gl"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bcftools"
+benchmark_ready_tool_ids = ["bcftools"]
+report_section_ids = ["variant_calling"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "missing_likelihoods",
+    "sites_with_likelihoods",
+]
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "missing_likelihoods",
+    "sites_with_likelihoods",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_pseudohaploid"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bcftools"
+benchmark_ready_tool_ids = ["bcftools"]
+report_section_ids = ["variant_calling"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "called_sites",
+    "missing_sites",
+]
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "called_sites",
+    "missing_sites",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.damage_filter"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bcftools"
+benchmark_ready_tool_ids = ["bcftools"]
+report_section_ids = ["damage_aware_filtering"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "removed_variants",
+    "retained_variants",
+    "terminal_damage_filtered_variants",
+]
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "removed_variants",
+    "retained_variants",
+    "terminal_damage_filtered_variants",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.filter"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bcftools"
+benchmark_ready_tool_ids = ["bcftools"]
+report_section_ids = ["quality_control"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.gl_propagation"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bcftools"
+benchmark_ready_tool_ids = ["bcftools"]
+report_section_ids = ["likelihood_postprocess"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "sample_count",
+    "site_count_after",
+    "site_count_before",
+]
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "sample_count",
+    "site_count_after",
+    "site_count_before",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.imputation_metrics"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "beagle"
+benchmark_ready_tool_ids = ["beagle"]
+report_section_ids = ["imputation"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "concordance",
+    "dosage_r2",
+    "low_confidence_sites",
+    "masked_truth_sites",
+    "mean_info_score",
+]
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "concordance",
+    "dosage_r2",
+    "low_confidence_sites",
+    "masked_truth_sites",
+    "mean_info_score",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "beagle"
+benchmark_ready_tool_ids = ["beagle"]
+report_section_ids = ["imputation"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "imputed_genotypes",
+    "low_confidence_count",
+    "masked_truth_match_count",
+    "missing_after",
+    "missing_before",
+    "unresolved_count",
+]
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "imputed_genotypes",
+    "low_confidence_count",
+    "masked_truth_match_count",
+    "missing_after",
+    "missing_before",
+    "unresolved_count",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.pca"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "plink2"
+benchmark_ready_tool_ids = [
+    "eigensoft",
+    "plink2",
+]
+report_section_ids = ["population_structure"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "sample_count",
+    "variant_count",
+]
+minimum_present_result_rows = 2
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "sample_count",
+    "variant_count",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.phasing"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "shapeit5"
+benchmark_ready_tool_ids = ["shapeit5"]
+report_section_ids = ["phasing"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "phase_block_n50",
+    "switch_error_proxy",
+]
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "phase_block_n50",
+    "switch_error_proxy",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.population_structure"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "plink2"
+benchmark_ready_tool_ids = ["plink2"]
+report_section_ids = ["population_structure"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "pair_count",
+    "sample_count",
+]
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "pair_count",
+    "sample_count",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.postprocess"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bcftools"
+benchmark_ready_tool_ids = ["bcftools"]
+report_section_ids = ["normalization"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.prepare_reference_panel"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bcftools"
+benchmark_ready_tool_ids = ["bcftools"]
+report_section_ids = ["reference_panel_preparation"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.qc"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 3
+benchmark_ready_tool_count = 3
+default_tool_id = "plink2"
+benchmark_ready_tool_ids = [
+    "bcftools",
+    "plink",
+    "plink2",
+]
+report_section_ids = ["quality_control"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = [
+    "concordance",
+    "imputation_info_mean",
+    "missingness_post",
+    "rsq_mean",
+]
+minimum_present_result_rows = 3
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = [
+    "concordance",
+    "imputation_info_mean",
+    "missingness_post",
+    "rsq_mean",
+]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.roh"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "plink2"
+benchmark_ready_tool_ids = ["plink2"]
+report_section_ids = ["runs_of_homozygosity"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.stats"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "bcftools"
+benchmark_ready_tool_ids = ["bcftools"]
+report_section_ids = ["quality_control"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["benchmarks/configs/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
