@@ -76,13 +76,23 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
         Some(49)
     );
     assert_eq!(payload.get("local_smoke_row_count").and_then(serde_json::Value::as_u64), Some(49));
+    let expected_host_stage_smoke_row_count = if cfg!(feature = "bam_downstream") {
+        20
+    } else {
+        18
+    };
+    let expected_container_smoke_row_count = if cfg!(feature = "bam_downstream") {
+        29
+    } else {
+        31
+    };
     assert_eq!(
         payload.get("local_smoke_host_stage_row_count").and_then(serde_json::Value::as_u64),
-        Some(18)
+        Some(expected_host_stage_smoke_row_count)
     );
     assert_eq!(
         payload.get("local_smoke_container_row_count").and_then(serde_json::Value::as_u64),
-        Some(31)
+        Some(expected_container_smoke_row_count)
     );
     assert_eq!(payload.get("report_map_row_count").and_then(serde_json::Value::as_u64), Some(49));
     assert_eq!(

@@ -38,7 +38,13 @@ const EXPECTED_CHECKED_GOAL_COUNT: usize = 19;
 const EXPECTED_RETAINED_ROW_COUNT: usize = 49;
 const EXPECTED_RETAINED_STAGE_COUNT: usize = 24;
 const EXPECTED_RETAINED_TOOL_COUNT: usize = 25;
+#[cfg(feature = "bam_downstream")]
+const EXPECTED_HOST_STAGE_SMOKE_ROW_COUNT: usize = 20;
+#[cfg(not(feature = "bam_downstream"))]
 const EXPECTED_HOST_STAGE_SMOKE_ROW_COUNT: usize = 18;
+#[cfg(feature = "bam_downstream")]
+const EXPECTED_CONTAINER_SMOKE_ROW_COUNT: usize = 29;
+#[cfg(not(feature = "bam_downstream"))]
 const EXPECTED_CONTAINER_SMOKE_ROW_COUNT: usize = 31;
 const EXPECTED_ACTIVE_ROW_CONSISTENCY_SURFACE_COUNT: usize = 6;
 const EXPECTED_MICRO_SMOKE_FAMILY_COUNT: usize = 12;
@@ -1106,8 +1112,18 @@ mod tests {
         assert_eq!(report.rendered_command_row_count, 49);
         assert_eq!(report.parser_fixture_row_count, 49);
         assert_eq!(report.local_smoke_row_count, 49);
-        assert_eq!(report.local_smoke_host_stage_row_count, 18);
-        assert_eq!(report.local_smoke_container_row_count, 31);
+        let expected_host_stage_smoke_row_count = if cfg!(feature = "bam_downstream") {
+            20
+        } else {
+            18
+        };
+        let expected_container_smoke_row_count = if cfg!(feature = "bam_downstream") {
+            29
+        } else {
+            31
+        };
+        assert_eq!(report.local_smoke_host_stage_row_count, expected_host_stage_smoke_row_count);
+        assert_eq!(report.local_smoke_container_row_count, expected_container_smoke_row_count);
         assert_eq!(report.report_map_row_count, 49);
         assert_eq!(report.active_row_consistency_surface_count, 6);
         assert_eq!(report.micro_smoke_family_count, 12);

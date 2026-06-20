@@ -481,7 +481,7 @@ mod tests {
         assert!(
             rows.iter().any(|row| {
                 row.starts_with(
-                    "samtools\tbam.validate\tplannable\tcomplete\tvalidation_report,flagstat,stage_metrics\tvalidation_report,flagstat,stage_metrics\t"
+                    "samtools\tbam.validate\trunnable\tcomplete\tvalidation_report,flagstat,stage_metrics\tvalidation_report,flagstat,stage_metrics\t"
                 )
             }),
             "the governed BAM validate adapter row must remain fully declared"
@@ -489,7 +489,7 @@ mod tests {
         assert!(
             rows.iter().any(|row| {
                 row.starts_with(
-                    "angsd\tbam.genotyping\trunnable\tcomplete\tgenotyping_report,summary,stage_metrics\tgenotyping_report,summary,stage_metrics\t"
+                    "angsd\tbam.genotyping\trunnable\tcomplete\tgenotyping_bcf,genotyping_vcf,genotyping_vcf_tbi,genotyping_gl,genotyping_report,summary,stage_metrics\tgenotyping_report,summary,stage_metrics,population_metrics\t"
                 )
             }),
             "the governed angsd genotyping row must declare the full BAM adapter output contract"

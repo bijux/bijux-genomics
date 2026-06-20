@@ -1076,6 +1076,6 @@ mod tests {
         assert!(gc_bias_row
             .local_smoke_artifact_paths
             .iter()
-            .any(|path| path == "runs/bench/local-smoke/bam.gc_bias/gc_bias.tsv"));
+            .any(|path| path.ends_with("/picard/gc_bias.tsv")));
     }
 }
