@@ -95,7 +95,8 @@ pub(crate) fn render_vcf_adapters_ready(
 ) -> Result<VcfAdaptersReadyReport> {
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
-        std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
 
     let mut checks = Vec::new();

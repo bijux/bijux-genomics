@@ -232,10 +232,12 @@ pub(crate) fn render_micro_benchmark_run(
             .parent()
             .ok_or_else(|| anyhow!("micro benchmark pipeline parent is missing"))?,
     ] {
-        fs::create_dir_all(directory).with_context(|| format!("create {}", directory.display()))?;
+        bijux_dna_infra::ensure_dir(directory)
+            .with_context(|| format!("create {}", directory.display()))?;
     }
     if let Some(parent) = manifest_output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
 
     let repo_revision = git_stdout(repo_root, &["rev-parse", "HEAD"])?;
@@ -1236,9 +1238,9 @@ mod tests {
             &normalized_metrics_path,
         ] {
             if let Some(parent) = path.parent() {
-                std::fs::create_dir_all(parent).expect("create parent");
+                bijux_dna_infra::ensure_dir(parent).expect("create parent");
             }
-            std::fs::write(path, "{}").expect("write file");
+            bijux_dna_infra::write_string(path, "{}").expect("write file");
         }
 
         let result_rows = vec![

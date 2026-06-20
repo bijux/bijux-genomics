@@ -99,7 +99,8 @@ pub(crate) fn validate_slurm_shell_syntax(
     };
 
     if let Some(parent) = absolute_report.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
     bijux_dna_infra::atomic_write_json(&absolute_report, &report)?;
 

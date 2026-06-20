@@ -355,7 +355,7 @@ fn ensure_local_docker_image<S: ::std::hash::BuildHasher>(
     .with_context(|| format!("docker build {}", local_image_name))?;
     if output.exit_code == 0 {
         if let Some(parent) = build_state_path.parent() {
-            std::fs::create_dir_all(parent)
+            bijux_dna_infra::ensure_dir(parent)
                 .with_context(|| format!("create {}", parent.display()))?;
         }
         let state = DockerBuildState {

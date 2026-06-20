@@ -111,7 +111,8 @@ pub(crate) fn render_all_domain_failure_classification(
     let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
 
     let fixture_root =
@@ -122,10 +123,10 @@ pub(crate) fn render_all_domain_failure_classification(
         "all-domain failure-classification fixture root",
     )?;
     if fixture_root.exists() {
-        fs::remove_dir_all(&fixture_root)
+        bijux_dna_infra::remove_dir_all(&fixture_root)
             .with_context(|| format!("remove {}", fixture_root.display()))?;
     }
-    fs::create_dir_all(&fixture_root)
+    bijux_dna_infra::ensure_dir(&fixture_root)
         .with_context(|| format!("create {}", fixture_root.display()))?;
 
     let rows = collect_all_domain_failure_classification_rows(repo_root, &fixture_root)?;
@@ -239,10 +240,12 @@ fn classify_tool_not_found(
         .join(&binding.domain)
         .join(&binding.stage_id)
         .join(&binding.tool_id);
-    fs::create_dir_all(&probe_root).with_context(|| format!("create {}", probe_root.display()))?;
+    bijux_dna_infra::ensure_dir(&probe_root)
+        .with_context(|| format!("create {}", probe_root.display()))?;
     let missing_executable_path = probe_root.join("missing-tool");
     let command_script_path = probe_root.join("command.sh");
-    fs::write(&command_script_path, format!("{} --version\n", missing_executable_path.display()))
+    let command_script = format!("{} --version\n", missing_executable_path.display());
+    bijux_dna_infra::write_bytes(&command_script_path, command_script.as_bytes())
         .with_context(|| format!("write {}", command_script_path.display()))?;
 
     let observed = std::fs::metadata(&missing_executable_path);
@@ -299,10 +302,14 @@ fn classify_command_failed(
         .join(&binding.domain)
         .join(&binding.stage_id)
         .join(&binding.tool_id);
-    fs::create_dir_all(&probe_root).with_context(|| format!("create {}", probe_root.display()))?;
+    bijux_dna_infra::ensure_dir(&probe_root)
+        .with_context(|| format!("create {}", probe_root.display()))?;
     let command_script_path = probe_root.join("command.sh");
-    fs::write(&command_script_path, "printf 'governed command-failed probe\\n' >&2\nexit 23\n")
-        .with_context(|| format!("write {}", command_script_path.display()))?;
+    bijux_dna_infra::write_bytes(
+        &command_script_path,
+        b"printf 'governed command-failed probe\\n' >&2\nexit 23\n",
+    )
+    .with_context(|| format!("write {}", command_script_path.display()))?;
     let output = run_command_with_context(
         "sh",
         &[command_script_path.display().to_string()],
@@ -311,7 +318,7 @@ fn classify_command_failed(
     )
     .with_context(|| format!("run {}", command_script_path.display()))?;
     let stderr_path = probe_root.join("stderr.txt");
-    fs::write(&stderr_path, output.stderr.as_bytes())
+    bijux_dna_infra::write_bytes(&stderr_path, output.stderr.as_bytes())
         .with_context(|| format!("write {}", stderr_path.display()))?;
     let observed_error = output.stderr.trim().to_string();
     let exit_code = output.exit_code;
@@ -355,7 +362,8 @@ fn classify_missing_output(
         .join(&binding.domain)
         .join(&binding.stage_id)
         .join(&binding.tool_id);
-    fs::create_dir_all(&probe_root).with_context(|| format!("create {}", probe_root.display()))?;
+    bijux_dna_infra::ensure_dir(&probe_root)
+        .with_context(|| format!("create {}", probe_root.display()))?;
     let evidence_manifest_path = probe_root.join("expected-output.json");
     let missing_output_path = probe_root.join(format!("{artifact_id}.missing"));
     let payload = serde_json::json!({

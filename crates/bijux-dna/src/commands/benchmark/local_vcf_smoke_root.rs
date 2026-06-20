@@ -84,9 +84,11 @@ pub(crate) fn render_vcf_smoke_root(
         &smoke_root,
         "local VCF smoke output root",
     )?;
-    fs::create_dir_all(&smoke_root).with_context(|| format!("create {}", smoke_root.display()))?;
+    bijux_dna_infra::ensure_dir(&smoke_root)
+        .with_context(|| format!("create {}", smoke_root.display()))?;
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
 
     let repo_revision = git_stdout(repo_root, &["rev-parse", "HEAD"])?;

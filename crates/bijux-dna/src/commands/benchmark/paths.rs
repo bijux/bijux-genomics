@@ -168,7 +168,8 @@ pub(crate) fn validate_benchmark_paths(
 ) -> Result<BenchmarkPathsValidationReport> {
     let absolute_output_path = repo_root.join(&output_path);
     if let Some(parent) = absolute_output_path.parent() {
-        std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
 
     let tracked_paths = git_list_tracked_paths(repo_root)?;
@@ -252,7 +253,8 @@ pub(crate) fn prove_disposable_root_cleanup(
     )?;
     let absolute_output_path = repo_root.join(&output_path);
     if let Some(parent) = absolute_output_path.parent() {
-        std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
     let ok = validator_report.ok && deleted_roots.iter().all(|root| !root.exists_after);
     let report = DisposableRootCleanupProofReport {
@@ -329,7 +331,7 @@ fn delete_disposable_root(
         if file_type.is_dir() && !file_type.is_symlink() {
             remove_directory_tree(&absolute_path)?;
         } else {
-            std::fs::remove_file(&absolute_path)
+            bijux_dna_infra::remove_file(&absolute_path)
                 .with_context(|| format!("remove file {}", absolute_path.display()))?;
         }
         "deleted".to_string()
@@ -624,9 +626,9 @@ mod tests {
 
     fn write_text(path: &Path, content: &str) {
         if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent).expect("create parent");
+            bijux_dna_infra::ensure_dir(parent).expect("create parent");
         }
-        std::fs::write(path, content).expect("write text");
+        bijux_dna_infra::write_string(path, content).expect("write text");
     }
 
     fn init_repo(root: &Path) {
@@ -657,7 +659,7 @@ mod tests {
             "# Local Benchmark Ready\n",
         );
         write_text(&root.join("tests/README.md"), "# Root Tests\n");
-        std::fs::create_dir_all(root.join("tests")).expect("create tests root");
+        bijux_dna_infra::ensure_dir(root.join("tests")).expect("create tests root");
         #[cfg(unix)]
         std::os::unix::fs::symlink("../benchmarks/tests/fixtures", root.join("tests/fixtures"))
             .expect("symlink tests fixtures");

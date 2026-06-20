@@ -138,7 +138,7 @@ where
     for row in rows {
         let manifest = build_container_tool_smoke_manifest(repo_root, row, timeout, &execute)?;
         let manifest_dir = output_root.join(&row.tool_id);
-        fs::create_dir_all(&manifest_dir)
+        bijux_dna_infra::ensure_dir(&manifest_dir)
             .with_context(|| format!("create {}", manifest_dir.display()))?;
         let manifest_path = manifest_dir.join("manifest.json");
         bijux_dna_infra::atomic_write_json(&manifest_path, &manifest)
@@ -495,9 +495,9 @@ mod tests {
         let repo_root = tempfile::tempdir()?;
         let dev_binary = repo_root.path().join("artifacts/rust/target/debug/bijux-dna-dev");
         let bijux_binary = repo_root.path().join("artifacts/rust/target/debug/bijux-dna");
-        std::fs::create_dir_all(dev_binary.parent().expect("dev binary parent"))?;
-        std::fs::write(&dev_binary, b"#!/bin/sh\nexit 0\n")?;
-        std::fs::write(&bijux_binary, b"#!/bin/sh\nexit 0\n")?;
+        bijux_dna_infra::ensure_dir(dev_binary.parent().expect("dev binary parent"))?;
+        bijux_dna_infra::write_bytes(&dev_binary, b"#!/bin/sh\nexit 0\n")?;
+        bijux_dna_infra::write_bytes(&bijux_binary, b"#!/bin/sh\nexit 0\n")?;
         let output_root = PathBuf::from("runs/bench/tool-smoke/container");
         let rows = vec![
             sample_row("adapterremoval", "docker_image"),
@@ -562,10 +562,11 @@ mod tests {
         let repo_root = tempfile::tempdir().expect("tempdir");
         let dev_binary = repo_root.path().join("artifacts/rust/target/debug/bijux-dna-dev");
         let bijux_binary = repo_root.path().join("artifacts/rust/target/debug/bijux-dna");
-        std::fs::create_dir_all(dev_binary.parent().expect("dev binary parent"))
+        bijux_dna_infra::ensure_dir(dev_binary.parent().expect("dev binary parent"))
             .expect("create dev binary parent");
-        std::fs::write(&dev_binary, b"#!/bin/sh\nexit 0\n").expect("seed dev binary");
-        std::fs::write(&bijux_binary, b"#!/bin/sh\nexit 0\n").expect("seed bijux binary");
+        bijux_dna_infra::write_bytes(&dev_binary, b"#!/bin/sh\nexit 0\n").expect("seed dev binary");
+        bijux_dna_infra::write_bytes(&bijux_binary, b"#!/bin/sh\nexit 0\n")
+            .expect("seed bijux binary");
         let output_root = PathBuf::from("runs/bench/tool-smoke/container");
         let rows = vec![sample_row("adapterremoval", "docker_image")];
 
