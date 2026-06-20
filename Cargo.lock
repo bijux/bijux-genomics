@@ -261,6 +261,7 @@ dependencies = [
  "tempfile",
  "toml",
  "tracing",
+ "walkdir",
 ]
 
 [[package]]

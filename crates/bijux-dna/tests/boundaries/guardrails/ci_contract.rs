@@ -1,6 +1,8 @@
 use std::collections::BTreeSet;
 use std::fs;
 
+use walkdir::WalkDir;
+
 #[test]
 fn cli_ci_profile_membership_is_bounded() -> anyhow::Result<()> {
     let repo_root = super::support::repo_root()?;
@@ -8,18 +10,20 @@ fn cli_ci_profile_membership_is_bounded() -> anyhow::Result<()> {
     let mut counts = ProfileCounts::default();
     for entry in fs::read_dir(crates_dir)? {
         let entry = entry?;
-        let tests_dir = entry.path().join("tests");
-        if !tests_dir.exists() {
-            continue;
-        }
-        for file in fs::read_dir(&tests_dir)? {
-            let file = file?;
-            let path = file.path();
-            if path.extension().and_then(|s| s.to_str()) != Some("rs") {
+        for source_root in [entry.path().join("src"), entry.path().join("tests")] {
+            if !source_root.exists() {
                 continue;
             }
-            let content = fs::read_to_string(&path)?;
-            counts.record_from_source(&content);
+            for file in WalkDir::new(&source_root).into_iter().filter_map(Result::ok) {
+                let path = file.path();
+                if !file.file_type().is_file()
+                    || path.extension().and_then(|s| s.to_str()) != Some("rs")
+                {
+                    continue;
+                }
+                let content = fs::read_to_string(path)?;
+                counts.record_from_source(&content);
+            }
         }
     }
     let slow_roster_path = repo_root.join("configs/rust/nextest-slow-roster.txt");
@@ -73,12 +77,35 @@ struct ProfileCounts {
 
 impl ProfileCounts {
     fn record_from_source(&mut self, source: &str) {
+        let mut pending_test_attr = false;
         for line in source.lines() {
             let trimmed = line.trim_start();
-            if let Some(rest) = trimmed.strip_prefix("fn ") {
-                if let Some((name, _)) = rest.split_once('(') {
-                    self.record_name(name.trim());
+            if trimmed.starts_with("#[") {
+                if trimmed.contains("test") {
+                    pending_test_attr = true;
                 }
+                continue;
+            }
+            if let Some(rest) = trimmed.strip_prefix("fn ") {
+                if pending_test_attr {
+                    if let Some((name, _)) = rest.split_once('(') {
+                        self.record_name(name.trim());
+                    }
+                }
+                pending_test_attr = false;
+                continue;
+            }
+            if let Some(rest) = trimmed.strip_prefix("async fn ") {
+                if pending_test_attr {
+                    if let Some((name, _)) = rest.split_once('(') {
+                        self.record_name(name.trim());
+                    }
+                }
+                pending_test_attr = false;
+                continue;
+            }
+            if !trimmed.is_empty() {
+                pending_test_attr = false;
             }
         }
     }
