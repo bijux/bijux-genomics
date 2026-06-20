@@ -86,6 +86,7 @@ pub(crate) mod fastq_parser_coverage;
 pub(crate) mod fastq_parser_fixture_coverage;
 pub(crate) mod fastq_rendered_commands;
 pub(crate) mod fastq_report_map;
+pub(crate) mod fastq_tool_scores;
 pub(crate) mod fastq_trim_stages_ready;
 pub(crate) mod fastq_validate_reads_ready;
 pub(crate) mod full_benchmark_dashboard;

@@ -160,8 +160,8 @@ pub use self::readiness::{
     BenchReadinessRenderFastqNormalizedMetricsSchemaArgs,
     BenchReadinessRenderFastqParserCoverageArgs,
     BenchReadinessRenderFastqParserFixtureCoverageArgs, BenchReadinessRenderFastqReportMapArgs,
-    BenchReadinessRenderFastqToolServingMapArgs, BenchReadinessRenderFastqTrimStagesReadyArgs,
-    BenchReadinessRenderFastqValidateReadsReadyArgs,
+    BenchReadinessRenderFastqToolScoresArgs, BenchReadinessRenderFastqToolServingMapArgs,
+    BenchReadinessRenderFastqTrimStagesReadyArgs, BenchReadinessRenderFastqValidateReadsReadyArgs,
     BenchReadinessRenderFullBenchmarkDashboardArgs, BenchReadinessRenderFullBenchmarkReportArgs,
     BenchReadinessRenderFullBenchmarkResultCollectorArgs,
     BenchReadinessRenderInputPreflightTestsArgs,
@@ -209,8 +209,8 @@ pub use self::readiness::{
     BenchReadinessRenderVcfStatsReadyArgs, BenchReadinessRenderVcfToolServingMapArgs,
     BenchReadinessRenderVcfUndercoveredStagesArgs, BenchReadinessRenderVersionProbesArgs,
     BenchReadinessRunContainerToolSmokeArgs, BenchReadinessRunHostToolSmokeArgs,
-    BenchReadinessValidateStageScoringArgs, BenchReadinessValidateToolExecutionModesArgs,
-    BenchReadinessValidateToolFamiliesArgs,
+    BenchReadinessValidateFastqToolScoresArgs, BenchReadinessValidateStageScoringArgs,
+    BenchReadinessValidateToolExecutionModesArgs, BenchReadinessValidateToolFamiliesArgs,
 };
 pub use self::schema_validation::{BenchSchemaDomainArg, BenchValidateSchemasArgs};
 pub use self::suite::BenchRunArgs;
