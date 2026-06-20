@@ -930,7 +930,7 @@ pub fn local_correct_errors_smoke_plans(
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_smoke_threads(&mut tool_spec, config.threads);
     let quality_encoding =
-        parse_local_correct_errors_quality_encoding(config.quality_encoding.as_deref())?;
+        resolve_local_correct_errors_quality_encoding(config.quality_encoding.as_deref())?;
     let output_root =
         config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_CORRECT_ERRORS_OUTPUT_DIR));
     let mut plan_options = crate::CorrectErrorsStageParams::baseline();
@@ -1349,7 +1349,7 @@ pub fn local_merge_pairs_smoke_plans(
     let merge_overlap = config.merge_overlap.unwrap_or(10).max(1);
     let min_length = config.min_length.unwrap_or(30).max(1);
     let unmerged_read_policy =
-        parse_local_merge_pairs_unmerged_read_policy(config.unmerged_read_policy.as_deref())?;
+        resolve_local_merge_pairs_unmerged_read_policy(config.unmerged_read_policy.as_deref())?;
     let plan_options = MergePlanOptions {
         threads: Some(tool_spec.resources.threads.max(1)),
         merge_overlap: Some(merge_overlap),
@@ -2752,9 +2752,9 @@ pub fn local_report_qc_smoke_plan(
     let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
     hydrate_smoke_threads(&mut tool_spec, None);
     let aggregation_engine =
-        parse_local_report_qc_aggregation_engine(config.aggregation_engine.as_deref())?;
+        resolve_local_report_qc_aggregation_engine(config.aggregation_engine.as_deref())?;
     let aggregation_scope =
-        parse_local_report_qc_aggregation_scope(config.aggregation_scope.as_deref())?;
+        resolve_local_report_qc_aggregation_scope(config.aggregation_scope.as_deref())?;
     let output_root =
         config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR));
 
@@ -2953,7 +2953,7 @@ fn hydrate_smoke_threads(tool_spec: &mut ToolExecutionSpecV1, threads: Option<u3
     }
 }
 
-fn parse_local_report_qc_aggregation_engine(value: Option<&str>) -> Result<QcAggregationEngine> {
+fn resolve_local_report_qc_aggregation_engine(value: Option<&str>) -> Result<QcAggregationEngine> {
     match value.unwrap_or("multiqc") {
         "auto" | "multiqc" => Ok(QcAggregationEngine::Multiqc),
         other => {
@@ -2962,7 +2962,7 @@ fn parse_local_report_qc_aggregation_engine(value: Option<&str>) -> Result<QcAgg
     }
 }
 
-fn parse_local_report_qc_aggregation_scope(value: Option<&str>) -> Result<QcAggregationScope> {
+fn resolve_local_report_qc_aggregation_scope(value: Option<&str>) -> Result<QcAggregationScope> {
     match value.unwrap_or("governed_qc_artifacts") {
         "governed_qc_artifacts" => Ok(QcAggregationScope::GovernedQcArtifacts),
         other => {
@@ -3051,7 +3051,7 @@ fn ensure_unique_extract_umis_sample_ids(cases: &[LocalExtractUmisSmokeCase]) ->
     Ok(())
 }
 
-fn parse_local_correct_errors_quality_encoding(value: Option<&str>) -> Result<QualityEncoding> {
+fn resolve_local_correct_errors_quality_encoding(value: Option<&str>) -> Result<QualityEncoding> {
     match value.unwrap_or("phred33") {
         "phred33" => Ok(QualityEncoding::Phred33),
         "phred64" => Ok(QualityEncoding::Phred64),
@@ -3919,7 +3919,7 @@ fn load_local_profile_overrepresented_sequences_smoke_config(
     Ok(config)
 }
 
-fn parse_local_merge_pairs_unmerged_read_policy(
+fn resolve_local_merge_pairs_unmerged_read_policy(
     raw: Option<&str>,
 ) -> Result<bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy> {
     match raw.unwrap_or("emit_unmerged_pairs") {

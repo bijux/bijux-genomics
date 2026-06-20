@@ -18,7 +18,7 @@ pub(crate) const DEFAULT_TOOL_ID_NORMALIZATION_PATH: &str =
 const TOOL_ID_NORMALIZATION_SCHEMA_VERSION: &str = "bijux.bench.readiness.tool_id_normalization.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct ToolIdNormalizationRow {
+pub(crate) struct NormalizedToolClusterRow {
     pub(crate) normalized_tool_id: String,
     pub(crate) canonical_tool_id: String,
     pub(crate) alias_tool_ids: Vec<String>,
@@ -27,12 +27,12 @@ pub(crate) struct ToolIdNormalizationRow {
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub(crate) struct ToolIdNormalizationReport {
+pub(crate) struct NormalizedToolClusterReport {
     pub(crate) schema_version: &'static str,
     pub(crate) output_path: String,
     pub(crate) cluster_count: usize,
     pub(crate) ok: bool,
-    pub(crate) rows: Vec<ToolIdNormalizationRow>,
+    pub(crate) rows: Vec<NormalizedToolClusterRow>,
 }
 
 pub(crate) fn run_render_tool_id_normalization(
@@ -54,7 +54,7 @@ pub(crate) fn run_render_tool_id_normalization(
 pub(crate) fn render_tool_id_normalization(
     repo_root: &Path,
     output_path: PathBuf,
-) -> Result<ToolIdNormalizationReport> {
+) -> Result<NormalizedToolClusterReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
     let fastq_map = render_fastq_tool_serving_map(
         repo_root,
@@ -104,7 +104,7 @@ pub(crate) fn render_tool_id_normalization(
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect::<Vec<_>>();
-        rows.push(ToolIdNormalizationRow {
+        rows.push(NormalizedToolClusterRow {
             normalized_tool_id: normalized_tool_id.clone(),
             canonical_tool_id: canonical_tool_id.clone(),
             alias_tool_ids: alias_tool_ids.clone(),
@@ -126,7 +126,7 @@ pub(crate) fn render_tool_id_normalization(
     fs::write(&output_path, render_tool_id_normalization_tsv(&rows))
         .with_context(|| format!("write {}", output_path.display()))?;
 
-    Ok(ToolIdNormalizationReport {
+    Ok(NormalizedToolClusterReport {
         schema_version: TOOL_ID_NORMALIZATION_SCHEMA_VERSION,
         output_path: path_relative_to_repo(repo_root, &output_path),
         cluster_count: rows.len(),
@@ -135,7 +135,7 @@ pub(crate) fn render_tool_id_normalization(
     })
 }
 
-fn render_tool_id_normalization_tsv(rows: &[ToolIdNormalizationRow]) -> String {
+fn render_tool_id_normalization_tsv(rows: &[NormalizedToolClusterRow]) -> String {
     let mut rendered =
         String::from("normalized_tool_id\tcanonical_tool_id\talias_tool_ids\tdomains\treason\n");
     for row in rows {

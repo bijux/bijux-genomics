@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
@@ -31,7 +31,7 @@ fn normalized_shannon_entropy(sequence: &str) -> f64 {
     if sequence.is_empty() {
         return 0.0;
     }
-    let mut counts = HashMap::<u8, usize>::new();
+    let mut counts = BTreeMap::<u8, usize>::new();
     for base in sequence.bytes().map(|base| base.to_ascii_uppercase()) {
         *counts.entry(base).or_default() += 1;
     }
