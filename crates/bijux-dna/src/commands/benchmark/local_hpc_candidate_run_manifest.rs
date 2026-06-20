@@ -18,7 +18,7 @@ use super::local_hpc_job_completion::resolve_local_hpc_job_result_paths;
 use super::local_hpc_job_resources::{load_local_hpc_job_resource_hints, LocalHpcJobResourceHint};
 use super::local_hpc_selected_jobs::load_local_hpc_selected_jobs;
 use super::path_resolution::{
-    ensure_path_stays_within_benchmark_readiness_root, BenchmarkPathResolver,
+    ensure_path_stays_within_benchmark_readiness_hpc_root, BenchmarkPathResolver,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -151,7 +151,7 @@ pub(crate) fn run_render_hpc_candidate_run_manifest(
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let output_path = args.output.clone().unwrap_or_else(|| {
-        benchmark_paths.benchmark_readiness_root().join("hpc/FIRST_HPC_CANDIDATE_RUN.json")
+        benchmark_paths.benchmark_hpc_readiness_root().join("FIRST_HPC_CANDIDATE_RUN.json")
     });
     let report = render_hpc_candidate_run_manifest(&repo_root, output_path)?;
     if args.json {
@@ -168,7 +168,7 @@ pub(crate) fn run_validate_hpc_candidate_run_manifest(
     let repo_root = std::env::current_dir().context("resolve current directory")?;
     let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let manifest_path = args.manifest.clone().unwrap_or_else(|| {
-        benchmark_paths.benchmark_readiness_root().join("hpc/FIRST_HPC_CANDIDATE_RUN.json")
+        benchmark_paths.benchmark_hpc_readiness_root().join("FIRST_HPC_CANDIDATE_RUN.json")
     });
     let report = validate_hpc_candidate_run_manifest_path(&repo_root, &manifest_path)?;
     if args.json {
@@ -221,7 +221,7 @@ fn build_hpc_candidate_run_manifest(
     repo_root: &Path,
     absolute_output_path: &Path,
 ) -> Result<LocalHpcCandidateRunManifest> {
-    ensure_path_stays_within_benchmark_readiness_root(
+    ensure_path_stays_within_benchmark_readiness_hpc_root(
         repo_root,
         absolute_output_path,
         "HPC candidate run manifest output",

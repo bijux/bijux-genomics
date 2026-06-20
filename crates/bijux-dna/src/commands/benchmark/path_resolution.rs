@@ -13,6 +13,7 @@ pub(crate) const DEFAULT_BENCHMARK_PARSER_FIXTURE_ROOT_SUFFIX: &str = "tests/fix
 pub(crate) const DEFAULT_BENCHMARK_CORPORA_ROOT_SUFFIX: &str = "tests/fixtures/corpora";
 pub(crate) const DEFAULT_BENCHMARK_DATABASES_ROOT_SUFFIX: &str = "tests/fixtures/databases";
 pub(crate) const DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
+pub(crate) const DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE: &str = "benchmarks/readiness/hpc";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE: &str =
     "benchmarks/readiness/local-ready";
 pub(crate) const DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE: &str = "runs/bench";
@@ -85,6 +86,10 @@ impl BenchmarkPathResolver {
 
     pub(crate) fn benchmark_readiness_root(&self) -> PathBuf {
         self.repo_root.join(DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE)
+    }
+
+    pub(crate) fn benchmark_hpc_readiness_root(&self) -> PathBuf {
+        self.repo_root.join(DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE)
     }
 
     pub(crate) fn benchmark_local_ready_root(&self) -> PathBuf {
@@ -181,6 +186,19 @@ pub(crate) fn ensure_path_stays_within_benchmark_readiness_root(
     bail!("{output_kind} must resolve inside `{DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE}`");
 }
 
+pub(crate) fn ensure_path_stays_within_benchmark_readiness_hpc_root(
+    repo_root: &Path,
+    candidate: &Path,
+    output_kind: &str,
+) -> Result<()> {
+    let resolved = absolutize(repo_root, candidate);
+    let readiness_root = repo_root.join(DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE);
+    if resolved == readiness_root || resolved.starts_with(&readiness_root) {
+        return Ok(());
+    }
+    bail!("{output_kind} must resolve inside `{DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE}`");
+}
+
 pub(crate) fn ensure_path_stays_within_benchmark_runs_root(
     repo_root: &Path,
     candidate: &Path,
@@ -199,15 +217,16 @@ pub(crate) fn ensure_path_stays_within_benchmark_runs_root(
 mod tests {
     use super::{
         ensure_path_stays_outside_benchmark_readiness_root,
+        ensure_path_stays_within_benchmark_readiness_hpc_root,
         ensure_path_stays_within_benchmark_readiness_root,
         ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver, BENCHMARK_ROOT_ENV,
         DEFAULT_BENCHMARK_HPC_DRY_RUN_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE, DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE,
-        DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE, DEFAULT_BENCHMARK_READINESS_PROBE_ROOT_RELATIVE,
-        DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE, DEFAULT_BENCHMARK_ROOT_RELATIVE,
-        DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE, DEFAULT_BENCHMARK_SCHEMA_ROOT_SUFFIX,
-        DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE,
+        DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE, DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE,
+        DEFAULT_BENCHMARK_READINESS_PROBE_ROOT_RELATIVE, DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE,
+        DEFAULT_BENCHMARK_ROOT_RELATIVE, DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE,
+        DEFAULT_BENCHMARK_SCHEMA_ROOT_SUFFIX, DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE,
     };
     use std::ffi::{OsStr, OsString};
     use std::path::Path;
@@ -262,6 +281,10 @@ mod tests {
         assert_eq!(
             resolver.benchmark_readiness_root(),
             repo_root.join(DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE)
+        );
+        assert_eq!(
+            resolver.benchmark_hpc_readiness_root(),
+            repo_root.join(DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE)
         );
         assert_eq!(
             resolver.benchmark_local_ready_root(),
@@ -361,6 +384,18 @@ mod tests {
     }
 
     #[test]
+    fn benchmark_path_guard_accepts_paths_under_readiness_hpc_root() {
+        let repo_root = Path::new("/workspace/repo");
+
+        ensure_path_stays_within_benchmark_readiness_hpc_root(
+            repo_root,
+            Path::new("benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json"),
+            "HPC dry-run readiness output",
+        )
+        .expect("readiness-hpc-root output should be accepted");
+    }
+
+    #[test]
     fn benchmark_path_guard_rejects_paths_outside_readiness_root() {
         let repo_root = Path::new("/workspace/repo");
 
@@ -373,6 +408,23 @@ mod tests {
 
         assert!(
             error.to_string().contains("must resolve inside `benchmarks/readiness`"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn benchmark_path_guard_rejects_paths_outside_readiness_hpc_root() {
+        let repo_root = Path::new("/workspace/repo");
+
+        let error = ensure_path_stays_within_benchmark_readiness_hpc_root(
+            repo_root,
+            Path::new("benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json"),
+            "HPC dry-run readiness output",
+        )
+        .expect_err("non-hpc readiness output should be rejected");
+
+        assert!(
+            error.to_string().contains(DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE),
             "unexpected error: {error}"
         );
     }
