@@ -375,8 +375,17 @@ import json
 print(json.dumps({"mode": "skip", "status": "skipped", "reason": "requested_skip_mode", "known_sites": ["benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"], "reference": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta", "recalibration_report": "benchmarks/readiness/stage-tool-commands/bam/bam/recalibration/gatk/recal.report.txt", "output_bam": "benchmarks/readiness/stage-tool-commands/bam/bam/recalibration/gatk/recal.bam", "output_bai": "benchmarks/readiness/stage-tool-commands/bam/bam/recalibration/gatk/recal.bam.bai"}, indent=2))
 PY'
 
-# bam-genotyping-to-vcf-downstream / bam.genotyping / bam.genotyping / bijux-dna
-cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.genotyping
+# bam-genotyping-to-vcf-downstream / bam.genotyping / bam.genotyping / angsd
+/bin/sh -c 'angsd -i benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam -doGlf 2 -doMajorMinor 1 -doMaf 1 -out benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping && bcftools view benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping.bcf -Oz -o benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping.vcf.gz && tabix -f -p vcf benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping.vcf.gz && python - <<'"'"'PY'"'"' > benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping.gl.json
+import json
+print(json.dumps({"producer": "angsd", "gl_source": "benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping.glf.gz", "bcf_source": "benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping.bcf"}, indent=2))
+PY && python - <<'"'"'PY'"'"' > benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping.summary.json
+import json
+print(json.dumps({"caller": "angsd", "reference": "", "sites": "", "regions": "", "bcf": "benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping.bcf", "vcf": "benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping.vcf.gz", "tbi": "benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping.vcf.gz.tbi", "min_posterior": 0.9, "min_call_rate": 0.5}, indent=2))
+PY && python - <<'"'"'PY'"'"' > benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping.json
+import json
+print(json.dumps({"status": "ok", "producer": "bam.genotyping", "reference": "", "sites": "", "regions": "", "output_bcf": "benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping.bcf", "output_vcf": "benchmarks/readiness/stage-tool-commands/bam/bam/genotyping/angsd/genotyping.vcf.gz"}, indent=2))
+PY'
 
 # bam-genotyping-to-vcf-downstream / vcf.filter / vcf.filter / bcftools
 bcftools filter -s LOWQUAL -e 'QUAL<30' benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf -Oz -o benchmarks/readiness/adapters/bcftools/vcf.filter/filtered_vcf.vcf.gz
