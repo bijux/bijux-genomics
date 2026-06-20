@@ -2,11 +2,11 @@
 
 ## Summary
 
-- Tool count: 67
-- Stage-tool rows: 122
-- Benchmark-ready rows: 118
-- Blocked rows: 4
-- Tools with blockers: 4
+- Tool count: 65
+- Stage-tool rows: 120
+- Benchmark-ready rows: 120
+- Blocked rows: 0
+- Tools with blockers: 0
 
 | Tool | Domains | Stage rows | Ready | Blocked | Blocked stages |
 | --- | --- | ---: | ---: | ---: | --- |
@@ -32,8 +32,7 @@
 | cutadapt | fastq | 3 | 3 | 0 | none |
 | dada2 | fastq | 1 | 1 | 0 | none |
 | damageprofiler | bam | 2 | 2 | 0 | none |
-| dustmasker | fastq | 1 | 0 | 1 | fastq.filter_low_complexity (support) |
-| fastp | fastq | 5 | 4 | 1 | fastq.filter_low_complexity (support) |
+| fastp | fastq | 5 | 5 | 0 | none |
 | fastq_scan | fastq | 2 | 2 | 0 | none |
 | fastqc | fastq | 3 | 3 | 0 | none |
 | fastqvalidator | fastq | 1 | 1 | 0 | none |
@@ -50,7 +49,7 @@
 | lighter | fastq | 1 | 1 | 0 | none |
 | mapdamage2 | bam | 2 | 2 | 0 | none |
 | mosdepth | bam | 1 | 1 | 0 | none |
-| multiqc | bam, fastq | 2 | 1 | 1 | fastq.report_qc (corpus) |
+| multiqc | bam, fastq | 2 | 2 | 0 | none |
 | musket | fastq | 1 | 1 | 0 | none |
 | ngsbriggs | bam | 1 | 1 | 0 | none |
 | pear | fastq | 1 | 1 | 0 | none |
@@ -66,7 +65,6 @@
 | seqfu | fastq | 2 | 2 | 0 | none |
 | seqkit | fastq | 6 | 6 | 0 | none |
 | seqkit_stats | fastq | 2 | 2 | 0 | none |
-| seqpurge | fastq | 1 | 0 | 1 | fastq.trim_reads (support) |
 | seqtk | fastq | 1 | 1 | 0 | none |
 | skewer | fastq | 1 | 1 | 0 | none |
 | sortmerna | fastq | 1 | 1 | 0 | none |
@@ -359,29 +357,17 @@
 | bam | bam.authenticity | Ancient Signal | Damage and Authenticity | benchmark_ready | none | supported | runnable | parser_fixture_validated | fixture:corpus-01-adna-damage-mini | not_required |
 | bam | bam.damage | Ancient Signal | Damage and Authenticity | benchmark_ready | none | supported | runnable | parser_fixture_validated | fixture:corpus-01-adna-damage-mini | not_required |
 
-## dustmasker
-
-- Domains: fastq
-- Stage rows: 1
-- Benchmark-ready rows: 0
-- Blocked rows: 1
-- Report sections: read_cleanup
-
-| Domain | Stage | Report section | Summary table | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| fastq | fastq.filter_low_complexity | Read Cleanup | Cleanup and Retention | not_benchmark_ready | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |
-
 ## fastp
 
 - Domains: fastq
 - Stage rows: 5
-- Benchmark-ready rows: 4
-- Blocked rows: 1
+- Benchmark-ready rows: 5
+- Blocked rows: 0
 - Report sections: quality_profiling, read_cleanup
 
 | Domain | Stage | Report section | Summary table | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| fastq | fastq.filter_low_complexity | Read Cleanup | Cleanup and Retention | not_benchmark_ready | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |
+| fastq | fastq.filter_low_complexity | Read Cleanup | Cleanup and Retention | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 | fastq | fastq.filter_reads | Read Cleanup | Cleanup and Retention | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 | fastq | fastq.profile_read_lengths | Quality Profiling | QC Signal Profiles | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 | fastq | fastq.trim_polyg_tails | Read Cleanup | Cleanup and Retention | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
@@ -588,14 +574,14 @@
 
 - Domains: bam, fastq
 - Stage rows: 2
-- Benchmark-ready rows: 1
-- Blocked rows: 1
+- Benchmark-ready rows: 2
+- Blocked rows: 0
 - Report sections: alignment_intake, quality_profiling
 
 | Domain | Stage | Report section | Summary table | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | bam | bam.qc_pre | Alignment Intake | Alignment Baseline | benchmark_ready | none | supported | runnable | parser_fixture_validated | fixture:corpus-01-bam-mini | not_required |
-| fastq | fastq.report_qc | Quality Profiling | QC Signal Profiles | not_benchmark_ready | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |
+| fastq | fastq.report_qc | Quality Profiling | QC Signal Profiles | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |
 
 ## musket
 
@@ -801,18 +787,6 @@
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | fastq | fastq.profile_read_lengths | Quality Profiling | QC Signal Profiles | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
 | fastq | fastq.profile_reads | Quality Profiling | QC Signal Profiles | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |
-
-## seqpurge
-
-- Domains: fastq
-- Stage rows: 1
-- Benchmark-ready rows: 0
-- Blocked rows: 1
-- Report sections: read_cleanup
-
-| Domain | Stage | Report section | Summary table | Benchmark status | Gap | Support | Adapter | Parser | Corpus | Asset |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| fastq | fastq.trim_reads | Read Cleanup | Cleanup and Retention | not_benchmark_ready | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |
 
 ## seqtk
 

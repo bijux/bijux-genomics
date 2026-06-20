@@ -307,7 +307,7 @@ fn ensure_tool_centric_report_contract(tools: &[ToolCentricToolReport]) -> Resul
             "fastq.trim_polyg_tails",
             "fastq.trim_reads",
         ],
-        1,
+        0,
     )?;
     ensure_tool_stages(
         tools,

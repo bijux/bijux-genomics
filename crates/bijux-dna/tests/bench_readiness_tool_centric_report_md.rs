@@ -43,12 +43,10 @@ fn bench_readiness_tool_centric_report_writes_named_tool_sections() {
         .expect("read tool-centric markdown");
 
     assert!(markdown.contains("# Tool-Centric Benchmark Report"));
-    assert!(markdown.contains("- Tool count: 67"));
-    assert!(markdown.contains("- Stage-tool rows: 122"));
+    assert!(markdown.contains("- Tool count: 65"));
+    assert!(markdown.contains("- Stage-tool rows: 120"));
     assert!(markdown.contains("| samtools | bam | 10 | 10 | 0 | none |"));
-    assert!(
-        markdown.contains("| fastp | fastq | 5 | 4 | 1 | fastq.filter_low_complexity (support) |")
-    );
+    assert!(markdown.contains("| fastp | fastq | 5 | 5 | 0 | none |"));
     assert!(markdown.contains("| seqfu | fastq | 2 | 2 | 0 | none |"));
 
     assert!(markdown.contains("## samtools"));
@@ -61,7 +59,7 @@ fn bench_readiness_tool_centric_report_writes_named_tool_sections() {
     assert!(markdown.contains("| fastq | fastq.deplete_reference_contaminants | Contamination Screening | Screening and Contamination | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | assigned |"));
 
     assert!(markdown.contains("## fastp"));
-    assert!(markdown.contains("| fastq | fastq.filter_low_complexity | Read Cleanup | Cleanup and Retention | not_benchmark_ready | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |"));
+    assert!(markdown.contains("| fastq | fastq.filter_low_complexity | Read Cleanup | Cleanup and Retention | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |"));
 
     assert!(markdown.contains("## kraken2"));
     assert!(markdown.contains("| fastq | fastq.screen_taxonomy | Contamination Screening | Screening and Contamination | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-02-edna-mini | assigned |"));

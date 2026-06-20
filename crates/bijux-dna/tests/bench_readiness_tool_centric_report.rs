@@ -48,15 +48,15 @@ fn bench_readiness_tool_centric_report_tracks_named_tool_stage_lists() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/tool-centric-report.md")
     );
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(67));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(65));
     assert_eq!(payload.get("unique_stage_count").and_then(serde_json::Value::as_u64), Some(51));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(122));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(120));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(118)
+        Some(120)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(4));
-    assert_eq!(payload.get("blocked_tool_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("blocked_tool_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload
             .get("domain_counts")
@@ -69,11 +69,11 @@ fn bench_readiness_tool_centric_report_tracks_named_tool_stage_lists() {
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(73)
+        Some(71)
     );
 
     let tools = payload.get("tools").and_then(serde_json::Value::as_array).expect("tools array");
-    assert_eq!(tools.len(), 67);
+    assert_eq!(tools.len(), 65);
 
     let samtools = tools
         .iter()
@@ -106,8 +106,8 @@ fn bench_readiness_tool_centric_report_tracks_named_tool_stage_lists() {
         .find(|tool| tool.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastp"))
         .expect("fastp tool report");
     assert_eq!(fastp.get("stage_count").and_then(serde_json::Value::as_u64), Some(5));
-    assert_eq!(fastp.get("blocked_stage_count").and_then(serde_json::Value::as_u64), Some(1));
-    let fastp_blocked = fastp
+    assert_eq!(fastp.get("blocked_stage_count").and_then(serde_json::Value::as_u64), Some(0));
+    let fastp_filter_stage = fastp
         .get("stages")
         .and_then(serde_json::Value::as_array)
         .expect("fastp stages")
@@ -116,14 +116,14 @@ fn bench_readiness_tool_centric_report_tracks_named_tool_stage_lists() {
             row.get("stage_id").and_then(serde_json::Value::as_str)
                 == Some("fastq.filter_low_complexity")
         })
-        .expect("fastp blocked stage");
+        .expect("fastp low-complexity stage");
     assert_eq!(
-        fastp_blocked.get("benchmark_status").and_then(serde_json::Value::as_str),
-        Some("not_benchmark_ready")
+        fastp_filter_stage.get("benchmark_status").and_then(serde_json::Value::as_str),
+        Some("benchmark_ready")
     );
     assert_eq!(
-        fastp_blocked.get("readiness_gap").and_then(serde_json::Value::as_str),
-        Some("support")
+        fastp_filter_stage.get("readiness_gap").and_then(serde_json::Value::as_str),
+        Some("none")
     );
 
     let bowtie2 = tools
