@@ -622,6 +622,12 @@ Visible aliases are part of the operator surface:
   the admitted comparable tools, the default tool, the current corpus-routing status, and the
   governed shared metric fields that make same-stage BAM tool comparisons interpretable without
   relying on tool-private report details.
+- `bijux-dna bench readiness render-stage-scoring`
+  `render-stage-scoring` writes `benchmarks/configs/local/stage-scoring.toml`. It materializes
+  one governed scoring row per active FASTQ, BAM, and VCF stage, carrying the decision mode,
+  default tool, benchmark-ready tool set, scoring weights, scientific-threshold applicability,
+  runtime and memory metrics, completion requirements, and failure-class gates so benchmark
+  reports can be turned into durable tool-recommendation decisions without manual interpretation.
 - `bijux-dna bench readiness render-scientific-acceptance-thresholds`
   `render-scientific-acceptance-thresholds` writes
   `benchmarks/configs/local/scientific-acceptance-thresholds.toml`. It collects the governed
@@ -1516,6 +1522,12 @@ Visible aliases are part of the operator surface:
   FASTQ or BAM tool-ID alias cluster, carrying `normalized_tool_id`, `canonical_tool_id`,
   `alias_tool_ids`, `domains`, and `reason` so inconsistent `-` versus `_` benchmark tool naming
   cannot drift without an explicit canonical mapping.
+- `bijux-dna bench readiness validate-stage-scoring`
+  `validate-stage-scoring` checks `benchmarks/configs/local/stage-scoring.toml` against the
+  governed active-stage catalog, scientific-threshold table, full benchmark report inputs, micro
+  benchmark metrics, and failure-class contracts. The JSON report carries per-domain stage counts,
+  multi-tool and single-tool totals, the scientific-stage count, and one row per stage so scoring
+  drift fails closed before recommendation logic depends on it.
 - `bijux-dna bench readiness validate-tool-execution-modes`
   `validate-tool-execution-modes` checks `benchmarks/configs/local/tool-execution-modes.toml` against
   the governed FASTQ and BAM benchmark serving maps plus each tool's runtime probe contract,
