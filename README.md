@@ -104,4 +104,5 @@ The full CLI inventory is maintained in [`crates/bijux-dna/docs/COMMANDS.md`](cr
 - Generated benchmark proof belongs under `benchmarks/readiness/` when it is deterministic and worth checking in.
 - Disposable local execution output belongs under `artifacts/` or `runs/`.
 - Use `make bench-fastq-tool-scores-dry-run` to refresh and validate the governed FASTQ score table under `runs/bench/micro/fastq/`.
+- Use `make bench-bam-tool-scores-dry-run` to refresh and validate the governed BAM score table under `runs/bench/micro/bam/`.
 - Source-of-truth domain changes should be followed by the relevant index, registry, and readiness regeneration commands before commit.
