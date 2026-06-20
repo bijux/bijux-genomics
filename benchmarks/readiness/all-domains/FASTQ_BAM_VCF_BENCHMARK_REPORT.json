@@ -3160,7 +3160,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.298128125,
+      "real_smoke_elapsed_seconds": null,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -3704,7 +3704,7 @@
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.053226292,
+      "real_smoke_elapsed_seconds": null,
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
@@ -7745,7 +7745,7 @@
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:bam.validate",
       "real_smoke_elapsed_seconds": null,
-      "runtime_source": "fake_run_simulated"
+      "runtime_source": "fake_run_and_real_smoke"
     },
     {
       "report_row_id": "fastq:corpus-03-amplicon-mini:fastq.cluster_otus:sample-set:vsearch",
@@ -8493,7 +8493,7 @@
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:fastq.validate_reads",
       "real_smoke_elapsed_seconds": null,
-      "runtime_source": "fake_run_simulated"
+      "runtime_source": "fake_run_and_real_smoke"
     },
     {
       "report_row_id": "fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqvalidator",
@@ -8547,7 +8547,7 @@
       "row_status": "present",
       "simulated_elapsed_seconds": 1.75,
       "real_smoke_execution_id": "real-smoke:bridge:bam-to-vcf.call",
-      "real_smoke_elapsed_seconds": 0.298128125,
+      "real_smoke_elapsed_seconds": null,
       "runtime_source": "fake_run_and_real_smoke"
     },
     {
@@ -8767,7 +8767,7 @@
       "row_status": "missing_result",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": "real-smoke:vcf.stats",
-      "real_smoke_elapsed_seconds": 0.053226292,
+      "real_smoke_elapsed_seconds": null,
       "runtime_source": "fake_run_and_real_smoke"
     }
   ],

@@ -245,7 +245,7 @@
 | bam:corpus-01-adna-bam-mini:bam.sex:sample-set:yleaf | bam | bam.sex | yleaf | present | 1.250 |  | fake_run_simulated |
 | bam:corpus-01-bam-mini:bam.validate:sample-set:bamtools | bam | bam.validate | bamtools | present | 1.250 |  | fake_run_simulated |
 | bam:corpus-01-bam-mini:bam.validate:sample-set:bedtools | bam | bam.validate | bedtools | present | 1.250 |  | fake_run_simulated |
-| bam:corpus-01-bam-mini:bam.validate:sample-set:samtools | bam | bam.validate | samtools | present | 1.250 |  | fake_run_simulated |
+| bam:corpus-01-bam-mini:bam.validate:sample-set:samtools | bam | bam.validate | samtools | present | 1.250 |  | fake_run_and_real_smoke |
 | fastq:corpus-03-amplicon-mini:fastq.cluster_otus:sample-set:vsearch | fastq | fastq.cluster_otus | vsearch | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.correct_errors:sample-set:bayeshammer | fastq | fastq.correct_errors | bayeshammer | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.correct_errors:sample-set:lighter | fastq | fastq.correct_errors | lighter | present | 1.250 |  | fake_run_simulated |
@@ -313,12 +313,12 @@
 | fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:cutadapt | fastq | fastq.trim_terminal_damage | cutadapt | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit | fastq | fastq.trim_terminal_damage | seqkit | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastq_scan | fastq | fastq.validate_reads | fastq_scan | present | 1.250 |  | fake_run_simulated |
-| fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqc | fastq | fastq.validate_reads | fastqc | present | 1.250 |  | fake_run_simulated |
+| fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqc | fastq | fastq.validate_reads | fastqc | present | 1.250 |  | fake_run_and_real_smoke |
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:fastqvalidator | fastq | fastq.validate_reads | fastqvalidator | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:fqtools | fastq | fastq.validate_reads | fqtools | present | 1.250 |  | fake_run_simulated |
 | fastq:corpus-01-mini:fastq.validate_reads:sample-set:seqtk | fastq | fastq.validate_reads | seqtk | present | 1.250 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2 | vcf | vcf.admixture | plink2 | present | 1.250 |  | fake_run_simulated |
-| vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools | vcf | vcf.call | bcftools | present | 1.750 | 0.298 | fake_run_and_real_smoke |
+| vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools | vcf | vcf.call | bcftools | present | 1.750 |  | fake_run_and_real_smoke |
 | vcf:vcf_production_regression:vcf.call_diploid:bam_bundle:bcftools | vcf | vcf.call_diploid | bcftools | present | 1.750 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.call_gl:bam_bundle:bcftools | vcf | vcf.call_gl | bcftools | present | 1.750 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.call_pseudohaploid:bam_bundle:bcftools | vcf | vcf.call_pseudohaploid | bcftools | present | 1.750 |  | fake_run_simulated |
@@ -338,7 +338,7 @@
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink | vcf | vcf.qc | plink | present | 1.250 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2 | vcf | vcf.qc | plink2 | present | 1.250 |  | fake_run_simulated |
 | vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2 | vcf | vcf.roh | plink2 | present | 1.250 |  | fake_run_simulated |
-| vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools | vcf | vcf.stats | bcftools | missing_result | 1.250 | 0.053 | fake_run_and_real_smoke |
+| vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools | vcf | vcf.stats | bcftools | missing_result | 1.250 |  | fake_run_and_real_smoke |
 
 ## Memory
 

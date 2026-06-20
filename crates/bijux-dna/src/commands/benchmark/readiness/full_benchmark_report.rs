@@ -634,7 +634,10 @@ fn collect_real_smoke_runtime_by_binding(
             binding_key(&row.domain, &row.stage_id, &row.tool_id),
             RealSmokeRuntimeEvidence {
                 execution_id: row.record_id.clone(),
-                elapsed_seconds: manifest.as_ref().map(|manifest| manifest.runtime.elapsed_seconds),
+                // Real-smoke wall-clock timings vary across hosts and runs, so governed
+                // readiness artifacts keep the stable execution identity without serializing
+                // volatile elapsed-seconds values into durable report files.
+                elapsed_seconds: None,
                 memory_mb: manifest
                     .as_ref()
                     .and_then(|manifest| manifest.resource_metrics.memory_mb),
@@ -1410,7 +1413,7 @@ fn render_full_benchmark_report_markdown(report: &FullBenchmarkReport) -> String
 fn runtime_source_label(row: &FullBenchmarkReportRow) -> &'static str {
     if row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair {
         "not_applicable"
-    } else if row.real_smoke_elapsed_seconds.is_some() {
+    } else if row.real_smoke_execution_id.is_some() || row.real_smoke_elapsed_seconds.is_some() {
         "fake_run_and_real_smoke"
     } else {
         "fake_run_simulated"

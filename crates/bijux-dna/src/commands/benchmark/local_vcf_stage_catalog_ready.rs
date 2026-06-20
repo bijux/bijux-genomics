@@ -247,8 +247,8 @@ pub(crate) fn validate_vcf_stage_catalog_ready(
                 bail!("repeated VCF smoke-root renders drifted in stage/tool identity or paths");
             }
             Ok(format!(
-                "rendered deterministic smoke root `{}` with {} stages and {} tool pairs",
-                first.run_id, first.stage_count, first.tool_pair_count
+                "rendered deterministic smoke root with {} stages and {} tool pairs",
+                first.stage_count, first.tool_pair_count
             ))
         },
     );
