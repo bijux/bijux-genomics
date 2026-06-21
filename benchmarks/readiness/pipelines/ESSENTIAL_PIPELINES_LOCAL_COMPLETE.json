@@ -647,13 +647,13 @@
       "asset_profile_id": "candidate_sites_vcf_contract+genotyping_reference_contract+target_regions_contract",
       "input_paths": "external:genotyping_reference_contract,external:candidate_sites_vcf_contract,external:target_regions_contract,upstream:filtered_bam,upstream:filtered_bai,upstream:recalibrated_bam,upstream:recalibrated_bai,upstream:recalibration_summary_json",
       "output_paths": "output:genotyping_bcf,output:genotyping_vcf_gz,output:genotyping_vcf_tbi,output:genotyping_gl_json,output:genotyping_report_json,output:genotyping_stage_metrics",
-      "tool_id": "bijux-dna",
+      "tool_id": "angsd",
       "render_status": "rendered",
-      "command_source": "local_stage_materialization",
+      "command_source": "bam_governed_stage_command",
       "declared_output_count": 6,
       "report_map_output_count": 6,
       "ok": true,
-      "detail": "validated exact corpus/assets, declared input/output paths, `local_stage_materialization` command coverage, and 6 report-map output(s)"
+      "detail": "validated exact corpus/assets, declared input/output paths, `bam_governed_stage_command` command coverage, and 6 report-map output(s)"
     },
     {
       "pipeline_id": "bam-genotyping-to-vcf-downstream",

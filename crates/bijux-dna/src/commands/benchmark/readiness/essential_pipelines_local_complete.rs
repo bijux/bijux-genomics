@@ -432,7 +432,7 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.pipeline_id == "bam-genotyping-to-vcf-downstream"
                 && row.node_id == "bam.genotyping"
-                && row.command_source == "local_stage_materialization"
+                && row.command_source == "bam_governed_stage_command"
         }));
     }
 }

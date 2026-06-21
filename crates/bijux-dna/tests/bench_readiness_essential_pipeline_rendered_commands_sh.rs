@@ -47,9 +47,9 @@ fn bench_readiness_essential_pipeline_rendered_commands_write_bash_parseable_scr
     assert!(script.contains("shapeit5 phase_common"));
     assert!(script.contains("# edna-taxonomy-no-vcf / fastq.report_qc / fastq.report_qc / multiqc"));
     assert!(script.contains("multiqc -o"));
-    assert!(script.contains(
-        "cargo run -q -p bijux-dna --features bam_downstream -- bench local materialize-stage --stage-id bam.genotyping"
-    ));
+    assert!(script.contains("# bam-genotyping-to-vcf-downstream / bam.genotyping / bam.genotyping / angsd"));
+    assert!(script.contains("angsd -i "));
+    assert!(script.contains("genotyping.vcf.gz"));
     assert!(!script.to_ascii_lowercase().contains("todo"));
     assert!(!script.to_ascii_lowercase().contains("placeholder"));
     assert!(!script.to_ascii_lowercase().contains("echo execute"));

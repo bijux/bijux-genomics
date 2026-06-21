@@ -76,6 +76,6 @@ fn bench_readiness_essential_pipelines_local_complete_reports_governed_pass_stat
             == Some("bam-genotyping-to-vcf-downstream")
             && row.get("node_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
             && row.get("command_source").and_then(serde_json::Value::as_str)
-                == Some("local_stage_materialization")
+                == Some("bam_governed_stage_command")
     }));
 }
