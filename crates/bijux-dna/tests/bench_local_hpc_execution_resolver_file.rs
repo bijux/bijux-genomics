@@ -94,8 +94,8 @@ fn bench_local_validate_hpc_execution_resolver_rejects_stale_manifest_file() {
     );
 
     let stale_body = fs::read_to_string(&manifest_path).expect("read execution resolver").replacen(
-        "bijux-dna\tbijux_dna\tinternal\t",
-        "bijux-dna\tbijux_dna\tcontainerized\t",
+        "bijux_dna\tbijux_dna\tinternal\t",
+        "bijux_dna\tbijux_dna\tcontainerized\t",
         1,
     );
     fs::write(&manifest_path, stale_body).expect("write stale execution resolver");

@@ -77,14 +77,14 @@ fn bench_local_render_hpc_execution_resolver_reports_selected_tool_runtime_surfa
     let rows = load_rows(&manifest_path);
     assert!(rows.len() >= 70, "execution resolver must cover the governed selected HPC tool scope");
 
-    let bijux_driver = rows
+    let bijux_runtime = rows
         .iter()
-        .find(|row| row.get("tool_id").map(String::as_str) == Some("bijux-dna"))
-        .expect("bijux-dna selected job row");
-    assert_eq!(bijux_driver.get("lookup_tool_id").map(String::as_str), Some("bijux_dna"));
-    assert_eq!(bijux_driver.get("execution_mode").map(String::as_str), Some("internal"));
-    assert_eq!(bijux_driver.get("resolution_kind").map(String::as_str), Some("host_binary"));
-    assert_eq!(bijux_driver.get("resolution_target").map(String::as_str), Some("bijux-dna"));
+        .find(|row| row.get("tool_id").map(String::as_str) == Some("bijux_dna"))
+        .expect("bijux_dna selected job row");
+    assert_eq!(bijux_runtime.get("lookup_tool_id").map(String::as_str), Some("bijux_dna"));
+    assert_eq!(bijux_runtime.get("execution_mode").map(String::as_str), Some("internal"));
+    assert_eq!(bijux_runtime.get("resolution_kind").map(String::as_str), Some("host_binary"));
+    assert_eq!(bijux_runtime.get("resolution_target").map(String::as_str), Some("bijux-dna"));
 
     let contammix = rows
         .iter()

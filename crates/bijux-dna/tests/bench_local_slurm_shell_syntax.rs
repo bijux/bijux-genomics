@@ -158,13 +158,13 @@ fn bench_local_validate_slurm_shell_syntax_accepts_governed_fastq_and_bam_script
         payload.get("root_path").and_then(serde_json::Value::as_str),
         Some("runs/bench/slurm-dry-run")
     );
-    assert_eq!(payload.get("script_count").and_then(serde_json::Value::as_u64), Some(51));
+    assert_eq!(payload.get("script_count").and_then(serde_json::Value::as_u64), Some(285));
     assert_eq!(payload.get("findings_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let scripts =
         payload.get("scripts").and_then(serde_json::Value::as_array).expect("scripts array");
-    assert_eq!(scripts.len(), 51);
+    assert_eq!(scripts.len(), 285);
     assert!(scripts.iter().all(|entry| {
         entry.get("ok").and_then(serde_json::Value::as_bool) == Some(true)
             && entry.get("script_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
@@ -209,6 +209,6 @@ fn bench_local_validate_slurm_shell_syntax_writes_governed_report_path() {
     let written_payload: serde_json::Value =
         serde_json::from_slice(&std::fs::read(&report_path).expect("read governed report"))
             .expect("parse governed report");
-    assert_eq!(written_payload.get("script_count").and_then(serde_json::Value::as_u64), Some(51));
+    assert_eq!(written_payload.get("script_count").and_then(serde_json::Value::as_u64), Some(285));
     assert_eq!(written_payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 }
