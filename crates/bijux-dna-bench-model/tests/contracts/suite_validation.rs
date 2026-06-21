@@ -55,7 +55,7 @@ fn suite_validation_accepts_governed_fastq_stages_with_planning_support() {
 }
 
 #[test]
-fn suite_validation_rejects_fastq_tools_outside_execution_support() {
+fn suite_validation_rejects_fastq_tools_outside_stage_tool_matrix() {
     let suite = suite_with_stage(BenchmarkStageSpec {
         stage: fastq_stage("filter_low_complexity"),
         stage_instance_id: None,
@@ -65,7 +65,7 @@ fn suite_validation_rejects_fastq_tools_outside_execution_support() {
         upstream_stage_instance_ids: Vec::new(),
     });
     let error = suite_error(&suite);
-    assert!(error.contains("is not admitted by FASTQ execution support"));
+    assert!(error.contains("is not declared in the FASTQ stage-tool matrix"));
 }
 
 #[test]
