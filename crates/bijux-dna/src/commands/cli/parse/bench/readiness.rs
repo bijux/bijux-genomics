@@ -142,6 +142,8 @@ pub enum BenchReadinessCommand {
     RenderFastqReportMap(BenchReadinessRenderFastqReportMapArgs),
     #[command(name = "render-fastq-tool-scores")]
     RenderFastqToolScores(BenchReadinessRenderFastqToolScoresArgs),
+    #[command(name = "render-vcf-tool-scores")]
+    RenderVcfToolScores(BenchReadinessRenderVcfToolScoresArgs),
     #[command(name = "render-fastq-active-stage-tool-matrix")]
     RenderFastqActiveStageToolMatrix(BenchReadinessRenderFastqActiveStageToolMatrixArgs),
     #[command(name = "render-fastq-local-container-smoke")]
@@ -342,6 +344,8 @@ pub enum BenchReadinessCommand {
     ValidateBamToolScores(BenchReadinessValidateBamToolScoresArgs),
     #[command(name = "validate-fastq-tool-scores")]
     ValidateFastqToolScores(BenchReadinessValidateFastqToolScoresArgs),
+    #[command(name = "validate-vcf-tool-scores")]
+    ValidateVcfToolScores(BenchReadinessValidateVcfToolScoresArgs),
     #[command(name = "render-tool-id-normalization")]
     RenderToolIdNormalization(BenchReadinessRenderToolIdNormalizationArgs),
     #[command(name = "validate-tool-families")]
@@ -1209,6 +1213,14 @@ pub struct BenchReadinessRenderFastqToolScoresArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfToolScoresArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
 pub struct BenchReadinessRenderFastqActiveStageToolMatrixArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
@@ -1662,6 +1674,14 @@ pub struct BenchReadinessValidateBamToolScoresArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessValidateFastqToolScoresArgs {
+    #[arg(long)]
+    pub input: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessValidateVcfToolScoresArgs {
     #[arg(long)]
     pub input: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

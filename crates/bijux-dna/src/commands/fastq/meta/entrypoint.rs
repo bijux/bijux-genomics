@@ -520,6 +520,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderVcfToolScores(args) => {
+                        crate::commands::benchmark::readiness::vcf_tool_scores::run_render_vcf_tool_scores(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderFastqActiveStageToolMatrix(args) => {
                         crate::commands::benchmark::readiness::fastq_active_stage_tool_matrix::run_render_fastq_active_stage_tool_matrix(
                             args,
@@ -992,6 +997,11 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchReadinessCommand::ValidateFastqToolScores(args) => {
                         crate::commands::benchmark::readiness::fastq_tool_scores::run_validate_fastq_tool_scores(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::ValidateVcfToolScores(args) => {
+                        crate::commands::benchmark::readiness::vcf_tool_scores::run_validate_vcf_tool_scores(
                             args,
                         )?;
                     }
