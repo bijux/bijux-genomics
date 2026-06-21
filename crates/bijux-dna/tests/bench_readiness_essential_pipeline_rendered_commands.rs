@@ -150,11 +150,11 @@ fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_n
         .expect("bam.genotyping row");
     assert_eq!(
         bam_genotyping_row.get("tool_id").and_then(serde_json::Value::as_str),
-        Some("angsd")
+        Some("bijux-dna")
     );
     assert_eq!(
         bam_genotyping_row.get("command_source").and_then(serde_json::Value::as_str),
-        Some("bam_governed_stage_command")
+        Some("local_stage_materialization")
     );
     assert!(
         bam_genotyping_row
@@ -162,11 +162,10 @@ fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_n
             .and_then(serde_json::Value::as_array)
             .is_some_and(|commands| commands.iter().any(|item| {
                 item.as_str().is_some_and(|command| {
-                    command.contains("angsd -i ")
-                        && command.contains("genotyping.bcf")
-                        && command.contains("genotyping.vcf.gz")
+                    command.contains("bench local materialize-stage")
+                        && command.contains("--stage-id bam.genotyping")
                 })
             })),
-        "bam.genotyping row must render the governed angsd genotyping command"
+        "bam.genotyping row must render the stage-owned materialization command"
     );
 }
