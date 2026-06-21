@@ -21,7 +21,7 @@ use super::scientific_acceptance_thresholds::{
     render_scientific_acceptance_thresholds, ScientificAcceptanceThresholdRow,
     DEFAULT_SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH,
 };
-use super::tool_smoke_support::path_relative_to_repo;
+use super::tool_probe_support::path_relative_to_repo;
 use crate::commands::benchmark::local_micro_benchmark_report::DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH;
 use crate::commands::benchmark::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;

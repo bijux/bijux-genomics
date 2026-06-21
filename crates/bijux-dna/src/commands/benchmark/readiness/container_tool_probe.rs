@@ -6,7 +6,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_api::v1::api::run::run_command;
 use serde::Serialize;
 
-use super::tool_smoke_support::{
+use super::tool_probe_support::{
     now_unix_s, path_relative_to_repo, repo_relative_path, run_command_with_timeout_and_env,
     CommandExecution,
 };

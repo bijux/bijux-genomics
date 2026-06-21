@@ -19,7 +19,7 @@ use super::vcf_filter_ready;
 use super::vcf_gl_propagation_ready;
 use super::vcf_imputation_family_adapter;
 use super::vcf_imputation_metrics_ready;
-use super::vcf_local_container_smoke;
+use super::vcf_local_container_probe;
 use super::vcf_parser_fixture_coverage;
 use super::vcf_pca_ready;
 use super::vcf_phasing_family_adapter;
@@ -596,11 +596,11 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         &mut checks,
         356,
         "vcf local and container smoke coverage",
-        Some(vcf_local_container_smoke::DEFAULT_VCF_LOCAL_CONTAINER_SMOKE_PATH.to_string()),
+        Some(vcf_local_container_probe::DEFAULT_VCF_LOCAL_CONTAINER_SMOKE_PATH.to_string()),
         || {
-            let report = vcf_local_container_smoke::render_vcf_local_container_smoke(
+            let report = vcf_local_container_probe::render_vcf_local_container_smoke(
                 repo_root,
-                PathBuf::from(vcf_local_container_smoke::DEFAULT_VCF_LOCAL_CONTAINER_SMOKE_PATH),
+                PathBuf::from(vcf_local_container_probe::DEFAULT_VCF_LOCAL_CONTAINER_SMOKE_PATH),
             )?;
             if report.row_count != EXPECTED_RETAINED_ROW_COUNT
                 || report.stage_count != EXPECTED_RETAINED_STAGE_COUNT
@@ -1015,7 +1015,7 @@ fn binding_key_from_matrix_row(
 }
 
 fn binding_key_from_local_smoke_row(
-    row: &vcf_local_container_smoke::VcfLocalContainerSmokeRow,
+    row: &vcf_local_container_probe::VcfLocalContainerSmokeRow,
 ) -> VcfBindingKey {
     VcfBindingKey { stage_id: row.stage_id.clone(), tool_id: row.tool_id.clone() }
 }

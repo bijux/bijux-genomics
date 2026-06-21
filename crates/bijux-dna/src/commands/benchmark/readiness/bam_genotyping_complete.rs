@@ -9,7 +9,7 @@ use super::bam_recalibration_genotyping_ready::{
     DEFAULT_BAM_RECALIBRATION_GENOTYPING_READY_PATH,
 };
 #[cfg(feature = "bam_downstream")]
-use super::real_output_parser_smoke::{
+use super::real_output_parser_probe::{
     render_real_output_parser_smoke, RealOutputParserSmokeReport,
     DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH,
 };
@@ -409,7 +409,7 @@ fn build_bam_genotyping_complete_row(
     local_plan_path: &Path,
     readiness_row: &BamRecalibrationGenotypingReadyRow,
     local_plan: &LocalGenotypingPlan,
-    parser_row: &super::real_output_parser_smoke::RealOutputParserSmokeRow,
+    parser_row: &super::real_output_parser_probe::RealOutputParserSmokeRow,
     bam_pipeline: &crate::commands::benchmark::local_pipeline_dag::LocalPipelineDagValidationReport,
     bam_pipeline_node: &LocalPipelineDagValidationNodeReport,
     cross_pipeline: &crate::commands::benchmark::local_pipeline_dag::LocalPipelineDagValidationReport,
@@ -665,7 +665,7 @@ fn build_bam_genotyping_complete_row(
 #[cfg(feature = "bam_downstream")]
 fn find_parser_smoke_row(
     report: &RealOutputParserSmokeReport,
-) -> Result<&super::real_output_parser_smoke::RealOutputParserSmokeRow> {
+) -> Result<&super::real_output_parser_probe::RealOutputParserSmokeRow> {
     report
         .rows
         .iter()

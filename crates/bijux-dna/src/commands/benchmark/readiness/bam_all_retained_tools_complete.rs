@@ -15,7 +15,7 @@ use super::bam_endogenous_content_complete;
 use super::bam_genotyping_complete;
 use super::bam_haplogroups_complete;
 use super::bam_kinship_complete;
-use super::bam_local_container_smoke;
+use super::bam_local_container_probe;
 use super::bam_overlap_correction_complete;
 use super::bam_parser_fixture_coverage;
 use super::bam_recalibration_complete;
@@ -227,9 +227,9 @@ pub(crate) fn render_bam_all_retained_tools_complete(
         repo_root,
         PathBuf::from(bam_parser_fixture_coverage::DEFAULT_BAM_PARSER_FIXTURE_COVERAGE_PATH),
     )?;
-    let local_smoke = bam_local_container_smoke::render_bam_local_container_smoke(
+    let local_smoke = bam_local_container_probe::render_bam_local_container_smoke(
         repo_root,
-        PathBuf::from(bam_local_container_smoke::DEFAULT_BAM_LOCAL_CONTAINER_SMOKE_PATH),
+        PathBuf::from(bam_local_container_probe::DEFAULT_BAM_LOCAL_CONTAINER_SMOKE_PATH),
     )?;
     let output_declarations = bam_adapter_output_contract::render_bam_adapter_output_contract(
         repo_root,
@@ -310,7 +310,7 @@ pub(crate) fn render_bam_all_retained_tools_complete(
         &mut checks,
         441,
         "bam local and container smoke coverage",
-        Some(bam_local_container_smoke::DEFAULT_BAM_LOCAL_CONTAINER_SMOKE_PATH.to_string()),
+        Some(bam_local_container_probe::DEFAULT_BAM_LOCAL_CONTAINER_SMOKE_PATH.to_string()),
         || {
             if local_smoke.row_count != EXPECTED_RETAINED_ROW_COUNT
                 || local_smoke.stage_count != EXPECTED_RETAINED_STAGE_COUNT
@@ -694,7 +694,7 @@ fn binding_key_from_parser_fixture_row(
 }
 
 fn binding_key_from_local_smoke_row(
-    row: &bam_local_container_smoke::BamLocalContainerSmokeRow,
+    row: &bam_local_container_probe::BamLocalContainerSmokeRow,
 ) -> BamBindingKey {
     BamBindingKey { stage_id: row.stage_id.clone(), tool_id: row.tool_id.clone() }
 }

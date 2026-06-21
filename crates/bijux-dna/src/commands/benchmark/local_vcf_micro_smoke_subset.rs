@@ -27,8 +27,8 @@ use super::local_vcf_qc_smoke;
 use super::local_vcf_roh_smoke;
 use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use super::local_vcf_stats_smoke;
-use super::readiness::tool_smoke_support::{path_relative_to_repo, repo_relative_path};
-use super::readiness::vcf_local_container_smoke::{
+use super::readiness::tool_probe_support::{path_relative_to_repo, repo_relative_path};
+use super::readiness::vcf_local_container_probe::{
     collect_vcf_local_container_smoke_rows, VcfLocalContainerSmokeRow,
 };
 use super::vcf_stage_families::{VcfStageFamily, VCF_STAGE_FAMILIES};

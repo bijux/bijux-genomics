@@ -7,18 +7,18 @@ use super::all_domain_retained_tools::{
     render_all_domain_retained_tools, DEFAULT_ALL_DOMAIN_RETAINED_TOOLS_PATH,
 };
 use super::apptainer_map::{render_apptainer_map, DEFAULT_APPTAINER_MAP_PATH};
-use super::container_tool_smoke::DEFAULT_CONTAINER_TOOL_SMOKE_ROOT;
+use super::container_tool_probe::DEFAULT_CONTAINER_TOOL_SMOKE_ROOT;
 use super::executable_resolution::{
     render_executable_resolution, DEFAULT_EXECUTABLE_RESOLUTION_PATH,
 };
-use super::host_tool_smoke::DEFAULT_HOST_TOOL_SMOKE_ROOT;
+use super::host_tool_probe::DEFAULT_HOST_TOOL_SMOKE_ROOT;
 use super::input_preflight_audit::{
     render_input_preflight_audit, DEFAULT_INPUT_PREFLIGHT_TESTS_PATH,
 };
 use super::output_contract_audit::{
     render_output_contract_audit, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
 };
-use super::real_output_parser_smoke::{
+use super::real_output_parser_probe::{
     render_real_output_parser_smoke, DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH,
 };
 use super::version_probes::{

@@ -10,10 +10,10 @@ use serde_json::Value;
 
 use super::bam_stage_families::{BamStageFamily, BAM_STAGE_FAMILIES};
 use super::local_bam_stage_smoke::run_local_bam_stage_smoke;
-use super::readiness::bam_local_container_smoke::{
+use super::readiness::bam_local_container_probe::{
     collect_bam_local_container_smoke_rows, BamLocalContainerSmokeRow,
 };
-use super::readiness::tool_smoke_support::{path_relative_to_repo, repo_relative_path};
+use super::readiness::tool_probe_support::{path_relative_to_repo, repo_relative_path};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 

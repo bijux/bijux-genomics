@@ -5,7 +5,7 @@ use bijux_dna_api::v1::api::run::{run_command_with_context, CommandOutputV1};
 use regex::Regex;
 use serde::Serialize;
 
-use super::tool_smoke_support::{now_unix_s, path_relative_to_repo, repo_relative_path};
+use super::tool_probe_support::{now_unix_s, path_relative_to_repo, repo_relative_path};
 use super::version_probes::{collect_version_probe_rows, VersionProbeRow};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;

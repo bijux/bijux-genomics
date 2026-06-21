@@ -8,7 +8,7 @@ use super::bam_kinship_ready::{
     render_bam_kinship_ready, BamKinshipReadyRow, DEFAULT_BAM_KINSHIP_READY_PATH,
 };
 #[cfg(feature = "bam_downstream")]
-use super::real_output_parser_smoke::{
+use super::real_output_parser_probe::{
     render_real_output_parser_smoke, RealOutputParserSmokeReport, RealOutputParserSmokeRow,
     DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH,
 };
