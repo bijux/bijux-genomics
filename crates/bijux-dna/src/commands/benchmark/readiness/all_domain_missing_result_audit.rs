@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -208,8 +209,13 @@ fn seed_all_domain_missing_result_fixture(
             ));
         }
         let manifest_path = repo_root.join(&fake_run.stage_result_path);
-        fs::remove_file(&manifest_path)
-            .with_context(|| format!("remove {}", manifest_path.display()))?;
+        match fs::remove_file(&manifest_path) {
+            Ok(()) => {}
+            Err(error) if error.kind() == ErrorKind::NotFound => {}
+            Err(error) => {
+                return Err(error).with_context(|| format!("remove {}", manifest_path.display()));
+            }
+        }
         removed_manifest_paths.push(manifest_path);
         removed_result_ids.push(result_id.to_string());
     }
