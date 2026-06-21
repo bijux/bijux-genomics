@@ -291,6 +291,10 @@ fn materialize_local_stage_from_plans(repo_root: &Path, stage_id: &str) -> Resul
     let plans = local_stage_plans(repo_root, stage_id)?;
     let mut proof_path = None;
     for plan in &plans {
+        let plan_dir = repo_relative_pathbuf(repo_root, &plan.out_dir);
+        let plan_path = plan_dir.join("plan.json");
+        bijux_dna_infra::atomic_write_json(&plan_path, plan)
+            .with_context(|| format!("materialize {}", plan_path.display()))?;
         for artifact in &plan.io.outputs {
             let resolved = repo_relative_pathbuf(repo_root, &artifact.path);
             materialize_declared_output(&resolved)?;
