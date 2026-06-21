@@ -1,8 +1,8 @@
 {
   "artifacts": {
     "manifest.json": "a65ade4427f5e926c2bcb82e9c4e4c363f832b11a268cefcddd00069b6621d4b",
-    "metrics.json": "57cf017f3c010145b0b8d348dba1e3b7b02fa12fee47010964cbaf26410a2734",
-    "report.html": "50f6b340873a2da467b8b2e9ead026f74e2a66a0edd330848d5100b1ebe5ccc0"
+    "metrics.json": "bf3d3b7d629443b8fcab78e68ff3c94a5b79ae3e42191fd5feeb93b499b8f592",
+    "report.html": "8219961c90e1ce68605a07baa19ce4a6ae2d0527f08cf9a6cf22a05f00b427bf"
   },
   "generated_at": "1970-01-01T00:00:00+00:00",
   "profile_id": "fastq_reference_adna",
