@@ -319,7 +319,7 @@ fn write_local_damage_stage_metrics(
     tools_seen: &[String],
     deltas: &DamageExpectationDeltas,
 ) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(
+    Ok(bijux_dna_infra::atomic_write_json(
         path,
         &serde_json::json!({
             "schema_version": DAMAGE_STAGE_METRICS_SCHEMA_VERSION,
@@ -342,7 +342,7 @@ fn write_local_damage_stage_metrics(
             "strict_profile_upgraded": summary.strict_profile_upgraded,
             "expectation_matched": deltas.expectation_matched,
         }),
-    )
+    )?)
 }
 
 fn build_local_damage_smoke_report(
@@ -563,7 +563,7 @@ fn write_damage_profile_artifact(
     tool_id: &str,
     summary: &bijux_dna_domain_bam::BamDamageEvidenceV1,
 ) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(
+    Ok(bijux_dna_infra::atomic_write_json(
         path,
         &serde_json::json!({
             "artifact_id": "damage_profile",
@@ -573,11 +573,11 @@ fn write_damage_profile_artifact(
             "terminal_g_to_a_3p": summary.terminal_g_to_a_3p,
             "damage_signal": summary.damage_signal,
         }),
-    )
+    )?)
 }
 
 fn write_damage_plot_artifact(path: &Path, tool_id: &str, tools_seen: &[String]) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(
+    Ok(bijux_dna_infra::atomic_write_json(
         path,
         &serde_json::json!({
             "artifact_id": "damage_plot",
@@ -586,7 +586,7 @@ fn write_damage_plot_artifact(path: &Path, tool_id: &str, tools_seen: &[String])
             "status": "local_smoke_placeholder",
             "tools_seen": tools_seen,
         }),
-    )
+    )?)
 }
 
 fn write_damage_clusters_artifact(
@@ -594,7 +594,7 @@ fn write_damage_clusters_artifact(
     tool_id: &str,
     summary: &bijux_dna_domain_bam::BamDamageEvidenceV1,
 ) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(
+    Ok(bijux_dna_infra::atomic_write_json(
         path,
         &serde_json::json!({
             "artifact_id": "damage_clusters",
@@ -608,7 +608,7 @@ fn write_damage_clusters_artifact(
                 }
             ],
         }),
-    )
+    )?)
 }
 
 fn write_damage_parameters_artifact(
@@ -616,7 +616,7 @@ fn write_damage_parameters_artifact(
     plan: &bijux_dna_stage_contract::StagePlanV1,
     tool_id: &str,
 ) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(
+    Ok(bijux_dna_infra::atomic_write_json(
         path,
         &serde_json::json!({
             "artifact_id": "damage_parameters",
@@ -626,11 +626,11 @@ fn write_damage_parameters_artifact(
             "evidence_only": plan.params.get("evidence_only").and_then(serde_json::Value::as_bool),
             "udg_model": plan.params.get("udg_model").and_then(serde_json::Value::as_str),
         }),
-    )
+    )?)
 }
 
 fn write_damage_pmd_scores_artifact(path: &Path, tool_id: &str) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(
+    Ok(bijux_dna_infra::atomic_write_json(
         path,
         &serde_json::json!({
             "artifact_id": "pmd_scores",
@@ -638,7 +638,7 @@ fn write_damage_pmd_scores_artifact(path: &Path, tool_id: &str) -> Result<()> {
             "tool_id": tool_id,
             "scores": [0, 1, 2, 3],
         }),
-    )
+    )?)
 }
 
 fn write_udg_regime(

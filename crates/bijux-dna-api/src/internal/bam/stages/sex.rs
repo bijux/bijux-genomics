@@ -451,7 +451,7 @@ fn write_local_sex_support_artifacts(
             "autosomal_coverage": summary.autosomal_coverage,
         }),
     )?;
-    bijux_dna_infra::atomic_write_json(
+    Ok(bijux_dna_infra::atomic_write_json(
         &output_paths.haplogroup_report,
         &serde_json::json!({
             "artifact_id": "haplogroup_report",
@@ -461,7 +461,7 @@ fn write_local_sex_support_artifacts(
             "status": haplogroup_status,
             "chromosome_system": summary.chromosome_system,
         }),
-    )
+    )?)
 }
 
 fn write_local_sex_stage_metrics(
@@ -470,7 +470,7 @@ fn write_local_sex_stage_metrics(
     summary: &bijux_dna_domain_bam::BamSexSummaryV1,
     deltas: &LocalSexExpectationDeltas,
 ) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(
+    Ok(bijux_dna_infra::atomic_write_json(
         path,
         &serde_json::json!({
             "schema_version": LOCAL_SEX_SMOKE_METRICS_SCHEMA_VERSION,
@@ -502,7 +502,7 @@ fn write_local_sex_stage_metrics(
             "insufficiency_reason": summary.insufficiency_reason,
             "expectation_matched": deltas.expectation_matched,
         }),
-    )
+    )?)
 }
 
 fn local_sex_tool_expectation(
@@ -559,7 +559,7 @@ fn write_local_sex_tool_stage_metrics(
     summary: &bijux_dna_domain_bam::BamSexSummaryV1,
     expectation: &LocalSexToolExpectation,
 ) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(
+    Ok(bijux_dna_infra::atomic_write_json(
         path,
         &serde_json::json!({
             "schema_version": LOCAL_SEX_STAGE_METRICS_SCHEMA_VERSION,
@@ -582,7 +582,7 @@ fn write_local_sex_tool_stage_metrics(
             "x_to_y_ratio": summary.x_to_y_ratio,
             "expectation_matched": expectation.expectation_matched,
         }),
-    )
+    )?)
 }
 
 fn sex_tool_report(summary: &bijux_dna_domain_bam::BamSexSummaryV1) -> serde_json::Value {

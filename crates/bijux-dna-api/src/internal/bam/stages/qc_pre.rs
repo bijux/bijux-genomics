@@ -354,7 +354,7 @@ fn write_local_qc_pre_multiqc_outputs(
             "used_fallback": true,
         }),
     )?;
-    bijux_dna_infra::atomic_write_json(
+    Ok(bijux_dna_infra::atomic_write_json(
         &output_paths.stage_metrics,
         &serde_json::json!({
             "schema_version": LOCAL_QC_PRE_SMOKE_METRICS_SCHEMA_VERSION,
@@ -382,7 +382,7 @@ fn write_local_qc_pre_multiqc_outputs(
                 }))
                 .collect::<Vec<_>>(),
         }),
-    )
+    )?)
 }
 
 fn summarize_qc_pre_outputs(
