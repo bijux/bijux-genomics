@@ -79,6 +79,7 @@ stage_contracts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
+      - "raw_backend_report_json"
     notes: "Trim execution emits governed trimmed-read artifacts together with the normalized stage report."
   fastq.trim_terminal_damage:
     required_inputs:
