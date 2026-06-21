@@ -41,7 +41,7 @@ fn bench_readiness_corpus_incompatibility_writes_governed_tsv_columns() {
         Some("domain\tstage_id\ttool_id\tbenchmark_status\tsupport_status\tadapter_status\tparser_status\tincompatible_fixture_id\tincompatible_corpus_family_id\trequired_fixture_id\trequired_corpus_family_id\tincompatibility_kind\trequired_assets\trequired_contract\treason")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 324, "TSV must retain the governed incompatibility row count");
+    assert_eq!(rows.len(), 336, "TSV must retain the governed incompatibility row count");
     assert!(
         rows.iter().any(|row| {
             row.contains("fastq\tfastq.infer_asvs\tdada2\tbenchmark_ready")
