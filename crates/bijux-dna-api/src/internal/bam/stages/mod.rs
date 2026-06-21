@@ -1,3 +1,31 @@
+//! BAM stage wiring (internal).
+
+#[allow(dead_code)]
+pub(crate) const STAGE_MODULES: &[&str] = &[
+    "authenticity",
+    "bias_mitigation",
+    "complexity",
+    "contamination",
+    "coverage",
+    "damage",
+    "duplication_metrics",
+    "endogenous_content",
+    "filter",
+    "gc_bias",
+    "haplogroups",
+    "insert_size",
+    "kinship",
+    "length_filter",
+    "mapping_summary",
+    "mapq_filter",
+    "markdup",
+    "overlap_correction",
+    "qc_pre",
+    "recalibration",
+    "sex",
+    "validate",
+];
+
 pub(crate) mod authenticity;
 pub(crate) mod bias_mitigation;
 pub(crate) mod complexity;
