@@ -2,6 +2,7 @@
 
 use anyhow::{anyhow, Result};
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, OnceLock};
 
 fn looks_like_repo_root(path: &Path) -> bool {
     path.join("Cargo.lock").is_file()
@@ -50,4 +51,9 @@ pub fn crate_src(crate_name: &str) -> Result<PathBuf> {
 /// Propagates any repository root resolution failure.
 pub fn crate_snapshots(crate_name: &str) -> Result<PathBuf> {
     Ok(crate_root(crate_name)?.join("tests").join("snapshots"))
+}
+
+pub fn bench_output_lock() -> &'static Mutex<()> {
+    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+    LOCK.get_or_init(|| Mutex::new(()))
 }

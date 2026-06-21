@@ -58,6 +58,8 @@ pub fn write_bam_normalized_metrics_schema(path: &Path) -> Result<()> {
         .with_context(|| format!("write {}", path.display()))
 }
 
+/// Stability: v1 (stable).
+/// Descriptor for one governed stage-specific VCF normalized metrics schema.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct VcfNormalizedMetricsStageSchemaDescriptor {
     pub stage_id: String,
