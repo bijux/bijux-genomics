@@ -10,6 +10,9 @@ pub struct VariantIdentity {
     pub alternate: String,
 }
 
+/// # Errors
+/// Returns an error when `value` does not follow the `contig:position:reference:alternate`
+/// contract or the position segment is not an unsigned integer.
 pub fn parse_variant_id(value: &str) -> Result<VariantIdentity> {
     let parts = value.split(':').collect::<Vec<_>>();
     if parts.len() != 4 {
@@ -32,14 +35,17 @@ pub fn parse_variant_id(value: &str) -> Result<VariantIdentity> {
 
 #[cfg(test)]
 mod tests {
+    use crate::foundation::Result;
+
     use super::parse_variant_id;
 
     #[test]
-    fn parses_variant_identity() {
-        let parsed = parse_variant_id("chr1:42:A:G").expect("parse variant id");
+    fn parses_variant_identity() -> Result<()> {
+        let parsed = parse_variant_id("chr1:42:A:G")?;
         assert_eq!(parsed.contig, "chr1");
         assert_eq!(parsed.position, 42);
         assert_eq!(parsed.reference, "A");
         assert_eq!(parsed.alternate, "G");
+        Ok(())
     }
 }

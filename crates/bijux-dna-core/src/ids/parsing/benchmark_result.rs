@@ -42,6 +42,9 @@ pub fn build_asset_profile_benchmark_result_id(
     build_benchmark_result_id(domain, corpus_id, stage_id, asset_profile_id, tool_id)
 }
 
+/// # Errors
+/// Returns an error when `result_id` does not contain five colon-delimited segments or any
+/// segment fails domain, stage, or tool validation.
 pub fn parse_benchmark_result_id(result_id: &str) -> Result<BenchmarkResultIdentity> {
     let segments = result_id.split(':').collect::<Vec<_>>();
     if segments.len() != 5 {
@@ -82,8 +85,7 @@ fn parse_benchmark_result_domain(value: &str) -> Result<DomainKind> {
 fn benchmark_result_scope_kind(domain: DomainKind) -> BenchmarkResultScopeKind {
     match domain {
         DomainKind::Fastq | DomainKind::Bam => BenchmarkResultScopeKind::SampleScope,
-        DomainKind::Vcf => BenchmarkResultScopeKind::AssetProfile,
-        DomainKind::Cross => BenchmarkResultScopeKind::AssetProfile,
+        DomainKind::Vcf | DomainKind::Cross => BenchmarkResultScopeKind::AssetProfile,
     }
 }
 
@@ -93,6 +95,7 @@ mod tests {
         build_asset_profile_benchmark_result_id, build_sample_scoped_benchmark_result_id,
         parse_benchmark_result_id, BenchmarkResultScopeKind,
     };
+    use crate::foundation::Result;
     use crate::ids::DomainKind;
 
     fn domain_stage_id(domain: DomainKind, stage_name: &str) -> String {
@@ -100,7 +103,7 @@ mod tests {
     }
 
     #[test]
-    fn parses_sample_scoped_result_id() {
+    fn parses_sample_scoped_result_id() -> Result<()> {
         let stage_id = domain_stage_id(DomainKind::Bam, "kinship");
         let result_id = build_sample_scoped_benchmark_result_id(
             DomainKind::Bam.as_str(),
@@ -109,17 +112,18 @@ mod tests {
             "sample-set",
             "king",
         );
-        let parsed = parse_benchmark_result_id(&result_id).expect("parse result id");
+        let parsed = parse_benchmark_result_id(&result_id)?;
         assert_eq!(parsed.domain.as_str(), DomainKind::Bam.as_str());
         assert_eq!(parsed.corpus_id, "corpus-01-kinship-mini");
         assert_eq!(parsed.stage_id.as_str(), stage_id);
         assert_eq!(parsed.scope_id, "sample-set");
         assert_eq!(parsed.tool_id.as_str(), "king");
         assert_eq!(parsed.scope_kind, BenchmarkResultScopeKind::SampleScope);
+        Ok(())
     }
 
     #[test]
-    fn parses_asset_profile_result_id() {
+    fn parses_asset_profile_result_id() -> Result<()> {
         let stage_id = domain_stage_id(DomainKind::Vcf, "call");
         let result_id = build_asset_profile_benchmark_result_id(
             DomainKind::Vcf.as_str(),
@@ -128,12 +132,13 @@ mod tests {
             "bam_bundle",
             "bcftools",
         );
-        let parsed = parse_benchmark_result_id(&result_id).expect("parse result id");
+        let parsed = parse_benchmark_result_id(&result_id)?;
         assert_eq!(parsed.domain.as_str(), DomainKind::Vcf.as_str());
         assert_eq!(parsed.corpus_id, "vcf_production_regression");
         assert_eq!(parsed.stage_id.as_str(), stage_id);
         assert_eq!(parsed.scope_id, "bam_bundle");
         assert_eq!(parsed.tool_id.as_str(), "bcftools");
         assert_eq!(parsed.scope_kind, BenchmarkResultScopeKind::AssetProfile);
+        Ok(())
     }
 }

@@ -123,107 +123,167 @@ impl TypedArtifactRef {
         let lower_name = artifact.name.as_str().to_ascii_lowercase();
         let lower_path = path.to_string_lossy().to_ascii_lowercase();
         let domain = stage_domain(step.stage_id.as_str());
+        let typed = classify_input_artifact(step, artifact, &path, &lower_name, &lower_path)?;
 
-        let typed = match artifact.role {
-            ArtifactRole::Reads | ArtifactRole::TrimmedReads => {
-                ensure_suffix(&path, &[".fastq", ".fq", ".fastq.gz", ".fq.gz"], artifact, "FASTQ")?;
-                Some(Self::Fastq(FastqArtifact::new(path)))
-            }
-            ArtifactRole::Bam | ArtifactRole::DedupBam | ArtifactRole::Alignment => {
-                ensure_suffix(&path, &[".bam", ".cram", ".sam"], artifact, "BAM/SAM/CRAM")?;
-                Some(Self::Bam(BamArtifact::new(path)))
-            }
-            ArtifactRole::Variant => {
-                ensure_suffix(
-                    &path,
-                    &[".vcf", ".vcf.gz", ".bcf", ".m3vcf", ".m3vcf.gz"],
-                    artifact,
-                    "VCF/BCF",
-                )?;
-                if lower_name.contains("panel")
-                    || lower_path.contains("/panel")
-                    || lower_path.contains("panel.")
-                    || lower_path.ends_with(".m3vcf")
-                    || lower_path.ends_with(".m3vcf.gz")
-                {
-                    Some(Self::Panel(PanelArtifact::new(path)))
-                } else {
-                    Some(Self::Vcf(VcfArtifact::new(path)))
+        if domain == "fastq" {
+            if let Some(kind) = typed.as_ref().map(Self::kind) {
+                if matches!(
+                    kind,
+                    TypedArtifactKind::Bam
+                        | TypedArtifactKind::BamIndex
+                        | TypedArtifactKind::Vcf
+                        | TypedArtifactKind::VcfIndex
+                        | TypedArtifactKind::Panel
+                ) {
+                    return Err(BijuxError::validation(format!(
+                        "typed artifact handoff rejected {} for {}: fastq stages cannot consume {}",
+                        artifact.path.display(),
+                        step.stage_id,
+                        kind.as_str()
+                    )));
                 }
             }
-            ArtifactRole::Index => {
-                Some(match infer_index_kind(step, artifact, &lower_name, &lower_path)? {
-                    TypedArtifactKind::BamIndex => Self::BamIndex(BamIndexArtifact::new(path)),
-                    TypedArtifactKind::VcfIndex => Self::VcfIndex(VcfIndexArtifact::new(path)),
-                    other => {
-                        return Err(BijuxError::validation(format!(
-                            "unsupported typed index artifact kind {} for {} ({})",
-                            other.as_str(),
-                            artifact.name,
-                            artifact.path.display()
-                        )))
-                    }
-                })
-            }
-            ArtifactRole::Reference => {
-                Some(match infer_reference_adjacent_kind(&lower_name, &lower_path) {
-                    TypedArtifactKind::Table => {
-                        ensure_table_suffix(&path, artifact)?;
-                        Self::Table(TableArtifact::new(path))
-                    }
-                    TypedArtifactKind::Database => Self::Database(DatabaseArtifact::new(path)),
-                    _ => {
-                        ensure_suffix(
-                            &path,
-                            &[".fa", ".fasta", ".fna", ".fa.gz", ".fasta.gz"],
-                            artifact,
-                            "reference FASTA",
-                        )?;
-                        Self::Reference(ReferenceArtifact::new(path))
-                    }
-                })
-            }
-            ArtifactRole::SummaryTsv => {
-                ensure_table_suffix(&path, artifact)?;
-                Some(Self::Table(TableArtifact::new(path)))
-            }
-            ArtifactRole::MetricsJson
-            | ArtifactRole::MetricsEnvelope
-            | ArtifactRole::Metrics
-            | ArtifactRole::SummaryJson => {
-                ensure_suffix(&path, &[".json"], artifact, "JSON metrics")?;
-                Some(Self::JsonMetrics(JsonMetricsArtifact::new(path)))
-            }
-            ArtifactRole::ReportJson
-            | ArtifactRole::Report
-            | ArtifactRole::Log
-            | ArtifactRole::StageReport
-            | ArtifactRole::Provenance
-            | ArtifactRole::Evidence
-            | ArtifactRole::ReportHtml
-            | ArtifactRole::Unknown => None,
-        };
-
-        if domain == "fastq"
-            && matches!(
-                typed.as_ref().map(Self::kind),
-                Some(TypedArtifactKind::Bam)
-                    | Some(TypedArtifactKind::BamIndex)
-                    | Some(TypedArtifactKind::Vcf)
-                    | Some(TypedArtifactKind::VcfIndex)
-                    | Some(TypedArtifactKind::Panel)
-            )
-        {
-            return Err(BijuxError::validation(format!(
-                "typed artifact handoff rejected {} for {}: fastq stages cannot consume {}",
-                artifact.path.display(),
-                step.stage_id,
-                typed.expect("typed artifact").kind().as_str()
-            )));
         }
 
         Ok(typed)
     }
+}
+
+fn classify_input_artifact(
+    step: &ExecutionStep,
+    artifact: &ArtifactSpec,
+    path: &Path,
+    lower_name: &str,
+    lower_path: &str,
+) -> Result<Option<TypedArtifactRef>> {
+    match artifact.role {
+        ArtifactRole::Reads | ArtifactRole::TrimmedReads => classify_fastq_artifact(path, artifact),
+        ArtifactRole::Bam | ArtifactRole::DedupBam | ArtifactRole::Alignment => {
+            classify_bam_artifact(path, artifact)
+        }
+        ArtifactRole::Variant => classify_variant_artifact(path, artifact, lower_name, lower_path),
+        ArtifactRole::Index => {
+            classify_index_artifact(step, artifact, path, lower_name, lower_path)
+        }
+        ArtifactRole::Reference => {
+            classify_reference_artifact(path, artifact, lower_name, lower_path)
+        }
+        ArtifactRole::SummaryTsv => classify_table_artifact(path, artifact),
+        ArtifactRole::MetricsJson
+        | ArtifactRole::MetricsEnvelope
+        | ArtifactRole::Metrics
+        | ArtifactRole::SummaryJson => classify_metrics_artifact(path, artifact),
+        ArtifactRole::ReportJson
+        | ArtifactRole::Report
+        | ArtifactRole::Log
+        | ArtifactRole::StageReport
+        | ArtifactRole::Provenance
+        | ArtifactRole::Evidence
+        | ArtifactRole::ReportHtml
+        | ArtifactRole::Unknown => Ok(None),
+    }
+}
+
+fn classify_fastq_artifact(
+    path: &Path,
+    artifact: &ArtifactSpec,
+) -> Result<Option<TypedArtifactRef>> {
+    ensure_suffix(path, &[".fastq", ".fq", ".fastq.gz", ".fq.gz"], artifact, "FASTQ")?;
+    Ok(Some(TypedArtifactRef::Fastq(FastqArtifact::new(path.to_path_buf()))))
+}
+
+fn classify_bam_artifact(path: &Path, artifact: &ArtifactSpec) -> Result<Option<TypedArtifactRef>> {
+    ensure_suffix(path, &[".bam", ".cram", ".sam"], artifact, "BAM/SAM/CRAM")?;
+    Ok(Some(TypedArtifactRef::Bam(BamArtifact::new(path.to_path_buf()))))
+}
+
+fn classify_variant_artifact(
+    path: &Path,
+    artifact: &ArtifactSpec,
+    lower_name: &str,
+    lower_path: &str,
+) -> Result<Option<TypedArtifactRef>> {
+    ensure_suffix(path, &[".vcf", ".vcf.gz", ".bcf", ".m3vcf", ".m3vcf.gz"], artifact, "VCF/BCF")?;
+    let typed = if lower_name.contains("panel")
+        || lower_path.contains("/panel")
+        || lower_path.contains("panel.")
+        || path_has_suffix_ignore_ascii_case(lower_path, ".m3vcf")
+        || path_has_suffix_ignore_ascii_case(lower_path, ".m3vcf.gz")
+    {
+        TypedArtifactRef::Panel(PanelArtifact::new(path.to_path_buf()))
+    } else {
+        TypedArtifactRef::Vcf(VcfArtifact::new(path.to_path_buf()))
+    };
+    Ok(Some(typed))
+}
+
+fn classify_index_artifact(
+    step: &ExecutionStep,
+    artifact: &ArtifactSpec,
+    path: &Path,
+    lower_name: &str,
+    lower_path: &str,
+) -> Result<Option<TypedArtifactRef>> {
+    let typed = match infer_index_kind(step, artifact, lower_name, lower_path)? {
+        TypedArtifactKind::BamIndex => {
+            TypedArtifactRef::BamIndex(BamIndexArtifact::new(path.to_path_buf()))
+        }
+        TypedArtifactKind::VcfIndex => {
+            TypedArtifactRef::VcfIndex(VcfIndexArtifact::new(path.to_path_buf()))
+        }
+        other => {
+            return Err(BijuxError::validation(format!(
+                "unsupported typed index artifact kind {} for {} ({})",
+                other.as_str(),
+                artifact.name,
+                artifact.path.display()
+            )))
+        }
+    };
+    Ok(Some(typed))
+}
+
+fn classify_reference_artifact(
+    path: &Path,
+    artifact: &ArtifactSpec,
+    lower_name: &str,
+    lower_path: &str,
+) -> Result<Option<TypedArtifactRef>> {
+    let typed = match infer_reference_adjacent_kind(lower_name, lower_path) {
+        TypedArtifactKind::Table => {
+            ensure_table_suffix(path, artifact)?;
+            TypedArtifactRef::Table(TableArtifact::new(path.to_path_buf()))
+        }
+        TypedArtifactKind::Database => {
+            TypedArtifactRef::Database(DatabaseArtifact::new(path.to_path_buf()))
+        }
+        _ => {
+            ensure_suffix(
+                path,
+                &[".fa", ".fasta", ".fna", ".fa.gz", ".fasta.gz"],
+                artifact,
+                "reference FASTA",
+            )?;
+            TypedArtifactRef::Reference(ReferenceArtifact::new(path.to_path_buf()))
+        }
+    };
+    Ok(Some(typed))
+}
+
+fn classify_table_artifact(
+    path: &Path,
+    artifact: &ArtifactSpec,
+) -> Result<Option<TypedArtifactRef>> {
+    ensure_table_suffix(path, artifact)?;
+    Ok(Some(TypedArtifactRef::Table(TableArtifact::new(path.to_path_buf()))))
+}
+
+fn classify_metrics_artifact(
+    path: &Path,
+    artifact: &ArtifactSpec,
+) -> Result<Option<TypedArtifactRef>> {
+    ensure_suffix(path, &[".json"], artifact, "JSON metrics")?;
+    Ok(Some(TypedArtifactRef::JsonMetrics(JsonMetricsArtifact::new(path.to_path_buf()))))
 }
 
 /// # Errors
@@ -241,13 +301,15 @@ fn infer_index_kind(
     lower_name: &str,
     lower_path: &str,
 ) -> Result<TypedArtifactKind> {
-    if lower_path.ends_with(".bai") || lower_path.ends_with(".crai") {
+    if path_has_extension_ignore_ascii_case(lower_path, "bai")
+        || path_has_extension_ignore_ascii_case(lower_path, "crai")
+    {
         return Ok(TypedArtifactKind::BamIndex);
     }
-    if lower_path.ends_with(".tbi") {
+    if path_has_extension_ignore_ascii_case(lower_path, "tbi") {
         return Ok(TypedArtifactKind::VcfIndex);
     }
-    if lower_path.ends_with(".csi") {
+    if path_has_extension_ignore_ascii_case(lower_path, "csi") {
         if lower_name.contains("bam")
             || lower_path.contains(".bam.")
             || step.io.inputs.iter().any(|input| {
@@ -281,9 +343,9 @@ fn infer_reference_adjacent_kind(lower_name: &str, lower_path: &str) -> TypedArt
         || lower_name.ends_with("_db")
         || lower_path.contains("/database")
         || lower_path.contains("/db/")
-        || lower_path.ends_with(".db")
-        || lower_path.ends_with(".sqlite")
-        || lower_path.ends_with(".sqlite3")
+        || path_has_extension_ignore_ascii_case(lower_path, "db")
+        || path_has_extension_ignore_ascii_case(lower_path, "sqlite")
+        || path_has_extension_ignore_ascii_case(lower_path, "sqlite3")
     {
         return TypedArtifactKind::Database;
     }
@@ -292,11 +354,11 @@ fn infer_reference_adjacent_kind(lower_name: &str, lower_path: &str) -> TypedArt
         || lower_name.contains("bed")
         || lower_name.contains("segments")
         || lower_name.contains("tsv")
-        || lower_path.ends_with(".tsv")
-        || lower_path.ends_with(".csv")
-        || lower_path.ends_with(".bed")
-        || lower_path.ends_with(".map")
-        || lower_path.ends_with(".txt")
+        || path_has_extension_ignore_ascii_case(lower_path, "tsv")
+        || path_has_extension_ignore_ascii_case(lower_path, "csv")
+        || path_has_extension_ignore_ascii_case(lower_path, "bed")
+        || path_has_extension_ignore_ascii_case(lower_path, "map")
+        || path_has_extension_ignore_ascii_case(lower_path, "txt")
     {
         return TypedArtifactKind::Table;
     }
@@ -322,6 +384,17 @@ fn ensure_suffix(
 
 fn ensure_table_suffix(path: &Path, artifact: &ArtifactSpec) -> Result<()> {
     ensure_suffix(path, &[".tsv", ".csv", ".bed", ".map", ".txt"], artifact, "table")
+}
+
+fn path_has_extension_ignore_ascii_case(path: &str, extension: &str) -> bool {
+    Path::new(path)
+        .extension()
+        .and_then(|value| value.to_str())
+        .is_some_and(|value| value.eq_ignore_ascii_case(extension))
+}
+
+fn path_has_suffix_ignore_ascii_case(path: &str, suffix: &str) -> bool {
+    path.len() >= suffix.len() && path[path.len() - suffix.len()..].eq_ignore_ascii_case(suffix)
 }
 
 fn stage_domain(stage_id: &str) -> &str {
@@ -359,6 +432,19 @@ mod tests {
         format!("{}.{}", domain.as_str(), stage_name)
     }
 
+    fn required_kind(step: &ExecutionStep, artifact: &ArtifactSpec) -> Result<TypedArtifactKind> {
+        TypedArtifactRef::from_input(step, artifact)?.map_or_else(
+            || {
+                Err(BijuxError::validation(format!(
+                    "typed artifact inference returned None for {} ({})",
+                    artifact.name,
+                    artifact.path.display()
+                )))
+            },
+            |typed| Ok(typed.kind()),
+        )
+    }
+
     #[test]
     fn typed_artifact_inference_covers_primary_handoff_kinds() -> Result<()> {
         let fastq = ArtifactSpec::required(
@@ -371,7 +457,7 @@ mod tests {
             PathBuf::from("aligned.bam"),
             ArtifactRole::Bam,
         );
-        let bai = ArtifactSpec::required(
+        let bam_index = ArtifactSpec::required(
             ArtifactId::new("input_bam_index"),
             PathBuf::from("aligned.bam.bai"),
             ArtifactRole::Index,
@@ -416,7 +502,7 @@ mod tests {
             vec![
                 fastq.clone(),
                 bam.clone(),
-                bai.clone(),
+                bam_index.clone(),
                 vcf.clone(),
                 tbi.clone(),
                 reference.clone(),
@@ -427,46 +513,16 @@ mod tests {
             ],
         );
 
-        assert_eq!(
-            TypedArtifactRef::from_input(&step, &fastq)?.expect("fastq").kind(),
-            TypedArtifactKind::Fastq
-        );
-        assert_eq!(
-            TypedArtifactRef::from_input(&step, &bam)?.expect("bam").kind(),
-            TypedArtifactKind::Bam
-        );
-        assert_eq!(
-            TypedArtifactRef::from_input(&step, &bai)?.expect("bai").kind(),
-            TypedArtifactKind::BamIndex
-        );
-        assert_eq!(
-            TypedArtifactRef::from_input(&step, &vcf)?.expect("vcf").kind(),
-            TypedArtifactKind::Vcf
-        );
-        assert_eq!(
-            TypedArtifactRef::from_input(&step, &tbi)?.expect("tbi").kind(),
-            TypedArtifactKind::VcfIndex
-        );
-        assert_eq!(
-            TypedArtifactRef::from_input(&step, &reference)?.expect("reference").kind(),
-            TypedArtifactKind::Reference
-        );
-        assert_eq!(
-            TypedArtifactRef::from_input(&step, &panel)?.expect("panel").kind(),
-            TypedArtifactKind::Panel
-        );
-        assert_eq!(
-            TypedArtifactRef::from_input(&step, &table)?.expect("table").kind(),
-            TypedArtifactKind::Table
-        );
-        assert_eq!(
-            TypedArtifactRef::from_input(&step, &metrics)?.expect("metrics").kind(),
-            TypedArtifactKind::JsonMetrics
-        );
-        assert_eq!(
-            TypedArtifactRef::from_input(&step, &database)?.expect("database").kind(),
-            TypedArtifactKind::Database
-        );
+        assert_eq!(required_kind(&step, &fastq)?, TypedArtifactKind::Fastq);
+        assert_eq!(required_kind(&step, &bam)?, TypedArtifactKind::Bam);
+        assert_eq!(required_kind(&step, &bam_index)?, TypedArtifactKind::BamIndex);
+        assert_eq!(required_kind(&step, &vcf)?, TypedArtifactKind::Vcf);
+        assert_eq!(required_kind(&step, &tbi)?, TypedArtifactKind::VcfIndex);
+        assert_eq!(required_kind(&step, &reference)?, TypedArtifactKind::Reference);
+        assert_eq!(required_kind(&step, &panel)?, TypedArtifactKind::Panel);
+        assert_eq!(required_kind(&step, &table)?, TypedArtifactKind::Table);
+        assert_eq!(required_kind(&step, &metrics)?, TypedArtifactKind::JsonMetrics);
+        assert_eq!(required_kind(&step, &database)?, TypedArtifactKind::Database);
         Ok(())
     }
 
@@ -481,8 +537,10 @@ mod tests {
             )],
         );
 
-        let err =
-            validate_typed_input_handoffs(&step).expect_err("reads role must reject BAM path");
+        let err = match validate_typed_input_handoffs(&step) {
+            Ok(()) => panic!("reads role must reject BAM path"),
+            Err(err) => err,
+        };
         assert!(err.to_string().contains("expected FASTQ"), "{err}");
     }
 }
