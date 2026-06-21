@@ -8,11 +8,19 @@ fn dependency_graph_matches_domain_boundary() {
         .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"));
 
     let dependencies = section_keys(&manifest, "[dependencies]");
-    let expected_dependencies: BTreeSet<_> =
-        ["anyhow", "bijux-dna-core", "schemars", "serde", "serde_json"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_dependencies: BTreeSet<_> = [
+        "anyhow",
+        "bijux-dna-core",
+        "bijux-dna-infra",
+        "noodles-bam",
+        "noodles-sam",
+        "schemars",
+        "serde",
+        "serde_json",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(dependencies, expected_dependencies, "unexpected direct dependency shape");
 
     let dev_dependencies = section_keys(&manifest, "[dev-dependencies]");

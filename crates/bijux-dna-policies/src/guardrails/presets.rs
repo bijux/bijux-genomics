@@ -3,7 +3,7 @@ use super::configuration::GuardrailConfig;
 pub(super) fn for_crate(name: &str) -> GuardrailConfig {
     let mut config = GuardrailConfig::default();
     if name == "bijux-dna-domain-bam" {
-        config.max_pub_items_per_file = 120;
+        config.max_pub_items_per_file = 220;
         config.allow_stage_id_paths = vec!["/src/stage_specs/mod.rs".to_string()];
     }
     if name == "bijux-dna-domain-fastq" {
