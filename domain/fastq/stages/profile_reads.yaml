@@ -63,8 +63,6 @@ compatible_tools:
   - seqfu
   - seqkit
   - seqkit_stats
-planned_out_of_scope:
-  - seqfu
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "single-end input omits reads_r2; paired-end input preserves mate-level summaries."

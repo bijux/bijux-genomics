@@ -18,12 +18,16 @@ fn compiler_keeps_planned_fastq_tools_out_of_governed_registry() -> Result<()> {
 
     let governed_registry =
         std::fs::read_to_string(out_dir.path().join("ci/registry/tool_registry.toml"))?;
-    for planned_tool in ["diamond", "dustmasker", "seqfu"] {
+    for planned_tool in ["diamond", "dustmasker"] {
         assert!(
             !governed_registry.contains(&format!("tool_id = \"{planned_tool}\"")),
             "planned-only FASTQ tool {planned_tool} must stay out of the governed registry"
         );
     }
+    assert!(
+        governed_registry.contains("tool_id = \"seqfu\""),
+        "seqfu must enter the governed registry once its profile-stage contracts are supported"
+    );
     assert!(
         governed_registry.contains("tool_id = \"fastq_scan\""),
         "fastq_scan must enter the governed registry once its containerized runtime closes"
@@ -52,14 +56,9 @@ fn compiler_keeps_planned_fastq_tools_out_of_governed_registry() -> Result<()> {
     let experimental_registry = std::fs::read_to_string(
         out_dir.path().join("ci/registry/tool_registry_experimental.toml"),
     )?;
-    let seqfu_block = experimental_registry
-        .split("[[tools]]")
-        .map(str::trim)
-        .find(|block| block.contains("tool_id = \"seqfu\""))
-        .unwrap_or_default();
     assert!(
-        seqfu_block.contains("container = true"),
-        "planned FASTQ tools with governed container definitions must keep container coverage visible in the experimental registry"
+        !experimental_registry.contains("tool_id = \"seqfu\""),
+        "seqfu must leave the experimental registry once its profile-stage contracts are supported"
     );
 
     Ok(())

@@ -7942,9 +7942,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "seqfu"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "fastq.profile_reads",
@@ -8046,9 +8044,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "seqfu"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "fastq.remove_chimeras",
