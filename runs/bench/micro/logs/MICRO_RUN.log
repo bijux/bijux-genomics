@@ -1,6 +1,6 @@
 command=bijux-dna bench run-micro
-repo_revision=8dc57646873c26aac7fb810773a8e2b82bb5413b
-worktree_dirty=false
+repo_revision=09f651e478b5502b22ca0f9ebc6df22c445b610a
+worktree_dirty=true
 real_smoke_core_subset=runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json
 fastq_micro_smoke_subset=runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json
 bam_micro_smoke_subset=runs/bench/micro/bam/MICRO_BAM_SUMMARY.json
