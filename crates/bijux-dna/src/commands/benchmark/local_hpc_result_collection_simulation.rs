@@ -164,6 +164,15 @@ pub(crate) fn render_hpc_result_collection_simulation(
     Ok(report)
 }
 
+pub(crate) fn collect_hpc_result_collection_simulation(
+    repo_root: &Path,
+) -> Result<LocalHpcResultCollectionSimulationReport> {
+    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
+    let output_path = benchmark_paths
+        .resolve_repo_relative(Path::new(DEFAULT_HPC_RESULT_COLLECTION_SIMULATION_PATH));
+    build_hpc_result_collection_simulation(repo_root, &output_path)
+}
+
 pub(crate) fn validate_hpc_result_collection_simulation_path(
     repo_root: &Path,
     manifest_path: &Path,

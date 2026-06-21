@@ -163,6 +163,15 @@ pub(crate) fn render_hpc_resume_simulation(
     Ok(report)
 }
 
+pub(crate) fn collect_hpc_resume_simulation(
+    repo_root: &Path,
+) -> Result<LocalHpcResumeSimulationReport> {
+    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
+    let output_path =
+        benchmark_paths.resolve_repo_relative(Path::new(DEFAULT_HPC_RESUME_SIMULATION_PATH));
+    build_hpc_resume_simulation(repo_root, &output_path)
+}
+
 pub(crate) fn validate_hpc_resume_simulation_path(
     repo_root: &Path,
     manifest_path: &Path,

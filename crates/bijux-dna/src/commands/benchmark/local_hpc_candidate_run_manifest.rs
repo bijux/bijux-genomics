@@ -192,6 +192,15 @@ pub(crate) fn render_hpc_candidate_run_manifest(
     Ok(report)
 }
 
+pub(crate) fn collect_hpc_candidate_run_manifest(
+    repo_root: &Path,
+) -> Result<LocalHpcCandidateRunManifest> {
+    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
+    let output_path =
+        benchmark_paths.benchmark_hpc_readiness_root().join("FIRST_HPC_CANDIDATE_RUN.json");
+    build_hpc_candidate_run_manifest(repo_root, &output_path)
+}
+
 pub(crate) fn validate_hpc_candidate_run_manifest_path(
     repo_root: &Path,
     manifest_path: &Path,

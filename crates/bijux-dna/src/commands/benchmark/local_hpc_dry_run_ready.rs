@@ -6,39 +6,39 @@ use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
 use super::local_hpc_asset_staging_manifest::{
-    validate_hpc_asset_staging_manifest_path, LocalHpcAssetStagingManifest,
+    collect_hpc_asset_staging_manifest, LocalHpcAssetStagingManifest,
     DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH,
 };
 use super::local_hpc_candidate_run_manifest::{
-    validate_hpc_candidate_run_manifest_path, LocalHpcCandidateRunManifest,
+    collect_hpc_candidate_run_manifest, LocalHpcCandidateRunManifest,
     DEFAULT_HPC_CANDIDATE_RUN_MANIFEST_PATH,
 };
 use super::local_hpc_dependency_simulation::{
-    validate_hpc_dependency_simulation_path, LocalHpcDependencySimulationReport,
+    collect_hpc_dependency_simulation, LocalHpcDependencySimulationReport,
     DEFAULT_HPC_DEPENDENCY_SIMULATION_PATH,
 };
 use super::local_hpc_execution_resolver::{
-    validate_hpc_execution_resolver_path, LocalHpcExecutionResolverReport,
+    collect_hpc_execution_resolver_report, LocalHpcExecutionResolverReport,
     DEFAULT_HPC_EXECUTION_RESOLVER_PATH,
 };
 use super::local_hpc_input_discovery::path_relative_to_repo;
 use super::local_hpc_pipeline_node_array::{
-    validate_hpc_pipeline_node_array_path, LocalHpcPipelineNodeArrayReport,
+    collect_hpc_pipeline_node_array, LocalHpcPipelineNodeArrayReport,
     DEFAULT_HPC_PIPELINE_NODE_ARRAY_SCRIPT_PATH,
 };
 use super::local_hpc_result_collection_simulation::{
-    validate_hpc_result_collection_simulation_path, LocalHpcResultCollectionSimulationReport,
+    collect_hpc_result_collection_simulation, LocalHpcResultCollectionSimulationReport,
     DEFAULT_HPC_RESULT_COLLECTION_SIMULATION_PATH,
 };
 use super::local_hpc_resume_simulation::{
-    validate_hpc_resume_simulation_path, LocalHpcResumeSimulationReport,
+    collect_hpc_resume_simulation, LocalHpcResumeSimulationReport,
     DEFAULT_HPC_RESUME_SIMULATION_PATH,
 };
 use super::local_hpc_scratch_layout::{
-    validate_hpc_scratch_layout_path, LocalHpcScratchLayout, DEFAULT_HPC_SCRATCH_LAYOUT_PATH,
+    collect_hpc_scratch_layout, LocalHpcScratchLayout, DEFAULT_HPC_SCRATCH_LAYOUT_PATH,
 };
 use super::local_hpc_stage_benchmark_array::{
-    validate_hpc_stage_benchmark_array_path, LocalHpcStageBenchmarkArrayReport,
+    collect_hpc_stage_benchmark_array, LocalHpcStageBenchmarkArrayReport,
     DEFAULT_HPC_STAGE_BENCHMARK_ARRAY_SCRIPT_PATH,
 };
 use super::path_resolution::{
@@ -197,51 +197,16 @@ fn build_hpc_dry_run_ready(
         "HPC dry-run readiness output",
     )?;
 
-    let asset_report = validate_hpc_asset_staging_manifest_path(
-        repo_root,
-        &repo_root.join(DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH),
-    )
-    .map_err(Into::into);
-    let scratch_report = validate_hpc_scratch_layout_path(
-        repo_root,
-        &repo_root.join(DEFAULT_HPC_SCRATCH_LAYOUT_PATH),
-    )
-    .map_err(Into::into);
-    let execution_report = validate_hpc_execution_resolver_path(
-        repo_root,
-        &repo_root.join(DEFAULT_HPC_EXECUTION_RESOLVER_PATH),
-    )
-    .map_err(Into::into);
-    let stage_benchmark_report = validate_hpc_stage_benchmark_array_path(
-        repo_root,
-        &repo_root.join(DEFAULT_HPC_STAGE_BENCHMARK_ARRAY_SCRIPT_PATH),
-    )
-    .map_err(Into::into);
-    let pipeline_node_report = validate_hpc_pipeline_node_array_path(
-        repo_root,
-        &repo_root.join(DEFAULT_HPC_PIPELINE_NODE_ARRAY_SCRIPT_PATH),
-    )
-    .map_err(Into::into);
-    let dependency_report = validate_hpc_dependency_simulation_path(
-        repo_root,
-        &repo_root.join(DEFAULT_HPC_DEPENDENCY_SIMULATION_PATH),
-    )
-    .map_err(Into::into);
-    let resume_report = validate_hpc_resume_simulation_path(
-        repo_root,
-        &repo_root.join(DEFAULT_HPC_RESUME_SIMULATION_PATH),
-    )
-    .map_err(Into::into);
-    let result_collection_report = validate_hpc_result_collection_simulation_path(
-        repo_root,
-        &repo_root.join(DEFAULT_HPC_RESULT_COLLECTION_SIMULATION_PATH),
-    )
-    .map_err(Into::into);
-    let candidate_report = validate_hpc_candidate_run_manifest_path(
-        repo_root,
-        &repo_root.join(DEFAULT_HPC_CANDIDATE_RUN_MANIFEST_PATH),
-    )
-    .map_err(Into::into);
+    let asset_report = collect_hpc_asset_staging_manifest(repo_root).map_err(Into::into);
+    let scratch_report = collect_hpc_scratch_layout(repo_root).map_err(Into::into);
+    let execution_report = collect_hpc_execution_resolver_report(repo_root).map_err(Into::into);
+    let stage_benchmark_report = collect_hpc_stage_benchmark_array(repo_root).map_err(Into::into);
+    let pipeline_node_report = collect_hpc_pipeline_node_array(repo_root).map_err(Into::into);
+    let dependency_report = collect_hpc_dependency_simulation(repo_root).map_err(Into::into);
+    let resume_report = collect_hpc_resume_simulation(repo_root).map_err(Into::into);
+    let result_collection_report =
+        collect_hpc_result_collection_simulation(repo_root).map_err(Into::into);
+    let candidate_report = collect_hpc_candidate_run_manifest(repo_root).map_err(Into::into);
 
     let checks = vec![
         build_goal_481_check(

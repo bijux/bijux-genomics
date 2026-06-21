@@ -146,6 +146,15 @@ pub(crate) fn render_hpc_pipeline_node_array(
     Ok(built.report)
 }
 
+pub(crate) fn collect_hpc_pipeline_node_array(
+    repo_root: &Path,
+) -> Result<LocalHpcPipelineNodeArrayReport> {
+    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
+    let script_path = benchmark_paths
+        .resolve_repo_relative(Path::new(DEFAULT_HPC_PIPELINE_NODE_ARRAY_SCRIPT_PATH));
+    build_hpc_pipeline_node_array(repo_root, &script_path).map(|built| built.report)
+}
+
 pub(crate) fn validate_hpc_pipeline_node_array_path(
     repo_root: &Path,
     script_path: &Path,

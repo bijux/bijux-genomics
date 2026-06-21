@@ -128,6 +128,15 @@ pub(crate) fn render_hpc_stage_benchmark_array(
     Ok(built.report)
 }
 
+pub(crate) fn collect_hpc_stage_benchmark_array(
+    repo_root: &Path,
+) -> Result<LocalHpcStageBenchmarkArrayReport> {
+    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
+    let script_path = benchmark_paths
+        .resolve_repo_relative(Path::new(DEFAULT_HPC_STAGE_BENCHMARK_ARRAY_SCRIPT_PATH));
+    build_hpc_stage_benchmark_array(repo_root, &script_path).map(|built| built.report)
+}
+
 pub(crate) fn validate_hpc_stage_benchmark_array_path(
     repo_root: &Path,
     script_path: &Path,
