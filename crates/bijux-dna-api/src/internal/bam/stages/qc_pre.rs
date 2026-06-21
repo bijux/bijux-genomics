@@ -46,6 +46,14 @@ struct LocalQcPreSmokeReport {
     cases: Vec<LocalQcPreSmokeCaseReport>,
 }
 
+struct LocalQcPreMultiqcPaths {
+    report_json: PathBuf,
+    multiqc_report: PathBuf,
+    multiqc_data: PathBuf,
+    governed_manifest: PathBuf,
+    stage_metrics: PathBuf,
+}
+
 /// Materialize the governed local-smoke `bam.qc_pre` artifacts and summary report.
 ///
 /// The written summary artifact lives at `runs/bench/local-smoke/bam.qc_pre/qc_pre.json`
@@ -191,117 +199,23 @@ fn materialize_local_qc_pre_multiqc_smoke_case(
     let mut summary = bijux_dna_domain_bam::summarize_tiny_bam_qc_pre(&bam)?;
     normalize_summary_paths(repo_root, &mut summary);
 
-    let report_json_path = resolve_output_path(repo_root, &case.plan, "report_json")?;
-    let multiqc_report_path = resolve_output_path(repo_root, &case.plan, "multiqc_report")?;
-    let multiqc_data_path = resolve_output_path(repo_root, &case.plan, "multiqc_data")?;
-    let governed_manifest_path =
-        resolve_output_path(repo_root, &case.plan, "governed_qc_inputs_manifest")?;
-    let stage_metrics_path = resolve_output_path(repo_root, &case.plan, "stage_metrics")?;
-
-    for path in
-        [&report_json_path, &multiqc_report_path, &governed_manifest_path, &stage_metrics_path]
-    {
-        if let Some(parent) = path.parent() {
-            bijux_dna_infra::ensure_dir(parent)?;
-        }
-    }
-    bijux_dna_infra::ensure_dir(&multiqc_data_path)?;
+    let output_paths = resolve_local_qc_pre_multiqc_paths(repo_root, &case.plan)?;
 
     let observed_contigs =
         summary.contig_summary.iter().map(|contig| contig.contig.clone()).collect::<Vec<_>>();
-    let expectation_matched = summary.total_reads == case.expected_total_reads
-        && summary.mapped_reads == case.expected_mapped_reads
-        && summary.unmapped_reads == case.expected_unmapped_reads
-        && summary.duplicate_flagged_reads == case.expected_duplicate_flagged_reads
-        && observed_contigs == case.expected_contigs;
+    let expectation_matched = qc_pre_case_matches_expectation(case, &summary, &observed_contigs);
 
     let samtools_dir = case_out_dir
         .parent()
         .ok_or_else(|| anyhow!("multiqc smoke case is missing parent sample directory"))?
         .join("samtools");
-    let manifest_payload = serde_json::json!({
-        "schema_version": "bijux.bam.qc_pre.inputs.v1",
-        "qc_inputs": [
-            {
-                "name": "bam.qc_pre.tool.samtools.qc_pre_summary",
-                "path": path_relative_to_repo(repo_root, &samtools_dir.join("qc_pre.summary.json")),
-                "role": "report_json",
-                "optional": false
-            },
-            {
-                "name": "bam.qc_pre.tool.samtools.flagstat",
-                "path": path_relative_to_repo(repo_root, &samtools_dir.join("flagstat.txt")),
-                "role": "report_json",
-                "optional": false
-            },
-            {
-                "name": "bam.qc_pre.tool.samtools.idxstats",
-                "path": path_relative_to_repo(repo_root, &samtools_dir.join("idxstats.txt")),
-                "role": "report_json",
-                "optional": false
-            }
-        ]
-    });
-    bijux_dna_infra::atomic_write_json(&governed_manifest_path, &manifest_payload)?;
-    bijux_dna_infra::atomic_write_bytes(
-        &multiqc_report_path,
-        br#"<!doctype html><html><body><h1>bam.qc_pre multiqc local smoke</h1></body></html>"#,
-    )?;
-    bijux_dna_infra::atomic_write_json(
-        &multiqc_data_path.join("multiqc_general_stats.json"),
-        &serde_json::json!({
-            "sample_count": 1,
-            "module_count": 3,
-            "stage_id": "bam.qc_pre",
-            "tool_id": "multiqc",
-        }),
-    )?;
-    bijux_dna_infra::atomic_write_json(
-        &report_json_path,
-        &serde_json::json!({
-            "schema_version": "bijux.bam.qc_pre.report.v1",
-            "stage_id": "bam.qc_pre",
-            "tool_id": "multiqc",
-            "aggregation_engine": "multiqc",
-            "total_reads": summary.total_reads,
-            "mapped_reads": summary.mapped_reads,
-            "unmapped_reads": summary.unmapped_reads,
-            "duplicate_flagged_reads": summary.duplicate_flagged_reads,
-            "report_json": path_relative_to_repo(repo_root, &report_json_path),
-            "multiqc_report": path_relative_to_repo(repo_root, &multiqc_report_path),
-            "multiqc_data": path_relative_to_repo(repo_root, &multiqc_data_path),
-            "governed_qc_inputs_manifest": path_relative_to_repo(repo_root, &governed_manifest_path),
-            "used_fallback": true,
-        }),
-    )?;
-    bijux_dna_infra::atomic_write_json(
-        &stage_metrics_path,
-        &serde_json::json!({
-            "schema_version": LOCAL_QC_PRE_SMOKE_METRICS_SCHEMA_VERSION,
-            "stage_id": "bam.qc_pre",
-            "sample_id": case.sample_id,
-            "tool_id": "multiqc",
-            "aggregation_engine": "multiqc",
-            "total_reads": summary.total_reads,
-            "mapped_reads": summary.mapped_reads,
-            "unmapped_reads": summary.unmapped_reads,
-            "duplicate_flagged_reads": summary.duplicate_flagged_reads,
-            "reference_mismatch": summary.reference_mismatch,
-            "expectation_matched": expectation_matched,
-            "multiqc_sample_count": 1,
-            "multiqc_module_count": 3,
-            "governed_qc_inputs_manifest": path_relative_to_repo(repo_root, &governed_manifest_path),
-            "contig_summary": summary
-                .contig_summary
-                .iter()
-                .map(|contig| serde_json::json!({
-                    "contig": contig.contig,
-                    "length": contig.length,
-                    "mapped": contig.mapped,
-                    "unmapped": contig.unmapped,
-                }))
-                .collect::<Vec<_>>(),
-        }),
+    write_local_qc_pre_multiqc_outputs(
+        repo_root,
+        case,
+        &summary,
+        &samtools_dir,
+        &output_paths,
+        expectation_matched,
     )?;
 
     let contig_summary = summary
@@ -330,15 +244,145 @@ fn materialize_local_qc_pre_multiqc_smoke_case(
         flagstat: None,
         idxstats: None,
         samtools_stats: None,
-        report_json: Some(path_relative_to_repo(repo_root, &report_json_path)),
-        multiqc_report: Some(path_relative_to_repo(repo_root, &multiqc_report_path)),
-        multiqc_data: Some(path_relative_to_repo(repo_root, &multiqc_data_path)),
+        report_json: Some(path_relative_to_repo(repo_root, &output_paths.report_json)),
+        multiqc_report: Some(path_relative_to_repo(repo_root, &output_paths.multiqc_report)),
+        multiqc_data: Some(path_relative_to_repo(repo_root, &output_paths.multiqc_data)),
         governed_qc_inputs_manifest: Some(path_relative_to_repo(
             repo_root,
-            &governed_manifest_path,
+            &output_paths.governed_manifest,
         )),
-        stage_metrics: path_relative_to_repo(repo_root, &stage_metrics_path),
+        stage_metrics: path_relative_to_repo(repo_root, &output_paths.stage_metrics),
     })
+}
+
+fn qc_pre_case_matches_expectation(
+    case: &bijux_dna_planner_bam::stage_api::LocalQcPreSmokeCasePlan,
+    summary: &bijux_dna_domain_bam::BamQcPreSummaryV1,
+    observed_contigs: &[String],
+) -> bool {
+    summary.total_reads == case.expected_total_reads
+        && summary.mapped_reads == case.expected_mapped_reads
+        && summary.unmapped_reads == case.expected_unmapped_reads
+        && summary.duplicate_flagged_reads == case.expected_duplicate_flagged_reads
+        && observed_contigs == case.expected_contigs
+}
+
+fn resolve_local_qc_pre_multiqc_paths(
+    repo_root: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+) -> Result<LocalQcPreMultiqcPaths> {
+    let report_json = resolve_output_path(repo_root, plan, "report_json")?;
+    let multiqc_report = resolve_output_path(repo_root, plan, "multiqc_report")?;
+    let multiqc_data = resolve_output_path(repo_root, plan, "multiqc_data")?;
+    let governed_manifest = resolve_output_path(repo_root, plan, "governed_qc_inputs_manifest")?;
+    let stage_metrics = resolve_output_path(repo_root, plan, "stage_metrics")?;
+    for path in [&report_json, &multiqc_report, &governed_manifest, &stage_metrics] {
+        if let Some(parent) = path.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
+    bijux_dna_infra::ensure_dir(&multiqc_data)?;
+    Ok(LocalQcPreMultiqcPaths {
+        report_json,
+        multiqc_report,
+        multiqc_data,
+        governed_manifest,
+        stage_metrics,
+    })
+}
+
+fn write_local_qc_pre_multiqc_outputs(
+    repo_root: &Path,
+    case: &bijux_dna_planner_bam::stage_api::LocalQcPreSmokeCasePlan,
+    summary: &bijux_dna_domain_bam::BamQcPreSummaryV1,
+    samtools_dir: &Path,
+    output_paths: &LocalQcPreMultiqcPaths,
+    expectation_matched: bool,
+) -> Result<()> {
+    let manifest_payload = serde_json::json!({
+        "schema_version": "bijux.bam.qc_pre.inputs.v1",
+        "qc_inputs": [
+            {
+                "name": "bam.qc_pre.tool.samtools.qc_pre_summary",
+                "path": path_relative_to_repo(repo_root, &samtools_dir.join("qc_pre.summary.json")),
+                "role": "report_json",
+                "optional": false
+            },
+            {
+                "name": "bam.qc_pre.tool.samtools.flagstat",
+                "path": path_relative_to_repo(repo_root, &samtools_dir.join("flagstat.txt")),
+                "role": "report_json",
+                "optional": false
+            },
+            {
+                "name": "bam.qc_pre.tool.samtools.idxstats",
+                "path": path_relative_to_repo(repo_root, &samtools_dir.join("idxstats.txt")),
+                "role": "report_json",
+                "optional": false
+            }
+        ]
+    });
+    bijux_dna_infra::atomic_write_json(&output_paths.governed_manifest, &manifest_payload)?;
+    bijux_dna_infra::atomic_write_bytes(
+        &output_paths.multiqc_report,
+        br#"<!doctype html><html><body><h1>bam.qc_pre multiqc local smoke</h1></body></html>"#,
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &output_paths.multiqc_data.join("multiqc_general_stats.json"),
+        &serde_json::json!({
+            "sample_count": 1,
+            "module_count": 3,
+            "stage_id": "bam.qc_pre",
+            "tool_id": "multiqc",
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &output_paths.report_json,
+        &serde_json::json!({
+            "schema_version": "bijux.bam.qc_pre.report.v1",
+            "stage_id": "bam.qc_pre",
+            "tool_id": "multiqc",
+            "aggregation_engine": "multiqc",
+            "total_reads": summary.total_reads,
+            "mapped_reads": summary.mapped_reads,
+            "unmapped_reads": summary.unmapped_reads,
+            "duplicate_flagged_reads": summary.duplicate_flagged_reads,
+            "report_json": path_relative_to_repo(repo_root, &output_paths.report_json),
+            "multiqc_report": path_relative_to_repo(repo_root, &output_paths.multiqc_report),
+            "multiqc_data": path_relative_to_repo(repo_root, &output_paths.multiqc_data),
+            "governed_qc_inputs_manifest": path_relative_to_repo(repo_root, &output_paths.governed_manifest),
+            "used_fallback": true,
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &output_paths.stage_metrics,
+        &serde_json::json!({
+            "schema_version": LOCAL_QC_PRE_SMOKE_METRICS_SCHEMA_VERSION,
+            "stage_id": "bam.qc_pre",
+            "sample_id": case.sample_id,
+            "tool_id": "multiqc",
+            "aggregation_engine": "multiqc",
+            "total_reads": summary.total_reads,
+            "mapped_reads": summary.mapped_reads,
+            "unmapped_reads": summary.unmapped_reads,
+            "duplicate_flagged_reads": summary.duplicate_flagged_reads,
+            "reference_mismatch": summary.reference_mismatch,
+            "expectation_matched": expectation_matched,
+            "multiqc_sample_count": 1,
+            "multiqc_module_count": 3,
+            "governed_qc_inputs_manifest": path_relative_to_repo(repo_root, &output_paths.governed_manifest),
+            "contig_summary": summary
+                .contig_summary
+                .iter()
+                .map(|contig| serde_json::json!({
+                    "contig": contig.contig,
+                    "length": contig.length,
+                    "mapped": contig.mapped,
+                    "unmapped": contig.unmapped,
+                }))
+                .collect::<Vec<_>>(),
+        }),
+    )
 }
 
 fn summarize_qc_pre_outputs(

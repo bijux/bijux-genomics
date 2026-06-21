@@ -77,6 +77,13 @@ struct HaplogroupMarker {
     lineage_scope: String,
 }
 
+struct LocalHaplogroupsOutputPaths {
+    haplogroups_report: PathBuf,
+    haplogroups_summary: PathBuf,
+    haplogroup_report: PathBuf,
+    stage_metrics: PathBuf,
+}
+
 /// Materialize governed local-smoke `bam.haplogroups` artifacts and report bundle.
 ///
 /// The written report lives at `runs/bench/local-smoke/bam.haplogroups/haplogroups.json`
@@ -173,86 +180,40 @@ fn materialize_local_haplogroups_case(
         true,
     );
 
-    let haplogroups_report_path = case_dir.join("haplogroups.json");
-    let haplogroups_summary_path = case_dir.join("haplogroups.summary.json");
-    let haplogroup_report_path = case_dir.join("haplogroup_report.json");
-    let stage_metrics_path = case_dir.join("stage.metrics.json");
+    let output_paths = LocalHaplogroupsOutputPaths {
+        haplogroups_report: case_dir.join("haplogroups.json"),
+        haplogroups_summary: case_dir.join("haplogroups.summary.json"),
+        haplogroup_report: case_dir.join("haplogroup_report.json"),
+        stage_metrics: case_dir.join("stage.metrics.json"),
+    };
 
-    let expectation_matched = summary.ready == ready
-        && float_matches(summary.minimum_coverage, minimum_coverage)
-        && float_matches(summary.observed_mean_coverage, observed_mean_coverage)
-        && summary.reference_build.as_deref() == Some(reference_build.as_str())
-        && summary.contamination_estimate == Some(CONTAMINATION_ESTIMATE)
-        && ((ready && summary.refusal_codes.is_empty())
-            || (!ready
-                && summary.refusal_codes == vec!["coverage_below_haplogroup_minimum".to_string()]));
-
-    bijux_dna_infra::atomic_write_json(
-        &haplogroups_report_path,
-        &serde_json::json!({
-            "schema_version": HAPLOGROUPS_REPORT_SCHEMA_VERSION,
-            "stage_id": EXPECTED_STAGE_ID,
-            "tool_id": EXPECTED_TOOL_ID,
-            "proof_case": proof_case,
-            "sample_id": EXPECTED_SAMPLE_ID,
-            "reference_panel_id": reference_panel_id,
-            "reference_panel": path_relative_to_repo(repo_root, &reference_panel),
-            "reference_build": reference_build,
-            "population_scope": population_scope,
-            "coverage_gate": {
-                "min_coverage": minimum_coverage,
-                "observed_mean_coverage": observed_mean_coverage,
-            },
-            "haplogroup_call": haplogroup_call,
-            "confidence": confidence,
-            "status": status,
-            "markers_total": markers_total,
-            "markers_supported": markers_supported,
-            "supported_marker_ids": supported_marker_ids,
-            "lineage_scope": supported_markers.last().map(|marker| marker.lineage_scope.clone()),
-        }),
-    )?;
-    bijux_dna_infra::atomic_write_json(&haplogroups_summary_path, &summary)?;
-    bijux_dna_infra::atomic_write_json(
-        &haplogroup_report_path,
-        &serde_json::json!({
-            "artifact_id": "haplogroup_report",
-            "stage_id": EXPECTED_STAGE_ID,
-            "tool_id": EXPECTED_TOOL_ID,
-            "proof_case": proof_case,
-            "haplogroup": haplogroup_call,
-            "confidence": confidence,
-            "status": status,
-            "reference_panel_id": reference_panel_id,
-            "markers_total": markers_total,
-            "markers_supported": markers_supported,
-            "supported_marker_ids": supported_marker_ids,
-        }),
-    )?;
-    bijux_dna_infra::atomic_write_json(
-        &stage_metrics_path,
-        &serde_json::json!({
-            "schema_version": LOCAL_HAPLOGROUPS_STAGE_METRICS_SCHEMA_VERSION,
-            "stage_id": EXPECTED_STAGE_ID,
-            "tool_id": EXPECTED_TOOL_ID,
-            "sample_id": EXPECTED_SAMPLE_ID,
-            "proof_case": proof_case,
-            "reference_panel_id": reference_panel_id,
-            "reference_build": reference_build,
-            "population_scope": population_scope,
-            "expected_ready": ready,
-            "ready": summary.ready,
-            "minimum_coverage": minimum_coverage,
-            "observed_mean_coverage": observed_mean_coverage,
-            "haplogroup_call": haplogroup_call,
-            "confidence": confidence,
-            "status": status,
-            "markers_total": markers_total,
-            "markers_supported": markers_supported,
-            "supported_marker_ids": supported_marker_ids,
-            "refusal_codes": summary.refusal_codes,
-            "expectation_matched": expectation_matched,
-        }),
+    let expectation_matched = haplogroups_expectation_matched(
+        &summary,
+        ready,
+        minimum_coverage,
+        observed_mean_coverage,
+        &reference_build,
+    );
+    write_local_haplogroups_outputs(
+        repo_root,
+        proof_case,
+        &reference_panel,
+        &reference_panel_id,
+        &reference_build,
+        &population_scope,
+        minimum_coverage,
+        observed_mean_coverage,
+        &haplogroup_call,
+        confidence,
+        status,
+        ready,
+        markers_total,
+        markers_supported,
+        &supported_marker_ids,
+        supported_markers.last().map(|marker| marker.lineage_scope.clone()),
+        &summary,
+        &output_paths,
+        expectation_matched,
     )?;
 
     let declared_output_ids = plan
@@ -262,10 +223,10 @@ fn materialize_local_haplogroups_case(
         .map(|artifact| artifact.name.as_str().to_string())
         .collect::<Vec<_>>();
     let artifact_paths = vec![
-        path_relative_to_repo(repo_root, &haplogroups_report_path),
-        path_relative_to_repo(repo_root, &haplogroups_summary_path),
-        path_relative_to_repo(repo_root, &haplogroup_report_path),
-        path_relative_to_repo(repo_root, &stage_metrics_path),
+        path_relative_to_repo(repo_root, &output_paths.haplogroups_report),
+        path_relative_to_repo(repo_root, &output_paths.haplogroups_summary),
+        path_relative_to_repo(repo_root, &output_paths.haplogroup_report),
+        path_relative_to_repo(repo_root, &output_paths.stage_metrics),
     ];
 
     Ok(LocalHaplogroupsSmokeCaseReport {
@@ -296,13 +257,123 @@ fn materialize_local_haplogroups_case(
             .collect(),
         refusal_codes: summary.refusal_codes.clone(),
         caveats: summary.caveats.clone(),
-        haplogroups_report: path_relative_to_repo(repo_root, &haplogroups_report_path),
-        haplogroups_summary: path_relative_to_repo(repo_root, &haplogroups_summary_path),
-        haplogroup_report: path_relative_to_repo(repo_root, &haplogroup_report_path),
-        stage_metrics: path_relative_to_repo(repo_root, &stage_metrics_path),
+        haplogroups_report: path_relative_to_repo(repo_root, &output_paths.haplogroups_report),
+        haplogroups_summary: path_relative_to_repo(repo_root, &output_paths.haplogroups_summary),
+        haplogroup_report: path_relative_to_repo(repo_root, &output_paths.haplogroup_report),
+        stage_metrics: path_relative_to_repo(repo_root, &output_paths.stage_metrics),
         declared_output_ids,
         artifact_paths,
     })
+}
+
+#[cfg(feature = "bam_downstream")]
+fn haplogroups_expectation_matched(
+    summary: &bijux_dna_domain_bam::BamHaplogroupReadinessV1,
+    ready: bool,
+    minimum_coverage: f64,
+    observed_mean_coverage: f64,
+    reference_build: &str,
+) -> bool {
+    summary.ready == ready
+        && float_matches(summary.minimum_coverage, minimum_coverage)
+        && float_matches(summary.observed_mean_coverage, observed_mean_coverage)
+        && summary.reference_build.as_deref() == Some(reference_build)
+        && summary.contamination_estimate == Some(CONTAMINATION_ESTIMATE)
+        && ((ready && summary.refusal_codes.is_empty())
+            || (!ready
+                && summary.refusal_codes == vec!["coverage_below_haplogroup_minimum".to_string()]))
+}
+
+#[allow(clippy::too_many_arguments)]
+#[cfg(feature = "bam_downstream")]
+fn write_local_haplogroups_outputs(
+    repo_root: &Path,
+    proof_case: &str,
+    reference_panel: &Path,
+    reference_panel_id: &str,
+    reference_build: &str,
+    population_scope: &str,
+    minimum_coverage: f64,
+    observed_mean_coverage: f64,
+    haplogroup_call: &Option<String>,
+    confidence: f64,
+    status: &str,
+    ready: bool,
+    markers_total: usize,
+    markers_supported: usize,
+    supported_marker_ids: &[String],
+    lineage_scope: Option<String>,
+    summary: &bijux_dna_domain_bam::BamHaplogroupReadinessV1,
+    output_paths: &LocalHaplogroupsOutputPaths,
+    expectation_matched: bool,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(
+        &output_paths.haplogroups_report,
+        &serde_json::json!({
+            "schema_version": HAPLOGROUPS_REPORT_SCHEMA_VERSION,
+            "stage_id": EXPECTED_STAGE_ID,
+            "tool_id": EXPECTED_TOOL_ID,
+            "proof_case": proof_case,
+            "sample_id": EXPECTED_SAMPLE_ID,
+            "reference_panel_id": reference_panel_id,
+            "reference_panel": path_relative_to_repo(repo_root, reference_panel),
+            "reference_build": reference_build,
+            "population_scope": population_scope,
+            "coverage_gate": {
+                "min_coverage": minimum_coverage,
+                "observed_mean_coverage": observed_mean_coverage,
+            },
+            "haplogroup_call": haplogroup_call,
+            "confidence": confidence,
+            "status": status,
+            "markers_total": markers_total,
+            "markers_supported": markers_supported,
+            "supported_marker_ids": supported_marker_ids,
+            "lineage_scope": lineage_scope,
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(&output_paths.haplogroups_summary, summary)?;
+    bijux_dna_infra::atomic_write_json(
+        &output_paths.haplogroup_report,
+        &serde_json::json!({
+            "artifact_id": "haplogroup_report",
+            "stage_id": EXPECTED_STAGE_ID,
+            "tool_id": EXPECTED_TOOL_ID,
+            "proof_case": proof_case,
+            "haplogroup": haplogroup_call,
+            "confidence": confidence,
+            "status": status,
+            "reference_panel_id": reference_panel_id,
+            "markers_total": markers_total,
+            "markers_supported": markers_supported,
+            "supported_marker_ids": supported_marker_ids,
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &output_paths.stage_metrics,
+        &serde_json::json!({
+            "schema_version": LOCAL_HAPLOGROUPS_STAGE_METRICS_SCHEMA_VERSION,
+            "stage_id": EXPECTED_STAGE_ID,
+            "tool_id": EXPECTED_TOOL_ID,
+            "sample_id": EXPECTED_SAMPLE_ID,
+            "proof_case": proof_case,
+            "reference_panel_id": reference_panel_id,
+            "reference_build": reference_build,
+            "population_scope": population_scope,
+            "expected_ready": ready,
+            "ready": summary.ready,
+            "minimum_coverage": minimum_coverage,
+            "observed_mean_coverage": observed_mean_coverage,
+            "haplogroup_call": haplogroup_call,
+            "confidence": confidence,
+            "status": status,
+            "markers_total": markers_total,
+            "markers_supported": markers_supported,
+            "supported_marker_ids": supported_marker_ids,
+            "refusal_codes": summary.refusal_codes,
+            "expectation_matched": expectation_matched,
+        }),
+    )
 }
 
 #[cfg(feature = "bam_downstream")]

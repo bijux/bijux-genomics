@@ -96,6 +96,31 @@ struct LocalSexToolSmokeReport {
     rows: Vec<LocalSexToolSmokeCaseReport>,
 }
 
+struct LocalSexOutputPaths {
+    sex_report: PathBuf,
+    sex_estimate: PathBuf,
+    population_metrics: PathBuf,
+    haplogroup_report: PathBuf,
+    sex_summary: PathBuf,
+    stage_metrics: PathBuf,
+}
+
+struct LocalSexExpectationDeltas {
+    expectation_matched: bool,
+    x_coverage_delta: f64,
+    y_coverage_delta: f64,
+    autosomal_coverage_delta: f64,
+    confidence_delta: f64,
+}
+
+struct LocalSexToolExpectation {
+    expectation_matched: bool,
+    expected_call: String,
+    expected_confidence: f64,
+    expected_status: String,
+    expected_insufficiency_reason: Option<String>,
+}
+
 /// Materialize the governed local-smoke `bam.sex` artifacts and top-level report.
 ///
 /// The written report lives at `runs/bench/local-smoke/bam.sex/sex.json`
@@ -205,12 +230,7 @@ fn materialize_local_sex_smoke_case(
     let case_out_dir = resolve_plan_path(repo_root, &case.plan.out_dir);
     bijux_dna_infra::ensure_dir(&case_out_dir)?;
 
-    let sex_report_path = resolve_output_path(repo_root, &case.plan, "sex_report")?;
-    let sex_estimate_path = resolve_output_path(repo_root, &case.plan, "sex_estimate")?;
-    let population_metrics_path = resolve_output_path(repo_root, &case.plan, "population_metrics")?;
-    let haplogroup_report_path = resolve_output_path(repo_root, &case.plan, "haplogroup_report")?;
-    let sex_summary_path = resolve_output_path(repo_root, &case.plan, "summary")?;
-    let stage_metrics_path = resolve_output_path(repo_root, &case.plan, "stage_metrics")?;
+    let output_paths = resolve_local_sex_output_paths(repo_root, &case.plan)?;
     let input_bam = repo_root.join(&case.bam);
     let reference_fasta = repo_root.join(&case.reference);
 
@@ -222,94 +242,21 @@ fn materialize_local_sex_smoke_case(
         Some(case.chromosome_system.as_str()),
         Some(case.minimum_y_sites),
     )?;
-    let expectation_matched = summary.method == case.expected_method
-        && summary.chromosome_system.as_deref() == Some(case.chromosome_system.as_str())
-        && summary.minimum_y_sites == Some(case.minimum_y_sites)
-        && float_matches(summary.x_coverage, case.expected_x_coverage)
-        && float_matches(summary.y_coverage, case.expected_y_coverage)
-        && float_matches(summary.autosomal_coverage, case.expected_autosomal_coverage)
-        && summary.call == case.expected_call
-        && float_matches(summary.confidence, case.expected_confidence)
-        && summary.status == case.expected_status;
-    let x_coverage_delta = summary.x_coverage - case.expected_x_coverage;
-    let y_coverage_delta = summary.y_coverage - case.expected_y_coverage;
-    let autosomal_coverage_delta = summary.autosomal_coverage - case.expected_autosomal_coverage;
-    let confidence_delta = summary.confidence - case.expected_confidence;
-
-    bijux_dna_infra::atomic_write_json(
-        &sex_estimate_path,
-        &serde_json::json!({
-            "artifact_id": "sex_estimate",
-            "stage_id": "bam.sex",
-            "tool_id": case.plan.tool_id.as_str(),
-            "call": summary.call,
-            "confidence": summary.confidence,
-            "status": summary.status,
-            "x_to_y_ratio": summary.x_to_y_ratio,
-        }),
+    let deltas = local_sex_expectation(case, &summary);
+    write_local_sex_support_artifacts(
+        &output_paths,
+        case.plan.tool_id.as_str(),
+        None,
+        &summary,
+        "not_applicable_for_local_rxy_smoke",
     )?;
-    bijux_dna_infra::atomic_write_json(
-        &population_metrics_path,
-        &serde_json::json!({
-            "artifact_id": "population_metrics",
-            "stage_id": "bam.sex",
-            "tool_id": case.plan.tool_id.as_str(),
-            "chromosome_system": summary.chromosome_system,
-            "x_coverage": summary.x_coverage,
-            "y_coverage": summary.y_coverage,
-            "autosomal_coverage": summary.autosomal_coverage,
-        }),
-    )?;
-    bijux_dna_infra::atomic_write_json(
-        &haplogroup_report_path,
-        &serde_json::json!({
-            "artifact_id": "haplogroup_report",
-            "stage_id": "bam.sex",
-            "tool_id": case.plan.tool_id.as_str(),
-            "status": "not_applicable_for_local_rxy_smoke",
-            "chromosome_system": summary.chromosome_system,
-        }),
-    )?;
-
-    bijux_dna_infra::atomic_write_json(
-        &stage_metrics_path,
-        &serde_json::json!({
-            "schema_version": LOCAL_SEX_SMOKE_METRICS_SCHEMA_VERSION,
-            "stage_id": "bam.sex",
-            "sample_id": case.sample_id,
-            "expected_method": case.expected_method,
-            "method": summary.method,
-            "expected_chromosome_system": case.chromosome_system,
-            "chromosome_system": summary.chromosome_system,
-            "expected_minimum_y_sites": case.minimum_y_sites,
-            "minimum_y_sites": summary.minimum_y_sites,
-            "expected_x_coverage": case.expected_x_coverage,
-            "x_coverage": summary.x_coverage,
-            "x_coverage_delta": x_coverage_delta,
-            "expected_y_coverage": case.expected_y_coverage,
-            "y_coverage": summary.y_coverage,
-            "y_coverage_delta": y_coverage_delta,
-            "expected_autosomal_coverage": case.expected_autosomal_coverage,
-            "autosomal_coverage": summary.autosomal_coverage,
-            "autosomal_coverage_delta": autosomal_coverage_delta,
-            "x_to_y_ratio": summary.x_to_y_ratio,
-            "expected_call": case.expected_call,
-            "call": summary.call,
-            "expected_confidence": case.expected_confidence,
-            "confidence": summary.confidence,
-            "confidence_delta": confidence_delta,
-            "expected_status": case.expected_status,
-            "status": summary.status,
-            "insufficiency_reason": summary.insufficiency_reason,
-            "expectation_matched": expectation_matched,
-        }),
-    )?;
+    write_local_sex_stage_metrics(&output_paths.stage_metrics, case, &summary, &deltas)?;
 
     Ok(LocalSexSmokeReport {
         schema_version: LOCAL_SEX_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
         stage_id: "bam.sex".to_string(),
         sample_id: case.sample_id.clone(),
-        expectation_matched,
+        expectation_matched: deltas.expectation_matched,
         input_bam: path_relative_to_repo(repo_root, &input_bam),
         reference_fasta: path_relative_to_repo(repo_root, &reference_fasta),
         method: summary.method.clone(),
@@ -323,12 +270,12 @@ fn materialize_local_sex_smoke_case(
         confidence: summary.confidence,
         status: summary.status.clone(),
         insufficiency_reason: summary.insufficiency_reason.clone(),
-        sex_report: path_relative_to_repo(repo_root, &sex_report_path),
-        sex_estimate: path_relative_to_repo(repo_root, &sex_estimate_path),
-        population_metrics: path_relative_to_repo(repo_root, &population_metrics_path),
-        haplogroup_report: path_relative_to_repo(repo_root, &haplogroup_report_path),
-        sex_summary: path_relative_to_repo(repo_root, &sex_summary_path),
-        stage_metrics: path_relative_to_repo(repo_root, &stage_metrics_path),
+        sex_report: path_relative_to_repo(repo_root, &output_paths.sex_report),
+        sex_estimate: path_relative_to_repo(repo_root, &output_paths.sex_estimate),
+        population_metrics: path_relative_to_repo(repo_root, &output_paths.population_metrics),
+        haplogroup_report: path_relative_to_repo(repo_root, &output_paths.haplogroup_report),
+        sex_summary: path_relative_to_repo(repo_root, &output_paths.sex_summary),
+        stage_metrics: path_relative_to_repo(repo_root, &output_paths.stage_metrics),
     })
 }
 
@@ -364,129 +311,38 @@ fn materialize_local_sex_tool_case(
         Some(case.chromosome_system.as_str()),
         Some(case.minimum_y_sites),
     )?;
-
-    let sex_report_path = case_dir.join("sex.json");
-    let sex_estimate_path = case_dir.join("sex_estimate.json");
-    let population_metrics_path = case_dir.join("population_metrics.json");
-    let haplogroup_report_path = case_dir.join("haplogroup_report.json");
-    let sex_summary_path = case_dir.join("sex.summary.json");
-    let stage_metrics_path = case_dir.join("stage.metrics.json");
-
-    let expectation_matched = match proof_case {
-        ProofCaseKind::Ready => {
-            summary.method == case.expected_method
-                && summary.chromosome_system.as_deref() == Some(case.chromosome_system.as_str())
-                && summary.minimum_y_sites == Some(case.minimum_y_sites)
-                && float_matches(summary.x_coverage, case.expected_x_coverage)
-                && float_matches(summary.y_coverage, case.expected_y_coverage)
-                && float_matches(summary.autosomal_coverage, case.expected_autosomal_coverage)
-                && summary.call == case.expected_call
-                && float_matches(summary.confidence, case.expected_confidence)
-                && summary.status == case.expected_status
-                && summary.insufficiency_reason.is_none()
-        }
-        ProofCaseKind::Insufficient => {
-            summary.method == tool_id
-                && summary.call == bijux_dna_domain_bam::metrics::SexConfidenceClass::Insufficient
-                && float_matches(summary.confidence, 0.0)
-                && summary.status == "insufficient_chromosomes"
-                && summary.insufficiency_reason.as_deref() == Some("insufficient_chromosomes")
-                && float_matches(summary.x_coverage, 0.0)
-                && float_matches(summary.autosomal_coverage, 0.0)
-        }
+    let output_paths = LocalSexOutputPaths {
+        sex_report: case_dir.join("sex.json"),
+        sex_estimate: case_dir.join("sex_estimate.json"),
+        population_metrics: case_dir.join("population_metrics.json"),
+        haplogroup_report: case_dir.join("haplogroup_report.json"),
+        sex_summary: case_dir.join("sex.summary.json"),
+        stage_metrics: case_dir.join("stage.metrics.json"),
     };
-
-    bijux_dna_infra::atomic_write_json(
-        &sex_estimate_path,
-        &serde_json::json!({
-            "artifact_id": "sex_estimate",
-            "stage_id": "bam.sex",
-            "tool_id": tool_id,
-            "proof_case": proof_case.as_str(),
-            "call": summary.call,
-            "confidence": summary.confidence,
-            "status": summary.status,
-            "x_to_y_ratio": summary.x_to_y_ratio,
-            "insufficiency_reason": summary.insufficiency_reason,
-        }),
+    let expectation = local_sex_tool_expectation(case, &summary, proof_case, tool_id);
+    write_local_sex_support_artifacts(
+        &output_paths,
+        tool_id,
+        Some(proof_case),
+        &summary,
+        local_sex_tool_haplogroup_status(proof_case),
     )?;
-    bijux_dna_infra::atomic_write_json(
-        &population_metrics_path,
-        &serde_json::json!({
-            "artifact_id": "population_metrics",
-            "stage_id": "bam.sex",
-            "tool_id": tool_id,
-            "proof_case": proof_case.as_str(),
-            "chromosome_system": summary.chromosome_system,
-            "x_coverage": summary.x_coverage,
-            "y_coverage": summary.y_coverage,
-            "autosomal_coverage": summary.autosomal_coverage,
-        }),
-    )?;
-    bijux_dna_infra::atomic_write_json(
-        &haplogroup_report_path,
-        &serde_json::json!({
-            "artifact_id": "haplogroup_report",
-            "stage_id": "bam.sex",
-            "tool_id": tool_id,
-            "proof_case": proof_case.as_str(),
-            "status": if proof_case.as_str() == "ready" {
-                "not_applicable_for_sex_inference"
-            } else {
-                "not_applicable_due_to_insufficient_chromosomes"
-            },
-            "chromosome_system": summary.chromosome_system,
-        }),
-    )?;
-
-    let (expected_call, expected_confidence, expected_status, expected_insufficiency_reason) =
-        match proof_case {
-            ProofCaseKind::Ready => (
-                sex_call_name(case.expected_call).to_string(),
-                case.expected_confidence,
-                case.expected_status.clone(),
-                None::<String>,
-            ),
-            ProofCaseKind::Insufficient => (
-                "insufficient".to_string(),
-                0.0,
-                "insufficient_chromosomes".to_string(),
-                Some("insufficient_chromosomes".to_string()),
-            ),
-        };
-
-    bijux_dna_infra::atomic_write_json(
-        &stage_metrics_path,
-        &serde_json::json!({
-            "schema_version": LOCAL_SEX_STAGE_METRICS_SCHEMA_VERSION,
-            "stage_id": "bam.sex",
-            "sample_id": sample_id,
-            "tool_id": tool_id,
-            "proof_case": proof_case.as_str(),
-            "method": summary.method,
-            "expected_call": expected_call,
-            "call": summary.call,
-            "expected_confidence": expected_confidence,
-            "confidence": summary.confidence,
-            "expected_status": expected_status,
-            "status": summary.status,
-            "expected_insufficiency_reason": expected_insufficiency_reason,
-            "insufficiency_reason": summary.insufficiency_reason,
-            "x_coverage": summary.x_coverage,
-            "y_coverage": summary.y_coverage,
-            "autosomal_coverage": summary.autosomal_coverage,
-            "x_to_y_ratio": summary.x_to_y_ratio,
-            "expectation_matched": expectation_matched,
-        }),
+    write_local_sex_tool_stage_metrics(
+        &output_paths.stage_metrics,
+        &sample_id,
+        tool_id,
+        proof_case,
+        &summary,
+        &expectation,
     )?;
 
     let artifact_paths = vec![
-        path_relative_to_repo(repo_root, &sex_report_path),
-        path_relative_to_repo(repo_root, &sex_estimate_path),
-        path_relative_to_repo(repo_root, &population_metrics_path),
-        path_relative_to_repo(repo_root, &haplogroup_report_path),
-        path_relative_to_repo(repo_root, &sex_summary_path),
-        path_relative_to_repo(repo_root, &stage_metrics_path),
+        path_relative_to_repo(repo_root, &output_paths.sex_report),
+        path_relative_to_repo(repo_root, &output_paths.sex_estimate),
+        path_relative_to_repo(repo_root, &output_paths.population_metrics),
+        path_relative_to_repo(repo_root, &output_paths.haplogroup_report),
+        path_relative_to_repo(repo_root, &output_paths.sex_summary),
+        path_relative_to_repo(repo_root, &output_paths.stage_metrics),
     ];
 
     Ok(LocalSexToolSmokeCaseReport {
@@ -495,7 +351,7 @@ fn materialize_local_sex_tool_case(
         tool_id: tool_id.to_string(),
         proof_case: proof_case.as_str().to_string(),
         sample_id,
-        expectation_matched,
+        expectation_matched: expectation.expectation_matched,
         input_bam: path_relative_to_repo(repo_root, &input_bam),
         reference_fasta: path_relative_to_repo(repo_root, &reference_fasta),
         method: summary.method.clone(),
@@ -509,12 +365,12 @@ fn materialize_local_sex_tool_case(
         confidence: summary.confidence,
         status: summary.status.clone(),
         insufficiency_reason: summary.insufficiency_reason.clone(),
-        sex_report: path_relative_to_repo(repo_root, &sex_report_path),
-        sex_estimate: path_relative_to_repo(repo_root, &sex_estimate_path),
-        population_metrics: path_relative_to_repo(repo_root, &population_metrics_path),
-        haplogroup_report: path_relative_to_repo(repo_root, &haplogroup_report_path),
-        sex_summary: path_relative_to_repo(repo_root, &sex_summary_path),
-        stage_metrics: path_relative_to_repo(repo_root, &stage_metrics_path),
+        sex_report: path_relative_to_repo(repo_root, &output_paths.sex_report),
+        sex_estimate: path_relative_to_repo(repo_root, &output_paths.sex_estimate),
+        population_metrics: path_relative_to_repo(repo_root, &output_paths.population_metrics),
+        haplogroup_report: path_relative_to_repo(repo_root, &output_paths.haplogroup_report),
+        sex_summary: path_relative_to_repo(repo_root, &output_paths.sex_summary),
+        stage_metrics: path_relative_to_repo(repo_root, &output_paths.stage_metrics),
         declared_output_ids: case
             .plan
             .io
@@ -524,6 +380,209 @@ fn materialize_local_sex_tool_case(
             .collect(),
         artifact_paths,
     })
+}
+
+fn resolve_local_sex_output_paths(
+    repo_root: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+) -> Result<LocalSexOutputPaths> {
+    Ok(LocalSexOutputPaths {
+        sex_report: resolve_output_path(repo_root, plan, "sex_report")?,
+        sex_estimate: resolve_output_path(repo_root, plan, "sex_estimate")?,
+        population_metrics: resolve_output_path(repo_root, plan, "population_metrics")?,
+        haplogroup_report: resolve_output_path(repo_root, plan, "haplogroup_report")?,
+        sex_summary: resolve_output_path(repo_root, plan, "summary")?,
+        stage_metrics: resolve_output_path(repo_root, plan, "stage_metrics")?,
+    })
+}
+
+fn local_sex_expectation(
+    case: &bijux_dna_planner_bam::stage_api::LocalSexSmokeCasePlan,
+    summary: &bijux_dna_domain_bam::BamSexSummaryV1,
+) -> LocalSexExpectationDeltas {
+    LocalSexExpectationDeltas {
+        expectation_matched: summary.method == case.expected_method
+            && summary.chromosome_system.as_deref() == Some(case.chromosome_system.as_str())
+            && summary.minimum_y_sites == Some(case.minimum_y_sites)
+            && float_matches(summary.x_coverage, case.expected_x_coverage)
+            && float_matches(summary.y_coverage, case.expected_y_coverage)
+            && float_matches(summary.autosomal_coverage, case.expected_autosomal_coverage)
+            && summary.call == case.expected_call
+            && float_matches(summary.confidence, case.expected_confidence)
+            && summary.status == case.expected_status,
+        x_coverage_delta: summary.x_coverage - case.expected_x_coverage,
+        y_coverage_delta: summary.y_coverage - case.expected_y_coverage,
+        autosomal_coverage_delta: summary.autosomal_coverage - case.expected_autosomal_coverage,
+        confidence_delta: summary.confidence - case.expected_confidence,
+    }
+}
+
+fn write_local_sex_support_artifacts(
+    output_paths: &LocalSexOutputPaths,
+    tool_id: &str,
+    proof_case: Option<ProofCaseKind>,
+    summary: &bijux_dna_domain_bam::BamSexSummaryV1,
+    haplogroup_status: &str,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(
+        &output_paths.sex_estimate,
+        &serde_json::json!({
+            "artifact_id": "sex_estimate",
+            "stage_id": "bam.sex",
+            "tool_id": tool_id,
+            "proof_case": proof_case.map(ProofCaseKind::as_str),
+            "call": summary.call,
+            "confidence": summary.confidence,
+            "status": summary.status,
+            "x_to_y_ratio": summary.x_to_y_ratio,
+            "insufficiency_reason": summary.insufficiency_reason,
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &output_paths.population_metrics,
+        &serde_json::json!({
+            "artifact_id": "population_metrics",
+            "stage_id": "bam.sex",
+            "tool_id": tool_id,
+            "proof_case": proof_case.map(ProofCaseKind::as_str),
+            "chromosome_system": summary.chromosome_system,
+            "x_coverage": summary.x_coverage,
+            "y_coverage": summary.y_coverage,
+            "autosomal_coverage": summary.autosomal_coverage,
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &output_paths.haplogroup_report,
+        &serde_json::json!({
+            "artifact_id": "haplogroup_report",
+            "stage_id": "bam.sex",
+            "tool_id": tool_id,
+            "proof_case": proof_case.map(ProofCaseKind::as_str),
+            "status": haplogroup_status,
+            "chromosome_system": summary.chromosome_system,
+        }),
+    )
+}
+
+fn write_local_sex_stage_metrics(
+    path: &Path,
+    case: &bijux_dna_planner_bam::stage_api::LocalSexSmokeCasePlan,
+    summary: &bijux_dna_domain_bam::BamSexSummaryV1,
+    deltas: &LocalSexExpectationDeltas,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(
+        path,
+        &serde_json::json!({
+            "schema_version": LOCAL_SEX_SMOKE_METRICS_SCHEMA_VERSION,
+            "stage_id": "bam.sex",
+            "sample_id": case.sample_id,
+            "expected_method": case.expected_method,
+            "method": summary.method,
+            "expected_chromosome_system": case.chromosome_system,
+            "chromosome_system": summary.chromosome_system,
+            "expected_minimum_y_sites": case.minimum_y_sites,
+            "minimum_y_sites": summary.minimum_y_sites,
+            "expected_x_coverage": case.expected_x_coverage,
+            "x_coverage": summary.x_coverage,
+            "x_coverage_delta": deltas.x_coverage_delta,
+            "expected_y_coverage": case.expected_y_coverage,
+            "y_coverage": summary.y_coverage,
+            "y_coverage_delta": deltas.y_coverage_delta,
+            "expected_autosomal_coverage": case.expected_autosomal_coverage,
+            "autosomal_coverage": summary.autosomal_coverage,
+            "autosomal_coverage_delta": deltas.autosomal_coverage_delta,
+            "x_to_y_ratio": summary.x_to_y_ratio,
+            "expected_call": case.expected_call,
+            "call": summary.call,
+            "expected_confidence": case.expected_confidence,
+            "confidence": summary.confidence,
+            "confidence_delta": deltas.confidence_delta,
+            "expected_status": case.expected_status,
+            "status": summary.status,
+            "insufficiency_reason": summary.insufficiency_reason,
+            "expectation_matched": deltas.expectation_matched,
+        }),
+    )
+}
+
+fn local_sex_tool_expectation(
+    case: &bijux_dna_planner_bam::stage_api::LocalSexSmokeCasePlan,
+    summary: &bijux_dna_domain_bam::BamSexSummaryV1,
+    proof_case: ProofCaseKind,
+    tool_id: &str,
+) -> LocalSexToolExpectation {
+    match proof_case {
+        ProofCaseKind::Ready => LocalSexToolExpectation {
+            expectation_matched: summary.method == case.expected_method
+                && summary.chromosome_system.as_deref() == Some(case.chromosome_system.as_str())
+                && summary.minimum_y_sites == Some(case.minimum_y_sites)
+                && float_matches(summary.x_coverage, case.expected_x_coverage)
+                && float_matches(summary.y_coverage, case.expected_y_coverage)
+                && float_matches(summary.autosomal_coverage, case.expected_autosomal_coverage)
+                && summary.call == case.expected_call
+                && float_matches(summary.confidence, case.expected_confidence)
+                && summary.status == case.expected_status
+                && summary.insufficiency_reason.is_none(),
+            expected_call: sex_call_name(case.expected_call).to_string(),
+            expected_confidence: case.expected_confidence,
+            expected_status: case.expected_status.clone(),
+            expected_insufficiency_reason: None,
+        },
+        ProofCaseKind::Insufficient => LocalSexToolExpectation {
+            expectation_matched: summary.method == tool_id
+                && summary.call == bijux_dna_domain_bam::metrics::SexConfidenceClass::Insufficient
+                && float_matches(summary.confidence, 0.0)
+                && summary.status == "insufficient_chromosomes"
+                && summary.insufficiency_reason.as_deref() == Some("insufficient_chromosomes")
+                && float_matches(summary.x_coverage, 0.0)
+                && float_matches(summary.autosomal_coverage, 0.0),
+            expected_call: "insufficient".to_string(),
+            expected_confidence: 0.0,
+            expected_status: "insufficient_chromosomes".to_string(),
+            expected_insufficiency_reason: Some("insufficient_chromosomes".to_string()),
+        },
+    }
+}
+
+fn local_sex_tool_haplogroup_status(proof_case: ProofCaseKind) -> &'static str {
+    match proof_case {
+        ProofCaseKind::Ready => "not_applicable_for_sex_inference",
+        ProofCaseKind::Insufficient => "not_applicable_due_to_insufficient_chromosomes",
+    }
+}
+
+fn write_local_sex_tool_stage_metrics(
+    path: &Path,
+    sample_id: &str,
+    tool_id: &str,
+    proof_case: ProofCaseKind,
+    summary: &bijux_dna_domain_bam::BamSexSummaryV1,
+    expectation: &LocalSexToolExpectation,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(
+        path,
+        &serde_json::json!({
+            "schema_version": LOCAL_SEX_STAGE_METRICS_SCHEMA_VERSION,
+            "stage_id": "bam.sex",
+            "sample_id": sample_id,
+            "tool_id": tool_id,
+            "proof_case": proof_case.as_str(),
+            "method": summary.method,
+            "expected_call": expectation.expected_call,
+            "call": summary.call,
+            "expected_confidence": expectation.expected_confidence,
+            "confidence": summary.confidence,
+            "expected_status": expectation.expected_status,
+            "status": summary.status,
+            "expected_insufficiency_reason": expectation.expected_insufficiency_reason,
+            "insufficiency_reason": summary.insufficiency_reason,
+            "x_coverage": summary.x_coverage,
+            "y_coverage": summary.y_coverage,
+            "autosomal_coverage": summary.autosomal_coverage,
+            "x_to_y_ratio": summary.x_to_y_ratio,
+            "expectation_matched": expectation.expectation_matched,
+        }),
+    )
 }
 
 fn sex_tool_report(summary: &bijux_dna_domain_bam::BamSexSummaryV1) -> serde_json::Value {

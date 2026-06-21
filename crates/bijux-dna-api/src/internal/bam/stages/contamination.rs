@@ -72,6 +72,18 @@ struct LocalContaminationSmokeReport {
     rows: Vec<LocalContaminationSmokeCaseReport>,
 }
 
+struct LocalContaminationCasePaths {
+    contamination_report: PathBuf,
+    contamination_summary: PathBuf,
+    stage_metrics: PathBuf,
+    contamination_estimate: Option<PathBuf>,
+    contammix_report: Option<PathBuf>,
+    mt_consensus: Option<PathBuf>,
+    advisory_boundary: PathBuf,
+    contamination_modes: PathBuf,
+    contamination_stratified: PathBuf,
+}
+
 /// Materialize the governed local-smoke `bam.contamination` bundle for all retained tools.
 ///
 /// The written report lives at `runs/bench/local-smoke/bam.contamination/local_smoke.json`
@@ -136,123 +148,41 @@ fn materialize_local_contamination_case(
     let input_bam = resolve_input_path(repo_root, plan, "bam")?;
     let reference_fasta = resolve_input_path(repo_root, plan, "reference")?;
 
-    let case_dir = repo_root
-        .join("runs/bench/local-smoke/bam.contamination")
-        .join(tool_id)
-        .join(proof_case.as_str());
-    bijux_dna_infra::ensure_dir(&case_dir)?;
-
     let raw_metrics = raw_metrics(tool_id, &logical_scope, &tool_scope, proof_case);
     let summary = contamination_summary(tool_id, proof_case, minimum_mean_coverage)?;
-    let contamination_report_path =
-        resolve_case_output_path(plan, "contamination_report", &case_dir)?;
-    let contamination_summary_path = resolve_case_output_path(plan, "summary", &case_dir)?;
-    let stage_metrics_path = resolve_case_output_path(plan, "stage_metrics", &case_dir)?;
-    let contamination_estimate_path =
-        resolve_optional_case_output_path(plan, "contamination_estimate", &case_dir);
-    let contammix_report_path =
-        resolve_optional_case_output_path(plan, "contammix_report", &case_dir);
-    let mt_consensus_path = resolve_optional_case_output_path(plan, "mt_consensus", &case_dir);
-    let advisory_boundary_path = case_dir.join("advisory_boundary.json");
-    let contamination_modes_path = case_dir.join("contamination_modes.json");
-    let contamination_stratified_path = case_dir.join("contamination.stratified.json");
+    let case_paths = resolve_local_contamination_case_paths(repo_root, plan, tool_id, proof_case)?;
 
-    write_raw_contamination_report(&contamination_report_path, &raw_metrics)?;
-    bijux_dna_infra::atomic_write_json(&contamination_summary_path, &summary)
-        .with_context(|| format!("write {}", contamination_summary_path.display()))?;
+    write_raw_contamination_report(&case_paths.contamination_report, &raw_metrics)?;
+    bijux_dna_infra::atomic_write_json(&case_paths.contamination_summary, &summary)
+        .with_context(|| format!("write {}", case_paths.contamination_summary.display()))?;
     write_stage_metrics(
-        &stage_metrics_path,
+        &case_paths.stage_metrics,
         plan,
         proof_case,
         minimum_mean_coverage,
         &raw_metrics,
         &summary,
     )?;
-    bijux_dna_infra::atomic_write_json(&advisory_boundary_path, &summary.advisory_boundary)
-        .with_context(|| format!("write {}", advisory_boundary_path.display()))?;
-    write_contamination_modes(&contamination_modes_path, &logical_scope, &tool_scope, plan)?;
+    bijux_dna_infra::atomic_write_json(&case_paths.advisory_boundary, &summary.advisory_boundary)
+        .with_context(|| format!("write {}", case_paths.advisory_boundary.display()))?;
+    write_contamination_modes(&case_paths.contamination_modes, &logical_scope, &tool_scope, plan)?;
     write_contamination_stratified(
-        &contamination_stratified_path,
+        &case_paths.contamination_stratified,
         tool_id,
         &tool_scope,
         raw_metrics.estimate,
     )?;
+    write_local_contamination_optional_artifacts(
+        &case_paths,
+        tool_id,
+        &logical_scope,
+        proof_case,
+        &raw_metrics,
+        &summary,
+    )?;
 
-    if let Some(path) = &contamination_estimate_path {
-        bijux_dna_infra::atomic_write_json(
-            path,
-            &serde_json::json!({
-                "stage_id": "bam.contamination",
-                "tool_id": tool_id,
-                "proof_case": proof_case.as_str(),
-                "scope": logical_scope,
-                "estimate": raw_metrics.estimate,
-                "ci_low": raw_metrics.ci_low,
-                "ci_high": raw_metrics.ci_high,
-                "prerequisites_passed": summary.prerequisites_passed,
-            }),
-        )
-        .with_context(|| format!("write {}", path.display()))?;
-    }
-    if let Some(path) = &contammix_report_path {
-        bijux_dna_infra::atomic_write_bytes(
-            path,
-            format!(
-                "tool=contammix\nproof_case={}\nestimate={:.4}\nci_low={:.4}\nci_high={:.4}\n",
-                proof_case.as_str(),
-                raw_metrics.estimate,
-                raw_metrics.ci_low,
-                raw_metrics.ci_high
-            )
-            .as_bytes(),
-        )
-        .with_context(|| format!("write {}", path.display()))?;
-    }
-    if let Some(path) = &mt_consensus_path {
-        bijux_dna_infra::atomic_write_bytes(
-            path,
-            format!(">adna_contamination_consensus_{}\nACGTACGTACGTACGT\n", proof_case.as_str())
-                .as_bytes(),
-        )
-        .with_context(|| format!("write {}", path.display()))?;
-    }
-
-    let expectation_matched = summary.prerequisites_passed
-        == proof_case.expected_prerequisites_passed()
-        && match proof_case {
-            ProofCaseKind::Ready => {
-                summary.estimate.is_some_and(|value| float_matches(value, raw_metrics.estimate))
-                    && summary.ci_low.is_some_and(|value| float_matches(value, raw_metrics.ci_low))
-                    && summary
-                        .ci_high
-                        .is_some_and(|value| float_matches(value, raw_metrics.ci_high))
-                    && summary.refusal_codes.is_empty()
-            }
-            ProofCaseKind::Insufficient => {
-                summary.estimate.is_none()
-                    && summary.ci_low.is_none()
-                    && summary.ci_high.is_none()
-                    && !summary.refusal_codes.is_empty()
-            }
-        };
-
-    let mut artifact_paths = vec![
-        path_relative_to_repo(repo_root, &contamination_report_path),
-        path_relative_to_repo(repo_root, &contamination_summary_path),
-        path_relative_to_repo(repo_root, &stage_metrics_path),
-        path_relative_to_repo(repo_root, &advisory_boundary_path),
-        path_relative_to_repo(repo_root, &contamination_modes_path),
-        path_relative_to_repo(repo_root, &contamination_stratified_path),
-    ];
-    if let Some(path) = &contamination_estimate_path {
-        artifact_paths.push(path_relative_to_repo(repo_root, path));
-    }
-    if let Some(path) = &contammix_report_path {
-        artifact_paths.push(path_relative_to_repo(repo_root, path));
-    }
-    if let Some(path) = &mt_consensus_path {
-        artifact_paths.push(path_relative_to_repo(repo_root, path));
-    }
+    let expectation_matched = contamination_expectation_matched(&summary, &raw_metrics, proof_case);
+    let artifact_paths = contamination_artifact_paths(repo_root, &case_paths);
 
     let declared_output_ids = plan
         .io
@@ -279,22 +209,153 @@ fn materialize_local_contamination_case(
         raw_estimate: raw_metrics.estimate,
         raw_ci_low: raw_metrics.ci_low,
         raw_ci_high: raw_metrics.ci_high,
-        contamination_report: path_relative_to_repo(repo_root, &contamination_report_path),
-        contamination_summary: path_relative_to_repo(repo_root, &contamination_summary_path),
-        stage_metrics: path_relative_to_repo(repo_root, &stage_metrics_path),
+        contamination_report: path_relative_to_repo(repo_root, &case_paths.contamination_report),
+        contamination_summary: path_relative_to_repo(repo_root, &case_paths.contamination_summary),
+        stage_metrics: path_relative_to_repo(repo_root, &case_paths.stage_metrics),
         declared_output_ids,
         artifact_paths,
-        contamination_estimate: contamination_estimate_path
+        contamination_estimate: case_paths
+            .contamination_estimate
             .as_ref()
             .map(|path| path_relative_to_repo(repo_root, path)),
-        contammix_report: contammix_report_path
+        contammix_report: case_paths
+            .contammix_report
             .as_ref()
             .map(|path| path_relative_to_repo(repo_root, path)),
-        mt_consensus: mt_consensus_path.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
-        advisory_boundary: path_relative_to_repo(repo_root, &advisory_boundary_path),
-        contamination_modes: path_relative_to_repo(repo_root, &contamination_modes_path),
-        contamination_stratified: path_relative_to_repo(repo_root, &contamination_stratified_path),
+        mt_consensus: case_paths
+            .mt_consensus
+            .as_ref()
+            .map(|path| path_relative_to_repo(repo_root, path)),
+        advisory_boundary: path_relative_to_repo(repo_root, &case_paths.advisory_boundary),
+        contamination_modes: path_relative_to_repo(repo_root, &case_paths.contamination_modes),
+        contamination_stratified: path_relative_to_repo(
+            repo_root,
+            &case_paths.contamination_stratified,
+        ),
     })
+}
+
+fn resolve_local_contamination_case_paths(
+    repo_root: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    tool_id: &str,
+    proof_case: ProofCaseKind,
+) -> Result<LocalContaminationCasePaths> {
+    let case_dir = repo_root
+        .join("runs/bench/local-smoke/bam.contamination")
+        .join(tool_id)
+        .join(proof_case.as_str());
+    bijux_dna_infra::ensure_dir(&case_dir)?;
+    Ok(LocalContaminationCasePaths {
+        contamination_report: resolve_case_output_path(plan, "contamination_report", &case_dir)?,
+        contamination_summary: resolve_case_output_path(plan, "summary", &case_dir)?,
+        stage_metrics: resolve_case_output_path(plan, "stage_metrics", &case_dir)?,
+        contamination_estimate: resolve_optional_case_output_path(
+            plan,
+            "contamination_estimate",
+            &case_dir,
+        ),
+        contammix_report: resolve_optional_case_output_path(plan, "contammix_report", &case_dir),
+        mt_consensus: resolve_optional_case_output_path(plan, "mt_consensus", &case_dir),
+        advisory_boundary: case_dir.join("advisory_boundary.json"),
+        contamination_modes: case_dir.join("contamination_modes.json"),
+        contamination_stratified: case_dir.join("contamination.stratified.json"),
+    })
+}
+
+fn write_local_contamination_optional_artifacts(
+    case_paths: &LocalContaminationCasePaths,
+    tool_id: &str,
+    logical_scope: &str,
+    proof_case: ProofCaseKind,
+    raw_metrics: &bijux_dna_domain_bam::metrics::ContaminationMetricsV1,
+    summary: &bijux_dna_domain_bam::BamContaminationEvidenceV1,
+) -> Result<()> {
+    if let Some(path) = &case_paths.contamination_estimate {
+        bijux_dna_infra::atomic_write_json(
+            path,
+            &serde_json::json!({
+                "stage_id": "bam.contamination",
+                "tool_id": tool_id,
+                "proof_case": proof_case.as_str(),
+                "scope": logical_scope,
+                "estimate": raw_metrics.estimate,
+                "ci_low": raw_metrics.ci_low,
+                "ci_high": raw_metrics.ci_high,
+                "prerequisites_passed": summary.prerequisites_passed,
+            }),
+        )
+        .with_context(|| format!("write {}", path.display()))?;
+    }
+    if let Some(path) = &case_paths.contammix_report {
+        bijux_dna_infra::atomic_write_bytes(
+            path,
+            format!(
+                "tool=contammix\nproof_case={}\nestimate={:.4}\nci_low={:.4}\nci_high={:.4}\n",
+                proof_case.as_str(),
+                raw_metrics.estimate,
+                raw_metrics.ci_low,
+                raw_metrics.ci_high
+            )
+            .as_bytes(),
+        )
+        .with_context(|| format!("write {}", path.display()))?;
+    }
+    if let Some(path) = &case_paths.mt_consensus {
+        bijux_dna_infra::atomic_write_bytes(
+            path,
+            format!(">adna_contamination_consensus_{}\nACGTACGTACGTACGT\n", proof_case.as_str())
+                .as_bytes(),
+        )
+        .with_context(|| format!("write {}", path.display()))?;
+    }
+    Ok(())
+}
+
+fn contamination_expectation_matched(
+    summary: &bijux_dna_domain_bam::BamContaminationEvidenceV1,
+    raw_metrics: &bijux_dna_domain_bam::metrics::ContaminationMetricsV1,
+    proof_case: ProofCaseKind,
+) -> bool {
+    summary.prerequisites_passed == proof_case.expected_prerequisites_passed()
+        && match proof_case {
+            ProofCaseKind::Ready => {
+                summary.estimate.is_some_and(|value| float_matches(value, raw_metrics.estimate))
+                    && summary.ci_low.is_some_and(|value| float_matches(value, raw_metrics.ci_low))
+                    && summary
+                        .ci_high
+                        .is_some_and(|value| float_matches(value, raw_metrics.ci_high))
+                    && summary.refusal_codes.is_empty()
+            }
+            ProofCaseKind::Insufficient => {
+                summary.estimate.is_none()
+                    && summary.ci_low.is_none()
+                    && summary.ci_high.is_none()
+                    && !summary.refusal_codes.is_empty()
+            }
+        }
+}
+
+fn contamination_artifact_paths(
+    repo_root: &Path,
+    case_paths: &LocalContaminationCasePaths,
+) -> Vec<String> {
+    let mut artifact_paths = vec![
+        path_relative_to_repo(repo_root, &case_paths.contamination_report),
+        path_relative_to_repo(repo_root, &case_paths.contamination_summary),
+        path_relative_to_repo(repo_root, &case_paths.stage_metrics),
+        path_relative_to_repo(repo_root, &case_paths.advisory_boundary),
+        path_relative_to_repo(repo_root, &case_paths.contamination_modes),
+        path_relative_to_repo(repo_root, &case_paths.contamination_stratified),
+    ];
+    for optional in
+        [&case_paths.contamination_estimate, &case_paths.contammix_report, &case_paths.mt_consensus]
+    {
+        if let Some(path) = optional {
+            artifact_paths.push(path_relative_to_repo(repo_root, path));
+        }
+    }
+    artifact_paths
 }
 
 fn raw_metrics(

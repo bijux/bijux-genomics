@@ -44,6 +44,27 @@ struct ParsedDamageToolOutput {
     metrics: bijux_dna_domain_bam::metrics::DamageMetricsV1,
 }
 
+struct LocalDamageOutputPaths {
+    summary: PathBuf,
+    terminal_position_metrics: PathBuf,
+    parser_output: PathBuf,
+    damage_profile: PathBuf,
+    damage_plot: Option<PathBuf>,
+    damage_clusters: Option<PathBuf>,
+    damage_parameters: Option<PathBuf>,
+    pmd_scores: Option<PathBuf>,
+    advisory_boundary: PathBuf,
+    udg_regime: PathBuf,
+    stage_metrics: PathBuf,
+}
+
+struct DamageExpectationDeltas {
+    expectation_matched: bool,
+    terminal_c_to_t_5p_delta: f64,
+    terminal_g_to_a_3p_delta: f64,
+    short_fragment_fraction_delta: f64,
+}
+
 /// Materialize the governed local-smoke `bam.damage` artifacts and top-level report.
 ///
 /// The written report lives at `runs/bench/local-smoke/bam.damage/damage.json`
@@ -205,56 +226,101 @@ fn materialize_local_damage_smoke_case(
         .as_bytes(),
     )?;
     write_udg_regime(&case_out_dir, &case.plan)?;
-    let summary_path = write_stage_damage_artifacts(&case_out_dir, &case.plan)?;
-    let terminal_position_metrics_path =
-        resolve_output_path(repo_root, &case.plan, "terminal_position_metrics")?;
-    let parser_output_path = resolve_output_path(repo_root, &case.plan, "parser_output")?;
-    let damage_profile_path = resolve_output_path(repo_root, &case.plan, "damage_profile")?;
-    let damage_plot_path = resolve_optional_output_path(repo_root, &case.plan, "damage_plot");
-    let damage_clusters_path =
-        resolve_optional_output_path(repo_root, &case.plan, "damage_clusters");
-    let damage_parameters_path =
-        resolve_optional_output_path(repo_root, &case.plan, "damage_parameters");
-    let pmd_scores_path = resolve_optional_output_path(repo_root, &case.plan, "pmd_scores");
-    let advisory_boundary_path = case_out_dir.join("advisory_boundary.json");
-    let udg_regime_path = case_out_dir.join("udg_regime.json");
-    let stage_metrics_path = resolve_output_path(repo_root, &case.plan, "stage_metrics")?;
+    let output_paths = resolve_local_damage_output_paths(repo_root, &case.plan, &case_out_dir)?;
 
     let summary: bijux_dna_domain_bam::BamDamageEvidenceV1 = serde_json::from_str(
-        &std::fs::read_to_string(&summary_path)
-            .with_context(|| format!("read {}", summary_path.display()))?,
+        &std::fs::read_to_string(&output_paths.summary)
+            .with_context(|| format!("read {}", output_paths.summary.display()))?,
     )
-    .with_context(|| format!("parse {}", summary_path.display()))?;
-    let unified = read_damage_unified(&terminal_position_metrics_path)?;
+    .with_context(|| format!("parse {}", output_paths.summary.display()))?;
+    let unified = read_damage_unified(&output_paths.terminal_position_metrics)?;
     let tools_seen = parse_tools_seen(&unified);
-
-    let expectation_matched =
-        float_matches(summary.terminal_c_to_t_5p, case.expected_terminal_c_to_t_5p)
-            && float_matches(summary.terminal_g_to_a_3p, case.expected_terminal_g_to_a_3p)
-            && float_matches(
-                summary.short_fragment_fraction,
-                case.expected_short_fragment_fraction,
-            )
-            && summary.damage_signal == case.expected_damage_signal
-            && summary.strict_profile_upgraded == case.expected_strict_profile_upgraded;
-    let terminal_c_to_t_5p_delta = summary.terminal_c_to_t_5p - case.expected_terminal_c_to_t_5p;
-    let terminal_g_to_a_3p_delta = summary.terminal_g_to_a_3p - case.expected_terminal_g_to_a_3p;
-    let short_fragment_fraction_delta =
-        summary.short_fragment_fraction - case.expected_short_fragment_fraction;
+    let deltas = local_damage_expectation(case, &summary);
 
     write_local_damage_extra_artifacts(
         &case.plan,
         &summary,
         &tools_seen,
-        &damage_profile_path,
-        damage_plot_path.as_deref(),
-        damage_clusters_path.as_deref(),
-        damage_parameters_path.as_deref(),
-        pmd_scores_path.as_deref(),
+        &output_paths.damage_profile,
+        output_paths.damage_plot.as_deref(),
+        output_paths.damage_clusters.as_deref(),
+        output_paths.damage_parameters.as_deref(),
+        output_paths.pmd_scores.as_deref(),
     )?;
+    write_local_damage_stage_metrics(
+        &output_paths.stage_metrics,
+        case,
+        &summary,
+        &tools_seen,
+        &deltas,
+    )?;
+    build_local_damage_smoke_report(
+        repo_root,
+        case,
+        &input_bam,
+        &summary,
+        &tools_seen,
+        &output_paths,
+        &deltas,
+    )
+}
 
+fn resolve_local_damage_output_paths(
+    repo_root: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    case_out_dir: &Path,
+) -> Result<LocalDamageOutputPaths> {
+    Ok(LocalDamageOutputPaths {
+        summary: write_stage_damage_artifacts(case_out_dir, plan)?,
+        terminal_position_metrics: resolve_output_path(
+            repo_root,
+            plan,
+            "terminal_position_metrics",
+        )?,
+        parser_output: resolve_output_path(repo_root, plan, "parser_output")?,
+        damage_profile: resolve_output_path(repo_root, plan, "damage_profile")?,
+        damage_plot: resolve_optional_output_path(repo_root, plan, "damage_plot"),
+        damage_clusters: resolve_optional_output_path(repo_root, plan, "damage_clusters"),
+        damage_parameters: resolve_optional_output_path(repo_root, plan, "damage_parameters"),
+        pmd_scores: resolve_optional_output_path(repo_root, plan, "pmd_scores"),
+        advisory_boundary: case_out_dir.join("advisory_boundary.json"),
+        udg_regime: case_out_dir.join("udg_regime.json"),
+        stage_metrics: resolve_output_path(repo_root, plan, "stage_metrics")?,
+    })
+}
+
+fn local_damage_expectation(
+    case: &bijux_dna_planner_bam::stage_api::LocalDamageSmokeCasePlan,
+    summary: &bijux_dna_domain_bam::BamDamageEvidenceV1,
+) -> DamageExpectationDeltas {
+    DamageExpectationDeltas {
+        expectation_matched: float_matches(
+            summary.terminal_c_to_t_5p,
+            case.expected_terminal_c_to_t_5p,
+        ) && float_matches(
+            summary.terminal_g_to_a_3p,
+            case.expected_terminal_g_to_a_3p,
+        ) && float_matches(
+            summary.short_fragment_fraction,
+            case.expected_short_fragment_fraction,
+        ) && summary.damage_signal == case.expected_damage_signal
+            && summary.strict_profile_upgraded == case.expected_strict_profile_upgraded,
+        terminal_c_to_t_5p_delta: summary.terminal_c_to_t_5p - case.expected_terminal_c_to_t_5p,
+        terminal_g_to_a_3p_delta: summary.terminal_g_to_a_3p - case.expected_terminal_g_to_a_3p,
+        short_fragment_fraction_delta: summary.short_fragment_fraction
+            - case.expected_short_fragment_fraction,
+    }
+}
+
+fn write_local_damage_stage_metrics(
+    path: &Path,
+    case: &bijux_dna_planner_bam::stage_api::LocalDamageSmokeCasePlan,
+    summary: &bijux_dna_domain_bam::BamDamageEvidenceV1,
+    tools_seen: &[String],
+    deltas: &DamageExpectationDeltas,
+) -> Result<()> {
     bijux_dna_infra::atomic_write_json(
-        &stage_metrics_path,
+        path,
         &serde_json::json!({
             "schema_version": DAMAGE_STAGE_METRICS_SCHEMA_VERSION,
             "stage_id": "bam.damage",
@@ -263,52 +329,70 @@ fn materialize_local_damage_smoke_case(
             "tools_seen": tools_seen,
             "expected_terminal_c_to_t_5p": case.expected_terminal_c_to_t_5p,
             "terminal_c_to_t_5p": summary.terminal_c_to_t_5p,
-            "terminal_c_to_t_5p_delta": terminal_c_to_t_5p_delta,
+            "terminal_c_to_t_5p_delta": deltas.terminal_c_to_t_5p_delta,
             "expected_terminal_g_to_a_3p": case.expected_terminal_g_to_a_3p,
             "terminal_g_to_a_3p": summary.terminal_g_to_a_3p,
-            "terminal_g_to_a_3p_delta": terminal_g_to_a_3p_delta,
+            "terminal_g_to_a_3p_delta": deltas.terminal_g_to_a_3p_delta,
             "expected_short_fragment_fraction": case.expected_short_fragment_fraction,
             "short_fragment_fraction": summary.short_fragment_fraction,
-            "short_fragment_fraction_delta": short_fragment_fraction_delta,
+            "short_fragment_fraction_delta": deltas.short_fragment_fraction_delta,
             "expected_damage_signal": case.expected_damage_signal,
             "damage_signal": summary.damage_signal,
             "expected_strict_profile_upgraded": case.expected_strict_profile_upgraded,
             "strict_profile_upgraded": summary.strict_profile_upgraded,
-            "expectation_matched": expectation_matched,
+            "expectation_matched": deltas.expectation_matched,
         }),
-    )?;
+    )
+}
 
+fn build_local_damage_smoke_report(
+    repo_root: &Path,
+    case: &bijux_dna_planner_bam::stage_api::LocalDamageSmokeCasePlan,
+    input_bam: &Path,
+    summary: &bijux_dna_domain_bam::BamDamageEvidenceV1,
+    tools_seen: &[String],
+    output_paths: &LocalDamageOutputPaths,
+    deltas: &DamageExpectationDeltas,
+) -> Result<LocalDamageSmokeReport> {
     Ok(LocalDamageSmokeReport {
         schema_version: LOCAL_DAMAGE_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
         stage_id: "bam.damage".to_string(),
         sample_id: case.sample_id.clone(),
-        expectation_matched,
-        input_bam: path_relative_to_repo(repo_root, &input_bam),
+        expectation_matched: deltas.expectation_matched,
+        input_bam: path_relative_to_repo(repo_root, input_bam),
         method: case.plan.tool_id.as_str().to_string(),
-        tools_seen,
+        tools_seen: tools_seen.to_vec(),
         terminal_c_to_t_5p: summary.terminal_c_to_t_5p,
         terminal_g_to_a_3p: summary.terminal_g_to_a_3p,
         short_fragment_fraction: summary.short_fragment_fraction,
-        damage_signal: summary.damage_signal,
+        damage_signal: summary.damage_signal.clone(),
         strict_profile_upgraded: summary.strict_profile_upgraded,
-        damage_report: path_relative_to_repo(repo_root, &summary_path),
+        damage_report: path_relative_to_repo(repo_root, &output_paths.summary),
         terminal_position_metrics: path_relative_to_repo(
             repo_root,
-            &terminal_position_metrics_path,
+            &output_paths.terminal_position_metrics,
         ),
-        parser_output: path_relative_to_repo(repo_root, &parser_output_path),
-        damage_profile: path_relative_to_repo(repo_root, &damage_profile_path),
-        damage_plot: damage_plot_path.as_deref().map(|path| path_relative_to_repo(repo_root, path)),
-        damage_clusters: damage_clusters_path
+        parser_output: path_relative_to_repo(repo_root, &output_paths.parser_output),
+        damage_profile: path_relative_to_repo(repo_root, &output_paths.damage_profile),
+        damage_plot: output_paths
+            .damage_plot
             .as_deref()
             .map(|path| path_relative_to_repo(repo_root, path)),
-        damage_parameters: damage_parameters_path
+        damage_clusters: output_paths
+            .damage_clusters
             .as_deref()
             .map(|path| path_relative_to_repo(repo_root, path)),
-        pmd_scores: pmd_scores_path.as_deref().map(|path| path_relative_to_repo(repo_root, path)),
-        advisory_boundary: path_relative_to_repo(repo_root, &advisory_boundary_path),
-        udg_regime: path_relative_to_repo(repo_root, &udg_regime_path),
-        stage_metrics: path_relative_to_repo(repo_root, &stage_metrics_path),
+        damage_parameters: output_paths
+            .damage_parameters
+            .as_deref()
+            .map(|path| path_relative_to_repo(repo_root, path)),
+        pmd_scores: output_paths
+            .pmd_scores
+            .as_deref()
+            .map(|path| path_relative_to_repo(repo_root, path)),
+        advisory_boundary: path_relative_to_repo(repo_root, &output_paths.advisory_boundary),
+        udg_regime: path_relative_to_repo(repo_root, &output_paths.udg_regime),
+        stage_metrics: path_relative_to_repo(repo_root, &output_paths.stage_metrics),
     })
 }
 
@@ -458,8 +542,29 @@ fn write_local_damage_extra_artifacts(
     pmd_scores_path: Option<&Path>,
 ) -> Result<()> {
     let tool_id = plan.tool_id.as_str();
+    write_damage_profile_artifact(damage_profile_path, tool_id, summary)?;
+    if let Some(damage_plot_path) = damage_plot_path {
+        write_damage_plot_artifact(damage_plot_path, tool_id, tools_seen)?;
+    }
+    if let Some(damage_clusters_path) = damage_clusters_path {
+        write_damage_clusters_artifact(damage_clusters_path, tool_id, summary)?;
+    }
+    if let Some(damage_parameters_path) = damage_parameters_path {
+        write_damage_parameters_artifact(damage_parameters_path, plan, tool_id)?;
+    }
+    if let Some(pmd_scores_path) = pmd_scores_path {
+        write_damage_pmd_scores_artifact(pmd_scores_path, tool_id)?;
+    }
+    Ok(())
+}
+
+fn write_damage_profile_artifact(
+    path: &Path,
+    tool_id: &str,
+    summary: &bijux_dna_domain_bam::BamDamageEvidenceV1,
+) -> Result<()> {
     bijux_dna_infra::atomic_write_json(
-        damage_profile_path,
+        path,
         &serde_json::json!({
             "artifact_id": "damage_profile",
             "stage_id": "bam.damage",
@@ -468,67 +573,72 @@ fn write_local_damage_extra_artifacts(
             "terminal_g_to_a_3p": summary.terminal_g_to_a_3p,
             "damage_signal": summary.damage_signal,
         }),
-    )?;
-    if let Some(damage_plot_path) = damage_plot_path {
-        bijux_dna_infra::atomic_write_json(
-            damage_plot_path,
-            &serde_json::json!({
-                "artifact_id": "damage_plot",
-                "stage_id": "bam.damage",
-                "tool_id": tool_id,
-                "status": "local_smoke_placeholder",
-                "tools_seen": tools_seen,
-            }),
-        )?;
-    }
-    if let Some(damage_clusters_path) = damage_clusters_path {
-        bijux_dna_infra::atomic_write_json(
-            damage_clusters_path,
-            &serde_json::json!({
-                "artifact_id": "damage_clusters",
-                "stage_id": "bam.damage",
-                "tool_id": tool_id,
-                "clusters": [
-                    {
-                        "label": summary.damage_signal,
-                        "terminal_c_to_t_5p": summary.terminal_c_to_t_5p,
-                        "terminal_g_to_a_3p": summary.terminal_g_to_a_3p,
-                    }
-                ],
-            }),
-        )?;
-    }
-    if let Some(damage_parameters_path) = damage_parameters_path {
-        bijux_dna_infra::atomic_write_json(
-            damage_parameters_path,
-            &serde_json::json!({
-                "artifact_id": "damage_parameters",
-                "stage_id": "bam.damage",
-                "tool_id": tool_id,
-                "damage_tool_profile": plan
-                    .params
-                    .get("damage_tool_profile")
-                    .and_then(serde_json::Value::as_str),
-                "evidence_only": plan
-                    .params
-                    .get("evidence_only")
-                    .and_then(serde_json::Value::as_bool),
-                "udg_model": plan.params.get("udg_model").and_then(serde_json::Value::as_str),
-            }),
-        )?;
-    }
-    if let Some(pmd_scores_path) = pmd_scores_path {
-        bijux_dna_infra::atomic_write_json(
-            pmd_scores_path,
-            &serde_json::json!({
-                "artifact_id": "pmd_scores",
-                "stage_id": "bam.damage",
-                "tool_id": tool_id,
-                "scores": [0, 1, 2, 3],
-            }),
-        )?;
-    }
-    Ok(())
+    )
+}
+
+fn write_damage_plot_artifact(path: &Path, tool_id: &str, tools_seen: &[String]) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(
+        path,
+        &serde_json::json!({
+            "artifact_id": "damage_plot",
+            "stage_id": "bam.damage",
+            "tool_id": tool_id,
+            "status": "local_smoke_placeholder",
+            "tools_seen": tools_seen,
+        }),
+    )
+}
+
+fn write_damage_clusters_artifact(
+    path: &Path,
+    tool_id: &str,
+    summary: &bijux_dna_domain_bam::BamDamageEvidenceV1,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(
+        path,
+        &serde_json::json!({
+            "artifact_id": "damage_clusters",
+            "stage_id": "bam.damage",
+            "tool_id": tool_id,
+            "clusters": [
+                {
+                    "label": summary.damage_signal,
+                    "terminal_c_to_t_5p": summary.terminal_c_to_t_5p,
+                    "terminal_g_to_a_3p": summary.terminal_g_to_a_3p,
+                }
+            ],
+        }),
+    )
+}
+
+fn write_damage_parameters_artifact(
+    path: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    tool_id: &str,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(
+        path,
+        &serde_json::json!({
+            "artifact_id": "damage_parameters",
+            "stage_id": "bam.damage",
+            "tool_id": tool_id,
+            "damage_tool_profile": plan.params.get("damage_tool_profile").and_then(serde_json::Value::as_str),
+            "evidence_only": plan.params.get("evidence_only").and_then(serde_json::Value::as_bool),
+            "udg_model": plan.params.get("udg_model").and_then(serde_json::Value::as_str),
+        }),
+    )
+}
+
+fn write_damage_pmd_scores_artifact(path: &Path, tool_id: &str) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(
+        path,
+        &serde_json::json!({
+            "artifact_id": "pmd_scores",
+            "stage_id": "bam.damage",
+            "tool_id": tool_id,
+            "scores": [0, 1, 2, 3],
+        }),
+    )
 }
 
 fn write_udg_regime(
