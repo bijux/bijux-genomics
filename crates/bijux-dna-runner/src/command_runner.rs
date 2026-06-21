@@ -86,8 +86,8 @@ pub fn run_command_with_context_and_timeout(
                     args,
                     start,
                     status.code().unwrap_or(-1),
-                    stdout,
-                    stderr,
+                    &stdout,
+                    &stderr,
                 ),
                 timed_out: false,
             });
@@ -125,8 +125,8 @@ pub fn run_command_with_context_and_timeout(
                     args,
                     start,
                     status.code().unwrap_or(-1),
-                    stdout,
-                    timed_out_stderr,
+                    &stdout,
+                    &timed_out_stderr,
                 ),
                 timed_out: true,
             });
@@ -193,8 +193,8 @@ fn command_output(
         args,
         start,
         output.status.code().unwrap_or(-1),
-        output.stdout.clone(),
-        output.stderr.clone(),
+        &output.stdout,
+        &output.stderr,
     )
 }
 
@@ -203,12 +203,12 @@ fn command_output_from_parts(
     args: &[String],
     start: Instant,
     exit_code: i32,
-    stdout: Vec<u8>,
-    stderr: Vec<u8>,
+    stdout: &[u8],
+    stderr: &[u8],
 ) -> CommandOutputV1 {
     let runtime_s = start.elapsed().as_secs_f64();
-    let stdout = String::from_utf8_lossy(&stdout).to_string();
-    let stderr = String::from_utf8_lossy(&stderr).to_string();
+    let stdout = String::from_utf8_lossy(stdout).to_string();
+    let stderr = String::from_utf8_lossy(stderr).to_string();
     CommandOutputV1 {
         stdout,
         stderr,
