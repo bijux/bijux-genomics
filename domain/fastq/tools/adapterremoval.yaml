@@ -75,12 +75,19 @@ stage_contracts:
   fastq.trim_reads:
     required_inputs:
       - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
+    execution_contract:
+      expected_outputs:
+        - "trimmed_reads_r1"
+        - "report_json"
+      optional_outputs:
+        - "trimmed_reads_r2"
     expected_artifacts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
-      - "raw_backend_report_json"
-    notes: "Trim execution emits governed trimmed-read artifacts together with the normalized stage report."
+    notes: "AdapterRemoval trim execution emits governed trimmed-read artifacts together with the normalized stage report, keeps reads_r1 as the canonical required input, and accepts an optional reads_r2 mate for paired layouts without retaining a backend-native raw-report artifact."
   fastq.trim_terminal_damage:
     required_inputs:
       - "reads_r1"

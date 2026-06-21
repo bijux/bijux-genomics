@@ -1,5 +1,5 @@
 {
-  "schema_version": "bijux.bench.readiness.output_contract_tests.v1",
+  "schema_version": "bijux.bench.readiness.output_contract_audit.v1",
   "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
   "row_count": 141,
   "passed_row_count": 141,

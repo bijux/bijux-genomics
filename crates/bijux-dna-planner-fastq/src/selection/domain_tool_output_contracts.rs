@@ -289,6 +289,35 @@ mod tests {
     }
 
     #[test]
+    fn load_fastq_domain_tool_stage_output_contract_keeps_trim_reads_optional_mate_outputs(
+    ) -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::from_static("fastq.trim_reads");
+        let tool_id = ToolId::from_static("adapterremoval");
+
+        let contract =
+            load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(
+            contract.execution_expected_output_ids,
+            vec![
+                "trimmed_reads_r1".to_string(),
+                "report_json".to_string(),
+                "trimmed_reads_r2".to_string(),
+            ]
+        );
+        assert_eq!(
+            contract.stage_expected_artifact_ids,
+            vec![
+                "trimmed_reads_r1".to_string(),
+                "trimmed_reads_r2".to_string(),
+                "report_json".to_string(),
+            ]
+        );
+        Ok(())
+    }
+
+    #[test]
     fn load_fastq_domain_tool_stage_output_contract_keeps_terminal_damage_mate_optional(
     ) -> Result<()> {
         let repo_root = repo_root();
