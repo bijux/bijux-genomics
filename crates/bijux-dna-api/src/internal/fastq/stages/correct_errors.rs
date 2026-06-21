@@ -713,12 +713,21 @@ mod tests {
         let output_r1 = temp.path().join("output_R1.fastq");
         let output_r2 = temp.path().join("output_R2.fastq");
 
-        bijux_dna_infra::write_payload(&input_r1, "@read1/1\nACGT\n+\n!!!!\n@read2/1\nTGCA\n+\n####\n")
-            .expect("write input r1");
-        bijux_dna_infra::write_payload(&input_r2, "@read1/2\nTTTT\n+\n$$$$\n@read2/2\nCCCC\n+\n%%%%\n")
-            .expect("write input r2");
-        bijux_dna_infra::write_payload(&output_r1, "@read1/1\nACGT\n+\n!!!!\n@read2/1\nTGCT\n+\n####\n")
-            .expect("write output r1");
+        bijux_dna_infra::write_payload(
+            &input_r1,
+            "@read1/1\nACGT\n+\n!!!!\n@read2/1\nTGCA\n+\n####\n",
+        )
+        .expect("write input r1");
+        bijux_dna_infra::write_payload(
+            &input_r2,
+            "@read1/2\nTTTT\n+\n$$$$\n@read2/2\nCCCC\n+\n%%%%\n",
+        )
+        .expect("write input r2");
+        bijux_dna_infra::write_payload(
+            &output_r1,
+            "@read1/1\nACGT\n+\n!!!!\n@read2/1\nTGCT\n+\n####\n",
+        )
+        .expect("write output r1");
         bijux_dna_infra::write_payload(
             &output_r2,
             "@read1/2 changed-header\nTTTT\n+\n$$$$\n@read2/2\nCCCC\n+\n&&&&\n",

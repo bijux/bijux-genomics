@@ -929,8 +929,11 @@ mod tests {
     fn pca_rows_reject_duplicate_samples() {
         let temp = tempfile::tempdir().expect("tempdir");
         let table = temp.path().join("pca.tsv");
-        bijux_dna_infra::write_payload(&table, "sample\tPC1\tPC2\nsample_a\t0.1\t0.2\nsample_a\t0.3\t0.4\n")
-            .expect("write pca table");
+        bijux_dna_infra::write_payload(
+            &table,
+            "sample\tPC1\tPC2\nsample_a\t0.1\t0.2\nsample_a\t0.3\t0.4\n",
+        )
+        .expect("write pca table");
         let mut metadata = BTreeMap::new();
         metadata.insert(
             "sample_a".to_string(),

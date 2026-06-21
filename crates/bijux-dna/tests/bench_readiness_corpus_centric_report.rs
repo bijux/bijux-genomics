@@ -213,7 +213,8 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
     let bam = corpora
         .iter()
         .find(|corpus| {
-            corpus.get("corpus_family_id").and_then(serde_json::Value::as_str) == Some("corpus-01-bam")
+            corpus.get("corpus_family_id").and_then(serde_json::Value::as_str)
+                == Some("corpus-01-bam")
         })
         .expect("bam corpus");
     assert_eq!(bam.get("stage_count").and_then(serde_json::Value::as_u64), Some(16));

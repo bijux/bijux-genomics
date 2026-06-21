@@ -89,8 +89,7 @@ use crate::tool_adapters::fastq::validate_reads::{
     default_plan_options_for_layout, plan_with_options, validation_mode_from_literal,
 };
 
-const LOCAL_DETECT_ADAPTERS_CONFIG_PATH: &str =
-    "configs/bench/local/fastq-detect-adapters.toml";
+const LOCAL_DETECT_ADAPTERS_CONFIG_PATH: &str = "configs/bench/local/fastq-detect-adapters.toml";
 const DEFAULT_LOCAL_DETECT_ADAPTERS_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.detect_adapters";
 const LOCAL_CORRECT_ERRORS_CONFIG_PATH: &str = "configs/bench/local/fastq-correct-errors.toml";
@@ -141,14 +140,12 @@ const LOCAL_REMOVE_DUPLICATES_CONFIG_PATH: &str =
     "configs/bench/local/fastq-remove-duplicates.toml";
 const DEFAULT_LOCAL_REMOVE_DUPLICATES_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.remove_duplicates";
-const LOCAL_REMOVE_CHIMERAS_CONFIG_PATH: &str =
-    "configs/bench/local/fastq-remove-chimeras.toml";
+const LOCAL_REMOVE_CHIMERAS_CONFIG_PATH: &str = "configs/bench/local/fastq-remove-chimeras.toml";
 const DEFAULT_LOCAL_REMOVE_CHIMERAS_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.remove_chimeras";
 const LOCAL_TRIM_READS_CONFIG_PATH: &str = "configs/bench/local/fastq-trim-reads.toml";
 const DEFAULT_LOCAL_TRIM_READS_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.trim_reads";
-const LOCAL_TRIM_POLYG_TAILS_CONFIG_PATH: &str =
-    "configs/bench/local/fastq-trim-polyg-tails.toml";
+const LOCAL_TRIM_POLYG_TAILS_CONFIG_PATH: &str = "configs/bench/local/fastq-trim-polyg-tails.toml";
 const DEFAULT_LOCAL_TRIM_POLYG_TAILS_OUTPUT_DIR: &str =
     "runs/bench/local-smoke/fastq.trim_polyg_tails";
 const LOCAL_TRIM_TERMINAL_DAMAGE_CONFIG_PATH: &str =

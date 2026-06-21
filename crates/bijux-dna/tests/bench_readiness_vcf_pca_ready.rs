@@ -142,13 +142,12 @@ fn bench_readiness_vcf_pca_ready_reports_complete_active_retained_callers() {
                 && items.iter().any(|item| item.as_str() == Some("tool_ok"))
         }
     ));
-    assert!(plink2
-        .get("report_metric_columns")
-        .and_then(serde_json::Value::as_array)
-        .is_some_and(|items| {
+    assert!(plink2.get("report_metric_columns").and_then(serde_json::Value::as_array).is_some_and(
+        |items| {
             items.iter().any(|item| item.as_str() == Some("execution_mode"))
                 && items.iter().any(|item| item.as_str() == Some("tool_ok"))
-        }));
+        }
+    ));
 
     let eigensoft = rows
         .iter()

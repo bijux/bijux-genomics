@@ -17,10 +17,7 @@ fn dependency_graph_matches_domain_vcf_boundary() {
 
     let dev_dependencies = section_keys(&manifest, "[dev-dependencies]");
     let expected_dev_dependencies: BTreeSet<_> =
-        ["bijux-dna-policies", "bijux-dna-testkit"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+        ["bijux-dna-policies", "bijux-dna-testkit"].into_iter().map(str::to_string).collect();
     assert_eq!(dev_dependencies, expected_dev_dependencies, "unexpected dev dependency shape");
 
     assert!(

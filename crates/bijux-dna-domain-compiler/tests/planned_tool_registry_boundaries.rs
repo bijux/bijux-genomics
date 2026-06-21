@@ -49,8 +49,9 @@ fn compiler_keeps_planned_fastq_tools_out_of_governed_registry() -> Result<()> {
         "stage catalog must keep planned trim alternatives visible when they stay outside the governed runtime surface"
     );
 
-    let experimental_registry =
-        std::fs::read_to_string(out_dir.path().join("ci/registry/tool_registry_experimental.toml"))?;
+    let experimental_registry = std::fs::read_to_string(
+        out_dir.path().join("ci/registry/tool_registry_experimental.toml"),
+    )?;
     let seqfu_block = experimental_registry
         .split("[[tools]]")
         .map(str::trim)

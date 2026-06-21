@@ -853,8 +853,11 @@ mod tests {
     fn admixture_rows_require_ancestry_sum_to_one() {
         let temp = tempfile::tempdir().expect("tempdir");
         let table = temp.path().join("admixture.tsv");
-        bijux_dna_infra::write_payload(&table, "sample\tcluster_1\tcluster_2\nsample_a\t0.4\t0.5\n")
-            .expect("write admixture table");
+        bijux_dna_infra::write_payload(
+            &table,
+            "sample\tcluster_1\tcluster_2\nsample_a\t0.4\t0.5\n",
+        )
+        .expect("write admixture table");
         let mut metadata = BTreeMap::new();
         metadata.insert(
             "sample_a".to_string(),

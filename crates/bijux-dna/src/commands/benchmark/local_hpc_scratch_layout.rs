@@ -938,7 +938,8 @@ mod tests {
                 &format!("\"input_link_count\": {}", rendered.input_link_count.saturating_sub(1)),
                 1,
             );
-        bijux_dna_infra::write_payload(&manifest_path, stale_body).expect("write stale manifest body");
+        bijux_dna_infra::write_payload(&manifest_path, stale_body)
+            .expect("write stale manifest body");
 
         let error = validate_hpc_scratch_layout_path(&root, &manifest_path)
             .expect_err("stale scratch layout must fail validation");

@@ -713,9 +713,7 @@ fn json_contains_insufficient_marker(value: &Value) -> bool {
             const STATUS_KEYS: &[&str] = &["status", "state", "result_status", "summary_status"];
 
             STATUS_KEYS.iter().any(|key| {
-                map.get(*key)
-                    .and_then(Value::as_str)
-                    .is_some_and(text_contains_insufficient_marker)
+                map.get(*key).and_then(Value::as_str).is_some_and(text_contains_insufficient_marker)
             }) || map.get("summary").is_some_and(json_contains_insufficient_marker)
         }
         _ => false,

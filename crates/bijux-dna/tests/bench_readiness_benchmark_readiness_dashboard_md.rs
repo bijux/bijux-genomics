@@ -51,8 +51,10 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
         .get("expected_pair_count")
         .and_then(serde_json::Value::as_u64)
         .expect("expected_pair_count");
-    let ready_pair_count =
-        json_value.get("ready_pair_count").and_then(serde_json::Value::as_u64).expect("ready_pair_count");
+    let ready_pair_count = json_value
+        .get("ready_pair_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("ready_pair_count");
     let blocked_pair_count = json_value
         .get("blocked_pair_count")
         .and_then(serde_json::Value::as_u64)
@@ -80,9 +82,8 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
     ));
     assert!(markdown.contains("| stage_centric_report | benchmarks/readiness/stage-centric-report.md | 51 stage_sections |"));
     assert!(markdown.contains("## Exact Blockers"));
-    assert!(markdown.contains(
-        "| Domain | Stage | Tool | Gap | Support | Adapter | Parser | Corpus | Asset |"
-    ));
+    assert!(markdown
+        .contains("| Domain | Stage | Tool | Gap | Support | Adapter | Parser | Corpus | Asset |"));
 
     assert_eq!(
         json_value.get("schema_version").and_then(serde_json::Value::as_str),

@@ -39,11 +39,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_nodes() {
     let payload =
         run_cli_json(&["bench", "readiness", "render-essential-pipeline-commands", "--json"]);
-    let expected_tool_id = if cfg!(feature = "bam_downstream") {
-        "angsd"
-    } else {
-        "bijux-dna"
-    };
+    let expected_tool_id = if cfg!(feature = "bam_downstream") { "angsd" } else { "bijux-dna" };
     let expected_command_source = if cfg!(feature = "bam_downstream") {
         "bam_governed_stage_command"
     } else {
@@ -171,13 +167,15 @@ fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_n
             .get("script_commands")
             .and_then(serde_json::Value::as_array)
             .is_some_and(|commands| commands.iter().any(|item| {
-                item.as_str().is_some_and(|command| if cfg!(feature = "bam_downstream") {
-                    command.contains("angsd -i")
-                        && command.contains("genotyping.bcf")
-                        && command.contains("genotyping.vcf.gz")
-                } else {
-                    command.contains("bench local materialize-stage")
-                        && command.contains("--stage-id bam.genotyping")
+                item.as_str().is_some_and(|command| {
+                    if cfg!(feature = "bam_downstream") {
+                        command.contains("angsd -i")
+                            && command.contains("genotyping.bcf")
+                            && command.contains("genotyping.vcf.gz")
+                    } else {
+                        command.contains("bench local materialize-stage")
+                            && command.contains("--stage-id bam.genotyping")
+                    }
                 })
             })),
         "bam.genotyping row must render the supported command path for the active feature set"

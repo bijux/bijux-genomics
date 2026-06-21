@@ -95,7 +95,10 @@ impl RepoProcessLock {
                         }
                     }
                     if Instant::now() >= deadline {
-                        return Err(anyhow!("timed out waiting for repo test lock `{}`", path.display()));
+                        return Err(anyhow!(
+                            "timed out waiting for repo test lock `{}`",
+                            path.display()
+                        ));
                     }
                     std::thread::sleep(TEST_LOCK_POLL_INTERVAL);
                 }
@@ -138,9 +141,9 @@ fn lock_is_older_than(path: &Path, threshold: Duration) -> Result<bool> {
     let modified = fs::metadata(path)
         .and_then(|metadata| metadata.modified())
         .map_err(|error| anyhow!("read repo test lock metadata `{}`: {error}", path.display()))?;
-    let age = modified.elapsed().map_err(|error| {
-        anyhow!("measure repo test lock age `{}`: {error}", path.display())
-    })?;
+    let age = modified
+        .elapsed()
+        .map_err(|error| anyhow!("measure repo test lock age `{}`: {error}", path.display()))?;
     Ok(age >= threshold)
 }
 

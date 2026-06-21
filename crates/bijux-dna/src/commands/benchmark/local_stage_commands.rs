@@ -1206,7 +1206,8 @@ mod tests {
         let contributors_dir = root.join("runs/bench/local-smoke/fastq.report_qc/contributors");
         std::fs::create_dir_all(&contributors_dir).expect("create contributors dir");
         let contributor = contributors_dir.join("detect_adapters.report.json");
-        bijux_dna_infra::write_payload(&contributor, br#"{"stale":true}"#).expect("seed stale contributor");
+        bijux_dna_infra::write_payload(&contributor, br#"{"stale":true}"#)
+            .expect("seed stale contributor");
         std::fs::set_permissions(&contributor, std::fs::Permissions::from_mode(0o444))
             .expect("set readonly contributor");
 
