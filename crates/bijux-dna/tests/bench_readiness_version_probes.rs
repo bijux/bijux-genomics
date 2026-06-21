@@ -82,6 +82,18 @@ fn bench_readiness_version_probes_report_governed_probe_contracts() {
             )
     }));
     assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqfu")
+            && row.get("version_probe_status").and_then(serde_json::Value::as_str) == Some("ready")
+            && row.get("registry_paths").and_then(serde_json::Value::as_array).is_some_and(
+                |paths| {
+                    paths.iter().any(|path| {
+                        path.as_str()
+                            == Some("configs/ci/registry/tool_registry_experimental.toml")
+                    })
+                },
+            )
+    }));
+    assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit5")
             && row.get("version_probe_status").and_then(serde_json::Value::as_str)
                 == Some("unavailable_with_reason")

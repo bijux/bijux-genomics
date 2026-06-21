@@ -17,8 +17,11 @@ const VERSION_PROBES_SCHEMA_VERSION: &str = "bijux.bench.readiness.version_probe
 const VERSION_PROBE_STATUS_READY: &str = "ready";
 const VERSION_PROBE_STATUS_UNAVAILABLE: &str = "unavailable_with_reason";
 const VERSION_PARSER_KIND_FIRST_DOTTED_NUMERIC_TOKEN: &str = "first_dotted_numeric_token";
-const GOVERNED_TOOL_REGISTRY_PATHS: [&str; 2] =
-    ["configs/ci/registry/tool_registry.toml", "configs/ci/registry/tool_registry_vcf.toml"];
+const GOVERNED_TOOL_REGISTRY_PATHS: [&str; 3] = [
+    "configs/ci/registry/tool_registry.toml",
+    "configs/ci/registry/tool_registry_experimental.toml",
+    "configs/ci/registry/tool_registry_vcf.toml",
+];
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct VersionProbeRow {

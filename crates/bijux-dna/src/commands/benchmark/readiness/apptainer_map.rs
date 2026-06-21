@@ -16,8 +16,11 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_APPTAINER_MAP_PATH: &str = "benchmarks/readiness/tools/apptainer-map.tsv";
 const APPTAINER_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.apptainer_map.v1";
-const GOVERNED_TOOL_REGISTRY_PATHS: [&str; 2] =
-    ["configs/ci/registry/tool_registry.toml", "configs/ci/registry/tool_registry_vcf.toml"];
+const GOVERNED_TOOL_REGISTRY_PATHS: [&str; 3] = [
+    "configs/ci/registry/tool_registry.toml",
+    "configs/ci/registry/tool_registry_experimental.toml",
+    "configs/ci/registry/tool_registry_vcf.toml",
+];
 const APPTAINER_CACHE_ROOT_TEMPLATE: &str = "${BIJUX_HPC_ROOT}/.cache";
 const APPTAINER_CONTAINERS_ROOT_TEMPLATE: &str = "${BIJUX_HPC_ROOT}/.cache/bijux-dna-container";
 

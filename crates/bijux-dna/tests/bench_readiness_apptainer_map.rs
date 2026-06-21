@@ -114,4 +114,14 @@ fn bench_readiness_apptainer_map_reports_governed_docker_to_sif_mappings() {
                 },
             )
     }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqfu")
+            && row.get("registry_paths").and_then(serde_json::Value::as_array).is_some_and(
+                |paths| {
+                    paths.len() == 1
+                        && paths.first().and_then(serde_json::Value::as_str)
+                            == Some("configs/ci/registry/tool_registry_experimental.toml")
+                },
+            )
+    }));
 }

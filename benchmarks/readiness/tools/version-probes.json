@@ -1312,7 +1312,8 @@
         "vcf.admixture",
         "vcf.pca",
         "vcf.population_structure",
-        "vcf.qc"
+        "vcf.qc",
+        "vcf.roh"
       ],
       "resolution_kind": "docker_image",
       "resolution_target": "containers/docker/arm64/Dockerfile.plink2@sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec",
@@ -1576,7 +1577,7 @@
         "domain/fastq/tools/seqfu.yaml"
       ],
       "registry_paths": [
-        "configs/ci/registry/tool_registry.toml"
+        "configs/ci/registry/tool_registry_experimental.toml"
       ],
       "unavailable_reason": null
     },
