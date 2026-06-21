@@ -46,11 +46,11 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq
     apt-get install -y --no-install-recommends build-essential ca-certificates curl pkg-config libssl-dev xz-utils
-    curl -fsSL -o /tmp/rust-1.88.0-aarch64-unknown-linux-gnu.tar.xz \
-        https://static.rust-lang.org/dist/rust-1.88.0-aarch64-unknown-linux-gnu.tar.xz
-    echo "d5decc46123eb888f809f2ee3b118d13586a37ffad38afaefe56aa7139481d34  /tmp/rust-1.88.0-aarch64-unknown-linux-gnu.tar.xz" | sha256sum -c -
-    tar -xJf /tmp/rust-1.88.0-aarch64-unknown-linux-gnu.tar.xz -C /tmp
-    /tmp/rust-1.88.0-aarch64-unknown-linux-gnu/install.sh --prefix=/opt/rust --without=rust-docs
+    curl -fsSL -o /tmp/rust-1.95.0-aarch64-unknown-linux-gnu.tar.xz \
+        https://static.rust-lang.org/dist/2026-04-16/rust-1.95.0-aarch64-unknown-linux-gnu.tar.xz
+    echo "094c9c36531911c5cc7dd6ab2d3069ab8dcd744d6239b0bda1387b243dfc391e  /tmp/rust-1.95.0-aarch64-unknown-linux-gnu.tar.xz" | sha256sum -c -
+    tar -xJf /tmp/rust-1.95.0-aarch64-unknown-linux-gnu.tar.xz -C /tmp
+    /tmp/rust-1.95.0-aarch64-unknown-linux-gnu/install.sh --prefix=/opt/rust --without=rust-docs
     export PATH=/opt/rust/bin:${PATH}
     cd /opt/bijux-src
     cargo build --locked --release -p bijux-dna
@@ -60,7 +60,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     cp -a domain/. /opt/bijux/domain/
     cp -a benchmarks/. /opt/bijux/benchmarks/
     rm -rf /var/lib/apt/lists/*
-    rm -rf /tmp/rust-1.88.0-aarch64-unknown-linux-gnu /tmp/rust-1.88.0-aarch64-unknown-linux-gnu.tar.xz
+    rm -rf /tmp/rust-1.95.0-aarch64-unknown-linux-gnu /tmp/rust-1.95.0-aarch64-unknown-linux-gnu.tar.xz
     rm -rf /opt/bijux-src
 
 %runscript

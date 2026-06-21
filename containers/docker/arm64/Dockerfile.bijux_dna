@@ -4,7 +4,7 @@
 # Container definition license: Apache-2.0.
 # The bijux-dna software source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
-FROM rust:1.88.0-bookworm@sha256:8aa70d1416cf5b1cff4b95ec6c57f1c5e4e649a3b53d616a26695cda6fbb46bc AS build
+FROM rust:1.95.0-bookworm@sha256:6258907abe69656e41cd992e0b705cdcfabcbbe3db374f92ed2d47121282d4a1 AS build
 
 WORKDIR /workspace
 
