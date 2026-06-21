@@ -20,6 +20,7 @@ const FASTQ_LOCAL_CONTAINER_SMOKE_SCHEMA_VERSION: &str =
 
 const FASTQ_REGISTRY_PATHS: &[&str] = &[
     "configs/ci/registry/tool_registry.toml",
+    "configs/ci/registry/tool_registry_experimental.toml",
     "configs/ci/registry/tool_registry_container_experimental.toml",
 ];
 
@@ -310,6 +311,11 @@ fn load_fastq_registry_smoke_records(
                 .ok_or_else(|| anyhow!("tool entry in {} is missing id", absolute_path.display()))?
                 .to_string();
             if !retained_tool_ids.contains(&tool_id) {
+                continue;
+            }
+            if relative_path.ends_with("tool_registry_container_experimental.toml")
+                && records.contains_key(&tool_id)
+            {
                 continue;
             }
             let record =

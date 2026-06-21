@@ -103,6 +103,18 @@ fn bench_readiness_fastq_local_container_smoke_reports_retained_wrapper_paths() 
                 == Some("bijux-dna env smoke docker-arm64 seqkit")
     }));
     assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str)
+            == Some("fastq.profile_read_lengths")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqfu")
+            && row.get("registered_binary").and_then(serde_json::Value::as_str) == Some("seqfu")
+            && row.get("tool_status").and_then(serde_json::Value::as_str) == Some("planned")
+            && row.get("support_status").and_then(serde_json::Value::as_str)
+                == Some("governed_benchmark_cohort")
+            && row.get("smoke_runtime").and_then(serde_json::Value::as_str) == Some("docker-arm64")
+            && row.get("smoke_command").and_then(serde_json::Value::as_str)
+                == Some("bijux-dna env smoke docker-arm64 seqfu")
+    }));
+    assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.validate_reads")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastq_scan")
             && row.get("registered_binary").and_then(serde_json::Value::as_str)

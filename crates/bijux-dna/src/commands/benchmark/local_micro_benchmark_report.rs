@@ -709,17 +709,25 @@ fn detect_insufficient_data_row(
 
 fn json_contains_insufficient_marker(value: &Value) -> bool {
     match value {
-        Value::String(text) => {
-            let text = text.to_ascii_lowercase();
-            text.contains("insufficient_data")
-                || text.contains("insufficient-data")
-                || text.contains("insufficient_overlap")
-                || text.contains("insufficient-overlap")
+        Value::Object(map) => {
+            const STATUS_KEYS: &[&str] = &["status", "state", "result_status", "summary_status"];
+
+            STATUS_KEYS.iter().any(|key| {
+                map.get(*key)
+                    .and_then(Value::as_str)
+                    .is_some_and(text_contains_insufficient_marker)
+            }) || map.get("summary").is_some_and(json_contains_insufficient_marker)
         }
-        Value::Array(values) => values.iter().any(json_contains_insufficient_marker),
-        Value::Object(map) => map.values().any(json_contains_insufficient_marker),
         _ => false,
     }
+}
+
+fn text_contains_insufficient_marker(text: &str) -> bool {
+    let text = text.to_ascii_lowercase();
+    text.contains("insufficient_data")
+        || text.contains("insufficient-data")
+        || text.contains("insufficient_overlap")
+        || text.contains("insufficient-overlap")
 }
 
 fn load_runtime_evidence(
@@ -1498,5 +1506,22 @@ resource_origin = "test_resource"
             }
         });
         assert!(json_contains_insufficient_marker(&payload));
+    }
+
+    #[test]
+    fn insufficient_marker_detector_ignores_expected_case_level_insufficiency() {
+        let payload = json!({
+            "all_cases_matched": true,
+            "cases": [
+                {
+                    "status": "insufficient",
+                    "insufficiency_reason": "insufficient_overlap_snps"
+                },
+                {
+                    "status": "ok"
+                }
+            ]
+        });
+        assert!(!json_contains_insufficient_marker(&payload));
     }
 }

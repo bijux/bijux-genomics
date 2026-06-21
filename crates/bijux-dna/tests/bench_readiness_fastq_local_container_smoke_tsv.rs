@@ -59,6 +59,9 @@ fn bench_readiness_fastq_local_container_smoke_writes_governed_tsv_file() {
         row == &"fastq.normalize_abundance\tseqkit\tseqkit\tproduction\tbenchmark_ready\tgoverned_benchmark_cohort\tfixture:corpus-03-amplicon-mini\tdocker_container_smoke\tdocker-arm64\tseqkit\tbijux-dna env smoke docker-arm64 seqkit\tcontainers/docker/arm64/Dockerfile.seqkit\t\tbinding `fastq.normalize_abundance` / `seqkit` matches the governed FASTQ execution default tool, but no exact tiny-fixture stage smoke wrapper is checked in, so the governed container smoke wrapper is the available local exercise path for `fastq.normalize_abundance` / `seqkit`"
     }));
     assert!(rows.iter().any(|row| {
+        row == &"fastq.profile_read_lengths\tseqfu\tseqfu\tplanned\tbenchmark_ready\tgoverned_benchmark_cohort\tfixture:corpus-01-mini\tdocker_container_smoke\tdocker-arm64\tseqfu\tbijux-dna env smoke docker-arm64 seqfu\tcontainers/docker/arm64/Dockerfile.seqfu\t\tretained tool `seqfu` has no exact tiny-fixture stage smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `fastq.profile_read_lengths` / `seqfu`"
+    }));
+    assert!(rows.iter().any(|row| {
         row == &"fastq.validate_reads\tfastq_scan\tfastq_scan\tproduction\tbenchmark_ready\tobserver_specialized_benchmark\tfixture:corpus-01-mini\tdocker_container_smoke\tdocker-arm64\tfastq_scan\tbijux-dna env smoke docker-arm64 fastq_scan\tcontainers/docker/arm64/Dockerfile.fastq_scan\t\tretained tool `fastq_scan` has no exact tiny-fixture stage smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `fastq.validate_reads` / `fastq_scan`"
     }));
 }
