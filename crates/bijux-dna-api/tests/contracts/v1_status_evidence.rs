@@ -287,7 +287,7 @@ fn run_lineage_query_extracts_artifact_lineage_edges() -> Result<()> {
     })?;
 
     assert_eq!(response.schema_version, "bijux.run_lineage_query.v1");
-    assert_eq!(response.run_id, "run-lineage-16");
+    assert_eq!(response.run_id, "run-lineage-fastq");
     assert_eq!(response.total_artifacts, 1);
     assert_eq!(response.edges.len(), 2);
     assert!(response.edges.iter().any(|edge| edge.lineage_key == "raw:R1=abc"));

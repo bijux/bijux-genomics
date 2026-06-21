@@ -329,7 +329,7 @@ pub(super) fn examples_run(workspace: &Workspace, args: &[String]) -> Result<Ops
     write_utf8(
         &out_dir.join("logs.txt"),
         &format!(
-            "example_id={example_id}\ncorpus_id={corpus_id}\nmini_supported={mini_supported}\ncanonical_example={canonical_example}\nstep1=containers ensure-images --plan\nstep2=bench suite check\nstep3=collect golden outputs\nstep4=write run report and bundle\n"
+            "example_id={example_id}\ncorpus_id={corpus_id}\nmini_supported={mini_supported}\ncanonical_example={canonical_example}\ncontainer_image_plan=containers ensure-images --plan\nsuite_contract_check=bench suite check\ngolden_output_collection=collect golden outputs\nreport_bundle_write=write run report and bundle\n"
         ),
     )?;
     let mut bundle_files = vec![

@@ -15,7 +15,7 @@ fn id_new_from_static_display_and_as_str_cover_all_types() {
     let artifact = ArtifactId::from_static("reads_out");
     let profile = ProfileId::from_static("default");
     let pipeline = PipelineId::from_static("fastq-to-fastq__default__v1");
-    let run = RunId("run-001".to_string());
+    let run = RunId("run-observability".to_string());
 
     assert_eq!(stage.as_str(), "fastq.trim_reads");
     assert_eq!(step.as_str(), "fastq.trim_reads");
@@ -23,7 +23,7 @@ fn id_new_from_static_display_and_as_str_cover_all_types() {
     assert_eq!(artifact.as_str(), "reads_out");
     assert_eq!(profile.as_str(), "default");
     assert_eq!(pipeline.as_str(), "fastq-to-fastq__default__v1");
-    assert_eq!(run.as_str(), "run-001");
+    assert_eq!(run.as_str(), "run-observability");
 
     assert_eq!(stage.to_string(), "fastq.trim_reads");
     assert_eq!(step.to_string(), "fastq.trim_reads");
@@ -31,7 +31,7 @@ fn id_new_from_static_display_and_as_str_cover_all_types() {
     assert_eq!(artifact.to_string(), "reads_out");
     assert_eq!(profile.to_string(), "default");
     assert_eq!(pipeline.to_string(), "fastq-to-fastq__default__v1");
-    assert_eq!(run.to_string(), "run-001");
+    assert_eq!(run.to_string(), "run-observability");
 
     let stage_owned = StageId::new("fastq.report_qc");
     let step_owned = StepId::new("fastq.report_qc");

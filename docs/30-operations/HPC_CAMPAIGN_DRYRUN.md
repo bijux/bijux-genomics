@@ -311,14 +311,14 @@ Verify encrypted bundle integrity:
 
 ```bash
 bijux-dna slurm verify-bundle \
-  --bundle /shared/bijux/results/fastq-hpc-mini/fastq/fastq.validate_reads/seqkit_v2/sample_0001/dryrun-0001-1700000000.results
+  --bundle /shared/bijux/results/fastq-hpc-mini/fastq/fastq.validate_reads/seqkit_v2/sample_0001/dryrun-fastq-validate-reads-1700000000.results
 ```
 
 Decrypt one encrypted bundle into a private local directory:
 
 ```bash
 bijux-dna slurm decrypt-bundle \
-  --bundle /shared/bijux/results/fastq-hpc-mini/fastq/fastq.validate_reads/seqkit_v2/sample_0001/dryrun-0001-1700000000.results \
+  --bundle /shared/bijux/results/fastq-hpc-mini/fastq/fastq.validate_reads/seqkit_v2/sample_0001/dryrun-fastq-validate-reads-1700000000.results \
   --out-dir artifacts/investigation/decrypt
 ```
 
@@ -326,17 +326,17 @@ Re-encrypt an existing bundle for rotated recipients:
 
 ```bash
 bijux-dna slurm rewrap-bundle \
-  --bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results \
+  --bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.results \
   --recipient age1newrecipientxxxxxxxxxxxxxxxxxxxx \
-  --out-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results.rotated
+  --out-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.results.rotated
 ```
 
 Import one encrypted results/code pair for replay validation:
 
 ```bash
 bijux-dna slurm import-replay \
-  --results-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results \
-  --code-bundle /shared/bijux/code/fastq-hpc-mini/.../dryrun-0001-1700000000.code \
+  --results-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.results \
+  --code-bundle /shared/bijux/code/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.code \
   --out-dir artifacts/investigation/replay
 ```
 
@@ -364,7 +364,7 @@ Share an encrypted bundle with a collaborator profile:
 
 ```bash
 bijux-dna slurm share-bundle \
-  --bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results \
+  --bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.results \
   --profile benchmarks/configs/hpc/campaign/sharing/collaborator-a.toml \
   --out-dir artifacts/investigation/shared
 ```
@@ -373,8 +373,8 @@ Verify results/code completeness and appraiser-output encryption policy:
 
 ```bash
 bijux-dna slurm verify-results-policy \
-  --results-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results \
-  --code-bundle /shared/bijux/code/fastq-hpc-mini/.../dryrun-0001-1700000000.code
+  --results-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.results \
+  --code-bundle /shared/bijux/code/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.code
 ```
 
 ## Security notes
