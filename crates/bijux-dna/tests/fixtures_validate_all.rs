@@ -58,7 +58,7 @@ fn fixtures_validate_all_reports_benchmark_root_pass_state() {
     );
     assert_eq!(payload.get("required_subroot_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(payload.get("parser_domain_count").and_then(serde_json::Value::as_u64), Some(3));
-    assert_eq!(payload.get("checked_fixture_count").and_then(serde_json::Value::as_u64), Some(52));
+    assert_eq!(payload.get("checked_fixture_count").and_then(serde_json::Value::as_u64), Some(54));
     assert_eq!(payload.get("invalid_fixture_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
