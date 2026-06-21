@@ -32,7 +32,7 @@ pub(super) fn ensure_registered_normalized_metrics(
         .chain(GOVERNED_NORMALIZED_METADATA_KEYS.iter().map(|metric_id| (*metric_id).to_string()))
         .collect::<BTreeSet<_>>();
     let observed_metrics =
-        normalized_object.keys().map(|metric_id| metric_id.to_string()).collect::<BTreeSet<_>>();
+        normalized_object.keys().map(std::string::ToString::to_string).collect::<BTreeSet<_>>();
     let unregistered_metrics =
         observed_metrics.difference(&registered_metrics).cloned().collect::<Vec<_>>();
 
@@ -49,7 +49,7 @@ pub(super) fn ensure_registered_normalized_metrics(
 
 #[test]
 fn vcf_metric_registry_rejects_unregistered_stage_metrics() {
-    let err = ensure_registered_normalized_metrics(
+    let err = match ensure_registered_normalized_metrics(
         VcfDomainStage::Stats,
         &serde_json::json!({
             "variant_count": 4,
@@ -61,8 +61,10 @@ fn vcf_metric_registry_rejects_unregistered_stage_metrics() {
             "sample_count": 1,
             "unexpected_metric": 7
         }),
-    )
-    .expect_err("unexpected metric must be rejected");
+    ) {
+        Ok(()) => panic!("unexpected metric must be rejected"),
+        Err(err) => err,
+    };
 
     assert!(err.to_string().contains("unexpected_metric"), "{err}");
 }

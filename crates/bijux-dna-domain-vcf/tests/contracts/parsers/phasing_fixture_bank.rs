@@ -91,7 +91,7 @@ fn vcf_phasing_fixture_bank_matches_expected_normalized_json() -> Result<()> {
 #[test]
 fn vcf_phasing_fixture_bank_rejects_all_unphased_output() -> Result<()> {
     for case in VCF_PHASING_FIXTURE_CASES {
-        let dir = unique_temp_dir(case.tool_id)?;
+        let dir = unique_temp_dir(case.tool_id);
         copy_fixture_dir(&fixture_dir(case), &dir)?;
         fs::copy(dir.join("raw.unphased.vcf"), dir.join("raw.phased.vcf"))
             .with_context(|| format!("install unphased probe for `{}`", case.tool_id))?;
@@ -142,8 +142,8 @@ fn repo_root() -> PathBuf {
         .unwrap_or_else(|err| panic!("canonicalize repo root: {err}"))
 }
 
-fn unique_temp_dir(tool_id: &str) -> Result<PathBuf> {
-    Ok(bijux_dna_testkit::temp_path_for(&format!("vcf-phasing-{tool_id}")))
+fn unique_temp_dir(tool_id: &str) -> PathBuf {
+    bijux_dna_testkit::temp_path_for(&format!("vcf-phasing-{tool_id}"))
 }
 
 fn copy_fixture_dir(from: &Path, to: &Path) -> Result<()> {

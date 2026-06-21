@@ -554,6 +554,14 @@ fn u64_ratio_saturating(numerator: u64, denominator: u64) -> f64 {
     f64::from(numerator) / f64::from(denominator)
 }
 
+fn mean_from_sum_and_count(sum: f64, count: usize) -> f64 {
+    if count == 0 {
+        return 0.0;
+    }
+    let count = u32::try_from(count).unwrap_or(u32::MAX);
+    sum / f64::from(count)
+}
+
 /// Build a bcftools-style stats summary for tiny fixture-safe VCF records.
 ///
 /// # Errors
@@ -877,18 +885,27 @@ pub fn summarize_vcf_imputation_output_truth(
         None => None,
     };
     let mean_info_score = if sites_with_info_score > 0 {
-        Some(info_sum / sites_with_info_score as f64)
+        Some(mean_from_sum_and_count(
+            info_sum,
+            usize::try_from(sites_with_info_score).unwrap_or(usize::MAX),
+        ))
     } else {
         None
     };
-    let mean_r2_score =
-        if sites_with_r2_score > 0 { Some(r2_sum / sites_with_r2_score as f64) } else { None };
+    let mean_r2_score = if sites_with_r2_score > 0 {
+        Some(mean_from_sum_and_count(
+            r2_sum,
+            usize::try_from(sites_with_r2_score).unwrap_or(usize::MAX),
+        ))
+    } else {
+        None
+    };
     let genotype_concordance = truth_comparison.as_ref().and_then(|truth| {
-        let resolved = truth.masked_truth_match_count + truth.masked_truth_mismatch_count;
+        let resolved = truth.matches + truth.mismatches;
         if resolved == 0 {
             None
         } else {
-            Some(truth.masked_truth_match_count as f64 / resolved as f64)
+            Some(u64_ratio_saturating(truth.matches, resolved))
         }
     });
 
@@ -905,16 +922,10 @@ pub fn summarize_vcf_imputation_output_truth(
         sites_with_r2_score,
         mean_info_score,
         mean_r2_score,
-        masked_truth_site_count: truth_comparison
-            .as_ref()
-            .map_or(0, |truth| truth.masked_truth_site_count),
-        masked_truth_match_count: truth_comparison
-            .as_ref()
-            .map_or(0, |truth| truth.masked_truth_match_count),
-        masked_truth_mismatch_count: truth_comparison
-            .as_ref()
-            .map_or(0, |truth| truth.masked_truth_mismatch_count),
-        unresolved_count: truth_comparison.as_ref().map_or(0, |truth| truth.unresolved_count),
+        masked_truth_site_count: truth_comparison.as_ref().map_or(0, |truth| truth.masked_sites),
+        masked_truth_match_count: truth_comparison.as_ref().map_or(0, |truth| truth.matches),
+        masked_truth_mismatch_count: truth_comparison.as_ref().map_or(0, |truth| truth.mismatches),
+        unresolved_count: truth_comparison.as_ref().map_or(0, |truth| truth.unresolved),
         genotype_concordance,
     })
 }
@@ -932,88 +943,10 @@ pub fn summarize_vcf_roh_output_truth(
     let sample_count = json_required_u64(metrics, "sample_count")?;
     let segment_count = json_required_u64(metrics, "segment_count")?;
     let total_length = json_required_u64(metrics, "total_length")?;
-    let segments = json_required_array(metrics, "segments")?
-        .iter()
-        .map(|row| {
-            Ok(VcfRohSegmentTruthRowV1 {
-                sample_id: json_required_string(row, "sample_id")?,
-                contig: json_required_string(row, "contig")?,
-                start: json_required_u64(row, "start")?,
-                end: json_required_u64(row, "end")?,
-                length: json_required_u64(row, "length")?,
-                variant_count: json_required_u64(row, "variant_count")?,
-            })
-        })
-        .collect::<Result<Vec<_>>>()?;
-    let per_sample_summary = json_required_array(metrics, "per_sample_summary")?
-        .iter()
-        .map(|row| {
-            Ok(VcfRohSampleTruthRowV1 {
-                sample_id: json_required_string(row, "sample_id")?,
-                segment_count: json_required_u64(row, "segment_count")?,
-                total_length: json_required_u64(row, "total_length")?,
-                mean_length: json_required_f64(row, "mean_length")?,
-            })
-        })
-        .collect::<Result<Vec<_>>>()?;
-
-    if segment_count != segments.len() as u64 {
-        return Err(anyhow!(
-            "ROH segment_count drifted: metrics=`{segment_count}`, rows=`{}`",
-            segments.len()
-        ));
-    }
-    if sample_count != per_sample_summary.len() as u64 {
-        return Err(anyhow!(
-            "ROH sample_count drifted: metrics=`{sample_count}`, per-sample rows=`{}`",
-            per_sample_summary.len()
-        ));
-    }
-
-    let mut observed_per_sample = BTreeMap::<String, (u64, u64)>::new();
-    let mut observed_total_length = 0_u64;
-    for segment in &segments {
-        observed_total_length += segment.length;
-        let entry = observed_per_sample.entry(segment.sample_id.clone()).or_insert((0, 0));
-        entry.0 += 1;
-        entry.1 += segment.length;
-    }
-    if total_length != observed_total_length {
-        return Err(anyhow!(
-            "ROH total_length drifted: metrics=`{total_length}`, intervals=`{observed_total_length}`"
-        ));
-    }
-    for row in &per_sample_summary {
-        let (observed_segment_count, observed_sample_total_length) =
-            observed_per_sample.get(&row.sample_id).copied().ok_or_else(|| {
-                anyhow!("ROH per-sample summary contains unknown sample `{}`", row.sample_id)
-            })?;
-        if row.segment_count != observed_segment_count
-            || row.total_length != observed_sample_total_length
-        {
-            return Err(anyhow!(
-                "ROH per-sample summary drifted for `{}`: summary=({}, {}), intervals=({}, {})",
-                row.sample_id,
-                row.segment_count,
-                row.total_length,
-                observed_segment_count,
-                observed_sample_total_length
-            ));
-        }
-        let observed_mean_length = if observed_segment_count == 0 {
-            0.0
-        } else {
-            observed_sample_total_length as f64 / observed_segment_count as f64
-        };
-        if !f64s_match(row.mean_length, observed_mean_length) {
-            return Err(anyhow!(
-                "ROH mean_length drifted for `{}`: summary=`{}`, intervals=`{}`",
-                row.sample_id,
-                row.mean_length,
-                observed_mean_length
-            ));
-        }
-    }
+    let segments = parse_roh_segments(metrics)?;
+    let per_sample_summary = parse_roh_per_sample_summary(metrics)?;
+    validate_roh_counts(sample_count, segment_count, &segments, &per_sample_summary)?;
+    validate_roh_lengths(total_length, &segments, &per_sample_summary)?;
 
     let sample_ids =
         collect_sorted_unique_strings(segments.iter().map(|row| row.sample_id.as_str()));
@@ -1036,6 +969,111 @@ pub fn summarize_vcf_roh_output_truth(
         segments,
         per_sample_summary,
     })
+}
+
+fn parse_roh_segments(metrics: &serde_json::Value) -> Result<Vec<VcfRohSegmentTruthRowV1>> {
+    json_required_array(metrics, "segments")?
+        .iter()
+        .map(|row| {
+            Ok(VcfRohSegmentTruthRowV1 {
+                sample_id: json_required_string(row, "sample_id")?,
+                contig: json_required_string(row, "contig")?,
+                start: json_required_u64(row, "start")?,
+                end: json_required_u64(row, "end")?,
+                length: json_required_u64(row, "length")?,
+                variant_count: json_required_u64(row, "variant_count")?,
+            })
+        })
+        .collect()
+}
+
+fn parse_roh_per_sample_summary(
+    metrics: &serde_json::Value,
+) -> Result<Vec<VcfRohSampleTruthRowV1>> {
+    json_required_array(metrics, "per_sample_summary")?
+        .iter()
+        .map(|row| {
+            Ok(VcfRohSampleTruthRowV1 {
+                sample_id: json_required_string(row, "sample_id")?,
+                segment_count: json_required_u64(row, "segment_count")?,
+                total_length: json_required_u64(row, "total_length")?,
+                mean_length: json_required_f64(row, "mean_length")?,
+            })
+        })
+        .collect()
+}
+
+fn validate_roh_counts(
+    sample_count: u64,
+    segment_count: u64,
+    segments: &[VcfRohSegmentTruthRowV1],
+    per_sample_summary: &[VcfRohSampleTruthRowV1],
+) -> Result<()> {
+    if segment_count != segments.len() as u64 {
+        return Err(anyhow!(
+            "ROH segment_count drifted: metrics=`{segment_count}`, rows=`{}`",
+            segments.len()
+        ));
+    }
+    if sample_count != per_sample_summary.len() as u64 {
+        return Err(anyhow!(
+            "ROH sample_count drifted: metrics=`{sample_count}`, per-sample rows=`{}`",
+            per_sample_summary.len()
+        ));
+    }
+    Ok(())
+}
+
+fn validate_roh_lengths(
+    total_length: u64,
+    segments: &[VcfRohSegmentTruthRowV1],
+    per_sample_summary: &[VcfRohSampleTruthRowV1],
+) -> Result<()> {
+    let mut observed_per_sample = BTreeMap::<String, (u64, u64)>::new();
+    let mut observed_total_length = 0_u64;
+    for segment in segments {
+        observed_total_length += segment.length;
+        let entry = observed_per_sample.entry(segment.sample_id.clone()).or_insert((0, 0));
+        entry.0 += 1;
+        entry.1 += segment.length;
+    }
+    if total_length != observed_total_length {
+        return Err(anyhow!(
+            "ROH total_length drifted: metrics=`{total_length}`, intervals=`{observed_total_length}`"
+        ));
+    }
+    for row in per_sample_summary {
+        let (observed_segment_count, observed_sample_total_length) =
+            observed_per_sample.get(&row.sample_id).copied().ok_or_else(|| {
+                anyhow!("ROH per-sample summary contains unknown sample `{}`", row.sample_id)
+            })?;
+        if row.segment_count != observed_segment_count
+            || row.total_length != observed_sample_total_length
+        {
+            return Err(anyhow!(
+                "ROH per-sample summary drifted for `{}`: summary=({}, {}), intervals=({}, {})",
+                row.sample_id,
+                row.segment_count,
+                row.total_length,
+                observed_segment_count,
+                observed_sample_total_length
+            ));
+        }
+        let observed_mean_length = if observed_segment_count == 0 {
+            0.0
+        } else {
+            u64_ratio_saturating(observed_sample_total_length, observed_segment_count)
+        };
+        if !f64s_match(row.mean_length, observed_mean_length) {
+            return Err(anyhow!(
+                "ROH mean_length drifted for `{}`: summary=`{}`, intervals=`{}`",
+                row.sample_id,
+                row.mean_length,
+                observed_mean_length
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// Summarize normalized IBD metrics into governed pair truth.
@@ -1152,23 +1190,8 @@ pub fn summarize_vcf_demography_output_truth(
     let inference_status = json_required_string(metrics, "inference_status")?;
     let status = json_required_string(metrics, "status")?;
     let insufficient_reason = json_optional_string(metrics, "insufficient_reason")?;
-    let time_bins = json_required_array(metrics, "time_bins")?
-        .iter()
-        .map(|value| {
-            value.as_u64().ok_or_else(|| anyhow!("demography time_bins must contain only integers"))
-        })
-        .collect::<Result<Vec<_>>>()?;
-    let ne_estimates = json_required_array(metrics, "ne_estimates")?
-        .iter()
-        .map(|row| {
-            Ok(VcfDemographyEstimateTruthRowV1 {
-                generation: json_required_u64(row, "generation")?,
-                ne: json_required_f64(row, "ne")?,
-                ci_low: json_required_f64(row, "ci_low")?,
-                ci_high: json_required_f64(row, "ci_high")?,
-            })
-        })
-        .collect::<Result<Vec<_>>>()?;
+    let time_bins = parse_demography_time_bins(metrics, "time_bins", "demography time_bins")?;
+    let ne_estimates = parse_demography_estimates(metrics, "ne_estimates")?;
     if time_bins.len() != ne_estimates.len() {
         return Err(anyhow!(
             "demography time_bins drifted from ne_estimates: bins=`{}`, estimates=`{}`",
@@ -1185,85 +1208,14 @@ pub fn summarize_vcf_demography_output_truth(
         }
     }
 
-    let insufficient_data_probe_value =
-        metrics.get("insufficient_data_probe").ok_or_else(|| {
-            anyhow!("normalized metrics are missing object field `insufficient_data_probe`")
-        })?;
-    let insufficient_probe_time_bins =
-        json_required_array(insufficient_data_probe_value, "time_bins")?
-            .iter()
-            .map(|value| {
-                value.as_u64().ok_or_else(|| {
-                    anyhow!(
-                        "demography insufficient_data_probe time_bins must contain only integers"
-                    )
-                })
-            })
-            .collect::<Result<Vec<_>>>()?;
-    let insufficient_probe_estimates =
-        json_required_array(insufficient_data_probe_value, "ne_estimates")?
-            .iter()
-            .map(|row| {
-                Ok(VcfDemographyEstimateTruthRowV1 {
-                    generation: json_required_u64(row, "generation")?,
-                    ne: json_required_f64(row, "ne")?,
-                    ci_low: json_required_f64(row, "ci_low")?,
-                    ci_high: json_required_f64(row, "ci_high")?,
-                })
-            })
-            .collect::<Result<Vec<_>>>()?;
-    let insufficient_data_probe = VcfDemographyInsufficientDataTruthV1 {
-        status: json_required_string(insufficient_data_probe_value, "status")?,
-        insufficient_reason: json_optional_string(
-            insufficient_data_probe_value,
-            "insufficient_reason",
-        )?,
-        time_bins: insufficient_probe_time_bins,
-        ne_estimates: insufficient_probe_estimates,
-    };
-
-    match status.as_str() {
-        "complete" => {
-            if insufficient_reason.is_some() {
-                return Err(anyhow!(
-                    "demography complete metrics must not declare an insufficient_reason"
-                ));
-            }
-            if insufficient_data_probe.status != "not_run"
-                || insufficient_data_probe.insufficient_reason.is_some()
-                || !insufficient_data_probe.time_bins.is_empty()
-                || !insufficient_data_probe.ne_estimates.is_empty()
-            {
-                return Err(anyhow!(
-                    "demography complete metrics must keep the insufficient-data probe in `not_run` state"
-                ));
-            }
-        }
-        "insufficient_data" => {
-            if insufficient_reason.is_none() {
-                return Err(anyhow!(
-                    "demography insufficient_data metrics must declare an insufficient_reason"
-                ));
-            }
-            if !time_bins.is_empty() || !ne_estimates.is_empty() {
-                return Err(anyhow!(
-                    "demography insufficient_data metrics must not retain estimate rows"
-                ));
-            }
-            if insufficient_data_probe.status != status
-                || insufficient_data_probe.insufficient_reason != insufficient_reason
-                || !insufficient_data_probe.time_bins.is_empty()
-                || !insufficient_data_probe.ne_estimates.is_empty()
-            {
-                return Err(anyhow!(
-                    "demography insufficient_data probe drifted from top-level status"
-                ));
-            }
-        }
-        other => {
-            return Err(anyhow!("unsupported demography output truth status `{other}`"));
-        }
-    }
+    let insufficient_data_probe = parse_demography_insufficient_data_probe(metrics)?;
+    validate_demography_status(
+        status.as_str(),
+        insufficient_reason.as_deref(),
+        &time_bins,
+        &ne_estimates,
+        &insufficient_data_probe,
+    )?;
 
     Ok(VcfDemographyOutputTruthSummaryV1 {
         schema_version: VCF_DEMOGRAPHY_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
@@ -1278,6 +1230,114 @@ pub fn summarize_vcf_demography_output_truth(
         ne_estimates,
         insufficient_data_probe,
     })
+}
+
+fn parse_demography_time_bins(
+    metrics: &serde_json::Value,
+    field: &str,
+    label: &str,
+) -> Result<Vec<u64>> {
+    json_required_array(metrics, field)?
+        .iter()
+        .map(|value| value.as_u64().ok_or_else(|| anyhow!("{label} must contain only integers")))
+        .collect()
+}
+
+fn parse_demography_estimates(
+    metrics: &serde_json::Value,
+    field: &str,
+) -> Result<Vec<VcfDemographyEstimateTruthRowV1>> {
+    json_required_array(metrics, field)?
+        .iter()
+        .map(|row| {
+            Ok(VcfDemographyEstimateTruthRowV1 {
+                generation: json_required_u64(row, "generation")?,
+                ne: json_required_f64(row, "ne")?,
+                ci_low: json_required_f64(row, "ci_low")?,
+                ci_high: json_required_f64(row, "ci_high")?,
+            })
+        })
+        .collect()
+}
+
+fn parse_demography_insufficient_data_probe(
+    metrics: &serde_json::Value,
+) -> Result<VcfDemographyInsufficientDataTruthV1> {
+    let probe = metrics.get("insufficient_data_probe").ok_or_else(|| {
+        anyhow!("normalized metrics are missing object field `insufficient_data_probe`")
+    })?;
+    Ok(VcfDemographyInsufficientDataTruthV1 {
+        status: json_required_string(probe, "status")?,
+        insufficient_reason: json_optional_string(probe, "insufficient_reason")?,
+        time_bins: parse_demography_time_bins(
+            probe,
+            "time_bins",
+            "demography insufficient_data_probe time_bins",
+        )?,
+        ne_estimates: parse_demography_estimates(probe, "ne_estimates")?,
+    })
+}
+
+fn validate_demography_status(
+    status: &str,
+    insufficient_reason: Option<&str>,
+    time_bins: &[u64],
+    ne_estimates: &[VcfDemographyEstimateTruthRowV1],
+    insufficient_data_probe: &VcfDemographyInsufficientDataTruthV1,
+) -> Result<()> {
+    match status {
+        "complete" => validate_complete_demography(insufficient_reason, insufficient_data_probe),
+        "insufficient_data" => validate_insufficient_demography(
+            insufficient_reason,
+            time_bins,
+            ne_estimates,
+            insufficient_data_probe,
+        ),
+        other => Err(anyhow!("unsupported demography output truth status `{other}`")),
+    }
+}
+
+fn validate_complete_demography(
+    insufficient_reason: Option<&str>,
+    insufficient_data_probe: &VcfDemographyInsufficientDataTruthV1,
+) -> Result<()> {
+    if insufficient_reason.is_some() {
+        return Err(anyhow!("demography complete metrics must not declare an insufficient_reason"));
+    }
+    if insufficient_data_probe.status != "not_run"
+        || insufficient_data_probe.insufficient_reason.is_some()
+        || !insufficient_data_probe.time_bins.is_empty()
+        || !insufficient_data_probe.ne_estimates.is_empty()
+    {
+        return Err(anyhow!(
+            "demography complete metrics must keep the insufficient-data probe in `not_run` state"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_insufficient_demography(
+    insufficient_reason: Option<&str>,
+    time_bins: &[u64],
+    ne_estimates: &[VcfDemographyEstimateTruthRowV1],
+    insufficient_data_probe: &VcfDemographyInsufficientDataTruthV1,
+) -> Result<()> {
+    if insufficient_reason.is_none() {
+        return Err(anyhow!(
+            "demography insufficient_data metrics must declare an insufficient_reason"
+        ));
+    }
+    if !time_bins.is_empty() || !ne_estimates.is_empty() {
+        return Err(anyhow!("demography insufficient_data metrics must not retain estimate rows"));
+    }
+    if insufficient_data_probe.status != "insufficient_data"
+        || insufficient_data_probe.insufficient_reason.as_deref() != insufficient_reason
+        || !insufficient_data_probe.time_bins.is_empty()
+        || !insufficient_data_probe.ne_estimates.is_empty()
+    {
+        return Err(anyhow!("demography insufficient_data probe drifted from top-level status"));
+    }
+    Ok(())
 }
 
 #[derive(Debug, Clone)]
@@ -1340,7 +1400,7 @@ pub fn summarize_vcf_pca_output_truth(
             })
         })
         .collect::<Result<Vec<_>>>()?;
-    let pairwise_distances = build_population_distance_rows(&rows)?;
+    let pairwise_distances = build_population_distance_rows(&rows);
     let population_ids = collect_population_ids(rows.iter().map(|row| row.population_id.as_str()));
 
     Ok(VcfPcaOutputTruthSummaryV1 {
@@ -1478,7 +1538,7 @@ pub fn summarize_vcf_population_structure_output_truth(
             })
         })
         .collect::<Result<Vec<_>>>()?;
-    let pairwise_distances = build_population_distance_rows_from_structure(&sample_groups)?;
+    let pairwise_distances = build_population_distance_rows_from_structure(&sample_groups);
     let (
         within_population_pair_count,
         cross_population_pair_count,
@@ -1510,10 +1570,10 @@ pub fn summarize_vcf_population_structure_output_truth(
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct ImputedTruthComparison {
-    masked_truth_site_count: u64,
-    masked_truth_match_count: u64,
-    masked_truth_mismatch_count: u64,
-    unresolved_count: u64,
+    masked_sites: u64,
+    matches: u64,
+    mismatches: u64,
+    unresolved: u64,
 }
 
 fn compare_imputed_truth(
@@ -1538,10 +1598,10 @@ fn compare_imputed_truth(
         .map(|record| (format!("{}:{}", record.chrom, record.pos), record))
         .collect::<BTreeMap<_, _>>();
 
-    let mut masked_truth_site_count = 0_u64;
-    let mut masked_truth_match_count = 0_u64;
-    let mut masked_truth_mismatch_count = 0_u64;
-    let mut unresolved_count = 0_u64;
+    let mut masked_sites = 0_u64;
+    let mut matches = 0_u64;
+    let mut mismatches = 0_u64;
+    let mut unresolved = 0_u64;
 
     for truth_record in &truth.records {
         let site_id = format!("{}:{}", truth_record.chrom, truth_record.pos);
@@ -1552,7 +1612,7 @@ fn compare_imputed_truth(
                     .as_deref()
                     .and_then(|format| parse_gt_from_sample(format, truth_payload));
                 if gt.is_some_and(|value| !genotype_is_missing(value)) {
-                    unresolved_count += 1;
+                    unresolved += 1;
                 }
             }
             continue;
@@ -1573,38 +1633,33 @@ fn compare_imputed_truth(
             if genotype_is_missing(truth_gt) {
                 continue;
             }
-            masked_truth_site_count += 1;
+            masked_sites += 1;
             let Some(output_index) = output_sample_index.get(sample_id) else {
-                unresolved_count += 1;
+                unresolved += 1;
                 continue;
             };
             let output_payload = output_record.samples.get(*output_index).ok_or_else(|| {
                 anyhow!("imputed VCF row `{site_id}` is missing genotype for `{sample_id}`")
             })?;
             let Some(output_gt) = parse_gt_from_sample(output_format, output_payload) else {
-                unresolved_count += 1;
+                unresolved += 1;
                 continue;
             };
             if genotype_is_missing(output_gt) {
-                unresolved_count += 1;
+                unresolved += 1;
                 continue;
             }
             if canonicalize_genotype_for_truth(output_gt)
                 == canonicalize_genotype_for_truth(truth_gt)
             {
-                masked_truth_match_count += 1;
+                matches += 1;
             } else {
-                masked_truth_mismatch_count += 1;
+                mismatches += 1;
             }
         }
     }
 
-    Ok(ImputedTruthComparison {
-        masked_truth_site_count,
-        masked_truth_match_count,
-        masked_truth_mismatch_count,
-        unresolved_count,
-    })
+    Ok(ImputedTruthComparison { masked_sites, matches, mismatches, unresolved })
 }
 
 fn canonicalize_genotype_for_truth(gt: &str) -> String {
@@ -1671,7 +1726,7 @@ fn parse_coordinate_rows(rows: &[serde_json::Value]) -> Result<Vec<CoordinateRow
 
 fn build_population_distance_rows(
     rows: &[VcfPopulationCoordinateTruthRowV1],
-) -> Result<Vec<VcfPopulationDistanceTruthRowV1>> {
+) -> Vec<VcfPopulationDistanceTruthRowV1> {
     let coordinates = rows
         .iter()
         .map(|row| CoordinateRow {
@@ -1686,7 +1741,7 @@ fn build_population_distance_rows(
 
 fn build_population_distance_rows_from_structure(
     rows: &[VcfPopulationStructureOutputTruthRowV1],
-) -> Result<Vec<VcfPopulationDistanceTruthRowV1>> {
+) -> Vec<VcfPopulationDistanceTruthRowV1> {
     let coordinates = rows
         .iter()
         .map(|row| CoordinateRow {
@@ -1701,7 +1756,7 @@ fn build_population_distance_rows_from_structure(
 
 fn build_population_distance_rows_from_coordinates(
     rows: &[CoordinateRow],
-) -> Result<Vec<VcfPopulationDistanceTruthRowV1>> {
+) -> Vec<VcfPopulationDistanceTruthRowV1> {
     let mut distances = Vec::new();
     for left_index in 0..rows.len() {
         for right_index in (left_index + 1)..rows.len() {
@@ -1718,7 +1773,7 @@ fn build_population_distance_rows_from_coordinates(
             });
         }
     }
-    Ok(distances)
+    distances
 }
 
 fn summarize_population_distance_rows(
@@ -1732,7 +1787,7 @@ fn summarize_population_distance_rows(
     let mean_pc_distance = if rows.is_empty() {
         0.0
     } else {
-        rows.iter().map(|row| row.distance).sum::<f64>() / rows.len() as f64
+        mean_from_sum_and_count(rows.iter().map(|row| row.distance).sum::<f64>(), rows.len())
     };
     (
         within_population_pair_count,
@@ -2959,6 +3014,24 @@ mod tests {
         path
     }
 
+    fn assert_f64_eq(left: f64, right: f64) {
+        assert!(f64s_match(left, right), "left=`{left}`, right=`{right}`");
+    }
+
+    fn assert_option_f64_eq(left: Option<f64>, right: f64) {
+        let Some(left) = left else {
+            panic!("expected Some({right}), found None");
+        };
+        assert_f64_eq(left, right);
+    }
+
+    fn assert_map_f64_eq(map: &BTreeMap<String, f64>, key: &str, expected: f64) {
+        let Some(value) = map.get(key).copied() else {
+            panic!("missing key `{key}`");
+        };
+        assert_f64_eq(value, expected);
+    }
+
     #[test]
     fn execute_vcf_validation_accepts_valid_fixture() {
         let temp = unique_temp_dir("vcf-validate-ok");
@@ -3043,9 +3116,9 @@ chr1\t30\t.\tAT\tA\t60\tPASS\tDP=7\tGT\t0/1\t0/0\n",
         assert_eq!(summary.missing_genotype_calls, 1);
         assert_eq!(summary.filter_counts.get("PASS"), Some(&2));
         assert_eq!(summary.filter_counts.get("q10"), Some(&1));
-        assert_eq!(summary.per_sample_missingness.get("s1"), Some(&0.0));
-        assert_eq!(summary.per_sample_missingness.get("s2"), Some(&(1.0 / 3.0)));
-        assert_eq!(summary.ti_tv_ratio, Some(1.0));
+        assert_map_f64_eq(&summary.per_sample_missingness, "s1", 0.0);
+        assert_map_f64_eq(&summary.per_sample_missingness, "s2", 1.0 / 3.0);
+        assert_option_f64_eq(summary.ti_tv_ratio, 1.0);
     }
 
     #[test]
@@ -3554,7 +3627,7 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(summary.alternate_only_calls, 1);
         assert_eq!(summary.phased_calls, 0);
         assert_eq!(summary.unphased_calls, 3);
-        assert_eq!(summary.per_sample_missingness.get("sample_a"), Some(&0.0));
+        assert_map_f64_eq(&summary.per_sample_missingness, "sample_a", 0.0);
         assert!(summary.likelihood_fields_present.is_empty());
     }
 
@@ -3573,7 +3646,7 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(summary.mixed_allele_calls, 0);
         assert_eq!(summary.alternate_only_calls, 1);
         assert_eq!(summary.unphased_calls, 2);
-        assert_eq!(summary.per_sample_missingness.get("sample_lowcov"), Some(&(1.0 / 3.0)));
+        assert_map_f64_eq(&summary.per_sample_missingness, "sample_lowcov", 1.0 / 3.0);
     }
 
     #[test]
@@ -3699,13 +3772,13 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(summary.variant_count, 2);
         assert_eq!(summary.sites_with_info_score, 2);
         assert_eq!(summary.sites_with_r2_score, 2);
-        assert_eq!(summary.mean_info_score, Some(0.825));
-        assert_eq!(summary.mean_r2_score, Some(0.775));
+        assert_option_f64_eq(summary.mean_info_score, 0.825);
+        assert_option_f64_eq(summary.mean_r2_score, 0.775);
         assert_eq!(summary.masked_truth_site_count, 1);
         assert_eq!(summary.masked_truth_match_count, 1);
         assert_eq!(summary.masked_truth_mismatch_count, 0);
         assert_eq!(summary.unresolved_count, 0);
-        assert_eq!(summary.genotype_concordance, Some(1.0));
+        assert_option_f64_eq(summary.genotype_concordance, 1.0);
     }
 
     #[test]
@@ -3733,11 +3806,11 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(summary.rows[0].sample_id, "sample_a");
         assert_eq!(summary.rows[0].sex, "female");
         assert_eq!(summary.rows[0].role, "cohort");
-        assert_eq!(summary.rows[0].pc1, 0.01);
-        assert_eq!(summary.rows[0].pc2, 0.02);
+        assert_f64_eq(summary.rows[0].pc1, 0.01);
+        assert_f64_eq(summary.rows[0].pc2, 0.02);
         assert_eq!(summary.pairwise_distances[0].left_sample_id, "sample_a");
         assert_eq!(summary.pairwise_distances[0].right_sample_id, "sample_b");
-        assert_eq!(summary.pairwise_distances[0].distance, 0.01414213562373095);
+        assert_f64_eq(summary.pairwise_distances[0].distance, 0.014_142_135_623_730_95);
     }
 
     #[test]
@@ -3762,8 +3835,8 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(summary.cluster_headers, vec!["cluster_1".to_string(), "cluster_2".to_string()]);
         assert_eq!(summary.rows[0].sample_id, "sample_a");
         assert_eq!(summary.rows[0].dominant_cluster, "cluster_1");
-        assert_eq!(summary.rows[0].dominant_fraction, 1.0);
-        assert_eq!(summary.rows[0].cluster_fractions.get("cluster_2"), Some(&0.0));
+        assert_f64_eq(summary.rows[0].dominant_fraction, 1.0);
+        assert_map_f64_eq(&summary.rows[0].cluster_fractions, "cluster_2", 0.0);
         assert_eq!(summary.rows[2].sample_id, "sample_c");
         assert_eq!(summary.rows[2].dominant_cluster, "cluster_2");
         assert_eq!(summary.rows[2].sex, "female");
@@ -3793,9 +3866,9 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(summary.pair_count, 6);
         assert_eq!(summary.within_population_pair_count, 2);
         assert_eq!(summary.cross_population_pair_count, 4);
-        assert_eq!(summary.min_pc_distance, 0.01414213562373095);
-        assert_eq!(summary.max_pc_distance, 0.042426406871192854);
-        assert_eq!(summary.mean_pc_distance, 0.023570226039551587);
+        assert_f64_eq(summary.min_pc_distance, 0.014_142_135_623_730_95);
+        assert_f64_eq(summary.max_pc_distance, 0.042_426_406_871_192_854);
+        assert_f64_eq(summary.mean_pc_distance, 0.023_570_226_039_551_587);
         assert_eq!(summary.sample_groups[0].dominant_cluster, "cluster_1");
         assert_eq!(summary.sample_groups[2].dominant_cluster, "cluster_2");
         assert_eq!(summary.sample_groups[1].role, "cohort");
@@ -3835,7 +3908,7 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(summary.segments[7].sample_id, "sample_d");
         assert_eq!(summary.segments[7].end, 8);
         assert_eq!(summary.per_sample_summary[0].segment_count, 2);
-        assert_eq!(summary.per_sample_summary[0].mean_length, 1.0);
+        assert_f64_eq(summary.per_sample_summary[0].mean_length, 1.0);
     }
 
     #[test]
@@ -3857,7 +3930,7 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(summary.status, "complete");
         assert_eq!(summary.pair_count, 1);
         assert_eq!(summary.retained_segment_count, 2);
-        assert_eq!(summary.total_length, 9.5);
+        assert_f64_eq(summary.total_length, 9.5);
         assert_eq!(summary.overlap_marker_total, 41);
         assert_eq!(summary.sample_ids, vec!["sample_a".to_string(), "sample_b".to_string()]);
         assert_eq!(summary.rows[0].sample_a, "sample_a");
@@ -3886,7 +3959,7 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         );
         assert_eq!(summary.pair_count, 0);
         assert_eq!(summary.retained_segment_count, 0);
-        assert_eq!(summary.total_length, 0.0);
+        assert_f64_eq(summary.total_length, 0.0);
         assert_eq!(summary.overlap_marker_total, 0);
         assert!(summary.sample_ids.is_empty());
         assert_eq!(summary.insufficient_overlap_probe.status, "insufficient_marker_overlap");
@@ -3909,7 +3982,7 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(complete_summary.status, "complete");
         assert_eq!(complete_summary.estimate_count, 3);
         assert_eq!(complete_summary.time_bins, vec![5, 10, 20]);
-        assert_eq!(complete_summary.ne_estimates[0].ne, 12000.0);
+        assert_f64_eq(complete_summary.ne_estimates[0].ne, 12_000.0);
         assert_eq!(complete_summary.insufficient_data_probe.status, "not_run");
 
         let insufficient_root = repo_fixture_path(

@@ -138,7 +138,7 @@ fn vcf_imputation_fixture_bank_rejects_truth_drift() -> Result<()> {
         .find(|case| case.tool_id == "beagle" && case.stage == VcfDomainStage::Impute)
         .copied()
         .unwrap_or_else(|| panic!("governed beagle impute fixture"));
-    let dir = unique_temp_dir(case.tool_id, case.stage.as_str())?;
+    let dir = unique_temp_dir(case.tool_id, case.stage.as_str());
     copy_fixture_dir(&fixture_dir(&case), &dir)?;
     fs::write(
         dir.join("raw.truth.vcf"),
@@ -194,11 +194,11 @@ fn repo_root() -> PathBuf {
         .unwrap_or_else(|err| panic!("canonicalize repo root: {err}"))
 }
 
-fn unique_temp_dir(tool_id: &str, stage_id: &str) -> Result<PathBuf> {
-    Ok(bijux_dna_testkit::temp_path_for(&format!(
+fn unique_temp_dir(tool_id: &str, stage_id: &str) -> PathBuf {
+    bijux_dna_testkit::temp_path_for(&format!(
         "vcf-imputation-{tool_id}-{}",
         stage_id.replace('.', "-")
-    )))
+    ))
 }
 
 fn copy_fixture_dir(from: &Path, to: &Path) -> Result<()> {
