@@ -411,6 +411,11 @@ mod tests {
             PathBuf::from(DEFAULT_ESSENTIAL_PIPELINES_LOCAL_COMPLETE_PATH),
         )
         .expect("render essential pipeline local-complete report");
+        let expected_command_source = if cfg!(feature = "bam_downstream") {
+            "bam_governed_stage_command"
+        } else {
+            "local_stage_materialization"
+        };
 
         assert_eq!(report.schema_version, ESSENTIAL_PIPELINES_LOCAL_COMPLETE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_ESSENTIAL_PIPELINES_LOCAL_COMPLETE_PATH);
@@ -432,7 +437,7 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.pipeline_id == "bam-genotyping-to-vcf-downstream"
                 && row.node_id == "bam.genotyping"
-                && row.command_source == "local_stage_materialization"
+                && row.command_source == expected_command_source
         }));
     }
 }

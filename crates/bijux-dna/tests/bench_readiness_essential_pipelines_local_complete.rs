@@ -38,6 +38,11 @@ fn run_cli_json() -> serde_json::Value {
 #[test]
 fn bench_readiness_essential_pipelines_local_complete_reports_governed_pass_state() {
     let payload = run_cli_json();
+    let expected_command_source = if cfg!(feature = "bam_downstream") {
+        "bam_governed_stage_command"
+    } else {
+        "local_stage_materialization"
+    };
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -76,6 +81,6 @@ fn bench_readiness_essential_pipelines_local_complete_reports_governed_pass_stat
             == Some("bam-genotyping-to-vcf-downstream")
             && row.get("node_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
             && row.get("command_source").and_then(serde_json::Value::as_str)
-                == Some("local_stage_materialization")
+                == Some(expected_command_source)
     }));
 }

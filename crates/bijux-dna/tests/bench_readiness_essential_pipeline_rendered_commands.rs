@@ -39,6 +39,16 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_nodes() {
     let payload =
         run_cli_json(&["bench", "readiness", "render-essential-pipeline-commands", "--json"]);
+    let expected_tool_id = if cfg!(feature = "bam_downstream") {
+        "angsd"
+    } else {
+        "bijux-dna"
+    };
+    let expected_command_source = if cfg!(feature = "bam_downstream") {
+        "bam_governed_stage_command"
+    } else {
+        "local_stage_materialization"
+    };
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -150,22 +160,26 @@ fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_n
         .expect("bam.genotyping row");
     assert_eq!(
         bam_genotyping_row.get("tool_id").and_then(serde_json::Value::as_str),
-        Some("bijux-dna")
+        Some(expected_tool_id)
     );
     assert_eq!(
         bam_genotyping_row.get("command_source").and_then(serde_json::Value::as_str),
-        Some("local_stage_materialization")
+        Some(expected_command_source)
     );
     assert!(
         bam_genotyping_row
             .get("script_commands")
             .and_then(serde_json::Value::as_array)
             .is_some_and(|commands| commands.iter().any(|item| {
-                item.as_str().is_some_and(|command| {
+                item.as_str().is_some_and(|command| if cfg!(feature = "bam_downstream") {
+                    command.contains("angsd -i")
+                        && command.contains("genotyping.bcf")
+                        && command.contains("genotyping.vcf.gz")
+                } else {
                     command.contains("bench local materialize-stage")
                         && command.contains("--stage-id bam.genotyping")
                 })
             })),
-        "bam.genotyping row must render the stage-owned materialization command"
+        "bam.genotyping row must render the supported command path for the active feature set"
     );
 }
