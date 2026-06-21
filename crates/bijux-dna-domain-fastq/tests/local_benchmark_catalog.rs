@@ -81,7 +81,7 @@ fn local_advisory_stage_statuses_remain_honest_in_execution_support() {
     });
     assert_eq!(
         estimate_complexity.execution_status,
-        ExecutionStatus::DeclaredOnly,
-        "fastq.estimate_library_complexity_prealign must remain declared-only until runtime support closes",
+        ExecutionStatus::Closed,
+        "fastq.estimate_library_complexity_prealign must leave declared-only execution support once its governed runtime closes",
     );
 }
