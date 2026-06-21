@@ -1268,7 +1268,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_101_emits_validation_specific_checks() {
+    fn emits_validation_specific_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G101".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1302,7 +1302,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_102_emits_read_name_specific_checks() {
+    fn emits_read_name_specific_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G102".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1328,7 +1328,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_103_emits_pair_repair_checks() {
+    fn emits_pair_repair_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G103".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1350,7 +1350,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_104_emits_interleave_checks() {
+    fn emits_interleave_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G104".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -1362,7 +1362,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_105_emits_lane_concat_checks() {
+    fn emits_lane_concat_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G105".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -1374,7 +1374,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_106_emits_demultiplex_checks() {
+    fn emits_demultiplex_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G106".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -1383,7 +1383,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_107_emits_subsample_checks() {
+    fn emits_subsample_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G107".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1405,7 +1405,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_108_emits_adapter_detection_checks() {
+    fn emits_adapter_detection_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G108".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1427,7 +1427,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_109_emits_trimming_checks() {
+    fn emits_trimming_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G109".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1449,7 +1449,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_110_emits_umi_checks() {
+    fn emits_umi_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G110".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1471,7 +1471,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_111_emits_duplicate_complexity_checks() {
+    fn emits_duplicate_complexity_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G111".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1493,7 +1493,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_112_emits_host_depletion_checks() {
+    fn emits_host_depletion_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G112".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1515,7 +1515,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_113_emits_rrna_depletion_checks() {
+    fn emits_rrna_depletion_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G113".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -1527,7 +1527,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_114_emits_contaminant_depletion_checks() {
+    fn emits_contaminant_depletion_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G114".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1549,7 +1549,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_115_emits_taxonomy_screening_checks() {
+    fn emits_taxonomy_screening_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G115".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1571,7 +1571,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_116_emits_edna_preprocessing_checks() {
+    fn emits_edna_preprocessing_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G116".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1593,7 +1593,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_117_emits_chunked_processing_checks() {
+    fn emits_chunked_processing_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G117".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1615,7 +1615,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_118_emits_qc_manifest_checks() {
+    fn emits_qc_manifest_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G118".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1637,7 +1637,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_119_emits_provenance_capture_checks() {
+    fn emits_provenance_capture_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G119".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1659,7 +1659,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_120_emits_full_template_checks() {
+    fn emits_full_template_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G120".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);

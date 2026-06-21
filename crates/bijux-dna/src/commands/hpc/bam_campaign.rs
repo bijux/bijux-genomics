@@ -1226,7 +1226,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_121_emits_validation_boundary_checks() {
+    fn emits_validation_boundary_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G121".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1248,7 +1248,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_122_emits_bwa_alignment_checks() {
+    fn emits_bwa_alignment_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G122".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1270,7 +1270,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_123_emits_bowtie2_alignment_checks() {
+    fn emits_bowtie2_alignment_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G123".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1292,7 +1292,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_124_emits_sort_index_checks() {
+    fn emits_sort_index_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G124".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -1308,7 +1308,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_125_emits_read_group_propagation_checks() {
+    fn emits_read_group_propagation_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G125".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1330,7 +1330,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_126_emits_bam_merge_checks() {
+    fn emits_bam_merge_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G126".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1352,7 +1352,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_127_emits_duplicate_handling_checks() {
+    fn emits_duplicate_handling_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G127".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1374,7 +1374,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_128_emits_mapq_filtering_checks() {
+    fn emits_mapq_filtering_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G128".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1396,7 +1396,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_129_emits_mapping_summary_checks() {
+    fn emits_mapping_summary_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G129".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1418,7 +1418,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_130_emits_coverage_regime_checks() {
+    fn emits_coverage_regime_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G130".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1440,7 +1440,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_131_emits_adna_damage_checks() {
+    fn emits_adna_damage_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G131".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1462,7 +1462,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_132_emits_authenticity_advisory_checks() {
+    fn emits_authenticity_advisory_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G132".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1484,7 +1484,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_133_emits_mito_contamination_checks() {
+    fn emits_mito_contamination_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G133".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1506,7 +1506,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_134_emits_nuclear_contamination_checks() {
+    fn emits_nuclear_contamination_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G134".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1528,7 +1528,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_135_emits_endogenous_content_checks() {
+    fn emits_endogenous_content_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G135".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1550,7 +1550,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_136_emits_sex_par_checks() {
+    fn emits_sex_par_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G136".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1572,7 +1572,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_137_emits_haplogroup_readiness_checks() {
+    fn emits_haplogroup_readiness_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G137".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1594,7 +1594,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_138_emits_kinship_prerequisite_checks() {
+    fn emits_kinship_prerequisite_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G138".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1616,7 +1616,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_139_emits_resource_estimation_checks() {
+    fn emits_resource_estimation_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G139".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1638,7 +1638,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_140_emits_full_bam_template_checks() {
+    fn emits_full_bam_template_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G140".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
