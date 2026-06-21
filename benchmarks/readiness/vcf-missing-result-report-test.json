@@ -420,6 +420,10 @@
         "consumed_admixture",
         "consumed_pca",
         "distance_summary",
+        "sample_count",
+        "pair_count",
+        "within_population_pair_count",
+        "cross_population_pair_count",
         "sample_groups",
         "status",
         "variant_count"

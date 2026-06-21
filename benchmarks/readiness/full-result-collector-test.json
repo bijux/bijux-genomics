@@ -2713,7 +2713,7 @@
       "result_status": "succeeded",
       "domain": "bam",
       "stage_id": "bam.genotyping",
-      "tool_id": "bijux-dna",
+      "tool_id": "angsd",
       "pipeline_id": "bam-genotyping-to-vcf-downstream",
       "node_id": "bam.genotyping",
       "result_id": null,
@@ -2725,7 +2725,7 @@
       "manifest_path": "runs/bench/local-fake-runs/pipelines/essential/bam-genotyping-to-vcf-downstream/bam.genotyping/stage-result.json",
       "declared_output_count": 6,
       "normalized_metric_count": 0,
-      "detail": "essential pipeline fake-run node with command source `local_stage_materialization`"
+      "detail": "essential pipeline fake-run node with command source `bam_governed_stage_command`"
     },
     {
       "record_id": "expected:bam:corpus-01-adna-bam-mini:bam.haplogroups:sample-set:yleaf",
@@ -9443,7 +9443,7 @@
       "report_section": null,
       "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/adapterremoval/failure.json",
       "manifest_path": null,
-      "declared_output_count": 3,
+      "declared_output_count": 4,
       "normalized_metric_count": 0,
       "detail": "fake failure recorded exit_code=7"
     },
@@ -9464,7 +9464,7 @@
       "report_section": null,
       "evidence_path": "runs/bench/local-fake-runs/all-domains/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/adapterremoval/metrics.json",
       "manifest_path": "runs/bench/local-fake-runs/all-domains/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/adapterremoval/stage-result.json",
-      "declared_output_count": 3,
+      "declared_output_count": 4,
       "normalized_metric_count": 3,
       "detail": "fake-run materialized via `fastq_bam_command_adapter`"
     },
@@ -9485,7 +9485,7 @@
       "report_section": "read_cleanup",
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/adapterremoval/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/adapterremoval/stage-result.json",
-      "declared_output_count": 3,
+      "declared_output_count": 4,
       "normalized_metric_count": 3,
       "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:adapterremoval` remains present with a validated fake-run manifest"
     },
@@ -12972,7 +12972,7 @@
       "evidence_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "manifest_path": null,
       "declared_output_count": 1,
-      "normalized_metric_count": 6,
+      "normalized_metric_count": 10,
       "detail": "canonical benchmark-ready result binding"
     },
     {
@@ -13014,7 +13014,7 @@
       "evidence_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/metrics.json",
       "manifest_path": "runs/bench/local-fake-runs/all-domains/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stage-result.json",
       "declared_output_count": 7,
-      "normalized_metric_count": 6,
+      "normalized_metric_count": 10,
       "detail": "fake-run materialized via `vcf_plink_family_adapter`"
     },
     {
@@ -13035,7 +13035,7 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.population_structure/vcf_cohort/plink2/stage-result.json",
       "declared_output_count": 7,
-      "normalized_metric_count": 6,
+      "normalized_metric_count": 10,
       "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2` remains present with a validated fake-run manifest"
     },
     {

@@ -3081,11 +3081,13 @@
       "expected_output_artifact_ids": [
         "trimmed_reads_r1",
         "trimmed_reads_r2",
+        "raw_backend_report_json",
         "report_json"
       ],
       "observed_output_artifact_ids": [
         "trimmed_reads_r1",
         "trimmed_reads_r2",
+        "raw_backend_report_json",
         "report_json"
       ],
       "expected_metrics": [
@@ -4146,6 +4148,10 @@
         "consumed_admixture",
         "consumed_pca",
         "distance_summary",
+        "sample_count",
+        "pair_count",
+        "within_population_pair_count",
+        "cross_population_pair_count",
         "sample_groups",
         "status",
         "variant_count"

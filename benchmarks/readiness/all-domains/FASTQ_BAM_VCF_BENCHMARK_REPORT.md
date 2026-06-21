@@ -24,7 +24,7 @@
 | bam | bam.endogenous_content | 1 | 1 | 0 | 0 | samtools |  |
 | bam | bam.filter | 3 | 3 | 0 | 0 | bamtools, bedtools, samtools | bam-genotyping-to-vcf-downstream, diploid-small-fastq-bam-vcf |
 | bam | bam.gc_bias | 1 | 1 | 0 | 0 | picard |  |
-| bam | bam.genotyping | 1 | 1 | 0 | 0 | angsd |  |
+| bam | bam.genotyping | 1 | 1 | 0 | 0 | angsd | bam-genotyping-to-vcf-downstream |
 | bam | bam.haplogroups | 1 | 1 | 0 | 0 | yleaf |  |
 | bam | bam.insert_size | 1 | 1 | 0 | 0 | picard |  |
 | bam | bam.kinship | 2 | 2 | 0 | 0 | angsd, king |  |
@@ -178,14 +178,14 @@
 ## Pipeline-Centric
 
 - Pipeline rows: 10
-- Unmapped report rows: 100
+- Unmapped report rows: 99
 
 | Pipeline | Rows | Present | Missing | Unsupported | Domains | Stages |
 | --- | ---: | ---: | ---: | ---: | --- | --- |
 | adna-gl-fastq-bam-vcf | 15 | 14 | 1 | 0 | bam, fastq, vcf | bam.align, bam.authenticity, bam.complexity, bam.contamination, bam.coverage, bam.damage, bam.mapping_summary, bam.validate, fastq.filter_reads, fastq.remove_duplicates, fastq.trim_terminal_damage, fastq.validate_reads, vcf.call_gl, vcf.gl_propagation, vcf.qc |
 | adna-pseudohaploid-fastq-bam-vcf | 15 | 13 | 2 | 0 | bam, fastq, vcf | bam.align, bam.authenticity, bam.complexity, bam.contamination, bam.coverage, bam.damage, bam.mapping_summary, bam.validate, fastq.filter_reads, fastq.remove_duplicates, fastq.trim_terminal_damage, fastq.validate_reads, vcf.call_pseudohaploid, vcf.damage_filter, vcf.stats |
 | amplicon-asv-otu-no-vcf | 7 | 7 | 0 | 0 | fastq | fastq.cluster_otus, fastq.infer_asvs, fastq.normalize_abundance, fastq.normalize_primers, fastq.remove_chimeras, fastq.report_qc, fastq.validate_reads |
-| bam-genotyping-to-vcf-downstream | 8 | 6 | 2 | 0 | bam, vcf | bam.coverage, bam.filter, bam.recalibration, vcf.filter, vcf.pca, vcf.qc, vcf.roh, vcf.stats |
+| bam-genotyping-to-vcf-downstream | 9 | 7 | 2 | 0 | bam, vcf | bam.coverage, bam.filter, bam.genotyping, bam.recalibration, vcf.filter, vcf.pca, vcf.qc, vcf.roh, vcf.stats |
 | core-germline-fastq-bam-vcf | 12 | 10 | 2 | 0 | bam, fastq, vcf | bam.align, bam.coverage, bam.qc_pre, bam.validate, fastq.filter_reads, fastq.profile_reads, fastq.trim_reads, fastq.validate_reads, vcf.call, vcf.filter, vcf.qc, vcf.stats |
 | diploid-small-fastq-bam-vcf | 16 | 14 | 2 | 0 | bam, fastq, vcf | bam.align, bam.coverage, bam.filter, bam.mapping_summary, bam.qc_pre, bam.recalibration, bam.validate, fastq.filter_reads, fastq.profile_reads, fastq.trim_reads, fastq.validate_reads, vcf.call_diploid, vcf.filter, vcf.phasing, vcf.qc, vcf.stats |
 | edna-taxonomy-no-vcf | 6 | 5 | 1 | 0 | fastq | fastq.detect_adapters, fastq.filter_reads, fastq.report_qc, fastq.screen_taxonomy, fastq.trim_reads, fastq.validate_reads |
