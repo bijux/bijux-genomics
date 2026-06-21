@@ -40,6 +40,7 @@ pub(super) fn build_tool_registries_toml(
     stage_planned: &StagePlannedMap,
     stage_defaults: &StageDefaultMap,
     stage_default_rationale: &StageDefaultRationaleMap,
+    domain_dir: &Path,
     source_commit: &str,
 ) -> ToolRegistryOutputs {
     let outputs = tool_registries::build_tool_registries_toml(
@@ -48,6 +49,7 @@ pub(super) fn build_tool_registries_toml(
         stage_planned,
         stage_defaults,
         stage_default_rationale,
+        domain_dir,
         source_commit,
     );
     ToolRegistryOutputs {

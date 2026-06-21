@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: a16cc0a1afe46c5500baddc33f6728e3028d2590
+# source_commit: c67e78a26e10dc7439d6dc12187b834b09c398a6
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -36,7 +36,7 @@ smoke_help_cmd = "adapterremoval --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "adapterremoval --help"
 expected_bin = "adapterremoval"
-expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_json", "raw_backend_report_txt"]
+expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_txt"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.adapterremoval"

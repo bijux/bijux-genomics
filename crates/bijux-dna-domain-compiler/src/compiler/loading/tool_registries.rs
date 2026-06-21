@@ -29,6 +29,7 @@ pub(super) fn build_tool_registries_toml(
     stage_planned: &StagePlannedMap,
     stage_defaults: &StageDefaultMap,
     stage_default_rationale: &StageDefaultRationaleMap,
+    domain_dir: &Path,
     source_commit: &str,
 ) -> ToolRegistryOutputs {
     let mut production_toml = generated_header("domain/**", source_commit);
@@ -45,11 +46,12 @@ pub(super) fn build_tool_registries_toml(
     let _ = writeln!(required_tools_toml, "required_tools = {}", toml_array(&required_tools));
     required_tools_toml.push('\n');
     let mut production_tool_ids = BTreeSet::new();
+    let workspace_root = domain_dir.parent().unwrap_or(domain_dir);
     for tool in tools.values() {
         let dockerfile_rel = format!("containers/docker/arm64/Dockerfile.{}", tool.id);
         let apptainer_def_rel = format!("containers/apptainer/shared/{}.def", tool.id);
-        let dockerfile_path = Path::new(&dockerfile_rel);
-        let apptainer_def_path = Path::new(&apptainer_def_rel);
+        let dockerfile_path = workspace_root.join(&dockerfile_rel);
+        let apptainer_def_path = workspace_root.join(&apptainer_def_rel);
         let docker_exists = dockerfile_path.exists();
         let apptainer_exists = apptainer_def_path.exists();
         let mut runtimes = Vec::new();
@@ -62,23 +64,24 @@ pub(super) fn build_tool_registries_toml(
         if runtimes.is_empty() {
             runtimes = vec!["docker".to_string(), "apptainer".to_string()];
         }
+        let has_container_defs = docker_exists || apptainer_exists;
         let is_planned = tool.status == "planned"
             || tool.default_version == "planned"
             || tool_is_planned_out_of_scope(tool, stage_planned);
         let effective_version = if tool.default_version == "latest-pinned" {
-            read_text_if_exists(dockerfile_path)
+            read_text_if_exists(&dockerfile_path)
                 .and_then(|recipe| parse_version_from_recipe(&recipe))
                 .or_else(|| tool_version_override(&tool.id).map(str::to_string))
                 .unwrap_or_else(|| tool.default_version.clone())
         } else {
             tool.default_version.clone()
         };
-        let upstream = resolve_tool_upstream(&tool.upstream, &tool.id, dockerfile_path);
+        let upstream = resolve_tool_upstream(&tool.upstream, &tool.id, &dockerfile_path);
         let citation = resolve_tool_citation(&tool.citation, &upstream);
         let upstream_pin = resolve_upstream_pin(
             &tool.container_digest,
-            dockerfile_path,
-            apptainer_def_path,
+            &dockerfile_path,
+            &apptainer_def_path,
             &effective_version,
         );
         let upstream_pin = tool_pin_override(&tool.id).map_or(upstream_pin, str::to_string);
@@ -134,7 +137,7 @@ pub(super) fn build_tool_registries_toml(
         let _ = writeln!(out, "pin_strategy = \"{}\"", tool.pin_strategy);
         let _ = writeln!(out, "container_ref = \"{}\"", container_ref);
         let _ = writeln!(out, "runtimes = {}", toml_array(&runtimes));
-        let _ = writeln!(out, "container = {}", if is_planned { "false" } else { "true" });
+        let _ = writeln!(out, "container = {}", if has_container_defs { "true" } else { "false" });
         let _ = writeln!(out, "version_cmd = \"{}\"", tool.version_cmd);
         let _ = writeln!(out, "help_cmd = \"{}\"", tool.help_cmd);
         let _ = writeln!(out, "smoke_version_cmd = \"{}\"", tool.version_cmd);

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: a16cc0a1afe46c5500baddc33f6728e3028d2590
+# source_commit: c67e78a26e10dc7439d6dc12187b834b09c398a6
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -28,7 +28,7 @@ pinned_commit = "release:2.4.0"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/seqfu:2.4.0"
 runtimes = ["docker", "apptainer"]
-container = false
+container = true
 version_cmd = "seqfu --version"
 help_cmd = "seqfu --help"
 smoke_version_cmd = "seqfu --version"

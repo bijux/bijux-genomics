@@ -62,6 +62,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &stage_planned,
         &stage_defaults,
         &stage_default_rationale,
+        &options.domain_dir,
         &source_commit,
     );
     ensure_no_placeholders_in_active_config("tool_registry.toml", &registries.production_registry)?;

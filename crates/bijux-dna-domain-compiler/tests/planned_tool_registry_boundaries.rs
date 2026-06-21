@@ -49,5 +49,17 @@ fn compiler_keeps_planned_fastq_tools_out_of_governed_registry() -> Result<()> {
         "stage catalog must keep planned trim alternatives visible when they stay outside the governed runtime surface"
     );
 
+    let experimental_registry =
+        std::fs::read_to_string(out_dir.path().join("ci/registry/tool_registry_experimental.toml"))?;
+    let seqfu_block = experimental_registry
+        .split("[[tools]]")
+        .map(str::trim)
+        .find(|block| block.contains("tool_id = \"seqfu\""))
+        .unwrap_or_default();
+    assert!(
+        seqfu_block.contains("container = true"),
+        "planned FASTQ tools with governed container definitions must keep container coverage visible in the experimental registry"
+    );
+
     Ok(())
 }
