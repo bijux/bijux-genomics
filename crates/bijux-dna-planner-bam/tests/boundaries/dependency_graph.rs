@@ -23,6 +23,7 @@ fn dependency_graph_matches_planner_bam_boundary() {
             "bijux-dna-pipelines",
             "bijux-dna-stage-contract",
             "bijux-dna-stages-bam",
+            "serde",
             "serde_json",
             "toml",
             "tracing",
@@ -32,7 +33,7 @@ fn dependency_graph_matches_planner_bam_boundary() {
 
     assert_eq!(
         dependency_keys(&manifest, "dev-dependencies"),
-        keys(["bijux-dna-policies", "bijux-dna-testkit", "insta"]),
+        keys(["bijux-dna-policies", "bijux-dna-testkit", "insta", "tempfile"]),
         "dev dependencies must stay limited to guardrail checks, fixtures, and snapshots"
     );
 
