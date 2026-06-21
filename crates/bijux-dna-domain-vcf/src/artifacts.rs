@@ -2949,6 +2949,7 @@ pub fn build_vcf_scientific_drift_report(
 #[allow(clippy::expect_used)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
 
     fn unique_temp_dir(label: &str) -> PathBuf {
         static COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
