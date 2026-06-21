@@ -13,6 +13,15 @@ fn tool_supports_stage_domain(tools: &ToolMap, tool_id: &str, stage_domain: &str
     })
 }
 
+fn tool_is_planned_out_of_scope(tool: &ToolRow, stage_planned: &StagePlannedMap) -> bool {
+    !tool.stage_ids.is_empty()
+        && tool.stage_ids.iter().all(|stage_id| {
+            stage_planned
+                .get(stage_id)
+                .is_some_and(|tool_ids| tool_ids.iter().any(|tool_id| tool_id == &tool.id))
+        })
+}
+
 #[allow(clippy::uninlined_format_args)]
 pub(super) fn build_tool_registries_toml(
     tools: &ToolMap,
@@ -53,7 +62,9 @@ pub(super) fn build_tool_registries_toml(
         if runtimes.is_empty() {
             runtimes = vec!["docker".to_string(), "apptainer".to_string()];
         }
-        let is_planned = tool.status == "planned" || tool.default_version == "planned";
+        let is_planned = tool.status == "planned"
+            || tool.default_version == "planned"
+            || tool_is_planned_out_of_scope(tool, stage_planned);
         let effective_version = if tool.default_version == "latest-pinned" {
             read_text_if_exists(dockerfile_path)
                 .and_then(|recipe| parse_version_from_recipe(&recipe))
