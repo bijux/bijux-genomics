@@ -42,7 +42,7 @@ fn bench_readiness_vcf_comparable_metrics_writes_governed_tsv_columns() {
         Some("stage_id\tmetric_id\tmetric_name\tunit\tdirection\trequired\ttools_covered")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 33);
+    assert_eq!(rows.len(), 35);
     assert!(
         rows.iter().any(|row| {
             row == &"vcf.call_gl\tsites_with_likelihoods\tsites with likelihoods\tsites\thigher_is_better\ttrue\tangsd,bcftools"
