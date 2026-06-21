@@ -30,6 +30,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
+    "bam.complexity": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
     "bam.contamination": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -492,6 +504,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "evidence_only": true,
       "mode": "aggregate"
     },
+    "bam.complexity": {
+      "min_reads": 100000,
+      "projection_points": [
+        1000000,
+        2000000
+      ]
+    },
     "bam.contamination": {
       "assumptions": null,
       "chromosome_system": null,
@@ -839,6 +858,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "rationale": "aDNA default alignment preset"
     },
     "bam.authenticity": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.complexity": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -1286,6 +1317,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "tools": {
     "bam.align": "bwa",
     "bam.authenticity": "authenticct",
+    "bam.complexity": "preseq",
     "bam.contamination": "schmutzi",
     "bam.coverage": "mosdepth",
     "bam.damage": "mapdamage2",
