@@ -125,12 +125,14 @@ print_nextest_summary() {
 }
 
 prepare_common_env() {
+  local cargo_home_default="${rs_artifact_root}/cargo/home"
+  local tmpdir_default="${rs_artifact_root}/tmp"
   export TZ="UTC"
   export LC_ALL="C"
   export ARTIFACT_ROOT="${ARTIFACT_ROOT:-artifacts}"
   export ISO_ROOT="${ISO_ROOT:-$(cd "${ARTIFACT_ROOT}" && pwd 2>/dev/null || printf '%s/%s' "${workspace_root}" "${ARTIFACT_ROOT}")}"
-  export CARGO_HOME="${CARGO_HOME:-${workspace_root}/artifacts/cargo/home}"
-  export TMPDIR="${TMPDIR:-${workspace_root}/artifacts/tmp}"
+  export CARGO_HOME="${CARGO_HOME:-${cargo_home_default}}"
+  export TMPDIR="${TMPDIR:-${tmpdir_default}}"
   export TMP="${TMP:-${TMPDIR}}"
   export TEMP="${TEMP:-${TMPDIR}}"
   mkdir -p "${CARGO_HOME}" "${TMPDIR}"
