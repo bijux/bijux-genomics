@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: 435e85dd5ca4fe9eeb69e18bd834137f8d51b723
+# source_commit: a16cc0a1afe46c5500baddc33f6728e3028d2590
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -188,3 +188,4 @@ experimental = true
 metrics_schema = "bijux.vcf.stats.v1"
 smoke_required = true
 tools = ["bcftools"]
+

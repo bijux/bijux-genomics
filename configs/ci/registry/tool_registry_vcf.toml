@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: 435e85dd5ca4fe9eeb69e18bd834137f8d51b723
+# source_commit: a16cc0a1afe46c5500baddc33f6728e3028d2590
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -52,9 +52,9 @@ upstream = "https://github.com/samtools/bcftools"
 version_rule = "pinned"
 license = "MIT"
 citation = "DOI:10.1093/gigascience/giab008"
-pinned_commit = "sha256:badc3a0c7af72a83e5761ab0e881aa84204694bdead003b47552cb283958f78d"
+pinned_commit = "sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
 pin_strategy = "container_digest"
-container_ref = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:badc3a0c7af72a83e5761ab0e881aa84204694bdead003b47552cb283958f78d"
+container_ref = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "bcftools --version"
@@ -475,6 +475,18 @@ apptainer_def = "containers/apptainer/shared/shapeit5.def"
 require_labels = true
 
 [[stages]]
+id = "vcf.admixture"
+required_tool_roles = ["transform"]
+primary_tools = ["plink2"]
+optional_alternatives = ["plink"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "the governed admixture baseline keeps cohort preparation, K selection, and normalized cluster fractions anchored to the admitted PLINK-family execution surface."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
 id = "vcf.call"
 required_tool_roles = ["transform"]
 primary_tools = ["bcftools"]
@@ -555,18 +567,6 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "preserves GL fields across downstream handoffs in the current governed profile."
-requires_validation = false
-requires_reporting = false
-
-[[stages]]
-id = "vcf.admixture"
-required_tool_roles = ["transform"]
-primary_tools = ["plink2"]
-optional_alternatives = ["plink"]
-validation_tools = []
-reporting_tools = []
-planned_out_of_scope = []
-default_rationale = "the governed admixture baseline keeps cohort preparation, K selection, and normalized cluster fractions anchored to the admitted PLINK-family execution surface."
 requires_validation = false
 requires_reporting = false
 
@@ -689,3 +689,4 @@ planned_out_of_scope = []
 default_rationale = "minimal required metrics for quality gating."
 requires_validation = false
 requires_reporting = false
+
