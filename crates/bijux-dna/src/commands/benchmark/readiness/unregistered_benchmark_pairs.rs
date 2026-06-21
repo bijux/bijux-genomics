@@ -124,7 +124,7 @@ fn collect_unregistered_rows(
             registry_status: registry_status.to_string(),
             registered_stage_ids: registered_stage_ids.clone(),
             reason: format!(
-                "benchmark matrix references `{}` / `{}` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: {}; registered stages for `{}`: {}",
+                "benchmark matrix references `{}` / `{}` but the governed registry surfaces do not register that pair; registry status: {}; registered stages for `{}`: {}",
                 row.stage_id,
                 row.tool_id,
                 registry_status,
