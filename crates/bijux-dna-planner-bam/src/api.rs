@@ -12,7 +12,7 @@ pub mod stage_api {
     };
     #[cfg(feature = "bam_downstream")]
     pub use crate::local_readiness::{local_genotyping_plan, local_haplogroups_plan};
-    pub use crate::local_smoke::{
+    pub use crate::local_stage_cases::{
         local_authenticity_output_contract_plans, local_authenticity_smoke_plans,
         local_complexity_smoke_plans, local_coverage_smoke_plans,
         local_damage_output_contract_plans, local_damage_smoke_plans,
@@ -33,7 +33,7 @@ pub mod stage_api {
         LocalValidateAlignmentFixtureEncoding, LocalValidateSmokeCasePlan,
     };
     #[cfg(feature = "bam_downstream")]
-    pub use crate::local_smoke::{
+    pub use crate::local_stage_cases::{
         local_bias_mitigation_smoke_plans, local_kinship_output_contract_plans,
         local_kinship_smoke_plans, LocalBiasMitigationSmokeCasePlan, LocalKinshipSmokeCasePlan,
         LocalKinshipSmokeExpectedPair,

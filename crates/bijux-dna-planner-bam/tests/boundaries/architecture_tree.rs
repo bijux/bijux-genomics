@@ -17,7 +17,7 @@ fn planner_bam_tree_matches_architecture_contract() {
             "execution_graph.rs",
             "lib.rs",
             "local_readiness.rs",
-            "local_smoke.rs",
+            "local_stage_cases.rs",
             "params.rs",
             "profile_catalog.rs",
             "report_stage.rs",

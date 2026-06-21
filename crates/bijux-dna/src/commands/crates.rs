@@ -169,7 +169,7 @@ const PLANNER_AUDIT_SPECS: &[PlannerCrateAuditSpec] = &[
                 reason: "loads governed local-ready planning inputs and runtime defaults",
             },
             AllowedAuditFileSpec {
-                path: "crates/bijux-dna-planner-bam/src/local_smoke.rs",
+                path: "crates/bijux-dna-planner-bam/src/local_stage_cases.rs",
                 reason: "loads governed local-smoke planning inputs and fixture manifests",
             },
             AllowedAuditFileSpec {
@@ -198,7 +198,7 @@ const PLANNER_AUDIT_SPECS: &[PlannerCrateAuditSpec] = &[
                 reason: "loads governed local-ready FASTQ planning inputs",
             },
             AllowedAuditFileSpec {
-                path: "crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs",
+                path: "crates/bijux-dna-planner-fastq/src/planner/local_stage_cases.rs",
                 reason: "loads governed local-smoke FASTQ planning inputs and fixture manifests",
             },
             AllowedAuditFileSpec {

@@ -10,7 +10,7 @@ pub const PLANNER_VERSION: &str = "bijux-dna-planner-bam.v1";
 mod api;
 mod execution_graph;
 mod local_readiness;
-mod local_smoke;
+mod local_stage_cases;
 mod params;
 mod profile_catalog;
 mod report_stage;

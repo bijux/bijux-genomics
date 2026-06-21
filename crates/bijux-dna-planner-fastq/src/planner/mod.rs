@@ -28,7 +28,7 @@ mod benchmark;
 mod graph_policy;
 mod layout_branching;
 mod local_readiness;
-mod local_smoke;
+mod local_stage_cases;
 mod quality_sampling;
 mod route_expansion;
 mod selection_planning;
@@ -62,7 +62,7 @@ pub use local_readiness::{
     local_index_reference_output_contract_plans, local_index_reference_plan,
     local_screen_taxonomy_output_contract_plans, local_screen_taxonomy_plan,
 };
-pub use local_smoke::{
+pub use local_stage_cases::{
     local_cluster_otus_smoke_plans, local_correct_errors_smoke_plans,
     local_detect_adapters_smoke_plans, local_detect_duplicates_premerge_smoke_plans,
     local_estimate_library_complexity_prealign_smoke_plans, local_extract_umis_smoke_plans,
