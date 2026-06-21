@@ -69,6 +69,8 @@ fn planner_fastq_tree_matches_architecture_contract() {
         child_entries(&root.join("src/tool_adapters/stages/pre")),
         entries([
             "detect_adapters.rs",
+            "detect_duplicates_premerge.rs",
+            "estimate_library_complexity_prealign.rs",
             "index_reference.rs",
             "mod.rs",
             "plan_preprocess.rs",

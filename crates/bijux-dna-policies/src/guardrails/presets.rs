@@ -10,6 +10,9 @@ pub(super) fn for_crate(name: &str) -> GuardrailConfig {
         config.max_pub_items_per_file = 110;
         config.allow_stage_id_paths = vec!["/src/id_catalog.rs".to_string()];
     }
+    if name == "bijux-dna-planner-fastq" {
+        config.max_pub_items_per_file = 90;
+    }
     if name == "bijux-dna-runtime" {
         config.max_pub_items_per_file = 90;
     }
