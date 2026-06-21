@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::ffi::OsString;
 use std::fs;
 use std::io::ErrorKind;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
@@ -19,6 +19,10 @@ const TEST_LOCK_ROOT: &str = "artifacts/test-locks";
 const TEST_LOCK_WAIT_TIMEOUT: Duration = Duration::from_secs(300);
 #[allow(dead_code)]
 const TEST_LOCK_POLL_INTERVAL: Duration = Duration::from_millis(50);
+#[allow(dead_code)]
+const TEST_LOCK_OWNER_FILE: &str = "owner.pid";
+#[allow(dead_code)]
+const TEST_LOCK_MISSING_OWNER_GRACE: Duration = Duration::from_secs(1);
 
 pub struct EnvGuard {
     cwd: PathBuf,
@@ -71,8 +75,25 @@ impl RepoProcessLock {
 
         loop {
             match fs::create_dir(&path) {
-                Ok(()) => return Ok(Self { path }),
+                Ok(()) => {
+                    write_lock_owner(&path)?;
+                    return Ok(Self { path });
+                }
                 Err(error) if error.kind() == ErrorKind::AlreadyExists => {
+                    if stale_repo_test_lock(&path)? {
+                        match fs::remove_dir_all(&path) {
+                            Ok(()) => continue,
+                            Err(remove_error) if remove_error.kind() == ErrorKind::NotFound => {
+                                continue;
+                            }
+                            Err(remove_error) => {
+                                return Err(anyhow!(
+                                    "remove stale repo test lock `{}`: {remove_error}",
+                                    path.display()
+                                ));
+                            }
+                        }
+                    }
                     if Instant::now() >= deadline {
                         return Err(anyhow!("timed out waiting for repo test lock `{}`", path.display()));
                     }
@@ -88,8 +109,55 @@ impl RepoProcessLock {
 
 impl Drop for RepoProcessLock {
     fn drop(&mut self) {
-        let _ = fs::remove_dir(&self.path);
+        let _ = fs::remove_dir_all(&self.path);
     }
+}
+
+fn write_lock_owner(path: &Path) -> Result<()> {
+    fs::write(path.join(TEST_LOCK_OWNER_FILE), std::process::id().to_string())
+        .map_err(|error| anyhow!("write repo test lock owner `{}`: {error}", path.display()))
+}
+
+fn stale_repo_test_lock(path: &Path) -> Result<bool> {
+    let owner_path = path.join(TEST_LOCK_OWNER_FILE);
+    match fs::read_to_string(&owner_path) {
+        Ok(raw_pid) => {
+            let pid = raw_pid.trim().parse::<u32>().map_err(|error| {
+                anyhow!("parse repo test lock owner `{}`: {error}", owner_path.display())
+            })?;
+            Ok(!process_is_alive(pid))
+        }
+        Err(error) if error.kind() == ErrorKind::NotFound => {
+            Ok(lock_is_older_than(path, TEST_LOCK_MISSING_OWNER_GRACE)?)
+        }
+        Err(error) => Err(anyhow!("read repo test lock owner `{}`: {error}", owner_path.display())),
+    }
+}
+
+fn lock_is_older_than(path: &Path, threshold: Duration) -> Result<bool> {
+    let modified = fs::metadata(path)
+        .and_then(|metadata| metadata.modified())
+        .map_err(|error| anyhow!("read repo test lock metadata `{}`: {error}", path.display()))?;
+    let age = modified.elapsed().map_err(|error| {
+        anyhow!("measure repo test lock age `{}`: {error}", path.display())
+    })?;
+    Ok(age >= threshold)
+}
+
+#[cfg(unix)]
+fn process_is_alive(pid: u32) -> bool {
+    std::process::Command::new("kill")
+        .arg("-0")
+        .arg(pid.to_string())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .is_ok_and(|status| status.success())
+}
+
+#[cfg(not(unix))]
+fn process_is_alive(_pid: u32) -> bool {
+    true
 }
 
 #[allow(dead_code)]
