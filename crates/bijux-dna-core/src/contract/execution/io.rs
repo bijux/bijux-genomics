@@ -20,7 +20,7 @@ pub enum ArtifactRoleFamily {
     Other,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum ArtifactRole {
     Reads,
@@ -44,6 +44,7 @@ pub enum ArtifactRole {
     SummaryTsv,
     ReportHtml,
     #[serde(other)]
+    #[default]
     Unknown,
 }
 
@@ -138,12 +139,6 @@ impl ArtifactRole {
             "log" | "raw_backend_report_txt" => Some(Self::Log),
             _ => None,
         }
-    }
-}
-
-impl Default for ArtifactRole {
-    fn default() -> Self {
-        Self::Unknown
     }
 }
 

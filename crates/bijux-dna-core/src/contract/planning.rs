@@ -733,8 +733,8 @@ fn cross_domain_handoff(
     from_step: &ExecutionStep,
     to_step: &ExecutionStep,
 ) -> CrossDomainHandoffV1 {
-    let from_domain = stage_domain(from_step.stage_id.as_str()).to_string();
-    let to_domain = stage_domain(to_step.stage_id.as_str()).to_string();
+    let from_domain = stage_domain(from_step.stage_id.as_str()).clone();
+    let to_domain = stage_domain(to_step.stage_id.as_str()).clone();
     let shared_role = first_shared_role(from_step, to_step);
     let artifact_family = shared_role.map(ArtifactRole::family);
     let mut checks = Vec::new();

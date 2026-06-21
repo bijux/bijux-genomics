@@ -15,20 +15,12 @@ pub fn available_runners() -> Result<Vec<RuntimeKind>, EnvError> {
 #[must_use]
 pub fn docker_image_exists(image: &ResolvedImage) -> bool {
     docker_image_exists_with(image, |args| {
-        Command::new("docker")
-            .args(args)
-            .output()
-            .map(|output| output.status.success())
-            .unwrap_or(false)
+        Command::new("docker").args(args).output().is_ok_and(|output| output.status.success())
     })
 }
 
 fn probe_command(command: &str) -> bool {
-    Command::new(command)
-        .arg("--version")
-        .output()
-        .map(|output| output.status.success())
-        .unwrap_or(false)
+    Command::new(command).arg("--version").output().is_ok_and(|output| output.status.success())
 }
 
 pub(crate) fn run_command(cmd: &str, args: &[&str]) -> Result<(), EnvError> {
