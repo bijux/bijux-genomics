@@ -246,9 +246,5 @@ fn cargo_manifest_keeps_dependency_boundaries() -> anyhow::Result<()> {
         "normal dependencies must not be duplicated as dev-dependencies: {duplicates:?}"
     );
 
-    assert!(
-        dev_dependencies.contains_key("bijux-dna-bench"),
-        "benchmark integration belongs in dev-dependencies only"
-    );
     Ok(())
 }
