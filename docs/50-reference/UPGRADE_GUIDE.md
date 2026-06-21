@@ -15,9 +15,9 @@ Does not replace crate changelogs, release process policy, or ad hoc migration p
 ## Contracts
 This guide is generated from governed compatibility config via `cargo run -p bijux-dna-dev -- tooling run generate-docs`.
 
-Release: `feat-deep-foundation-compatibility`
+Release: `compatibility-upgrade-inventory`
 
-Title: Compatibility and upgrade discipline
+Title: Compatibility upgrade inventory
 
 Source schema: `bijux.release_changes.v1`
 
