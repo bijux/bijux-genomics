@@ -777,7 +777,7 @@ mod tests {
     }
 
     #[test]
-    fn cross_catalog_includes_iteration_14_goals() {
+    fn cross_catalog_covers_declared_id_span() {
         assert_eq!(CROSS_GOALS_CATALOG.len(), 10);
         assert_eq!(CROSS_GOALS_CATALOG[0].goal_id, "G161");
         assert_eq!(CROSS_GOALS_CATALOG[9].goal_id, "G170");

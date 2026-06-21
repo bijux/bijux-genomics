@@ -107,8 +107,8 @@ const G173_SCENARIOS: &[ScenarioDefinition] = &[
         focus: "detect weak corpus signals from appraisers",
     },
     ScenarioDefinition {
-        scenario_id: "corpus-improvement-task-generation",
-        focus: "generate corpus-improvement hardening tasks",
+        scenario_id: "corpus-improvement-plan",
+        focus: "generate corpus-improvement hardening plan",
     },
     ScenarioDefinition {
         scenario_id: "corpus-rerun-proof",
@@ -122,8 +122,8 @@ const G174_SCENARIOS: &[ScenarioDefinition] = &[
         focus: "detect DB incompatibility and weakness findings",
     },
     ScenarioDefinition {
-        scenario_id: "database-fix-task-generation",
-        focus: "generate DB hardening task outputs",
+        scenario_id: "database-remediation-plan",
+        focus: "generate DB hardening remediation plan",
     },
     ScenarioDefinition {
         scenario_id: "database-rerun-proof",
@@ -137,8 +137,8 @@ const G175_SCENARIOS: &[ScenarioDefinition] = &[
         focus: "detect image smoke/bind/version failures",
     },
     ScenarioDefinition {
-        scenario_id: "image-fix-task-generation",
-        focus: "generate image-hardening tasks",
+        scenario_id: "image-remediation-plan",
+        focus: "generate image-hardening remediation plan",
     },
     ScenarioDefinition {
         scenario_id: "image-rerun-proof",
@@ -152,8 +152,8 @@ const G176_SCENARIOS: &[ScenarioDefinition] = &[
         focus: "detect wrapper path/env/signal/output failures",
     },
     ScenarioDefinition {
-        scenario_id: "wrapper-fix-task-generation",
-        focus: "generate wrapper-hardening tasks",
+        scenario_id: "wrapper-remediation-plan",
+        focus: "generate wrapper-hardening remediation plan",
     },
     ScenarioDefinition {
         scenario_id: "wrapper-rerun-proof",
@@ -167,8 +167,8 @@ const G177_SCENARIOS: &[ScenarioDefinition] = &[
         focus: "detect CPU/mem/walltime/scratch/IO drift",
     },
     ScenarioDefinition {
-        scenario_id: "resource-tuning-task-generation",
-        focus: "generate resource tuning patch tasks",
+        scenario_id: "resource-tuning-plan",
+        focus: "generate resource tuning remediation plan",
     },
     ScenarioDefinition {
         scenario_id: "resource-before-after-benchmark",
@@ -182,8 +182,8 @@ const G178_SCENARIOS: &[ScenarioDefinition] = &[
         focus: "detect scratch/shared-storage IO policy issues",
     },
     ScenarioDefinition {
-        scenario_id: "io-staging-task-generation",
-        focus: "generate IO staging hardening tasks",
+        scenario_id: "io-staging-remediation-plan",
+        focus: "generate IO staging hardening plan",
     },
     ScenarioDefinition {
         scenario_id: "io-improvement-report",
@@ -197,8 +197,8 @@ const G179_SCENARIOS: &[ScenarioDefinition] = &[
         focus: "detect encryption, redaction, key, sidecar failures",
     },
     ScenarioDefinition {
-        scenario_id: "security-hardening-task-generation",
-        focus: "generate security hardening tasks",
+        scenario_id: "security-hardening-plan",
+        focus: "generate security hardening plan",
     },
     ScenarioDefinition {
         scenario_id: "security-appraisal-proof",
@@ -212,8 +212,8 @@ const G180_SCENARIOS: &[ScenarioDefinition] = &[
         focus: "detect missing replay fields in code/results bundles",
     },
     ScenarioDefinition {
-        scenario_id: "replay-hardening-task-generation",
-        focus: "generate replay hardening tasks",
+        scenario_id: "replay-hardening-plan",
+        focus: "generate replay hardening plan",
     },
     ScenarioDefinition {
         scenario_id: "replay-success-proof",
@@ -243,7 +243,7 @@ const G182_SCENARIOS: &[ScenarioDefinition] = &[
     },
     ScenarioDefinition {
         scenario_id: "schema-contract-fix-queue",
-        focus: "queue schema contract hardening tasks from appraisal signals",
+        focus: "queue schema contract hardening entries from appraisal signals",
     },
     ScenarioDefinition {
         scenario_id: "schema-rerun-proof",
@@ -258,7 +258,7 @@ const G183_SCENARIOS: &[ScenarioDefinition] = &[
     },
     ScenarioDefinition {
         scenario_id: "scientific-caveat-correction",
-        focus: "generate caveat correction tasks from scientific findings",
+        focus: "generate caveat correction plan from scientific findings",
     },
     ScenarioDefinition {
         scenario_id: "caveat-appraiser-pass",
@@ -5007,7 +5007,7 @@ mod tests {
     }
 
     #[test]
-    fn hardening_catalog_includes_iteration_25_goals() {
+    fn hardening_catalog_covers_declared_id_span() {
         assert_eq!(HARDENING_GOALS_CATALOG.len(), 110);
         assert_eq!(HARDENING_GOALS_CATALOG[0].goal_id, "G171");
         assert_eq!(HARDENING_GOALS_CATALOG[109].goal_id, "G280");

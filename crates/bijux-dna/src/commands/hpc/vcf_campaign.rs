@@ -1202,7 +1202,7 @@ mod tests {
     }
 
     #[test]
-    fn vcf_catalog_includes_iteration_12_and_13_goals() {
+    fn vcf_catalog_covers_declared_id_span() {
         assert_eq!(VCF_GOALS_CATALOG.len(), 20);
         assert_eq!(VCF_GOALS_CATALOG[0].goal_id, "G141");
         assert_eq!(VCF_GOALS_CATALOG[9].goal_id, "G150");

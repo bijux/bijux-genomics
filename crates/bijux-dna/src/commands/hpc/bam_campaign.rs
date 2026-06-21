@@ -1128,7 +1128,7 @@ mod tests {
     }
 
     #[test]
-    fn bam_catalog_includes_iteration_10_and_11_goals() {
+    fn bam_catalog_covers_declared_id_span() {
         assert_eq!(BAM_GOALS_CATALOG.len(), 20);
         assert_eq!(BAM_GOALS_CATALOG[0].goal_id, "G121");
         assert_eq!(BAM_GOALS_CATALOG[9].goal_id, "G130");

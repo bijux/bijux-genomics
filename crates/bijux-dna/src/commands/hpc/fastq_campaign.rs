@@ -1165,7 +1165,7 @@ mod tests {
     }
 
     #[test]
-    fn fastq_catalog_includes_iteration_08_and_09_goals() {
+    fn fastq_catalog_covers_declared_id_span() {
         assert_eq!(FASTQ_GOALS_CATALOG.len(), 20);
         assert_eq!(FASTQ_GOALS_CATALOG[0].goal_id, "G101");
         assert_eq!(FASTQ_GOALS_CATALOG[9].goal_id, "G110");
