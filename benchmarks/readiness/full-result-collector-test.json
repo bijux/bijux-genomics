@@ -6860,7 +6860,7 @@
       "report_section": "read_cleanup",
       "evidence_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "manifest_path": null,
-      "declared_output_count": 8,
+      "declared_output_count": 7,
       "normalized_metric_count": 2,
       "detail": "canonical benchmark-ready result binding"
     },
@@ -9422,7 +9422,7 @@
       "report_section": "read_cleanup",
       "evidence_path": "benchmarks/readiness/expected-benchmark-results-all-domains.tsv",
       "manifest_path": null,
-      "declared_output_count": 8,
+      "declared_output_count": 3,
       "normalized_metric_count": 3,
       "detail": "canonical benchmark-ready result binding"
     },
@@ -9443,7 +9443,7 @@
       "report_section": null,
       "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/adapterremoval/failure.json",
       "manifest_path": null,
-      "declared_output_count": 4,
+      "declared_output_count": 3,
       "normalized_metric_count": 0,
       "detail": "fake failure recorded exit_code=7"
     },
@@ -9464,7 +9464,7 @@
       "report_section": null,
       "evidence_path": "runs/bench/local-fake-runs/all-domains/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/adapterremoval/metrics.json",
       "manifest_path": "runs/bench/local-fake-runs/all-domains/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/adapterremoval/stage-result.json",
-      "declared_output_count": 4,
+      "declared_output_count": 3,
       "normalized_metric_count": 3,
       "detail": "fake-run materialized via `fastq_bam_command_adapter`"
     },
@@ -9485,7 +9485,7 @@
       "report_section": "read_cleanup",
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/adapterremoval/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/adapterremoval/stage-result.json",
-      "declared_output_count": 4,
+      "declared_output_count": 3,
       "normalized_metric_count": 3,
       "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.trim_reads:sample-set:adapterremoval` remains present with a validated fake-run manifest"
     },

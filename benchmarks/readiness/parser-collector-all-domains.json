@@ -3915,10 +3915,10 @@
       "manifest_path": "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs/fastq/corpus-01-mini/fastq.trim_reads/corpus_only/adapterremoval/stage-result.json",
       "manifest_status": "succeeded",
       "manifest_exit_code": 0,
-      "declared_output_count": 4,
+      "declared_output_count": 3,
       "normalized_snapshot": {
         "command_step_count": 1,
-        "declared_output_count": 4,
+        "declared_output_count": 3,
         "expected_metric_count": 3,
         "simulated_elapsed_seconds": 1.25
       }
