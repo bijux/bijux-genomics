@@ -49,7 +49,7 @@ pub fn write_local_contamination_plan() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_contamination_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::contamination::write_local_contamination_smoke_report()
+    crate::public_surface::bam_stages::contamination::write_local_contamination_smoke_report()
 }
 
 /// Materialize the governed local-ready `bam.haplogroups` dry-run plan.
@@ -81,7 +81,7 @@ pub fn write_local_haplogroups_plan() -> Result<PathBuf> {
 /// invalid, or the proof artifacts cannot be written.
 #[cfg(feature = "bam_downstream")]
 pub fn write_local_haplogroups_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::haplogroups::write_local_haplogroups_smoke_report()
+    crate::public_surface::bam_stages::haplogroups::write_local_haplogroups_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.haplogroups` proof bundle.
@@ -121,7 +121,7 @@ pub fn write_local_genotyping_plan() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_validate_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::validate::write_local_validate_smoke_report()
+    crate::public_surface::bam_stages::validate::write_local_validate_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.damage` report bundle.
@@ -133,7 +133,7 @@ pub fn write_local_validate_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_damage_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::damage::write_local_damage_smoke_report()
+    crate::public_surface::bam_stages::damage::write_local_damage_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.authenticity` report bundle.
@@ -145,7 +145,7 @@ pub fn write_local_damage_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_authenticity_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::authenticity::write_local_authenticity_smoke_report()
+    crate::public_surface::bam_stages::authenticity::write_local_authenticity_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.qc_pre` report bundle.
@@ -157,7 +157,7 @@ pub fn write_local_authenticity_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_qc_pre_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::qc_pre::write_local_qc_pre_smoke_report()
+    crate::public_surface::bam_stages::qc_pre::write_local_qc_pre_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.filter` report bundle.
@@ -169,7 +169,7 @@ pub fn write_local_qc_pre_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_filter_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::filter::write_local_filter_smoke_report()
+    crate::public_surface::bam_stages::filter::write_local_filter_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.duplication_metrics` report bundle.
@@ -182,7 +182,7 @@ pub fn write_local_filter_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_duplication_metrics_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::duplication_metrics::write_local_duplication_metrics_smoke_report(
+    crate::public_surface::bam_stages::duplication_metrics::write_local_duplication_metrics_smoke_report(
     )
 }
 
@@ -195,7 +195,7 @@ pub fn write_local_duplication_metrics_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_complexity_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::complexity::write_local_complexity_smoke_report()
+    crate::public_surface::bam_stages::complexity::write_local_complexity_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.insert_size` report bundle.
@@ -207,7 +207,7 @@ pub fn write_local_complexity_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_insert_size_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::insert_size::write_local_insert_size_smoke_report()
+    crate::public_surface::bam_stages::insert_size::write_local_insert_size_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.recalibration` report bundle.
@@ -220,7 +220,7 @@ pub fn write_local_insert_size_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_recalibration_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::recalibration::write_local_recalibration_smoke_report()
+    crate::public_surface::bam_stages::recalibration::write_local_recalibration_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.gc_bias` TSV bundle.
@@ -232,7 +232,7 @@ pub fn write_local_recalibration_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_gc_bias_smoke_summary() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::gc_bias::write_local_gc_bias_smoke_summary()
+    crate::public_surface::bam_stages::gc_bias::write_local_gc_bias_smoke_summary()
 }
 
 /// Materialize the governed local-smoke `bam.bias_mitigation` report bundle.
@@ -246,7 +246,7 @@ pub fn write_local_gc_bias_smoke_summary() -> Result<PathBuf> {
 /// invalid, or the smoke artifacts cannot be written.
 #[cfg(feature = "bam_downstream")]
 pub fn write_local_bias_mitigation_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::bias_mitigation::write_local_bias_mitigation_smoke_report()
+    crate::public_surface::bam_stages::bias_mitigation::write_local_bias_mitigation_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.endogenous_content` report bundle.
@@ -259,7 +259,7 @@ pub fn write_local_bias_mitigation_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_endogenous_content_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::endogenous_content::write_local_endogenous_content_smoke_report()
+    crate::public_surface::bam_stages::endogenous_content::write_local_endogenous_content_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.overlap_correction` report bundle.
@@ -273,7 +273,7 @@ pub fn write_local_endogenous_content_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_overlap_correction_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::overlap_correction::write_local_overlap_correction_smoke_report()
+    crate::public_surface::bam_stages::overlap_correction::write_local_overlap_correction_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.coverage` TSV bundle.
@@ -286,7 +286,7 @@ pub fn write_local_overlap_correction_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_coverage_smoke_summary() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::coverage::write_local_coverage_smoke_summary()
+    crate::public_surface::bam_stages::coverage::write_local_coverage_smoke_summary()
 }
 
 /// Materialize the governed local-smoke `bam.length_filter` report bundle.
@@ -298,7 +298,7 @@ pub fn write_local_coverage_smoke_summary() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_length_filter_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::length_filter::write_local_length_filter_smoke_report()
+    crate::public_surface::bam_stages::length_filter::write_local_length_filter_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.markdup` report bundle.
@@ -310,7 +310,7 @@ pub fn write_local_length_filter_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_markdup_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::markdup::write_local_markdup_smoke_report()
+    crate::public_surface::bam_stages::markdup::write_local_markdup_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.mapq_filter` report bundle.
@@ -322,7 +322,7 @@ pub fn write_local_markdup_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_mapq_filter_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::mapq_filter::write_local_mapq_filter_smoke_report()
+    crate::public_surface::bam_stages::mapq_filter::write_local_mapq_filter_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.mapping_summary` TSV bundle.
@@ -335,7 +335,7 @@ pub fn write_local_mapq_filter_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_mapping_summary_smoke_summary() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::mapping_summary::write_local_mapping_summary_smoke_summary()
+    crate::public_surface::bam_stages::mapping_summary::write_local_mapping_summary_smoke_summary()
 }
 
 /// Materialize the governed local-smoke `bam.sex` report bundle.
@@ -347,7 +347,7 @@ pub fn write_local_mapping_summary_smoke_summary() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, the governed local-smoke config is
 /// invalid, or the smoke artifacts cannot be written.
 pub fn write_local_sex_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::sex::write_local_sex_smoke_report()
+    crate::public_surface::bam_stages::sex::write_local_sex_smoke_report()
 }
 
 /// Materialize governed `bam.sex` tool-smoke outputs for all retained tools.
@@ -359,7 +359,7 @@ pub fn write_local_sex_smoke_report() -> Result<PathBuf> {
 /// Returns an error if the repository root cannot be resolved, governed plans are invalid, or the
 /// proof artifacts cannot be written.
 pub fn write_local_sex_tool_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::sex::write_local_sex_tool_smoke_report()
+    crate::public_surface::bam_stages::sex::write_local_sex_tool_smoke_report()
 }
 
 /// Materialize the governed local-smoke `bam.kinship` report bundle.
@@ -372,7 +372,7 @@ pub fn write_local_sex_tool_smoke_report() -> Result<PathBuf> {
 /// invalid, or the smoke artifacts cannot be written.
 #[cfg(feature = "bam_downstream")]
 pub fn write_local_kinship_smoke_report() -> Result<PathBuf> {
-    crate::public_bridge::bam_stages::kinship::write_local_kinship_smoke_report()
+    crate::public_surface::bam_stages::kinship::write_local_kinship_smoke_report()
 }
 
 fn resolve_plan_dir(repo_root: &Path, out_dir: &Path) -> PathBuf {

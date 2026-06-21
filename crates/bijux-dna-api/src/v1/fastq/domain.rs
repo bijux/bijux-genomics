@@ -9,7 +9,7 @@ pub use bijux_dna_planner_fastq::stage_api::args as fastq_args;
 pub use bijux_dna_planner_fastq::stage_api::banks as fastq_bank_ops;
 pub use bijux_dna_planner_fastq::stage_api::*;
 
-pub use crate::internal::public_bridge::handlers::fastq::*;
+pub use crate::internal::public_surface::handlers::fastq::*;
 
 /// # Errors
 /// Returns an error when the stage does not expose the requested benchmark cohort.

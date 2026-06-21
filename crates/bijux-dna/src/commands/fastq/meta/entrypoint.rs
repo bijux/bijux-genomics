@@ -3,7 +3,7 @@ use super::debug::handle_debug_command;
 use super::environment::handle_environment_command;
 use super::pipelines::handle_pipelines_command;
 use crate::cli::BenchConfigCommand;
-use crate::commands::fastq::api_bridge::{
+use crate::commands::fastq::api_translation::{
     bench_bam_pipeline_args_to_api, bench_bam_stage_args_to_api,
 };
 #[allow(unused_imports)]
@@ -231,7 +231,7 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderBamLocalContainerSmoke(args) => {
-                        crate::commands::benchmark::readiness::bam_local_container_smoke::run_render_bam_local_container_smoke(
+                        crate::commands::benchmark::readiness::bam_local_container_probe::run_render_bam_local_container_smoke(
                             args,
                         )?;
                     }
@@ -531,7 +531,7 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderFastqLocalContainerSmoke(args) => {
-                        crate::commands::benchmark::readiness::fastq_local_container_smoke::run_render_fastq_local_container_smoke(
+                        crate::commands::benchmark::readiness::fastq_local_container_probe::run_render_fastq_local_container_smoke(
                             args,
                         )?;
                     }
@@ -736,7 +736,7 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderRealOutputParserSmoke(args) => {
-                        crate::commands::benchmark::readiness::real_output_parser_smoke::run_render_real_output_parser_smoke(
+                        crate::commands::benchmark::readiness::real_output_parser_probe::run_render_real_output_parser_smoke(
                             args,
                         )?;
                     }
@@ -751,12 +751,12 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     cli::BenchReadinessCommand::RunContainerToolSmoke(args) => {
-                        crate::commands::benchmark::readiness::container_tool_smoke::run_container_tool_smoke(
+                        crate::commands::benchmark::readiness::container_tool_probe::run_container_tool_smoke(
                             args,
                         )?;
                     }
                     cli::BenchReadinessCommand::RunHostToolSmoke(args) => {
-                        crate::commands::benchmark::readiness::host_tool_smoke::run_host_tool_smoke(
+                        crate::commands::benchmark::readiness::host_tool_probe::run_host_tool_smoke(
                             args,
                         )?;
                     }
@@ -831,7 +831,7 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderVcfLocalContainerSmoke(args) => {
-                        crate::commands::benchmark::readiness::vcf_local_container_smoke::run_render_vcf_local_container_smoke(
+                        crate::commands::benchmark::readiness::vcf_local_container_probe::run_render_vcf_local_container_smoke(
                             args,
                         )?;
                     }

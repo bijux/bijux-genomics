@@ -374,7 +374,7 @@ fn dna_tree_matches_architecture_contract() {
 
     let fastq_entries = dir_entries(&root.join("src/commands/fastq"));
     let expected_fastq: BTreeSet<_> =
-        ["api_bridge.rs", "meta/", "mod.rs"].into_iter().map(str::to_string).collect();
+        ["api_translation.rs", "meta/", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         fastq_entries, expected_fastq,
         "fastq tree must keep API mediation separate from meta dispatch"
