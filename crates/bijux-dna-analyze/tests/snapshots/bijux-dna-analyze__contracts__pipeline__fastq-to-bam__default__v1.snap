@@ -3065,7 +3065,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "definitions": []
     },
     "run_provenance": {
-      "domain_snapshot_hash": "be6d94ad67ff37fdc5b8b5846464b201a05de675",
+      "domain_snapshot_hash": "435e85dd5ca4fe9eeb69e18bd834137f8d51b723",
       "graph_hash": "unknown",
       "input_hashes": [],
       "manifest_signature_sha256": "unknown",
