@@ -8,6 +8,8 @@ mod support;
 #[test]
 fn bench_readiness_vcf_report_map_writes_governed_tsv_file() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _repo_lock =
+        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
@@ -48,7 +50,7 @@ fn bench_readiness_vcf_report_map_writes_governed_tsv_file() {
     }));
     assert!(payload.lines().any(|line| {
         line
-            == "vcf.population_structure\tplink2\tpopulation_structure\tpopulation_structure_metrics\tconsumed_admixture,consumed_pca,distance_summary,sample_groups,status,variant_count\tresult_status,reason,parser_id,failure_reason,observed_error"
+            == "vcf.population_structure\tplink2\tpopulation_structure\tpopulation_structure_metrics\tconsumed_admixture,consumed_pca,distance_summary,sample_count,pair_count,within_population_pair_count,cross_population_pair_count,sample_groups,status,variant_count\tresult_status,reason,parser_id,failure_reason,observed_error"
     }));
     assert!(payload.lines().any(|line| {
         line
