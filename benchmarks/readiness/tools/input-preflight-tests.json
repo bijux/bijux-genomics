@@ -1,5 +1,5 @@
 {
-  "schema_version": "bijux.bench.readiness.input_preflight_tests.v1",
+  "schema_version": "bijux.bench.readiness.input_preflight_audit.v1",
   "output_path": "benchmarks/readiness/tools/input-preflight-tests.json",
   "row_count": 258,
   "passed_row_count": 258,

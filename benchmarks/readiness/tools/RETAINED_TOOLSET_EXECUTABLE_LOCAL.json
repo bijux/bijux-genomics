@@ -67,7 +67,7 @@
       "surface": "retained_tool_output_contracts",
       "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
       "ok": true,
-      "detail": "row_count=140, passed_row_count=140, failed_row_count=0"
+      "detail": "row_count=141, passed_row_count=141, failed_row_count=0"
     },
     {
       "goal_id": 429,
