@@ -8,6 +8,10 @@ use bijux_dna_domain_bam::{
     BamScientificPassDirection, BamScientificToleranceKind,
 };
 
+fn assert_f64_eq(left: f64, right: f64) {
+    assert!((left - right).abs() < f64::EPSILON, "left=`{left}`, right=`{right}`");
+}
+
 #[test]
 fn multi_tool_bam_comparable_stage_slice_stays_explicit() {
     let stage_ids = comparable_benchmark_stage_ids()
@@ -134,28 +138,34 @@ fn bam_comparable_metrics_carry_governed_scientific_threshold_contracts() {
         stage_comparable_metric_contracts_for_stage(&StageId::from_static("bam.damage"));
     assert_eq!(damage_metrics.len(), 3);
 
-    let damage_signal = damage_metrics
-        .iter()
-        .find(|metric| metric.name == "damage_signal")
-        .expect("damage signal metric");
-    let threshold = damage_signal.scientific_threshold.as_ref().expect("damage threshold");
+    let Some(damage_signal) = damage_metrics.iter().find(|metric| metric.name == "damage_signal")
+    else {
+        panic!("damage signal metric");
+    };
+    let Some(threshold) = damage_signal.scientific_threshold.as_ref() else {
+        panic!("damage threshold");
+    };
     assert_eq!(threshold.pass_direction, BamScientificPassDirection::ExactMatch);
     assert_eq!(threshold.tolerance_kind, BamScientificToleranceKind::ExactMatch);
-    assert_eq!(threshold.tolerance_value, 0.0);
+    assert_f64_eq(threshold.tolerance_value, 0.0);
     assert_eq!(
         threshold.insufficiency_policy,
         BamScientificInsufficiencyPolicy::WarnAndExcludeStage
     );
 
-    let validation_errors =
+    let Some(validation_errors) =
         stage_comparable_metric_contracts_for_stage(&StageId::from_static("bam.validate"))
             .into_iter()
             .find(|metric| metric.name == "validation_errors")
-            .expect("validation error metric");
-    let threshold = validation_errors.scientific_threshold.as_ref().expect("validation threshold");
+    else {
+        panic!("validation error metric");
+    };
+    let Some(threshold) = validation_errors.scientific_threshold.as_ref() else {
+        panic!("validation threshold");
+    };
     assert_eq!(threshold.pass_direction, BamScientificPassDirection::StructuredMatch);
     assert_eq!(threshold.tolerance_kind, BamScientificToleranceKind::NormalizedSetOverlap);
-    assert_eq!(threshold.tolerance_value, 1.0);
+    assert_f64_eq(threshold.tolerance_value, 1.0);
     assert_eq!(
         threshold.insufficiency_policy,
         BamScientificInsufficiencyPolicy::RefuseStageComparison

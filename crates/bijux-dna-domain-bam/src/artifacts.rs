@@ -5140,9 +5140,8 @@ fn covered_tiny_haplogroup_markers(
             if fields.len() < 11 || fields[2] != marker.contig {
                 return false;
             }
-            let start = match fields[3].parse::<u64>() {
-                Ok(value) => value,
-                Err(_) => return false,
+            let Ok(start) = fields[3].parse::<u64>() else {
+                return false;
             };
             let read_len = fields[9].len() as u64;
             let end = start.saturating_add(read_len.saturating_sub(1));
