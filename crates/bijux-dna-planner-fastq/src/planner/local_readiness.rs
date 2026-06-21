@@ -165,8 +165,8 @@ fn local_index_reference_plan_with_tool(
         ));
     }
 
-    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
-    hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
+    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, tool_id)?;
+    hydrate_local_profile_defaults(&mut tool_spec, config.threads, local_profile);
     let out_dir = config
         .output_dir
         .clone()
@@ -437,8 +437,8 @@ fn local_screen_taxonomy_plan_with_tool(
         "local-ready fastq.screen_taxonomy",
     )?;
 
-    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
-    hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
+    let mut tool_spec = load_fastq_domain_tool_execution_spec(repo_root, &stage_id, tool_id)?;
+    hydrate_local_profile_defaults(&mut tool_spec, config.threads, local_profile);
     let out_dir = config
         .output_dir
         .clone()

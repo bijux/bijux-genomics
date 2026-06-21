@@ -216,7 +216,7 @@ fn local_align_plan_with_tool(
     )?;
 
     let mut tool_spec = load_bam_domain_tool_execution_spec(repo_root, &stage_id, tool_id)?;
-    hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
+    hydrate_local_profile_defaults(&mut tool_spec, config.threads, local_profile);
     let strategy =
         bam_alignment_strategy_for_tool(tool_id.as_str(), Some("default")).ok_or_else(|| {
             anyhow!("local-ready bam.align tool `{tool_id}` has no governed alignment strategy")
@@ -397,8 +397,8 @@ fn local_contamination_plan_with_tool(
         )?;
     }
 
-    let mut tool_spec = load_bam_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
-    hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
+    let mut tool_spec = load_bam_domain_tool_execution_spec(repo_root, &stage_id, tool_id)?;
+    hydrate_local_profile_defaults(&mut tool_spec, config.threads, local_profile);
     let out_dir = config
         .output_dir
         .clone()
