@@ -10,8 +10,8 @@
   "failed_coverage_check_count": 0,
   "failing_coverage_ids": [],
   "result_row_count": 77,
-  "complete_row_count": 68,
-  "unavailable_row_count": 9,
+  "complete_row_count": 69,
+  "unavailable_row_count": 8,
   "ok": true,
   "checks": [
     {
@@ -19,7 +19,7 @@
       "surface": "local micro-benchmark command",
       "output_path": "runs/bench/micro/MICRO_BENCHMARK_RUN.json",
       "ok": true,
-      "detail": "validated 77 result rows, 199 outputs, 1 logs, 19 normalized metrics across 8 component reports"
+      "detail": "validated 77 result rows, 200 outputs, 1 logs, 19 normalized metrics across 8 component reports"
     },
     {
       "goal_id": 472,
@@ -33,7 +33,7 @@
       "surface": "bam micro-benchmark run",
       "output_path": "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json",
       "ok": true,
-      "detail": "validated 12 retained families with local=9 container_needed=3 unavailable=0"
+      "detail": "validated 12 retained families with local=10 container_needed=2 unavailable=0"
     },
     {
       "goal_id": 474,
@@ -75,7 +75,7 @@
       "surface": "micro-benchmark report",
       "output_path": "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
       "ok": true,
-      "detail": "validated result=77 complete=68 unavailable=9 failed=0 missing=0 insufficient=0"
+      "detail": "validated result=77 complete=69 unavailable=8 failed=0 missing=0 insufficient=0"
     }
   ],
   "coverage_checks": [
@@ -85,7 +85,7 @@
       "surface": "micro report health",
       "output_path": "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
       "ok": true,
-      "detail": "complete=68 unavailable=9 with no failed, missing, or insufficient rows"
+      "detail": "complete=69 unavailable=8 with no failed, missing, or insufficient rows"
     },
     {
       "coverage_id": "domain.fastq",
@@ -125,7 +125,7 @@
       "surface": "BAM family representative local execution",
       "output_path": "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json",
       "ok": true,
-      "detail": "local=9 container_needed=3 unavailable=0 across 12 retained families"
+      "detail": "local=10 container_needed=2 unavailable=0 across 12 retained families"
     },
     {
       "coverage_id": "family.vcf",
