@@ -337,7 +337,7 @@ mod tests {
         let scratch_root = root.join("artifacts/contract-probes");
         let rows = evaluate_fastq_raw_parser_failure_contracts(&root, &scratch_root)?;
 
-        assert_eq!(rows.len(), 45);
+        assert_eq!(rows.len(), 48);
         assert!(rows.iter().all(|row| row.passed));
         assert_eq!(
             rows.iter()
@@ -345,7 +345,7 @@ mod tests {
                     row.expected_failure_class == FastqRawParserFailureClass::MissingRawOutput
                 })
                 .count(),
-            15
+            16
         );
         assert_eq!(
             rows.iter()
@@ -353,7 +353,7 @@ mod tests {
                     row.expected_failure_class == FastqRawParserFailureClass::EmptyRawOutput
                 })
                 .count(),
-            15
+            16
         );
         assert_eq!(
             rows.iter()
@@ -361,7 +361,7 @@ mod tests {
                     row.expected_failure_class == FastqRawParserFailureClass::MalformedRawOutput
                 })
                 .count(),
-            15
+            16
         );
         assert!(rows.iter().all(|row| !row.observed_error.trim().is_empty()));
         assert!(rows.iter().any(|row| {

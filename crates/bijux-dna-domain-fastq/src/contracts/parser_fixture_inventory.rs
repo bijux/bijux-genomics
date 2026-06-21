@@ -444,7 +444,7 @@ mod tests {
     #[test]
     fn fastq_parser_fixture_inventory_covers_governed_active_bindings() {
         let rows = fastq_parser_fixture_bindings();
-        assert_eq!(rows.len(), 69);
+        assert_eq!(rows.len(), 72);
 
         let unique_rows = rows
             .iter()
