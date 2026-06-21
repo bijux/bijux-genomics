@@ -160,7 +160,6 @@
         "case_report_json": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/cluster_otus_report.json",
         "otu_representatives_fasta": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/otu_representatives.fasta",
         "otu_table_tsv": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/otu_table.tsv",
-        "raw_backend_report": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/otu_clusters.uc",
         "taxonomy_ready_fasta": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fasta",
         "taxonomy_ready_fastq": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fastq"
       },

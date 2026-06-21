@@ -270,15 +270,6 @@
     "source": "bam_micro_smoke_subset"
   },
   {
-    "execution_id": "bam.kinship",
-    "component_id": "bam_micro_smoke_subset",
-    "artifact_id": "evidence",
-    "role": "family_evidence",
-    "path": "runs/bench/local-smoke/bam.kinship/kinship.json",
-    "exists": true,
-    "source": "bam_micro_smoke_subset"
-  },
-  {
     "execution_id": "bam.mapping_summary",
     "component_id": "adna_micro_pipeline",
     "artifact_id": "evidence",
@@ -698,15 +689,6 @@
     "artifact_id": "otu_table_tsv",
     "role": "pipeline_stage_output",
     "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/otu_table.tsv",
-    "exists": true,
-    "source": "amplicon_micro_pipeline"
-  },
-  {
-    "execution_id": "fastq.cluster_otus",
-    "component_id": "amplicon_micro_pipeline",
-    "artifact_id": "raw_backend_report",
-    "role": "pipeline_stage_output",
-    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/otu_clusters.uc",
     "exists": true,
     "source": "amplicon_micro_pipeline"
   },

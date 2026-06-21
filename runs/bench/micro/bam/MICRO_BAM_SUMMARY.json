@@ -2,8 +2,8 @@
   "schema_version": "bijux.bench.local_bam_micro_smoke_subset.v2",
   "output_path": "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json",
   "family_count": 12,
-  "local_smoke_count": 10,
-  "container_needed_count": 2,
+  "local_smoke_count": 9,
+  "container_needed_count": 3,
   "unavailable_count": 0,
   "passes_behavior_test": true,
   "rows": [
@@ -249,15 +249,15 @@
       "representative_tool_id": "king",
       "registered_binary": "king",
       "smoke_tool_id": "king",
-      "smoke_path_kind": "host_stage_smoke",
-      "smoke_runtime": "host",
-      "smoke_command": "bijux-dna bench local run-bam-stage-smoke --stage-id bam.kinship",
-      "smoke_support_path": "crates/bijux-dna/src/commands/benchmark/local_bam_stage_smoke.rs",
-      "execution_status": "local_smoke",
-      "reason": "binding `bam.kinship` / `king` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host",
-      "evidence_path": "runs/bench/local-smoke/bam.kinship/kinship.json",
-      "evidence_format": "json",
-      "parsed_schema_version": "bijux.bam.kinship.local_smoke.report.v1"
+      "smoke_path_kind": "docker_container_smoke",
+      "smoke_runtime": "docker-arm64",
+      "smoke_command": "bijux-dna env smoke docker-arm64 king",
+      "smoke_support_path": "containers/docker/arm64/Dockerfile.king",
+      "execution_status": "container_needed",
+      "reason": "retained tool `king` has no exact BAM tiny-fixture smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `bam.kinship` / `king`",
+      "evidence_path": null,
+      "evidence_format": null,
+      "parsed_schema_version": null
     }
   ]
 }
