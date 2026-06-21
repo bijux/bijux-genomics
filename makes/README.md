@@ -8,6 +8,8 @@ Public targets (stable contract):
 - `test-slow`
 - `test-all`
 - `test-all-frozen`
+- `lint-frozen`
+- `audit-frozen`
 - `coverage`
 - `ci`
 - `doctor`
@@ -36,7 +38,9 @@ Target -> implementation mapping (no hidden magic):
 - `test` -> `makes/bin/rust_gate.sh test`
 - `test-slow` -> `makes/bin/rust_gate.sh test-slow`
 - `test-all` -> `makes/bin/rust_gate.sh test-all`
-- `test-all-frozen` -> `makes/bin/test_all_frozen.sh`
+- `test-all-frozen` -> `makes/bin/run_pinned_ref_gate.sh` with `PINNED_REF_GATE_TARGET=test-all`
+- `lint-frozen` -> `makes/bin/run_pinned_ref_gate.sh` with `PINNED_REF_GATE_TARGET=lint`
+- `audit-frozen` -> `makes/bin/run_pinned_ref_gate.sh` with `PINNED_REF_GATE_TARGET=audit`
 - `coverage` -> `makes/bin/rust_gate.sh coverage`
 - `doctor` -> `cargo run -q -p bijux-dna-dev -- tooling run repo-doctor --fast` + fast parity checks
 - `release-gate` -> docs + root layout + registry lock + container version lock/authority checks
@@ -48,10 +52,10 @@ Target -> implementation mapping (no hidden magic):
 
 Rust gate artifact layout:
 - fast Rust gates write under `artifacts/rust/`
-- `make test-all-frozen` starts `make test-all` from a frozen checkout for `TEST_ALL_FROZEN_REF` (default `HEAD`) and writes the run under `artifacts/<sha>/`
-- `make test-all-frozen` materializes the exact source snapshot under `artifacts/<sha>/frozen-repo/` so reports and code stay pinned to the same commit
-- `make test-all-frozen` isolates cargo state under `artifacts/<sha>/target`, `artifacts/<sha>/cargo/home`, and `artifacts/<sha>/tmp`
-- `make test-all-frozen` records launcher state under `artifacts/<sha>/background/`, including `test-all.console.log`, `test-all.pid`, and `test-all.exit.status`
+- `make test-all-frozen`, `make lint-frozen`, and `make audit-frozen` start the requested gate from a pinned checkout for `TEST_ALL_FROZEN_REF` (default `HEAD`) and write the run under `artifacts/<sha>/`
+- pinned-ref gate runs materialize the exact source snapshot under `artifacts/<sha>/frozen-repo/` so reports and code stay pinned to the same commit
+- pinned-ref gate runs isolate cargo state per gate under `artifacts/<sha>/target/<gate>`, `artifacts/<sha>/cargo/home/<gate>`, and `artifacts/<sha>/tmp/<gate>`
+- pinned-ref gate runs record launcher state under `artifacts/<sha>/background/`, including `<gate>.console.log`, `<gate>.pid`, and `<gate>.exit.status`
 - `make test-all` and `make test-all-frozen` run the complete suite with no fast/slow filter expression and no slow timeout
 - `make lint` is the fast product-crate clippy lane and excludes `bijux-dna-dev`
 - workspace governance checks remain available through `make lint-workspace`
