@@ -318,21 +318,14 @@ mod tests {
         )
         .expect("run dir");
 
-        assert_eq!(
-            run_dir,
-            std::path::Path::new("/workspace/artifacts/bench/run-observability")
-        );
+        assert_eq!(run_dir, std::path::Path::new("/workspace/artifacts/bench/run-observability"));
     }
 
     #[test]
     fn observability_run_dir_rejects_path_like_run_ids() {
-        for run_id in [
-            "",
-            "../run-observability",
-            "nested/run-observability",
-            "/tmp/run-observability",
-            ".",
-        ] {
+        for run_id in
+            ["", "../run-observability", "nested/run-observability", "/tmp/run-observability", "."]
+        {
             let err = observability_run_dir(
                 std::path::Path::new("/workspace"),
                 std::path::Path::new("artifacts/bench"),
