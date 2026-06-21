@@ -53,7 +53,7 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"vcf\tvcf.population_structure\tplink2\tvcf_production_regression\tvcf_cohort\tpopulation_structure_report\tconsumed_admixture,consumed_pca,distance_summary,sample_groups,status,variant_count\tpopulation_structure"
+            row == &"vcf\tvcf.population_structure\tplink2\tvcf_production_regression\tvcf_cohort\tpopulation_structure_report\tconsumed_admixture,consumed_pca,distance_summary,sample_count,pair_count,within_population_pair_count,cross_population_pair_count,sample_groups,status,variant_count\tpopulation_structure"
         }),
         "TSV must retain the governed VCF population-structure expected-result row"
     );
