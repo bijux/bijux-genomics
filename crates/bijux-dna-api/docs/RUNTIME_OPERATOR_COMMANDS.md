@@ -1,6 +1,6 @@
-# Runtime Iteration 09 Operator Commands
+# Runtime Operator Commands
 
-This note captures the operator-facing command surface added for iteration 09 runtime proofs.
+This note captures the operator-facing command surface for governed runtime proofs.
 
 ## Local end-to-end workflow execution
 

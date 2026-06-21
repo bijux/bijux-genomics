@@ -242,7 +242,7 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
                 "policy": damage_aware_policy_for_regime(resolved_coverage_regime),
             }),
             serde_json::json!({
-                "id": "decision.vcf_iteration16_contracts",
+                "id": "decision.vcf_production_contracts",
                 "reason": "planner surfaces production contracts for normalization, cohort analysis, imputation boundaries, reporting, and scientific drift",
                 "normalization_policy_ids": VCF_NORMALIZATION_POLICY_MATRIX_CONTRACT
                     .policy_rows

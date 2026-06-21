@@ -449,7 +449,7 @@ fn evidence_narrative_builder_connects_plan_handoff_and_failures() {
 }
 
 #[test]
-fn fastq_iteration_11_templates_expose_goal_stage_surfaces() {
+fn fastq_workflow_templates_expose_requested_stage_sets() {
     let cases = [
         (
             "fastq.qc_only_review",
@@ -547,7 +547,7 @@ fn fastq_iteration_11_templates_expose_goal_stage_surfaces() {
 }
 
 #[test]
-fn fastq_iteration_11_templates_are_indexed_by_pipeline_ids() {
+fn fastq_workflow_templates_index_by_pipeline_ids() {
     assert_eq!(
         fastq_workflow_templates_for_pipeline("fastq-to-fastq__trim_qc__v1")
             .iter()
@@ -565,7 +565,7 @@ fn fastq_iteration_11_templates_are_indexed_by_pipeline_ids() {
 }
 
 #[test]
-fn bam_iteration_12_templates_expose_goal_stage_surfaces() {
+fn bam_workflow_templates_expose_requested_stage_sets() {
     let cases = [
         (
             "bam.modern_wgs_qc",
@@ -621,7 +621,7 @@ fn bam_iteration_12_templates_expose_goal_stage_surfaces() {
 }
 
 #[test]
-fn bam_iteration_12_templates_are_indexed_by_pipeline_ids() {
+fn bam_workflow_templates_index_by_pipeline_ids() {
     assert_eq!(
         bam_workflow_templates_for_pipeline("bam-to-bam__adna_shotgun__v1")
             .iter()
@@ -646,7 +646,7 @@ fn bam_iteration_12_templates_are_indexed_by_pipeline_ids() {
 }
 
 #[test]
-fn vcf_iteration_13_templates_expose_goal_stage_surfaces() {
+fn vcf_workflow_templates_expose_requested_stage_sets() {
     let cases = [
         ("vcf.validation_normalization_qc", vec!["vcf.call", "vcf.filter", "vcf.stats"]),
         ("vcf.cohort_qc_review", vec!["vcf.filter", "vcf.stats"]),
@@ -673,7 +673,7 @@ fn vcf_iteration_13_templates_expose_goal_stage_surfaces() {
 }
 
 #[test]
-fn vcf_iteration_13_templates_are_indexed_by_pipeline_ids() {
+fn vcf_workflow_templates_index_by_pipeline_ids() {
     assert_eq!(
         vcf_workflow_templates_for_pipeline("vcf-to-vcf__minimal__v1")
             .iter()
