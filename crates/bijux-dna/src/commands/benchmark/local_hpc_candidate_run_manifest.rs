@@ -7,11 +7,10 @@ use serde::Serialize;
 
 use super::local_all_domain_slurm_submit_manifest::BenchLocalAllDomainSlurmSubmitJob;
 use super::local_hpc_asset_staging_manifest::{
-    validate_hpc_asset_staging_manifest_path, LocalHpcAssetStagingInput,
-    LocalHpcAssetStagingManifest,
+    collect_hpc_asset_staging_manifest, LocalHpcAssetStagingInput, LocalHpcAssetStagingManifest,
 };
 use super::local_hpc_execution_resolver::{
-    validate_hpc_execution_resolver_path, LocalHpcExecutionResolverReport,
+    collect_hpc_execution_resolver_report, LocalHpcExecutionResolverReport,
     LocalHpcExecutionResolverRow,
 };
 use super::local_hpc_job_completion::resolve_local_hpc_job_result_paths;
@@ -226,15 +225,8 @@ fn build_hpc_candidate_run_manifest(
         absolute_output_path,
         "HPC candidate run manifest output",
     )?;
-    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
-    let asset_manifest = validate_hpc_asset_staging_manifest_path(
-        repo_root,
-        &benchmark_paths.benchmark_hpc_dry_run_root().join("asset-staging-manifest.json"),
-    )?;
-    let execution_resolver = validate_hpc_execution_resolver_path(
-        repo_root,
-        &benchmark_paths.benchmark_hpc_dry_run_root().join("execution-resolver.tsv"),
-    )?;
+    let asset_manifest = collect_hpc_asset_staging_manifest(repo_root)?;
+    let execution_resolver = collect_hpc_execution_resolver_report(repo_root)?;
     let selected_jobs = load_local_hpc_selected_jobs(repo_root)?;
     let resource_hints = load_local_hpc_job_resource_hints(repo_root)?;
 

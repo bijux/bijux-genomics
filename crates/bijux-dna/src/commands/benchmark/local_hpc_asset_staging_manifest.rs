@@ -154,6 +154,15 @@ pub(crate) fn render_hpc_asset_staging_manifest(
     Ok(manifest)
 }
 
+pub(crate) fn collect_hpc_asset_staging_manifest(
+    repo_root: &Path,
+) -> Result<LocalHpcAssetStagingManifest> {
+    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
+    let output_path =
+        benchmark_paths.benchmark_hpc_dry_run_root().join("asset-staging-manifest.json");
+    build_hpc_asset_staging_manifest(repo_root, &output_path)
+}
+
 pub(crate) fn load_validated_hpc_asset_staging_manifest_path(
     repo_root: &Path,
     manifest_path: &Path,
@@ -645,7 +654,8 @@ mod tests {
                 ),
                 1,
             );
-        bijux_dna_infra::write_payload(&manifest_path, stale_body).expect("write stale manifest body");
+        bijux_dna_infra::write_payload(&manifest_path, stale_body)
+            .expect("write stale manifest body");
 
         let error = validate_hpc_asset_staging_manifest_path(&root, &manifest_path)
             .expect_err("stale manifest must fail validation");
