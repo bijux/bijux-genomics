@@ -1,3 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
+# purpose = Governed local benchmark fixture plan for bam.bias_mitigation.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-22
+
 schema_version = "bijux.bench.bam.local_bias_mitigation.v1"
 tool_id = "mapdamage2"
 threads = 2

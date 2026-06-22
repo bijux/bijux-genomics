@@ -1,3 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local benchmark fixture plan for fastq.normalize_primers.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-06-22
+
 schema_version = "bijux.bench.fastq.local_normalize_primers.v1"
 tool_id = "cutadapt"
 threads = 1

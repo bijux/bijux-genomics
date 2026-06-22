@@ -1,4 +1,9 @@
+# schema_version = 1
+# owner = bijux-dna-planner-bam
 # purpose = Governed local-smoke inputs for bam.complexity.
+# authority = bijux-dna-planner-bam
+# stability = evolving
+# last_updated = 2026-06-22
 
 schema_version = "bijux.bench.bam.local_complexity.v1"
 tool_id = "preseq"

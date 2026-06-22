@@ -1,3 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local benchmark fixture plan for fastq.filter_low_complexity.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-06-22
+
 schema_version = "bijux.bench.fastq.local_filter_low_complexity.v1"
 tool_id = "bbduk"
 threads = 1

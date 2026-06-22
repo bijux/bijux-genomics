@@ -1,3 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local benchmark fixture plan for fastq.merge_pairs.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-06-22
+
 schema_version = "bijux.bench.fastq.local_merge_pairs.v1"
 tool_id = "pear"
 threads = 1
