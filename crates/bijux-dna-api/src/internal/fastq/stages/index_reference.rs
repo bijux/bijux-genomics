@@ -231,7 +231,7 @@ fn collect_index_reference_files(index_root: &std::path::Path) -> Vec<IndexRefer
             .unwrap_or(entry.path())
             .to_string_lossy()
             .to_string();
-        let bytes = entry.metadata().map(|meta| meta.len()).unwrap_or(0);
+        let bytes = entry.metadata().map_or(0, |meta| meta.len());
         files.push(IndexReferenceFileEntryV1 { relative_path, bytes });
     }
     files.sort_by(|left, right| left.relative_path.cmp(&right.relative_path));

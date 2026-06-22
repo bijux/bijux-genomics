@@ -56,7 +56,7 @@ pub(super) fn comparison_command_for_stage(
     }
     for artifact_id in bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(stage_id) {
         command.push("--comparison-input".to_string());
-        command.push(artifact_id.to_string());
+        command.push(artifact_id.clone());
     }
     for artifact_id in comparison_artifact_ids {
         command.push("--comparison-artifact".to_string());

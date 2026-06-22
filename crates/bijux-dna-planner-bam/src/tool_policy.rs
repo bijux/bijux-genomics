@@ -38,13 +38,11 @@ pub fn enforce(
                 ));
             }
         }
-        BamStage::Authenticity if tool_id == id_catalog::TOOL_PMDTOOLS => {
-            if reference.is_none() {
-                return Err(anyhow!(
-                    "{} with pmdtools requires reference input",
-                    id_catalog::BAM_AUTHENTICITY
-                ));
-            }
+        BamStage::Authenticity if tool_id == id_catalog::TOOL_PMDTOOLS && reference.is_none() => {
+            return Err(anyhow!(
+                "{} with pmdtools requires reference input",
+                id_catalog::BAM_AUTHENTICITY
+            ));
         }
         BamStage::Authenticity => {
             let BamEffectiveParams::Authenticity(effective) =

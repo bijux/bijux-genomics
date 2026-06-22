@@ -254,7 +254,7 @@ fn materialize_local_damage_smoke_case(
         &tools_seen,
         &deltas,
     )?;
-    build_local_damage_smoke_report(
+    Ok(build_local_damage_smoke_report(
         repo_root,
         case,
         &input_bam,
@@ -262,7 +262,7 @@ fn materialize_local_damage_smoke_case(
         &tools_seen,
         &output_paths,
         &deltas,
-    )
+    ))
 }
 
 fn resolve_local_damage_output_paths(
@@ -353,8 +353,8 @@ fn build_local_damage_smoke_report(
     tools_seen: &[String],
     output_paths: &LocalDamageOutputPaths,
     deltas: &DamageExpectationDeltas,
-) -> Result<LocalDamageSmokeReport> {
-    Ok(LocalDamageSmokeReport {
+) -> LocalDamageSmokeReport {
+    LocalDamageSmokeReport {
         schema_version: LOCAL_DAMAGE_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
         stage_id: "bam.damage".to_string(),
         sample_id: case.sample_id.clone(),
@@ -393,7 +393,7 @@ fn build_local_damage_smoke_report(
         advisory_boundary: path_relative_to_repo(repo_root, &output_paths.advisory_boundary),
         udg_regime: path_relative_to_repo(repo_root, &output_paths.udg_regime),
         stage_metrics: path_relative_to_repo(repo_root, &output_paths.stage_metrics),
-    })
+    }
 }
 
 fn read_stage_damage_measurements(

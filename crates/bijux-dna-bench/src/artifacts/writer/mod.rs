@@ -221,7 +221,7 @@ mod tests {
             rationale_trace: Vec::new(),
         };
         write_decision_json(&out_dir.join("decision.json"), &decision)?;
-        write_decisions_json(&out_dir.join("decisions.json"), &[decision.clone()])?;
+        write_decisions_json(&out_dir.join("decisions.json"), std::slice::from_ref(&decision))?;
 
         let observations_text = std::fs::read_to_string(out_dir.join("observations.jsonl"))?;
         let summary_text = std::fs::read_to_string(out_dir.join("summary.json"))?;

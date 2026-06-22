@@ -219,10 +219,8 @@ fn policy_audit_schema_is_stable() -> anyhow::Result<()> {
 
 fn scrub_paths(value: &mut serde_json::Value, root: &str) {
     match value {
-        serde_json::Value::String(s) => {
-            if s.contains(root) {
-                *s = s.replace(root, "<temp>");
-            }
+        serde_json::Value::String(s) if s.contains(root) => {
+            *s = s.replace(root, "<temp>");
         }
         serde_json::Value::Array(items) => {
             for item in items {

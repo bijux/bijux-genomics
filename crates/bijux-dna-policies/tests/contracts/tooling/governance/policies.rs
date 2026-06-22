@@ -30,7 +30,7 @@ fn crate_dependencies(root: &Path, crate_name: &str) -> BTreeSet<String> {
     let mut collect_from = |table: Option<&TomlValue>| {
         if let Some(TomlValue::Table(entries)) = table {
             for (name, _) in entries {
-                deps.insert(name.to_string());
+                deps.insert(name.clone());
             }
         }
     };

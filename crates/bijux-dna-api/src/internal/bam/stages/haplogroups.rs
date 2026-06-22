@@ -157,7 +157,9 @@ fn materialize_local_haplogroups_case(
     let haplogroup_call =
         if ready { select_haplogroup_call(&supported_markers) } else { None::<String> };
     let confidence = if ready && markers_total > 0 {
-        markers_supported as f64 / markers_total as f64
+        let supported = f64::from(u32::try_from(markers_supported).unwrap_or(u32::MAX));
+        let total = f64::from(u32::try_from(markers_total).unwrap_or(u32::MAX));
+        supported / total
     } else {
         0.0
     };
@@ -203,14 +205,14 @@ fn materialize_local_haplogroups_case(
         &population_scope,
         minimum_coverage,
         observed_mean_coverage,
-        &haplogroup_call,
+        haplogroup_call.as_ref(),
         confidence,
         status,
         ready,
         markers_total,
         markers_supported,
         &supported_marker_ids,
-        supported_markers.last().map(|marker| marker.lineage_scope.clone()),
+        supported_markers.last().map(|marker| marker.lineage_scope.as_str()),
         &summary,
         &output_paths,
         expectation_matched,
@@ -295,14 +297,14 @@ fn write_local_haplogroups_outputs(
     population_scope: &str,
     minimum_coverage: f64,
     observed_mean_coverage: f64,
-    haplogroup_call: &Option<String>,
+    haplogroup_call: Option<&String>,
     confidence: f64,
     status: &str,
     ready: bool,
     markers_total: usize,
     markers_supported: usize,
     supported_marker_ids: &[String],
-    lineage_scope: Option<String>,
+    lineage_scope: Option<&str>,
     summary: &bijux_dna_domain_bam::BamHaplogroupReadinessV1,
     output_paths: &LocalHaplogroupsOutputPaths,
     expectation_matched: bool,
@@ -373,7 +375,8 @@ fn write_local_haplogroups_outputs(
             "refusal_codes": summary.refusal_codes,
             "expectation_matched": expectation_matched,
         }),
-    )
+    )?;
+    Ok(())
 }
 
 #[cfg(feature = "bam_downstream")]
@@ -430,9 +433,8 @@ fn covered_markers_from_sam(
             if fields.len() < 11 || fields[2] != marker.contig {
                 return false;
             }
-            let start = match fields[3].parse::<u64>() {
-                Ok(value) => value,
-                Err(_) => return false,
+            let Ok(start) = fields[3].parse::<u64>() else {
+                return false;
             };
             let read_len = fields[9].len() as u64;
             let end = start.saturating_add(read_len.saturating_sub(1));

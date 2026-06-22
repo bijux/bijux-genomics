@@ -320,9 +320,8 @@ fn hash_inputs_rejects_missing_paths() -> anyhow::Result<()> {
     let temp = tempdir()?;
     let missing = temp.path().join("missing.txt");
 
-    let err = match hash_inputs(&[missing]) {
-        Ok(_) => panic!("missing input must fail"),
-        Err(err) => err,
+    let Err(err) = hash_inputs(&[missing]) else {
+        panic!("missing input must fail");
     };
 
     assert!(err.to_string().contains("declared input path does not exist"));

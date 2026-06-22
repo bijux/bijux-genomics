@@ -456,7 +456,7 @@ pub fn run_postprocess_stage(
             ["view", "-Ob", "-o", path_s, merged_vcf_s],
             None,
         );
-        if bcf_conversion_output.as_ref().map(|x| x.exit_code == 0).unwrap_or(false) {
+        if bcf_conversion_output.as_ref().is_ok_and(|x| x.exit_code == 0) {
             let _ = crate::engine::execution::run_command_output(
                 "bcftools",
                 ["index", "-f", path_s],

@@ -1020,7 +1020,7 @@ fn observe_fastq_record_count(path: &Path) -> Result<u64> {
             line_count += 1;
         }
     }
-    if line_count % 4 != 0 {
+    if !line_count.is_multiple_of(4) {
         return Err(anyhow!(
             "FASTQ record counter found non-multiple-of-four line count {} in {}",
             line_count,

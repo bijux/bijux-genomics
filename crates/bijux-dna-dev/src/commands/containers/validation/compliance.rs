@@ -1667,7 +1667,7 @@ pub(in super::super) fn check_sbom_artifacts(
             if !sbom_path.exists() {
                 errors
                     .push(format!("{}: sbom_path does not exist: {sbom}", manifest_path.display()));
-            } else if sbom_path.metadata().map(|meta| meta.len()).unwrap_or(0) == 0 {
+            } else if sbom_path.metadata().map_or(0, |meta| meta.len()) == 0 {
                 errors.push(format!("{}: sbom_path is empty: {sbom}", manifest_path.display()));
             } else if !sbom_path
                 .display()
@@ -1806,7 +1806,7 @@ pub(in super::super) fn check_smoke_inputs_policy(
             errors.push(format!("{tool}: input path is not a file {rel}"));
             continue;
         }
-        if path.metadata().map(|meta| meta.len()).unwrap_or(0) == 0 {
+        if path.metadata().map_or(0, |meta| meta.len()) == 0 {
             errors.push(format!("{tool}: input file is empty {rel}"));
         }
     }

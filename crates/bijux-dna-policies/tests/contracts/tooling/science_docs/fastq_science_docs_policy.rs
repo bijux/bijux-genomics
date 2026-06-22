@@ -222,7 +222,7 @@ fn fastq_tools_roster_rows() -> BTreeMap<String, BTreeSet<String>> {
                 row.len() >= 2,
                 "FASTQ tools roster rows must expose at least stage and supported-tools columns"
             );
-            let stage_id = row[0].to_string();
+            let stage_id = row[0].clone();
             let tools = if row[1] == "no admitted backend yet" {
                 BTreeSet::new()
             } else {
@@ -254,7 +254,7 @@ fn fastq_reference_stage_rows() -> BTreeMap<String, BTreeSet<String>> {
                 row.len() >= 2,
                 "FASTQ reference rows must expose at least tool and applies-to columns"
             );
-            (row[0].to_string(), backticked_ids(&row[1]))
+            (row[0].clone(), backticked_ids(&row[1]))
         })
         .collect()
 }
@@ -314,7 +314,7 @@ fn fastq_reference_governance_rows() -> BTreeMap<String, BTreeSet<String>> {
                 .filter(|value| !value.is_empty() && *value != "none")
                 .map(ToOwned::to_owned)
                 .collect::<BTreeSet<_>>();
-            (row[0].to_string(), hooks)
+            (row[0].clone(), hooks)
         })
         .collect()
 }

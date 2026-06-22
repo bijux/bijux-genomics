@@ -79,12 +79,12 @@ pub fn deplete_reference_contaminants(
     }
 
     write_fastq_records(output_r1, &retained_left)?;
-    if paired {
-        write_fastq_records(output_r2.expect("validated above"), &retained_right)?;
+    if let Some(output_r2) = output_r2 {
+        write_fastq_records(output_r2, &retained_right)?;
     }
     write_fastq_records(removed_reads_r1, &removed_left)?;
-    if paired {
-        write_fastq_records(removed_reads_r2.expect("validated above"), &removed_right)?;
+    if let Some(removed_reads_r2) = removed_reads_r2 {
+        write_fastq_records(removed_reads_r2, &removed_right)?;
     }
 
     let reads_out = if paired {

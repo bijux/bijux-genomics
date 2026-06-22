@@ -225,9 +225,8 @@ mod tests {
 
     #[test]
     fn run_command_rejects_empty_executable() {
-        let err = match run_command_with_context("  ", &[], None, None) {
-            Ok(_) => panic!("empty executable should be rejected before spawn"),
-            Err(err) => err,
+        let Err(err) = run_command_with_context("  ", &[], None, None) else {
+            panic!("empty executable should be rejected before spawn");
         };
 
         assert_eq!(err.to_string(), "command executable must not be empty");

@@ -325,7 +325,7 @@ fn write_local_qc_pre_multiqc_outputs(
     bijux_dna_infra::atomic_write_json(&output_paths.governed_manifest, &manifest_payload)?;
     bijux_dna_infra::atomic_write_bytes(
         &output_paths.multiqc_report,
-        br#"<!doctype html><html><body><h1>bam.qc_pre multiqc local smoke</h1></body></html>"#,
+        br"<!doctype html><html><body><h1>bam.qc_pre multiqc local smoke</h1></body></html>",
     )?;
     bijux_dna_infra::atomic_write_json(
         &output_paths.multiqc_data.join("multiqc_general_stats.json"),

@@ -85,8 +85,7 @@ pub fn subsample_reads(
     }
 
     write_fastq_records(output_r1, &out_left)?;
-    if paired_mode {
-        let out_r2 = output_r2.expect("validated above");
+    if let Some(out_r2) = output_r2 {
         write_fastq_records(out_r2, &out_right)?;
     }
 

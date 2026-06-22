@@ -116,7 +116,37 @@ python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"mode\": \"{mode}\
             reference_json = reference_json,
         ),
         bijux_dna_domain_bam::params::BqsrMode::Standard => {
-            if reference.is_none() {
+            if let Some(reference) = reference {
+                if params.known_sites.is_empty() {
+                    format!(
+                        "python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"mode\": \"{mode}\", \"status\": \"refused\", \"reason\": \"missing_known_sites\", \"known_sites\": [], \"reference\": {reference_json}, \"recalibration_report\": \"{report}\", \"output_bam\": \"{out}\", \"output_bai\": \"{bai}\"}}, indent=2))\nPY\n\
+echo 'bam.recalibration requires at least one known-sites resource for standard mode' >&2\nexit 2",
+                        out = out_bam.display(),
+                        bai = out_bai.display(),
+                        report = recal_report.display(),
+                        summary = summary.display(),
+                        mode = mode,
+                        reference_json = reference_json,
+                    )
+                } else {
+                    format!(
+                        "gatk BaseRecalibrator -I {bam} -R {reference} {known_sites} -O {report} && \
+gatk ApplyBQSR -I {bam} -R {reference} --bqsr-recal-file {report} -O {out} && \
+samtools index {out} {bai} && \
+python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"mode\": \"{mode}\", \"status\": \"ran\", \"reason\": \"standard_mode_requested\", \"known_sites\": {known_sites_json}, \"reference\": {reference_json}, \"recalibration_report\": \"{report}\", \"output_bam\": \"{out}\", \"output_bai\": \"{bai}\"}}, indent=2))\nPY",
+                        bam = bam.display(),
+                        reference = reference.display(),
+                        known_sites = known_sites,
+                        report = recal_report.display(),
+                        out = out_bam.display(),
+                        bai = out_bai.display(),
+                        summary = summary.display(),
+                        mode = mode,
+                        known_sites_json = known_sites_json,
+                        reference_json = reference_json,
+                    )
+                }
+            } else {
                 format!(
                     "python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"mode\": \"{mode}\", \"status\": \"refused\", \"reason\": \"missing_reference_context\", \"known_sites\": {known_sites_json}, \"reference\": null, \"recalibration_report\": \"{report}\", \"output_bam\": \"{out}\", \"output_bai\": \"{bai}\"}}, indent=2))\nPY\n\
 echo 'bam.recalibration requires reference context for standard mode' >&2\nexit 2",
@@ -126,35 +156,6 @@ echo 'bam.recalibration requires reference context for standard mode' >&2\nexit 
                     summary = summary.display(),
                     mode = mode,
                     known_sites_json = known_sites_json,
-                )
-            } else if params.known_sites.is_empty() {
-                format!(
-                    "python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"mode\": \"{mode}\", \"status\": \"refused\", \"reason\": \"missing_known_sites\", \"known_sites\": [], \"reference\": {reference_json}, \"recalibration_report\": \"{report}\", \"output_bam\": \"{out}\", \"output_bai\": \"{bai}\"}}, indent=2))\nPY\n\
-echo 'bam.recalibration requires at least one known-sites resource for standard mode' >&2\nexit 2",
-                    out = out_bam.display(),
-                    bai = out_bai.display(),
-                    report = recal_report.display(),
-                    summary = summary.display(),
-                    mode = mode,
-                    reference_json = reference_json,
-                )
-            } else {
-                let reference = reference.expect("reference already checked");
-                format!(
-                    "gatk BaseRecalibrator -I {bam} -R {reference} {known_sites} -O {report} && \
-gatk ApplyBQSR -I {bam} -R {reference} --bqsr-recal-file {report} -O {out} && \
-samtools index {out} {bai} && \
-python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"mode\": \"{mode}\", \"status\": \"ran\", \"reason\": \"standard_mode_requested\", \"known_sites\": {known_sites_json}, \"reference\": {reference_json}, \"recalibration_report\": \"{report}\", \"output_bam\": \"{out}\", \"output_bai\": \"{bai}\"}}, indent=2))\nPY",
-                    bam = bam.display(),
-                    reference = reference.display(),
-                    known_sites = known_sites,
-                    report = recal_report.display(),
-                    out = out_bam.display(),
-                    bai = out_bai.display(),
-                    summary = summary.display(),
-                    mode = mode,
-                    known_sites_json = known_sites_json,
-                    reference_json = reference_json,
                 )
             }
         }

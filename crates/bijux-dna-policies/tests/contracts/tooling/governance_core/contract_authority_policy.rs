@@ -165,7 +165,7 @@ fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_pe
                 stage.get("metrics_schema").and_then(toml::Value::as_str).unwrap_or("");
             let stage_tools = list(stage, "tools")
                 .into_iter()
-                .chain(tools_by_stage.get(stage_id).cloned().unwrap_or_default().into_iter())
+                .chain(tools_by_stage.get(stage_id).cloned().unwrap_or_default())
                 .collect::<BTreeSet<_>>();
             let has_metrics = !stage_metrics_schema.trim().is_empty()
                 || stage_metrics_schema == "none"

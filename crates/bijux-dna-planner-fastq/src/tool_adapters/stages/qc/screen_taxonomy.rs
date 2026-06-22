@@ -452,7 +452,7 @@ fn kraken2_screen_script(
     threads: u32,
 ) -> String {
     let reads_clause = if let Some(r2) = r2 {
-        format!("--paired {} {}", shell_quote_path(r1), shell_quote_path(r2),)
+        format!("--paired {} {}", shell_quote_path(r1), shell_quote_path(r2))
     } else {
         shell_quote_path(r1)
     };
@@ -482,7 +482,7 @@ fn krakenuniq_screen_script(
     threads: u32,
 ) -> String {
     let reads_clause = if let Some(r2) = r2 {
-        format!("--paired {} {}", shell_quote_path(r1), shell_quote_path(r2),)
+        format!("--paired {} {}", shell_quote_path(r1), shell_quote_path(r2))
     } else {
         shell_quote_path(r1)
     };
@@ -546,7 +546,7 @@ fn centrifuge_screen_script(
         let Some(r2_input) = r2_input else {
             unreachable!("paired centrifuge input must be present");
         };
-        format!("-1 {} -2 {}", shell_quote_path(&r1_input), shell_quote_path(&r2_input),)
+        format!("-1 {} -2 {}", shell_quote_path(&r1_input), shell_quote_path(&r2_input))
     } else {
         format!("-U {}", shell_quote_path(&r1_input))
     };
@@ -580,7 +580,7 @@ fn kaiju_screen_script(
     threads: u32,
 ) -> String {
     let reads_clause = if let Some(r2) = r2 {
-        format!("-i {} -j {}", shell_quote_path(r1), shell_quote_path(r2),)
+        format!("-i {} -j {}", shell_quote_path(r1), shell_quote_path(r2))
     } else {
         format!("-i {}", shell_quote_path(r1))
     };

@@ -348,12 +348,12 @@ fn contamination_artifact_paths(
         path_relative_to_repo(repo_root, &case_paths.contamination_modes),
         path_relative_to_repo(repo_root, &case_paths.contamination_stratified),
     ];
-    for optional in
+    for path in
         [&case_paths.contamination_estimate, &case_paths.contammix_report, &case_paths.mt_consensus]
+            .into_iter()
+            .flatten()
     {
-        if let Some(path) = optional {
-            artifact_paths.push(path_relative_to_repo(repo_root, path));
-        }
+        artifact_paths.push(path_relative_to_repo(repo_root, path));
     }
     artifact_paths
 }

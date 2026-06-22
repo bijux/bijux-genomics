@@ -14,7 +14,7 @@ pub(super) fn file_len_i64(len: u64) -> i64 {
 }
 
 pub(super) fn hpc_context_enabled() -> bool {
-    std::env::var("BIJUX_RUN_CONTEXT").map(|v| v.eq_ignore_ascii_case("hpc")).unwrap_or(false)
+    std::env::var("BIJUX_RUN_CONTEXT").is_ok_and(|v| v.eq_ignore_ascii_case("hpc"))
 }
 
 pub(super) fn enforce_hpc_results_layout(out_dir: &Path) -> Result<()> {
@@ -31,7 +31,7 @@ pub(super) fn enforce_hpc_results_layout(out_dir: &Path) -> Result<()> {
         ));
     }
     let ts = &comps[idx + 5];
-    let ts_ok = regex::Regex::new(r"^\d{8}T\d{6}Z$").map(|re| re.is_match(ts)).unwrap_or(false);
+    let ts_ok = regex::Regex::new(r"^\d{8}T\d{6}Z$").is_ok_and(|re| re.is_match(ts));
     if !ts_ok {
         return Err(anyhow!("HPC out_dir timestamp must match YYYYMMDDTHHMMSSZ"));
     }

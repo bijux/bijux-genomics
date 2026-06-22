@@ -279,7 +279,7 @@ fn vcf_tools_roster_rows() -> BTreeMap<String, VcfStageDocSpec> {
                 row.len() >= 4,
                 "VCF tools roster rows must expose stage, status, tools, and rationale columns",
             );
-            let stage_id = row[0].to_string();
+            let stage_id = row[0].clone();
             let compatible_tools = if row[2] == "none" {
                 BTreeSet::new()
             } else {
@@ -290,7 +290,7 @@ fn vcf_tools_roster_rows() -> BTreeMap<String, VcfStageDocSpec> {
                     .map(ToOwned::to_owned)
                     .collect()
             };
-            (stage_id, VcfStageDocSpec { status: row[1].to_string(), compatible_tools })
+            (stage_id, VcfStageDocSpec { status: row[1].clone(), compatible_tools })
         })
         .collect()
 }
@@ -316,7 +316,7 @@ fn vcf_domain_stage_taxonomy_rows() -> BTreeMap<String, String> {
                 row.len() >= 4,
                 "VCF stage taxonomy rows must expose stage, phase, class, and status columns",
             );
-            (row[0].to_string(), row[3].to_string())
+            (row[0].clone(), row[3].clone())
         })
         .collect()
 }
@@ -353,7 +353,7 @@ fn vcf_reference_stage_rows() -> BTreeMap<String, BTreeSet<String>> {
                 row.len() >= 2,
                 "VCF reference rows must expose at least tool and applies-to columns",
             );
-            (row[0].to_string(), backticked_ids(&row[1]))
+            (row[0].clone(), backticked_ids(&row[1]))
         })
         .collect()
 }

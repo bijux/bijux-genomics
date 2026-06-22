@@ -15,7 +15,7 @@ pub(crate) fn acquire_slot_lock(
     if slots <= 1 {
         let lock = bijux_dna_infra::FileLock::acquire(
             &base.join(format!("{prefix}.lock")),
-            Duration::from_secs(300),
+            Duration::from_mins(5),
         )
         .map_err(|err| anyhow!("acquire {prefix} lock: {err}"))?;
         return Ok(Some(lock));
@@ -28,7 +28,7 @@ pub(crate) fn acquire_slot_lock(
     }
     let lock = bijux_dna_infra::FileLock::acquire(
         &base.join(format!("{prefix}.0.lock")),
-        Duration::from_secs(300),
+        Duration::from_mins(5),
     )
     .map_err(|err| anyhow!("acquire {prefix} lock: {err}"))?;
     Ok(Some(lock))

@@ -930,7 +930,7 @@ fn median(values: &[f64]) -> Option<f64> {
     let mut sorted = values.to_vec();
     sorted.sort_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal));
     let mid = sorted.len() / 2;
-    if sorted.len() % 2 == 0 {
+    if sorted.len().is_multiple_of(2) {
         Some(f64::midpoint(sorted[mid - 1], sorted[mid]))
     } else {
         sorted.get(mid).copied()

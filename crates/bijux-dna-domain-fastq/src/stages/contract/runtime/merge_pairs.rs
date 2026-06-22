@@ -66,8 +66,12 @@ pub fn merge_pairs(
 
     write_fastq_records(merged_reads, &merged_records)?;
     if params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
-        write_fastq_records(unmerged_reads_r1.expect("validated above"), &unmerged_left)?;
-        write_fastq_records(unmerged_reads_r2.expect("validated above"), &unmerged_right)?;
+        if let Some(unmerged_reads_r1) = unmerged_reads_r1 {
+            write_fastq_records(unmerged_reads_r1, &unmerged_left)?;
+        }
+        if let Some(unmerged_reads_r2) = unmerged_reads_r2 {
+            write_fastq_records(unmerged_reads_r2, &unmerged_right)?;
+        }
     }
 
     let reads_merged = merged_records.len() as u64;

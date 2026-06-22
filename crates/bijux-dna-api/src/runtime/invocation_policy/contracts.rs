@@ -98,7 +98,7 @@ pub(crate) fn enforce_large_file_guard(
         if allowed.iter().any(|allowed_path| allowed_path == &path) {
             continue;
         }
-        let size = entry.metadata().map(|metadata| metadata.len()).unwrap_or(0);
+        let size = entry.metadata().map_or(0, |metadata| metadata.len());
         if size > max_bytes {
             violations.push(format!("{} ({} bytes)", path.display(), size));
         }

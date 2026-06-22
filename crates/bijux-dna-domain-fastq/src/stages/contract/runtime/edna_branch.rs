@@ -87,8 +87,8 @@ pub fn normalize_primers(
     }
 
     write_fastq_records(output_r1, &left)?;
-    if paired {
-        write_fastq_records(output_r2.expect("validated above"), &right)?;
+    if let Some(output_r2) = output_r2 {
+        write_fastq_records(output_r2, &right)?;
     }
 
     let reads_out = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };

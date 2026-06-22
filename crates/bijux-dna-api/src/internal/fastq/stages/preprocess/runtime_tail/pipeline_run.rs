@@ -514,7 +514,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             &normalized_sample_id,
             args,
         )?;
-        for (planned, batch_result) in batch.into_iter().zip(batch_results.into_iter()) {
+        for (planned, batch_result) in batch.into_iter().zip(batch_results) {
             let stage_id = planned.step_id.to_string();
             let tool = planned.image.image.clone();
             let stage_root = run_artifacts_dir_for_out(&out_dir).join(planned.step_id.as_str());

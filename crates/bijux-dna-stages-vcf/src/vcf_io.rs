@@ -473,7 +473,7 @@ pub fn vcf_ref_match_check(input_vcf: &Path, species: &SpeciesContext) -> Result
 /// # Errors
 /// Returns an error if overlap computation fails.
 pub fn vcf_panel_overlap(input_vcfgz: &Path, panel_vcfgz: &Path) -> Result<serde_json::Value> {
-    let stamp = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+    let stamp = SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_nanos());
     let isec_tmp = std::env::temp_dir().join(format!("bijux-vcf-isec-{stamp}.vcf.gz"));
     let _ = run_cmd(
         "bcftools",

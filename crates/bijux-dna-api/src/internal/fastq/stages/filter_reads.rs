@@ -383,7 +383,9 @@ fn combined_mean_quality(
         return 0.0;
     }
     let total_quality = quality_sum(records_r1) + records_r2.map_or(0, quality_sum);
-    total_quality as f64 / total_bases as f64
+    let total_quality = f64::from(u32::try_from(total_quality).unwrap_or(u32::MAX));
+    let total_bases = f64::from(u32::try_from(total_bases).unwrap_or(u32::MAX));
+    total_quality / total_bases
 }
 
 fn quality_sum(records: &[LocalFastqRecord]) -> u64 {

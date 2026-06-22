@@ -442,7 +442,7 @@ fn append_musket_command(
     } else {
         push_script(
             script,
-            format_args!(" -o {} {}", shell_quote_path(&prefix), shell_quote_path(input_r1),),
+            format_args!(" -o {} {}", shell_quote_path(&prefix), shell_quote_path(input_r1)),
         );
     }
     script.push('\n');
@@ -535,7 +535,7 @@ fn append_bayeshammer_command(
     if let Some(input_r2) = input_r2 {
         push_script(
             script,
-            format_args!(" -1 {} -2 {}", shell_quote_path(input_r1), shell_quote_path(input_r2),),
+            format_args!(" -1 {} -2 {}", shell_quote_path(input_r1), shell_quote_path(input_r2)),
         );
     } else {
         push_script(script, format_args!(" -s {}", shell_quote_path(input_r1)));
