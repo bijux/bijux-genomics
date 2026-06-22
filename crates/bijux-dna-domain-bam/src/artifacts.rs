@@ -4241,7 +4241,7 @@ fn median_f64(values: &[f64]) -> f64 {
     let mut sorted = values.to_vec();
     sorted.sort_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal));
     let middle = sorted.len() / 2;
-    if sorted.len() % 2 == 0 {
+    if sorted.len().is_multiple_of(2) {
         f64::midpoint(sorted[middle - 1], sorted[middle])
     } else {
         sorted[middle]

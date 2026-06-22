@@ -345,8 +345,8 @@ fn parse_plink2_admixture_metrics(root: &Path) -> Result<serde_json::Value> {
 
     for row in &q_rows {
         let observed_headers = row
-            .iter()
-            .filter_map(|(key, _)| key.strip_prefix("cluster_").map(|_| key.as_str()))
+            .keys()
+            .filter_map(|key| key.strip_prefix("cluster_").map(|_| key.as_str()))
             .collect::<Vec<_>>();
         if observed_headers.len() != cluster_headers.len() {
             bail!(
