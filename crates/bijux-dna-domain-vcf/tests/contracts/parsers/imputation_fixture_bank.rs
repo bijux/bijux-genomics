@@ -145,9 +145,8 @@ fn vcf_imputation_fixture_bank_rejects_truth_drift() -> Result<()> {
         "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tmasked_sample\nchr1\t10\t.\tA\tG\t60\tPASS\t.\tGT\t1/1\n",
     )
     .with_context(|| format!("install truth drift probe under {}", dir.display()))?;
-    let error = match parse_imputation_stage_metrics(case.tool_id, case.stage, &dir) {
-        Ok(_) => panic!("truth drift must fail"),
-        Err(error) => error,
+    let Err(error) = parse_imputation_stage_metrics(case.tool_id, case.stage, &dir) else {
+        panic!("truth drift must fail");
     };
     let message = error.to_string();
     assert!(

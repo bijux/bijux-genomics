@@ -95,9 +95,8 @@ fn vcf_phasing_fixture_bank_rejects_all_unphased_output() -> Result<()> {
         copy_fixture_dir(&fixture_dir(case), &dir)?;
         fs::copy(dir.join("raw.unphased.vcf"), dir.join("raw.phased.vcf"))
             .with_context(|| format!("install unphased probe for `{}`", case.tool_id))?;
-        let error = match parse_phasing_stage_metrics(case.tool_id, &dir) {
-            Ok(_) => panic!("all-unphased phasing output must fail"),
-            Err(error) => error,
+        let Err(error) = parse_phasing_stage_metrics(case.tool_id, &dir) else {
+            panic!("all-unphased phasing output must fail");
         };
         let message = error.to_string();
         assert!(

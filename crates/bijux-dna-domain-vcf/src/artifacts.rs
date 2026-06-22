@@ -3,7 +3,9 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
+#[cfg(test)]
 use schemars::JsonSchema;
+#[cfg(test)]
 use serde::{Deserialize, Serialize};
 
 mod schema;
@@ -58,6 +60,7 @@ const VCF_ANNOTATION_PROVENANCE_WORKFLOW_SCHEMA_VERSION: &str =
 #[cfg(test)]
 const VCF_POPULATION_HANDOFF_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.population_handoff.v1";
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 #[allow(clippy::struct_excessive_bools)]
@@ -80,6 +83,7 @@ struct VcfImputationWorkflowBoundaryV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 struct VcfCohortQcSampleCaveatV1 {
@@ -90,6 +94,7 @@ struct VcfCohortQcSampleCaveatV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 struct VcfCohortQcWorkflowSummaryV1 {
@@ -115,6 +120,7 @@ struct VcfCohortQcWorkflowSummaryV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 struct VcfPcaAdmixtureGuardrailV1 {
@@ -135,6 +141,7 @@ struct VcfPcaAdmixtureGuardrailV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 struct VcfRohIbdWorkflowBoundaryV1 {
@@ -156,6 +163,7 @@ struct VcfRohIbdWorkflowBoundaryV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 struct VcfDemographyRefusalBoundaryV1 {
@@ -173,6 +181,7 @@ struct VcfDemographyRefusalBoundaryV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct VcfPanelReferenceSnapshotV1 {
@@ -184,6 +193,7 @@ struct VcfPanelReferenceSnapshotV1 {
     pub contig_alias_digest: String,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct VcfPanelReferenceDriftReportV1 {
@@ -200,6 +210,7 @@ struct VcfPanelReferenceDriftReportV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 #[allow(clippy::struct_excessive_bools)]
@@ -220,6 +231,7 @@ struct VcfStructuralVariantBoundaryV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 struct VcfAnnotationProvenanceWorkflowSummaryV1 {
@@ -241,6 +253,7 @@ struct VcfAnnotationProvenanceWorkflowSummaryV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 #[allow(clippy::struct_excessive_bools)]
