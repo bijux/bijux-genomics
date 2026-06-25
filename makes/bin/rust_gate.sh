@@ -96,6 +96,8 @@ default_nextest_threads() {
 
 fast_test_runner="${RS_FAST_TEST_RUNNER:-$(default_fast_test_runner)}"
 nextest_threads="${NEXTEST_THREADS:-$(default_nextest_threads)}"
+nextest_threads_all="${NEXTEST_THREADS_ALL:-8}"
+nextest_test_threads_all="${NEXTEST_TEST_THREADS_ALL:-8}"
 
 mkdir -p \
   "${rs_artifact_root}" \
@@ -322,6 +324,8 @@ case "${command_name}" in
   test-all)
     require_tool cargo-nextest
     printf '%s\n' "run: cargo nextest run --workspace --all-features --run-ignored all --profile ${nextest_profile_all}"
+    previous_nextest_threads="${nextest_threads}"
+    nextest_threads="${nextest_threads_all}"
     run_nextest "${rs_test_all_report}" "${rs_target_dir}" cargo nextest run \
       --workspace \
       --all-features \
@@ -329,8 +333,10 @@ case "${command_name}" in
       --retries 0 \
       --config-file "${nextest_config_file}" \
       --profile "${nextest_profile_all}" \
+      --test-threads "${nextest_test_threads_all}" \
       --status-level "${nextest_status_level}" \
       --final-status-level "${nextest_final_status_level}"
+    nextest_threads="${previous_nextest_threads}"
     ;;
   coverage)
     require_tool cargo-nextest
