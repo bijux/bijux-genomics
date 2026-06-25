@@ -37,6 +37,8 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
     let repo_root = support::repo_root().expect("repo root");
     let config_path = repo_root.join("configs/bench/local/stage-tool-containers.toml");
     let raw = std::fs::read_to_string(&config_path).expect("read config");
+    assert!(raw.starts_with("# schema_version = 1\n"));
+    assert!(raw.contains("# last_updated = 2026-06-25\n"));
     let parsed: toml::Value = toml::from_str(&raw).expect("parse config");
 
     assert_eq!(

@@ -323,7 +323,8 @@ fn render_stage_tool_resources_toml(config: &StageToolResourcesConfig) -> Result
          # owner = bijux-dna-bench\n\
          # purpose = Governed resource hints for benchmark-ready FASTQ, BAM, and VCF stage-tool commands.\n\
          # authority = bijux-dna-bench\n\
-         # stability = evolving\n\n{body}"
+         # stability = evolving\n\
+         # last_updated = 2026-06-25\n\n{body}"
     ))
 }
 

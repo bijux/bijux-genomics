@@ -30,6 +30,12 @@ pub(crate) const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_VERSION: &str =
     "bijux.bench.local_scientific_acceptance_thresholds.v1";
 const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.scientific_acceptance_thresholds.v1";
+const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_HEADER: &str = "# schema_version = 1\n\
+# owner = bijux-dna-bench\n\
+# purpose = Governed scientific acceptance thresholds for local benchmark comparisons.\n\
+# authority = bijux-dna-bench\n\
+# stability = evolving\n\
+# last_updated = 2026-06-25\n\n";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -183,8 +189,9 @@ pub(crate) fn render_scientific_acceptance_thresholds_from_reports(
         schema_version: SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_VERSION.to_string(),
         rows: rows.clone(),
     };
-    let rendered = toml::to_string_pretty(&config)
+    let body = toml::to_string_pretty(&config)
         .context("serialize scientific acceptance thresholds config")?;
+    let rendered = format!("{SCIENTIFIC_ACCEPTANCE_THRESHOLDS_HEADER}{body}");
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -666,6 +673,8 @@ mod tests {
         assert!(report.config_path.ends_with(DEFAULT_SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH));
 
         let raw = std::fs::read_to_string(output_path).expect("read config");
+        assert!(raw.starts_with("# schema_version = 1\n"));
+        assert!(raw.contains("# last_updated = 2026-06-25\n"));
         let parsed: ScientificAcceptanceThresholdsConfig =
             toml::from_str(&raw).expect("parse rendered config");
         assert_eq!(parsed.rows.len(), report.row_count);

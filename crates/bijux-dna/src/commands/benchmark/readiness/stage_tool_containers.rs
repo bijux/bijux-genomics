@@ -275,7 +275,8 @@ fn render_stage_tool_containers_toml(config: &StageToolContainersConfig) -> Resu
          # owner = bijux-dna-bench\n\
          # purpose = Governed runtime declarations for benchmark-ready FASTQ and BAM stage-tool commands.\n\
          # authority = bijux-dna-bench\n\
-         # stability = evolving\n\n{body}"
+         # stability = evolving\n\
+         # last_updated = 2026-06-25\n\n{body}"
     ))
 }
 

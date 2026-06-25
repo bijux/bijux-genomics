@@ -3,6 +3,7 @@
 # purpose = Governed runtime declarations for benchmark-ready FASTQ and BAM stage-tool commands.
 # authority = bijux-dna-bench
 # stability = evolving
+# last_updated = 2026-06-25
 
 schema_version = "bijux.bench.local_stage_tool_containers.v1"
 classification_scope = "benchmark_ready_runtime_declarations"

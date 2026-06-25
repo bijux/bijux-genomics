@@ -1066,7 +1066,8 @@ fn render_stage_tool_assets_toml(config: &StageToolAssetsConfig) -> Result<Strin
          # owner = bijux-dna-bench\n\
          # purpose = Governed asset declarations for local benchmark FASTQ and BAM stage-tool commands.\n\
          # authority = bijux-dna-bench\n\
-         # stability = evolving\n\n{body}"
+         # stability = evolving\n\
+         # last_updated = 2026-06-25\n\n{body}"
     ))
 }
 

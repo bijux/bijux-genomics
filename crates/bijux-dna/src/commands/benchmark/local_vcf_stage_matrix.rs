@@ -18,6 +18,12 @@ pub(crate) const DEFAULT_VCF_STAGE_MATRIX_PATH: &str = "configs/bench/local/vcf-
 const LOCAL_VCF_STAGE_MATRIX_SCHEMA_VERSION: &str = "bijux.bench.vcf.local_stage_matrix.v1";
 const LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_stage_matrix.v1";
 const VCF_STAGE_MATRIX_VALIDATION_SCHEMA_VERSION: &str = "bijux.bench.validate_matrix.v1";
+const LOCAL_VCF_STAGE_MATRIX_HEADER: &str = "# schema_version = 1\n\
+# owner = bijux-dna-bench\n\
+# purpose = Governed VCF local benchmark stage matrix.\n\
+# authority = bijux-dna-bench\n\
+# stability = evolving\n\
+# last_updated = 2026-06-25\n\n";
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -105,7 +111,8 @@ pub(crate) fn render_vcf_stage_matrix(
         schema_version: LOCAL_VCF_STAGE_MATRIX_SCHEMA_VERSION.to_string(),
         rows: rows.clone(),
     };
-    let rendered = toml::to_string_pretty(&config).context("serialize VCF stage matrix TOML")?;
+    let body = toml::to_string_pretty(&config).context("serialize VCF stage matrix TOML")?;
+    let rendered = format!("{LOCAL_VCF_STAGE_MATRIX_HEADER}{body}");
 
     if let Some(parent) = output_path.parent() {
         bijux_dna_infra::ensure_dir(parent)

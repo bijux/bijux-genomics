@@ -3,6 +3,7 @@
 # purpose = Governed asset declarations for local benchmark FASTQ and BAM stage-tool commands.
 # authority = bijux-dna-bench
 # stability = evolving
+# last_updated = 2026-06-25
 
 schema_version = "bijux.bench.local_stage_tool_assets.v1"
 classification_scope = "governed_benchmark_command_assets"
