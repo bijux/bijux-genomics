@@ -283,7 +283,10 @@ case "${command_name}" in
         --final-status-level "${nextest_final_status_level}" \
         -E "${nextest_fast_expr}"
     elif [ "${fast_test_runner}" = "cargo" ]; then
-      mapfile -d '' -t cargo_skip_args < <(slow_skip_args)
+      cargo_skip_args=()
+      while IFS= read -r -d '' cargo_skip_arg; do
+        cargo_skip_args+=("${cargo_skip_arg}")
+      done < <(slow_skip_args)
       printf '%s\n' "run: cargo test --workspace --all-features --no-fail-fast -- ${cargo_skip_args[*]}"
       run_cargo_test "${rs_test_report}" "${rs_target_dir}" cargo test \
         --workspace \
