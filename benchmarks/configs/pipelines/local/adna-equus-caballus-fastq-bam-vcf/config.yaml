@@ -4,6 +4,45 @@ domain: cross
 summary: >-
   Ancient-DNA Equus caballus FASTQ-to-BAM-to-VCF DAG for read-length-aware
   short-read alignment on EquCab3, aggressive adapter-aware preprocessing,
-  duplicate-aware pair handling, BAM damage evidence, and downstream variant
-  calling.
+  post-alignment duplicate marking, BAM damage evidence, and downstream
+  variant calling.
 default_corpus_id: corpus-01-mini
+reference_context:
+  species_id: Equus caballus
+  build_id: EquCab3
+  reference_bundle_id: ecaballus_equcab3_primary
+execution_context:
+  site_profile_id: lunarc
+  frontend_surfaces:
+    - downloads
+    - ref-prep
+    - snp-prep
+  compute_surfaces:
+    - fastq-qc
+    - fastq-to-bam
+    - bam-qc
+    - bam-to-vcf
+project_sources:
+  - project_id: PRJEB10854
+    metadata_url: https://www.ebi.ac.uk/ena/portal/api/filereport?accession=PRJEB10854&result=read_run&fields=study_accession,sample_accession,experiment_accession,run_accession,tax_id,scientific_name,fastq_ftp,submitted_ftp,sra_ftp,bam_ftp&format=tsv&download=true&limit=0
+    retries: 3
+  - project_id: PRJEB22390
+    metadata_url: https://www.ebi.ac.uk/ena/portal/api/filereport?accession=PRJEB22390&result=read_run&fields=study_accession,sample_accession,experiment_accession,run_accession,tax_id,scientific_name,fastq_ftp,submitted_ftp,sra_ftp,bam_ftp&format=tsv&download=true&limit=0
+    retries: 3
+  - project_id: PRJEB31613
+    metadata_url: https://www.ebi.ac.uk/ena/portal/api/filereport?accession=PRJEB31613&result=read_run&fields=study_accession,sample_accession,experiment_accession,run_accession,tax_id,scientific_name,fastq_ftp,submitted_ftp,sra_ftp,bam_ftp&format=tsv&download=true&limit=0
+    retries: 3
+  - project_id: PRJEB44430
+    metadata_url: https://www.ebi.ac.uk/ena/portal/api/filereport?accession=PRJEB44430&result=read_run&fields=study_accession,sample_accession,experiment_accession,run_accession,tax_id,scientific_name,fastq_ftp,submitted_ftp,sra_ftp,bam_ftp&format=tsv&download=true&limit=0
+    retries: 3
+  - project_id: PRJEB7537
+    metadata_url: https://www.ebi.ac.uk/ena/portal/api/filereport?accession=PRJEB7537&result=read_run&fields=study_accession,sample_accession,experiment_accession,run_accession,tax_id,scientific_name,fastq_ftp,submitted_ftp,sra_ftp,bam_ftp&format=tsv&download=true&limit=0
+    retries: 3
+ancient_dna_policy:
+  aligner_mode: auto
+  auto_bwa_aln_p75_threshold_bp: 35
+  adapter_cleanup_tool: adapterremoval
+  merge_pairs_in_preprocess: true
+  duplicate_stage_id: bam.markdup
+  duplicate_tool: samtools
+  caller_tool: bcftools

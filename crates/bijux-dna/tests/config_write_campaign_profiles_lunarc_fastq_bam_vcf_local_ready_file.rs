@@ -92,6 +92,6 @@ fn config_write_campaign_profiles_emits_lunarc_fastq_bam_vcf_local_ready_profile
     );
     assert_eq!(
         payload.get("planned_jobs").and_then(serde_json::Value::as_array).map(Vec::len),
-        Some(9)
+        Some(16)
     );
 }

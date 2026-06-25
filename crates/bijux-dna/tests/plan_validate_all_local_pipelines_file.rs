@@ -44,6 +44,6 @@ fn plan_validate_all_local_pipelines_writes_governed_report_file() {
 
     let payload = fs::read_to_string(&output_path).expect("read output file");
     let json: serde_json::Value = serde_json::from_str(&payload).expect("parse output json");
-    assert_eq!(json.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(json.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(21));
     assert_eq!(json.get("all_valid").and_then(serde_json::Value::as_bool), Some(true));
 }

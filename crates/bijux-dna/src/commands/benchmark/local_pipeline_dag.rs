@@ -55,6 +55,14 @@ struct LocalPipelineDagConfig {
     domain: LocalPipelineDagDomain,
     summary: String,
     default_corpus_id: String,
+    #[serde(default)]
+    reference_context: Option<LocalPipelineReferenceContext>,
+    #[serde(default)]
+    execution_context: Option<LocalPipelineExecutionContext>,
+    #[serde(default)]
+    project_sources: Vec<LocalPipelineProjectSource>,
+    #[serde(default)]
+    ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
     nodes: Vec<LocalPipelineDagNode>,
 }
 
@@ -66,12 +74,59 @@ struct LocalPipelineDagMetadataConfig {
     domain: LocalPipelineDagDomain,
     summary: String,
     default_corpus_id: String,
+    #[serde(default)]
+    reference_context: Option<LocalPipelineReferenceContext>,
+    #[serde(default)]
+    execution_context: Option<LocalPipelineExecutionContext>,
+    #[serde(default)]
+    project_sources: Vec<LocalPipelineProjectSource>,
+    #[serde(default)]
+    ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct LocalPipelineDagStagesConfig {
     nodes: Vec<LocalPipelineDagNode>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineReferenceContext {
+    species_id: String,
+    build_id: String,
+    reference_bundle_id: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineExecutionContext {
+    site_profile_id: String,
+    #[serde(default)]
+    frontend_surfaces: Vec<String>,
+    #[serde(default)]
+    compute_surfaces: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineProjectSource {
+    project_id: String,
+    metadata_url: String,
+    #[serde(default = "default_local_pipeline_project_retries")]
+    retries: u32,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineAncientDnaPolicy {
+    aligner_mode: String,
+    auto_bwa_aln_p75_threshold_bp: u32,
+    adapter_cleanup_tool: String,
+    merge_pairs_in_preprocess: bool,
+    duplicate_stage_id: String,
+    duplicate_tool: String,
+    caller_tool: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -122,6 +177,11 @@ pub(crate) struct LocalPipelineDagValidationReport {
     pub(crate) domain: String,
     pub(crate) default_corpus_id: String,
     pub(crate) summary: String,
+    pub(crate) reference_context: Option<LocalPipelineReferenceContext>,
+    pub(crate) execution_context: Option<LocalPipelineExecutionContext>,
+    pub(crate) project_source_count: usize,
+    pub(crate) project_sources: Vec<LocalPipelineProjectSource>,
+    pub(crate) ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
     pub(crate) node_count: usize,
     pub(crate) edge_count: usize,
     pub(crate) acyclic: bool,
@@ -223,6 +283,10 @@ fn load_local_pipeline_dag_yaml_bundle(bundle_dir: &Path) -> Result<LocalPipelin
         domain: metadata.domain,
         summary: metadata.summary,
         default_corpus_id: metadata.default_corpus_id,
+        reference_context: metadata.reference_context,
+        execution_context: metadata.execution_context,
+        project_sources: metadata.project_sources,
+        ancient_dna_policy: metadata.ancient_dna_policy,
         nodes: stages.nodes,
     })
 }
@@ -234,6 +298,7 @@ fn validate_pipeline_dag(
     config: &LocalPipelineDagConfig,
 ) -> Result<LocalPipelineDagValidationReport> {
     validate_pipeline_contract(config)?;
+    validate_pipeline_metadata(repo_root, config_path, config)?;
 
     let inventory_index = load_pipeline_inventory_index(repo_root, config.domain)?;
 
@@ -403,6 +468,11 @@ fn validate_pipeline_dag(
         domain: config.domain.as_str().to_string(),
         default_corpus_id: config.default_corpus_id.clone(),
         summary: config.summary.clone(),
+        reference_context: config.reference_context.clone(),
+        execution_context: config.execution_context.clone(),
+        project_source_count: config.project_sources.len(),
+        project_sources: config.project_sources.clone(),
+        ancient_dna_policy: config.ancient_dna_policy.clone(),
         node_count: nodes.len(),
         edge_count: config.nodes.iter().map(|node| node.depends_on.len()).sum(),
         acyclic: true,
@@ -2844,6 +2914,264 @@ fn validate_pipeline_contract(config: &LocalPipelineDagConfig) -> Result<()> {
     Ok(())
 }
 
+fn default_local_pipeline_project_retries() -> u32 {
+    3
+}
+
+fn validate_pipeline_metadata(
+    repo_root: &Path,
+    config_path: &Path,
+    config: &LocalPipelineDagConfig,
+) -> Result<()> {
+    if let Some(reference_context) = &config.reference_context {
+        validate_reference_context(repo_root, reference_context)?;
+    }
+    if let Some(execution_context) = &config.execution_context {
+        validate_execution_context(repo_root, execution_context)?;
+    }
+    validate_project_sources(&config.project_sources)?;
+    if let Some(policy) = &config.ancient_dna_policy {
+        validate_ancient_dna_policy(config_path, config, policy)?;
+    }
+    Ok(())
+}
+
+fn validate_reference_context(
+    repo_root: &Path,
+    reference_context: &LocalPipelineReferenceContext,
+) -> Result<()> {
+    require_non_empty(
+        &reference_context.species_id,
+        "local pipeline reference_context must declare a non-empty `species_id`",
+    )?;
+    require_non_empty(
+        &reference_context.build_id,
+        "local pipeline reference_context must declare a non-empty `build_id`",
+    )?;
+    require_non_empty(
+        &reference_context.reference_bundle_id,
+        "local pipeline reference_context must declare a non-empty `reference_bundle_id`",
+    )?;
+
+    let species_catalog_path = repo_root.join("configs/runtime/species.toml");
+    let species_catalog_raw = fs::read_to_string(&species_catalog_path)
+        .with_context(|| format!("read {}", species_catalog_path.display()))?;
+    let species_catalog: RuntimeSpeciesCatalog = toml::from_str(&species_catalog_raw)
+        .with_context(|| format!("parse {}", species_catalog_path.display()))?;
+    let species_row = species_catalog
+        .species
+        .iter()
+        .find(|row| row.species_id == reference_context.species_id)
+        .ok_or_else(|| {
+            anyhow!(
+                "local pipeline reference_context species_id `{}` is not present in {}",
+                reference_context.species_id,
+                species_catalog_path.display()
+            )
+        })?;
+    if species_row.default_build_id != reference_context.build_id {
+        return Err(anyhow!(
+            "local pipeline reference_context build_id `{}` does not match the runtime default build `{}` for species `{}`",
+            reference_context.build_id,
+            species_row.default_build_id,
+            reference_context.species_id
+        ));
+    }
+
+    let bundles_path = repo_root.join("configs/runtime/reference_bundles.toml");
+    let bundles_raw = fs::read_to_string(&bundles_path)
+        .with_context(|| format!("read {}", bundles_path.display()))?;
+    let bundles_catalog: RuntimeReferenceBundleCatalog = toml::from_str(&bundles_raw)
+        .with_context(|| format!("parse {}", bundles_path.display()))?;
+    let bundle_row = bundles_catalog
+        .bundle
+        .iter()
+        .find(|row| row.bundle_id == reference_context.reference_bundle_id)
+        .ok_or_else(|| {
+            anyhow!(
+                "local pipeline reference_context reference_bundle_id `{}` is not present in {}",
+                reference_context.reference_bundle_id,
+                bundles_path.display()
+            )
+        })?;
+    if bundle_row.species_id != reference_context.species_id
+        || bundle_row.build_id != reference_context.build_id
+    {
+        return Err(anyhow!(
+            "local pipeline reference_context bundle `{}` resolves to `{}` / `{}`, expected `{}` / `{}`",
+            reference_context.reference_bundle_id,
+            bundle_row.species_id,
+            bundle_row.build_id,
+            reference_context.species_id,
+            reference_context.build_id
+        ));
+    }
+
+    Ok(())
+}
+
+fn validate_execution_context(
+    repo_root: &Path,
+    execution_context: &LocalPipelineExecutionContext,
+) -> Result<()> {
+    require_non_empty(
+        &execution_context.site_profile_id,
+        "local pipeline execution_context must declare a non-empty `site_profile_id`",
+    )?;
+    validate_symbol_list(
+        &execution_context.frontend_surfaces,
+        "local pipeline execution_context.frontend_surfaces",
+    )?;
+    validate_symbol_list(
+        &execution_context.compute_surfaces,
+        "local pipeline execution_context.compute_surfaces",
+    )?;
+
+    let allowed_frontend =
+        BTreeSet::from(["downloads".to_string(), "ref-prep".to_string(), "snp-prep".to_string()]);
+    for surface in &execution_context.frontend_surfaces {
+        if !allowed_frontend.contains(surface) {
+            return Err(anyhow!(
+                "local pipeline execution_context.frontend_surfaces contains unsupported surface `{surface}`"
+            ));
+        }
+    }
+
+    let allowed_compute = BTreeSet::from([
+        "fastq-qc".to_string(),
+        "fastq-to-bam".to_string(),
+        "bam-qc".to_string(),
+        "bam-to-vcf".to_string(),
+    ]);
+    for surface in &execution_context.compute_surfaces {
+        if !allowed_compute.contains(surface) {
+            return Err(anyhow!(
+                "local pipeline execution_context.compute_surfaces contains unsupported surface `{surface}`"
+            ));
+        }
+    }
+
+    let site_profile_id = execution_context.site_profile_id.as_str();
+    let built_in = matches!(site_profile_id, "lunarc" | "generic");
+    let profile_path = repo_root
+        .join("benchmarks/configs/hpc/campaign/site-profiles")
+        .join(format!("{site_profile_id}.toml"));
+    if !built_in && !profile_path.is_file() {
+        return Err(anyhow!(
+            "local pipeline execution_context site_profile_id `{site_profile_id}` is not a built-in profile and {} is missing",
+            profile_path.display()
+        ));
+    }
+
+    Ok(())
+}
+
+fn validate_project_sources(project_sources: &[LocalPipelineProjectSource]) -> Result<()> {
+    let mut seen_project_ids = BTreeSet::new();
+    for source in project_sources {
+        require_non_empty(
+            &source.project_id,
+            "local pipeline project_sources entries must declare a non-empty `project_id`",
+        )?;
+        require_non_empty(
+            &source.metadata_url,
+            "local pipeline project_sources entries must declare a non-empty `metadata_url`",
+        )?;
+        if !source.metadata_url.starts_with("http://")
+            && !source.metadata_url.starts_with("https://")
+        {
+            return Err(anyhow!(
+                "local pipeline project_sources metadata_url `{}` must start with http:// or https://",
+                source.metadata_url
+            ));
+        }
+        if source.retries == 0 {
+            return Err(anyhow!(
+                "local pipeline project_sources entry `{}` must declare retries >= 1",
+                source.project_id
+            ));
+        }
+        if !seen_project_ids.insert(source.project_id.clone()) {
+            return Err(anyhow!(
+                "local pipeline project_sources repeats project_id `{}`",
+                source.project_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_ancient_dna_policy(
+    config_path: &Path,
+    config: &LocalPipelineDagConfig,
+    policy: &LocalPipelineAncientDnaPolicy,
+) -> Result<()> {
+    require_non_empty(
+        &policy.aligner_mode,
+        "local pipeline ancient_dna_policy must declare a non-empty `aligner_mode`",
+    )?;
+    if !matches!(policy.aligner_mode.as_str(), "auto" | "bwa_aln" | "bwa_mem") {
+        return Err(anyhow!(
+            "local pipeline ancient_dna_policy aligner_mode `{}` is unsupported",
+            policy.aligner_mode
+        ));
+    }
+    if policy.auto_bwa_aln_p75_threshold_bp == 0 {
+        return Err(anyhow!(
+            "local pipeline ancient_dna_policy auto_bwa_aln_p75_threshold_bp must be greater than zero"
+        ));
+    }
+    require_non_empty(
+        &policy.adapter_cleanup_tool,
+        "local pipeline ancient_dna_policy must declare a non-empty `adapter_cleanup_tool`",
+    )?;
+    require_non_empty(
+        &policy.duplicate_stage_id,
+        "local pipeline ancient_dna_policy must declare a non-empty `duplicate_stage_id`",
+    )?;
+    require_non_empty(
+        &policy.duplicate_tool,
+        "local pipeline ancient_dna_policy must declare a non-empty `duplicate_tool`",
+    )?;
+    require_non_empty(
+        &policy.caller_tool,
+        "local pipeline ancient_dna_policy must declare a non-empty `caller_tool`",
+    )?;
+    if !config.nodes.iter().any(|node| {
+        node.node_id == policy.duplicate_stage_id || node.stage_id == policy.duplicate_stage_id
+    }) {
+        return Err(anyhow!(
+            "{} declares ancient_dna_policy duplicate_stage_id `{}` but that stage is not present in the pipeline DAG",
+            config_path.display(),
+            policy.duplicate_stage_id
+        ));
+    }
+    Ok(())
+}
+
+#[derive(Debug, Deserialize)]
+struct RuntimeSpeciesCatalog {
+    species: Vec<RuntimeSpeciesRow>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RuntimeSpeciesRow {
+    species_id: String,
+    default_build_id: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct RuntimeReferenceBundleCatalog {
+    bundle: Vec<RuntimeReferenceBundleRow>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RuntimeReferenceBundleRow {
+    bundle_id: String,
+    species_id: String,
+    build_id: String,
+}
+
 fn require_non_empty(value: &str, message: &str) -> Result<()> {
     if value.trim().is_empty() {
         return Err(anyhow!(message.to_string()));
@@ -2960,6 +3288,14 @@ pipeline_id: fastq-to-bam-cross
 domain: cross
 summary: Cross-domain proof that YAML local pipeline validation can mix governed FASTQ and BAM stages.
 default_corpus_id: corpus-01-mini
+reference_context:
+  species_id: Homo sapiens
+  build_id: GRCh38
+  reference_bundle_id: hsapiens_grch38_primary
+execution_context:
+  site_profile_id: lunarc
+  compute_surfaces:
+    - fastq-to-bam
 "#,
         )
         .expect("write yaml metadata");
@@ -3008,6 +3344,15 @@ nodes:
         assert_eq!(report.domain, "cross");
         assert_eq!(report.node_count, 2);
         assert_eq!(report.config_path, config_dir.display().to_string());
+        assert_eq!(report.project_source_count, 0);
+        assert_eq!(
+            report.reference_context.as_ref().map(|context| context.reference_bundle_id.as_str()),
+            Some("hsapiens_grch38_primary")
+        );
+        assert_eq!(
+            report.execution_context.as_ref().map(|context| context.site_profile_id.as_str()),
+            Some("lunarc")
+        );
     }
 
     #[test]
@@ -3815,6 +4160,47 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
         assert_eq!(report.domain, "cross");
         assert_eq!(report.default_corpus_id, "corpus-01-mini");
         assert!(report.acyclic);
+        assert_eq!(
+            report.reference_context.as_ref().map(|context| {
+                (
+                    context.species_id.as_str(),
+                    context.build_id.as_str(),
+                    context.reference_bundle_id.as_str(),
+                )
+            }),
+            Some(("Equus caballus", "EquCab3", "ecaballus_equcab3_primary"))
+        );
+        assert_eq!(
+            report.execution_context.as_ref().map(|context| {
+                (
+                    context.site_profile_id.as_str(),
+                    context.frontend_surfaces.clone(),
+                    context.compute_surfaces.clone(),
+                )
+            }),
+            Some((
+                "lunarc",
+                vec!["downloads".to_string(), "ref-prep".to_string(), "snp-prep".to_string(),],
+                vec![
+                    "fastq-qc".to_string(),
+                    "fastq-to-bam".to_string(),
+                    "bam-qc".to_string(),
+                    "bam-to-vcf".to_string(),
+                ],
+            ))
+        );
+        assert_eq!(report.project_source_count, 5);
+        assert_eq!(
+            report.ancient_dna_policy.as_ref().map(|policy| {
+                (
+                    policy.aligner_mode.as_str(),
+                    policy.auto_bwa_aln_p75_threshold_bp,
+                    policy.duplicate_stage_id.as_str(),
+                    policy.duplicate_tool.as_str(),
+                )
+            }),
+            Some(("auto", 35, "bam.markdup", "samtools"))
+        );
         assert!(
             report.nodes.iter().any(|node| {
                 node.stage_id == "bam.align"
@@ -3838,8 +4224,17 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
         );
         assert!(
             report.nodes.iter().any(|node| {
+                node.stage_id == "bam.markdup"
+                    && node.depends_on == vec!["bam.align"]
+                    && node.upstream_inputs == vec!["aligned_bam", "aligned_bai", "align_metrics"]
+            }),
+            "bam.markdup must stay downstream of alignment so duplicate handling remains post-alignment"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
                 node.stage_id == "vcf.call"
-                    && node.depends_on == vec!["bam.align", "bam.coverage", "bam.damage"]
+                    && node.depends_on
+                        == vec!["bam.markdup", "bam.coverage", "bam.damage", "bam.duplication_metrics"]
                     && node.external_inputs
                         == vec![
                             "equcab3_reference_fasta_contract",
@@ -3848,13 +4243,14 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
                         ]
                     && node.upstream_inputs
                         == vec![
-                            "aligned_bam",
-                            "aligned_bai",
+                            "markdup_bam",
+                            "markdup_bai",
                             "coverage_report_json",
                             "damage_report_json",
+                            "duplication_report_json",
                         ]
             }),
-            "vcf.call must stay tied to the EquCab3 reference contracts and BAM damage evidence"
+            "vcf.call must stay tied to the EquCab3 reference contracts, post-alignment deduplication, and BAM damage evidence"
         );
     }
 }
