@@ -1344,15 +1344,14 @@ fn run_fixture_backed_remove_chimeras_stage(
     )?;
     write_text_file(
         &chimeras_fasta,
-        &truth_bundle
-            .chimera_truths
-            .iter()
-            .filter(|row| row.expected_presence == "present")
-            .fold(String::new(), |mut fasta, row| {
+        &truth_bundle.chimera_truths.iter().filter(|row| row.expected_presence == "present").fold(
+            String::new(),
+            |mut fasta, row| {
                 let _ = writeln!(fasta, ">{}", row.chimera_id);
                 let _ = writeln!(fasta, "{}", row.sequence);
                 fasta
-            }),
+            },
+        ),
     )?;
     let report = RemoveChimerasStageEvidence {
         schema_version: REMOVE_CHIMERAS_STAGE_SCHEMA_VERSION.to_string(),

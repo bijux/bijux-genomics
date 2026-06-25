@@ -37,10 +37,7 @@ fn tool_for_stage(stage: &str) -> ToolExecutionSpecV1 {
 fn normalize_graph_snapshot_paths(value: serde_json::Value, temp_root: &str) -> serde_json::Value {
     match value {
         serde_json::Value::Array(items) => serde_json::Value::Array(
-            items
-                .into_iter()
-                .map(|item| normalize_graph_snapshot_paths(item, temp_root))
-                .collect(),
+            items.into_iter().map(|item| normalize_graph_snapshot_paths(item, temp_root)).collect(),
         ),
         serde_json::Value::Object(map) => {
             let normalized = map

@@ -1208,9 +1208,9 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::path::PathBuf;
 
-    use super::{benchmark_asset_profile_id_for_resource_row, binding_blocker, BindingKey};
     #[cfg(feature = "bam_downstream")]
     use super::DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH;
+    use super::{benchmark_asset_profile_id_for_resource_row, binding_blocker, BindingKey};
     use crate::commands::benchmark::readiness::stage_tool_resources::StageToolResourceRow;
 
     fn repo_root() -> PathBuf {
