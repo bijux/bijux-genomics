@@ -63,6 +63,7 @@ fn dna_tree_matches_architecture_contract() {
         "fixtures/",
         "hpc/",
         "mod.rs",
+        "numeric.rs",
         "planning/",
         "router/",
         "status/",
