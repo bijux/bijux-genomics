@@ -86,9 +86,9 @@ fn bench_readiness_version_probes_report_governed_probe_contracts() {
             && row.get("version_probe_status").and_then(serde_json::Value::as_str) == Some("ready")
             && row.get("registry_paths").and_then(serde_json::Value::as_array).is_some_and(
                 |paths| {
-                    paths.iter().any(|path| {
-                        path.as_str() == Some("configs/ci/registry/tool_registry.toml")
-                    })
+                    paths
+                        .iter()
+                        .any(|path| path.as_str() == Some("configs/ci/registry/tool_registry.toml"))
                 },
             )
     }));

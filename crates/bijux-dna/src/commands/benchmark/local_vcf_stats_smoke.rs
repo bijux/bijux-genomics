@@ -106,7 +106,8 @@ pub(crate) fn run_local_vcf_stats_smoke(
     tool_id: &str,
 ) -> Result<LocalVcfStatsSmokeReport> {
     let contract = resolve_governed_vcf_stats_smoke_contract(tool_id)?;
-    let published_output_root = repo_root.join(DEFAULT_VCF_STATS_SMOKE_ROOT).join(&contract.tool_id);
+    let published_output_root =
+        repo_root.join(DEFAULT_VCF_STATS_SMOKE_ROOT).join(&contract.tool_id);
     let published_input_vcf_path =
         published_output_root.join("artifacts/input").join(DEFAULT_INPUT_VCF_NAME);
     let published_stats_json_path = published_output_root.join(DEFAULT_OUTPUT_STATS_NAME);
@@ -213,9 +214,11 @@ pub(crate) fn run_local_vcf_stats_smoke(
     validate_stage_result_manifest(&stage_result_manifest)?;
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;
 
-    let _publish_lock =
-        bijux_dna_infra::FileLock::acquire(&repo_root.join(VCF_STATS_SMOKE_LOCK_PATH), Duration::from_secs(30))
-            .context("acquire VCF stats smoke publish lock")?;
+    let _publish_lock = bijux_dna_infra::FileLock::acquire(
+        &repo_root.join(VCF_STATS_SMOKE_LOCK_PATH),
+        Duration::from_secs(30),
+    )
+    .context("acquire VCF stats smoke publish lock")?;
     if published_output_root.exists() {
         fs::remove_dir_all(&published_output_root)
             .with_context(|| format!("remove {}", published_output_root.display()))?;

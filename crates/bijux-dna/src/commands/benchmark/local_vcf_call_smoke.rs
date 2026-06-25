@@ -112,9 +112,9 @@ pub(crate) fn run_local_vcf_call_smoke(
     let contract = resolve_governed_vcf_call_smoke_contract(repo_root, tool_id)?;
     let published_output_root = repo_root.join(DEFAULT_VCF_CALL_SMOKE_ROOT).join(&contract.tool_id);
     let published_artifacts_root = published_output_root.join("artifacts");
-    let reference_file_name = Path::new(&contract.reference)
-        .file_name()
-        .ok_or_else(|| anyhow::anyhow!("reference path has no file name: {}", contract.reference))?;
+    let reference_file_name = Path::new(&contract.reference).file_name().ok_or_else(|| {
+        anyhow::anyhow!("reference path has no file name: {}", contract.reference)
+    })?;
     let published_materialized_reference =
         published_artifacts_root.join("reference").join(reference_file_name);
     let published_output_vcf = published_output_root.join(DEFAULT_OUTPUT_VCF_NAME);
@@ -262,7 +262,10 @@ pub(crate) fn run_local_vcf_call_smoke(
         input_bam: contract.input_bam,
         input_bam_index: contract.input_bam_index,
         reference: contract.reference,
-        materialized_reference_path: path_relative_to_repo(repo_root, &published_materialized_reference),
+        materialized_reference_path: path_relative_to_repo(
+            repo_root,
+            &published_materialized_reference,
+        ),
         output_root: path_relative_to_repo(repo_root, &published_output_root),
         output_vcf_path: path_relative_to_repo(repo_root, &published_output_vcf),
         output_tbi_path: path_relative_to_repo(repo_root, &published_output_tbi),
