@@ -512,7 +512,7 @@ fn render_apptainer_map_tsv(rows: &[ApptainerMapRow]) -> String {
 }
 
 fn sanitize_tsv(value: &str) -> String {
-    value.replace('\t', " ").replace('\n', " ").replace('\r', " ")
+    value.replace(['\t', '\n', '\r'], " ")
 }
 
 fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {

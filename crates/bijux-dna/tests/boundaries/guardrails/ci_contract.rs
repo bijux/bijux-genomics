@@ -43,11 +43,7 @@ fn cli_ci_profile_membership_is_bounded() -> anyhow::Result<()> {
     );
     let missing =
         slow_roster.iter().filter(|name| !counts.all.contains(*name)).cloned().collect::<Vec<_>>();
-    assert!(
-        missing.is_empty(),
-        "slow roster entries must map to governed test names: {:?}",
-        missing
-    );
+    assert!(missing.is_empty(), "slow roster entries must map to governed test names: {missing:?}");
     let duplicated = slow_roster
         .iter()
         .filter(|name| counts.named_slow.contains(*name))
@@ -55,8 +51,7 @@ fn cli_ci_profile_membership_is_bounded() -> anyhow::Result<()> {
         .collect::<Vec<_>>();
     assert!(
         duplicated.is_empty(),
-        "slow roster must not duplicate slow__-prefixed tests: {:?}",
-        duplicated
+        "slow roster must not duplicate slow__-prefixed tests: {duplicated:?}"
     );
     assert!(
         counts.science <= science_max,

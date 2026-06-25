@@ -14,6 +14,7 @@ use super::stage_scoring::{
 use crate::commands::benchmark::local_micro_benchmark_report::DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
+use crate::commands::numeric::checked_f64_from_u64;
 
 pub(crate) const DEFAULT_VCF_TOOL_SCORES_PATH: &str = "runs/bench/micro/vcf/VCF_TOOL_SCORES.tsv";
 
@@ -556,9 +557,8 @@ fn merge_admixture_summary(
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/vcf.admixture/plink2/admixture.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let sample_count = required_u64(&root, "sample_count")?;
     let population_count = required_u64(&root, "population_count")?;
@@ -573,7 +573,7 @@ fn merge_admixture_summary(
             truth_correctness_score: Some(fraction_u64(
                 selected_k.min(population_count),
                 population_count.max(1),
-            )),
+            )?),
             truth_correctness_basis: Some("selected_k_over_population_count".to_string()),
             contract_correctness_score: Some(if tool_ok && status == "complete" {
                 1.0
@@ -584,7 +584,10 @@ fn merge_admixture_summary(
                 "admixture smoke report preserved governed selected_k and cluster outputs"
                     .to_string(),
             ),
-            population_metric_value: Some(population_count as f64),
+            population_metric_value: Some(checked_f64_from_u64(
+                population_count,
+                "population count",
+            )?),
             population_metric_basis: Some("population_count".to_string()),
             scientific_metric_summary: Some(summarize_metrics(vec![
                 format!("selected_k={selected_k}"),
@@ -610,18 +613,17 @@ fn merge_call_summary(
     genotype_basis: &str,
 ) -> Result<()> {
     let path = repo_root.join(relative_path);
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
-    let genotype_value = required_u64(&root, genotype_key)? as f64;
+    let genotype_value = required_u64(&root, genotype_key)?;
     let exit_code = required_i64(&root, "exit_code")?;
     insert_evidence(
         rows,
         required_str(&root, "stage_id")?,
         required_str(&root, "tool_id")?,
         VcfEvidenceAggregate {
-            contract_correctness_score: Some(if exit_code == 0 && genotype_value > 0.0 {
+            contract_correctness_score: Some(if exit_code == 0 && genotype_value > 0 {
                 1.0
             } else {
                 0.0
@@ -629,11 +631,11 @@ fn merge_call_summary(
             contract_correctness_basis: Some(
                 "VCF call smoke preserved governed output payloads and call counts".to_string(),
             ),
-            genotype_truth_metric_value: Some(genotype_value),
+            genotype_truth_metric_value: Some(checked_f64_from_u64(genotype_value, genotype_key)?),
             genotype_truth_metric_basis: Some(genotype_basis.to_string()),
             scientific_metric_summary: Some(summarize_metrics(vec![
                 format!("sample_count={}", required_u64(&root, "sample_count")?),
-                format!("{genotype_key}={}", format_u64_as_string(genotype_value as u64)),
+                format!("{genotype_key}={}", format_u64_as_string(genotype_value)),
             ])),
             source_paths: BTreeSet::new(),
             ..VcfEvidenceAggregate::default()
@@ -648,9 +650,8 @@ fn merge_call_gl_summary(
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/vcf.call_gl/bcftools/metrics.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let sites_with_likelihoods = required_u64(&root, "sites_with_likelihoods")?;
     let missing_likelihoods = required_u64(&root, "missing_likelihoods")?;
@@ -660,7 +661,10 @@ fn merge_call_gl_summary(
         required_str(&root, "stage_id")?,
         required_str(&root, "tool_id")?,
         VcfEvidenceAggregate {
-            truth_correctness_score: Some(fraction_u64(sites_with_likelihoods, total_sites.max(1))),
+            truth_correctness_score: Some(fraction_u64(
+                sites_with_likelihoods,
+                total_sites.max(1),
+            )?),
             truth_correctness_basis: Some("likelihood_site_fraction".to_string()),
             contract_correctness_score: Some(if required_i64(&root, "exit_code")? == 0 {
                 1.0
@@ -670,7 +674,10 @@ fn merge_call_gl_summary(
             contract_correctness_basis: Some(
                 "genotype-likelihood smoke preserved governed likelihood fields".to_string(),
             ),
-            genotype_truth_metric_value: Some(sites_with_likelihoods as f64),
+            genotype_truth_metric_value: Some(checked_f64_from_u64(
+                sites_with_likelihoods,
+                "sites with likelihoods",
+            )?),
             genotype_truth_metric_basis: Some("sites_with_likelihoods".to_string()),
             scientific_metric_summary: Some(summarize_metrics(vec![
                 format!("sample_count={}", required_u64(&root, "sample_count")?),
@@ -695,9 +702,8 @@ fn merge_call_pseudohaploid_summary(
 ) -> Result<()> {
     let path =
         repo_root.join("runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let called_sites = required_u64(&root, "called_sites")?;
     let target_sites = required_u64(&root, "target_sites")?;
@@ -706,7 +712,7 @@ fn merge_call_pseudohaploid_summary(
         required_str(&root, "stage_id")?,
         required_str(&root, "tool_id")?,
         VcfEvidenceAggregate {
-            truth_correctness_score: Some(fraction_u64(called_sites, target_sites.max(1))),
+            truth_correctness_score: Some(fraction_u64(called_sites, target_sites.max(1))?),
             truth_correctness_basis: Some("called_site_fraction".to_string()),
             contract_correctness_score: Some(
                 if required_i64(&root, "exit_code")? == 0
@@ -721,7 +727,7 @@ fn merge_call_pseudohaploid_summary(
                 "pseudohaploid smoke preserved governed deterministic replay and site counts"
                     .to_string(),
             ),
-            genotype_truth_metric_value: Some(called_sites as f64),
+            genotype_truth_metric_value: Some(checked_f64_from_u64(called_sites, "called sites")?),
             genotype_truth_metric_basis: Some("called_sites".to_string()),
             scientific_metric_summary: Some(summarize_metrics(vec![
                 format!("covered_sites={}", required_u64(&root, "covered_sites")?),
@@ -741,9 +747,8 @@ fn merge_damage_filter_summary(
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/vcf.damage_filter/bcftools/metrics.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let retained_variants = required_u64(&root, "retained_variants")?;
     let input_variants = required_u64(&root, "input_variants")?;
@@ -755,7 +760,7 @@ fn merge_damage_filter_summary(
         required_str(&root, "stage_id")?,
         required_str(&root, "tool_id")?,
         VcfEvidenceAggregate {
-            truth_correctness_score: Some(fraction_u64(retained_variants, input_variants.max(1))),
+            truth_correctness_score: Some(fraction_u64(retained_variants, input_variants.max(1))?),
             truth_correctness_basis: Some("retained_variant_fraction".to_string()),
             contract_correctness_score: Some(if required_i64(&root, "exit_code")? == 0 {
                 1.0
@@ -766,7 +771,10 @@ fn merge_damage_filter_summary(
                 "damage filter smoke preserved governed damage-aware variant filtering outputs"
                     .to_string(),
             ),
-            genotype_truth_metric_value: Some(retained_variants as f64),
+            genotype_truth_metric_value: Some(checked_f64_from_u64(
+                retained_variants,
+                "retained variants",
+            )?),
             genotype_truth_metric_basis: Some("retained_variants".to_string()),
             scientific_metric_summary: Some(summarize_metrics(vec![
                 format!("removed_variants={removed_variants}"),
@@ -786,9 +794,8 @@ fn merge_filter_summary(
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/vcf.filter/bcftools/metrics.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let input_variants = required_u64(&root, "input_variants")?;
     let pass_variants = required_u64(&root, "pass_variants")?;
@@ -826,9 +833,8 @@ fn merge_gl_propagation_summary(
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/vcf.gl_propagation/bcftools/metrics.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let sample_count = required_u64(&root, "sample_count")?;
     let site_count_before = required_u64(&root, "site_count_before")?;
@@ -839,7 +845,10 @@ fn merge_gl_propagation_summary(
         required_str(&root, "stage_id")?,
         required_str(&root, "tool_id")?,
         VcfEvidenceAggregate {
-            truth_correctness_score: Some(fraction_u64(site_count_after, site_count_before.max(1))),
+            truth_correctness_score: Some(fraction_u64(
+                site_count_after,
+                site_count_before.max(1),
+            )?),
             truth_correctness_basis: Some("retained_site_fraction".to_string()),
             contract_correctness_score: Some(
                 if required_i64(&root, "exit_code")? == 0 && lost_fields.is_empty() {
@@ -852,7 +861,10 @@ fn merge_gl_propagation_summary(
                 "genotype-likelihood propagation preserved governed sample and site surfaces"
                     .to_string(),
             ),
-            genotype_truth_metric_value: Some(site_count_after as f64),
+            genotype_truth_metric_value: Some(checked_f64_from_u64(
+                site_count_after,
+                "site count after",
+            )?),
             genotype_truth_metric_basis: Some("site_count_after".to_string()),
             scientific_metric_summary: Some(summarize_metrics(vec![
                 format!("sample_count={sample_count}"),
@@ -883,9 +895,8 @@ fn merge_imputation_metrics_summary(
 ) -> Result<()> {
     let path = repo_root
         .join("runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let concordance = required_f64(&root, "concordance")?;
     let dosage_r2 = required_f64(&root, "dosage_r2")?;
@@ -925,9 +936,8 @@ fn merge_impute_summary(
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/metrics.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let masked_truth_match_count = required_u64(&root, "masked_truth_match_count")?;
     let masked_truth_site_count = required_u64(&root, "masked_truth_site_count")?;
@@ -940,7 +950,7 @@ fn merge_impute_summary(
             truth_correctness_score: Some(fraction_u64(
                 masked_truth_match_count,
                 masked_truth_site_count.max(1),
-            )),
+            )?),
             truth_correctness_basis: Some("masked_truth_match_fraction".to_string()),
             contract_correctness_score: Some(if required_i64(&root, "exit_code")? == 0 {
                 1.0
@@ -954,9 +964,12 @@ fn merge_impute_summary(
             phasing_imputation_metric_value: Some(fraction_u64(
                 masked_truth_match_count,
                 masked_truth_site_count.max(1),
-            )),
+            )?),
             phasing_imputation_metric_basis: Some("masked_truth_match_fraction".to_string()),
-            genotype_truth_metric_value: Some(imputed_genotypes as f64),
+            genotype_truth_metric_value: Some(checked_f64_from_u64(
+                imputed_genotypes,
+                "imputed genotypes",
+            )?),
             genotype_truth_metric_basis: Some("imputed_genotypes".to_string()),
             scientific_metric_summary: Some(summarize_metrics(vec![
                 format!("missing_before={}", required_u64(&root, "missing_before")?),
@@ -978,9 +991,8 @@ fn merge_pca_summary(
     relative_path: &str,
 ) -> Result<()> {
     let path = repo_root.join(relative_path);
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let excluded_samples = required_array(&root, "excluded_samples")?;
     let unexpected_samples = required_array(&root, "unexpected_samples")?;
@@ -1007,7 +1019,7 @@ fn merge_pca_summary(
             contract_correctness_basis: Some(
                 "PCA smoke preserved governed eigenvalue and coordinate outputs".to_string(),
             ),
-            population_metric_value: Some(variant_count as f64),
+            population_metric_value: Some(checked_f64_from_u64(variant_count, "variant count")?),
             population_metric_basis: Some("variant_count".to_string()),
             scientific_metric_summary: Some(summarize_metrics(vec![
                 format!("sample_count={}", required_u64(&root, "sample_count")?),
@@ -1030,9 +1042,8 @@ fn merge_phasing_summary(
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
     let metrics_path = repo_root.join("runs/bench/local-smoke/vcf.phasing/shapeit5/metrics.json");
-    let metrics = match load_optional_json_value(&metrics_path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(metrics) = load_optional_json_value(&metrics_path)? else {
+        return Ok(());
     };
     let stage_result_path =
         repo_root.join("runs/bench/local-smoke/vcf/vcf.phasing/shapeit5/stage-result.json");
@@ -1055,7 +1066,7 @@ fn merge_phasing_summary(
         required_str(&metrics, "stage_id")?,
         required_str(&metrics, "tool_id")?,
         VcfEvidenceAggregate {
-            truth_correctness_score: Some(fraction_u64(phased_genotypes, input_genotypes.max(1))),
+            truth_correctness_score: Some(fraction_u64(phased_genotypes, input_genotypes.max(1))?),
             truth_correctness_basis: Some("phased_genotype_fraction".to_string()),
             contract_correctness_score: Some(if contract_ok { 1.0 } else { 0.0 }),
             contract_correctness_basis: Some(
@@ -1064,7 +1075,7 @@ fn merge_phasing_summary(
             phasing_imputation_metric_value: Some(fraction_u64(
                 phased_genotypes,
                 input_genotypes.max(1),
-            )),
+            )?),
             phasing_imputation_metric_basis: Some("phased_genotype_fraction".to_string()),
             scientific_metric_summary: Some(summarize_metrics(vec![
                 format!("phase_set_count={}", required_u64(&metrics, "phase_set_count")?),
@@ -1099,9 +1110,8 @@ fn merge_population_structure_summary(
 ) -> Result<()> {
     let path = repo_root
         .join("runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let distance_summary = required_object(&root, "distance_summary")?;
     let pair_count = required_u64_from_object(distance_summary, "pair_count")?;
@@ -1117,7 +1127,7 @@ fn merge_population_structure_summary(
             contract_correctness_basis: Some(
                 "population-structure smoke preserved governed distance summaries and consumed PCA/admixture evidence".to_string(),
             ),
-            population_metric_value: Some(pair_count as f64),
+            population_metric_value: Some(checked_f64_from_u64(pair_count, "pair count")?),
             population_metric_basis: Some("pair_count".to_string()),
             scientific_metric_summary: Some(summarize_metrics(vec![
                 format!("sample_count={sample_count}"),
@@ -1146,9 +1156,8 @@ fn merge_postprocess_summary(
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/vcf.postprocess/bcftools/metrics.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let contract_ok = required_i64(&root, "exit_code")? == 0
         && required_bool(&root, "readable_vcf")?
@@ -1190,9 +1199,8 @@ fn merge_prepare_reference_panel_summary(
 ) -> Result<()> {
     let path =
         repo_root.join("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let contract_ok = required_i64(&root, "exit_code")? == 0
         && required_str(&root, "normalization_status")? == "sorted_indexed_deduplicated";
@@ -1231,9 +1239,8 @@ fn merge_qc_summary(
     tool_id: &str,
 ) -> Result<()> {
     let path = repo_root.join(relative_path);
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let missingness_post = required_f64(&root, "missingness_post")?;
     let imputation_info_mean = required_f64(&root, "imputation_info_mean")?;
@@ -1279,9 +1286,8 @@ fn merge_roh_summary(
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/vcf.roh/plink2/roh.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let contract_ok =
         required_i64(&root, "exit_code")? == 0 && required_str(&root, "status")? == "complete";
@@ -1314,9 +1320,8 @@ fn merge_stats_summary(
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/stats.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let variants_total = required_u64(&root, "variants_total")?;
     let snps = required_u64(&root, "snps")?;
@@ -1821,18 +1826,19 @@ fn format_u64_as_string(value: u64) -> String {
 }
 
 fn sanitize_tsv_cell(value: &str) -> String {
-    value.replace('\t', " ").replace('\n', " ")
+    value.replace(['\t', '\n'], " ")
 }
 
 fn summarize_metrics(values: Vec<String>) -> String {
     values.into_iter().filter(|value| !value.is_empty()).collect::<Vec<_>>().join("; ")
 }
 
-fn fraction_u64(numerator: u64, denominator: u64) -> f64 {
+fn fraction_u64(numerator: u64, denominator: u64) -> Result<f64> {
     if denominator == 0 {
-        return 0.0;
+        return Ok(0.0);
     }
-    numerator as f64 / denominator as f64
+    Ok(checked_f64_from_u64(numerator, "fraction numerator")?
+        / checked_f64_from_u64(denominator, "fraction denominator")?)
 }
 
 fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {

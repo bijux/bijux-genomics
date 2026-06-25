@@ -840,7 +840,7 @@ fn collect_stage_manifest_fields(
 }
 
 fn parse_cli_arg_pairs(label: &str, args: &[String]) -> Result<BTreeMap<String, String>> {
-    if args.len() % 2 != 0 {
+    if !args.len().is_multiple_of(2) {
         return Err(anyhow!("{label} expects flag/value pairs, found odd-length input: {args:?}"));
     }
     let mut values = BTreeMap::new();

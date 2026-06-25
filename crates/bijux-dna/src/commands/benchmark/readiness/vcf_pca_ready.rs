@@ -209,7 +209,7 @@ pub(crate) fn render_vcf_pca_ready(
 ) -> Result<VcfPcaReadyReport> {
     let _lock = bijux_dna_infra::FileLock::acquire(
         &repo_root.join(VCF_PCA_READY_LOCK_PATH),
-        Duration::from_secs(300),
+        Duration::from_mins(5),
     )
     .with_context(|| {
         format!(

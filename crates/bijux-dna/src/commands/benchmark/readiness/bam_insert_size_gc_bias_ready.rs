@@ -801,7 +801,7 @@ fn parse_gc_bias_local_smoke_rows(
                 proof_path.display()
             ));
         }
-        let row = columns.iter().cloned().zip(fields.into_iter()).collect::<BTreeMap<_, _>>();
+        let row = columns.iter().cloned().zip(fields).collect::<BTreeMap<_, _>>();
         rows.push(row);
     }
 

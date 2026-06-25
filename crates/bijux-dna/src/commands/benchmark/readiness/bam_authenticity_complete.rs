@@ -24,8 +24,8 @@ const EXPECTED_COMPOSITION_SCHEMA_VERSION: &str = "bijux.bam.authenticity.compos
 const EXPECTED_STAGE_METRICS_SCHEMA_VERSION: &str = "bijux.bam.authenticity.local_smoke.metrics.v1";
 const EXPECTED_SAMPLE_ID: &str = "adna_damage_non_udg";
 const EXPECTED_METHOD: &str = "authenticct";
-const EXPECTED_SCORE: f64 = 0.5333333333333333;
-const EXPECTED_CONFIDENCE: f64 = 0.8133333333333334;
+const EXPECTED_SCORE: f64 = 0.533_333_333_333_333_3;
+const EXPECTED_CONFIDENCE: f64 = 0.813_333_333_333_333_4;
 const EXPECTED_STATUS: &str = "pass";
 const EXPECTED_PMD_LIKE_SIGNAL_PRESENT: bool = true;
 const EXPECTED_CONTAMINATION_ESTIMATE: f64 = 0.03;
@@ -710,8 +710,8 @@ mod tests {
             row.normalized_metrics_schema_version,
             "bijux.bam.authenticity.local_smoke.metrics.v1"
         );
-        assert!((row.summary.score - 0.5333333333333333).abs() <= 1e-9);
-        assert!((row.summary.confidence - 0.8133333333333334).abs() <= 1e-9);
+        assert!((row.summary.score - 0.533_333_333_333_333_3).abs() <= 1e-9);
+        assert!((row.summary.confidence - 0.813_333_333_333_333_4).abs() <= 1e-9);
         assert_eq!(row.summary.status, "pass");
         assert!(row.local_smoke_report.expectation_matched);
         assert!(row.authenticity_report_contract_ready);

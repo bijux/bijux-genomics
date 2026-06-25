@@ -675,7 +675,7 @@ mod tests {
             "bench_fastq_detect_adapters_v1",
             &[BenchRowFixture {
                 tool: "fastqc".to_string(),
-                input_hash: format!("{}+{}", corpus.datasets[0].sha256_r1, paired_hash,),
+                input_hash: format!("{}+{}", corpus.datasets[0].sha256_r1, paired_hash),
                 image_digest: "sha256:image-a".to_string(),
                 params_hash: "params-a".to_string(),
                 parameters_json: "{}".to_string(),

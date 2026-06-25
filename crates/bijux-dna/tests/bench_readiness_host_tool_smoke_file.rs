@@ -58,7 +58,7 @@ fn bench_readiness_host_tool_smoke_writes_manifest_file() {
         |argv| {
             argv.len() == 2
                 && argv
-                    .get(0)
+                    .first()
                     .and_then(serde_json::Value::as_str)
                     .is_some_and(|value| value.ends_with("/debug/bijux-dna"))
                 && argv.get(1).and_then(serde_json::Value::as_str) == Some("--version")

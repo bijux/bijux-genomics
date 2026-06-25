@@ -416,9 +416,9 @@ pub(crate) fn render_science_truth_sets_complete_from_prerequisites(
     Ok(report)
 }
 
-fn collect_expected_truth_rows_by_fixture<'a>(
-    rows: &'a [BenchmarkFixtureRootValidationRow],
-) -> BTreeMap<String, &'a BenchmarkFixtureRootValidationRow> {
+fn collect_expected_truth_rows_by_fixture(
+    rows: &[BenchmarkFixtureRootValidationRow],
+) -> BTreeMap<String, &BenchmarkFixtureRootValidationRow> {
     rows.iter()
         .filter(|row| row.fixture_kind == "expected_truth")
         .map(|row| (row.fixture_id.clone(), row))
@@ -693,7 +693,7 @@ mod tests {
                 direction: ScientificAcceptanceDirection::ExactMatchPreferred,
                 tolerance_kind: ScientificAcceptanceToleranceKind::ExactMatch,
                 tolerance_value: 0.0,
-                pass_rule: ScientificAcceptancePassRule::MustMatchReference,
+                pass_rule: ScientificAcceptancePassRule::MatchReference,
                 insufficiency_behavior:
                     ScientificAcceptanceInsufficiencyBehavior::RefuseStageComparison,
                 required: true,

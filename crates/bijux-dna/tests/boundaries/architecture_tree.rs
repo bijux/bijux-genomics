@@ -472,9 +472,10 @@ fn dna_tree_matches_architecture_contract() {
         if required_test_entries.contains(entry) {
             continue;
         }
-        if entry.ends_with('/') {
-            panic!("dna tests tree must not add unmanaged suite directories: {entry}");
-        }
+        assert!(
+            !entry.ends_with('/'),
+            "dna tests tree must not add unmanaged suite directories: {entry}"
+        );
         let allowed_exact = allowed_root_test_files.iter().any(|allowed| entry == allowed);
         let allowed_prefix =
             allowed_root_test_prefixes.iter().any(|prefix| entry.starts_with(prefix));

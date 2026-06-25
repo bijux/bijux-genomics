@@ -335,7 +335,7 @@ fn placeholder_output_bytes(path: &Path) -> Vec<u8> {
         Some("html") => b"<html><body>bijux local proof</body></html>\n".to_vec(),
         Some("tsv") => b"placeholder\tvalue\n".to_vec(),
         Some("csv") => b"placeholder,value\n".to_vec(),
-        Some("txt") | Some("log") | Some("md") => b"bijux local proof\n".to_vec(),
+        Some("txt" | "log" | "md") => b"bijux local proof\n".to_vec(),
         _ => Vec::new(),
     }
 }

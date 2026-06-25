@@ -366,10 +366,7 @@ pub(super) fn count_fastq_gz_reads(path: &Path) -> Result<u64> {
     let reader = BufReader::new(decoder);
     let mut lines = reader.lines();
     let mut count = 0_u64;
-    loop {
-        let Some(header) = lines.next() else {
-            break;
-        };
+    while let Some(header) = lines.next() {
         let header = header.with_context(|| format!("read {}", path.display()))?;
         let Some(sequence) = lines.next() else {
             return Err(anyhow!("truncated FASTQ record in {}", path.display()));

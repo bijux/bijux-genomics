@@ -56,11 +56,11 @@ pub(crate) enum ScientificAcceptanceToleranceKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum ScientificAcceptancePassRule {
-    MustMatchReference,
-    MustMeetOrExceedReference,
-    MustNotExceedReference,
-    MustRemainWithinReferenceRange,
-    MustMatchReferenceStructure,
+    MatchReference,
+    MeetOrExceedReference,
+    NotExceedReference,
+    RemainWithinReferenceRange,
+    MatchReferenceStructure,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
@@ -317,15 +317,13 @@ pub(crate) fn scientific_acceptance_pass_rule_label(
     pass_rule: ScientificAcceptancePassRule,
 ) -> &'static str {
     match pass_rule {
-        ScientificAcceptancePassRule::MustMatchReference => "must_match_reference",
-        ScientificAcceptancePassRule::MustMeetOrExceedReference => "must_meet_or_exceed_reference",
-        ScientificAcceptancePassRule::MustNotExceedReference => "must_not_exceed_reference",
-        ScientificAcceptancePassRule::MustRemainWithinReferenceRange => {
+        ScientificAcceptancePassRule::MatchReference => "must_match_reference",
+        ScientificAcceptancePassRule::MeetOrExceedReference => "must_meet_or_exceed_reference",
+        ScientificAcceptancePassRule::NotExceedReference => "must_not_exceed_reference",
+        ScientificAcceptancePassRule::RemainWithinReferenceRange => {
             "must_remain_within_reference_range"
         }
-        ScientificAcceptancePassRule::MustMatchReferenceStructure => {
-            "must_match_reference_structure"
-        }
+        ScientificAcceptancePassRule::MatchReferenceStructure => "must_match_reference_structure",
     }
 }
 
@@ -352,7 +350,7 @@ fn fastq_acceptance_row(
                 ScientificAcceptanceDirection::ExactMatchPreferred,
                 ScientificAcceptanceToleranceKind::ExactMatch,
                 0.0,
-                ScientificAcceptancePassRule::MustMatchReference,
+                ScientificAcceptancePassRule::MatchReference,
                 ScientificAcceptanceInsufficiencyBehavior::RefuseStageComparison,
             ),
             ("fastq.profile_overrepresented_sequences", "sequence_count") => (
@@ -360,7 +358,7 @@ fn fastq_acceptance_row(
                 ScientificAcceptanceDirection::ExactMatchPreferred,
                 ScientificAcceptanceToleranceKind::ExactMatch,
                 0.0,
-                ScientificAcceptancePassRule::MustMatchReference,
+                ScientificAcceptancePassRule::MatchReference,
                 ScientificAcceptanceInsufficiencyBehavior::WarnAndExcludeStage,
             ),
             ("fastq.profile_overrepresented_sequences", "flagged_sequences") => (
@@ -368,7 +366,7 @@ fn fastq_acceptance_row(
                 ScientificAcceptanceDirection::ExactMatchPreferred,
                 ScientificAcceptanceToleranceKind::AbsoluteDelta,
                 1.0,
-                ScientificAcceptancePassRule::MustMatchReference,
+                ScientificAcceptancePassRule::MatchReference,
                 ScientificAcceptanceInsufficiencyBehavior::WarnAndExcludeStage,
             ),
             ("fastq.profile_overrepresented_sequences", "top_fraction") => (
@@ -376,7 +374,7 @@ fn fastq_acceptance_row(
                 ScientificAcceptanceDirection::ExactMatchPreferred,
                 ScientificAcceptanceToleranceKind::AbsoluteDelta,
                 0.05,
-                ScientificAcceptancePassRule::MustMatchReference,
+                ScientificAcceptancePassRule::MatchReference,
                 ScientificAcceptanceInsufficiencyBehavior::WarnAndExcludeStage,
             ),
             ("fastq.validate_reads", "format_validation_pass_rate") => (
@@ -384,7 +382,7 @@ fn fastq_acceptance_row(
                 ScientificAcceptanceDirection::HigherIsBetter,
                 ScientificAcceptanceToleranceKind::AbsoluteDelta,
                 0.01,
-                ScientificAcceptancePassRule::MustMeetOrExceedReference,
+                ScientificAcceptancePassRule::MeetOrExceedReference,
                 ScientificAcceptanceInsufficiencyBehavior::RefuseStageComparison,
             ),
             _ => {
@@ -554,16 +552,14 @@ fn scientific_acceptance_pass_rule_from_bam(
     direction: BamScientificPassDirection,
 ) -> ScientificAcceptancePassRule {
     match direction {
-        BamScientificPassDirection::Minimum => {
-            ScientificAcceptancePassRule::MustMeetOrExceedReference
-        }
-        BamScientificPassDirection::Maximum => ScientificAcceptancePassRule::MustNotExceedReference,
+        BamScientificPassDirection::Minimum => ScientificAcceptancePassRule::MeetOrExceedReference,
+        BamScientificPassDirection::Maximum => ScientificAcceptancePassRule::NotExceedReference,
         BamScientificPassDirection::Range => {
-            ScientificAcceptancePassRule::MustRemainWithinReferenceRange
+            ScientificAcceptancePassRule::RemainWithinReferenceRange
         }
-        BamScientificPassDirection::ExactMatch => ScientificAcceptancePassRule::MustMatchReference,
+        BamScientificPassDirection::ExactMatch => ScientificAcceptancePassRule::MatchReference,
         BamScientificPassDirection::StructuredMatch => {
-            ScientificAcceptancePassRule::MustMatchReferenceStructure
+            ScientificAcceptancePassRule::MatchReferenceStructure
         }
     }
 }
@@ -573,19 +569,19 @@ fn scientific_acceptance_pass_rule_from_direction(
 ) -> ScientificAcceptancePassRule {
     match direction {
         ScientificAcceptanceDirection::ExactMatchPreferred => {
-            ScientificAcceptancePassRule::MustMatchReference
+            ScientificAcceptancePassRule::MatchReference
         }
         ScientificAcceptanceDirection::HigherIsBetter | ScientificAcceptanceDirection::Minimum => {
-            ScientificAcceptancePassRule::MustMeetOrExceedReference
+            ScientificAcceptancePassRule::MeetOrExceedReference
         }
         ScientificAcceptanceDirection::LowerIsBetter | ScientificAcceptanceDirection::Maximum => {
-            ScientificAcceptancePassRule::MustNotExceedReference
+            ScientificAcceptancePassRule::NotExceedReference
         }
         ScientificAcceptanceDirection::Range => {
-            ScientificAcceptancePassRule::MustRemainWithinReferenceRange
+            ScientificAcceptancePassRule::RemainWithinReferenceRange
         }
         ScientificAcceptanceDirection::StructuredMatch => {
-            ScientificAcceptancePassRule::MustMatchReferenceStructure
+            ScientificAcceptancePassRule::MatchReferenceStructure
         }
     }
 }

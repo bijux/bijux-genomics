@@ -666,13 +666,13 @@ fn run_infer_asvs_stage(repo_root: &Path, output_root: &Path) -> Result<InferAsv
         &report.case_report_json,
         "corpus-03-amplicon-se/dada2/infer_asvs_report.json",
     )?;
-    let taxonomy_ready_fasta = copy_repo_relative_file(
+    let taxonomy_ready_sequences_path = copy_repo_relative_file(
         repo_root,
         &stage_root,
         &report.taxonomy_ready_fasta,
         "corpus-03-amplicon-se/dada2/taxonomy_ready.fasta",
     )?;
-    let taxonomy_ready_fastq = copy_repo_relative_file(
+    let taxonomy_ready_reads_path = copy_repo_relative_file(
         repo_root,
         &stage_root,
         &report.taxonomy_ready_fastq,
@@ -694,8 +694,8 @@ fn run_infer_asvs_stage(repo_root: &Path, output_root: &Path) -> Result<InferAsv
     report.asv_table_tsv = path_relative_to_repo(repo_root, &asv_table_tsv);
     report.representatives_fasta = path_relative_to_repo(repo_root, &representatives_fasta);
     report.case_report_json = path_relative_to_repo(repo_root, &case_report_json);
-    report.taxonomy_ready_fasta = path_relative_to_repo(repo_root, &taxonomy_ready_fasta);
-    report.taxonomy_ready_fastq = path_relative_to_repo(repo_root, &taxonomy_ready_fastq);
+    report.taxonomy_ready_fasta = path_relative_to_repo(repo_root, &taxonomy_ready_sequences_path);
+    report.taxonomy_ready_fastq = path_relative_to_repo(repo_root, &taxonomy_ready_reads_path);
     report.raw_backend_report =
         raw_backend_report.as_ref().map(|path| path_relative_to_repo(repo_root, path));
     let evidence_path = stage_root.join("report.json");
@@ -874,13 +874,13 @@ fn run_cluster_otus_stage(
         &report.case_report_json,
         "corpus-03-otu-cluster-se/vsearch/cluster_otus_report.json",
     )?;
-    let taxonomy_ready_fasta = copy_repo_relative_file(
+    let taxonomy_ready_sequences_path = copy_repo_relative_file(
         repo_root,
         &stage_root,
         &report.taxonomy_ready_fasta,
         "corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fasta",
     )?;
-    let taxonomy_ready_fastq = copy_repo_relative_file(
+    let taxonomy_ready_reads_path = copy_repo_relative_file(
         repo_root,
         &stage_root,
         &report.taxonomy_ready_fastq,
@@ -904,8 +904,8 @@ fn run_cluster_otus_stage(
         path_relative_to_repo(repo_root, &otu_representatives_fasta);
     report.otu_representatives_fasta = path_relative_to_repo(repo_root, &otu_representatives_fasta);
     report.case_report_json = path_relative_to_repo(repo_root, &case_report_json);
-    report.taxonomy_ready_fasta = path_relative_to_repo(repo_root, &taxonomy_ready_fasta);
-    report.taxonomy_ready_fastq = path_relative_to_repo(repo_root, &taxonomy_ready_fastq);
+    report.taxonomy_ready_fasta = path_relative_to_repo(repo_root, &taxonomy_ready_sequences_path);
+    report.taxonomy_ready_fastq = path_relative_to_repo(repo_root, &taxonomy_ready_reads_path);
     report.raw_backend_report =
         raw_backend_report.as_ref().map(|path| path_relative_to_repo(repo_root, path));
     let evidence_path = stage_root.join("report.json");
@@ -1119,35 +1119,44 @@ fn run_amplicon_output_judgment_stage(
     )?;
     let asv_representatives = load_fasta_records(&infer_stage.representatives_fasta)?;
     let asv_representatives_valid = asv_representatives == truth_bundle.asv_representatives
-        && infer_report.representative_sequence_count as usize
-            == truth_bundle.asv_representatives.len();
+        && usize::try_from(infer_report.representative_sequence_count)
+            .ok()
+            .is_some_and(|count| count == truth_bundle.asv_representatives.len());
     let asv_table_rows = load_tsv_rows(&infer_stage.asv_table_tsv)?;
     let asv_table_valid = validate_asv_table(&asv_table_rows, &truth_bundle.asv_representatives)
-        && infer_report.asv_count as usize == truth_bundle.asv_representatives.len()
+        && usize::try_from(infer_report.asv_count)
+            .ok()
+            .is_some_and(|count| count == truth_bundle.asv_representatives.len())
         && infer_report.sample_count == 1;
 
     let chimera_table_rows = load_tsv_rows(&chimera_stage.chimeras_tsv)?;
     let chimera_table_valid = validate_chimera_table(&chimera_table_rows, &expected_chimera_rows)
-        && chimera_report.chimera_count as usize
-            == expected_chimera_rows
-                .iter()
-                .filter(|row| row.expected_presence == "present")
-                .count();
+        && usize::try_from(chimera_report.chimera_count).ok().is_some_and(|count| {
+            count
+                == expected_chimera_rows
+                    .iter()
+                    .filter(|row| row.expected_presence == "present")
+                    .count()
+        });
     let non_chimeric_representatives = load_fasta_records(&chimera_stage.non_chimeric_fasta)?;
     let non_chimeric_representatives_valid = non_chimeric_representatives
         == truth_bundle.non_chimeric_representatives
-        && chimera_report.non_chimera_count as usize
-            == truth_bundle.non_chimeric_representatives.len();
+        && usize::try_from(chimera_report.non_chimera_count)
+            .ok()
+            .is_some_and(|count| count == truth_bundle.non_chimeric_representatives.len());
 
     let otu_table_rows = load_otu_table_rows(&otu_stage.otu_table_tsv)?;
     let otu_table_valid =
         validate_otu_table(repo_root, &otu_table_rows, &truth_bundle.otu_representatives)
-            && otu_report.otu_count as usize == truth_bundle.otu_representatives.len()
+            && usize::try_from(otu_report.otu_count)
+                .ok()
+                .is_some_and(|count| count == truth_bundle.otu_representatives.len())
             && otu_report.sample_count == 1;
     let otu_representatives = load_fasta_records(&otu_stage.otu_representatives_fasta)?;
     let otu_representatives_valid = otu_representatives == truth_bundle.otu_representatives
-        && otu_report.representative_sequence_count as usize
-            == truth_bundle.otu_representatives.len();
+        && usize::try_from(otu_report.representative_sequence_count)
+            .ok()
+            .is_some_and(|count| count == truth_bundle.otu_representatives.len());
 
     let otu_abundance_rows = load_abundance_rows(&abundance_stage.otu_abundance_table_tsv)?;
     let otu_abundance_table_valid = otu_abundance_rows == expected_abundance_rows
@@ -1304,99 +1313,99 @@ fn build_handoffs(
     abundance_stage: &NormalizeAbundanceStageArtifacts,
     judgment_row: &AmpliconMicroPipelineRow,
 ) -> Vec<AmpliconMicroPipelineHandoff> {
-    let mut handoffs = Vec::new();
-    handoffs.push(handoff_from_rows(
-        repo_root,
-        &corpus_stage.row,
-        "primers_tsv_path",
-        &normalize_stage.row,
-        "primer_contract",
-    ));
-    handoffs.push(handoff_from_rows(
-        repo_root,
-        &truth_stage.row,
-        "expected_path",
-        judgment_row,
-        "truth_bundle_path",
-    ));
-    handoffs.push(handoff_from_rows(
-        repo_root,
-        &normalize_stage.row,
-        "normalized_reads_r1",
-        judgment_row,
-        "normalized_reads_r1",
-    ));
-    handoffs.push(handoff_from_rows(
-        repo_root,
-        &infer_stage.row,
-        "asv_table_tsv",
-        judgment_row,
-        "asv_table_tsv",
-    ));
-    handoffs.push(handoff_from_rows(
-        repo_root,
-        &infer_stage.row,
-        "representatives_fasta",
-        &chimera_stage.row,
-        "asv_representatives",
-    ));
-    handoffs.push(handoff_from_rows(
-        repo_root,
-        &infer_stage.row,
-        "representatives_fasta",
-        judgment_row,
-        "asv_representatives",
-    ));
-    handoffs.push(handoff_from_rows(
-        repo_root,
-        &chimera_stage.row,
-        "chimeras_tsv",
-        judgment_row,
-        "chimeras_tsv",
-    ));
-    handoffs.push(handoff_from_rows(
-        repo_root,
-        &chimera_stage.row,
-        "non_chimeric_fasta",
-        &otu_stage.row,
-        "non_chimeric_representatives",
-    ));
-    handoffs.push(handoff_from_rows(
-        repo_root,
-        &chimera_stage.row,
-        "non_chimeric_fasta",
-        judgment_row,
-        "non_chimeric_representatives",
-    ));
-    handoffs.push(handoff_from_rows(
-        repo_root,
-        &otu_stage.row,
-        "otu_table_tsv",
-        judgment_row,
-        "otu_table_tsv",
-    ));
-    handoffs.push(handoff_from_rows(
-        repo_root,
-        &otu_stage.row,
-        "otu_representatives_fasta",
-        judgment_row,
-        "otu_representatives",
-    ));
-    handoffs.push(handoff_from_rows(
-        repo_root,
-        &abundance_stage.row,
-        "otu_abundance_table",
-        judgment_row,
-        "otu_abundance_table",
-    ));
-    handoffs.push(handoff_from_rows(
-        repo_root,
-        &abundance_stage.row,
-        "normalized_abundance_tsv",
-        judgment_row,
-        "normalized_abundance_tsv",
-    ));
-    handoffs
+    vec![
+        handoff_from_rows(
+            repo_root,
+            &corpus_stage.row,
+            "primers_tsv_path",
+            &normalize_stage.row,
+            "primer_contract",
+        ),
+        handoff_from_rows(
+            repo_root,
+            &truth_stage.row,
+            "expected_path",
+            judgment_row,
+            "truth_bundle_path",
+        ),
+        handoff_from_rows(
+            repo_root,
+            &normalize_stage.row,
+            "normalized_reads_r1",
+            judgment_row,
+            "normalized_reads_r1",
+        ),
+        handoff_from_rows(
+            repo_root,
+            &infer_stage.row,
+            "asv_table_tsv",
+            judgment_row,
+            "asv_table_tsv",
+        ),
+        handoff_from_rows(
+            repo_root,
+            &infer_stage.row,
+            "representatives_fasta",
+            &chimera_stage.row,
+            "asv_representatives",
+        ),
+        handoff_from_rows(
+            repo_root,
+            &infer_stage.row,
+            "representatives_fasta",
+            judgment_row,
+            "asv_representatives",
+        ),
+        handoff_from_rows(
+            repo_root,
+            &chimera_stage.row,
+            "chimeras_tsv",
+            judgment_row,
+            "chimeras_tsv",
+        ),
+        handoff_from_rows(
+            repo_root,
+            &chimera_stage.row,
+            "non_chimeric_fasta",
+            &otu_stage.row,
+            "non_chimeric_representatives",
+        ),
+        handoff_from_rows(
+            repo_root,
+            &chimera_stage.row,
+            "non_chimeric_fasta",
+            judgment_row,
+            "non_chimeric_representatives",
+        ),
+        handoff_from_rows(
+            repo_root,
+            &otu_stage.row,
+            "otu_table_tsv",
+            judgment_row,
+            "otu_table_tsv",
+        ),
+        handoff_from_rows(
+            repo_root,
+            &otu_stage.row,
+            "otu_representatives_fasta",
+            judgment_row,
+            "otu_representatives",
+        ),
+        handoff_from_rows(
+            repo_root,
+            &abundance_stage.row,
+            "otu_abundance_table",
+            judgment_row,
+            "otu_abundance_table",
+        ),
+        handoff_from_rows(
+            repo_root,
+            &abundance_stage.row,
+            "normalized_abundance_tsv",
+            judgment_row,
+            "normalized_abundance_tsv",
+        ),
+    ]
 }
 
 fn passes_behavior_test(
@@ -1649,7 +1658,7 @@ fn load_tsv_rows(path: &Path) -> Result<Vec<Vec<String>>> {
         if line.trim().is_empty() {
             continue;
         }
-        rows.push(line.split('\t').map(|field| field.to_string()).collect());
+        rows.push(line.split('\t').map(std::string::ToString::to_string).collect());
     }
     Ok(rows)
 }
@@ -1713,7 +1722,7 @@ fn count_gz_fastq_reads(path: &Path) -> Result<u64> {
         let _ = line.with_context(|| format!("read {}", path.display()))?;
         Ok::<u64, anyhow::Error>(count + 1)
     })?;
-    if line_count % 4 != 0 {
+    if !line_count.is_multiple_of(4) {
         bail!("fastq line count is not divisible by four in {}", path.display());
     }
     Ok(line_count / 4)

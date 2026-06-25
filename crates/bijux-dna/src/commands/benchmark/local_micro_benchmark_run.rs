@@ -54,7 +54,7 @@ const MICRO_BENCHMARK_OUTPUT_ROWS_NAME: &str = "MICRO_OUTPUT_ROWS.json";
 const MICRO_BENCHMARK_LOG_ROWS_NAME: &str = "MICRO_LOG_ROWS.json";
 const MICRO_BENCHMARK_NORMALIZED_METRICS_NAME: &str = "MICRO_NORMALIZED_METRICS.json";
 const MICRO_BENCHMARK_LOG_NAME: &str = "MICRO_RUN.log";
-const GOVERNED_MICRO_CREATED_AT_UNIX: u64 = 1704067200;
+const GOVERNED_MICRO_CREATED_AT_UNIX: u64 = 1_704_067_200;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -1211,9 +1211,9 @@ mod tests {
         let component_vcf = repo_root.join("runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json");
         let component_amplicon =
             repo_root.join("runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json");
-        let component_adna =
+        let adna_component =
             repo_root.join("runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json");
-        let component_edna =
+        let edna_component =
             repo_root.join("runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json");
         let component_pipeline =
             repo_root.join("runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json");
@@ -1243,8 +1243,8 @@ mod tests {
             &component_bam,
             &component_vcf,
             &component_amplicon,
-            &component_adna,
-            &component_edna,
+            &adna_component,
+            &edna_component,
             &component_pipeline,
             &evidence_path,
             &fastq_evidence_path,

@@ -51,7 +51,7 @@ fn bench_readiness_container_tool_smoke_writes_manifest_file() {
     assert!(parsed
         .get("applied_command")
         .and_then(serde_json::Value::as_array)
-        .is_some_and(|argv| argv.is_empty()));
+        .is_some_and(std::vec::Vec::is_empty));
     assert!(parsed.get("exit_code").is_none_or(serde_json::Value::is_null));
     assert_eq!(parsed.get("stdout").and_then(serde_json::Value::as_str), Some(""));
     assert_eq!(parsed.get("stderr").and_then(serde_json::Value::as_str), Some(""));

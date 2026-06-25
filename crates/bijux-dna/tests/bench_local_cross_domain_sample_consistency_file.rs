@@ -65,7 +65,7 @@ fn bench_local_cross_domain_sample_consistency_writes_governed_json_file() {
         payload
             .get("source_link_failures")
             .and_then(serde_json::Value::as_array)
-            .map(|values| values.len()),
+            .map(std::vec::Vec::len),
         Some(0)
     );
 }

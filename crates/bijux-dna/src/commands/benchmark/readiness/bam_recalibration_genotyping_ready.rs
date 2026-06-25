@@ -844,7 +844,7 @@ fn collect_local_proofs(repo_root: &Path) -> Result<BTreeMap<String, LocalProof>
                     &genotyping_plan,
                     &genotyping_plan_path,
                 )?,
-                observed_fields: collect_json_fields(&[genotyping_plan.clone()]),
+                observed_fields: collect_json_fields(std::slice::from_ref(&genotyping_plan)),
                 declared_output_ids: collect_plan_output_ids(
                     &genotyping_plan,
                     &genotyping_plan_path,

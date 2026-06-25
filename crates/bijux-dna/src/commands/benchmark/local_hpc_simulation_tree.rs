@@ -59,7 +59,7 @@ pub(crate) fn write_stage_result_manifest(
         fs::write(output_path, "artifact\n")
             .with_context(|| format!("write {}", output_path.display()))?;
     }
-    let exit_code = if status == BenchStageResultStatus::Succeeded { 0 } else { 1 };
+    let exit_code = i32::from(status != BenchStageResultStatus::Succeeded);
     let manifest = BenchStageResultManifestV1 {
         schema_version: BENCH_STAGE_RESULT_SCHEMA_VERSION.to_string(),
         stage_id: job.stage_id.clone(),

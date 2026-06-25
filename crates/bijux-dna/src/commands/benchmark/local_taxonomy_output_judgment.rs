@@ -12,6 +12,7 @@ use crate::commands::benchmark::local_corpus_fixture::edna::{
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
+use crate::commands::numeric::rounded_f64_to_u64;
 
 pub(crate) const LOCAL_TAXONOMY_OUTPUT_JUDGMENT_SCHEMA_VERSION: &str =
     "bijux.bench.local_taxonomy_output_judgment.v1";
@@ -192,9 +193,12 @@ pub(crate) fn judge_edna_taxonomy_outputs_with_expected_rows(
         let sample_matched = rows.iter().filter(|row| row.matched).count();
         let sample_mismatched = rows.len().saturating_sub(sample_matched);
         let false_positive_count = unexpected_taxa.len();
-        let observed_unclassified_read_count =
-            ((sample.expected_read_count as f64 * observed.unclassified_percent) / 100.0).round()
-                as u64;
+        let observed_unclassified_read_count = rounded_f64_to_u64(
+            (sample.expected_read_count.to_string().parse::<f64>()?
+                * observed.unclassified_percent)
+                / 100.0,
+            "observed unclassified read count",
+        )?;
         matched_expectation_count += sample_matched;
         mismatched_expectation_count += sample_mismatched;
         samples.push(LocalTaxonomySampleJudgment {
@@ -216,7 +220,7 @@ pub(crate) fn judge_edna_taxonomy_outputs_with_expected_rows(
     Ok(LocalTaxonomyOutputJudgmentReport {
         schema_version: LOCAL_TAXONOMY_OUTPUT_JUDGMENT_SCHEMA_VERSION,
         manifest_path: path_relative_to_repo(repo_root, manifest_path),
-        expected_taxa_path: path_relative_to_repo(repo_root, &expected_taxa_path),
+        expected_taxa_path: path_relative_to_repo(repo_root, expected_taxa_path),
         sample_count: samples.len(),
         expectation_count: expected_rows.len(),
         matched_expectation_count,

@@ -14,6 +14,7 @@ use super::stage_scoring::{
 use crate::commands::benchmark::local_micro_benchmark_report::DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
+use crate::commands::numeric::rounded_f64_to_u64;
 
 pub(crate) const DEFAULT_FASTQ_TOOL_SCORES_PATH: &str =
     "runs/bench/micro/fastq/FASTQ_TOOL_SCORES.tsv";
@@ -467,7 +468,7 @@ fn load_fastq_evidence(
                 stage_id.to_string(),
                 tool_id.to_string(),
                 FastqEvidenceAggregate {
-                    truth_correctness_score: Some(fraction_u64(output_reads, input_reads)),
+                    truth_correctness_score: Some(fraction_u64(output_reads, input_reads)?),
                     truth_correctness_basis: Some("retained_fraction".to_string()),
                     contract_correctness_score: Some(1.0),
                     contract_correctness_basis: Some(
@@ -495,7 +496,7 @@ fn load_fastq_evidence(
                 stage_id.to_string(),
                 tool_id.to_string(),
                 FastqEvidenceAggregate {
-                    truth_correctness_score: Some(fraction_u64(output_reads, input_reads)),
+                    truth_correctness_score: Some(fraction_u64(output_reads, input_reads)?),
                     truth_correctness_basis: Some("retained_fraction".to_string()),
                     contract_correctness_score: Some(1.0),
                     contract_correctness_basis: Some(
@@ -549,7 +550,7 @@ fn load_fastq_evidence(
                 stage_id.to_string(),
                 tool_id.to_string(),
                 FastqEvidenceAggregate {
-                    truth_correctness_score: Some(fraction_u64(output_reads, input_reads)),
+                    truth_correctness_score: Some(fraction_u64(output_reads, input_reads)?),
                     truth_correctness_basis: Some("retained_fraction".to_string()),
                     contract_correctness_score: Some(1.0),
                     contract_correctness_basis: Some(
@@ -575,7 +576,7 @@ fn load_fastq_evidence(
                 stage_id.to_string(),
                 "fastqc".to_string(),
                 FastqEvidenceAggregate {
-                    truth_correctness_score: Some(fraction_u64(detected_case_count, case_count)),
+                    truth_correctness_score: Some(fraction_u64(detected_case_count, case_count)?),
                     truth_correctness_basis: Some("detected_case_fraction".to_string()),
                     contract_correctness_score: Some(1.0),
                     contract_correctness_basis: Some(
@@ -680,7 +681,7 @@ fn load_fastq_evidence(
                 stage_id.to_string(),
                 tool_id.to_string(),
                 FastqEvidenceAggregate {
-                    truth_correctness_score: Some(fraction_u64(retained_reads, input_reads)),
+                    truth_correctness_score: Some(fraction_u64(retained_reads, input_reads)?),
                     truth_correctness_basis: Some("retained_fraction".to_string()),
                     contract_correctness_score: Some(1.0),
                     contract_correctness_basis: Some(
@@ -806,7 +807,7 @@ fn load_fastq_evidence(
                 stage_id.to_string(),
                 tool_id.to_string(),
                 FastqEvidenceAggregate {
-                    truth_correctness_score: Some(fraction_u64(output_reads, input_reads)),
+                    truth_correctness_score: Some(fraction_u64(output_reads, input_reads)?),
                     truth_correctness_basis: Some("retained_fraction".to_string()),
                     contract_correctness_score: Some(1.0),
                     contract_correctness_basis: Some(
@@ -888,7 +889,7 @@ fn merge_case_stage_report(
             (stage_id.clone(), tool_id),
             absolute_path.display().to_string(),
             FastqEvidenceAggregate {
-                truth_correctness_score: Some(fraction_u64(retained_reads, input_reads)),
+                truth_correctness_score: Some(fraction_u64(retained_reads, input_reads)?),
                 truth_correctness_basis: Some("retained_fraction".to_string()),
                 contract_correctness_score: Some(1.0),
                 contract_correctness_basis: Some(format!(
@@ -958,16 +959,16 @@ fn merge_validate_reads_summary(
         .collect::<Result<Vec<_>>>()?
         .into_iter()
         .sum::<u64>();
-    let passed_cases =
-        cases.iter().filter(|case| optional_str(case, "validation_status") == Some("pass")).count()
-            as u64;
-    let case_count = cases.len() as u64;
+    let passed_cases = u64::try_from(
+        cases.iter().filter(|case| optional_str(case, "validation_status") == Some("pass")).count(),
+    )?;
+    let case_count = u64::try_from(cases.len())?;
     merge_evidence_row(
         rows,
         (stage_id, "fastqvalidator".to_string()),
         absolute_path.display().to_string(),
         FastqEvidenceAggregate {
-            truth_correctness_score: Some(fraction_u64(passed_cases, case_count)),
+            truth_correctness_score: Some(fraction_u64(passed_cases, case_count)?),
             truth_correctness_basis: Some("validation_pass_fraction".to_string()),
             contract_correctness_score: Some(1.0),
             contract_correctness_basis: Some(
@@ -1016,8 +1017,8 @@ fn merge_screen_taxonomy_summary(
                 "taxonomy screen report materialized the governed classified and unclassified surfaces"
                     .to_string(),
             ),
-            retained_reads: Some(classified_reads.round() as u64),
-            dropped_reads: Some((total_reads - classified_reads).round() as u64),
+            retained_reads: Some(rounded_f64_to_u64(classified_reads, "retained reads")?),
+            dropped_reads: Some(rounded_f64_to_u64(total_reads - classified_reads, "dropped reads")?),
             source_paths: BTreeSet::new(),
         },
     );
@@ -1472,11 +1473,12 @@ fn required_f64(value: &Value, key: &str) -> Result<f64> {
     value.get(key).and_then(Value::as_f64).ok_or_else(|| anyhow!("missing numeric field `{key}`"))
 }
 
-fn fraction_u64(numerator: u64, denominator: u64) -> f64 {
+fn fraction_u64(numerator: u64, denominator: u64) -> Result<f64> {
     if denominator == 0 {
-        0.0
+        Ok(0.0)
     } else {
-        numerator as f64 / denominator as f64
+        Ok(crate::commands::numeric::checked_f64_from_u64(numerator, "fraction numerator")?
+            / crate::commands::numeric::checked_f64_from_u64(denominator, "fraction denominator")?)
     }
 }
 
@@ -1507,7 +1509,7 @@ where
 }
 
 fn sanitize_tsv_cell(value: &str) -> String {
-    value.replace('\t', " ").replace('\n', " ").replace('\r', " ")
+    value.replace(['\t', '\n', '\r'], " ")
 }
 
 fn format_optional_f64(value: Option<f64>) -> String {

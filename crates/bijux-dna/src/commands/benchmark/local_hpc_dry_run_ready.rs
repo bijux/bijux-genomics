@@ -197,16 +197,15 @@ fn build_hpc_dry_run_ready(
         "HPC dry-run readiness output",
     )?;
 
-    let asset_report = collect_hpc_asset_staging_manifest(repo_root).map_err(Into::into);
-    let scratch_report = collect_hpc_scratch_layout(repo_root).map_err(Into::into);
-    let execution_report = collect_hpc_execution_resolver_report(repo_root).map_err(Into::into);
-    let stage_benchmark_report = collect_hpc_stage_benchmark_array(repo_root).map_err(Into::into);
-    let pipeline_node_report = collect_hpc_pipeline_node_array(repo_root).map_err(Into::into);
-    let dependency_report = collect_hpc_dependency_simulation(repo_root).map_err(Into::into);
-    let resume_report = collect_hpc_resume_simulation(repo_root).map_err(Into::into);
-    let result_collection_report =
-        collect_hpc_result_collection_simulation(repo_root).map_err(Into::into);
-    let candidate_report = collect_hpc_candidate_run_manifest(repo_root).map_err(Into::into);
+    let asset_report = collect_hpc_asset_staging_manifest(repo_root);
+    let scratch_report = collect_hpc_scratch_layout(repo_root);
+    let execution_report = collect_hpc_execution_resolver_report(repo_root);
+    let stage_benchmark_report = collect_hpc_stage_benchmark_array(repo_root);
+    let pipeline_node_report = collect_hpc_pipeline_node_array(repo_root);
+    let dependency_report = collect_hpc_dependency_simulation(repo_root);
+    let resume_report = collect_hpc_resume_simulation(repo_root);
+    let result_collection_report = collect_hpc_result_collection_simulation(repo_root);
+    let candidate_report = collect_hpc_candidate_run_manifest(repo_root);
 
     let checks = vec![
         build_goal_481_check(
@@ -342,24 +341,18 @@ fn build_summary(
             .map(|report| report.pipeline_job_count)
             .or_else(|| scratch_report.map(|report| report.essential_pipeline_job_count))
             .unwrap_or(0),
-        staged_input_count: asset_report.map(|report| report.staged_input_count).unwrap_or(0),
-        execution_resolver_row_count: execution_report.map(|report| report.row_count).unwrap_or(0),
+        staged_input_count: asset_report.map_or(0, |report| report.staged_input_count),
+        execution_resolver_row_count: execution_report.map_or(0, |report| report.row_count),
         execution_unclassified_tool_count: execution_report
-            .map(|report| report.unclassified_tool_count)
-            .unwrap_or(0),
-        stage_benchmark_row_count: stage_benchmark_report
-            .map(|report| report.rows.len())
-            .unwrap_or(0),
-        pipeline_node_row_count: pipeline_node_report.map(|report| report.rows.len()).unwrap_or(0),
-        dependency_case_count: dependency_report.map(|report| report.case_count).unwrap_or(0),
-        resume_rerun_job_count: resume_report.map(|report| report.rerun_job_count).unwrap_or(0),
-        result_collection_row_count: result_collection_report
-            .map(|report| report.row_count)
-            .unwrap_or(0),
-        candidate_job_count: candidate_report.map(|report| report.selected_job_count).unwrap_or(0),
+            .map_or(0, |report| report.unclassified_tool_count),
+        stage_benchmark_row_count: stage_benchmark_report.map_or(0, |report| report.rows.len()),
+        pipeline_node_row_count: pipeline_node_report.map_or(0, |report| report.rows.len()),
+        dependency_case_count: dependency_report.map_or(0, |report| report.case_count),
+        resume_rerun_job_count: resume_report.map_or(0, |report| report.rerun_job_count),
+        result_collection_row_count: result_collection_report.map_or(0, |report| report.row_count),
+        candidate_job_count: candidate_report.map_or(0, |report| report.selected_job_count),
         candidate_representative_group_count: candidate_report
-            .map(|report| report.representative_group_count)
-            .unwrap_or(0),
+            .map_or(0, |report| report.representative_group_count),
         candidate_selected_input_bytes: candidate_report
             .map(|report| report.selected_staged_input_bytes)
             .unwrap_or(0),

@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::validate_typed_input_handoffs;
 use bijux_dna_core::contract::ExecutionStep;
+use bijux_dna_core::contract::StageOperatingMode;
 use bijux_dna_core::ids::{ArtifactId, StageId, StepId, ToolId};
 use bijux_dna_core::prelude::{
     ArtifactRole, ArtifactSpec, CommandSpecV1, ContainerImageRefV1, StageIO, ToolConstraints,
@@ -29,7 +30,7 @@ use super::vcf_plink_family_adapter::render_vcf_plink_family_adapter;
 use crate::commands::benchmark::local_stage_commands::local_stage_plans;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
-use bijux_dna_stage_contract::{execution_step_from_stage_plan, StagePlanV1};
+use bijux_dna_stage_contract::{execution_step_from_stage_plan, PlanDecisionReason, StagePlanV1};
 
 pub(crate) const DEFAULT_INPUT_PREFLIGHT_TESTS_PATH: &str =
     "benchmarks/readiness/tools/input-preflight-tests.json";
@@ -519,11 +520,11 @@ fn build_probe_step(
         out_dir: repo_root.join("artifacts/bench-readiness/input-preflight-tests"),
         params: json!({}),
         effective_params: json!({}),
-        operating_mode: Default::default(),
+        operating_mode: StageOperatingMode::default(),
         aux_images: BTreeMap::new(),
         canonical_contract: None,
         provenance: None,
-        reason: Default::default(),
+        reason: PlanDecisionReason::default(),
     };
     Ok(execution_step_from_stage_plan(&plan))
 }
@@ -1067,7 +1068,10 @@ fn supports_prefix_backed_input(path: &Path) -> Result<bool> {
         .map(|entry| entry.path())
         .filter(|candidate| candidate.is_file())
         .filter_map(|candidate| {
-            candidate.file_name().and_then(std::ffi::OsStr::to_str).map(|name| name.to_string())
+            candidate
+                .file_name()
+                .and_then(std::ffi::OsStr::to_str)
+                .map(std::string::ToString::to_string)
         })
         .any(|name| {
             name.starts_with(&format!("{prefix}."))

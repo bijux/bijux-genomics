@@ -321,10 +321,10 @@ fn merge_discovered_source_input(
         .entry(resolved.source_path.clone())
         .and_modify(|entry| {
             if entry.artifact_id.is_none() {
-                entry.artifact_id = artifact_id.clone();
+                entry.artifact_id.clone_from(&artifact_id);
             }
             if entry.artifact_role.is_none() {
-                entry.artifact_role = artifact_role.clone();
+                entry.artifact_role.clone_from(&artifact_role);
             }
         })
         .or_insert(LocalHpcDiscoveredSourceInput {
@@ -390,7 +390,7 @@ fn collect_shell_step_path_usage(shell_command: &str) -> Result<StepPathUsage> {
     let mut usage = StepPathUsage::default();
 
     for captures in matcher.captures_iter(shell_command) {
-        let matched = captures.get(0).expect("shell path capture must include full match");
+        let full_match = captures.get(0).expect("shell path capture must include full match");
         let source_path = captures
             .get(1)
             .or_else(|| captures.get(2))
@@ -402,7 +402,7 @@ fn collect_shell_step_path_usage(shell_command: &str) -> Result<StepPathUsage> {
             continue;
         }
         if is_generated_benchmark_output_path(source_path)
-            || is_output_context(shell_command, matched.start())
+            || is_output_context(shell_command, full_match.start())
         {
             usage.produced.insert(source_path.to_string());
         } else {
@@ -467,7 +467,7 @@ fn resolve_prefix_bundle(
 
     let mut members = fs::read_dir(parent)
         .with_context(|| format!("read {}", parent.display()))?
-        .filter_map(|entry| entry.ok())
+        .filter_map(Result::ok)
         .map(|entry| entry.path())
         .filter(|path| path.is_file())
         .filter(|path| {

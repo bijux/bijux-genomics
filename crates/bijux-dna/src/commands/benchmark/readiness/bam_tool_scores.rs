@@ -14,6 +14,7 @@ use super::stage_scoring::{
 use crate::commands::benchmark::local_micro_benchmark_report::DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
+use crate::commands::numeric::checked_f64_from_u64;
 
 pub(crate) const DEFAULT_BAM_TOOL_SCORES_PATH: &str = "runs/bench/micro/bam/BAM_TOOL_SCORES.tsv";
 
@@ -528,9 +529,8 @@ fn merge_validate_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.validate/validation.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let stage_id = required_str(&root, "stage_id")?;
     let cases = required_array(&root, "cases")?;
@@ -568,7 +568,7 @@ fn merge_validate_summary(
         stage_id,
         "samtools",
         BamEvidenceAggregate {
-            truth_correctness_score: Some(fraction_u64(matched_cases, case_count)),
+            truth_correctness_score: Some(fraction_u64(matched_cases, case_count)?),
             truth_correctness_basis: Some("case_expectation_match_fraction".to_string()),
             contract_correctness_score: Some(if required_bool(&root, "all_cases_matched")? {
                 1.0
@@ -579,7 +579,7 @@ fn merge_validate_summary(
                 "validation smoke cases covered governed pass and refusal expectations".to_string(),
             ),
             retained_reads: Some(retained_reads),
-            alignment_qc_metric_value: Some(fraction_u64(pass_cases, case_count)),
+            alignment_qc_metric_value: Some(fraction_u64(pass_cases, case_count)?),
             alignment_qc_metric_basis: Some("pass_case_fraction".to_string()),
             scientific_metric_summary: summary,
             source_paths: BTreeSet::new(),
@@ -595,9 +595,8 @@ fn merge_qc_pre_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.qc_pre/qc_pre.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let stage_id = required_str(&root, "stage_id")?;
     for case in required_array(&root, "cases")? {
@@ -616,7 +615,7 @@ fn merge_qc_pre_summary(
             stage_id,
             tool_id,
             BamEvidenceAggregate {
-                truth_correctness_score: Some(fraction_u64(mapped_reads, total_reads)),
+                truth_correctness_score: Some(fraction_u64(mapped_reads, total_reads)?),
                 truth_correctness_basis: Some("mapped_fraction".to_string()),
                 contract_correctness_score: Some(if required_bool(case, "expectation_matched")? {
                     1.0
@@ -628,7 +627,7 @@ fn merge_qc_pre_summary(
                         .to_string(),
                 ),
                 retained_reads: Some(total_reads),
-                alignment_qc_metric_value: Some(fraction_u64(mapped_reads, total_reads)),
+                alignment_qc_metric_value: Some(fraction_u64(mapped_reads, total_reads)?),
                 alignment_qc_metric_basis: Some("mapped_fraction".to_string()),
                 scientific_metric_summary: summary,
                 source_paths: BTreeSet::new(),
@@ -648,12 +647,12 @@ fn merge_mapping_summary(
     let tsv_rows = read_tsv_rows(&path)?;
     for row in tsv_rows {
         let stage_id = "bam.mapping_summary";
-        let total_reads = parse_u64(&required_tsv(&row, "total_reads")?)?;
-        let mapped_reads = parse_u64(&required_tsv(&row, "mapped_reads")?)?;
-        let unmapped_reads = parse_u64(&required_tsv(&row, "unmapped_reads")?)?;
-        let secondary_reads = parse_u64(&required_tsv(&row, "secondary_reads")?)?;
-        let supplementary_reads = parse_u64(&required_tsv(&row, "supplementary_reads")?)?;
-        let mapping_fraction = parse_f64(&required_tsv(&row, "mapping_fraction")?)?;
+        let total_reads = parse_u64(required_tsv(&row, "total_reads")?)?;
+        let mapped_reads = parse_u64(required_tsv(&row, "mapped_reads")?)?;
+        let unmapped_reads = parse_u64(required_tsv(&row, "unmapped_reads")?)?;
+        let secondary_reads = parse_u64(required_tsv(&row, "secondary_reads")?)?;
+        let supplementary_reads = parse_u64(required_tsv(&row, "supplementary_reads")?)?;
+        let mapping_fraction = parse_f64(required_tsv(&row, "mapping_fraction")?)?;
         let summary = summarize_metrics(vec![
             format!("mapped_reads={mapped_reads}"),
             format!("unmapped_reads={unmapped_reads}"),
@@ -668,11 +667,7 @@ fn merge_mapping_summary(
                 truth_correctness_score: Some(mapping_fraction),
                 truth_correctness_basis: Some("mapping_fraction".to_string()),
                 contract_correctness_score: Some(
-                    if parse_bool(&required_tsv(&row, "expectation_matched")?)? {
-                        1.0
-                    } else {
-                        0.0
-                    },
+                    if parse_bool(required_tsv(&row, "expectation_matched")?)? { 1.0 } else { 0.0 },
                 ),
                 contract_correctness_basis: Some(
                     "mapping summary TSV preserved governed mapped and unmapped count surfaces"
@@ -696,9 +691,8 @@ fn merge_filter_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.filter/filter_metrics.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let input_reads = required_u64(&root, "input_reads")?;
     let kept_reads = required_u64(&root, "kept_reads")?;
@@ -714,7 +708,7 @@ fn merge_filter_summary(
         required_str(&root, "stage_id")?,
         "samtools",
         BamEvidenceAggregate {
-            truth_correctness_score: Some(fraction_u64(kept_reads, input_reads)),
+            truth_correctness_score: Some(fraction_u64(kept_reads, input_reads)?),
             truth_correctness_basis: Some("kept_fraction".to_string()),
             contract_correctness_score: Some(if required_bool(&root, "expectation_matched")? {
                 1.0
@@ -726,7 +720,7 @@ fn merge_filter_summary(
             ),
             retained_reads: Some(kept_reads),
             dropped_reads: Some(removed_reads),
-            alignment_qc_metric_value: Some(fraction_u64(kept_reads, input_reads)),
+            alignment_qc_metric_value: Some(fraction_u64(kept_reads, input_reads)?),
             alignment_qc_metric_basis: Some("kept_fraction".to_string()),
             scientific_metric_summary: summarize_metrics(vec![
                 format!("input_reads={input_reads}"),
@@ -747,9 +741,8 @@ fn merge_mapq_filter_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.mapq_filter/mapq_filter.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let input_reads = required_u64(&root, "input_reads")?;
     let kept_reads = required_u64(&root, "kept_reads")?;
@@ -761,7 +754,7 @@ fn merge_mapq_filter_summary(
         required_str(&root, "stage_id")?,
         "samtools",
         BamEvidenceAggregate {
-            truth_correctness_score: Some(fraction_u64(kept_reads, input_reads)),
+            truth_correctness_score: Some(fraction_u64(kept_reads, input_reads)?),
             truth_correctness_basis: Some("kept_fraction".to_string()),
             contract_correctness_score: Some(if required_bool(&root, "expectation_matched")? {
                 1.0
@@ -795,9 +788,8 @@ fn merge_length_filter_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.length_filter/length_filter.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let input_reads = required_u64(&root, "input_reads")?;
     let kept_reads = required_u64(&root, "kept_reads")?;
@@ -808,7 +800,7 @@ fn merge_length_filter_summary(
         required_str(&root, "stage_id")?,
         "samtools",
         BamEvidenceAggregate {
-            truth_correctness_score: Some(fraction_u64(kept_reads, input_reads)),
+            truth_correctness_score: Some(fraction_u64(kept_reads, input_reads)?),
             truth_correctness_basis: Some("kept_fraction".to_string()),
             contract_correctness_score: Some(if required_bool(&root, "expectation_matched")? {
                 1.0
@@ -821,7 +813,7 @@ fn merge_length_filter_summary(
             ),
             retained_reads: Some(kept_reads),
             dropped_reads: Some(removed_reads),
-            alignment_qc_metric_value: Some(fraction_u64(kept_reads, input_reads)),
+            alignment_qc_metric_value: Some(fraction_u64(kept_reads, input_reads)?),
             alignment_qc_metric_basis: Some("kept_fraction".to_string()),
             scientific_metric_summary: summarize_metrics(vec![
                 format!("kept_reads={kept_reads}"),
@@ -841,9 +833,8 @@ fn merge_markdup_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.markdup/duplicates.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let duplicate_fraction = required_f64(&root, "duplicate_fraction")?;
     let duplicate_count = required_u64(&root, "duplicate_count")?;
@@ -886,9 +877,8 @@ fn merge_duplication_metrics_summary(
 ) -> Result<()> {
     let path =
         repo_root.join("runs/bench/local-smoke/bam.duplication_metrics/duplication_metrics.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let duplicate_fraction = required_f64(&root, "duplicate_fraction")?;
     let duplicate_count = required_u64(&root, "duplicate_count")?;
@@ -942,14 +932,14 @@ fn merge_coverage_summary(
     let mut matched = true;
     let mut count = 0_u64;
     for row in &tsv_rows {
-        breadth_sum += parse_f64(&required_tsv(row, "breadth_1x")?)?;
-        mean_depth_sum += parse_f64(&required_tsv(row, "mean_depth")?)?;
-        covered_bases_total += parse_u64(&required_tsv(row, "covered_bases")?)?;
-        matched &= parse_bool(&required_tsv(row, "case_expectation_matched")?)?;
+        breadth_sum += parse_f64(required_tsv(row, "breadth_1x")?)?;
+        mean_depth_sum += parse_f64(required_tsv(row, "mean_depth")?)?;
+        covered_bases_total += parse_u64(required_tsv(row, "covered_bases")?)?;
+        matched &= parse_bool(required_tsv(row, "case_expectation_matched")?)?;
         count += 1;
     }
-    let mean_breadth = breadth_sum / count as f64;
-    let mean_depth = mean_depth_sum / count as f64;
+    let mean_breadth = breadth_sum / checked_f64_from_u64(count, "coverage row count")?;
+    let mean_depth = mean_depth_sum / checked_f64_from_u64(count, "coverage row count")?;
     insert_evidence(
         rows,
         "bam.coverage",
@@ -982,14 +972,13 @@ fn merge_damage_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.damage/damage.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let terminal_c_to_t_5p = required_f64(&root, "terminal_c_to_t_5p")?;
     let terminal_g_to_a_3p = required_f64(&root, "terminal_g_to_a_3p")?;
     let damage_signal = required_str(&root, "damage_signal")?;
-    let score = (terminal_c_to_t_5p + terminal_g_to_a_3p) / 2.0;
+    let score = f64::midpoint(terminal_c_to_t_5p, terminal_g_to_a_3p);
     insert_evidence(
         rows,
         required_str(&root, "stage_id")?,
@@ -1026,9 +1015,8 @@ fn merge_authenticity_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.authenticity/authenticity.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let score = required_f64(&root, "score")?;
     let confidence = required_f64(&root, "confidence")?;
@@ -1075,9 +1063,8 @@ fn merge_contamination_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.contamination/local_smoke.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let stage_id = required_str(&root, "stage_id")?;
     let by_tool = required_array(&root, "rows")?.iter().fold(
@@ -1137,9 +1124,8 @@ fn merge_sex_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.sex/tool_smoke.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let stage_id = required_str(&root, "stage_id")?;
     let by_tool = required_array(&root, "rows")?.iter().fold(
@@ -1198,9 +1184,8 @@ fn merge_haplogroups_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.haplogroups/haplogroups.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let stage_id = required_str(&root, "stage_id")?;
     let ready_row = required_array(&root, "rows")?
@@ -1244,9 +1229,8 @@ fn merge_complexity_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.complexity/complexity.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     insert_evidence(
         rows,
@@ -1288,9 +1272,8 @@ fn merge_endogenous_content_summary(
 ) -> Result<()> {
     let path =
         repo_root.join("runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     insert_evidence(
         rows,
@@ -1330,9 +1313,8 @@ fn merge_insert_size_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.insert_size/insert_size.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     insert_evidence(
         rows,
@@ -1371,9 +1353,8 @@ fn merge_kinship_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.kinship/kinship.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let stage_id = required_str(&root, "stage_id")?;
     let case = required_array(&root, "cases")?.iter().find(|case| {
@@ -1427,9 +1408,8 @@ fn merge_overlap_correction_summary(
 ) -> Result<()> {
     let path =
         repo_root.join("runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     insert_evidence(
         rows,
@@ -1466,9 +1446,8 @@ fn merge_recalibration_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.recalibration/recalibration.json");
-    let root = match load_optional_json_value(&path)? {
-        Some(root) => root,
-        None => return Ok(()),
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
     };
     let contract_ok = required_bool(&root, "expectation_matched")?
         && required_bool(&root, "output_bam_present")?
@@ -1517,12 +1496,12 @@ fn merge_gc_bias_summary(
     let mut deviation_sum = 0.0;
     let mut count = 0_u64;
     for row in &tsv_rows {
-        matched &= parse_bool(&required_tsv(row, "case_expectation_matched")?)?;
-        let normalized_coverage = parse_f64(&required_tsv(row, "normalized_coverage")?)?;
+        matched &= parse_bool(required_tsv(row, "case_expectation_matched")?)?;
+        let normalized_coverage = parse_f64(required_tsv(row, "normalized_coverage")?)?;
         deviation_sum += (normalized_coverage - 1.0).abs();
         count += 1;
     }
-    let mean_deviation = deviation_sum / count as f64;
+    let mean_deviation = deviation_sum / checked_f64_from_u64(count, "GC bias row count")?;
     insert_evidence(
         rows,
         "bam.gc_bias",
@@ -2036,11 +2015,12 @@ fn parse_bool(value: &str) -> Result<bool> {
     value.parse::<bool>().with_context(|| format!("parse bool `{value}`"))
 }
 
-fn fraction_u64(numerator: u64, denominator: u64) -> f64 {
+fn fraction_u64(numerator: u64, denominator: u64) -> Result<f64> {
     if denominator == 0 {
-        0.0
+        Ok(0.0)
     } else {
-        numerator as f64 / denominator as f64
+        Ok(checked_f64_from_u64(numerator, "fraction numerator")?
+            / checked_f64_from_u64(denominator, "fraction denominator")?)
     }
 }
 
@@ -2084,7 +2064,7 @@ where
 }
 
 fn sanitize_tsv_cell(value: &str) -> String {
-    value.replace('\t', " ").replace('\n', " ").replace('\r', " ")
+    value.replace(['\t', '\n', '\r'], " ")
 }
 
 fn format_optional_f64(value: Option<f64>) -> String {

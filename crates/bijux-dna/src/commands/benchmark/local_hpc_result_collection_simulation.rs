@@ -280,27 +280,28 @@ fn build_hpc_result_collection_simulation(
         seeded_jobs.get(INSUFFICIENT_RESULT_JOB_ID).expect("validated insufficient job"),
     )?;
 
-    let mut rows = Vec::with_capacity(5);
-    rows.push(collect_result_row(
-        repo_root,
-        seeded_jobs.get(COMPLETE_RESULT_JOB_ID).expect("validated complete job"),
-    )?);
-    rows.push(collect_result_row(
-        repo_root,
-        seeded_jobs.get(FAILED_RESULT_JOB_ID).expect("validated failed job"),
-    )?);
-    rows.push(collect_result_row(
-        repo_root,
-        seeded_jobs.get(MISSING_RESULT_JOB_ID).expect("validated missing job"),
-    )?);
-    rows.push(collect_result_row(
-        repo_root,
-        seeded_jobs.get(INSUFFICIENT_RESULT_JOB_ID).expect("validated insufficient job"),
-    )?);
-    rows.push(collect_unavailable_row(
-        &collect_hpc_execution_resolver_report(repo_root)?,
-        UNAVAILABLE_RESULT_JOB_ID,
-    )?);
+    let mut rows = vec![
+        collect_result_row(
+            repo_root,
+            seeded_jobs.get(COMPLETE_RESULT_JOB_ID).expect("validated complete job"),
+        )?,
+        collect_result_row(
+            repo_root,
+            seeded_jobs.get(FAILED_RESULT_JOB_ID).expect("validated failed job"),
+        )?,
+        collect_result_row(
+            repo_root,
+            seeded_jobs.get(MISSING_RESULT_JOB_ID).expect("validated missing job"),
+        )?,
+        collect_result_row(
+            repo_root,
+            seeded_jobs.get(INSUFFICIENT_RESULT_JOB_ID).expect("validated insufficient job"),
+        )?,
+        collect_unavailable_row(
+            &collect_hpc_execution_resolver_report(repo_root)?,
+            UNAVAILABLE_RESULT_JOB_ID,
+        )?,
+    ];
     rows.sort_by(|left, right| left.record_id.cmp(&right.record_id));
 
     let complete_row_count = count_status(&rows, LocalHpcResultCollectionStatus::Complete);

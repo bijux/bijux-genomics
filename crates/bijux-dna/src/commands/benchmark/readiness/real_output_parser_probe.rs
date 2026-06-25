@@ -1683,10 +1683,7 @@ fn count_fastq_stats(path: &Path) -> Result<FastqReadStats> {
     let mut lines = BufReader::new(reader).lines();
     let mut reads = 0_u64;
     let mut bases = 0_u64;
-    loop {
-        let Some(_header) = lines.next() else {
-            break;
-        };
+    while let Some(_header) = lines.next() {
         let sequence = lines
             .next()
             .ok_or_else(|| anyhow!("malformed FASTQ {}", path.display()))?

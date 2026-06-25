@@ -1386,7 +1386,7 @@ fn render_full_benchmark_report_markdown(report: &FullBenchmarkReport) -> String
             format_threshold_value(row.tolerance_value),
             sanitize_markdown_cell(&row.pass_rule),
             sanitize_markdown_cell(&row.insufficiency_behavior),
-            row.required.to_string(),
+            row.required,
             sanitize_markdown_cell(&row.tool_ids.join(", ")),
             sanitize_markdown_cell(&row.contract_status)
         ));

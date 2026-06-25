@@ -117,7 +117,7 @@ pub(super) fn audit_publication_stage(
                 );
                 continue;
             }
-            if fs::metadata(&artifact_path).map(|metadata| metadata.len() == 0).unwrap_or(false) {
+            if fs::metadata(&artifact_path).is_ok_and(|metadata| metadata.len() == 0) {
                 append_stage_audit_issue(
                     &mut issues,
                     &contract.stage_id,

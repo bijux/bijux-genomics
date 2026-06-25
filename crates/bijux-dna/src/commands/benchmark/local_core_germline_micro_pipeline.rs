@@ -793,18 +793,18 @@ fn run_bam_align_stage(
     fs::copy(&semantic_sam_path, &semantic_sam).with_context(|| {
         format!("copy {} to {}", semantic_sam_path.display(), semantic_sam.display())
     })?;
-    let aligned_sam = stage_root.join("align.sam");
+    let aligned_sam_path = stage_root.join("align.sam");
     write_mapped_sam_from_fastqs(
         reference_fasta,
         &filtered_r1,
         &filtered_r2,
         &read_group,
         &input_fixtures.placements,
-        &aligned_sam,
+        &aligned_sam_path,
     )?;
-    let aligned_bam = stage_root.join("align.bam");
-    let aligned_bai = stage_root.join("align.bam.bai");
-    convert_coordinate_sam_to_bam(&aligned_sam, &aligned_bam, &aligned_bai)?;
+    let aligned_bam_path = stage_root.join("align.bam");
+    let aligned_bam_index_path = stage_root.join("align.bam.bai");
+    convert_coordinate_sam_to_bam(&aligned_sam_path, &aligned_bam_path, &aligned_bam_index_path)?;
 
     let read_group_contract = stage_root.join("read_group.json");
     bijux_dna_infra::atomic_write_json(&read_group_contract, &read_group)?;
@@ -839,11 +839,11 @@ fn run_bam_align_stage(
             ),
         ]),
         outputs: BTreeMap::from([
-            ("aligned_bam".to_string(), path_relative_to_repo(repo_root, &aligned_bam)),
-            ("aligned_bai".to_string(), path_relative_to_repo(repo_root, &aligned_bai)),
+            ("aligned_bam".to_string(), path_relative_to_repo(repo_root, &aligned_bam_path)),
+            ("aligned_bai".to_string(), path_relative_to_repo(repo_root, &aligned_bam_index_path)),
             ("align_metrics".to_string(), path_relative_to_repo(repo_root, &mapping_summary_path)),
             ("align_provenance".to_string(), path_relative_to_repo(repo_root, &provenance_path)),
-            ("align_sam".to_string(), path_relative_to_repo(repo_root, &aligned_sam)),
+            ("align_sam".to_string(), path_relative_to_repo(repo_root, &aligned_sam_path)),
             ("align_semantic_sam".to_string(), path_relative_to_repo(repo_root, &semantic_sam)),
         ]),
         metrics: BTreeMap::from([
@@ -871,11 +871,11 @@ fn run_bam_validate_stage(
 ) -> Result<CoreGermlineMicroPipelineRow> {
     let stage_root = output_root.join("artifacts/bam.validate");
     fs::create_dir_all(&stage_root).with_context(|| format!("create {}", stage_root.display()))?;
-    let aligned_bam = repo_root.join(required_output(align_row, "aligned_bam")?);
-    let aligned_bai = repo_root.join(required_output(align_row, "aligned_bai")?);
+    let aligned_bam_path = repo_root.join(required_output(align_row, "aligned_bam")?);
+    let aligned_bam_index_path = repo_root.join(required_output(align_row, "aligned_bai")?);
     let report = bijux_dna_domain_bam::execute_bam_validation(
-        &aligned_bam,
-        Some(&aligned_bai),
+        &aligned_bam_path,
+        Some(&aligned_bam_index_path),
         Some(reference_fasta),
     )?;
     let report_path = stage_root.join("validation.json");
@@ -1594,8 +1594,10 @@ fn filter_drop_reason(
 ) -> Option<FilterDropReason> {
     let max_n_count = effective_params.max_n_count.or(effective_params.max_n);
     if let Some(limit) = max_n_count {
-        let n_count =
-            record.sequence.bytes().filter(|base| matches!(*base, b'N' | b'n')).count() as u32;
+        let n_count = u32::try_from(
+            record.sequence.bytes().filter(|base| matches!(*base, b'N' | b'n')).count(),
+        )
+        .unwrap_or(u32::MAX);
         if n_count > limit {
             return Some(FilterDropReason::TooManyN);
         }
@@ -1634,7 +1636,7 @@ fn materialize_pipeline_input_fastqs(
     let reference_base = variant_sequence.as_bytes()[variant_offset];
     let alt_base = alternate_base(reference_base);
     variant_sequence
-        .replace_range(variant_offset..variant_offset + 1, &char::from(alt_base).to_string());
+        .replace_range(variant_offset..=variant_offset, &char::from(alt_base).to_string());
     let quality = "F".repeat(read_length);
 
     let records_r1 = vec![
@@ -1772,8 +1774,8 @@ fn write_mapped_sam_from_fastqs(
 
 fn convert_coordinate_sam_to_bam(
     input_sam: &Path,
-    output_bam: &Path,
-    output_bai: &Path,
+    output_bam_path: &Path,
+    output_bam_index_path: &Path,
 ) -> Result<()> {
     use noodles_sam::alignment::io::Write as _;
     use noodles_sam::header::record::value::map::header::{
@@ -1811,23 +1813,23 @@ fn convert_coordinate_sam_to_bam(
         ))
     });
 
-    let bam_file = bijux_dna_infra::create_file(output_bam)
-        .with_context(|| format!("create {}", output_bam.display()))?;
+    let bam_file = bijux_dna_infra::create_file(output_bam_path)
+        .with_context(|| format!("create {}", output_bam_path.display()))?;
     let mut writer = bam::io::Writer::new(bam_file);
     writer
         .write_header(&header)
-        .with_context(|| format!("write BAM header to {}", output_bam.display()))?;
+        .with_context(|| format!("write BAM header to {}", output_bam_path.display()))?;
     for record in &records {
         writer
             .write_alignment_record(&header, record)
-            .with_context(|| format!("write BAM record to {}", output_bam.display()))?;
+            .with_context(|| format!("write BAM record to {}", output_bam_path.display()))?;
     }
-    writer.try_finish().with_context(|| format!("finish {}", output_bam.display()))?;
+    writer.try_finish().with_context(|| format!("finish {}", output_bam_path.display()))?;
 
-    let index = bam::fs::index(output_bam)
-        .with_context(|| format!("index coordinate BAM {}", output_bam.display()))?;
-    bam::bai::fs::write(output_bai, &index)
-        .with_context(|| format!("write {}", output_bai.display()))?;
+    let index = bam::fs::index(output_bam_path)
+        .with_context(|| format!("index coordinate BAM {}", output_bam_path.display()))?;
+    bam::bai::fs::write(output_bam_index_path, &index)
+        .with_context(|| format!("write {}", output_bam_index_path.display()))?;
     Ok(())
 }
 
@@ -1847,13 +1849,11 @@ fn sam_record_sort_key(
                 .find_map(|(name, rank)| (*rank == reference_id).then_some((name.clone(), *rank)))
         })
         .map_or(usize::MAX, |(_, rank)| rank);
-    let alignment_start = record
-        .alignment_start()
-        .transpose()
-        .ok()
-        .flatten()
-        .map_or(usize::MAX, |position| usize::from(position));
-    let unmapped_rank = record.flags().ok().is_none_or(|flags| flags.is_unmapped()) as usize;
+    let alignment_start =
+        record.alignment_start().transpose().ok().flatten().map_or(usize::MAX, usize::from);
+    let unmapped_rank = usize::from(
+        record.flags().ok().is_none_or(noodles_sam::alignment::record::Flags::is_unmapped),
+    );
     let name = record
         .name()
         .map(|name| String::from_utf8_lossy(name.as_ref()).into_owned())

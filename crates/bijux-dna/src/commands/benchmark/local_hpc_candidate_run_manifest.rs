@@ -370,7 +370,7 @@ fn select_candidate_run_rows(
         });
     }
 
-    eligible.sort_by(|left, right| candidate_sort_key(left).cmp(&candidate_sort_key(right)));
+    eligible.sort_by_key(candidate_sort_key);
     let eligible_small_job_count = eligible.len();
     let mut selected_rows = Vec::new();
     let mut selected_groups = BTreeSet::<String>::new();

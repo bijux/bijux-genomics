@@ -164,7 +164,7 @@ pub(crate) fn render_vcf_admixture_ready(
 ) -> Result<VcfAdmixtureReadyReport> {
     let _lock = bijux_dna_infra::FileLock::acquire(
         &repo_root.join(VCF_ADMIXTURE_READY_LOCK_PATH),
-        Duration::from_secs(300),
+        Duration::from_mins(5),
     )
     .with_context(|| {
         format!(

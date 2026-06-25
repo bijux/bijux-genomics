@@ -158,7 +158,7 @@ pub(crate) fn render_vcf_population_structure_ready(
 ) -> Result<VcfPopulationStructureReadyReport> {
     let _lock = bijux_dna_infra::FileLock::acquire(
         &repo_root.join(VCF_POPULATION_STRUCTURE_READY_LOCK_PATH),
-        Duration::from_secs(300),
+        Duration::from_mins(5),
     )
     .with_context(|| {
         format!(

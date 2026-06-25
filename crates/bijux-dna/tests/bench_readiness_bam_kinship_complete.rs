@@ -109,7 +109,7 @@ fn bench_readiness_bam_kinship_complete_reports_governed_rows() {
         );
         assert_eq!(
             row.get("ready_case_kinship_coefficient").and_then(serde_json::Value::as_f64),
-            Some(0.416667)
+            Some(0.416_667)
         );
         assert_eq!(
             row.get("ready_case_relationship_label").and_then(serde_json::Value::as_str),

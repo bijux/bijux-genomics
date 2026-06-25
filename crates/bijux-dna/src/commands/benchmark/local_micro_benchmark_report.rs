@@ -1121,7 +1121,7 @@ fn render_micro_benchmark_report_markdown(report: &MicroBenchmarkReport) -> Stri
             format_threshold_value(row.tolerance_value),
             sanitize_markdown_cell(&row.pass_rule),
             sanitize_markdown_cell(&row.insufficiency_behavior),
-            row.required.to_string(),
+            row.required,
             sanitize_markdown_cell(&row.covered_tool_ids.join(", "))
         ));
     }

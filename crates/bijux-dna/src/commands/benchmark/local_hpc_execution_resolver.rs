@@ -518,12 +518,7 @@ fn ensure_execution_resolver_contract(rows: &[LocalHpcExecutionResolverRow]) -> 
                 }
             }
             RESOLUTION_KIND_UNAVAILABLE => {
-                if row
-                    .unavailable_reason
-                    .as_deref()
-                    .map(str::trim)
-                    .is_none_or(|value| value.is_empty())
-                {
+                if row.unavailable_reason.as_deref().map(str::trim).is_none_or(str::is_empty) {
                     return Err(anyhow!(
                         "HPC execution resolver row `{}` must explain unavailable resolution",
                         row.tool_id
