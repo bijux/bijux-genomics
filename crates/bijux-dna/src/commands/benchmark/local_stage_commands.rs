@@ -93,7 +93,7 @@ struct LocalReportQcConfig {
 }
 
 pub(crate) fn run_materialize_stage(args: &parse::BenchLocalMaterializeStageArgs) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let artifact_path = materialize_local_stage(&repo_root, &args.stage_id)?;
     if args.json {
         render::json::print_pretty(&BenchLocalStageMaterialization {
@@ -113,7 +113,7 @@ pub(crate) fn run_bam_stage_smoke(args: &parse::BenchLocalRunBamStageSmokeArgs) 
 pub(crate) fn run_render_stage_commands(
     args: &parse::BenchLocalRenderStageCommandsArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let manifest = render_local_stage_commands(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_RENDERED_STAGE_COMMANDS_PATH)),

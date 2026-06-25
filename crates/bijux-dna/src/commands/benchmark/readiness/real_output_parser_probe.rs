@@ -183,7 +183,7 @@ struct LocalBamSexCase {
 pub(crate) fn run_render_real_output_parser_smoke(
     args: &parse::BenchReadinessRenderRealOutputParserSmokeArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_real_output_parser_smoke(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH)),

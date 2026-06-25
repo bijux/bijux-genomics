@@ -252,7 +252,7 @@ pub(crate) struct BenchLocalHpcSubmissionReadyReport {
 pub(crate) fn run_validate_hpc_submission_ready(output: Option<PathBuf>, json: bool) -> Result<()> {
     validate_hpc_submission_ready_feature_gate()?;
 
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = validate_hpc_submission_ready(
         &repo_root,
         output.unwrap_or_else(|| PathBuf::from(DEFAULT_HPC_SUBMISSION_READY_REPORT_PATH)),

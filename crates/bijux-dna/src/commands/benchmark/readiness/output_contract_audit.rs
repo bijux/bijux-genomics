@@ -155,7 +155,7 @@ struct FastqBamDeclaredOutputBundle {
 pub(crate) fn run_render_output_contract_audit(
     args: &parse::BenchReadinessRenderOutputContractTestsArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_output_contract_audit(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_OUTPUT_CONTRACT_TESTS_PATH)),

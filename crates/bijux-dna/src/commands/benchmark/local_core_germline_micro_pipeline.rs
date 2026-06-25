@@ -228,7 +228,7 @@ struct SyntheticReadPlacement {
 pub(crate) fn run_core_germline_micro_pipeline(
     args: &parse::BenchLocalRunCoreGermlineMicroPipelineArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_core_germline_micro_pipeline(
         &repo_root,
         args.output

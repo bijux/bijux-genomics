@@ -79,7 +79,7 @@ pub(crate) struct FullBenchmarkDashboardReport {
 pub(crate) fn run_render_full_benchmark_dashboard(
     args: &parse::BenchReadinessRenderFullBenchmarkDashboardArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_full_benchmark_dashboard(
         &repo_root,
         args.output

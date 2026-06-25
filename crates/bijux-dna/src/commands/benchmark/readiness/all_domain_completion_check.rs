@@ -116,7 +116,7 @@ pub(crate) struct AllDomainCompletionCheckReport {
 pub(crate) fn run_render_all_domain_completion_check(
     args: &parse::BenchReadinessRenderAllDomainCompletionCheckArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let benchmark_paths = BenchmarkPathResolver::new(&repo_root, None);
     let report = render_all_domain_completion_check(
         &repo_root,

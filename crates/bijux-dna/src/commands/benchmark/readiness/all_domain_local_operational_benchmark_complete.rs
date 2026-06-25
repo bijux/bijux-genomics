@@ -48,7 +48,7 @@ pub(crate) struct AllDomainLocalOperationalBenchmarkCompleteReport {
 pub(crate) fn run_render_all_domain_local_operational_benchmark_complete(
     args: &parse::BenchReadinessRenderAllDomainLocalOperationalBenchmarkCompleteArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_all_domain_local_operational_benchmark_complete(
         &repo_root,
         args.output.clone().unwrap_or_else(|| {

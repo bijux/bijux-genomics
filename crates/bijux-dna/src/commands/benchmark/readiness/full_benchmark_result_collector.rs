@@ -121,7 +121,7 @@ pub(crate) struct FullBenchmarkResultCollectorReport {
 pub(crate) fn run_render_full_benchmark_result_collector(
     args: &parse::BenchReadinessRenderFullBenchmarkResultCollectorArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_full_benchmark_result_collector(
         &repo_root,
         args.output

@@ -123,7 +123,7 @@ pub(crate) struct OperationalBenchmarkReadyReport {
 pub(crate) fn run_render_operational_benchmark_ready(
     args: &parse::BenchReadinessRenderOperationalBenchmarkReadyArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_operational_benchmark_ready(
         &repo_root,
         args.output
