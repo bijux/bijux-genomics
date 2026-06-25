@@ -44,10 +44,7 @@ fn normalize_graph_snapshot_paths(value: serde_json::Value) -> serde_json::Value
                 .into_iter()
                 .map(|(key, value)| {
                     let value = match (key.as_str(), value) {
-                        ("path", serde_json::Value::String(path)) => {
-                            serde_json::Value::String(snapshot_leaf(&path))
-                        }
-                        ("out_dir", serde_json::Value::String(path)) => {
+                        ("path" | "out_dir", serde_json::Value::String(path)) => {
                             serde_json::Value::String(snapshot_leaf(&path))
                         }
                         (_, nested) => normalize_graph_snapshot_paths(nested),
