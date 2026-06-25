@@ -85,7 +85,7 @@ fn dev_crates_planner_no_parser_writes_the_governed_audit_report() {
     assert!(
         fastq_read_refs.iter().any(|row| {
             row.get("path").and_then(serde_json::Value::as_str)
-                == Some("crates/bijux-dna-planner-fastq/src/planner/local_smoke.rs")
+                == Some("crates/bijux-dna-planner-fastq/src/planner/local_stage_cases.rs")
         }),
         "FASTQ planner audit must keep the governed local-smoke input reads explicit"
     );
