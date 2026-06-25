@@ -661,7 +661,7 @@
       "pipeline_id": "bam-genotyping-to-vcf-downstream",
       "node_id": "bam.genotyping",
       "stage_id": "bam.genotyping",
-      "tool_id": "bijux-dna",
+      "tool_id": "angsd",
       "execution_state": "completed",
       "reason": "completed",
       "dependency_count": 2,

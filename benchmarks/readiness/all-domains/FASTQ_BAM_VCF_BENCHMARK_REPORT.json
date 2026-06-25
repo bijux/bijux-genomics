@@ -715,7 +715,9 @@
       "corpus_id": "corpus-01-genotyping-mini",
       "asset_profile_id": "reference_fasta+regions+sites_vcf",
       "report_section": "downstream_readiness",
-      "pipeline_ids": [],
+      "pipeline_ids": [
+        "bam-genotyping-to-vcf-downstream"
+      ],
       "expected_output_count": 6,
       "expected_metric_count": 1,
       "comparable_metric_count": 0,
@@ -3965,7 +3967,9 @@
       "corpus_ids": [
         "corpus-01-genotyping-mini"
       ],
-      "pipeline_ids": [],
+      "pipeline_ids": [
+        "bam-genotyping-to-vcf-downstream"
+      ],
       "report_sections": [
         "downstream_readiness"
       ]
@@ -5236,7 +5240,9 @@
         "corpus-01-genotyping-mini",
         "corpus-01-kinship-mini"
       ],
-      "pipeline_ids": []
+      "pipeline_ids": [
+        "bam-genotyping-to-vcf-downstream"
+      ]
     },
     {
       "tool_id": "atropos",
@@ -6657,7 +6663,9 @@
       "tool_ids": [
         "angsd"
       ],
-      "pipeline_ids": []
+      "pipeline_ids": [
+        "bam-genotyping-to-vcf-downstream"
+      ]
     },
     {
       "corpus_id": "corpus-01-kinship-mini",
@@ -6891,7 +6899,7 @@
   ],
   "pipeline_centric": {
     "row_count": 10,
-    "unmapped_row_count": 100,
+    "unmapped_row_count": 99,
     "rows": [
       {
         "pipeline_id": "adna-gl-fastq-bam-vcf",
@@ -7007,8 +7015,8 @@
       },
       {
         "pipeline_id": "bam-genotyping-to-vcf-downstream",
-        "row_count": 8,
-        "present_row_count": 6,
+        "row_count": 9,
+        "present_row_count": 7,
         "missing_result_row_count": 2,
         "unsupported_pair_row_count": 0,
         "domains": [
@@ -7018,6 +7026,7 @@
         "stage_ids": [
           "bam.coverage",
           "bam.filter",
+          "bam.genotyping",
           "bam.recalibration",
           "vcf.filter",
           "vcf.pca",
@@ -7026,6 +7035,7 @@
           "vcf.stats"
         ],
         "tool_ids": [
+          "angsd",
           "bcftools",
           "gatk",
           "plink2",
