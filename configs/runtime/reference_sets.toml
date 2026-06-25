@@ -26,3 +26,17 @@ species_id = "Canis lupus"
 usecase = "modern"
 primary_reference = "clupus_canfam4_primary"
 contaminants = []
+
+[[set]]
+id = "ecaballus_adna_default"
+species_id = "Equus caballus"
+usecase = "adna"
+primary_reference = "ecaballus_equcab3_primary"
+contaminants = []
+
+[[set]]
+id = "ecaballus_modern_default"
+species_id = "Equus caballus"
+usecase = "modern"
+primary_reference = "ecaballus_equcab3_primary"
+contaminants = []

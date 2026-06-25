@@ -118,6 +118,48 @@ chrX = "X"
 chrM = "MT"
 chrMT = "MT"
 
+[[contig_map]]
+species_id = "Equus caballus"
+build_id = "EquCab3"
+naming_convention = "deterministic_remap"
+mitochondrion_id = "MT"
+[contig_map.aliases]
+chr1 = "1"
+chr2 = "2"
+chr3 = "3"
+chr4 = "4"
+chr5 = "5"
+chr6 = "6"
+chr7 = "7"
+chr8 = "8"
+chr9 = "9"
+chr10 = "10"
+chr11 = "11"
+chr12 = "12"
+chr13 = "13"
+chr14 = "14"
+chr15 = "15"
+chr16 = "16"
+chr17 = "17"
+chr18 = "18"
+chr19 = "19"
+chr20 = "20"
+chr21 = "21"
+chr22 = "22"
+chr23 = "23"
+chr24 = "24"
+chr25 = "25"
+chr26 = "26"
+chr27 = "27"
+chr28 = "28"
+chr29 = "29"
+chr30 = "30"
+chr31 = "31"
+chrX = "X"
+MT = "MT"
+chrM = "MT"
+chrMT = "MT"
+
 [[sex_rule]]
 species_id = "Homo sapiens"
 build_id = "GRCh38"
@@ -131,6 +173,13 @@ par_regions = [
 [[sex_rule]]
 species_id = "Canis lupus"
 build_id = "CanFam4"
+male_x_ploidy = 1
+male_y_ploidy = 1
+par_regions = []
+
+[[sex_rule]]
+species_id = "Equus caballus"
+build_id = "EquCab3"
 male_x_ploidy = 1
 male_y_ploidy = 1
 par_regions = []

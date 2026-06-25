@@ -18,6 +18,12 @@ mitochondrion_id = "MT"
 chloroplast_required_for_profiles = []
 
 [[policy]]
+species_id = "Equus caballus"
+build_id = "EquCab3"
+mitochondrion_id = "MT"
+chloroplast_required_for_profiles = []
+
+[[policy]]
 species_id = "Gallus gallus"
 build_id = "GRCg7b"
 mitochondrion_id = "MT"

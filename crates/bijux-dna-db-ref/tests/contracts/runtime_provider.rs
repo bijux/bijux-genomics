@@ -8,6 +8,7 @@ use bijux_dna_db_ref::public_api::{
     resolve_species_context, validate_imputation_tool_compatibility, validate_reference_index_qa,
     CatalogCompatibility, PanelCatalogEntry,
 };
+use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 
 #[test]
 fn species_context_and_bundle_resolve() {
@@ -187,6 +188,46 @@ fn contig_alias_resolution_contract_normalizes_aliases_for_assets() {
     .unwrap_or_else(|err| panic!("resolve contig aliases for assets: {err}"));
     assert_eq!(report.rows.len(), 2);
     assert_eq!(report.rows[0].normalized, "1");
+}
+
+#[test]
+fn horse_runtime_reference_contracts_resolve_equcab3_assets() {
+    let resolved = resolve_species_context("Equus caballus", "EquCab3")
+        .unwrap_or_else(|err| panic!("resolve horse species context: {err}"));
+    assert_eq!(resolved.context.build_id, "EquCab3");
+    assert_eq!(resolved.context.default_coverage_regime, Some(CoverageRegime::Pseudohaploid));
+    assert!(!resolved.supported_features.imputation);
+
+    let bundle = resolve_reference_bundle("Equus caballus", "EquCab3")
+        .unwrap_or_else(|err| panic!("resolve horse reference bundle: {err}"));
+    assert_eq!(bundle.bundle_id, "ecaballus_equcab3_primary");
+
+    let bank = resolve_reference_bank("Equus caballus", "EquCab3")
+        .unwrap_or_else(|err| panic!("resolve horse reference bank: {err}"));
+    assert!(bank.fasta_url.contains("GCF_002863925.1_EquCab3.0_genomic.fna.gz"));
+
+    let organellar = resolve_organellar_policy("Equus caballus", "EquCab3")
+        .unwrap_or_else(|err| panic!("resolve horse organellar policy: {err}"));
+    assert_eq!(organellar.mitochondrion_id, "MT");
+
+    let refs = resolve_default_reference_set("Equus caballus", "adna")
+        .unwrap_or_else(|err| panic!("resolve horse default reference set: {err}"));
+    assert_eq!(refs.primary_reference, "ecaballus_equcab3_primary");
+}
+
+#[test]
+fn horse_contig_alias_resolution_contract_normalizes_chr_style_inputs() {
+    let report = resolve_contig_aliases_for_assets(
+        "Equus caballus",
+        "EquCab3",
+        &["chr1".to_string(), "chr31".to_string(), "chrM".to_string()],
+        None,
+        None,
+    )
+    .unwrap_or_else(|err| panic!("resolve horse contig aliases for assets: {err}"));
+    assert_eq!(report.rows[0].normalized, "1");
+    assert_eq!(report.rows[1].normalized, "31");
+    assert_eq!(report.rows[2].normalized, "MT");
 }
 
 #[test]

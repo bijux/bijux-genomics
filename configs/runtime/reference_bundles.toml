@@ -57,3 +57,94 @@ imputation = false
 chr1 = "1"
 chr2 = "2"
 chrX = "X"
+chrM = "MT"
+chrMT = "MT"
+
+[[bundle]]
+bundle_id = "ecaballus_equcab3_primary"
+species_id = "Equus caballus"
+build_id = "EquCab3"
+fasta = "refs/equus/equcab3/EquCab3.fa.gz"
+fai = "refs/equus/equcab3/EquCab3.fa.gz.fai"
+dict = "refs/equus/equcab3/EquCab3.dict"
+contig_set_digest = "0b06dd94b61c11f89b79dba0fd19c25e8904517a023aa05c06e875e398bc9e10"
+source_lock_sha256 = "ddd5aa083d95f974e56e2e9d7c02c44ecfffc84bedd7fe579476ee87a48fe836"
+bundle_lock_sha256 = "bcb25d18206b9ab01697131c4a11d0c2d45ac0d42cc0a66f87fe0c7b26469542"
+normalization_policy = "deterministic_remap"
+sex_system = "xy"
+par_policy = "unsupported"
+default_coverage_regime = "pseudohaploid"
+contigs = [
+  { name = "1", length_bp = 188260577 },
+  { name = "2", length_bp = 121350024 },
+  { name = "3", length_bp = 121351753 },
+  { name = "4", length_bp = 109462549 },
+  { name = "5", length_bp = 96759418 },
+  { name = "6", length_bp = 87230776 },
+  { name = "7", length_bp = 100787686 },
+  { name = "8", length_bp = 97563019 },
+  { name = "9", length_bp = 85793548 },
+  { name = "10", length_bp = 85155674 },
+  { name = "11", length_bp = 61676917 },
+  { name = "12", length_bp = 36992759 },
+  { name = "13", length_bp = 43784481 },
+  { name = "14", length_bp = 94600235 },
+  { name = "15", length_bp = 92851403 },
+  { name = "16", length_bp = 88962352 },
+  { name = "17", length_bp = 80722430 },
+  { name = "18", length_bp = 82641348 },
+  { name = "19", length_bp = 62681739 },
+  { name = "20", length_bp = 65343332 },
+  { name = "21", length_bp = 58984458 },
+  { name = "22", length_bp = 50928189 },
+  { name = "23", length_bp = 55556184 },
+  { name = "24", length_bp = 48288683 },
+  { name = "25", length_bp = 40282968 },
+  { name = "26", length_bp = 43147642 },
+  { name = "27", length_bp = 40254690 },
+  { name = "28", length_bp = 47348498 },
+  { name = "29", length_bp = 34776120 },
+  { name = "30", length_bp = 31395959 },
+  { name = "31", length_bp = 26001039 },
+  { name = "X", length_bp = 128206784 },
+  { name = "MT", length_bp = 16660 },
+]
+[bundle.supported_features]
+sex_chr = false
+imputation = false
+[bundle.remap]
+chr1 = "1"
+chr2 = "2"
+chr3 = "3"
+chr4 = "4"
+chr5 = "5"
+chr6 = "6"
+chr7 = "7"
+chr8 = "8"
+chr9 = "9"
+chr10 = "10"
+chr11 = "11"
+chr12 = "12"
+chr13 = "13"
+chr14 = "14"
+chr15 = "15"
+chr16 = "16"
+chr17 = "17"
+chr18 = "18"
+chr19 = "19"
+chr20 = "20"
+chr21 = "21"
+chr22 = "22"
+chr23 = "23"
+chr24 = "24"
+chr25 = "25"
+chr26 = "26"
+chr27 = "27"
+chr28 = "28"
+chr29 = "29"
+chr30 = "30"
+chr31 = "31"
+chrX = "X"
+MT = "MT"
+chrM = "MT"
+chrMT = "MT"
