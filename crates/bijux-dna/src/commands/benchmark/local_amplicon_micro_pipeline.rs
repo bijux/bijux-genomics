@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Write as _;
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
@@ -1201,7 +1202,8 @@ fn run_fixture_backed_infer_asvs_stage(
     let asv_table_tsv = stage_root.join("corpus-03-amplicon-se/dada2/asv_table.tsv");
     let case_report_json = stage_root.join("corpus-03-amplicon-se/dada2/infer_asvs_report.json");
     let taxonomy_ready_fasta = stage_root.join("corpus-03-amplicon-se/dada2/taxonomy_ready.fasta");
-    let taxonomy_ready_fastq = stage_root.join("corpus-03-amplicon-se/dada2/taxonomy_ready.fastq");
+    let taxonomy_ready_reads_fastq =
+        stage_root.join("corpus-03-amplicon-se/dada2/taxonomy_ready.fastq");
     write_text_file(
         &asv_table_tsv,
         &build_three_column_table(
@@ -1229,7 +1231,7 @@ fn run_fixture_backed_infer_asvs_stage(
         "corpus-03-amplicon-se/dada2/taxonomy_ready.fasta",
     )?;
     write_fastq_records(
-        &taxonomy_ready_fastq,
+        &taxonomy_ready_reads_fastq,
         &truth_bundle
             .asv_representatives
             .iter()
@@ -1249,7 +1251,7 @@ fn run_fixture_backed_infer_asvs_stage(
         representatives_fasta: path_relative_to_repo(repo_root, &representatives_fasta),
         case_report_json: path_relative_to_repo(repo_root, &case_report_json),
         taxonomy_ready_fasta: path_relative_to_repo(repo_root, &taxonomy_ready_fasta),
-        taxonomy_ready_fastq: path_relative_to_repo(repo_root, &taxonomy_ready_fastq),
+        taxonomy_ready_fastq: path_relative_to_repo(repo_root, &taxonomy_ready_reads_fastq),
         raw_backend_report: None,
     };
     let evidence_path = stage_root.join("report.json");
@@ -1346,8 +1348,11 @@ fn run_fixture_backed_remove_chimeras_stage(
             .chimera_truths
             .iter()
             .filter(|row| row.expected_presence == "present")
-            .map(|row| format!(">{}\n{}\n", row.chimera_id, row.sequence))
-            .collect::<String>(),
+            .fold(String::new(), |mut fasta, row| {
+                let _ = writeln!(fasta, ">{}", row.chimera_id);
+                let _ = writeln!(fasta, "{}", row.sequence);
+                fasta
+            }),
     )?;
     let report = RemoveChimerasStageEvidence {
         schema_version: REMOVE_CHIMERAS_STAGE_SCHEMA_VERSION.to_string(),
@@ -1432,7 +1437,7 @@ fn run_fixture_backed_cluster_otus_stage(
         stage_root.join("corpus-03-otu-cluster-se/vsearch/cluster_otus_report.json");
     let taxonomy_ready_fasta =
         stage_root.join("corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fasta");
-    let taxonomy_ready_fastq =
+    let taxonomy_ready_reads_fastq =
         stage_root.join("corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fastq");
     let representative_path = path_relative_to_repo(repo_root, &otu_representatives_fasta);
     write_text_file(
@@ -1465,7 +1470,7 @@ fn run_fixture_backed_cluster_otus_stage(
         "corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fasta",
     )?;
     write_fastq_records(
-        &taxonomy_ready_fastq,
+        &taxonomy_ready_reads_fastq,
         &truth_bundle
             .otu_representatives
             .iter()
@@ -1490,7 +1495,7 @@ fn run_fixture_backed_cluster_otus_stage(
         otu_representatives_fasta: path_relative_to_repo(repo_root, &otu_representatives_fasta),
         case_report_json: path_relative_to_repo(repo_root, &case_report_json),
         taxonomy_ready_fasta: path_relative_to_repo(repo_root, &taxonomy_ready_fasta),
-        taxonomy_ready_fastq: path_relative_to_repo(repo_root, &taxonomy_ready_fastq),
+        taxonomy_ready_fastq: path_relative_to_repo(repo_root, &taxonomy_ready_reads_fastq),
         raw_backend_report: None,
     };
     let evidence_path = stage_root.join("report.json");

@@ -280,7 +280,7 @@ fn assert_contracts_tree(root: &std::path::Path) {
 fn assert_bam_contracts_tree(root: &std::path::Path) {
     assert_dir_contains_entries(
         &root.join("tests/contracts"),
-        &bam_contract_entries(),
+        bam_contract_entries(),
         "api BAM contract tests must stay split by public v1 behavior",
     );
 }
@@ -288,7 +288,7 @@ fn assert_bam_contracts_tree(root: &std::path::Path) {
 fn assert_fastq_contracts_tree(root: &std::path::Path) {
     assert_dir_contains_entries(
         &root.join("tests/contracts"),
-        &fastq_contract_entries(),
+        fastq_contract_entries(),
         "api FASTQ contract tests must stay split by public v1 behavior",
     );
 }
@@ -296,7 +296,7 @@ fn assert_fastq_contracts_tree(root: &std::path::Path) {
 fn assert_cross_contracts_tree(root: &std::path::Path) {
     assert_dir_contains_entries(
         &root.join("tests/contracts"),
-        &cross_contract_entries(),
+        cross_contract_entries(),
         "api cross-cutting contract tests must stay split by public v1 behavior",
     );
 }
