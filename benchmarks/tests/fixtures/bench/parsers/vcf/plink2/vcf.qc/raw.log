@@ -1,0 +1,3 @@
+toolchain=plink2
+sample_missingness_exclusion_threshold=0.5
+variant_missingness_exclusion_threshold=0.5

@@ -1,0 +1,3 @@
+toolchain=plink2
+stage=vcf.roh
+tool_success=false
