@@ -57,6 +57,7 @@ predicates.workspace = true
 insta = { workspace = true }
 filetime.workspace = true
 walkdir.workspace = true
+sysinfo.workspace = true
 
 [lints]
 workspace = true
