@@ -1,10 +1,3 @@
-# schema_version = 1
-# owner = bijux-dna-bench
-# purpose = Governed local benchmark stage-to-tool matrix for VCF workflows.
-# authority = bijux-dna-bench
-# stability = evolving
-# last_updated = 2026-06-22
-
 schema_version = "bijux.bench.vcf.local_stage_matrix.v1"
 
 [[rows]]

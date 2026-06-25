@@ -3,7 +3,6 @@
 # purpose = Governed resource hints for benchmark-ready FASTQ, BAM, and VCF stage-tool commands.
 # authority = bijux-dna-bench
 # stability = evolving
-# last_updated = 2026-06-22
 
 schema_version = "bijux.bench.local_stage_tool_resources.v1"
 classification_scope = "benchmark_ready_command_resources"

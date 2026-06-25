@@ -113,6 +113,7 @@
       ],
       "local_proof_sample_id": "sample-set",
       "local_proof_artifact_paths": [
+        "/Users/bijan/bijux/bijux-genomics/runs/bench/local-smoke/bam.kinship/kinship.json",
         "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.json",
         "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.segments.tsv",
         "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.summary.json",
@@ -120,8 +121,7 @@
         "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.json",
         "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.segments.tsv",
         "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.summary.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/stage.metrics.json",
-        "runs/bench/local-smoke/bam.kinship/kinship.json"
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/stage.metrics.json"
       ],
       "local_proof_observed_fields": [
         "all_cases_matched",
@@ -174,7 +174,7 @@
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
       "report_map_proof_path": "benchmarks/readiness/bam/bam-report-map.tsv",
       "schema_proof_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
-      "local_proof_path": "runs/bench/local-smoke/bam.kinship/kinship.json",
+      "local_proof_path": "/Users/bijan/bijux/bijux-genomics/runs/bench/local-smoke/bam.kinship/kinship.json",
       "active_scope_ready": true,
       "command_ready": true,
       "output_ready": true,
@@ -256,6 +256,7 @@
       ],
       "local_proof_sample_id": "sample-set",
       "local_proof_artifact_paths": [
+        "/Users/bijan/bijux/bijux-genomics/runs/bench/local-smoke/bam.kinship/kinship.json",
         "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.json",
         "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.segments.tsv",
         "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king/kinship.summary.json",
@@ -263,8 +264,7 @@
         "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.json",
         "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.segments.tsv",
         "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.summary.json",
-        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/stage.metrics.json",
-        "runs/bench/local-smoke/bam.kinship/kinship.json"
+        "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/stage.metrics.json"
       ],
       "local_proof_observed_fields": [
         "all_cases_matched",
@@ -317,7 +317,7 @@
       "expected_result_proof_path": "benchmarks/readiness/expected-benchmark-results.tsv",
       "report_map_proof_path": "benchmarks/readiness/bam/bam-report-map.tsv",
       "schema_proof_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
-      "local_proof_path": "runs/bench/local-smoke/bam.kinship/kinship.json",
+      "local_proof_path": "/Users/bijan/bijux/bijux-genomics/runs/bench/local-smoke/bam.kinship/kinship.json",
       "active_scope_ready": true,
       "command_ready": true,
       "output_ready": true,
