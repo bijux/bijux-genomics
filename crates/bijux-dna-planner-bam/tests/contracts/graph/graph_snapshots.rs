@@ -35,6 +35,43 @@ fn dummy_tool(tool_id: &str) -> ToolExecutionSpecV1 {
     }
 }
 
+#[cfg(feature = "bam_downstream")]
+fn normalize_graph_snapshot_paths(value: serde_json::Value) -> serde_json::Value {
+    match value {
+        serde_json::Value::Array(items) => serde_json::Value::Array(
+            items.into_iter().map(normalize_graph_snapshot_paths).collect(),
+        ),
+        serde_json::Value::Object(map) => {
+            let normalized = map
+                .into_iter()
+                .map(|(key, value)| {
+                    let value = match (key.as_str(), value) {
+                        ("path", serde_json::Value::String(path)) => {
+                            serde_json::Value::String(snapshot_leaf(&path))
+                        }
+                        ("out_dir", serde_json::Value::String(path)) => {
+                            serde_json::Value::String(snapshot_leaf(&path))
+                        }
+                        (_, nested) => normalize_graph_snapshot_paths(nested),
+                    };
+                    (key, value)
+                })
+                .collect();
+            serde_json::Value::Object(normalized)
+        }
+        other => other,
+    }
+}
+
+#[cfg(feature = "bam_downstream")]
+fn snapshot_leaf(path: &str) -> String {
+    let trimmed = path.trim_end_matches('/');
+    PathBuf::from(trimmed)
+        .file_name()
+        .and_then(|leaf| leaf.to_str())
+        .map_or_else(|| trimmed.to_string(), str::to_string)
+}
+
 /// Snapshot locks graph structure for the default aDNA shotgun pipeline.
 #[test]
 #[cfg(feature = "bam_downstream")]
@@ -66,6 +103,7 @@ fn bam_adna_shotgun_graph_is_pure() -> anyhow::Result<()> {
 
     let graph = plan_bam_to_bam__adna_shotgun__v1(&inputs)?;
     let json = serde_json::to_value(&graph)?;
+    let json = normalize_graph_snapshot_paths(json);
     let json = bijux_dna_core::contract::canonical::canonicalize_truth_json(&json);
     let mut settings = insta::Settings::clone_current();
     settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
