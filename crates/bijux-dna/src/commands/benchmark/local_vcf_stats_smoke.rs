@@ -1,6 +1,6 @@
 use std::fs;
 use std::path::Path;
-use std::time::{Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_domain_vcf::metrics::VcfStatsMetricsV1;
@@ -35,6 +35,7 @@ const DEFAULT_OUTPUT_STATS_NAME: &str = "stats.json";
 const DEFAULT_OUTPUT_BCFTOOLS_STATS_NAME: &str = "bcftools_stats.txt";
 const DEFAULT_OUTPUT_METRICS_NAME: &str = "metrics.json";
 const DEFAULT_STAGE_RESULT_NAME: &str = "stage-result.json";
+const VCF_STATS_SMOKE_LOCK_PATH: &str = "artifacts/bench-local-vcf-stats-smoke/publish.lock";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct GovernedVcfStatsSmokeContract {
@@ -105,11 +106,22 @@ pub(crate) fn run_local_vcf_stats_smoke(
     tool_id: &str,
 ) -> Result<LocalVcfStatsSmokeReport> {
     let contract = resolve_governed_vcf_stats_smoke_contract(tool_id)?;
-    let output_root = repo_root.join(DEFAULT_VCF_STATS_SMOKE_ROOT).join(&contract.tool_id);
-    if output_root.exists() {
-        fs::remove_dir_all(&output_root)
-            .with_context(|| format!("remove {}", output_root.display()))?;
-    }
+    let published_output_root = repo_root.join(DEFAULT_VCF_STATS_SMOKE_ROOT).join(&contract.tool_id);
+    let published_input_vcf_path =
+        published_output_root.join("artifacts/input").join(DEFAULT_INPUT_VCF_NAME);
+    let published_stats_json_path = published_output_root.join(DEFAULT_OUTPUT_STATS_NAME);
+    let published_bcftools_stats_path =
+        published_output_root.join(DEFAULT_OUTPUT_BCFTOOLS_STATS_NAME);
+    let published_metrics_path = published_output_root.join(DEFAULT_OUTPUT_METRICS_NAME);
+    let published_stage_result_manifest_path =
+        published_output_root.join(DEFAULT_STAGE_RESULT_NAME);
+    let staging_parent = published_output_root.parent().ok_or_else(|| {
+        anyhow!("VCF stats smoke root has no parent: {}", published_output_root.display())
+    })?;
+    let staging_dir =
+        bijux_dna_infra::temp_dir_in(staging_parent, &format!("{}-staging-", contract.tool_id))
+            .with_context(|| format!("create staging directory in {}", staging_parent.display()))?;
+    let output_root = staging_dir.path().to_path_buf();
     let artifacts_root = output_root.join("artifacts");
     let input_root = artifacts_root.join("input");
     let stage_root = artifacts_root.join("stage");
@@ -178,19 +190,19 @@ pub(crate) fn run_local_vcf_stats_smoke(
             (
                 "stats_json",
                 DEFAULT_OUTPUT_STATS_NAME.to_string(),
-                stats_json_path.as_path(),
+                published_stats_json_path.as_path(),
                 "report_output",
             ),
             (
                 "bcftools_stats_txt",
                 DEFAULT_OUTPUT_BCFTOOLS_STATS_NAME.to_string(),
-                bcftools_stats_path.as_path(),
+                published_bcftools_stats_path.as_path(),
                 "report_output",
             ),
             (
                 "metrics_json",
                 DEFAULT_OUTPUT_METRICS_NAME.to_string(),
-                metrics_path.as_path(),
+                published_metrics_path.as_path(),
                 "report_output",
             ),
         ],
@@ -201,6 +213,17 @@ pub(crate) fn run_local_vcf_stats_smoke(
     validate_stage_result_manifest(&stage_result_manifest)?;
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;
 
+    let _publish_lock =
+        bijux_dna_infra::FileLock::acquire(&repo_root.join(VCF_STATS_SMOKE_LOCK_PATH), Duration::from_secs(30))
+            .context("acquire VCF stats smoke publish lock")?;
+    if published_output_root.exists() {
+        fs::remove_dir_all(&published_output_root)
+            .with_context(|| format!("remove {}", published_output_root.display()))?;
+    }
+    fs::rename(&output_root, &published_output_root).with_context(|| {
+        format!("publish {} to {}", output_root.display(), published_output_root.display())
+    })?;
+
     Ok(LocalVcfStatsSmokeReport {
         schema_version: LOCAL_VCF_STATS_SMOKE_SCHEMA_VERSION,
         command: format!("{LOCAL_VCF_STATS_SMOKE_COMMAND} --tool-id {}", contract.tool_id),
@@ -209,12 +232,15 @@ pub(crate) fn run_local_vcf_stats_smoke(
         corpus_id: contract.corpus_id,
         input_fixture_id: contract.input_fixture_id,
         sample_name: contract.sample_name,
-        input_vcf_path: path_relative_to_repo(repo_root, &input_vcf),
-        output_root: path_relative_to_repo(repo_root, &output_root),
-        stats_json_path: path_relative_to_repo(repo_root, &stats_json_path),
-        bcftools_stats_path: path_relative_to_repo(repo_root, &bcftools_stats_path),
-        metrics_path: path_relative_to_repo(repo_root, &metrics_path),
-        stage_result_manifest_path: path_relative_to_repo(repo_root, &stage_result_manifest_path),
+        input_vcf_path: path_relative_to_repo(repo_root, &published_input_vcf_path),
+        output_root: path_relative_to_repo(repo_root, &published_output_root),
+        stats_json_path: path_relative_to_repo(repo_root, &published_stats_json_path),
+        bcftools_stats_path: path_relative_to_repo(repo_root, &published_bcftools_stats_path),
+        metrics_path: path_relative_to_repo(repo_root, &published_metrics_path),
+        stage_result_manifest_path: path_relative_to_repo(
+            repo_root,
+            &published_stage_result_manifest_path,
+        ),
         started_at,
         finished_at,
         elapsed_seconds,

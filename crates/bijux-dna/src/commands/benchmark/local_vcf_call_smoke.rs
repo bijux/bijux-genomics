@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::time::{Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result};
 use bijux_dna_domain_vcf::params::VcfCallParams;
@@ -29,6 +29,7 @@ const GOVERNED_VCF_CALL_STAGE_ID: &str = "vcf.call";
 const GOVERNED_VCF_CALL_RESOLVED_STAGE_ID: &str = "vcf.call_diploid";
 const DEFAULT_OUTPUT_VCF_NAME: &str = "calls.vcf.gz";
 const DEFAULT_OUTPUT_METRICS_NAME: &str = "metrics.json";
+const VCF_CALL_SMOKE_LOCK_PATH: &str = "artifacts/bench-local-vcf-call-smoke/publish.lock";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct GovernedVcfCallSmokeContract {
@@ -109,11 +110,25 @@ pub(crate) fn run_local_vcf_call_smoke(
     tool_id: &str,
 ) -> Result<LocalVcfCallSmokeReport> {
     let contract = resolve_governed_vcf_call_smoke_contract(repo_root, tool_id)?;
-    let output_root = repo_root.join(DEFAULT_VCF_CALL_SMOKE_ROOT).join(&contract.tool_id);
-    if output_root.exists() {
-        fs::remove_dir_all(&output_root)
-            .with_context(|| format!("remove {}", output_root.display()))?;
-    }
+    let published_output_root = repo_root.join(DEFAULT_VCF_CALL_SMOKE_ROOT).join(&contract.tool_id);
+    let published_artifacts_root = published_output_root.join("artifacts");
+    let reference_file_name = Path::new(&contract.reference)
+        .file_name()
+        .ok_or_else(|| anyhow::anyhow!("reference path has no file name: {}", contract.reference))?;
+    let published_materialized_reference =
+        published_artifacts_root.join("reference").join(reference_file_name);
+    let published_output_vcf = published_output_root.join(DEFAULT_OUTPUT_VCF_NAME);
+    let published_output_tbi = PathBuf::from(format!("{}.tbi", published_output_vcf.display()));
+    let published_metrics_path = published_output_root.join(DEFAULT_OUTPUT_METRICS_NAME);
+    let published_stage_result_manifest_path =
+        published_output_root.join(DEFAULT_STAGE_RESULT_NAME);
+    let staging_parent = published_output_root.parent().ok_or_else(|| {
+        anyhow::anyhow!("VCF call smoke root has no parent: {}", published_output_root.display())
+    })?;
+    let staging_dir =
+        bijux_dna_infra::temp_dir_in(staging_parent, &format!("{}-staging-", contract.tool_id))
+            .with_context(|| format!("create staging directory in {}", staging_parent.display()))?;
+    let output_root = staging_dir.path().to_path_buf();
     let artifacts_root = output_root.join("artifacts");
     fs::create_dir_all(&artifacts_root)
         .with_context(|| format!("create {}", artifacts_root.display()))?;
@@ -196,17 +211,22 @@ pub(crate) fn run_local_vcf_call_smoke(
         &base_contract,
         &format!("{LOCAL_VCF_CALL_SMOKE_COMMAND} --tool-id {}", contract.tool_id),
         &[
-            ("called_vcf", DEFAULT_OUTPUT_VCF_NAME.to_string(), output_vcf.as_path(), "vcf_output"),
+            (
+                "called_vcf",
+                DEFAULT_OUTPUT_VCF_NAME.to_string(),
+                published_output_vcf.as_path(),
+                "vcf_output",
+            ),
             (
                 "called_vcf_tbi",
                 format!("{DEFAULT_OUTPUT_VCF_NAME}.tbi"),
-                output_tbi.as_path(),
+                published_output_tbi.as_path(),
                 "vcf_index",
             ),
             (
                 "metrics_json",
                 DEFAULT_OUTPUT_METRICS_NAME.to_string(),
-                metrics_path.as_path(),
+                published_metrics_path.as_path(),
                 "report_output",
             ),
         ],
@@ -216,6 +236,19 @@ pub(crate) fn run_local_vcf_call_smoke(
     );
     validate_stage_result_manifest(&stage_result_manifest)?;
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;
+
+    let _publish_lock = bijux_dna_infra::FileLock::acquire(
+        &repo_root.join(VCF_CALL_SMOKE_LOCK_PATH),
+        Duration::from_secs(30),
+    )
+    .context("acquire VCF call smoke publish lock")?;
+    if published_output_root.exists() {
+        fs::remove_dir_all(&published_output_root)
+            .with_context(|| format!("remove {}", published_output_root.display()))?;
+    }
+    fs::rename(&output_root, &published_output_root).with_context(|| {
+        format!("publish {} to {}", output_root.display(), published_output_root.display())
+    })?;
 
     Ok(LocalVcfCallSmokeReport {
         schema_version: LOCAL_VCF_CALL_SMOKE_SCHEMA_VERSION,
@@ -229,12 +262,15 @@ pub(crate) fn run_local_vcf_call_smoke(
         input_bam: contract.input_bam,
         input_bam_index: contract.input_bam_index,
         reference: contract.reference,
-        materialized_reference_path: path_relative_to_repo(repo_root, &materialized_reference),
-        output_root: path_relative_to_repo(repo_root, &output_root),
-        output_vcf_path: path_relative_to_repo(repo_root, &output_vcf),
-        output_tbi_path: path_relative_to_repo(repo_root, &output_tbi),
-        metrics_path: path_relative_to_repo(repo_root, &metrics_path),
-        stage_result_manifest_path: path_relative_to_repo(repo_root, &stage_result_manifest_path),
+        materialized_reference_path: path_relative_to_repo(repo_root, &published_materialized_reference),
+        output_root: path_relative_to_repo(repo_root, &published_output_root),
+        output_vcf_path: path_relative_to_repo(repo_root, &published_output_vcf),
+        output_tbi_path: path_relative_to_repo(repo_root, &published_output_tbi),
+        metrics_path: path_relative_to_repo(repo_root, &published_metrics_path),
+        stage_result_manifest_path: path_relative_to_repo(
+            repo_root,
+            &published_stage_result_manifest_path,
+        ),
         started_at,
         finished_at,
         elapsed_seconds,
