@@ -387,6 +387,21 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
         "crates/bijux-dna-core/src/id_catalog/tool/bam.rs",
         "crates/bijux-dna-domain-bam/src/artifacts.rs",
         "crates/bijux-dna-api/src/internal/handlers/cross/bam_exec_stage_postprocess.rs",
+        "crates/bijux-dna-domain-fastq/src/contracts/parser_fixture_inventory.rs",
+        "crates/bijux-dna-domain-bam/src/metrics/raw_parser_contract.rs",
+        "crates/bijux-dna-domain-bam/src/benchmark_corpus_assignment.rs",
+        "crates/bijux-dna/src/commands/benchmark/readiness/benchmark_command_rows.rs",
+        "crates/bijux-dna/src/commands/benchmark/readiness/stage_tool_containers.rs",
+        "crates/bijux-dna/src/commands/benchmark/readiness/tool_centric_report.rs",
+        "crates/bijux-dna/src/commands/benchmark/readiness/tool_serving_map.rs",
+        "crates/bijux-dna/src/commands/benchmark/readiness/stage_tool_resources.rs",
+        "crates/bijux-dna/src/commands/benchmark/readiness/pair_readiness.rs",
+        "crates/bijux-dna/src/commands/benchmark/readiness/fastq_command_adapter_coverage.rs",
+        "crates/bijux-dna/src/commands/benchmark/readiness/stage_tool_assets.rs",
+        "crates/bijux-dna/src/commands/benchmark/readiness/adapter_missing_input_audit.rs",
+        "crates/bijux-dna/src/commands/benchmark/readiness/corpus_asset_coverage_gate.rs",
+        "crates/bijux-dna/src/commands/benchmark/local_adna_micro_pipeline.rs",
+        "crates/bijux-dna-api/src/internal/fastq/stages/preprocess/stage_artifacts.rs",
     ];
 
     for entry in WalkDir::new(root.join("crates"))

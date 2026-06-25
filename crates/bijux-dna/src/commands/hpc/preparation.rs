@@ -357,7 +357,12 @@ depends_on = ["fastq_validate"]
             .iter()
             .find(|node| node.kind == "planned_job" && node.path.contains("bam.align"))
             .expect("bam node");
-        assert!(bam_node.depends_on.iter().any(|dep| dep.starts_with("dryrun-0001")));
+        let fastq_node = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "planned_job" && node.path.contains("fastq.validate_reads"))
+            .expect("fastq node");
+        assert!(bam_node.depends_on.iter().any(|dep| dep == &fastq_node.id));
     }
 
     #[test]

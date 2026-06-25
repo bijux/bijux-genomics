@@ -45,7 +45,12 @@ fn bench_readiness_stage_centric_report_writes_named_stage_sections() {
     assert!(markdown.contains("# Stage-Centric Benchmark Report"));
     assert!(markdown.contains("- Stage count: 51"));
     assert!(markdown.contains("- Multi-tool stages: 29"));
-    assert!(markdown.contains("| fastq | fastq.trim_reads | Read Cleanup | 14 | 13 | 1 | not_declared | seqpurge (support) |"));
+    assert!(markdown.contains("- Stage-tool rows: 120"));
+    assert!(markdown.contains("- Benchmark-ready rows: 120"));
+    assert!(markdown.contains("- Blocked rows: 0"));
+    assert!(markdown.contains(
+        "| fastq | fastq.trim_reads | Read Cleanup | 13 | 13 | 0 | not_declared | none |"
+    ));
     assert!(markdown.contains("| fastq | fastq.index_reference | Reference Preparation | 2 | 2 | 0 | index_build_exit_code | none |"));
     assert!(markdown.contains("| fastq | fastq.normalize_abundance | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |"));
 
@@ -55,7 +60,8 @@ fn bench_readiness_stage_centric_report_writes_named_stage_sections() {
     assert!(markdown.contains("| fastq_scan | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |"));
 
     assert!(markdown.contains("## bam.damage"));
-    assert!(markdown.contains("- Shared metrics: terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb"));
+    assert!(markdown
+        .contains("- Shared metrics: terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal"));
     assert!(markdown.contains("| damageprofiler | benchmark_ready | none | supported | runnable | parser_fixture_validated | fixture:corpus-01-adna-damage-mini | not_required |"));
 
     assert!(markdown.contains("## bam.contamination"));

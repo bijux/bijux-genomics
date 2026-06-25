@@ -28,9 +28,8 @@ pub fn param_registry_toml() -> String {
             out.push('\n');
         }
         out.push_str("[[params]]\n");
-        writeln!(&mut out, "stage_id = \"{stage_id}\"").expect("writing to String cannot fail");
-        writeln!(&mut out, "param_type_id = \"{param_type_id}\"")
-            .expect("writing to String cannot fail");
+        let _ = writeln!(&mut out, "stage_id = \"{stage_id}\"");
+        let _ = writeln!(&mut out, "param_type_id = \"{param_type_id}\"");
         out.push_str("schema_version = \"bijux.vcf.params.v1\"\n");
         out.push_str("params = []\n");
     }

@@ -8,6 +8,8 @@ mod support;
 
 fn run_cli(args: &[&str]) -> std::process::Output {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _repo_lock =
+        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
@@ -38,7 +40,7 @@ fn run_cli_json_with_repo_root(args: &[&str]) -> (PathBuf, serde_json::Value) {
 }
 
 #[test]
-fn bench_readiness_all_domain_missing_result_test_writes_governed_report_and_fixture_tree() {
+fn bench_readiness_all_domain_missing_result_audit_writes_governed_report_and_fixture_tree() {
     let (repo_root, payload) = run_cli_json_with_repo_root(&[
         "bench",
         "readiness",

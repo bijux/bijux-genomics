@@ -6,8 +6,8 @@
 # last_updated = 2026-04-30
 
 schema_version = "bijux.release_changes.v1"
-release_id = "feat-deep-foundation-compatibility"
-title = "Compatibility and upgrade discipline"
+release_id = "compatibility-upgrade-inventory"
+title = "Compatibility upgrade inventory"
 
 [area_status]
 schemas = true

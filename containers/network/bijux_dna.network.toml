@@ -3,4 +3,4 @@
 tool_id = "bijux_dna"
 runtime_network = false
 build_network = true
-notes = "Docker and Apptainer builds fetch the pinned Rust 1.88.0 toolchain and Cargo dependencies governed by Cargo.lock; runtime is local-only."
+notes = "Docker and Apptainer builds fetch the pinned Rust 1.95.0 toolchain and Cargo dependencies governed by Cargo.lock; runtime is local-only."

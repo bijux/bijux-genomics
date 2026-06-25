@@ -1,0 +1,58 @@
+{
+  "schema_version": "bijux.bench.bam_endogenous_truth.expected.v1",
+  "fixture_id": "endogenous-truth",
+  "sample_truths": [
+    {
+      "sample_id": "human_like_endogenous_partial_mapping",
+      "cohort": "human_like",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_endogenous_partial_mapping.sam",
+      "summary": {
+        "schema_version": "bijux.bam.endogenous_truth.v1",
+        "stage_id": "bam.endogenous_content",
+        "method": "mapped_fraction_from_flagstat",
+        "host_reference_scope": "human_host",
+        "total_reads": 5,
+        "mapped_reads": 3,
+        "contaminant_reads": 2,
+        "retained_reads": 3,
+        "endogenous_reads": 3,
+        "contaminant_fraction": 0.4,
+        "retained_fraction": 0.6,
+        "endogenous_fraction": 0.6,
+        "prealignment_fraction": 0.6,
+        "postalignment_fraction": 0.6,
+        "count_provenance": "mapped reads are retained endogenous reads under the governed host-reference scope; unmapped reads are counted as contaminant or background relative to that scope",
+        "caveats": [
+          "postalignment endogenous fraction reflects reference-dependent mapping behavior",
+          "prealignment endogenous fraction reflects read-space depletion/screening context"
+        ]
+      }
+    },
+    {
+      "sample_id": "human_like_target_window_coverage",
+      "cohort": "human_like",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_target_window_coverage.sam",
+      "summary": {
+        "schema_version": "bijux.bam.endogenous_truth.v1",
+        "stage_id": "bam.endogenous_content",
+        "method": "mapped_fraction_from_flagstat",
+        "host_reference_scope": "human_host",
+        "total_reads": 3,
+        "mapped_reads": 3,
+        "contaminant_reads": 0,
+        "retained_reads": 3,
+        "endogenous_reads": 3,
+        "contaminant_fraction": 0.0,
+        "retained_fraction": 1.0,
+        "endogenous_fraction": 1.0,
+        "prealignment_fraction": 1.0,
+        "postalignment_fraction": 1.0,
+        "count_provenance": "mapped reads are retained endogenous reads under the governed host-reference scope; unmapped reads are counted as contaminant or background relative to that scope",
+        "caveats": [
+          "postalignment endogenous fraction reflects reference-dependent mapping behavior",
+          "prealignment endogenous fraction reflects read-space depletion/screening context"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": "bijux.bench.local_micro_benchmark_run.v1",
+  "manifest_path": "runs/bench/micro/MICRO_BENCHMARK_RUN.json",
+  "run_root": "runs/bench/micro",
+  "run_id": "micro-benchmark-2123f218c0c1",
+  "repo_revision": "09f651e478b5502b22ca0f9ebc6df22c445b610a",
+  "worktree_dirty": true,
+  "created_at_unix": 1704067200,
+  "command": "bijux-dna bench run-micro",
+  "component_reports": [
+    {
+      "component_id": "real_smoke_core_subset",
+      "report_path": "runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json",
+      "row_count": 4
+    },
+    {
+      "component_id": "fastq_micro_smoke_subset",
+      "report_path": "runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json",
+      "row_count": 13
+    },
+    {
+      "component_id": "bam_micro_smoke_subset",
+      "report_path": "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json",
+      "row_count": 12
+    },
+    {
+      "component_id": "vcf_micro_smoke_subset",
+      "report_path": "runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json",
+      "row_count": 8
+    },
+    {
+      "component_id": "amplicon_micro_pipeline",
+      "report_path": "runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json",
+      "row_count": 8
+    },
+    {
+      "component_id": "adna_micro_pipeline",
+      "report_path": "runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json",
+      "row_count": 15
+    },
+    {
+      "component_id": "edna_micro_pipeline",
+      "report_path": "runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json",
+      "row_count": 5
+    },
+    {
+      "component_id": "core_germline_micro_pipeline",
+      "report_path": "runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json",
+      "row_count": 12
+    }
+  ],
+  "result_rows_path": "runs/bench/micro/results/MICRO_RESULT_ROWS.json",
+  "output_rows_path": "runs/bench/micro/outputs/MICRO_OUTPUT_ROWS.json",
+  "log_rows_path": "runs/bench/micro/logs/MICRO_LOG_ROWS.json",
+  "normalized_metrics_path": "runs/bench/micro/normalized-metrics/MICRO_NORMALIZED_METRICS.json",
+  "result_row_count": 77,
+  "output_row_count": 198,
+  "log_row_count": 1,
+  "normalized_metric_row_count": 19,
+  "passes_behavior_test": true
+}

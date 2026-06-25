@@ -1,5 +1,4 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -84,7 +83,7 @@ pub(crate) fn render_orphan_tools(
             if covered.contains(&contract.tool_id) {
                 continue;
             }
-            let declared_stage_ids = contract.admitted_stage_ids();
+            let declared_stage_ids = contract.declared_stage_ids();
             if domain == ReadinessDomain::Fastq
                 && !declared_stage_ids.iter().any(|stage_id| {
                     include_fastq_active_benchmark_pair(stage_id, &contract.tool_id)
@@ -117,9 +116,11 @@ pub(crate) fn render_orphan_tools(
     });
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&output_path, render_orphan_tools_tsv(&rows))
+    let rendered = render_orphan_tools_tsv(&rows);
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", output_path.display()))?;
 
     let mut domain_counts = BTreeMap::<String, usize>::new();
@@ -221,10 +222,21 @@ mod tests {
             .expect("render orphan tools");
 
         assert_eq!(report.schema_version, ORPHAN_TOOLS_SCHEMA_VERSION);
-        assert_eq!(report.orphan_count, 0);
-        assert!(
-            report.rows.is_empty(),
-            "orphan tool report must be empty once the active benchmark scope is fully registered"
-        );
+        assert_eq!(report.orphan_count, 2);
+        assert_eq!(report.rows.len(), 2);
+        assert!(report.rows.iter().any(|row| {
+            row.domain == "fastq"
+                && row.tool_id == "dustmasker"
+                && row.decision == "future_tool"
+                && row.declared_stage_ids == vec!["fastq.filter_low_complexity".to_string()]
+                && row.benchmark_stage_ids.is_empty()
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.domain == "fastq"
+                && row.tool_id == "seqpurge"
+                && row.decision == "future_tool"
+                && row.declared_stage_ids == vec!["fastq.trim_reads".to_string()]
+                && row.benchmark_stage_ids.is_empty()
+        }));
     }
 }

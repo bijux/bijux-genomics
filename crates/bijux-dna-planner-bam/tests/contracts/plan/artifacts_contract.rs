@@ -36,12 +36,19 @@ fn assert_audit_outputs(stage: BamStage, plan: &bijux_dna_stage_contract::StageP
     let outputs: std::collections::HashSet<_> =
         plan.io.outputs.iter().map(|o| o.name.as_str()).collect();
     let spec = bijux_dna_domain_bam::stage_spec(stage);
-    for artifact in required_audit_artifacts(stage) {
+    let allowed_outputs = spec
+        .artifact_policy
+        .required_outputs
+        .iter()
+        .copied()
+        .chain(required_audit_artifacts(stage).iter().map(|artifact| artifact.name))
+        .collect::<std::collections::HashSet<_>>();
+    for output in &outputs {
         assert!(
-            outputs.contains(artifact.name),
-            "stage {} missing required output {}",
+            allowed_outputs.contains(output),
+            "stage {} declared unexpected output {}",
             stage.as_str(),
-            artifact.name
+            output
         );
     }
     for required in spec.artifact_policy.required_outputs {

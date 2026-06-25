@@ -1,13 +1,13 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_api::v1::api::run::run_command_with_context;
 use serde::Serialize;
 
 use super::vcf_active_stage_tool_matrix::collect_vcf_active_stage_tool_matrix_rows;
-use super::vcf_adapter_missing_input_tests::{
-    render_vcf_adapter_missing_input_tests, DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH,
+use super::vcf_adapter_missing_input_audit::{
+    render_vcf_adapter_missing_input_audit, DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH,
 };
 use super::vcf_adapter_output_coverage::{
     render_vcf_adapter_output_coverage, VcfAdapterOutputCoverageStatus,
@@ -95,7 +95,8 @@ pub(crate) fn render_vcf_adapters_ready(
 ) -> Result<VcfAdaptersReadyReport> {
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
-        std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
 
     let mut checks = Vec::new();
@@ -126,8 +127,8 @@ pub(crate) fn render_vcf_adapters_ready(
             if report.row_count != 23
                 || report.stage_count != 20
                 || report.tool_count != 8
-                || report.benchmark_ready_row_count != 20
-                || report.not_benchmark_ready_row_count != 3
+                || report.benchmark_ready_row_count != 21
+                || report.not_benchmark_ready_row_count != 2
             {
                 bail!(
                     "VCF tool-serving map drifted: rows={}, stages={}, tools={}, benchmark_ready={}, not_benchmark_ready={}",
@@ -140,7 +141,7 @@ pub(crate) fn render_vcf_adapters_ready(
             }
             benchmark_ready_pair_count = report.benchmark_ready_row_count;
             tool_serving_map_report = Some(report);
-            Ok("validated 23 governed VCF stage-tool rows with 20 canonical benchmark-ready pairs"
+            Ok("validated 23 governed VCF stage-tool rows with 21 canonical benchmark-ready pairs"
                 .to_string())
         },
     );
@@ -153,9 +154,9 @@ pub(crate) fn render_vcf_adapters_ready(
         || {
             let report =
                 render_vcf_orphan_tools(repo_root, PathBuf::from(DEFAULT_VCF_ORPHAN_TOOLS_PATH))?;
-            if report.orphan_count != 9
-                || report.required_tool_count != 17
-                || report.registered_tool_count != 17
+            if report.orphan_count != 8
+                || report.required_tool_count != 16
+                || report.registered_tool_count != 16
                 || report.served_tool_count != 8
                 || report.rows.iter().any(|row| {
                     row.served_stage_count != 0 || row.decision != "future_not_benchmark_ready"
@@ -164,7 +165,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 bail!("VCF orphan-tool report drifted from the governed orphan tool slice");
             }
             Ok(
-                "validated 9 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
+                "validated 8 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
                     .to_string(),
             )
         },
@@ -191,7 +192,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 report.decision_counts.get("future_not_benchmark_ready").copied().unwrap_or(0);
             let limit_to_specialized_tool =
                 report.decision_counts.get("limit_to_specialized_tool").copied().unwrap_or(0);
-            if future_not_benchmark_ready != 9 || limit_to_specialized_tool != 1 {
+            if future_not_benchmark_ready != 8 || limit_to_specialized_tool != 2 {
                 bail!(
                     "VCF undercovered-stage decisions drifted: future_not_benchmark_ready={future_not_benchmark_ready}, limit_to_specialized_tool={limit_to_specialized_tool}"
                 );
@@ -218,11 +219,11 @@ pub(crate) fn render_vcf_adapters_ready(
             if report.get("passes_gate").and_then(serde_json::Value::as_bool) != Some(true)
                 || report.get("stage_count").and_then(serde_json::Value::as_u64) != Some(20)
                 || report.get("matrix_row_count").and_then(serde_json::Value::as_u64) != Some(23)
-                || report.get("registry_pair_count").and_then(serde_json::Value::as_u64) != Some(44)
+                || report.get("registry_pair_count").and_then(serde_json::Value::as_u64) != Some(42)
                 || report
                     .get("benchmark_ready_registry_pair_count")
                     .and_then(serde_json::Value::as_u64)
-                    != Some(17)
+                    != Some(18)
                 || report.get("unregistered_matrix_pair_count").and_then(serde_json::Value::as_u64)
                     != Some(0)
                 || report
@@ -489,8 +490,8 @@ pub(crate) fn render_vcf_adapters_ready(
                 PathBuf::from(DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH),
             )?;
             if report.row_count != 39
-                || report.benchmark_ready_row_count != 20
-                || report.benchmark_ready_complete_row_count != 20
+                || report.benchmark_ready_row_count != 21
+                || report.benchmark_ready_complete_row_count != 21
                 || report.benchmark_ready_incomplete_row_count != 0
                 || report.complete_row_count != 36
                 || report.incomplete_row_count != 3
@@ -516,7 +517,7 @@ pub(crate) fn render_vcf_adapters_ready(
         "vcf adapter missing-input tests",
         Some(DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH.to_string()),
         || {
-            let report = render_vcf_adapter_missing_input_tests(
+            let report = render_vcf_adapter_missing_input_audit(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH),
             )?;
@@ -550,16 +551,17 @@ pub(crate) fn render_vcf_adapters_ready(
             }
             let script_path = repo_root.join(&report.output_path);
             let argv_path = repo_root.join(&report.argv_output_path);
-            let syntax = Command::new("bash")
-                .arg("-n")
-                .arg(&script_path)
-                .current_dir(repo_root)
-                .output()
-                .with_context(|| format!("run bash -n on {}", script_path.display()))?;
-            if !syntax.status.success() {
+            let syntax = run_command_with_context(
+                "bash",
+                &["-n".to_string(), script_path.display().to_string()],
+                Some(repo_root),
+                None,
+            )
+            .with_context(|| format!("run bash -n on {}", script_path.display()))?;
+            if syntax.exit_code != 0 {
                 bail!(
                     "VCF rendered commands shell script is not parseable by bash -n:\n{}",
-                    String::from_utf8_lossy(&syntax.stderr)
+                    syntax.stderr
                 );
             }
             let argv_lines = std::fs::read_to_string(&argv_path)

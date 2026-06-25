@@ -34,6 +34,206 @@ This runbook describes the campaign planning layer for HPC benchmark execution.
 
 ## Commands
 
+Local asset staging dry-run before cluster transfer planning:
+
+```bash
+make bench-hpc-asset-staging-dry-run
+```
+
+Render only the governed manifest of staged benchmark inputs:
+
+```bash
+make bench-hpc-asset-staging-render
+```
+
+Validate an existing staged-input manifest against the current governed all-domain command slice:
+
+```bash
+make bench-hpc-asset-staging-validate
+```
+
+Render the governed first-run HPC candidate manifest that keeps one smallest representative row
+per admitted `(domain, execution_mode)` pair and excludes unresolved or heavy jobs:
+
+```bash
+make bench-hpc-candidate-run-manifest-render
+```
+
+Validate an existing first-run HPC candidate manifest against the current governed dry-run inputs:
+
+```bash
+make bench-hpc-candidate-run-manifest-validate
+```
+
+Render the governed scratch-path, input-link, output-root, and cleanup layout for the same future
+HPC jobs:
+
+```bash
+make bench-hpc-scratch-layout-render
+```
+
+Validate an existing scratch layout against the current governed submit manifest and command
+surfaces:
+
+```bash
+make bench-hpc-scratch-layout-validate
+```
+
+Render the governed execution-resolution surface for the selected future HPC jobs:
+
+```bash
+make bench-hpc-execution-resolver-render
+```
+
+Validate an existing execution resolver against the current submit manifest, runtime probes, and
+Apptainer conversion map:
+
+```bash
+make bench-hpc-execution-resolver-validate
+```
+
+Render the governed dependency simulation report that proves failed jobs block only descendants
+while sibling branches and unrelated benchmark work continue:
+
+```bash
+make bench-hpc-dependency-simulation-render
+```
+
+Validate an existing dependency simulation report against the current governed HPC job graph:
+
+```bash
+make bench-hpc-dependency-simulation-validate
+```
+
+Render the governed resume simulation report that proves valid-completed jobs skip, failed or
+missing manifests rerun, and stale partial outputs are rejected:
+
+```bash
+make bench-hpc-resume-simulation-render
+```
+
+Validate an existing resume simulation report against the current governed HPC resume contract:
+
+```bash
+make bench-hpc-resume-simulation-validate
+```
+
+Render the governed result-collection simulation report that proves complete, failed, missing,
+insufficient, and unavailable rows stay distinct in report input:
+
+```bash
+make bench-hpc-result-collection-simulation-render
+```
+
+Validate an existing result-collection simulation report against the current governed HPC
+collection contract:
+
+```bash
+make bench-hpc-result-collection-simulation-validate
+```
+
+Render the governed benchmark-result SLURM array and its per-index manifest:
+
+```bash
+make bench-hpc-stage-benchmark-array-render
+```
+
+Validate an existing benchmark-result SLURM array against the current selected jobs, scratch
+layout, and execution resolver:
+
+```bash
+make bench-hpc-stage-benchmark-array-validate
+```
+
+Render the governed essential-pipeline-node SLURM array and its dependency manifest:
+
+```bash
+make bench-hpc-pipeline-node-array-render
+```
+
+Validate an existing essential-pipeline-node SLURM array against the current selected jobs,
+validated pipeline DAGs, and scratch layout:
+
+```bash
+make bench-hpc-pipeline-node-array-validate
+```
+
+Render the governed final HPC dry-run readiness gate under `benchmarks/readiness/hpc/`:
+
+```bash
+make bench-hpc-dry-run-ready-render
+```
+
+Validate the governed final HPC dry-run readiness gate against the current dry-run inputs:
+
+```bash
+make bench-hpc-dry-run-ready-validate
+```
+
+Call the underlying CLI directly when a non-default manifest path is needed:
+
+```bash
+bijux-dna bench local render-hpc-asset-staging-manifest \
+  --output runs/bench/hpc-dry-run/asset-staging-manifest.json
+
+bijux-dna bench local validate-hpc-asset-staging-manifest \
+  --manifest runs/bench/hpc-dry-run/asset-staging-manifest.json
+
+bijux-dna bench local render-hpc-candidate-run-manifest \
+  --output benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json
+
+bijux-dna bench local validate-hpc-candidate-run-manifest \
+  --manifest benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json
+
+bijux-dna bench local render-hpc-dry-run-ready \
+  --output benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json
+
+bijux-dna bench local validate-hpc-dry-run-ready \
+  --manifest benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json
+
+bijux-dna bench local render-hpc-scratch-layout \
+  --output runs/bench/hpc-dry-run/scratch-layout.json
+
+bijux-dna bench local validate-hpc-scratch-layout \
+  --manifest runs/bench/hpc-dry-run/scratch-layout.json
+
+bijux-dna bench local render-hpc-execution-resolver \
+  --output runs/bench/hpc-dry-run/execution-resolver.tsv
+
+bijux-dna bench local validate-hpc-execution-resolver \
+  --manifest runs/bench/hpc-dry-run/execution-resolver.tsv
+
+bijux-dna bench local render-hpc-dependency-simulation \
+  --output runs/bench/hpc-dry-run/slurm-dependency-simulation.json
+
+bijux-dna bench local validate-hpc-dependency-simulation \
+  --manifest runs/bench/hpc-dry-run/slurm-dependency-simulation.json
+
+bijux-dna bench local render-hpc-resume-simulation \
+  --output runs/bench/hpc-dry-run/resume-simulation.json
+
+bijux-dna bench local validate-hpc-resume-simulation \
+  --manifest runs/bench/hpc-dry-run/resume-simulation.json
+
+bijux-dna bench local render-hpc-result-collection-simulation \
+  --output runs/bench/hpc-dry-run/result-collection-simulation.json
+
+bijux-dna bench local validate-hpc-result-collection-simulation \
+  --manifest runs/bench/hpc-dry-run/result-collection-simulation.json
+
+bijux-dna bench local render-hpc-stage-benchmark-array \
+  --output runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch
+
+bijux-dna bench local validate-hpc-stage-benchmark-array \
+  --script runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch
+
+bijux-dna bench local render-hpc-pipeline-node-array \
+  --output runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch
+
+bijux-dna bench local validate-hpc-pipeline-node-array \
+  --script runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch
+```
+
 Generate baseline campaign profiles:
 
 ```bash
@@ -111,14 +311,14 @@ Verify encrypted bundle integrity:
 
 ```bash
 bijux-dna slurm verify-bundle \
-  --bundle /shared/bijux/results/fastq-hpc-mini/fastq/fastq.validate_reads/seqkit_v2/sample_0001/dryrun-0001-1700000000.results
+  --bundle /shared/bijux/results/fastq-hpc-mini/fastq/fastq.validate_reads/seqkit_v2/sample_0001/dryrun-fastq-validate-reads-1700000000.results
 ```
 
 Decrypt one encrypted bundle into a private local directory:
 
 ```bash
 bijux-dna slurm decrypt-bundle \
-  --bundle /shared/bijux/results/fastq-hpc-mini/fastq/fastq.validate_reads/seqkit_v2/sample_0001/dryrun-0001-1700000000.results \
+  --bundle /shared/bijux/results/fastq-hpc-mini/fastq/fastq.validate_reads/seqkit_v2/sample_0001/dryrun-fastq-validate-reads-1700000000.results \
   --out-dir artifacts/investigation/decrypt
 ```
 
@@ -126,17 +326,17 @@ Re-encrypt an existing bundle for rotated recipients:
 
 ```bash
 bijux-dna slurm rewrap-bundle \
-  --bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results \
+  --bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.results \
   --recipient age1newrecipientxxxxxxxxxxxxxxxxxxxx \
-  --out-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results.rotated
+  --out-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.results.rotated
 ```
 
 Import one encrypted results/code pair for replay validation:
 
 ```bash
 bijux-dna slurm import-replay \
-  --results-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results \
-  --code-bundle /shared/bijux/code/fastq-hpc-mini/.../dryrun-0001-1700000000.code \
+  --results-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.results \
+  --code-bundle /shared/bijux/code/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.code \
   --out-dir artifacts/investigation/replay
 ```
 
@@ -164,7 +364,7 @@ Share an encrypted bundle with a collaborator profile:
 
 ```bash
 bijux-dna slurm share-bundle \
-  --bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results \
+  --bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.results \
   --profile benchmarks/configs/hpc/campaign/sharing/collaborator-a.toml \
   --out-dir artifacts/investigation/shared
 ```
@@ -173,8 +373,8 @@ Verify results/code completeness and appraiser-output encryption policy:
 
 ```bash
 bijux-dna slurm verify-results-policy \
-  --results-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-0001-1700000000.results \
-  --code-bundle /shared/bijux/code/fastq-hpc-mini/.../dryrun-0001-1700000000.code
+  --results-bundle /shared/bijux/results/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.results \
+  --code-bundle /shared/bijux/code/fastq-hpc-mini/.../dryrun-fastq-validate-reads-1700000000.code
 ```
 
 ## Security notes

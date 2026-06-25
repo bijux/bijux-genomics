@@ -298,35 +298,27 @@ fn ensure_corpus_centric_report_contract(corpora: &[CorpusCentricCorpusReport]) 
         ));
     }
     let stage_count = corpora.iter().map(|corpus| corpus.stage_count).sum::<usize>();
-    if stage_count != 50 {
+    if stage_count != 51 {
         return Err(anyhow!(
-            "corpus-centric report must retain exactly 50 assigned stages, found {stage_count}"
+            "corpus-centric report must retain exactly 51 assigned stages, found {stage_count}"
         ));
     }
     let tool_row_count = corpora.iter().map(|corpus| corpus.tool_row_count).sum::<usize>();
-    if tool_row_count != 121 {
+    if tool_row_count != 120 {
         return Err(anyhow!(
-            "corpus-centric report must retain exactly 121 assigned stage-tool rows, found {tool_row_count}"
+            "corpus-centric report must retain exactly 120 assigned stage-tool rows, found {tool_row_count}"
         ));
     }
     let blocked_corpus_count =
         corpora.iter().filter(|corpus| corpus.blocked_stage_count > 0).count();
-    if blocked_corpus_count != 1 {
+    if blocked_corpus_count != 0 {
         return Err(anyhow!(
-            "corpus-centric report must retain exactly 1 corpus with blocked stages, found {blocked_corpus_count}"
+            "corpus-centric report must retain exactly 0 corpora with blocked stages, found {blocked_corpus_count}"
         ));
     }
 
     ensure_corpus(corpora, "reference-index-assets", 1, 2, 0, &["reference-index-assets"], &[])?;
-    ensure_corpus(
-        corpora,
-        "corpus-01",
-        20,
-        63,
-        2,
-        &["corpus-01-mini"],
-        &["fastq.trim_reads", "fastq.filter_low_complexity"],
-    )?;
+    ensure_corpus(corpora, "corpus-01", 21, 62, 0, &["corpus-01-mini"], &[])?;
     ensure_corpus(corpora, "corpus-02", 1, 4, 0, &["corpus-02-edna-mini"], &[])?;
     ensure_corpus(corpora, "corpus-03", 5, 5, 0, &["corpus-03-amplicon-mini"], &[])?;
     ensure_corpus(
@@ -534,11 +526,11 @@ mod tests {
         .expect("render corpus-centric report");
 
         assert_eq!(report.corpus_count, 8);
-        assert_eq!(report.stage_count, 50);
-        assert_eq!(report.tool_row_count, 121);
-        assert_eq!(report.benchmark_ready_tool_row_count, 118);
-        assert_eq!(report.blocked_tool_row_count, 3);
-        assert_eq!(report.blocked_corpus_count, 1);
+        assert_eq!(report.stage_count, 51);
+        assert_eq!(report.tool_row_count, 120);
+        assert_eq!(report.benchmark_ready_tool_row_count, 120);
+        assert_eq!(report.blocked_tool_row_count, 0);
+        assert_eq!(report.blocked_corpus_count, 0);
     }
 
     #[test]
@@ -559,6 +551,6 @@ mod tests {
         assert!(markdown.contains("## reference-index-assets"));
         assert!(markdown.contains("| fastq | fastq.index_reference | reference-index-assets | Reference Preparation | 2 | 2 | 0 | index_build_exit_code | none |"));
         assert!(markdown.contains("## corpus-01-adna-bam"));
-        assert!(markdown.contains("| bam | bam.damage | corpus-01-adna-damage-mini | Ancient Signal | 6 | 6 | 0 | terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb | none |"));
+        assert!(markdown.contains("| bam | bam.damage | corpus-01-adna-damage-mini | Ancient Signal | 6 | 6 | 0 | terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal | none |"));
     }
 }

@@ -35,8 +35,10 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let config_path = repo_root.join("benchmarks/configs/local/stage-tool-containers.toml");
+    let config_path = repo_root.join("configs/bench/local/stage-tool-containers.toml");
     let raw = std::fs::read_to_string(&config_path).expect("read config");
+    assert!(raw.starts_with("# schema_version = 1\n"));
+    assert!(raw.contains("# last_updated = 2026-06-25\n"));
     let parsed: toml::Value = toml::from_str(&raw).expect("parse config");
 
     assert_eq!(
@@ -48,7 +50,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         Some("benchmark_ready_runtime_declarations")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 118);
+    assert_eq!(rows.len(), 120);
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()
             || row.get("command_entrypoint").is_some()
@@ -238,7 +240,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.overlap_correction")
             && row.get("tool_id").and_then(toml::Value::as_str) == Some("bamutil")
             && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
-            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("bam")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("bamutil")
             && row.get("container_id").and_then(toml::Value::as_str)
                 == Some("bijuxdna/bamutil:1.0.15")
     }));

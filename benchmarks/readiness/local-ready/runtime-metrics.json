@@ -116,7 +116,7 @@
     {
       "stage_id": "fastq.trim_reads",
       "readiness_kind": "smoke",
-      "tool_id": "fastp",
+      "tool_id": "bbduk",
       "manifest_path": "runs/bench/local-fake-runs/stages/fastq.trim_reads/stage-result.json",
       "runtime_mode": "fake_run",
       "started_at": "1970-01-01T00:00:00Z",

@@ -1,5 +1,4 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -7,7 +6,7 @@ use serde::Serialize;
 
 use super::all_domain_active_stage_tool_matrix::collect_all_domain_active_stage_tool_matrix_rows;
 use super::bam_normalized_metrics_schema::collect_bam_normalized_metrics_schema_report_rows;
-use super::bam_parser_coverage::collect_bam_parser_coverage_rows;
+use super::bam_parser_fixture_coverage::collect_bam_parser_fixture_coverage_rows;
 use super::bam_report_map::collect_bam_report_map_rows;
 use super::fastq_normalized_metrics_schema::collect_fastq_normalized_metrics_schema_report_rows;
 use super::fastq_parser_coverage::collect_fastq_parser_coverage_rows;
@@ -99,9 +98,11 @@ pub(crate) fn render_all_domain_active_stage_catalog(
     let rows = collect_all_domain_active_stage_catalog_rows(repo_root)?;
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&output_path, render_all_domain_active_stage_catalog_tsv(&rows))
+    let rendered = render_all_domain_active_stage_catalog_tsv(&rows);
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", output_path.display()))?;
 
     let row_count = rows.len();
@@ -242,7 +243,7 @@ fn collect_inventory_readiness_by_stage(
 
 fn collect_parser_stage_rows(repo_root: &Path) -> Result<Vec<ParserStageRow>> {
     let (_, _, fastq_rows) = collect_fastq_parser_coverage_rows(repo_root)?;
-    let (_, _, bam_rows, _) = collect_bam_parser_coverage_rows(repo_root)?;
+    let (_, _, bam_rows, _) = collect_bam_parser_fixture_coverage_rows(repo_root)?;
     let (_, _, vcf_rows) = collect_vcf_parser_fixture_coverage_rows(repo_root)?;
 
     let mut rows = Vec::new();
@@ -255,7 +256,8 @@ fn collect_parser_stage_rows(repo_root: &Path) -> Result<Vec<ParserStageRow>> {
     rows.extend(bam_rows.into_iter().map(|row| ParserStageRow {
         domain: "bam".to_string(),
         stage_id: row.stage_id,
-        covered: row.parser_coverage == super::bam_parser_coverage::BamParserCoverageKind::Covered,
+        covered: row.coverage_status
+            == super::bam_parser_fixture_coverage::BamParserFixtureCoverageStatus::Covered,
     }));
     rows.extend(vcf_rows.into_iter().map(|row| ParserStageRow {
         domain: "vcf".to_string(),

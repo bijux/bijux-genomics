@@ -7,16 +7,15 @@ use bijux_dna_domain_bam::params::DamageEffectiveParams;
 #[must_use]
 pub fn filter_args(
     bam: &Path,
-    filtered_bam: &Path,
     report_json: &Path,
     summary_json: &Path,
     _params: &AuthenticityEffectiveParams,
 ) -> Vec<String> {
     let command = format!(
-        "pmdtools --input {bam} --output {filtered} > {report} && \
+        "pmdtools --input {bam} > /dev/null && \
+python - <<'PY' > {report}\nimport json\nprint(json.dumps({{\"tool\": \"pmdtools\", \"stage\": \"{stage}\", \"signal\": \"pmd\"}}, indent=2))\nPY\n\
 python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"method\": \"pmdtools\", \"stage\": \"{stage}\"}}, indent=2))\nPY",
         bam = bam.display(),
-        filtered = filtered_bam.display(),
         report = report_json.display(),
         summary = summary_json.display(),
         stage = id_catalog::BAM_AUTHENTICITY

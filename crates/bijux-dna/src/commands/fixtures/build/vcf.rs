@@ -496,8 +496,11 @@ mod tests {
 
     #[test]
     fn vcf_fixture_build_regenerates_governed_counts() {
-        let repo_root =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..").join("..");
+        let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .expect("repo root");
         let temp = tempfile::tempdir().expect("tempdir");
         let output_root = temp.path().join("vcf-mini");
 

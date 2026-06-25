@@ -9,6 +9,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "name": "sex_report"
     },
     {
+      "filename": "sex_estimate.json",
+      "name": "sex_estimate"
+    },
+    {
+      "filename": "population_metrics.json",
+      "name": "population_metrics"
+    },
+    {
+      "filename": "haplogroup_report.json",
+      "name": "haplogroup_report"
+    },
+    {
       "filename": "sex.summary.json",
       "name": "summary"
     },

@@ -1,0 +1,13 @@
+{
+  "schema_version": "bijux.ci.slow_tier_manual_only.v1",
+  "workflow_path": ".github/workflows/ci.yml",
+  "audit_kind": "slow_tier_manual_only",
+  "ok": true,
+  "workflow_dispatch_enabled": true,
+  "run_slow_tier_input_present": true,
+  "run_slow_tier_default": false,
+  "slow_tier_if": "${{ github.event_name == 'workflow_dispatch' && inputs.run_slow_tier == true }}",
+  "slow_tier_target_jobs": [
+    "slow-tier"
+  ]
+}

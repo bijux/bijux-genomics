@@ -36,5 +36,5 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "fastp \"$@\""]
+ENTRYPOINT ["fastp"]
 CMD []

@@ -46,5 +46,5 @@ pub fn ensure_stage_supported_by_runner(runner: RunnerContractKind, stage_id: &s
     if contracts.iter().any(|contract| contract.supports_stage(stage_id)) {
         return Ok(());
     }
-    Err(anyhow!("runner {runner} has no stage-runner contract for stage {stage_id}",))
+    Err(anyhow!("runner {runner} has no stage-runner contract for stage {stage_id}"))
 }

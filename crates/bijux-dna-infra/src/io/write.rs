@@ -47,6 +47,60 @@ pub fn write_string<P: AsRef<Path>>(path: P, contents: &str) -> Result<(), IoErr
     write_bytes(path, contents.as_bytes())
 }
 
+pub trait WritePayload {
+    fn into_bytes(self) -> Vec<u8>;
+}
+
+impl WritePayload for &str {
+    fn into_bytes(self) -> Vec<u8> {
+        self.as_bytes().to_vec()
+    }
+}
+
+impl WritePayload for String {
+    fn into_bytes(self) -> Vec<u8> {
+        self.into_bytes()
+    }
+}
+
+impl WritePayload for &String {
+    fn into_bytes(self) -> Vec<u8> {
+        self.as_bytes().to_vec()
+    }
+}
+
+impl WritePayload for &[u8] {
+    fn into_bytes(self) -> Vec<u8> {
+        self.to_vec()
+    }
+}
+
+impl<const N: usize> WritePayload for &[u8; N] {
+    fn into_bytes(self) -> Vec<u8> {
+        self.to_vec()
+    }
+}
+
+impl WritePayload for Vec<u8> {
+    fn into_bytes(self) -> Vec<u8> {
+        self
+    }
+}
+
+impl WritePayload for &Vec<u8> {
+    fn into_bytes(self) -> Vec<u8> {
+        self.clone()
+    }
+}
+
+/// Write string or byte payloads to a path with the standard atomic write policy.
+///
+/// # Errors
+/// Returns an IO error if writing fails.
+pub fn write_payload<P: AsRef<Path>, B: WritePayload>(path: P, payload: B) -> Result<(), IoError> {
+    write_bytes(path, payload.into_bytes())
+}
+
 /// Append a single UTF-8 line to a path, creating parent directories if needed.
 ///
 /// # Errors

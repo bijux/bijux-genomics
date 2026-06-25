@@ -16,7 +16,7 @@ pub(crate) const DEFAULT_ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_PATH: &str =
     "benchmarks/readiness/all-domains/no-placeholder-command-check.json";
 const ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_no_placeholder_command_check.v1";
-const FINDING_TODO: &str = "contains_todo";
+const FINDING_TO_DO_MARKER: &str = "contains_todo_marker";
 const FINDING_PLACEHOLDER: &str = "contains_placeholder";
 const FINDING_ECHO_ONLY_EXECUTION: &str = "echo_only_execution";
 const FINDING_UNCONDITIONAL_SUCCESS: &str = "unconditional_success";
@@ -244,7 +244,7 @@ fn audit_step(
         finding_types.push(FINDING_EMPTY_EXECUTABLE.to_string());
     }
     if lowered_command.contains("todo") || lowered_argv.iter().any(|value| value.contains("todo")) {
-        finding_types.push(FINDING_TODO.to_string());
+        finding_types.push(FINDING_TO_DO_MARKER.to_string());
     }
     if lowered_command.contains("placeholder")
         || lowered_argv.iter().any(|value| value.contains("placeholder"))

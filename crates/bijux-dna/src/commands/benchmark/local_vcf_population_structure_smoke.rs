@@ -182,6 +182,8 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
     let output_root = staging_dir.path().to_path_buf();
     let published_population_structure_json_path =
         published_output_root.join(DEFAULT_OUTPUT_REPORT_NAME);
+    let published_artifacts_root = published_output_root.join("artifacts");
+    let published_stage_root = published_artifacts_root.join("stage");
     let published_source_population_structure_path =
         published_output_root.join(DEFAULT_OUTPUT_SOURCE_STAGE_REPORT_NAME);
     let published_source_pruned_variants_path =
@@ -272,6 +274,8 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
     let consumed_pca_json = read_json(&source_pca_report_path)?;
     let consumed_admixture_json = read_json(&source_admixture_report_path)?;
     let source_population_structure_json = read_json(&source_population_structure_path)?;
+    let ld_prune_out_path = stage_root.join("ld_prune_out.tsv");
+    bijux_dna_infra::atomic_write_bytes(&ld_prune_out_path, b"")?;
 
     let consumed_pca =
         summarize_consumed_pca(repo_root, &published_source_pca_report_path, &consumed_pca_json)?;
@@ -338,6 +342,133 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
         distance_summary,
         status,
     };
+    let outputs = vec![
+        BenchStageResultOutputV1 {
+            artifact_id: "population_structure_json".to_string(),
+            declared_path: DEFAULT_OUTPUT_REPORT_NAME.to_string(),
+            realized_path: path_relative_to_repo(
+                repo_root,
+                &published_population_structure_json_path,
+            ),
+            role: "report_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "source_population_structure_json".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_STAGE_REPORT_NAME.to_string(),
+            realized_path: path_relative_to_repo(
+                repo_root,
+                &published_source_population_structure_path,
+            ),
+            role: "report_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "source_pruned_variants_tsv".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_PRUNED_VARIANTS_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_pruned_variants_path),
+            role: "table_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "source_logs_txt".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
+            role: "log_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "source_pca_report_json".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_PCA_REPORT_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_pca_report_path),
+            role: "report_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "source_admixture_report_json".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_ADMIXTURE_REPORT_NAME.to_string(),
+            realized_path: path_relative_to_repo(
+                repo_root,
+                &published_source_admixture_report_path,
+            ),
+            role: "report_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "ld_prune_in".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_PRUNED_VARIANTS_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_pruned_variants_path),
+            role: "table_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "ld_prune_out".to_string(),
+            declared_path: "artifacts/stage/ld_prune_out.tsv".to_string(),
+            realized_path: path_relative_to_repo(
+                repo_root,
+                &published_stage_root.join("ld_prune_out.tsv"),
+            ),
+            role: "table_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "population_pca_eigenvec".to_string(),
+            declared_path: "artifacts/stage/eigenvec.tsv".to_string(),
+            realized_path: path_relative_to_repo(
+                repo_root,
+                &published_stage_root.join("eigenvec.tsv"),
+            ),
+            role: "table_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "population_pca_eigenval".to_string(),
+            declared_path: "artifacts/stage/eigenval.tsv".to_string(),
+            realized_path: path_relative_to_repo(
+                repo_root,
+                &published_stage_root.join("eigenval.tsv"),
+            ),
+            role: "table_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "prune_log".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
+            role: "log_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "pca_log".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
+            role: "log_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "population_structure_report".to_string(),
+            declared_path: DEFAULT_OUTPUT_REPORT_NAME.to_string(),
+            realized_path: path_relative_to_repo(
+                repo_root,
+                &published_population_structure_json_path,
+            ),
+            role: "report_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+    ];
     let stage_result_manifest = BenchStageResultManifestV1 {
         schema_version: BENCH_STAGE_RESULT_SCHEMA_VERSION.to_string(),
         stage_id: contract.stage_id.clone(),
@@ -356,68 +487,7 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
             memory_mb: None,
             cpu_threads: None,
         },
-        outputs: vec![
-            BenchStageResultOutputV1 {
-                artifact_id: "population_structure_json".to_string(),
-                declared_path: DEFAULT_OUTPUT_REPORT_NAME.to_string(),
-                realized_path: path_relative_to_repo(
-                    repo_root,
-                    &published_population_structure_json_path,
-                ),
-                role: "report_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "source_population_structure_json".to_string(),
-                declared_path: DEFAULT_OUTPUT_SOURCE_STAGE_REPORT_NAME.to_string(),
-                realized_path: path_relative_to_repo(
-                    repo_root,
-                    &published_source_population_structure_path,
-                ),
-                role: "report_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "source_pruned_variants_tsv".to_string(),
-                declared_path: DEFAULT_OUTPUT_SOURCE_PRUNED_VARIANTS_NAME.to_string(),
-                realized_path: path_relative_to_repo(
-                    repo_root,
-                    &published_source_pruned_variants_path,
-                ),
-                role: "table_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "source_logs_txt".to_string(),
-                declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
-                role: "log_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "source_pca_report_json".to_string(),
-                declared_path: DEFAULT_OUTPUT_SOURCE_PCA_REPORT_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &published_source_pca_report_path),
-                role: "report_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "source_admixture_report_json".to_string(),
-                declared_path: DEFAULT_OUTPUT_SOURCE_ADMIXTURE_REPORT_NAME.to_string(),
-                realized_path: path_relative_to_repo(
-                    repo_root,
-                    &published_source_admixture_report_path,
-                ),
-                role: "report_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-        ],
+        outputs,
     };
     validate_stage_result_manifest(&stage_result_manifest)?;
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;

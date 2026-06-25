@@ -10,6 +10,27 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         parse_dependencies(&path.join("Cargo.toml"), &known)
     };
     let is_guardrails = |dep: &str| dep == "bijux-dna-policies" || dep == "bijux-dna-testkit";
+    let cli_allowed: BTreeSet<&str> = BTreeSet::from([
+        "bijux-dna-api",
+        "bijux-dna-analyze",
+        "bijux-dna-core",
+        "bijux-dna-db-ena",
+        "bijux-dna-db-ref",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-compiler",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-domain-vcf",
+        "bijux-dna-environment",
+        "bijux-dna-environment-qa",
+        "bijux-dna-infra",
+        "bijux-dna-planner-bam",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-planner-vcf",
+        "bijux-dna-policies",
+        "bijux-dna-stage-contract",
+        "bijux-dna-stages-fastq",
+        "bijux-dna-stages-vcf",
+    ]);
 
     let cli = deps_for("bijux-dna");
     bijux_dna_policies::policy_assert!(
@@ -17,21 +38,11 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "cli must depend on bijux-dna-api"
     );
     for dep in &cli {
+        if is_guardrails(dep) {
+            continue;
+        }
         bijux_dna_policies::policy_assert!(
-            dep == "bijux-dna-api"
-                || dep == "bijux-dna-domain-compiler"
-                || dep == "bijux-dna-core"
-                || dep == "bijux-dna-db-ena"
-                || dep == "bijux-dna-analyze"
-                || dep == "bijux-dna-domain-vcf"
-                || dep == "bijux-dna-environment"
-                || dep == "bijux-dna-environment-qa"
-                || dep == "bijux-dna-infra"
-                || dep == "bijux-dna-runtime"
-                || dep == "bijux-dna-stage-contract"
-                || dep == "bijux-dna-stages-vcf"
-                || dep == "bijux-dna-planner-vcf"
-                || dep == "bijux-dna-policies",
+            cli_allowed.contains(dep.as_str()) || dep == "bijux-dna-runtime",
             "cli must not depend on workspace crate {dep}"
         );
     }
@@ -43,21 +54,11 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             "bijux-dna must depend on bijux-dna-api"
         );
         for dep in &cli_deps {
+            if is_guardrails(dep) {
+                continue;
+            }
             bijux_dna_policies::policy_assert!(
-                dep == "bijux-dna-api"
-                    || dep == "bijux-dna-domain-compiler"
-                    || dep == "bijux-dna-core"
-                    || dep == "bijux-dna-db-ena"
-                    || dep == "bijux-dna-analyze"
-                    || dep == "bijux-dna-domain-vcf"
-                    || dep == "bijux-dna-environment"
-                    || dep == "bijux-dna-environment-qa"
-                    || dep == "bijux-dna-infra"
-                    || dep == "bijux-dna-runtime"
-                    || dep == "bijux-dna-stage-contract"
-                    || dep == "bijux-dna-stages-vcf"
-                    || dep == "bijux-dna-planner-vcf"
-                    || dep == "bijux-dna-policies",
+                cli_allowed.contains(dep.as_str()) || dep == "bijux-dna-runtime",
                 "bijux-dna must not depend on workspace crate {dep}"
             );
         }

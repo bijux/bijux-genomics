@@ -777,7 +777,7 @@ mod tests {
     }
 
     #[test]
-    fn cross_catalog_includes_iteration_14_goals() {
+    fn cross_catalog_covers_declared_id_span() {
         assert_eq!(CROSS_GOALS_CATALOG.len(), 10);
         assert_eq!(CROSS_GOALS_CATALOG[0].goal_id, "G161");
         assert_eq!(CROSS_GOALS_CATALOG[9].goal_id, "G170");
@@ -824,7 +824,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_161_emits_modern_cross_workflow_checks() {
+    fn emits_modern_cross_workflow_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G161".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -879,7 +879,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_162_emits_adna_cross_workflow_checks() {
+    fn emits_adna_cross_workflow_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G162".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -895,7 +895,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_163_emits_bam_to_vcf_handoff_checks() {
+    fn emits_bam_to_vcf_handoff_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G163".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -911,7 +911,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_164_emits_fastq_to_vcf_chain_checks() {
+    fn emits_fastq_to_vcf_chain_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G164".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -927,7 +927,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_165_emits_batch_fanout_fanin_checks() {
+    fn emits_batch_fanout_fanin_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G165".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -943,7 +943,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_166_emits_partial_failure_policy_checks() {
+    fn emits_partial_failure_policy_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G166".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -959,7 +959,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_167_emits_sample_sheet_validation_checks() {
+    fn emits_sample_sheet_validation_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G167".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -975,7 +975,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_168_emits_reference_change_propagation_checks() {
+    fn emits_reference_change_propagation_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G168".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -991,7 +991,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_169_emits_contamination_propagation_checks() {
+    fn emits_contamination_propagation_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G169".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -1007,7 +1007,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_170_emits_reviewer_bundle_generation_checks() {
+    fn emits_reviewer_bundle_generation_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G170".to_string()];
         let queue = vec![HardeningQueueEntry {

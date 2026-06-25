@@ -242,16 +242,16 @@ fn load_stage_report_placements(
 }
 
 fn ensure_tool_centric_report_contract(tools: &[ToolCentricToolReport]) -> Result<()> {
-    if tools.len() != 67 {
+    if tools.len() != 65 {
         return Err(anyhow!(
-            "tool-centric report must retain exactly 67 tools, found {}",
+            "tool-centric report must retain exactly 65 tools, found {}",
             tools.len()
         ));
     }
     let row_count = tools.iter().map(|tool| tool.stage_count).sum::<usize>();
-    if row_count != 122 {
+    if row_count != 120 {
         return Err(anyhow!(
-            "tool-centric report must retain exactly 122 stage-tool rows, found {row_count}"
+            "tool-centric report must retain exactly 120 stage-tool rows, found {row_count}"
         ));
     }
     let unique_stage_count = tools
@@ -307,7 +307,7 @@ fn ensure_tool_centric_report_contract(tools: &[ToolCentricToolReport]) -> Resul
             "fastq.trim_polyg_tails",
             "fastq.trim_reads",
         ],
-        1,
+        0,
     )?;
     ensure_tool_stages(
         tools,
@@ -482,12 +482,12 @@ mod tests {
         )
         .expect("render tool-centric report");
 
-        assert_eq!(report.tool_count, 67);
+        assert_eq!(report.tool_count, 65);
         assert_eq!(report.unique_stage_count, 51);
-        assert_eq!(report.row_count, 122);
-        assert_eq!(report.benchmark_ready_row_count, 118);
-        assert_eq!(report.blocked_row_count, 4);
-        assert_eq!(report.blocked_tool_count, 4);
+        assert_eq!(report.row_count, 120);
+        assert_eq!(report.benchmark_ready_row_count, 120);
+        assert_eq!(report.blocked_row_count, 0);
+        assert_eq!(report.blocked_tool_count, 0);
 
         let samtools = report
             .tools
@@ -500,11 +500,8 @@ mod tests {
         let fastp =
             report.tools.iter().find(|tool| tool.tool_id == "fastp").expect("fastp tool report");
         assert_eq!(fastp.stage_count, 5);
-        assert_eq!(fastp.blocked_stage_count, 1);
-        assert_eq!(
-            fastp.blocked_stage_ids,
-            vec!["fastq.filter_low_complexity (support)".to_string()]
-        );
+        assert_eq!(fastp.blocked_stage_count, 0);
+        assert!(fastp.blocked_stage_ids.is_empty());
     }
 
     #[test]
@@ -519,8 +516,10 @@ mod tests {
         let markdown = std::fs::read_to_string(output_path).expect("read markdown");
         assert!(markdown.contains("# Tool-Centric Benchmark Report"));
         assert!(markdown.contains("## samtools"));
-        assert!(markdown
-            .contains("| fastp | fastq | 5 | 4 | 1 | fastq.filter_low_complexity (support) |"));
+        assert!(markdown.contains("| fastp | fastq | 5 | 5 | 0 | none |"));
+        assert!(
+            markdown.contains("| fastq | fastq.report_qc | Quality Profiling | QC Signal Profiles | benchmark_ready | none | observer_specialized_benchmark | runnable | comparable | fixture:corpus-01-mini | not_required |")
+        );
         assert!(
             markdown.contains("| bam | bam.recalibration | Downstream Readiness | Variant and Bias Readiness | benchmark_ready | none | supported | runnable | parser_fixture_validated | fixture:corpus-01-bam-mini | assigned |")
         );

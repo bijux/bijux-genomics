@@ -34,12 +34,12 @@ fn run_cli_json() -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_vcf_parser_failure_tests_report_governed_failure_rows() {
+fn bench_readiness_vcf_parser_failure_audit_report_governed_failure_rows() {
     let payload = run_cli_json();
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.vcf_parser_failure_tests.v1")
+        Some("bijux.bench.readiness.vcf_parser_failure_audit.v1")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),

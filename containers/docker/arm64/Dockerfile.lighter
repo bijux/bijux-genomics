@@ -77,5 +77,5 @@ RUN printf '%s\n' \
   > /usr/local/bin/lighter && chmod +x /usr/local/bin/lighter
 
 WORKDIR /data
-# **NO ENTRYPOINT** – the caller supplies the command
-CMD ["lighter", "--help"]
+ENTRYPOINT ["lighter"]
+CMD ["--help"]

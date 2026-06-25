@@ -1,0 +1,15 @@
+{
+  "schema_version": "bijux.ci.no_repeated_fast_gate.v1",
+  "workflow_path": ".github/workflows/ci.yml",
+  "audit_kind": "no_repeated_target",
+  "ok": true,
+  "target": "make ci-fast",
+  "usage_count": 1,
+  "usages": [
+    {
+      "job_id": "fast-tier",
+      "step_name": "Minimal CI gate",
+      "command": "make ci-fast"
+    }
+  ]
+}

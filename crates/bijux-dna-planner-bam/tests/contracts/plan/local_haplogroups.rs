@@ -28,7 +28,7 @@ fn stage_api_temp_repo() -> Result<tempfile::TempDir> {
 }
 
 fn write_local_haplogroups_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("benchmarks/configs/local");
+    let config_dir = root.join("configs/bench/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-haplogroups.toml"), body)?;
     Ok(())

@@ -30,6 +30,9 @@ fn repo_root() -> Result<PathBuf> {
 #[test]
 fn write_local_sex_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
+    let _lock = crate::support::bench_output_lock()
+        .lock()
+        .unwrap_or_else(|err| panic!("lock BAM sex benchmark output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
     let output_dir = repo_root.join("runs/bench/local-smoke/bam.sex");
     if output_dir.exists() {
@@ -41,6 +44,13 @@ fn write_local_sex_smoke_report_materializes_governed_outputs() -> Result<()> {
     assert!(report_path.is_file(), "local-smoke BAM sex report must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
+    assert_sex_smoke_payload(&payload);
+    assert_sex_smoke_artifacts(&repo_root, &payload)?;
+
+    Ok(())
+}
+
+fn assert_sex_smoke_payload(payload: &serde_json::Value) {
     assert_eq!(payload["stage_id"], serde_json::json!("bam.sex"));
     assert_eq!(payload["schema_version"], serde_json::json!("bijux.bam.sex.local_smoke.report.v1"));
     assert_eq!(payload["sample_id"], serde_json::json!("adna_xy_autosome_coverage"));
@@ -56,16 +66,23 @@ fn write_local_sex_smoke_report_materializes_governed_outputs() -> Result<()> {
     assert_eq!(payload["confidence"], serde_json::json!(0.9));
     assert_eq!(payload["status"], serde_json::json!("ok"));
     assert_eq!(payload["insufficiency_reason"], serde_json::Value::Null);
+}
 
-    let sex_report = repo_root
-        .join(payload["sex_report"].as_str().unwrap_or_else(|| panic!("sex_report path missing")));
-    let sex_summary = repo_root.join(
-        payload["sex_summary"].as_str().unwrap_or_else(|| panic!("sex_summary path missing")),
-    );
-    let stage_metrics = repo_root.join(
-        payload["stage_metrics"].as_str().unwrap_or_else(|| panic!("stage_metrics path missing")),
-    );
-    for path in [&sex_report, &sex_summary, &stage_metrics] {
+fn assert_sex_smoke_artifacts(repo_root: &Path, payload: &serde_json::Value) -> Result<()> {
+    let sex_report = required_repo_path(repo_root, payload, "sex_report")?;
+    let sex_estimate = required_repo_path(repo_root, payload, "sex_estimate")?;
+    let population_metrics = required_repo_path(repo_root, payload, "population_metrics")?;
+    let haplogroup_report = required_repo_path(repo_root, payload, "haplogroup_report")?;
+    let sex_summary = required_repo_path(repo_root, payload, "sex_summary")?;
+    let stage_metrics = required_repo_path(repo_root, payload, "stage_metrics")?;
+    for path in [
+        &sex_report,
+        &sex_estimate,
+        &population_metrics,
+        &haplogroup_report,
+        &sex_summary,
+        &stage_metrics,
+    ] {
         assert!(path.is_file(), "governed BAM sex artifact must exist: {}", path.display());
     }
 
@@ -133,4 +150,9 @@ fn write_local_sex_smoke_report_materializes_governed_outputs() -> Result<()> {
     assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())
+}
+
+fn required_repo_path(repo_root: &Path, payload: &serde_json::Value, key: &str) -> Result<PathBuf> {
+    let value = payload[key].as_str().ok_or_else(|| anyhow::anyhow!("{key} path missing"))?;
+    Ok(repo_root.join(value))
 }

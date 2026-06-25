@@ -485,7 +485,7 @@ pub fn evaluate_fallback_safety(request: &FallbackSafetyRequestV1) -> FallbackSa
         .evidence_obligations
         .iter()
         .filter(|required| !request.fallback_evidence_topics.iter().any(|topic| topic == *required))
-        .map(|missing| missing.to_string())
+        .cloned()
         .collect::<Vec<_>>();
     if !missing_topics.is_empty() {
         refusal_codes.push("fallback_evidence_obligation_gap".to_string());

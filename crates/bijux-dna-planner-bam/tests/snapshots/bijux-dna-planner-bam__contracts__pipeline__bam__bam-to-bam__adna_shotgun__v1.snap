@@ -18,6 +18,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
       "to": "bam.haplogroups"
     },
     {
+      "from": "bam.complexity",
+      "to": "bam.coverage"
+    },
+    {
       "from": "bam.contamination",
       "to": "bam.sex"
     },
@@ -31,7 +35,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
     },
     {
       "from": "bam.duplication_metrics",
-      "to": "bam.coverage"
+      "to": "bam.complexity"
     },
     {
       "from": "bam.endogenous_content",
@@ -66,12 +70,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
       "to": "bam.damage"
     },
     {
+      "from": "bam.qc_pre",
+      "to": "bam.mapping_summary"
+    },
+    {
       "from": "bam.sex",
       "to": "bam.bias_mitigation"
     },
     {
       "from": "bam.validate",
-      "to": "bam.mapping_summary"
+      "to": "bam.qc_pre"
     }
   ],
   "pipeline_id": "bam-to-bam__adna_shotgun__v1",
@@ -210,13 +218,83 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
         "template": [
           "/bin/sh",
           "-c",
+          "preseq lc_extrap -o <TMPDIR>/<TMP>/out/bam_complexity/complexity_curve.tsv <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_complexity/complexity.json\nimport json\nprint(json.dumps({\"source\": \"preseq\", \"complexity_curve\": \"<TMPDIR>/<TMP>/out/bam_complexity/complexity_curve.tsv\"}, indent=2))\nPY && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_complexity/complexity.summary.json\nimport json\nprint(json.dumps({\"stage\": \"bam.complexity\", \"complexity_curve\": \"<TMPDIR>/<TMP>/out/bam_complexity/complexity_curve.tsv\"}, indent=2))\nPY"
+        ]
+      },
+      "expected_artifact_ids": [
+        "complexity_report",
+        "complexity_curve",
+        "summary",
+        "stage_metrics"
+      ],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "complexity_report",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_complexity/complexity.json",
+            "role": "report_json"
+          },
+          {
+            "name": "complexity_curve",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_complexity/complexity_curve.tsv",
+            "role": "unknown"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_complexity/complexity.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_complexity/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_complexity",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.complexity",
+      "step_id": "bam.complexity"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
           "schmutzi --bam <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam --reference <TMPDIR>/<TMP>/mt_reference.fasta --outdir <TMPDIR>/<TMP>/out/bam_contamination && if [ -f <TMPDIR>/<TMP>/out/bam_contamination/contamination.txt ]; then cp <TMPDIR>/<TMP>/out/bam_contamination/contamination.txt <TMPDIR>/<TMP>/out/bam_contamination/contamination.json; else : > <TMPDIR>/<TMP>/out/bam_contamination/contamination.json; fi && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_contamination/contamination.summary.json\nimport json\nprint(json.dumps(json.loads(\"{\\n  \\\"assumptions\\\": null,\\n  \\\"emit_confidence_caveats\\\": true,\\n  \\\"method\\\": \\\"schmutzi\\\",\\n  \\\"minimum_mean_coverage\\\": 0.5,\\n  \\\"reference\\\": \\\"<TMPDIR>/<TMP>/mt_reference.fasta\\\",\\n  \\\"reference_panels\\\": [],\\n  \\\"scope\\\": \\\"both\\\",\\n  \\\"tool_scope\\\": \\\"mt\\\"\\n}\"), indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
         "contamination_report",
+        "contamination_estimate",
         "summary",
-        "stage_metrics"
+        "stage_metrics",
+        "mt_consensus"
       ],
       "image": {
         "digest": "sha256:bwa",
@@ -251,6 +329,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
             "role": "report_json"
           },
           {
+            "name": "contamination_estimate",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_contamination/contamination.estimate.json",
+            "role": "unknown"
+          },
+          {
             "name": "summary",
             "optional": false,
             "path": "<TMPDIR>/<TMP>/out/bam_contamination/contamination.summary.json",
@@ -261,6 +345,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
             "optional": false,
             "path": "<TMPDIR>/<TMP>/out/bam_contamination/stage.metrics.json",
             "role": "metrics_json"
+          },
+          {
+            "name": "mt_consensus",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_contamination/mt_consensus.fasta",
+            "role": "reference"
           }
         ]
       },
@@ -351,7 +441,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
         "damage_report",
         "terminal_position_metrics",
         "parser_output",
-        "stage_metrics"
+        "stage_metrics",
+        "damage_profile",
+        "damage_plot"
       ],
       "image": {
         "digest": "sha256:bwa",
@@ -390,6 +482,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
             "optional": false,
             "path": "<TMPDIR>/<TMP>/out/bam_damage/stage.metrics.json",
             "role": "metrics_json"
+          },
+          {
+            "name": "damage_profile",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/damage_profile.json",
+            "role": "unknown"
+          },
+          {
+            "name": "damage_plot",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/damage_plot.json",
+            "role": "unknown"
           }
         ]
       },
@@ -644,6 +748,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
         "genotyping_report",
         "summary",
         "stage_metrics",
+        "genotyping_bcf",
         "genotyping_vcf",
         "genotyping_vcf_tbi",
         "genotyping_gl"
@@ -681,20 +786,26 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
             "role": "metrics_json"
           },
           {
+            "name": "genotyping_bcf",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.bcf",
+            "role": "variant"
+          },
+          {
             "name": "genotyping_vcf",
-            "optional": true,
+            "optional": false,
             "path": "<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.vcf.gz",
             "role": "variant"
           },
           {
             "name": "genotyping_vcf_tbi",
-            "optional": true,
+            "optional": false,
             "path": "<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.vcf.gz.tbi",
             "role": "index"
           },
           {
             "name": "genotyping_gl",
-            "optional": true,
+            "optional": false,
             "path": "<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.gl.json",
             "role": "report_json"
           }
@@ -725,7 +836,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
       "expected_artifact_ids": [
         "haplogroups",
         "summary",
-        "stage_metrics"
+        "stage_metrics",
+        "haplogroup_report"
       ],
       "image": {
         "digest": "sha256:bwa",
@@ -764,6 +876,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
             "optional": false,
             "path": "<TMPDIR>/<TMP>/out/bam_haplogroups/stage.metrics.json",
             "role": "metrics_json"
+          },
+          {
+            "name": "haplogroup_report",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_haplogroups/haplogroup_report.json",
+            "role": "report_json"
           }
         ]
       },
@@ -1210,11 +1328,82 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
         "template": [
           "/bin/sh",
           "-c",
+          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/flagstat.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/idxstats.txt && samtools stats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/samtools_stats.txt"
+        ]
+      },
+      "expected_artifact_ids": [
+        "flagstat",
+        "idxstats",
+        "stats",
+        "stage_metrics"
+      ],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/sample.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "flagstat",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/flagstat.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "idxstats",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/idxstats.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "stats",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/samtools_stats.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_qc_pre",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.qc_pre",
+      "step_id": "bam.qc_pre"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
           "rxy --input <TMPDIR>/<TMP>/out/bam_overlap_correction/overlap.corrected.bam > <TMPDIR>/<TMP>/out/bam_sex/sex.json && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_sex/sex.summary.json\nimport json\npayload = {\"method\": \"rxy\", \"x_to_y_ratio\": 0.0, \"confidence\": 0.0}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
         "sex_report",
+        "sex_estimate",
+        "population_metrics",
+        "haplogroup_report",
         "summary",
         "stage_metrics"
       ],
@@ -1236,6 +1425,24 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
             "name": "sex_report",
             "optional": false,
             "path": "<TMPDIR>/<TMP>/out/bam_sex/sex.json",
+            "role": "report_json"
+          },
+          {
+            "name": "sex_estimate",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_sex/sex_estimate.json",
+            "role": "unknown"
+          },
+          {
+            "name": "population_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_sex/population_metrics.json",
+            "role": "metrics_json"
+          },
+          {
+            "name": "haplogroup_report",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_sex/haplogroup_report.json",
             "role": "report_json"
           },
           {

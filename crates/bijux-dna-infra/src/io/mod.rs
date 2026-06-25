@@ -7,6 +7,7 @@ mod write;
 use crate::{retry_with, RetryPolicy, SystemClock};
 
 pub use stable_surface::*;
+pub use write::write_payload;
 
 /// Atomically write bytes with retry/backoff.
 ///

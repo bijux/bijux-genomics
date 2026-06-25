@@ -12,12 +12,12 @@ use serde::Deserialize;
 
 use crate::selection::{allowed_tools_for_stage, load_bam_domain_tool_execution_spec};
 
-const LOCAL_ALIGN_CONFIG_PATH: &str = "benchmarks/configs/local/bam-align.toml";
-const LOCAL_CONTAMINATION_CONFIG_PATH: &str = "benchmarks/configs/local/bam-contamination.toml";
+const LOCAL_ALIGN_CONFIG_PATH: &str = "configs/bench/local/bam-align.toml";
+const LOCAL_CONTAMINATION_CONFIG_PATH: &str = "configs/bench/local/bam-contamination.toml";
 #[cfg(feature = "bam_downstream")]
-const LOCAL_GENOTYPING_CONFIG_PATH: &str = "benchmarks/configs/local/bam-genotyping.toml";
+const LOCAL_GENOTYPING_CONFIG_PATH: &str = "configs/bench/local/bam-genotyping.toml";
 #[cfg(feature = "bam_downstream")]
-const LOCAL_HAPLOGROUPS_CONFIG_PATH: &str = "benchmarks/configs/local/bam-haplogroups.toml";
+const LOCAL_HAPLOGROUPS_CONFIG_PATH: &str = "configs/bench/local/bam-haplogroups.toml";
 const LOCAL_RUNTIME_PROFILE_PATH: &str = "configs/runtime/profiles/local.toml";
 const DEFAULT_LOCAL_ALIGN_OUTPUT_DIR: &str = "benchmarks/readiness/local-ready/bam.align";
 const DEFAULT_LOCAL_CONTAMINATION_OUTPUT_DIR: &str =
@@ -144,12 +144,48 @@ pub fn local_align_plan(repo_root: &Path) -> Result<bijux_dna_stage_contract::St
     }
 
     let local_profile = load_local_runtime_profile(repo_root)?;
-    let stage = BamStage::Align;
-    let stage_id = StageId::new(stage.as_str().to_string());
     let tool_id = ToolId::try_from(config.tool_id.as_str())
         .map_err(|error| anyhow!("invalid local-ready tool_id `{}`: {error}", config.tool_id))?;
+    local_align_plan_with_tool(repo_root, &config, &local_profile, &tool_id)
+}
 
-    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+/// # Errors
+/// Returns an error if the governed local-ready config or runtime profile cannot be read or if one
+/// of the admitted `bam.align` tool plans cannot be built for output-contract coverage.
+pub fn local_align_output_contract_plans(
+    repo_root: &Path,
+) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>> {
+    let config = load_local_align_plan_config(repo_root)?;
+    if config.schema_version != "bijux.bench.bam.local_align.v1" {
+        return Err(anyhow!(
+            "unexpected local-ready bam.align schema_version `{}`",
+            config.schema_version
+        ));
+    }
+
+    let local_profile = load_local_runtime_profile(repo_root)?;
+    let stage = BamStage::Align;
+    let mut tool_ids = allowed_tools_for_stage(stage);
+    tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    tool_ids
+        .into_iter()
+        .map(|tool_id| local_align_plan_with_tool(repo_root, &config, &local_profile, &tool_id))
+        .collect()
+}
+
+fn local_align_plan_with_tool(
+    repo_root: &Path,
+    config: &LocalAlignPlanConfig,
+    local_profile: &LocalRuntimeProfile,
+    tool_id: &ToolId,
+) -> Result<bijux_dna_stage_contract::StagePlanV1> {
+    let stage = BamStage::Align;
+    let stage_id = StageId::new(stage.as_str().to_string());
+
+    if !allowed_tools_for_stage(stage)
+        .iter()
+        .any(|candidate| candidate.as_str() == tool_id.as_str())
+    {
         return Err(anyhow!(
             "local-ready bam.align tool `{}` is not admitted by the BAM stage contract",
             tool_id.as_str()
@@ -179,14 +215,14 @@ pub fn local_align_plan(repo_root: &Path) -> Result<bijux_dna_stage_contract::St
         tool_id.as_str(),
     )?;
 
-    let mut tool_spec = load_bam_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
-    hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
+    let mut tool_spec = load_bam_domain_tool_execution_spec(repo_root, &stage_id, tool_id)?;
+    hydrate_local_profile_defaults(&mut tool_spec, config.threads, local_profile);
     let strategy =
         bam_alignment_strategy_for_tool(tool_id.as_str(), Some("default")).ok_or_else(|| {
             anyhow!("local-ready bam.align tool `{tool_id}` has no governed alignment strategy")
         })?;
     let out_dir =
-        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_ALIGN_OUTPUT_DIR));
+        config.output_dir.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_ALIGN_OUTPUT_DIR));
     let params = AlignEffectiveParams {
         aligner: tool_id.as_str().to_string(),
         strategy_id: strategy.strategy_id,
@@ -278,12 +314,70 @@ pub fn local_contamination_plan(repo_root: &Path) -> Result<bijux_dna_stage_cont
     }
 
     let local_profile = load_local_runtime_profile(repo_root)?;
-    let stage = BamStage::Contamination;
-    let stage_id = StageId::new(stage.as_str().to_string());
     let tool_id = ToolId::try_from(config.tool_id.as_str())
         .map_err(|error| anyhow!("invalid local-ready tool_id `{}`: {error}", config.tool_id))?;
+    local_contamination_plan_with_tool(repo_root, &config, &local_profile, &tool_id)
+}
 
-    if !allowed_tools_for_stage(stage).iter().any(|candidate| candidate == &tool_id) {
+/// # Errors
+/// Returns an error if the governed local-ready config or runtime profile cannot be read, any
+/// admitted contamination tool is invalid for the stage, or one of the governed plans cannot be
+/// built.
+pub fn local_contamination_smoke_plans(
+    repo_root: &Path,
+) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>> {
+    let config = load_local_contamination_plan_config(repo_root)?;
+    if config.schema_version != "bijux.bench.bam.local_contamination.v1" {
+        return Err(anyhow!(
+            "unexpected local-ready bam.contamination schema_version `{}`",
+            config.schema_version
+        ));
+    }
+    if config.sample_id.trim().is_empty() {
+        return Err(anyhow!("local-ready bam.contamination sample_id must not be empty"));
+    }
+    if config.reference_panels.is_empty() {
+        return Err(anyhow!(
+            "local-ready bam.contamination requires at least one governed reference panel"
+        ));
+    }
+    if config.assumptions.as_deref().map(str::trim).is_none_or(str::is_empty) {
+        return Err(anyhow!(
+            "local-ready bam.contamination requires a non-empty governed assumptions string"
+        ));
+    }
+    if config.minimum_mean_coverage.is_some_and(|coverage| !coverage.is_finite() || coverage <= 0.0)
+    {
+        return Err(anyhow!(
+            "local-ready bam.contamination minimum_mean_coverage must be finite and greater than zero"
+        ));
+    }
+
+    let local_profile = load_local_runtime_profile(repo_root)?;
+    let stage = BamStage::Contamination;
+    let mut tool_ids = allowed_tools_for_stage(stage);
+    tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
+    tool_ids
+        .into_iter()
+        .map(|tool_id| {
+            local_contamination_plan_with_tool(repo_root, &config, &local_profile, &tool_id)
+        })
+        .collect()
+}
+
+fn local_contamination_plan_with_tool(
+    repo_root: &Path,
+    config: &LocalContaminationPlanConfig,
+    local_profile: &LocalRuntimeProfile,
+    tool_id: &ToolId,
+) -> Result<bijux_dna_stage_contract::StagePlanV1> {
+    let stage = BamStage::Contamination;
+    let stage_id = StageId::new(stage.as_str().to_string());
+
+    if !allowed_tools_for_stage(stage)
+        .iter()
+        .any(|candidate| candidate.as_str() == tool_id.as_str())
+    {
         return Err(anyhow!(
             "local-ready bam.contamination tool `{}` is not admitted by the BAM stage contract",
             tool_id.as_str()
@@ -303,22 +397,25 @@ pub fn local_contamination_plan(repo_root: &Path) -> Result<bijux_dna_stage_cont
         )?;
     }
 
-    let mut tool_spec = load_bam_domain_tool_execution_spec(repo_root, &stage_id, &tool_id)?;
-    hydrate_local_profile_defaults(&mut tool_spec, config.threads, &local_profile);
-    let out_dir =
-        config.output_dir.unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_CONTAMINATION_OUTPUT_DIR));
+    let mut tool_spec = load_bam_domain_tool_execution_spec(repo_root, &stage_id, tool_id)?;
+    hydrate_local_profile_defaults(&mut tool_spec, config.threads, local_profile);
+    let out_dir = config
+        .output_dir
+        .clone()
+        .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_CONTAMINATION_OUTPUT_DIR));
+    let scope = local_contamination_scope_for_tool(config.scope, tool_id.as_str());
     let params = ContaminationEffectiveParams {
         reference_panels: config
             .reference_panels
             .iter()
             .map(|path| path.display().to_string())
             .collect(),
-        scope: config.scope,
+        scope,
         prior: config.prior,
         sex_specific: config.sex_specific,
-        assumptions: config.assumptions,
+        assumptions: config.assumptions.clone(),
         required_reference_digest: Some(bijux_dna_infra::hash_file_sha256(&reference_abs)?),
-        chromosome_system: config.chromosome_system,
+        chromosome_system: config.chromosome_system.clone(),
         minimum_mean_coverage: config.minimum_mean_coverage,
         emit_confidence_caveats: config.emit_confidence_caveats,
     };
@@ -341,6 +438,17 @@ pub fn local_contamination_plan(repo_root: &Path) -> Result<bijux_dna_stage_cont
     params.insert("tool".to_string(), serde_json::json!(tool_id.as_str()));
 
     Ok(plan)
+}
+
+fn local_contamination_scope_for_tool(
+    configured_scope: ContaminationScope,
+    tool_id: &str,
+) -> ContaminationScope {
+    match (configured_scope, tool_id) {
+        (ContaminationScope::Nuclear, "schmutzi") => ContaminationScope::Both,
+        (ContaminationScope::Mito, "contammix" | "verifybamid2") => ContaminationScope::Both,
+        _ => configured_scope,
+    }
 }
 
 /// # Errors

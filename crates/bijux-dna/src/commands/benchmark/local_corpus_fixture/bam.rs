@@ -16,6 +16,8 @@ pub(crate) const DEFAULT_CORPUS_01_GENOTYPING_MINI_MANIFEST_PATH: &str =
     "benchmarks/tests/fixtures/corpora/corpus-01-genotyping-mini/manifest.toml";
 pub(crate) const DEFAULT_CORPUS_01_KINSHIP_MINI_MANIFEST_PATH: &str =
     "benchmarks/tests/fixtures/corpora/corpus-01-kinship-mini/manifest.toml";
+pub(crate) const DEFAULT_CORPUS_01_VCF_COHORT_BAM_MINI_MANIFEST_PATH: &str =
+    "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/manifest.toml";
 pub(crate) const BAM_CORPUS_FIXTURE_SCHEMA_VERSION: &str = "bijux.bench.bam_corpus_fixture.v1";
 const BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.bam_corpus_fixture_validation.v1";
@@ -27,6 +29,8 @@ pub(crate) struct BamCorpusFixtureManifest {
     pub(crate) corpus_id: String,
     pub(crate) species: String,
     pub(crate) description: String,
+    #[serde(default)]
+    pub(crate) reference_id: Option<String>,
     pub(crate) reference_fasta: PathBuf,
     #[serde(default)]
     pub(crate) udg_model: Option<String>,
@@ -109,6 +113,7 @@ pub(crate) struct BamCorpusFixtureValidationReport {
     pub(crate) manifest_path: String,
     pub(crate) corpus_id: String,
     pub(crate) species: String,
+    pub(crate) reference_id: Option<String>,
     pub(crate) reference_fasta: String,
     pub(crate) udg_model: Option<String>,
     pub(crate) damage_signal: Option<String>,
@@ -222,6 +227,7 @@ pub(crate) fn validate_bam_corpus_fixture_manifest_path(
         manifest_path: path_relative_to_repo(repo_root, manifest_path),
         corpus_id: manifest.corpus_id,
         species: manifest.species,
+        reference_id: manifest.reference_id,
         reference_fasta: path_relative_to_repo(repo_root, &reference_fasta),
         udg_model: manifest.udg_model,
         damage_signal: manifest.damage_signal,
@@ -235,7 +241,9 @@ pub(crate) fn validate_bam_corpus_fixture_manifest_path(
     })
 }
 
-fn load_bam_corpus_fixture_manifest_path(manifest_path: &Path) -> Result<BamCorpusFixtureManifest> {
+pub(crate) fn load_bam_corpus_fixture_manifest_path(
+    manifest_path: &Path,
+) -> Result<BamCorpusFixtureManifest> {
     let raw = fs::read_to_string(manifest_path)
         .with_context(|| format!("read {}", manifest_path.display()))?;
     toml::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))
@@ -255,6 +263,9 @@ fn validate_bam_corpus_fixture_manifest_contract(
     }
     if manifest.description.trim().is_empty() {
         return Err(anyhow!("BAM corpus fixture must declare a non-empty `description`"));
+    }
+    if manifest.reference_id.as_deref().is_some_and(|reference_id| reference_id.trim().is_empty()) {
+        return Err(anyhow!("BAM corpus fixture `reference_id`, when declared, must not be empty"));
     }
     let has_adna_profile = manifest.udg_model.is_some()
         || manifest.damage_signal.is_some()
@@ -778,7 +789,7 @@ mod tests {
 
         assert_eq!(report.schema_version, BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.corpus_id, "corpus-01-bam-mini");
-        assert_eq!(report.sample_count, 21);
+        assert_eq!(report.sample_count, 23);
         assert_eq!(
             report.reference_contigs,
             vec![
@@ -997,7 +1008,7 @@ mod tests {
 
         assert_eq!(report.schema_version, BAM_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.corpus_id, "corpus-01-adna-bam-mini");
-        assert_eq!(report.sample_count, 3);
+        assert_eq!(report.sample_count, 4);
         assert_eq!(report.udg_model.as_deref(), Some("non_udg"));
         assert_eq!(report.damage_signal.as_deref(), Some("moderate"));
         assert_eq!(report.expected_terminal_pattern_class.as_deref(), Some("ct5p_dominant"));
@@ -1025,6 +1036,14 @@ mod tests {
                 && sample.observed_header_sample_ids == vec!["adna_y_haplogroup_panel".to_string()]
                 && sample.observed_read_group_ids == vec!["rg-haplogroups-adna".to_string()]
                 && sample.observed_record_count == 4
+        }));
+        assert!(report.samples.iter().any(|sample| {
+            sample.sample_id == "adna_y_haplogroup_partial_panel"
+                && sample.observed_contigs == vec!["chrY".to_string()]
+                && sample.observed_header_sample_ids
+                    == vec!["adna_y_haplogroup_partial_panel".to_string()]
+                && sample.observed_read_group_ids == vec!["rg-haplogroups-adna-partial".to_string()]
+                && sample.observed_record_count == 2
         }));
     }
 
@@ -1096,8 +1115,13 @@ mod tests {
     #[test]
     fn corpus_01_bam_mini_fixture_validation_refuses_header_sample_id_drift() {
         let root = repo_root();
-        let temp = tempfile::tempdir().expect("tempdir");
-        let manifest_path = temp.path().join("manifest.toml");
+        let fixture_root = root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini");
+        let temp = tempfile::Builder::new()
+            .prefix("broken-corpus-01-bam-mini-")
+            .suffix(".toml")
+            .tempfile_in(&fixture_root)
+            .expect("temp manifest");
+        let manifest_path = temp.path().to_path_buf();
         let broken = fs::read_to_string(root.join(DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH))
             .expect("read governed corpus-01 bam mini manifest")
             .replacen(

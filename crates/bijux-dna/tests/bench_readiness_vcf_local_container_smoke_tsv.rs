@@ -59,12 +59,15 @@ fn bench_readiness_vcf_local_container_smoke_writes_governed_tsv_file() {
         row == &"vcf.impute\tbeagle\tbeagle\tproduction\tsupported\tactive\tactive\thost_stage_smoke\thost\tbeagle\tbijux-dna bench local run-vcf-impute-smoke --tool-id beagle\tcrates/bijux-dna/src/commands/benchmark/local_vcf_impute_smoke.rs\t\tbinding `vcf.impute` / `beagle` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"vcf.postprocess\tbcftools\tbcftools\tproduction\tsupported\tactive\tactive\tdocker_container_smoke\tdocker-arm64\tbcftools\tbijux-dna env smoke docker-arm64 bcftools\tcontainers/docker/arm64/Dockerfile.bcftools\t\tbinding `vcf.postprocess` / `bcftools` matches the governed VCF stage-matrix default tool, but no exact tiny-fixture stage smoke wrapper is checked in, so the governed container smoke wrapper is the available local exercise path for `vcf.postprocess` / `bcftools`"
+        row == &"vcf.postprocess\tbcftools\tbcftools\tproduction\tsupported\tactive\tactive\thost_stage_smoke\thost\tbcftools\tbijux-dna bench local run-vcf-postprocess-smoke --tool-id bcftools\tcrates/bijux-dna/src/commands/benchmark/local_vcf_postprocess_smoke.rs\t\tbinding `vcf.postprocess` / `bcftools` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host"
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf.phasing\tshapeit\tshapeit\tplanned\tsupported\tremoved_from_scope\tbenchmark_not_ready\tapptainer_container_smoke\tapptainer\tshapeit\tbijux-dna env smoke apptainer shapeit\tcontainers/apptainer/shared/shapeit.def\tshapeit --help\tretained tool `shapeit` has no exact tiny-fixture stage smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `vcf.phasing` / `shapeit`; no-run-possible: planned wrapper surface exposes help/version only until packaging and phasing fixtures are governed."
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf.ibd\tibdseq\tibdseq\tplanned\tplanned\tremoved_from_scope\tlifecycle_not_active\tdocker_container_smoke\tdocker-arm64\tibdseq\tbijux-dna env smoke docker-arm64 ibdseq\tcontainers/docker/arm64/Dockerfile.ibdseq\tibdseq --help\tretained tool `ibdseq` has no exact tiny-fixture stage smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `vcf.ibd` / `ibdseq`; no-run-possible: planned wrapper surface exposes help/version only until packaging and IBD fixtures are governed."
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"vcf.roh\tplink2\tplink2\texperimental,production\tsupported\tactive\tactive\thost_stage_smoke\thost\tplink2\tbijux-dna bench local run-vcf-roh-smoke --tool-id plink2\tcrates/bijux-dna/src/commands/benchmark/local_vcf_roh_smoke.rs\t\tbinding `vcf.roh` / `plink2` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host"
     }));
 }

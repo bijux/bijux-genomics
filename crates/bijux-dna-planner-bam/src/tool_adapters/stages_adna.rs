@@ -12,6 +12,50 @@ pub mod damage {
     pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::Damage.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+    fn retained_output_ids(tool_id: &str) -> &'static [&'static str] {
+        match tool_id {
+            "addeam" => &[
+                "damage_report",
+                "terminal_position_metrics",
+                "parser_output",
+                "stage_metrics",
+                "damage_profile",
+                "damage_clusters",
+            ],
+            "damageprofiler" | "mapdamage2" => &[
+                "damage_report",
+                "terminal_position_metrics",
+                "parser_output",
+                "stage_metrics",
+                "damage_profile",
+                "damage_plot",
+            ],
+            "ngsbriggs" => &[
+                "damage_report",
+                "terminal_position_metrics",
+                "parser_output",
+                "stage_metrics",
+                "damage_profile",
+                "damage_parameters",
+            ],
+            "pmdtools" => &[
+                "damage_report",
+                "terminal_position_metrics",
+                "parser_output",
+                "stage_metrics",
+                "pmd_scores",
+                "damage_profile",
+            ],
+            _ => &[
+                "damage_report",
+                "terminal_position_metrics",
+                "parser_output",
+                "stage_metrics",
+                "damage_profile",
+            ],
+        }
+    }
+
     /// # Errors
     /// Returns an error if required outputs are missing from the plan.
     pub fn plan(
@@ -20,10 +64,14 @@ pub mod damage {
         out_dir: &Path,
         params: &DamageEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
+        let required_outputs = retained_output_ids(tool.tool_id.as_str());
         let outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::Damage,
             out_dir,
-        );
+        )
+        .into_iter()
+        .filter(|artifact| required_outputs.contains(&artifact.name.as_str()))
+        .collect();
         let out_json = out_dir.join("damage.pydamage.json");
         let command = match tool.tool_id.as_str() {
             "mapdamage2" => {
@@ -90,10 +138,7 @@ pub mod damage {
             provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
-        crate::tool_adapters::stages_support::ensure_required_outputs(
-            plan,
-            &["damage_report", "terminal_position_metrics", "parser_output", "stage_metrics"],
-        )
+        crate::tool_adapters::stages_support::ensure_required_outputs(plan, required_outputs)
     }
 }
 
@@ -111,6 +156,22 @@ pub mod authenticity {
     pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::Authenticity.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+    fn retained_output_ids(tool_id: &str) -> &'static [&'static str] {
+        match tool_id {
+            "damageprofiler" => &[
+                "authenticity_report",
+                "summary",
+                "stage_metrics",
+                "damage_profile",
+                "damage_plot",
+            ],
+            "pmdtools" => {
+                &["authenticity_report", "summary", "stage_metrics", "pmd_scores", "damage_profile"]
+            }
+            _ => &["authenticity_report", "summary", "stage_metrics"],
+        }
+    }
+
     /// # Errors
     /// Returns an error if required outputs are missing from the plan.
     pub fn plan(
@@ -119,28 +180,20 @@ pub mod authenticity {
         out_dir: &Path,
         params: &AuthenticityEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
-        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+        let required_outputs = retained_output_ids(tool.tool_id.as_str());
+        let outputs: Vec<_> = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::Authenticity,
             out_dir,
-        );
+        )
+        .into_iter()
+        .filter(|artifact| required_outputs.contains(&artifact.name.as_str()))
+        .collect();
         let report = out_dir.join("authenticity.json");
         let summary = out_dir.join("authenticity.summary.json");
-        let mut outputs = outputs;
-        if tool.tool_id.as_str() == "pmdtools" {
-            outputs.push(bijux_dna_stage_contract::ArtifactRef::optional(
-                ArtifactId::from_static("pmd_filtered_bam"),
-                out_dir.join("pmd.filtered.bam"),
-                ArtifactRole::Bam,
-            ));
-        }
         let command = match tool.tool_id.as_str() {
-            "pmdtools" => crate::tool_adapters::tools::pmdtools::filter_args(
-                bam,
-                &out_dir.join("pmd.filtered.bam"),
-                &report,
-                &summary,
-                params,
-            ),
+            "pmdtools" => {
+                crate::tool_adapters::tools::pmdtools::filter_args(bam, &report, &summary, params)
+            }
             _ => crate::tool_adapters::tools::authenticity_signal::args_with_outputs(
                 bam, &report, &summary, params,
             ),
@@ -181,10 +234,7 @@ pub mod authenticity {
             provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
-        crate::tool_adapters::stages_support::ensure_required_outputs(
-            plan,
-            &["authenticity_report", "summary", "stage_metrics"],
-        )
+        crate::tool_adapters::stages_support::ensure_required_outputs(plan, required_outputs)
     }
 }
 
@@ -210,12 +260,27 @@ pub mod contamination {
         out_dir: &Path,
         params: &ContaminationEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
-        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+        let mut outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::Contamination,
             out_dir,
         );
         let report = out_dir.join("contamination.json");
         let summary = out_dir.join("contamination.summary.json");
+        let contammix_report = out_dir.join("contammix.report.txt");
+        let mt_consensus = out_dir.join("mt_consensus.fasta");
+        match tool.tool_id.as_str() {
+            "contammix" => outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("contammix_report"),
+                contammix_report.clone(),
+                ArtifactRole::Report,
+            )),
+            "schmutzi" => outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("mt_consensus"),
+                mt_consensus.clone(),
+                ArtifactRole::Reference,
+            )),
+            _ => {}
+        }
         let panel_paths = params.reference_panels.iter().map(Path::new).collect::<Vec<_>>();
         let command = match tool.tool_id.as_str() {
             "schmutzi" => crate::tool_adapters::tools::schmutzi::args_with_outputs(
@@ -317,7 +382,7 @@ pub mod contamination {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &["contamination_report", "summary", "stage_metrics"],
+            &["contamination_report", "summary", "stage_metrics", "contamination_estimate"],
         )
     }
 }
@@ -334,6 +399,17 @@ pub mod sex {
     pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::Sex.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+    fn retained_output_ids(_tool_id: &str) -> &'static [&'static str] {
+        &[
+            "sex_report",
+            "sex_estimate",
+            "population_metrics",
+            "haplogroup_report",
+            "summary",
+            "stage_metrics",
+        ]
+    }
+
     /// # Errors
     /// Returns an error if required outputs are missing from the plan.
     pub fn plan(
@@ -342,10 +418,14 @@ pub mod sex {
         out_dir: &Path,
         params: &SexEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
+        let required_outputs = retained_output_ids(tool.tool_id.as_str());
         let outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::Sex,
             out_dir,
-        );
+        )
+        .into_iter()
+        .filter(|artifact| required_outputs.contains(&artifact.name.as_str()))
+        .collect();
         let report = out_dir.join("sex.json");
         let summary = out_dir.join("sex.summary.json");
         let plan = StagePlanV1 {
@@ -401,9 +481,6 @@ pub mod sex {
             provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
-        crate::tool_adapters::stages_support::ensure_required_outputs(
-            plan,
-            &["sex_report", "summary", "stage_metrics"],
-        )
+        crate::tool_adapters::stages_support::ensure_required_outputs(plan, required_outputs)
     }
 }

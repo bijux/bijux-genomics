@@ -46,20 +46,26 @@
         "role": "metrics_json"
       },
       {
+        "name": "genotyping_bcf",
+        "optional": false,
+        "path": "out/genotyping.bcf",
+        "role": "variant"
+      },
+      {
         "name": "genotyping_vcf",
-        "optional": true,
+        "optional": false,
         "path": "out/genotyping.vcf.gz",
         "role": "variant"
       },
       {
         "name": "genotyping_vcf_tbi",
-        "optional": true,
+        "optional": false,
         "path": "out/genotyping.vcf.gz.tbi",
         "role": "index"
       },
       {
         "name": "genotyping_gl",
-        "optional": true,
+        "optional": false,
         "path": "out/genotyping.gl.json",
         "role": "report_json"
       }
@@ -74,7 +80,7 @@
     "min_call_rate": 0.7,
     "min_posterior": 0.8,
     "producer_contract": {
-      "bcf": null,
+      "bcf": "out/genotyping.bcf",
       "gl": "out/genotyping.gl.json",
       "tbi": "out/genotyping.vcf.gz.tbi",
       "vcf": "out/genotyping.vcf.gz"
@@ -86,7 +92,7 @@
   "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "205ebeb748b41d4b87438e4070326d8337a79b1f30b6d8ded2881008c63976eb",
+      "contract_hash": "b12b34453afc2b09317634d77e6a07edf502b6b1bf6cec37aa28c290b7a39f97",
       "defaults_diff": {},
       "resource_plan": {
         "cpu_threads": 4,

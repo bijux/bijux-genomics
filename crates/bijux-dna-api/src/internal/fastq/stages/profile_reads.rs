@@ -49,7 +49,7 @@ use bijux_dna_runtime::recording::{
 };
 
 use super::trim_bench_common::benchmark_image_identity;
-use crate::public_bridge::handlers::fastq::{
+use crate::public_surface::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_PROFILE_READS,
 };
 use bijux_dna_core::contract::{ContractVersion, ExecutionManifest, ToolRegistry};

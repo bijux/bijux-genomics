@@ -1,0 +1,11 @@
+schema_version = "bijux.bench.fastq_trimming_truth.v1"
+fixture_id = "fastq-trimming-truth"
+description = "Governed FASTQ trimming truth bundle for adapter, quality, and polyG-tail removal smoke outputs."
+expected_path = "expected.json"
+stage_ids = ["fastq.trim_reads", "fastq.trim_polyg_tails"]
+source_paths = [
+  "assets/toy/core-v1/fastq/reads_with_trim_signals.fastq",
+  "assets/toy/core-v1/fastq/reads_with_trim_signals_R1.fastq",
+  "assets/toy/core-v1/fastq/reads_with_trim_signals_R2.fastq",
+  "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_polyg_trim_signals_R1.fastq.gz",
+]

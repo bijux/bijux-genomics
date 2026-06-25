@@ -69,13 +69,16 @@ fn write_local_trim_reads_smoke_report_materializes_governed_outputs() -> Result
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.trim_reads"));
-    assert_eq!(payload["case_count"], serde_json::json!(2));
+    assert_eq!(payload["case_count"], serde_json::json!(3));
     assert_eq!(payload["all_cases_passed"], serde_json::json!(true));
 
     let cases = payload["cases"].as_array().unwrap_or_else(|| panic!("cases array missing"));
     let se_case = cases
         .iter()
-        .find(|case| case["sample_id"] == serde_json::json!("adapter-quality-se"))
+        .find(|case| {
+            case["sample_id"] == serde_json::json!("adapter-quality-se")
+                && case["tool_id"] == serde_json::json!("fastp")
+        })
         .unwrap_or_else(|| panic!("single-end trim smoke case missing"));
     assert_eq!(se_case["layout"], serde_json::json!("single_end"));
     assert_eq!(se_case["input_read_count_total"], serde_json::json!(2));
@@ -123,7 +126,10 @@ fn write_local_trim_reads_smoke_report_materializes_governed_outputs() -> Result
 
     let pe_case = cases
         .iter()
-        .find(|case| case["sample_id"] == serde_json::json!("adapter-quality-pe"))
+        .find(|case| {
+            case["sample_id"] == serde_json::json!("adapter-quality-pe")
+                && case["tool_id"] == serde_json::json!("fastp")
+        })
         .unwrap_or_else(|| panic!("paired-end trim smoke case missing"));
     assert_eq!(pe_case["layout"], serde_json::json!("paired_end"));
     assert_eq!(pe_case["input_read_count_total"], serde_json::json!(4));
@@ -170,6 +176,20 @@ fn write_local_trim_reads_smoke_report_materializes_governed_outputs() -> Result
     assert_eq!(pe_report["pairs_out"], serde_json::json!(2));
     assert_eq!(pe_report["min_length"], serde_json::json!(4));
     assert_eq!(pe_report["quality_cutoff"], serde_json::json!(20));
+
+    let bbduk_case = cases
+        .iter()
+        .find(|case| {
+            case["sample_id"] == serde_json::json!("adapter-quality-se")
+                && case["tool_id"] == serde_json::json!("bbduk")
+        })
+        .unwrap_or_else(|| panic!("single-end bbduk trim smoke case missing"));
+    let bbduk_raw_backend_report = repo_root.join(
+        bbduk_case["raw_backend_report"]
+            .as_str()
+            .unwrap_or_else(|| panic!("bbduk raw_backend_report missing")),
+    );
+    assert!(bbduk_raw_backend_report.is_file(), "bbduk raw backend report must exist");
 
     Ok(())
 }

@@ -27,7 +27,7 @@ The VCF science layer needs a readable tool inventory that mirrors the stage man
 | vcf.stats | supported | bcftools | Required VCF summary metrics remain bound to the current production baseline. |
 | vcf.qc | supported | bcftools, plink, plink2 | Cohort-level QC is governed on the admitted deterministic and cohort-analysis backends so missingness and frequency gates stay explicit before downstream inference. |
 | vcf.pca | supported | plink2, eigensoft | PCA support is governed across the admitted PLINK2 and EIGENSOFT structure-analysis families so sample-complete projections stay comparative. |
-| vcf.admixture | supported | plink, plink2 | Admixture reporting is governed on the admitted PLINK-family matrix-tool surface so normalized cluster fractions stay explicit and reproducible. |
+| vcf.admixture | supported | plink, plink2 | Admixture inference stays available through the governed PLINK-family execution surface for ancestry decomposition summaries. |
 | vcf.population_structure | supported | plink, plink2, eigensoft | Population-structure summaries are governed on admitted structure-analysis tooling with explicit consumed PCA and admixture evidence. |
 | vcf.phasing | supported | beagle, shapeit5, eagle | Shapeit5 is the governed active phasing path while Beagle, Eagle, and retained alternatives stay explicit for comparative readiness. |
 | vcf.prepare_reference_panel | supported | bcftools | Reference-panel preparation stays deterministic while the governed Beagle family consumes panel outputs downstream. |
@@ -35,5 +35,5 @@ The VCF science layer needs a readable tool inventory that mirrors the stage man
 | vcf.impute | supported | beagle, glimpse, impute5, minimac4 | Explicit imputation execution is governed through the Beagle baseline while retained alternatives stay comparative. |
 | vcf.postprocess | supported | bcftools | Post-imputation normalization remains deterministic and single-tool. |
 | vcf.ibd | planned | germline, ibdseq, ibdhap | IBD keeps an active normalized pairwise-segment contract, but the named external backends remain planned until runtime packaging is production-backed. |
-| vcf.roh | supported | plink2 | ROH stays intentionally single-tool because the governed PLINK2 path already emits normalized segment and per-sample evidence. |
+| vcf.roh | supported | plink2 | ROH interval extraction remains available through the governed PLINK2 execution surface with deterministic segment summaries. |
 | vcf.demography | planned | ibdne | Demography keeps an active deterministic Ne contract on normalized IBD segments, but the named IBDNe backend remains planned until runtime packaging is production-backed. |

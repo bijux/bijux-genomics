@@ -15,8 +15,8 @@ use super::vcf_missing_result_report::{
     render_vcf_missing_result_report, DEFAULT_VCF_MISSING_RESULT_REPORT_TEST_PATH,
 };
 use super::vcf_normalized_metrics_schema::render_vcf_normalized_metrics_schema;
-use super::vcf_parser_failure_tests::{
-    render_vcf_parser_failure_tests, DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH,
+use super::vcf_parser_failure_audit::{
+    render_vcf_parser_failure_audit, DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH,
 };
 use super::vcf_parser_fixture_coverage::{
     render_vcf_parser_fixture_coverage, DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH,
@@ -126,7 +126,7 @@ pub(crate) fn render_vcf_parsers_report_ready(
             if !validation_report.passes_gate
                 || !validation_report.shared_schema_matches
                 || validation_report.stage_count != 20
-                || validation_report.required_stage_count != 17
+                || validation_report.required_stage_count != 18
                 || validation_report.exact_stage_schema_file_count != 20
             {
                 bail!("VCF schema validation drifted from the governed pass state");
@@ -275,7 +275,7 @@ pub(crate) fn render_vcf_parsers_report_ready(
         "vcf parser failure tests",
         Some(DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH.to_string()),
         || {
-            let report = render_vcf_parser_failure_tests(
+            let report = render_vcf_parser_failure_audit(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH),
             )?;
@@ -319,10 +319,10 @@ pub(crate) fn render_vcf_parsers_report_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH),
             )?;
-            if report.stage_count != 17
+            if report.stage_count != 18
                 || report.tool_count != 6
-                || report.row_count != 20
-                || report.covered_row_count != 20
+                || report.row_count != 21
+                || report.covered_row_count != 21
                 || report.missing_row_count != 0
                 || report.parser_fixture_coverage_percent != 100.0
             {
@@ -330,7 +330,7 @@ pub(crate) fn render_vcf_parsers_report_ready(
             }
             active_parser_fixture_row_count = report.covered_row_count;
             parser_coverage_report = Some(report);
-            Ok("validated full parser-fixture coverage across the 20 active VCF rows".to_string())
+            Ok("validated full parser-fixture coverage across the 21 active VCF rows".to_string())
         },
     );
 
@@ -344,8 +344,8 @@ pub(crate) fn render_vcf_parsers_report_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH),
             )?;
-            if report.row_count != 20
-                || report.stage_count != 17
+            if report.row_count != 21
+                || report.stage_count != 18
                 || report.tool_count != 6
                 || report.corpus_count != 1
                 || report.asset_profile_count != 5
@@ -354,7 +354,7 @@ pub(crate) fn render_vcf_parsers_report_ready(
             }
             expected_result_row_count = report.row_count;
             expected_results_report = Some(report);
-            Ok("validated 20 governed expected benchmark-ready VCF result rows".to_string())
+            Ok("validated 21 governed expected benchmark-ready VCF result rows".to_string())
         },
     );
 
@@ -368,8 +368,8 @@ pub(crate) fn render_vcf_parsers_report_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_MISSING_RESULT_REPORT_TEST_PATH),
             )?;
-            if report.expected_row_count != 20
-                || report.present_result_row_count != 19
+            if report.expected_row_count != 21
+                || report.present_result_row_count != 20
                 || report.missing_result_row_count != 1
                 || !report.passes_behavior_test
             {
@@ -388,11 +388,11 @@ pub(crate) fn render_vcf_parsers_report_ready(
         || {
             let report =
                 render_vcf_report_map(repo_root, PathBuf::from(DEFAULT_VCF_REPORT_MAP_PATH))?;
-            if report.row_count != 20
-                || report.stage_count != 17
+            if report.row_count != 21
+                || report.stage_count != 18
                 || report.tool_count != 6
-                || report.section_count != 9
-                || report.summary_table_count != 9
+                || report.section_count != 10
+                || report.summary_table_count != 10
             {
                 bail!("VCF report map drifted from the governed expected-result slice");
             }
@@ -656,9 +656,9 @@ mod tests {
             &root.join(DEFAULT_VCF_PARSERS_REPORT_READY_PATH),
             checks,
             39,
-            19,
-            20,
-            20,
+            21,
+            21,
+            21,
             35,
         );
 
@@ -669,9 +669,9 @@ mod tests {
         assert_eq!(report.failed_goal_count, 1);
         assert_eq!(report.failing_goal_ids, vec![260]);
         assert_eq!(report.parser_fixture_row_count, 39);
-        assert_eq!(report.active_parser_fixture_row_count, 20);
-        assert_eq!(report.expected_result_row_count, 20);
-        assert_eq!(report.report_map_row_count, 20);
+        assert_eq!(report.active_parser_fixture_row_count, 21);
+        assert_eq!(report.expected_result_row_count, 21);
+        assert_eq!(report.report_map_row_count, 21);
         assert_eq!(report.comparable_metric_row_count, 35);
         assert!(!report.ok);
     }

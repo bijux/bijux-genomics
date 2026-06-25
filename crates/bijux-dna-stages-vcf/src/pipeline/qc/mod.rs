@@ -570,6 +570,43 @@ pub struct StatsStageOutputs {
     pub metrics: VcfStatsMetricsV1,
 }
 
+fn write_stats_fallback_artifact(
+    output_path: &Path,
+    metrics: &VcfStatsMetricsV1,
+    failure: &anyhow::Error,
+) -> Result<()> {
+    let mut lines = vec![
+        "# synthetic bcftools stats fallback".to_string(),
+        format!("# fallback_reason\t{}", failure.to_string().replace('\n', " ")),
+        format!("sample_name\t{}", metrics.sample_name),
+        format!("variants_total\t{}", metrics.variants_total),
+        format!("sample_count\t{}", metrics.sample_count),
+        format!("snps\t{}", metrics.snps),
+        format!("indels\t{}", metrics.indels),
+    ];
+    if let Some(ti_tv) = metrics.ti_tv {
+        lines.push(format!("ti_tv\t{ti_tv}"));
+    }
+    if let Some(missingness_post) = metrics.missingness_post {
+        lines.push(format!("missingness_post\t{missingness_post}"));
+    }
+    if let Some(heterozygosity_ratio) = metrics.heterozygosity_ratio {
+        lines.push(format!("heterozygosity_ratio\t{heterozygosity_ratio}"));
+    }
+    if let Some(annotation_coverage) = metrics.annotation_coverage {
+        lines.push(format!("annotation_coverage\t{annotation_coverage}"));
+    }
+    for (filter_id, count) in &metrics.filter_breakdown {
+        lines.push(format!("filter.{filter_id}\t{count}"));
+    }
+    for (bin_label, count) in &metrics.depth_distribution {
+        lines.push(format!("depth.{bin_label}\t{count}"));
+    }
+    let rendered = format!("{}\n", lines.join("\n"));
+    atomic_write_bytes(output_path, rendered.as_bytes())?;
+    Ok(())
+}
+
 /// # Errors
 /// Returns an error if stats artifacts cannot be computed/written.
 pub fn run_stats_stage_real(
@@ -592,13 +629,12 @@ pub fn run_stats_stage_real(
         normalized_input
     };
     let bcftools_stats_txt = out_dir.join("bcftools_stats.txt");
-    let mut metrics =
-        if let Ok(real) = crate::vcf_io::vcf_stats_basic(&source_vcfgz, &bcftools_stats_txt) {
-            real
-        } else {
+    let mut metrics = match crate::vcf_io::vcf_stats_basic(&source_vcfgz, &bcftools_stats_txt) {
+        Ok(real) => real,
+        Err(error) => {
             let call = parse_vcf_call_summary(input_vcf, &params.sample_name)?;
             let filter = parse_vcf_filter_breakdown(input_vcf, &params.sample_name)?;
-            VcfStatsMetricsV1 {
+            let fallback = VcfStatsMetricsV1 {
                 schema_version: "bijux.vcf.stats.v1".to_string(),
                 sample_name: params.sample_name.clone(),
                 variants_total: call.variants_called,
@@ -613,8 +649,11 @@ pub fn run_stats_stage_real(
                 depth_distribution: std::collections::BTreeMap::new(),
                 call_summary: call,
                 filter_summary: filter,
-            }
-        };
+            };
+            write_stats_fallback_artifact(&bcftools_stats_txt, &fallback, &error)?;
+            fallback
+        }
+    };
     metrics.sample_name = params.sample_name.clone();
     enrich_stats_metrics_from_vcf(input_vcf, &mut metrics)?;
     let stats_json = out_dir.join("stats.json");

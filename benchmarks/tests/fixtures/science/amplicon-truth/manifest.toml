@@ -1,0 +1,19 @@
+schema_version = "bijux.bench.amplicon_truth.v1"
+fixture_id = "amplicon-truth"
+description = "Governed amplicon truth bundle for primer rows, chimera expectations, ASV rows, representative sequences, OTU abundance rows, and normalized abundance values."
+expected_path = "expected.json"
+corpus_manifest_path = "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml"
+asv_representatives_path = "benchmarks/tests/fixtures/science/amplicon-truth/asv_representatives.fasta"
+non_chimeric_representatives_path = "benchmarks/tests/fixtures/science/amplicon-truth/non_chimeric_representatives.fasta"
+otu_representatives_path = "benchmarks/tests/fixtures/science/amplicon-truth/otu_representatives.fasta"
+normalized_abundance_path = "benchmarks/tests/fixtures/science/amplicon-truth/normalized_abundance.tsv"
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv",
+  "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv",
+  "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv",
+  "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv",
+  "benchmarks/tests/fixtures/science/amplicon-truth/asv_representatives.fasta",
+  "benchmarks/tests/fixtures/science/amplicon-truth/non_chimeric_representatives.fasta",
+  "benchmarks/tests/fixtures/science/amplicon-truth/otu_representatives.fasta",
+  "benchmarks/tests/fixtures/science/amplicon-truth/normalized_abundance.tsv",
+]

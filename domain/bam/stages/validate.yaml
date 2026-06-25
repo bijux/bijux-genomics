@@ -27,12 +27,25 @@ parameters: []
 metrics:
   - name: "validation_status"
     meaning: "Governed validation outcome for the input BAM"
+    scientific_threshold:
+      pass_direction: "exact_match"
+      tolerance_kind: "exact_match"
+      tolerance_value: 0.0
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "validation_errors"
     meaning: "Deterministic refusal codes emitted when validation fails"
+    scientific_threshold:
+      pass_direction: "structured_match"
+      tolerance_kind: "normalized_set_overlap"
+      tolerance_value: 1.0
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "validation_warnings"
     meaning: "Non-fatal validation findings reserved for future warning-grade checks"
-  - name: "input_bam_identity"
-    meaning: "Governed input BAM identity payload preserved for cross-tool validation comparison"
+    scientific_threshold:
+      pass_direction: "structured_match"
+      tolerance_kind: "normalized_set_overlap"
+      tolerance_value: 1.0
+      insufficiency_policy: "drop_metric_from_stage"
 description: "BAM validation contract for governed benchmark diagnostics and identity tracking."
 required_inputs:
   - bam

@@ -36,6 +36,24 @@
         "role": "report_json"
       },
       {
+        "name": "sex_estimate",
+        "optional": false,
+        "path": "out/sex_estimate.json",
+        "role": "unknown"
+      },
+      {
+        "name": "population_metrics",
+        "optional": false,
+        "path": "out/population_metrics.json",
+        "role": "metrics_json"
+      },
+      {
+        "name": "haplogroup_report",
+        "optional": false,
+        "path": "out/haplogroup_report.json",
+        "role": "report_json"
+      },
+      {
         "name": "summary",
         "optional": false,
         "path": "out/sex.summary.json",
@@ -62,7 +80,7 @@
   "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "f86569fadc171377ac659ba6c66b0d2042c0925e8fefcebfd64c2f4d19b7d30e",
+      "contract_hash": "1781d8eb646d46dbce21e31444eab13e665f0d48e8acdbae344ad194df5d8ae8",
       "defaults_diff": {},
       "resource_plan": {
         "cpu_threads": 4,

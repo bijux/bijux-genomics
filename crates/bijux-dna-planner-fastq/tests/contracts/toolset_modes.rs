@@ -30,7 +30,7 @@ fn toolset_modes_separate_default_governed_benchmark_and_all_bindings() {
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::AllBindings,
     );
     assert!(governed_tools.iter().all(|tool_id| all_bindings.contains(tool_id)));
-    assert!(all_bindings.iter().any(|tool_id| tool_id.as_str() == "seqpurge"));
+    assert!(!all_bindings.iter().any(|tool_id| tool_id.as_str() == "seqpurge"));
 }
 
 #[test]

@@ -44,14 +44,14 @@ fn bench_readiness_tool_execution_modes_report_governs_all_benchmark_tools() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/configs/local/tool-execution-modes.toml")
+        Some("configs/bench/local/tool-execution-modes.toml")
     );
     assert_eq!(
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("primary_operator_runtime")
     );
     assert_eq!(payload.get("mode_count").and_then(serde_json::Value::as_u64), Some(6));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(67));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(65));
     assert_eq!(payload.get("multidomain_tool_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(payload.get("valid").and_then(serde_json::Value::as_bool), Some(true));
 

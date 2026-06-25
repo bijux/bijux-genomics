@@ -226,17 +226,27 @@ fn integration_matrix_distinguishes_governed_and_planned_bindings() {
 }
 
 #[test]
-fn stage_tool_registration_queries_keep_planned_tools_visible_but_not_runnable() {
+fn stage_tool_registration_queries_drop_unadmitted_placeholder_bindings() {
     let trim_stage = StageId::from_static("fastq.trim_reads");
 
-    assert!(bijux_dna_domain_fastq::registered_tool_ids_for_stage(&trim_stage)
+    assert!(!bijux_dna_domain_fastq::registered_tool_ids_for_stage(&trim_stage)
         .contains(&ToolId::from_static("seqpurge")));
-    assert!(bijux_dna_domain_fastq::planned_tool_ids_for_stage(&trim_stage)
+    assert!(!bijux_dna_domain_fastq::planned_tool_ids_for_stage(&trim_stage)
         .contains(&ToolId::from_static("seqpurge")));
     assert!(!bijux_dna_domain_fastq::governed_tool_ids_for_stage(&trim_stage)
         .contains(&ToolId::from_static("seqpurge")));
     assert!(!bijux_dna_domain_fastq::admitted_execution_tools_for_stage(&trim_stage)
         .contains(&ToolId::from_static("seqpurge")));
+
+    let low_complexity_stage = StageId::from_static("fastq.filter_low_complexity");
+    assert!(bijux_dna_domain_fastq::registered_tool_ids_for_stage(&low_complexity_stage)
+        .contains(&ToolId::from_static("fastp")));
+    assert!(bijux_dna_domain_fastq::governed_tool_ids_for_stage(&low_complexity_stage)
+        .contains(&ToolId::from_static("fastp")));
+    assert!(bijux_dna_domain_fastq::admitted_execution_tools_for_stage(&low_complexity_stage)
+        .contains(&ToolId::from_static("fastp")));
+    assert!(!bijux_dna_domain_fastq::registered_tool_ids_for_stage(&low_complexity_stage)
+        .contains(&ToolId::from_static("dustmasker")));
 
     let detect_duplicates_stage = StageId::from_static("fastq.detect_duplicates_premerge");
     assert_eq!(

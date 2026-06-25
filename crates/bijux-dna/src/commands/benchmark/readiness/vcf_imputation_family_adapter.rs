@@ -9,7 +9,9 @@ use bijux_dna_stages_vcf::stage_specs::{
 };
 use serde::Serialize;
 
-use crate::commands::benchmark::local_vcf_panel_workflow_smoke_support::materialize_governed_vcf_panel_assets;
+use crate::commands::benchmark::local_vcf_panel_workflow_smoke_support::{
+    materialize_governed_vcf_panel_assets, with_governed_vcf_panel_materialization_lock,
+};
 use crate::commands::benchmark::local_vcf_stage_catalog::{
     build_vcf_stage_catalog_rows, VcfStageCatalogRow,
 };
@@ -656,11 +658,9 @@ fn materialize_panel_inputs(
     output_root: &str,
 ) -> Result<MaterializedPanelInputs> {
     let materialization_root = repo_root.join(output_root).join("artifacts/reference");
-    if materialization_root.exists() {
-        fs::remove_dir_all(&materialization_root)
-            .with_context(|| format!("remove {}", materialization_root.display()))?;
-    }
-    let report = materialize_governed_vcf_panel_assets(&materialization_root)?;
+    let report = with_governed_vcf_panel_materialization_lock(|| {
+        materialize_governed_vcf_panel_assets(&materialization_root)
+    })?;
     let panel_vcf_path = report
         .materialized_files
         .iter()

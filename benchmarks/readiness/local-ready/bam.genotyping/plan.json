@@ -76,25 +76,25 @@
         "name": "genotyping_bcf",
         "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf",
         "role": "variant",
-        "optional": true
+        "optional": false
       },
       {
         "name": "genotyping_vcf",
         "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz",
         "role": "variant",
-        "optional": true
+        "optional": false
       },
       {
         "name": "genotyping_vcf_tbi",
         "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz.tbi",
         "role": "index",
-        "optional": true
+        "optional": false
       },
       {
         "name": "genotyping_gl",
         "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.gl.json",
         "role": "report_json",
-        "optional": true
+        "optional": false
       }
     ]
   },

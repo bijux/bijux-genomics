@@ -54,19 +54,19 @@ fn bench_readiness_vcf_adapters_ready_reports_governed_pass_state() {
     );
     assert_eq!(
         payload.get("benchmark_ready_pair_count").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(21)
     );
     assert_eq!(
         payload.get("adapter_complete_pair_count").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(21)
     );
     assert_eq!(
         payload.get("output_complete_pair_count").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(21)
     );
     assert_eq!(
         payload.get("rendered_command_pair_count").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(21)
     );
     assert_eq!(payload.get("ok"), Some(&serde_json::Value::Bool(true)));
 
@@ -84,6 +84,18 @@ fn bench_readiness_vcf_adapters_ready_reports_governed_pass_state() {
             .and_then(serde_json::Value::as_str)
             .is_some_and(|detail| detail.contains("matrix and registry")),
         "goal 234 detail must keep matrix/registry agreement explicit"
+    );
+
+    let orphan_check = checks
+        .iter()
+        .find(|check| check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(232))
+        .expect("goal 232 check");
+    assert!(
+        orphan_check
+            .get("detail")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|detail| detail.contains("8 governed orphan VCF tools")),
+        "goal 232 detail must keep the governed orphan tool count explicit"
     );
 
     let output_check = checks

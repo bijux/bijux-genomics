@@ -1282,7 +1282,7 @@ fn leehom_trim_command_template(
             shell_quote_str(&adapter_r2),
         ));
     }
-    script.push_str(&format!(" -fqo leehom --log {}", shell_quote_path(&log_path),));
+    script.push_str(&format!(" -fqo leehom --log {}", shell_quote_path(&log_path)));
     script.push('\n');
     if let Some(output_r2) = output_r2 {
         script.push_str(&format!(

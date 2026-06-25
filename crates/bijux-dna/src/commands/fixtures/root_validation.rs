@@ -6,7 +6,63 @@ use serde::{Deserialize, Serialize};
 
 use crate::commands::benchmark::local_corpus_fixture::{amplicon, bam, damage, edna, fastq, vcf};
 use crate::commands::benchmark::local_taxonomy_database_fixture::TAXONOMY_DATABASE_FIXTURE_SCHEMA_VERSION;
+use crate::commands::fixtures::expected::adna_contamination::{
+    validate_adna_contamination_truth_manifest_path,
+    ADNA_CONTAMINATION_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::adna_damage::{
+    validate_adna_damage_truth_manifest_path, ADNA_DAMAGE_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::amplicon::{
+    validate_amplicon_truth_manifest_path, AMPLICON_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::bam_alignment::{
+    validate_bam_alignment_truth_manifest_path, BAM_ALIGNMENT_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::bam_duplicate_insert::{
+    validate_bam_duplicate_insert_truth_manifest_path,
+    BAM_DUPLICATE_INSERT_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::bam_endogenous::{
+    validate_bam_endogenous_truth_manifest_path, BAM_ENDOGENOUS_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::bam_gc_coverage::{
+    validate_bam_gc_coverage_truth_manifest_path, BAM_GC_COVERAGE_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::bam_haplogroups::{
+    validate_bam_haplogroup_truth_manifest_path, BAM_HAPLOGROUP_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::bam_sex::{
+    validate_bam_sex_truth_manifest_path, BAM_SEX_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::fastq_duplicates::{
+    validate_fastq_duplicates_truth_manifest_path, FASTQ_DUPLICATES_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::fastq_taxonomy::{
+    validate_fastq_taxonomy_truth_manifest_path, FASTQ_TAXONOMY_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::fastq_trimming::{
+    validate_fastq_trimming_truth_manifest_path, FASTQ_TRIMMING_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::phasing_imputation::{
+    validate_phasing_imputation_truth_manifest_path,
+    PHASING_IMPUTATION_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::population_structure::{
+    validate_population_structure_truth_manifest_path,
+    POPULATION_STRUCTURE_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::segments_demography::{
+    validate_segments_demography_truth_manifest_path,
+    SEGMENTS_DEMOGRAPHY_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
 use crate::commands::fixtures::expected::vcf::validate_vcf_expected_truth_manifest_path;
+use crate::commands::fixtures::expected::vcf_filter::{
+    validate_vcf_filter_truth_manifest_path, VCF_FILTER_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use crate::commands::fixtures::expected::vcf_genotype::{
+    validate_vcf_genotype_truth_manifest_path, VCF_GENOTYPE_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
 
 pub(crate) const DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH: &str =
     "benchmarks/readiness/benchmark-fixture-root-validation.json";
@@ -51,26 +107,7 @@ pub(crate) fn validate_benchmark_fixture_root(
 ) -> Result<BenchmarkFixtureRootValidationReport> {
     let absolute_root = absolutize(repo_root, fixture_root);
     let absolute_output_path = absolutize(repo_root, output_path);
-    let parser_root = absolute_root.join("bench").join("parsers");
-    let corpora_root = absolute_root.join("corpora");
-    let databases_root = absolute_root.join("databases");
-
-    let mut rows = Vec::new();
-    rows.extend(validate_required_subroots(repo_root, &absolute_root));
-    rows.extend(validate_parser_fixture_domains(repo_root, &parser_root));
-
-    let corpus_manifests = discover_fixture_manifests(&corpora_root)?;
-    let database_manifests = discover_fixture_manifests(&databases_root)?;
-
-    for manifest_path in corpus_manifests {
-        rows.push(validate_manifest_row(repo_root, &manifest_path));
-        if manifest_path.ends_with("vcf-mini/manifest.toml") {
-            rows.push(validate_vcf_expected_truth_row(repo_root, &manifest_path));
-        }
-    }
-    for manifest_path in database_manifests {
-        rows.push(validate_manifest_row(repo_root, &manifest_path));
-    }
+    let mut rows = collect_benchmark_fixture_root_rows(repo_root, &absolute_root)?;
 
     rows.sort_by(|left, right| {
         left.fixture_kind
@@ -86,7 +123,7 @@ pub(crate) fn validate_benchmark_fixture_root(
         schema_version: BENCHMARK_FIXTURE_ROOT_VALIDATION_SCHEMA_VERSION,
         output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         root_path: path_relative_to_repo(repo_root, &absolute_root),
-        required_subroot_count: 3,
+        required_subroot_count: 4,
         parser_domain_count: PARSER_FIXTURE_DOMAINS.len(),
         checked_fixture_count,
         valid_fixture_count,
@@ -107,6 +144,86 @@ pub(crate) fn validate_benchmark_fixture_root(
     Ok(report)
 }
 
+fn collect_benchmark_fixture_root_rows(
+    repo_root: &Path,
+    absolute_root: &Path,
+) -> Result<Vec<BenchmarkFixtureRootValidationRow>> {
+    let parser_root = absolute_root.join("bench").join("parsers");
+    let corpora_root = absolute_root.join("corpora");
+    let databases_root = absolute_root.join("databases");
+    let science_root = absolute_root.join("science");
+
+    let mut rows = Vec::new();
+    rows.extend(validate_required_subroots(repo_root, absolute_root));
+    rows.extend(validate_parser_fixture_domains(repo_root, &parser_root));
+
+    for manifest_path in discover_fixture_manifests(&corpora_root)? {
+        rows.push(validate_manifest_row(repo_root, &manifest_path));
+        if manifest_path.ends_with("vcf-mini/manifest.toml") {
+            rows.push(validate_vcf_expected_truth_row(repo_root, &manifest_path));
+        }
+    }
+    for manifest_path in discover_fixture_manifests(&databases_root)? {
+        rows.push(validate_manifest_row(repo_root, &manifest_path));
+    }
+    for manifest_path in discover_fixture_manifests(&science_root)? {
+        rows.push(validate_manifest_row(repo_root, &manifest_path));
+        if manifest_path.ends_with("fastq-trimming-truth/manifest.toml") {
+            rows.push(validate_fastq_trimming_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("fastq-duplicates-truth/manifest.toml") {
+            rows.push(validate_fastq_duplicates_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("fastq-taxonomy-truth/manifest.toml") {
+            rows.push(validate_fastq_taxonomy_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("amplicon-truth/manifest.toml") {
+            rows.push(validate_amplicon_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("adna-damage-truth/manifest.toml") {
+            rows.push(validate_adna_damage_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("adna-contamination-truth/manifest.toml") {
+            rows.push(validate_adna_contamination_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("bam-alignment-truth/manifest.toml") {
+            rows.push(validate_bam_alignment_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("bam-duplicate-insert-truth/manifest.toml") {
+            rows.push(validate_bam_duplicate_insert_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("endogenous-truth/manifest.toml") {
+            rows.push(validate_bam_endogenous_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("bam-gc-coverage-truth/manifest.toml") {
+            rows.push(validate_bam_gc_coverage_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("haplogroup-truth/manifest.toml") {
+            rows.push(validate_bam_haplogroup_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("sex-inference-truth/manifest.toml") {
+            rows.push(validate_bam_sex_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("vcf-genotype-truth/manifest.toml") {
+            rows.push(validate_vcf_genotype_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("vcf-filter-truth/manifest.toml") {
+            rows.push(validate_vcf_filter_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("phasing-imputation-truth/manifest.toml") {
+            rows.push(validate_phasing_imputation_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("population-structure-truth/manifest.toml") {
+            rows.push(validate_population_structure_truth_row(repo_root, &manifest_path));
+        }
+        if manifest_path.ends_with("segments-demography-truth/manifest.toml") {
+            rows.push(validate_segments_demography_truth_row(repo_root, &manifest_path));
+        }
+    }
+
+    Ok(rows)
+}
+
 fn validate_required_subroots(
     repo_root: &Path,
     fixture_root: &Path,
@@ -115,6 +232,7 @@ fn validate_required_subroots(
         ("fixture_subroot", "bench", fixture_root.join("bench")),
         ("fixture_subroot", "corpora", fixture_root.join("corpora")),
         ("fixture_subroot", "databases", fixture_root.join("databases")),
+        ("fixture_subroot", "science", fixture_root.join("science")),
     ]
     .into_iter()
     .map(|(fixture_kind, fixture_id, path)| BenchmarkFixtureRootValidationRow {
@@ -178,43 +296,7 @@ fn validate_manifest_row(
         }
     };
 
-    let result = match schema_version.as_str() {
-        fastq::FASTQ_CORPUS_FIXTURE_SCHEMA_VERSION => {
-            fastq::validate_fastq_corpus_fixture_manifest_path(repo_root, manifest_path)
-                .map(|_| ("corpus".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        bam::BAM_CORPUS_FIXTURE_SCHEMA_VERSION => {
-            bam::validate_bam_corpus_fixture_manifest_path(repo_root, manifest_path)
-                .map(|_| ("corpus".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        damage::BAM_DAMAGE_FIXTURE_SCHEMA_VERSION => {
-            damage::validate_bam_damage_fixture_manifest_path(repo_root, manifest_path)
-                .map(|_| ("corpus".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        edna::EDNA_CORPUS_FIXTURE_SCHEMA_VERSION => {
-            edna::validate_edna_corpus_fixture_manifest_path(repo_root, manifest_path)
-                .map(|_| ("corpus".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        amplicon::AMPLICON_CORPUS_FIXTURE_SCHEMA_VERSION => {
-            amplicon::validate_amplicon_corpus_fixture_manifest_path(repo_root, manifest_path)
-                .map(|_| ("corpus".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        vcf::VCF_CORPUS_FIXTURE_SCHEMA_VERSION => {
-            vcf::validate_vcf_corpus_fixture_manifest_path(repo_root, manifest_path)
-                .map(|_| ("corpus".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        TAXONOMY_DATABASE_FIXTURE_SCHEMA_VERSION => {
-            crate::commands::benchmark::local_taxonomy_database_fixture::validate_taxonomy_database_fixture_manifest_path(
-                repo_root,
-                manifest_path,
-            )
-            .map(|_| ("database".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        other => Err(anyhow!(
-            "unsupported benchmark fixture schema `{other}` in {}",
-            manifest_path.display()
-        )),
-    };
+    let result = validate_manifest_row_by_schema(repo_root, manifest_path, &schema_version);
 
     match result {
         Ok((fixture_kind, fixture_id)) => BenchmarkFixtureRootValidationRow {
@@ -232,6 +314,664 @@ fn validate_manifest_row(
             manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
             detail_path: None,
             schema_version: Some(schema_version),
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+macro_rules! validate_manifest_row_by_schema_cases {
+    ($repo_root:expr, $manifest_path:expr, $schema_version:expr) => {{
+        match $schema_version {
+            fastq::FASTQ_CORPUS_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "corpus",
+                fastq::validate_fastq_corpus_fixture_manifest_path,
+            ),
+            bam::BAM_CORPUS_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "corpus",
+                bam::validate_bam_corpus_fixture_manifest_path,
+            ),
+            damage::BAM_DAMAGE_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "corpus",
+                damage::validate_bam_damage_fixture_manifest_path,
+            ),
+            edna::EDNA_CORPUS_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "corpus",
+                edna::validate_edna_corpus_fixture_manifest_path,
+            ),
+            amplicon::AMPLICON_CORPUS_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "corpus",
+                amplicon::validate_amplicon_corpus_fixture_manifest_path,
+            ),
+            vcf::VCF_CORPUS_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "corpus",
+                vcf::validate_vcf_corpus_fixture_manifest_path,
+            ),
+            TAXONOMY_DATABASE_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "database",
+                crate::commands::benchmark::local_taxonomy_database_fixture::validate_taxonomy_database_fixture_manifest_path,
+            ),
+            FASTQ_TRIMMING_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_fastq_trimming_truth_manifest_path,
+            ),
+            FASTQ_DUPLICATES_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_fastq_duplicates_truth_manifest_path,
+            ),
+            FASTQ_TAXONOMY_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_fastq_taxonomy_truth_manifest_path,
+            ),
+            AMPLICON_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_amplicon_truth_manifest_path,
+            ),
+            ADNA_DAMAGE_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_adna_damage_truth_manifest_path,
+            ),
+            ADNA_CONTAMINATION_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_adna_contamination_truth_manifest_path,
+            ),
+            BAM_ALIGNMENT_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_bam_alignment_truth_manifest_path,
+            ),
+            BAM_DUPLICATE_INSERT_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_bam_duplicate_insert_truth_manifest_path,
+            ),
+            BAM_ENDOGENOUS_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_bam_endogenous_truth_manifest_path,
+            ),
+            BAM_GC_COVERAGE_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_bam_gc_coverage_truth_manifest_path,
+            ),
+            BAM_HAPLOGROUP_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_bam_haplogroup_truth_manifest_path,
+            ),
+            BAM_SEX_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_bam_sex_truth_manifest_path,
+            ),
+            VCF_GENOTYPE_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_vcf_genotype_truth_manifest_path,
+            ),
+            VCF_FILTER_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_vcf_filter_truth_manifest_path,
+            ),
+            PHASING_IMPUTATION_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_phasing_imputation_truth_manifest_path,
+            ),
+            POPULATION_STRUCTURE_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_population_structure_truth_manifest_path,
+            ),
+            SEGMENTS_DEMOGRAPHY_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_segments_demography_truth_manifest_path,
+            ),
+            other => Err(anyhow!(
+                "unsupported benchmark fixture schema `{other}` in {}",
+                $manifest_path.display()
+            )),
+        }
+    }};
+}
+
+fn validate_manifest_row_by_schema(
+    repo_root: &Path,
+    manifest_path: &Path,
+    schema_version: &str,
+) -> Result<(String, String)> {
+    validate_manifest_row_by_schema_cases!(repo_root, manifest_path, schema_version)
+}
+
+fn validate_known_manifest_schema_row<R>(
+    repo_root: &Path,
+    manifest_path: &Path,
+    fixture_kind: &'static str,
+    validator: impl FnOnce(&Path, &Path) -> Result<R>,
+) -> Result<(String, String)> {
+    validator(repo_root, manifest_path)?;
+    Ok((fixture_kind.to_string(), fixture_id_from_manifest_path(manifest_path)))
+}
+
+fn validate_fastq_trimming_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_fastq_trimming_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!("validated_cases={}", report.validated_case_count),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_fastq_duplicates_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_fastq_duplicates_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!("validated_cases={}", report.validated_case_count),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_fastq_taxonomy_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_fastq_taxonomy_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_taxa_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_samples={},validated_taxa_rows={}",
+                report.validated_sample_count, report.validated_taxa_row_count
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_amplicon_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_amplicon_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_sections={},validated_rows={}",
+                report.validated_section_count, report.validated_row_count
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_adna_damage_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_adna_damage_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_cases={},validated_insufficient_cases={}",
+                report.validated_case_count, report.validated_insufficient_case_count
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_adna_contamination_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_adna_contamination_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_cases={},validated_insufficient_cases={}",
+                report.validated_case_count, report.validated_insufficient_case_count
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_bam_alignment_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_bam_alignment_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(report.manifest_path),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_samples={},validated_records={}",
+                report.validated_sample_count, report.validated_record_count
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_bam_duplicate_insert_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_bam_duplicate_insert_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(report.manifest_path),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_samples={},validated_duplicate_family_bins={},validated_insert_size_bins={}",
+                report.validated_sample_count,
+                report.validated_duplicate_family_bin_count,
+                report.validated_insert_size_bin_count
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_bam_endogenous_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_bam_endogenous_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(report.manifest_path),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_samples={},validated_total_reads={},validated_contaminant_reads={},validated_retained_reads={}",
+                report.validated_sample_count,
+                report.validated_total_reads,
+                report.validated_contaminant_reads,
+                report.validated_retained_reads
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_bam_gc_coverage_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_bam_gc_coverage_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(report.manifest_path),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_coverage_samples={},validated_gc_bias_samples={},validated_coverage_regions={},validated_gc_bias_bins={}",
+                report.validated_coverage_sample_count,
+                report.validated_gc_bias_sample_count,
+                report.validated_coverage_region_count,
+                report.validated_gc_bias_bin_count
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_bam_haplogroup_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_bam_haplogroup_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(report.manifest_path),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_cases={},validated_ready_cases={},validated_uncertain_cases={},validated_coverage_gate_cases={}",
+                report.validated_case_count,
+                report.validated_ready_case_count,
+                report.validated_uncertain_case_count,
+                report.validated_coverage_gate_case_count
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_bam_sex_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_bam_sex_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(report.manifest_path),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!(
+                "validated_cases={},validated_ok_cases={},validated_insufficient_cases={}",
+                report.validated_case_count,
+                report.validated_ok_case_count,
+                report.validated_insufficient_case_count
+            ),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_vcf_genotype_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_vcf_genotype_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!("validated_cases={}", report.validated_case_count),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_vcf_filter_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_vcf_filter_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!("validated_cases={}", report.validated_case_count),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_phasing_imputation_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_phasing_imputation_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!("validated_cases={}", report.validated_case_count),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_population_structure_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_population_structure_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!("validated_cases={}", report.validated_case_count),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
+            valid: false,
+            detail: error.to_string(),
+        },
+    }
+}
+
+fn validate_segments_demography_truth_row(
+    repo_root: &Path,
+    manifest_path: &Path,
+) -> BenchmarkFixtureRootValidationRow {
+    match validate_segments_demography_truth_manifest_path(repo_root, manifest_path) {
+        Ok(report) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: report.fixture_id,
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: Some(report.expected_path),
+            schema_version: Some(report.schema_version.to_string()),
+            valid: report.valid,
+            detail: format!("validated_cases={}", report.validated_case_count),
+        },
+        Err(error) => BenchmarkFixtureRootValidationRow {
+            fixture_kind: "expected_truth".to_string(),
+            fixture_id: fixture_id_from_manifest_path(manifest_path),
+            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
+            detail_path: None,
+            schema_version: None,
             valid: false,
             detail: error.to_string(),
         },

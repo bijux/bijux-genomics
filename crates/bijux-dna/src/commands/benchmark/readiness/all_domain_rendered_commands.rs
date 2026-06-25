@@ -578,16 +578,17 @@ mod tests {
             "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl"
         );
         assert_eq!(report.result_id_count, report.row_count);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&69));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&71));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&20));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&21));
         assert_eq!(report.benchmark_status_counts.get("benchmark_ready"), Some(&report.row_count));
-        assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&118));
+        assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&120));
         assert_eq!(report.command_source_counts.get("vcf_bcftools_adapter"), Some(&11));
         assert_eq!(report.command_source_counts.get("vcf_eigensoft_adapter"), Some(&1));
         assert_eq!(report.command_source_counts.get("vcf_imputation_family_adapter"), Some(&2));
         assert_eq!(report.command_source_counts.get("vcf_phasing_family_adapter"), Some(&1));
         assert_eq!(report.command_source_counts.get("vcf_plink_family_adapter"), Some(&5));
+        assert_eq!(report.command_source_counts.get("vcf_descent_family_adapter"), Some(&1));
         assert!(report.rows.iter().all(|row| !row.command_steps.is_empty()));
     }
 }

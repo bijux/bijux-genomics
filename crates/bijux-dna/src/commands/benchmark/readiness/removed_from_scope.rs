@@ -21,7 +21,7 @@ pub(crate) const DEFAULT_REMOVED_FROM_SCOPE_PATH: &str =
     "benchmarks/readiness/removed-from-scope.tsv";
 const REMOVED_FROM_SCOPE_SCHEMA_VERSION: &str = "bijux.bench.readiness.removed_from_scope.v1";
 const TRACKED_FULL_BENCHMARK_REPORT_JSON_PATH: &str =
-    "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
 const REPORT_SURFACE_SOURCE_TRACKED_JSON: &str = "tracked_report_json";
 const REPORT_SURFACE_SOURCE_EXPECTED_RESULT_CONTRACT: &str = "expected_result_contract";
 pub(crate) const SCOPE_EXIT_KIND_LIFECYCLE_NOT_ACTIVE: &str = "lifecycle_not_active";
@@ -105,9 +105,11 @@ pub(crate) fn render_removed_from_scope(
     let report = build_removed_from_scope_report(repo_root, &output_path)?;
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&output_path, render_removed_from_scope_tsv(&report.rows))
+    let rendered = render_removed_from_scope_tsv(&report.rows);
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", output_path.display()))?;
     if !report.ok {
         return Err(anyhow!("removed-from-scope rows leaked into governed active surfaces"));

@@ -39,6 +39,8 @@ fn crate_tree_matches_domain_fastq_boundary() {
         "chunking.rs",
         "comparison_contract/",
         "comparison_contract.rs",
+        "contracts/",
+        "contracts.rs",
         "domain_adapter.rs",
         "execution_support/",
         "filter_policy_matrix.rs",
@@ -132,6 +134,7 @@ fn crate_tree_matches_domain_fastq_boundary() {
         entries([
             "detect_adapters.rs",
             "filter.rs",
+            "filter_low_complexity.rs",
             "mod.rs",
             "qc_post.rs",
             "screen/",
@@ -179,6 +182,7 @@ fn crate_tree_matches_domain_fastq_boundary() {
             "mod.rs",
             "parser_contracts/",
             "profiles/",
+            "raw_parser_contract.rs",
             "reports.rs",
             "sequence.rs",
             "tool_metrics.rs",
@@ -260,6 +264,7 @@ fn crate_tree_matches_domain_fastq_boundary() {
     assert_eq!(
         dir_entries(&root.join("src/stage_tool_governance")),
         entries([
+            "corpus_assignment.rs",
             "input_layout.rs",
             "layout_catalog.rs",
             "layout_policy.rs",
@@ -341,6 +346,7 @@ fn crate_tree_matches_domain_fastq_boundary() {
         "determinism.rs",
         "fixtures/",
         "guardrails.rs",
+        "local_benchmark_catalog.rs",
         "semantics/",
         "semantics.rs",
         "snapshots/",

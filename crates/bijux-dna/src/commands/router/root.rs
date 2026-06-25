@@ -7,8 +7,8 @@ use crate::commands::cli;
 use crate::commands::router::root_commands::handle_slurm_root;
 #[cfg(debug_assertions)]
 use crate::commands::router::root_commands::{
-    handle_ci_root, handle_config_root, handle_domain_root, handle_ena_root, handle_lab_root,
-    handle_tool_root,
+    handle_ci_root, handle_config_root, handle_dev_root, handle_domain_root, handle_ena_root,
+    handle_lab_root, handle_tool_root,
 };
 use crate::commands::router::root_commands::{
     handle_corpus_root, handle_environment_root, handle_fixtures_root, handle_registry_root,
@@ -76,6 +76,11 @@ pub(crate) fn try_handle_root_command(
         #[cfg(debug_assertions)]
         cli::DnaCommand::Ci(args) => {
             handle_ci_root(&args.command, cwd)?;
+            Ok(true)
+        }
+        #[cfg(debug_assertions)]
+        cli::DnaCommand::Dev(args) => {
+            handle_dev_root(&args.command, cwd)?;
             Ok(true)
         }
         _ => Ok(false),

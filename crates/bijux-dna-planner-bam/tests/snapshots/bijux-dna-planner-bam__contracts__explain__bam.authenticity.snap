@@ -1,11 +1,10 @@
 ---
 source: crates/bijux-dna-planner-bam/tests/contracts/explain/explainability.rs
-assertion_line: 128
 expression: reason_json
 ---
 {
   "details": {
-    "contract_hash": "dae8ca01c8d45cd672d4021abc2ed1ed328cfa1b0e2b87fb8f811d608b993dca",
+    "contract_hash": "9d369c5cf49cc676d57d01d26018f57d5a10b083c2706f815063ebf1126351f7",
     "defaults_diff": {},
     "resource_plan": {
       "cpu_threads": 4,

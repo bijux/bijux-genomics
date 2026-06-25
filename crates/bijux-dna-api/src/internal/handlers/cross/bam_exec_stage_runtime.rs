@@ -327,10 +327,10 @@ fn read_group_spec_from_record(
     record: &std::collections::BTreeMap<String, String>,
 ) -> Option<bijux_dna_domain_bam::params::ReadGroupSpec> {
     Some(bijux_dna_domain_bam::params::ReadGroupSpec {
-        id: record.get("ID")?.to_string(),
-        sample: record.get("SM")?.to_string(),
-        platform: record.get("PL")?.to_string(),
-        library: record.get("LB")?.to_string(),
+        id: record.get("ID")?.clone(),
+        sample: record.get("SM")?.clone(),
+        platform: record.get("PL")?.clone(),
+        library: record.get("LB")?.clone(),
         platform_unit: record.get("PU").cloned(),
         lane_id: None,
         run_id: None,

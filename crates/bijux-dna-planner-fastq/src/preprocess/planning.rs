@@ -257,7 +257,7 @@ pub fn resolve_preprocess_pipeline(
                         .required_stages
                         .iter()
                         .filter(|stage| stage.starts_with(bijux_dna_domain_fastq::STAGE_PREFIX))
-                        .map(|stage| (*stage).to_string())
+                        .map(|stage| (*stage).clone())
                         .collect(),
                     args.mode.pipeline_mode(),
                 ),

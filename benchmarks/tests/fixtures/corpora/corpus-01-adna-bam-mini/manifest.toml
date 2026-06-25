@@ -48,3 +48,17 @@ source_paths = [
   "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam",
   "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
 ]
+
+[[samples]]
+sample_id = "adna_y_haplogroup_partial_panel"
+cohort = "adna_like"
+alignment_path = "aligned/adna_y_haplogroup_partial_panel.sam"
+index_path = "aligned/adna_y_haplogroup_partial_panel.sam.bai"
+expected_contigs = ["chrY"]
+expected_header_sample_ids = ["adna_y_haplogroup_partial_panel"]
+expected_read_group_ids = ["rg-haplogroups-adna-partial"]
+expected_record_count = 2
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_partial_panel.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
+]

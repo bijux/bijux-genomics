@@ -50,6 +50,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "stage_id": "fastq.filter_low_complexity",
   "tool_ids": [
     "prinseq",
-    "bbduk"
+    "bbduk",
+    "fastp"
   ]
 }

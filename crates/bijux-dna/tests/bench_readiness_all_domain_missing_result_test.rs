@@ -8,6 +8,8 @@ mod support;
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _repo_lock =
+        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
@@ -35,13 +37,13 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_missing_result_test_tracks_three_governed_missing_rows() {
+fn bench_readiness_all_domain_missing_result_audit_tracks_three_governed_missing_rows() {
     let payload =
         run_cli_json(&["bench", "readiness", "render-all-domain-missing-result-test", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.all_domain_missing_result_test.v1")
+        Some("bijux.bench.readiness.all_domain_missing_result_audit.v1")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
@@ -62,9 +64,9 @@ fn bench_readiness_all_domain_missing_result_test_tracks_three_governed_missing_
     assert_eq!(payload.get("passes_behavior_test"), Some(&serde_json::Value::Bool(true)));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(21));
 
     let removed_result_ids = payload
         .get("removed_result_ids")

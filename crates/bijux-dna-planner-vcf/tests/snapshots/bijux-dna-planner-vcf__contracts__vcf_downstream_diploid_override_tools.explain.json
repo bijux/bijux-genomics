@@ -175,7 +175,7 @@
       "reason": "regime-specific filtering/masking policy and UDG threshold profile"
     },
     {
-      "id": "decision.vcf_iteration16_contracts",
+      "id": "decision.vcf_production_contracts",
       "likelihood_stage_count": 3,
       "normalization_policy_ids": [
         "diploid_production",

@@ -56,6 +56,7 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
     assert_eq!(payload["method"], serde_json::json!("authenticct"));
     assert_eq!(payload["score"], serde_json::json!(0.5333333333333333));
     assert_eq!(payload["confidence"], serde_json::json!(0.8133333333333334));
+    assert_eq!(payload["status"], serde_json::json!("pass"));
     assert_eq!(payload["pmd_like_signal_present"], serde_json::json!(true));
     assert_eq!(
         payload["consumed_metrics"],
@@ -129,6 +130,18 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
             path.display()
         );
     }
+    assert!(
+        payload.get("damage_profile").is_none(),
+        "authenticct local-smoke proof must not claim undeclared damage_profile output"
+    );
+    assert!(
+        payload.get("damage_plot").is_none(),
+        "authenticct local-smoke proof must not claim undeclared damage_plot output"
+    );
+    assert!(
+        payload.get("pmd_scores").is_none(),
+        "authenticct local-smoke proof must not claim undeclared pmd_scores output"
+    );
 
     let summary_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&authenticity_summary)?)?;
@@ -139,6 +152,7 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
     assert_eq!(summary_json["stage_id"], serde_json::json!("bam.authenticity"));
     assert_eq!(summary_json["score"], serde_json::json!(0.5333333333333333));
     assert_eq!(summary_json["confidence"], serde_json::json!(0.8133333333333334));
+    assert_eq!(summary_json["status"], serde_json::json!("pass"));
     assert_eq!(summary_json["pmd_like_signal_present"], serde_json::json!(true));
 
     let composite_json: serde_json::Value =
@@ -251,6 +265,8 @@ fn write_local_authenticity_smoke_report_materializes_governed_outputs() -> Resu
     assert_eq!(stage_metrics_json["expected_confidence"], serde_json::json!(0.8133333333333334));
     assert_eq!(stage_metrics_json["confidence"], serde_json::json!(0.8133333333333334));
     assert_eq!(stage_metrics_json["confidence_delta"], serde_json::json!(0.0));
+    assert_eq!(stage_metrics_json["expected_status"], serde_json::json!("pass"));
+    assert_eq!(stage_metrics_json["status"], serde_json::json!("pass"));
     assert_eq!(stage_metrics_json["expected_pmd_like_signal_present"], serde_json::json!(true));
     assert_eq!(stage_metrics_json["pmd_like_signal_present"], serde_json::json!(true));
     assert_eq!(stage_metrics_json["contamination_estimate"], serde_json::json!(0.03));

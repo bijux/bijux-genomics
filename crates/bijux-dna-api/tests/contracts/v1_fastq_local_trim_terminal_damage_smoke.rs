@@ -72,7 +72,7 @@ fn write_local_trim_terminal_damage_smoke_report_materializes_governed_outputs()
     let payload: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&metrics_path)?)?;
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.trim_terminal_damage"));
-    assert_eq!(payload["sample_id"], serde_json::json!("ancient-se"));
+    assert_eq!(payload["sample_id"], serde_json::json!("adna-like-se"));
     assert_eq!(payload["tool_id"], serde_json::json!("cutadapt"));
     assert_eq!(payload["damage_mode"], serde_json::json!("ancient"));
     assert_eq!(payload["execution_policy"], serde_json::json!("explicit_terminal_trim"));
@@ -80,8 +80,8 @@ fn write_local_trim_terminal_damage_smoke_report_materializes_governed_outputs()
     assert_eq!(payload["output_reads"], serde_json::json!(2));
     assert_eq!(payload["trim_5p_bases"], serde_json::json!(2));
     assert_eq!(payload["trim_3p_bases"], serde_json::json!(1));
-    assert_eq!(payload["input_bases"], serde_json::json!(58));
-    assert_eq!(payload["output_bases"], serde_json::json!(52));
+    assert_eq!(payload["input_bases"], serde_json::json!(24));
+    assert_eq!(payload["output_bases"], serde_json::json!(18));
     assert_eq!(payload["bases_removed"], serde_json::json!(6));
     assert_eq!(payload["used_fallback"], serde_json::json!(true));
 
@@ -90,10 +90,7 @@ fn write_local_trim_terminal_damage_smoke_report_materializes_governed_outputs()
     );
     assert!(trimmed_fastq.is_file(), "top-level trimmed FASTQ must exist");
     let sequences = read_gz_fastq_sequences(&trimmed_fastq)?;
-    assert_eq!(
-        sequences,
-        vec!["GTAGATCGGAAGAGCTT".to_string(), "CAGTGACTGGAGTTCAGACGTGTGCTCTTCCGATC".to_string(),]
-    );
+    assert_eq!(sequences, vec!["GTTGCAACG".to_string(), "CATGCATGC".to_string(),]);
 
     let report_json = repo_root
         .join(payload["report_json"].as_str().unwrap_or_else(|| panic!("report_json missing")));
@@ -103,8 +100,8 @@ fn write_local_trim_terminal_damage_smoke_report_materializes_governed_outputs()
     assert_eq!(report["tool_id"], serde_json::json!("cutadapt"));
     assert_eq!(report["reads_in"], serde_json::json!(2));
     assert_eq!(report["reads_out"], serde_json::json!(2));
-    assert_eq!(report["bases_in"], serde_json::json!(58));
-    assert_eq!(report["bases_out"], serde_json::json!(52));
+    assert_eq!(report["bases_in"], serde_json::json!(24));
+    assert_eq!(report["bases_out"], serde_json::json!(18));
     assert_eq!(report["trim_5p_bases"], serde_json::json!(2));
     assert_eq!(report["trim_3p_bases"], serde_json::json!(1));
     assert_eq!(report["used_fallback"], serde_json::json!(true));

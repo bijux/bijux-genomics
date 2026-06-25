@@ -47,14 +47,14 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
     );
     assert_eq!(payload.get("fixture_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
-    assert_eq!(payload.get("skip_count").and_then(serde_json::Value::as_u64), Some(343));
+    assert_eq!(payload.get("skip_count").and_then(serde_json::Value::as_u64), Some(350));
     assert_eq!(
         payload.get("asset_backed_stage_count").and_then(serde_json::Value::as_u64),
         Some(1)
     );
     assert_eq!(
         payload.get("planner_only_stage_count").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(0)
     );
 
     let skips = payload.get("skips").and_then(serde_json::Value::as_array).expect("skips array");
@@ -404,9 +404,17 @@ fn bench_local_corpus_skip_report_writes_governed_skip_manifest() {
         .and_then(serde_json::Value::as_array)
         .expect("planner_only_stages array");
     assert!(
-        planner_only.iter().any(|stage| {
-            stage.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc")
+        planner_only.is_empty(),
+        "planner-only stages should be empty once fastq.report_qc is fixture-backed"
+    );
+    assert!(
+        skips.iter().any(|skip| {
+            skip.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc")
+                && skip.get("corpus_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-02-edna-mini")
+                && skip.get("replacement_corpus_id").and_then(serde_json::Value::as_str)
+                    == Some("corpus-01-mini")
         }),
-        "planner-only stages must stay explicit instead of disappearing"
+        "report_qc skips must now route non-owning corpora back to the governed general FASTQ corpus"
     );
 }

@@ -203,8 +203,9 @@ pub struct DomainEvidenceCatalog {
     pub evidence: Vec<DomainEvidenceContract>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum DomainRegistryQueryKind {
+    #[default]
     Domains,
     Stages,
     Tools,
@@ -392,12 +393,6 @@ struct DeprecationDocEntry {
     rationale: String,
     #[serde(default)]
     replacement: String,
-}
-
-impl Default for DomainRegistryQueryKind {
-    fn default() -> Self {
-        Self::Domains
-    }
 }
 
 fn sort_and_dedup(mut values: Vec<String>) -> Vec<String> {

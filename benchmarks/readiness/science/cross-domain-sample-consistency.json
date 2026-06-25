@@ -1,0 +1,158 @@
+{
+  "schema_version": "bijux.bench.cross_domain_sample_consistency.v1",
+  "output_path": "benchmarks/readiness/science/cross-domain-sample-consistency.json",
+  "fastq_manifest_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/manifest.toml",
+  "bam_manifest_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/manifest.toml",
+  "vcf_manifest_path": "benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml",
+  "fastq_corpus_id": "corpus-01-vcf-cohort-fastq-mini",
+  "bam_corpus_id": "corpus-01-vcf-cohort-bam-mini",
+  "vcf_corpus_id": "vcf-mini",
+  "fastq_reference_id": "vcf-mini-reference",
+  "bam_reference_id": "vcf-mini-reference",
+  "vcf_reference_id": "vcf-mini-reference",
+  "reference_issues": [],
+  "sample_ids": [
+    "sample_a",
+    "sample_b",
+    "sample_c",
+    "sample_d"
+  ],
+  "fastq_samples": [
+    "sample_a",
+    "sample_b",
+    "sample_c",
+    "sample_d"
+  ],
+  "bam_samples": [
+    "sample_a",
+    "sample_b",
+    "sample_c",
+    "sample_d"
+  ],
+  "bam_header_samples": [
+    "sample_a",
+    "sample_b",
+    "sample_c",
+    "sample_d"
+  ],
+  "vcf_samples": [
+    "sample_a",
+    "sample_b",
+    "sample_c",
+    "sample_d"
+  ],
+  "metadata_samples": [
+    "sample_a",
+    "sample_b",
+    "sample_c",
+    "sample_d"
+  ],
+  "missing_from_fastq": [],
+  "extra_in_fastq": [],
+  "missing_from_bam": [],
+  "extra_in_bam": [],
+  "missing_from_bam_headers": [],
+  "extra_in_bam_headers": [],
+  "missing_from_metadata": [],
+  "extra_in_metadata": [],
+  "source_link_failures": [],
+  "samples": [
+    {
+      "sample_id": "sample_a",
+      "fastq_present": true,
+      "bam_present": true,
+      "bam_header_present": true,
+      "vcf_present": true,
+      "metadata_present": true,
+      "fastq_r1_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/normalized/sample_a_R1.fastq.gz",
+      "bam_alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/aligned/sample_a.sam",
+      "bam_read_group_ids": [
+        "rg-sample-a"
+      ],
+      "fastq_source_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_a.fastq"
+      ],
+      "bam_source_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/aligned/sample_a.sam",
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_a.fastq"
+      ],
+      "shared_source_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_a.fastq"
+      ],
+      "source_linked": true
+    },
+    {
+      "sample_id": "sample_b",
+      "fastq_present": true,
+      "bam_present": true,
+      "bam_header_present": true,
+      "vcf_present": true,
+      "metadata_present": true,
+      "fastq_r1_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/normalized/sample_b_R1.fastq.gz",
+      "bam_alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/aligned/sample_b.sam",
+      "bam_read_group_ids": [
+        "rg-sample-b"
+      ],
+      "fastq_source_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_b.fastq"
+      ],
+      "bam_source_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/aligned/sample_b.sam",
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_b.fastq"
+      ],
+      "shared_source_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_b.fastq"
+      ],
+      "source_linked": true
+    },
+    {
+      "sample_id": "sample_c",
+      "fastq_present": true,
+      "bam_present": true,
+      "bam_header_present": true,
+      "vcf_present": true,
+      "metadata_present": true,
+      "fastq_r1_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/normalized/sample_c_R1.fastq.gz",
+      "bam_alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/aligned/sample_c.sam",
+      "bam_read_group_ids": [
+        "rg-sample-c"
+      ],
+      "fastq_source_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_c.fastq"
+      ],
+      "bam_source_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/aligned/sample_c.sam",
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_c.fastq"
+      ],
+      "shared_source_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_c.fastq"
+      ],
+      "source_linked": true
+    },
+    {
+      "sample_id": "sample_d",
+      "fastq_present": true,
+      "bam_present": true,
+      "bam_header_present": true,
+      "vcf_present": true,
+      "metadata_present": true,
+      "fastq_r1_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/normalized/sample_d_R1.fastq.gz",
+      "bam_alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/aligned/sample_d.sam",
+      "bam_read_group_ids": [
+        "rg-sample-d"
+      ],
+      "fastq_source_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_d.fastq"
+      ],
+      "bam_source_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/aligned/sample_d.sam",
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_d.fastq"
+      ],
+      "shared_source_paths": [
+        "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_d.fastq"
+      ],
+      "source_linked": true
+    }
+  ],
+  "status": "compatible"
+}

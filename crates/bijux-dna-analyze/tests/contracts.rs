@@ -12,8 +12,6 @@ mod mod_contracts_aggregate_metrics_rs;
 mod mod_contracts_analyze_contract_rs;
 #[path = "contracts/core/architecture.rs"]
 mod mod_contracts_architecture_rs;
-#[path = "contracts/core/bench_integration.rs"]
-mod mod_contracts_bench_integration_rs;
 #[path = "contracts/core/contract_handshake.rs"]
 mod mod_contracts_contract_handshake_rs;
 #[path = "contracts/core/core_contract_tests.rs"]

@@ -38,8 +38,17 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_VCF_PCA_READY_PATH: &str = "benchmarks/readiness/vcf/pca-ready.json";
 const VCF_PCA_READY_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_pca_ready.v1";
 const VCF_PCA_STAGE_ID: &str = "vcf.pca";
-const REQUIRED_METRIC_NAMES: [&str; 5] =
-    ["sample_count", "variant_count", "excluded_samples", "unexpected_samples", "eigenvalues"];
+const REQUIRED_METRIC_NAMES: [&str; 9] = [
+    "sample_count",
+    "variant_count",
+    "excluded_samples",
+    "unexpected_samples",
+    "eigenvalues",
+    "status",
+    "rows",
+    "execution_mode",
+    "tool_ok",
+];
 const REQUIRED_VARIANT_COUNT: u64 = 2;
 const REQUIRED_SAMPLE_COUNT: u64 = 4;
 const REQUIRED_SAMPLE_IDS: [&str; 4] = ["sample_a", "sample_b", "sample_c", "sample_d"];
@@ -200,7 +209,7 @@ pub(crate) fn render_vcf_pca_ready(
 ) -> Result<VcfPcaReadyReport> {
     let _lock = bijux_dna_infra::FileLock::acquire(
         &repo_root.join(VCF_PCA_READY_LOCK_PATH),
-        Duration::from_secs(300),
+        Duration::from_mins(5),
     )
     .with_context(|| {
         format!(
@@ -748,7 +757,13 @@ fn collect_vcf_pca_expected_result_proofs(
             continue;
         }
         rows.push(VcfPcaExpectedResultProof {
-            result_id: format!("vcf:{}:{}:{}:{}", columns[3], columns[1], columns[4], columns[2]),
+            result_id: crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+                "vcf",
+                columns[3],
+                columns[1],
+                columns[4],
+                columns[2],
+            ),
             tool_id: columns[2].to_string(),
             corpus_id: columns[3].to_string(),
             asset_profile_id: columns[4].to_string(),
@@ -955,7 +970,13 @@ fn binding_key(stage_id: &str, tool_id: &str, corpus_id: &str, asset_profile_id:
 }
 
 fn retained_result_id(row: &VcfActiveStageToolMatrixRow) -> String {
-    format!("vcf:{}:{}:{}:{}", row.corpus_id, row.stage_id, row.asset_profile_id, row.tool_id)
+    crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+        "vcf",
+        &row.corpus_id,
+        &row.stage_id,
+        &row.asset_profile_id,
+        &row.tool_id,
+    )
 }
 
 fn contains_artifact_id(entries: &[String], expected_id: &str) -> bool {

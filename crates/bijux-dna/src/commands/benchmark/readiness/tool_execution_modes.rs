@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_TOOL_EXECUTION_MODES_PATH: &str =
-    "benchmarks/configs/local/tool-execution-modes.toml";
+    "configs/bench/local/tool-execution-modes.toml";
 pub(crate) const LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION: &str =
     "bijux.bench.local_tool_execution_modes.v1";
 const TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION: &str =
@@ -205,19 +205,27 @@ fn validate_tool_execution_modes_contract(config: &ToolExecutionModesConfig) -> 
     Ok(())
 }
 
-#[derive(Debug, Clone)]
-struct ModeAssignment {
-    execution_mode: String,
-    expected_install_kind: String,
-    required_runtime_fields: Vec<String>,
-    summary: String,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct ToolExecutionModeAssignment {
+    pub(crate) execution_mode: String,
+    pub(crate) expected_install_kind: String,
+    pub(crate) required_runtime_fields: Vec<String>,
+    pub(crate) summary: String,
+}
+
+pub(crate) fn load_tool_execution_mode_assignments(
+    config_path: &Path,
+) -> Result<BTreeMap<String, ToolExecutionModeAssignment>> {
+    let config = load_tool_execution_modes_config(config_path)?;
+    validate_tool_execution_modes_contract(&config)?;
+    build_mode_assignment_index(&config)
 }
 
 fn build_mode_assignment_index(
     config: &ToolExecutionModesConfig,
-) -> Result<BTreeMap<String, ModeAssignment>> {
+) -> Result<BTreeMap<String, ToolExecutionModeAssignment>> {
     let mut seen_modes = BTreeSet::<String>::new();
-    let mut assignments = BTreeMap::<String, ModeAssignment>::new();
+    let mut assignments = BTreeMap::<String, ToolExecutionModeAssignment>::new();
     for mode in &config.modes {
         validate_mode_definition(mode)?;
         if !seen_modes.insert(mode.execution_mode.clone()) {
@@ -237,7 +245,7 @@ fn build_mode_assignment_index(
             }
             assignments.insert(
                 tool_id.clone(),
-                ModeAssignment {
+                ToolExecutionModeAssignment {
                     execution_mode: mode.execution_mode.clone(),
                     expected_install_kind: mode.expected_install_kind.clone(),
                     required_runtime_fields: mode.required_runtime_fields.clone(),
@@ -328,7 +336,7 @@ fn validate_mode_definition(mode: &ToolExecutionModeDefinition) -> Result<()> {
     Ok(())
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 pub(crate) struct RuntimeProbe {
     #[serde(default)]
     install_kind: Option<String>,
@@ -342,7 +350,7 @@ pub(crate) struct RuntimeProbe {
     command_template: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 pub(crate) struct RuntimeProbeContainer {
     image: String,
     #[serde(default)]
@@ -396,6 +404,22 @@ impl RuntimeProbe {
             .or_else(|| self.help_cmd.as_deref().and_then(extract_command_token))
             .or_else(|| self.version_cmd.as_deref().and_then(extract_command_token))
     }
+
+    pub(crate) fn version_cmd(&self) -> Option<String> {
+        self.version_cmd
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(ToOwned::to_owned)
+    }
+
+    pub(crate) fn help_cmd(&self) -> Option<String> {
+        self.help_cmd
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(ToOwned::to_owned)
+    }
 }
 
 fn extract_command_token(raw: &str) -> Option<String> {
@@ -411,6 +435,19 @@ pub(crate) fn load_runtime_probe(
     domain: &str,
     tool_id: &str,
 ) -> Result<RuntimeProbe> {
+    Ok(load_runtime_probe_with_source(repo_root, domain, tool_id)?.probe)
+}
+
+pub(crate) struct LoadedRuntimeProbe {
+    pub(crate) path: PathBuf,
+    pub(crate) probe: RuntimeProbe,
+}
+
+pub(crate) fn load_runtime_probe_with_source(
+    repo_root: &Path,
+    domain: &str,
+    tool_id: &str,
+) -> Result<LoadedRuntimeProbe> {
     let mut probe_domains = vec![domain.to_string()];
     for fallback in ["fastq", "bam", "vcf"] {
         if !probe_domains.iter().any(|candidate| candidate == fallback) {
@@ -433,7 +470,7 @@ pub(crate) fn load_runtime_probe(
             .with_context(|| format!("read {}", yaml_path.display()))?;
         let probe = bijux_dna_infra::formats::parse_yaml(&raw)
             .with_context(|| format!("parse {}", yaml_path.display()))?;
-        return Ok(probe);
+        return Ok(LoadedRuntimeProbe { path: yaml_path, probe });
     }
 
     Err(anyhow!(
@@ -510,7 +547,7 @@ mod tests {
         assert_eq!(report.schema_version, TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.classification_scope, "primary_operator_runtime");
         assert_eq!(report.mode_count, 6);
-        assert_eq!(report.tool_count, 67);
+        assert_eq!(report.tool_count, 65);
         assert!(report.valid, "tool execution mode config must validate cleanly");
 
         let bijux_dna =

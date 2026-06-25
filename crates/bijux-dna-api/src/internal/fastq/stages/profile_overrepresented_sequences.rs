@@ -707,7 +707,7 @@ fn materialize_overrepresented_outputs(
     top_k: u32,
 ) -> Result<()> {
     let mut counts = BTreeMap::<String, u64>::new();
-    for path in std::iter::once(input_fastq).chain(input_fastq_r2.into_iter()) {
+    for path in std::iter::once(input_fastq).chain(input_fastq_r2) {
         accumulate_overrepresented_counts(path, &mut counts)?;
     }
     let total: u64 = counts.values().sum();

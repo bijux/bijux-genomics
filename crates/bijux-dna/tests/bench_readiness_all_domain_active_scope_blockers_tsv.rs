@@ -45,12 +45,12 @@ fn bench_readiness_all_domain_active_scope_blockers_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 21);
+    assert_eq!(rows.len(), 2);
     assert!(rows.iter().any(|row| {
-        row == &"fastq\tfastq.index_reference\tbowtie2_build\tnot_assigned\treference_fasta+reference_index_output\tfastq.adapter.index_reference\tfastq.parser.index_reference\tfastq_index_reference_v1\tnot_benchmark_ready\trunnable\tbenchmark_not_ready\tbenchmark_not_ready\tbenchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json\tbinding is intentionally outside final job-bearing active scope because it is not benchmark ready\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
+        row == &"vcf\tvcf.demography\tibdne\tvcf_production_regression\tjson_ibd_segments\tvcf.adapter.demography\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.demography.v1\tplanned\tdeclared_only\tlifecycle_not_active\tlifecycle_not_active\tbenchmarks/readiness/all-domains/no-planned-rows.json\tbinding is intentionally outside final job-bearing active scope because its lifecycle status is not yet active\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"vcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1\tplanned\tdeclared_only\tlifecycle_not_active\tlifecycle_not_active\tbenchmarks/readiness/all-domains/no-planned-rows.json\tbinding is intentionally outside final job-bearing active scope because its lifecycle status is not yet active\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
+        row == &"vcf\tvcf.ibd\tgermline\tvcf_production_regression\tvcf_cohort\tvcf.adapter.ibd\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.ibd.v1\tplanned\tdeclared_only\tlifecycle_not_active\tlifecycle_not_active\tbenchmarks/readiness/all-domains/no-planned-rows.json\tbinding is intentionally outside final job-bearing active scope because its lifecycle status is not yet active\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
     }));
     assert!(
         rows.iter().all(|row| {

@@ -1,0 +1,50 @@
+schema_version = "bijux.bench.population_structure_truth.v1"
+fixture_id = "population-structure-truth"
+description = "Governed population-structure truth bundle covering PCA sample coordinates, admixture ancestry proportions, metadata joins, and pairwise distance summaries across retained VCF structure-analysis backends."
+expected_path = "expected.json"
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.pca",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.admixture",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.population_structure",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/eigensoft/pca",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/eigensoft/population_structure",
+  "domain/vcf/stages/pca.yaml",
+  "domain/vcf/stages/admixture.yaml",
+  "domain/vcf/stages/population_structure.yaml",
+]
+
+[[cases]]
+case_id = "plink2_pca_output"
+stage_id = "vcf.pca"
+tool_id = "plink2"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.pca"
+sample_metadata_path = "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv"
+
+[[cases]]
+case_id = "eigensoft_pca_output"
+stage_id = "vcf.pca"
+tool_id = "eigensoft"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/eigensoft/pca"
+sample_metadata_path = "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv"
+
+[[cases]]
+case_id = "plink2_admixture_output"
+stage_id = "vcf.admixture"
+tool_id = "plink2"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.admixture"
+sample_metadata_path = "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv"
+
+[[cases]]
+case_id = "plink2_population_structure_output"
+stage_id = "vcf.population_structure"
+tool_id = "plink2"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.population_structure"
+sample_metadata_path = "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv"
+
+[[cases]]
+case_id = "eigensoft_population_structure_output"
+stage_id = "vcf.population_structure"
+tool_id = "eigensoft"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/eigensoft/population_structure"
+sample_metadata_path = "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv"

@@ -129,6 +129,23 @@ mod contracts {
     }
 
     #[test]
+    fn vcf_metric_vocabulary_covers_every_governed_stage_metric() {
+        let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../");
+        let metrics_raw = std::fs::read_to_string(repo_root.join("domain/vcf/metrics.yaml"))
+            .unwrap_or_else(|err| panic!("read VCF metric vocabulary: {err}"));
+
+        for stage in VcfDomainStage::all() {
+            for metric_id in stage_metrics_contract(*stage).required_metrics {
+                assert!(
+                    metrics_raw.contains(&format!("- id: {metric_id}")),
+                    "VCF metric vocabulary is missing `{metric_id}` for stage `{}`",
+                    stage.as_str()
+                );
+            }
+        }
+    }
+
+    #[test]
     fn authored_imputation_metrics_catalog_matches_governed_contract_ids() {
         let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../");
         let stage_raw =
@@ -244,7 +261,7 @@ mod contracts {
             );
         }
 
-        assert!(admixture_raw.contains("status: \"planned\""));
+        assert!(admixture_raw.contains("status: \"supported\""));
         assert!(admixture_raw.contains("- name: \"admixture_report\""));
         assert!(admixture_raw.contains("required_outputs: [\"admixture_report\"]"));
         assert!(!admixture_raw.contains("- name: \"admixture_out\""));
@@ -296,7 +313,7 @@ mod contracts {
             );
         }
 
-        assert!(roh_raw.contains("status: \"planned\""));
+        assert!(roh_raw.contains("status: \"supported\""));
         assert!(roh_raw.contains("- name: \"roh_report\""));
         assert!(roh_raw.contains("required_outputs: [\"roh_report\"]"));
         assert!(roh_raw.contains("planned_out_of_scope: []"));

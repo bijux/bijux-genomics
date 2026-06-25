@@ -225,7 +225,7 @@ pub(crate) fn run_local_vcf_gl_propagation_smoke(
                 "vcf_output",
             ),
             (
-                "vcf_index",
+                "gl_propagated_vcf_tbi",
                 format!("{DEFAULT_OUTPUT_VCF_NAME}.tbi"),
                 output_tbi.as_path(),
                 "vcf_index",

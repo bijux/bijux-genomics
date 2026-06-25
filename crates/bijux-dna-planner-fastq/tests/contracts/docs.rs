@@ -30,7 +30,7 @@ fn command_inventory_points_to_stage_authority() {
         "COMMANDS.md must state that the planner exposes no runtime commands",
     );
     for authority in ["bijux_dna_domain_fastq::STAGES", "src/tool_adapters/"] {
-        assert!(doc.contains(authority), "COMMANDS.md must point to command authority {authority}",);
+        assert!(doc.contains(authority), "COMMANDS.md must point to command authority {authority}");
     }
 }
 
@@ -70,13 +70,13 @@ fn ci_tool_registry_excludes_unpublished_fastq_tools() {
         .flatten()
         .filter_map(|tool| tool.get("id").and_then(Value::as_str))
         .collect::<BTreeSet<_>>();
-    for tool_id in ["diamond", "dustmasker", "seqfu", "seqpurge"] {
+    for tool_id in ["diamond", "dustmasker", "seqpurge"] {
         assert!(
             !tool_ids.contains(tool_id),
             "planned FASTQ tool {tool_id} must stay out of the governed CI runtime registry",
         );
     }
-    for tool_id in ["alientrimmer", "fastx_clipper", "leehom", "skewer"] {
+    for tool_id in ["alientrimmer", "fastx_clipper", "leehom", "seqfu", "skewer"] {
         assert!(
             tool_ids.contains(tool_id),
             "governed FASTQ tool {tool_id} must stay in the curated CI runtime registry once its containerized runtime is closed",

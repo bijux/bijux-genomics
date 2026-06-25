@@ -1,25 +1,44 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::path::{Path, PathBuf};
+use std::fs;
+use std::path::Path;
 
 use anyhow::{anyhow, Result};
+#[cfg(test)]
 use schemars::JsonSchema;
+#[cfg(test)]
 use serde::{Deserialize, Serialize};
 
-pub const VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION: &str = "bijux.vcf.scientific_drift.report.v1";
-pub const VCF_VALIDATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.validation_summary.v1";
-pub const VCF_STATS_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.stats_workflow.v1";
-pub const VCF_FILTER_CONSEQUENCE_SCHEMA_VERSION: &str = "bijux.vcf.filter_consequence.v1";
-pub const VCF_NORMALIZATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.normalization_summary.v1";
-pub const VCF_REFERENCE_CONTEXT_SCHEMA_VERSION: &str = "bijux.vcf.reference_context_resolution.v1";
-pub const VCF_DAMAGE_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.damage_filter_summary.v1";
-pub const VCF_DIPLOID_CALLING_BOUNDARY_SCHEMA_VERSION: &str =
-    "bijux.vcf.calling_boundary.diploid.v1";
-pub const VCF_PSEUDOHAPLOID_CALLING_BOUNDARY_SCHEMA_VERSION: &str =
-    "bijux.vcf.calling_boundary.pseudohaploid.v1";
-pub const VCF_GL_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
-    "bijux.vcf.calling_boundary.gl_workflow.v1";
-pub const VCF_PHASING_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
-    "bijux.vcf.calling_boundary.phasing.v1";
+mod schema;
+mod types;
+
+pub use schema::{
+    VCF_ADMIXTURE_OUTPUT_TRUTH_SCHEMA_VERSION, VCF_DAMAGE_FILTER_SUMMARY_SCHEMA_VERSION,
+    VCF_DEMOGRAPHY_OUTPUT_TRUTH_SCHEMA_VERSION, VCF_DIPLOID_CALLING_BOUNDARY_SCHEMA_VERSION,
+    VCF_FILTER_CONSEQUENCE_SCHEMA_VERSION, VCF_FILTER_OUTPUT_TRUTH_SCHEMA_VERSION,
+    VCF_GENOTYPE_TRUTH_SCHEMA_VERSION, VCF_GL_WORKFLOW_BOUNDARY_SCHEMA_VERSION,
+    VCF_IBD_OUTPUT_TRUTH_SCHEMA_VERSION, VCF_IMPUTATION_OUTPUT_TRUTH_SCHEMA_VERSION,
+    VCF_NORMALIZATION_SUMMARY_SCHEMA_VERSION, VCF_PCA_OUTPUT_TRUTH_SCHEMA_VERSION,
+    VCF_PHASING_OUTPUT_TRUTH_SCHEMA_VERSION, VCF_PHASING_WORKFLOW_BOUNDARY_SCHEMA_VERSION,
+    VCF_POPULATION_STRUCTURE_OUTPUT_TRUTH_SCHEMA_VERSION,
+    VCF_PSEUDOHAPLOID_CALLING_BOUNDARY_SCHEMA_VERSION, VCF_REFERENCE_CONTEXT_SCHEMA_VERSION,
+    VCF_ROH_OUTPUT_TRUTH_SCHEMA_VERSION, VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION,
+    VCF_STATS_WORKFLOW_SCHEMA_VERSION, VCF_VALIDATION_SUMMARY_SCHEMA_VERSION,
+};
+pub use types::{
+    VcfAdmixtureOutputTruthRowV1, VcfAdmixtureOutputTruthSummaryV1, VcfCallingBoundaryV1,
+    VcfDamageFilterSummaryV1, VcfDemographyEstimateTruthRowV1,
+    VcfDemographyInsufficientDataTruthV1, VcfDemographyOutputTruthSummaryV1,
+    VcfFilterConsequenceV1, VcfFilterOutputTruthSummaryV1, VcfGenotypeTruthSummaryV1,
+    VcfIbdInsufficientOverlapTruthV1, VcfIbdOutputTruthSummaryV1, VcfIbdPairTruthRowV1,
+    VcfImputationOutputTruthSummaryV1, VcfLikelihoodWorkflowBoundaryV1, VcfNormalizationSummaryV1,
+    VcfPcaOutputTruthSummaryV1, VcfPhasingOutputTruthSummaryV1, VcfPhasingWorkflowBoundaryV1,
+    VcfPopulationCoordinateTruthRowV1, VcfPopulationDistanceTruthRowV1,
+    VcfPopulationStructureOutputTruthRowV1, VcfPopulationStructureOutputTruthSummaryV1,
+    VcfReferenceContextResolutionV1, VcfRohOutputTruthSummaryV1, VcfRohSampleTruthRowV1,
+    VcfRohSegmentTruthRowV1, VcfScientificDriftArtifactDeltaV1, VcfScientificDriftChangeKind,
+    VcfScientificDriftMetricDeltaV1, VcfScientificDriftReportV1, VcfScientificDriftSnapshotV1,
+    VcfStatsWorkflowSummaryV1, VcfValidationSummaryV1,
+};
 #[cfg(test)]
 const VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.imputation.v1";
@@ -41,223 +60,7 @@ const VCF_ANNOTATION_PROVENANCE_WORKFLOW_SCHEMA_VERSION: &str =
 #[cfg(test)]
 const VCF_POPULATION_HANDOFF_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.population_handoff.v1";
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum VcfScientificDriftChangeKind {
-    DefaultsChange,
-    BackendChange,
-    FilterPolicyChange,
-    NormalizationPolicyChange,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct VcfScientificDriftSnapshotV1 {
-    pub label: String,
-    pub stage_id: String,
-    pub tool_id: String,
-    pub backend_version: Option<String>,
-    pub defaults_fingerprint: Option<String>,
-    pub normalization_policy_id: Option<String>,
-    pub filter_policy_id: Option<String>,
-    pub metrics: BTreeMap<String, f64>,
-    pub artifacts: BTreeMap<String, String>,
-    pub caveats: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct VcfScientificDriftMetricDeltaV1 {
-    pub metric_id: String,
-    pub baseline_value: f64,
-    pub candidate_value: f64,
-    pub absolute_delta: f64,
-    pub relative_delta: Option<f64>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct VcfScientificDriftArtifactDeltaV1 {
-    pub artifact_id: String,
-    pub baseline_hash: Option<String>,
-    pub candidate_hash: Option<String>,
-    pub changed: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct VcfScientificDriftReportV1 {
-    pub schema_version: String,
-    pub stage_id: String,
-    pub baseline_label: String,
-    pub candidate_label: String,
-    pub baseline_tool_id: String,
-    pub candidate_tool_id: String,
-    pub change_kinds: Vec<VcfScientificDriftChangeKind>,
-    pub metric_deltas: Vec<VcfScientificDriftMetricDeltaV1>,
-    pub artifact_deltas: Vec<VcfScientificDriftArtifactDeltaV1>,
-    pub downstream_risks: Vec<String>,
-    pub caveats: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct VcfValidationSummaryV1 {
-    pub schema_version: String,
-    pub stage_id: String,
-    pub input_vcf: PathBuf,
-    pub record_count: u64,
-    pub sample_count: u32,
-    pub header_valid: bool,
-    pub sorted_records: bool,
-    pub has_index: bool,
-    #[serde(default)]
-    pub refusal_codes: Vec<String>,
-    #[serde(default)]
-    pub notes: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct VcfStatsWorkflowSummaryV1 {
-    pub schema_version: String,
-    pub stage_id: String,
-    pub variant_count: u64,
-    pub sample_count: u32,
-    pub snv_count: u64,
-    pub indel_count: u64,
-    #[serde(default)]
-    pub ti_tv_ratio: Option<f64>,
-    pub missing_genotype_calls: u64,
-    #[serde(default)]
-    pub filter_counts: BTreeMap<String, u64>,
-    #[serde(default)]
-    pub per_sample_missingness: BTreeMap<String, f64>,
-    #[serde(default)]
-    pub caveats: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct VcfFilterConsequenceV1 {
-    pub schema_version: String,
-    pub stage_id: String,
-    pub filter_expression: String,
-    pub variants_in: u64,
-    pub variants_retained: u64,
-    pub variants_removed: u64,
-    #[serde(default)]
-    pub reason_counts: BTreeMap<String, u64>,
-    pub output_subset_identity: String,
-    #[serde(default)]
-    pub caveats: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct VcfNormalizationSummaryV1 {
-    pub schema_version: String,
-    pub stage_id: String,
-    pub records_in: u64,
-    pub records_out: u64,
-    pub records_changed: u64,
-    pub split_multiallelic_records: u64,
-    pub duplicate_records_after_normalization: u64,
-    pub raw_view_preserved: bool,
-    #[serde(default)]
-    pub caveats: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-#[allow(clippy::struct_excessive_bools)]
-pub struct VcfReferenceContextResolutionV1 {
-    pub schema_version: String,
-    pub stage_id: String,
-    pub reference_build: String,
-    pub panel_build: String,
-    #[serde(default)]
-    pub genetic_map_build: Option<String>,
-    pub contigs_observed: u32,
-    pub alias_mappings_used: u32,
-    pub fasta_present: bool,
-    pub fai_present: bool,
-    pub panel_compatible: bool,
-    pub genetic_map_compatible: bool,
-    pub passes: bool,
-    #[serde(default)]
-    pub refusal_codes: Vec<String>,
-    #[serde(default)]
-    pub caveats: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct VcfDamageFilterSummaryV1 {
-    pub schema_version: String,
-    pub stage_id: String,
-    pub action: String,
-    pub prerequisites_passed: bool,
-    pub variants_in: u64,
-    pub damage_risk_sites: u64,
-    pub removed_sites: u64,
-    pub masked_sites: u64,
-    pub annotated_sites: u64,
-    #[serde(default)]
-    pub refusal_codes: Vec<String>,
-    #[serde(default)]
-    pub caveats: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct VcfCallingBoundaryV1 {
-    pub schema_version: String,
-    pub stage_id: String,
-    pub mode: String,
-    pub prerequisites_passed: bool,
-    pub confidence: f64,
-    #[serde(default)]
-    pub refusal_codes: Vec<String>,
-    #[serde(default)]
-    pub assumptions: Vec<String>,
-    #[serde(default)]
-    pub caveats: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct VcfLikelihoodWorkflowBoundaryV1 {
-    pub schema_version: String,
-    pub stage_id: String,
-    pub prerequisites_passed: bool,
-    #[serde(default)]
-    pub refusal_codes: Vec<String>,
-    #[serde(default)]
-    pub assumptions: Vec<String>,
-    #[serde(default)]
-    pub caveats: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct VcfPhasingWorkflowBoundaryV1 {
-    pub schema_version: String,
-    pub stage_id: String,
-    pub prerequisites_passed: bool,
-    pub panel_compatible: bool,
-    pub genetic_map_compatible: bool,
-    pub confidence: f64,
-    pub sample_count: u32,
-    pub minimum_samples: u32,
-    #[serde(default)]
-    pub refusal_codes: Vec<String>,
-    #[serde(default)]
-    pub assumptions: Vec<String>,
-    #[serde(default)]
-    pub caveats: Vec<String>,
-}
-
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 #[allow(clippy::struct_excessive_bools)]
@@ -280,6 +83,7 @@ struct VcfImputationWorkflowBoundaryV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 struct VcfCohortQcSampleCaveatV1 {
@@ -290,6 +94,7 @@ struct VcfCohortQcSampleCaveatV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 struct VcfCohortQcWorkflowSummaryV1 {
@@ -315,6 +120,7 @@ struct VcfCohortQcWorkflowSummaryV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 struct VcfPcaAdmixtureGuardrailV1 {
@@ -335,6 +141,7 @@ struct VcfPcaAdmixtureGuardrailV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 struct VcfRohIbdWorkflowBoundaryV1 {
@@ -356,6 +163,7 @@ struct VcfRohIbdWorkflowBoundaryV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 struct VcfDemographyRefusalBoundaryV1 {
@@ -373,6 +181,7 @@ struct VcfDemographyRefusalBoundaryV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct VcfPanelReferenceSnapshotV1 {
@@ -384,6 +193,7 @@ struct VcfPanelReferenceSnapshotV1 {
     pub contig_alias_digest: String,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 struct VcfPanelReferenceDriftReportV1 {
@@ -400,6 +210,7 @@ struct VcfPanelReferenceDriftReportV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 #[allow(clippy::struct_excessive_bools)]
@@ -420,6 +231,7 @@ struct VcfStructuralVariantBoundaryV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 struct VcfAnnotationProvenanceWorkflowSummaryV1 {
@@ -441,6 +253,7 @@ struct VcfAnnotationProvenanceWorkflowSummaryV1 {
     pub caveats: Vec<String>,
 }
 
+#[cfg(test)]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 #[allow(clippy::struct_excessive_bools)]
@@ -697,14 +510,48 @@ fn is_transition(ref_allele: &str, alt_allele: &str) -> bool {
 }
 
 fn parse_gt_from_sample<'a>(format: &'a str, sample_payload: &'a str) -> Option<&'a str> {
+    parse_format_value_from_sample(format, sample_payload, "GT")
+}
+
+fn parse_format_value_from_sample<'a>(
+    format: &'a str,
+    sample_payload: &'a str,
+    field_name: &str,
+) -> Option<&'a str> {
     let keys = format.split(':').collect::<Vec<_>>();
     let values = sample_payload.split(':').collect::<Vec<_>>();
-    let gt_index = keys.iter().position(|key| *key == "GT")?;
-    values.get(gt_index).copied()
+    let field_index = keys.iter().position(|key| *key == field_name)?;
+    values.get(field_index).copied()
 }
 
 fn genotype_is_missing(gt: &str) -> bool {
     matches!(gt, "." | "./." | ".|." | "./" | ".|")
+}
+
+fn parse_called_genotype(gt: &str) -> Option<(bool, Vec<u32>)> {
+    if genotype_is_missing(gt) {
+        return None;
+    }
+    let (phased, alleles) = if gt.contains('|') {
+        (true, gt.split('|').collect::<Vec<_>>())
+    } else if gt.contains('/') {
+        (false, gt.split('/').collect::<Vec<_>>())
+    } else {
+        (false, vec![gt])
+    };
+    if alleles.iter().any(|allele| allele.is_empty() || *allele == ".") {
+        return None;
+    }
+    let parsed = alleles
+        .into_iter()
+        .map(str::parse::<u32>)
+        .collect::<std::result::Result<Vec<_>, _>>()
+        .ok()?;
+    Some((phased, parsed))
+}
+
+fn likelihood_value_present(value: &str) -> bool {
+    !value.is_empty() && value.split(',').any(|token| token != ".")
 }
 
 fn usize_to_u32_saturating(value: usize) -> u32 {
@@ -718,6 +565,14 @@ fn u64_ratio_saturating(numerator: u64, denominator: u64) -> f64 {
     let numerator = u32::try_from(numerator).unwrap_or(u32::MAX);
     let denominator = u32::try_from(denominator).unwrap_or(u32::MAX);
     f64::from(numerator) / f64::from(denominator)
+}
+
+fn mean_from_sum_and_count(sum: f64, count: usize) -> f64 {
+    if count == 0 {
+        return 0.0;
+    }
+    let count = u32::try_from(count).unwrap_or(u32::MAX);
+    sum / f64::from(count)
 }
 
 /// Build a bcftools-style stats summary for tiny fixture-safe VCF records.
@@ -795,6 +650,1233 @@ pub fn execute_vcf_stats_workflow(input_vcf: &Path) -> Result<VcfStatsWorkflowSu
             "missingness is derived from GT fields in fixture-safe records".to_string(),
         ],
     })
+}
+
+/// Summarize genotype-state, ploidy-width, missingness, and likelihood-field truth for a VCF.
+///
+/// # Errors
+/// Returns an error when the VCF cannot be parsed.
+pub fn summarize_vcf_genotype_truth(
+    input_vcf: &Path,
+    stage_id: &str,
+    tool_id: &str,
+) -> Result<VcfGenotypeTruthSummaryV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let stats = execute_vcf_stats_workflow(input_vcf)?;
+    let mut observed_ploidy_widths = BTreeSet::<u32>::new();
+    let mut called_calls = 0_u64;
+    let mut missing_calls = 0_u64;
+    let mut reference_only_calls = 0_u64;
+    let mut mixed_allele_calls = 0_u64;
+    let mut alternate_only_calls = 0_u64;
+    let mut phased_calls = 0_u64;
+    let mut unphased_calls = 0_u64;
+    let mut likelihood_fields_present = BTreeSet::<String>::new();
+    let mut sites_with_likelihood_values = BTreeMap::<String, u64>::new();
+    let mut sites_missing_likelihood_values = BTreeMap::<String, u64>::new();
+
+    for record in &doc.records {
+        let Some(format) = &record.format else {
+            continue;
+        };
+        for field_name in ["GL", "GP", "PL"] {
+            if !format.split(':').any(|field| field == field_name) {
+                continue;
+            }
+            likelihood_fields_present.insert(field_name.to_string());
+            let has_value = record.samples.iter().any(|sample_payload| {
+                parse_format_value_from_sample(format, sample_payload, field_name)
+                    .is_some_and(likelihood_value_present)
+            });
+            if has_value {
+                *sites_with_likelihood_values.entry(field_name.to_string()).or_insert(0) += 1;
+            } else {
+                *sites_missing_likelihood_values.entry(field_name.to_string()).or_insert(0) += 1;
+            }
+        }
+        for sample_payload in &record.samples {
+            let Some(gt) = parse_gt_from_sample(format, sample_payload) else {
+                continue;
+            };
+            let Some((phased, alleles)) = parse_called_genotype(gt) else {
+                missing_calls += 1;
+                continue;
+            };
+            called_calls += 1;
+            observed_ploidy_widths.insert(usize_to_u32_saturating(alleles.len()));
+            if phased {
+                phased_calls += 1;
+            } else {
+                unphased_calls += 1;
+            }
+            if alleles.iter().all(|allele| *allele == 0) {
+                reference_only_calls += 1;
+            } else if alleles.iter().all(|allele| *allele > 0) {
+                alternate_only_calls += 1;
+            } else {
+                mixed_allele_calls += 1;
+            }
+        }
+    }
+
+    Ok(VcfGenotypeTruthSummaryV1 {
+        schema_version: VCF_GENOTYPE_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        input_vcf: input_vcf.to_path_buf(),
+        sample_count: usize_to_u32_saturating(doc.samples.len()),
+        variant_count: doc.records.len() as u64,
+        observed_ploidy_widths: observed_ploidy_widths.into_iter().collect(),
+        called_calls,
+        missing_calls,
+        reference_only_calls,
+        mixed_allele_calls,
+        alternate_only_calls,
+        phased_calls,
+        unphased_calls,
+        per_sample_missingness: stats.per_sample_missingness,
+        likelihood_fields_present: likelihood_fields_present.into_iter().collect(),
+        sites_with_likelihood_values,
+        sites_missing_likelihood_values,
+    })
+}
+
+/// Summarize the labeled filter output observed in a VCF after filtering or damage-aware removal.
+///
+/// # Errors
+/// Returns an error when the VCF cannot be parsed.
+pub fn summarize_vcf_filter_output_truth(
+    input_vcf: &Path,
+    stage_id: &str,
+    tool_id: &str,
+) -> Result<VcfFilterOutputTruthSummaryV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let mut pass_variant_count = 0_u64;
+    let mut failed_variant_count = 0_u64;
+    let mut observed_filter_ids = BTreeSet::<String>::new();
+    let mut per_filter_variant_count = BTreeMap::<String, u64>::new();
+    let mut per_filter_sites = BTreeMap::<String, Vec<String>>::new();
+    let mut pass_sites = Vec::<String>::new();
+
+    for record in &doc.records {
+        let site_id = format!("{}:{}", record.chrom, record.pos);
+        if matches!(record.filter.as_str(), "PASS" | ".") {
+            pass_variant_count += 1;
+            pass_sites.push(site_id);
+            continue;
+        }
+        failed_variant_count += 1;
+        for filter_id in record.filter.split(';').filter(|value| !value.is_empty()) {
+            observed_filter_ids.insert(filter_id.to_string());
+            *per_filter_variant_count.entry(filter_id.to_string()).or_insert(0) += 1;
+            per_filter_sites.entry(filter_id.to_string()).or_default().push(site_id.clone());
+        }
+    }
+
+    Ok(VcfFilterOutputTruthSummaryV1 {
+        schema_version: VCF_FILTER_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        input_vcf: input_vcf.to_path_buf(),
+        sample_count: usize_to_u32_saturating(doc.samples.len()),
+        variant_count: doc.records.len() as u64,
+        pass_variant_count,
+        failed_variant_count,
+        observed_filter_ids: observed_filter_ids.into_iter().collect(),
+        per_filter_variant_count,
+        per_filter_sites,
+        pass_sites,
+    })
+}
+
+/// Summarize phased genotype counts and phase-set evidence from a phasing-output VCF.
+///
+/// # Errors
+/// Returns an error when the VCF cannot be parsed.
+pub fn summarize_vcf_phasing_output_truth(
+    input_vcf: &Path,
+    stage_id: &str,
+    tool_id: &str,
+) -> Result<VcfPhasingOutputTruthSummaryV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let mut called_genotype_count = 0_u64;
+    let mut phased_genotype_count = 0_u64;
+    let mut unphased_genotype_count = 0_u64;
+    let mut phase_sets_by_sample = doc
+        .samples
+        .iter()
+        .cloned()
+        .map(|sample_id| (sample_id, BTreeSet::<String>::new()))
+        .collect::<BTreeMap<_, _>>();
+
+    for record in &doc.records {
+        let Some(format) = &record.format else {
+            continue;
+        };
+        let ps_in_format = format.split(':').any(|field| field == "PS");
+        for (sample_index, sample_payload) in record.samples.iter().enumerate() {
+            let Some(gt) = parse_gt_from_sample(format, sample_payload) else {
+                continue;
+            };
+            let Some((phased, _alleles)) = parse_called_genotype(gt) else {
+                continue;
+            };
+            called_genotype_count += 1;
+            if phased {
+                phased_genotype_count += 1;
+                if ps_in_format {
+                    if let Some(ps) = parse_format_value_from_sample(format, sample_payload, "PS") {
+                        let sample_id = &doc.samples[sample_index];
+                        if !ps.is_empty() && ps != "." {
+                            phase_sets_by_sample
+                                .entry(sample_id.clone())
+                                .or_default()
+                                .insert(ps.to_string());
+                        }
+                    }
+                }
+            } else {
+                unphased_genotype_count += 1;
+            }
+        }
+    }
+
+    let phase_sets_by_sample = phase_sets_by_sample
+        .into_iter()
+        .map(|(sample_id, phase_sets)| (sample_id, phase_sets.into_iter().collect::<Vec<_>>()))
+        .collect::<BTreeMap<_, _>>();
+    let phase_set_count = phase_sets_by_sample
+        .values()
+        .map(|phase_sets| u64::try_from(phase_sets.len()).unwrap_or(0))
+        .sum();
+
+    Ok(VcfPhasingOutputTruthSummaryV1 {
+        schema_version: VCF_PHASING_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        input_vcf: input_vcf.to_path_buf(),
+        sample_count: usize_to_u32_saturating(doc.samples.len()),
+        sample_ids: doc.samples,
+        variant_count: doc.records.len() as u64,
+        called_genotype_count,
+        phased_genotype_count,
+        unphased_genotype_count,
+        phase_set_count,
+        phase_sets_by_sample,
+    })
+}
+
+/// Summarize imputation-output truth from an imputed VCF plus optional masked-site truth VCF.
+///
+/// # Errors
+/// Returns an error when the VCF or truth VCF cannot be parsed.
+pub fn summarize_vcf_imputation_output_truth(
+    input_vcf: &Path,
+    truth_vcf: Option<&Path>,
+    stage_id: &str,
+    tool_id: &str,
+) -> Result<VcfImputationOutputTruthSummaryV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let mut info_sum = 0.0_f64;
+    let mut r2_sum = 0.0_f64;
+    let mut sites_with_info_score = 0_u64;
+    let mut sites_with_r2_score = 0_u64;
+
+    for record in &doc.records {
+        if let Some(info_score) = parse_record_info_metric(&record.info, "INFO") {
+            info_sum += info_score;
+            sites_with_info_score += 1;
+        }
+        if let Some(r2_score) = parse_record_info_metric(&record.info, "R2") {
+            r2_sum += r2_score;
+            sites_with_r2_score += 1;
+        }
+    }
+
+    let truth_comparison = match truth_vcf {
+        Some(path) => Some(compare_imputed_truth(&doc, &parse_tiny_vcf(path)?)?),
+        None => None,
+    };
+    let mean_info_score = if sites_with_info_score > 0 {
+        Some(mean_from_sum_and_count(
+            info_sum,
+            usize::try_from(sites_with_info_score).unwrap_or(usize::MAX),
+        ))
+    } else {
+        None
+    };
+    let mean_r2_score = if sites_with_r2_score > 0 {
+        Some(mean_from_sum_and_count(
+            r2_sum,
+            usize::try_from(sites_with_r2_score).unwrap_or(usize::MAX),
+        ))
+    } else {
+        None
+    };
+    let genotype_concordance = truth_comparison.as_ref().and_then(|truth| {
+        let resolved = truth.matches + truth.mismatches;
+        if resolved == 0 {
+            None
+        } else {
+            Some(u64_ratio_saturating(truth.matches, resolved))
+        }
+    });
+
+    Ok(VcfImputationOutputTruthSummaryV1 {
+        schema_version: VCF_IMPUTATION_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        input_vcf: input_vcf.to_path_buf(),
+        truth_vcf: truth_vcf.map(Path::to_path_buf),
+        sample_count: usize_to_u32_saturating(doc.samples.len()),
+        sample_ids: doc.samples,
+        variant_count: doc.records.len() as u64,
+        sites_with_info_score,
+        sites_with_r2_score,
+        mean_info_score,
+        mean_r2_score,
+        masked_truth_site_count: truth_comparison.as_ref().map_or(0, |truth| truth.masked_sites),
+        masked_truth_match_count: truth_comparison.as_ref().map_or(0, |truth| truth.matches),
+        masked_truth_mismatch_count: truth_comparison.as_ref().map_or(0, |truth| truth.mismatches),
+        unresolved_count: truth_comparison.as_ref().map_or(0, |truth| truth.unresolved),
+        genotype_concordance,
+    })
+}
+
+/// Summarize normalized ROH metrics into governed interval truth.
+///
+/// # Errors
+/// Returns an error when normalized metrics drift away from their interval summaries.
+pub fn summarize_vcf_roh_output_truth(
+    metrics: &serde_json::Value,
+) -> Result<VcfRohOutputTruthSummaryV1> {
+    let stage_id = json_required_string(metrics, "stage_id")?;
+    let tool_id = json_required_string(metrics, "tool_id")?;
+    let status = json_required_string(metrics, "status")?;
+    let sample_count = json_required_u64(metrics, "sample_count")?;
+    let segment_count = json_required_u64(metrics, "segment_count")?;
+    let total_length = json_required_u64(metrics, "total_length")?;
+    let segments = parse_roh_segments(metrics)?;
+    let per_sample_summary = parse_roh_per_sample_summary(metrics)?;
+    validate_roh_counts(sample_count, segment_count, &segments, &per_sample_summary)?;
+    validate_roh_lengths(total_length, &segments, &per_sample_summary)?;
+
+    let sample_ids =
+        collect_sorted_unique_strings(segments.iter().map(|row| row.sample_id.as_str()));
+    if sample_count != sample_ids.len() as u64 {
+        return Err(anyhow!(
+            "ROH sample_count drifted from interval sample IDs: metrics=`{sample_count}`, intervals=`{}`",
+            sample_ids.len()
+        ));
+    }
+
+    Ok(VcfRohOutputTruthSummaryV1 {
+        schema_version: VCF_ROH_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id,
+        tool_id,
+        status,
+        sample_count: usize_to_u32_saturating(sample_ids.len()),
+        segment_count,
+        total_length,
+        sample_ids,
+        segments,
+        per_sample_summary,
+    })
+}
+
+fn parse_roh_segments(metrics: &serde_json::Value) -> Result<Vec<VcfRohSegmentTruthRowV1>> {
+    json_required_array(metrics, "segments")?
+        .iter()
+        .map(|row| {
+            Ok(VcfRohSegmentTruthRowV1 {
+                sample_id: json_required_string(row, "sample_id")?,
+                contig: json_required_string(row, "contig")?,
+                start: json_required_u64(row, "start")?,
+                end: json_required_u64(row, "end")?,
+                length: json_required_u64(row, "length")?,
+                variant_count: json_required_u64(row, "variant_count")?,
+            })
+        })
+        .collect()
+}
+
+fn parse_roh_per_sample_summary(
+    metrics: &serde_json::Value,
+) -> Result<Vec<VcfRohSampleTruthRowV1>> {
+    json_required_array(metrics, "per_sample_summary")?
+        .iter()
+        .map(|row| {
+            Ok(VcfRohSampleTruthRowV1 {
+                sample_id: json_required_string(row, "sample_id")?,
+                segment_count: json_required_u64(row, "segment_count")?,
+                total_length: json_required_u64(row, "total_length")?,
+                mean_length: json_required_f64(row, "mean_length")?,
+            })
+        })
+        .collect()
+}
+
+fn validate_roh_counts(
+    sample_count: u64,
+    segment_count: u64,
+    segments: &[VcfRohSegmentTruthRowV1],
+    per_sample_summary: &[VcfRohSampleTruthRowV1],
+) -> Result<()> {
+    if segment_count != segments.len() as u64 {
+        return Err(anyhow!(
+            "ROH segment_count drifted: metrics=`{segment_count}`, rows=`{}`",
+            segments.len()
+        ));
+    }
+    if sample_count != per_sample_summary.len() as u64 {
+        return Err(anyhow!(
+            "ROH sample_count drifted: metrics=`{sample_count}`, per-sample rows=`{}`",
+            per_sample_summary.len()
+        ));
+    }
+    Ok(())
+}
+
+fn validate_roh_lengths(
+    total_length: u64,
+    segments: &[VcfRohSegmentTruthRowV1],
+    per_sample_summary: &[VcfRohSampleTruthRowV1],
+) -> Result<()> {
+    let mut observed_per_sample = BTreeMap::<String, (u64, u64)>::new();
+    let mut observed_total_length = 0_u64;
+    for segment in segments {
+        observed_total_length += segment.length;
+        let entry = observed_per_sample.entry(segment.sample_id.clone()).or_insert((0, 0));
+        entry.0 += 1;
+        entry.1 += segment.length;
+    }
+    if total_length != observed_total_length {
+        return Err(anyhow!(
+            "ROH total_length drifted: metrics=`{total_length}`, intervals=`{observed_total_length}`"
+        ));
+    }
+    for row in per_sample_summary {
+        let (observed_segment_count, observed_sample_total_length) =
+            observed_per_sample.get(&row.sample_id).copied().ok_or_else(|| {
+                anyhow!("ROH per-sample summary contains unknown sample `{}`", row.sample_id)
+            })?;
+        if row.segment_count != observed_segment_count
+            || row.total_length != observed_sample_total_length
+        {
+            return Err(anyhow!(
+                "ROH per-sample summary drifted for `{}`: summary=({}, {}), intervals=({}, {})",
+                row.sample_id,
+                row.segment_count,
+                row.total_length,
+                observed_segment_count,
+                observed_sample_total_length
+            ));
+        }
+        let observed_mean_length = if observed_segment_count == 0 {
+            0.0
+        } else {
+            u64_ratio_saturating(observed_sample_total_length, observed_segment_count)
+        };
+        if !f64s_match(row.mean_length, observed_mean_length) {
+            return Err(anyhow!(
+                "ROH mean_length drifted for `{}`: summary=`{}`, intervals=`{}`",
+                row.sample_id,
+                row.mean_length,
+                observed_mean_length
+            ));
+        }
+    }
+    Ok(())
+}
+
+/// Summarize normalized IBD metrics into governed pair truth.
+///
+/// # Errors
+/// Returns an error when normalized metrics drift away from their insufficiency probe or pair rows.
+pub fn summarize_vcf_ibd_output_truth(
+    metrics: &serde_json::Value,
+) -> Result<VcfIbdOutputTruthSummaryV1> {
+    let stage_id = json_required_string(metrics, "stage_id")?;
+    let tool_id = json_required_string(metrics, "tool_id")?;
+    let status = json_required_string(metrics, "status")?;
+    let insufficient_reason = json_optional_string(metrics, "insufficient_reason")?;
+    let pair_count = json_required_u64(metrics, "pair_count")?;
+    let rows = json_required_array(metrics, "rows")?
+        .iter()
+        .map(|row| {
+            Ok(VcfIbdPairTruthRowV1 {
+                sample_a: json_required_string(row, "sample_a")?,
+                sample_b: json_required_string(row, "sample_b")?,
+                segment_count: json_required_u64(row, "segment_count")?,
+                total_length: json_required_f64(row, "total_length")?,
+                overlap_marker_count: json_required_u64(row, "overlap_marker_count")?,
+                status: json_required_string(row, "status")?,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    if pair_count != rows.len() as u64 {
+        return Err(anyhow!(
+            "IBD pair_count drifted: metrics=`{pair_count}`, rows=`{}`",
+            rows.len()
+        ));
+    }
+
+    let insufficient_overlap_probe_value =
+        metrics.get("insufficient_overlap_probe").ok_or_else(|| {
+            anyhow!("normalized metrics are missing object field `insufficient_overlap_probe`")
+        })?;
+    let insufficient_overlap_probe = VcfIbdInsufficientOverlapTruthV1 {
+        status: json_required_string(insufficient_overlap_probe_value, "status")?,
+        insufficient_reason: json_optional_string(
+            insufficient_overlap_probe_value,
+            "insufficient_reason",
+        )?,
+        filtered_segment_count: json_required_u64(
+            insufficient_overlap_probe_value,
+            "filtered_segment_count",
+        )?,
+    };
+
+    match status.as_str() {
+        "complete" => {
+            if insufficient_reason.is_some() {
+                return Err(anyhow!(
+                    "IBD complete metrics must not declare an insufficient_reason"
+                ));
+            }
+            if insufficient_overlap_probe.status != "not_run"
+                || insufficient_overlap_probe.insufficient_reason.is_some()
+                || insufficient_overlap_probe.filtered_segment_count != 0
+            {
+                return Err(anyhow!(
+                    "IBD complete metrics must keep the insufficient-overlap probe in `not_run` state"
+                ));
+            }
+        }
+        "insufficient_marker_overlap" => {
+            if insufficient_overlap_probe.status != status
+                || insufficient_overlap_probe.insufficient_reason != insufficient_reason
+            {
+                return Err(anyhow!(
+                    "IBD insufficient-overlap probe drifted from top-level status"
+                ));
+            }
+        }
+        other => {
+            return Err(anyhow!("unsupported IBD output truth status `{other}`"));
+        }
+    }
+
+    let retained_segment_count = rows.iter().map(|row| row.segment_count).sum::<u64>();
+    let total_length = rows.iter().map(|row| row.total_length).sum::<f64>();
+    let overlap_marker_total = rows.iter().map(|row| row.overlap_marker_count).sum::<u64>();
+    let sample_ids = collect_sorted_unique_strings(
+        rows.iter().flat_map(|row| [row.sample_a.as_str(), row.sample_b.as_str()].into_iter()),
+    );
+
+    Ok(VcfIbdOutputTruthSummaryV1 {
+        schema_version: VCF_IBD_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id,
+        tool_id,
+        status,
+        insufficient_reason,
+        pair_count,
+        retained_segment_count,
+        total_length,
+        overlap_marker_total,
+        sample_ids,
+        rows,
+        insufficient_overlap_probe,
+    })
+}
+
+/// Summarize normalized demography metrics into governed estimate truth.
+///
+/// # Errors
+/// Returns an error when normalized metrics drift away from their time-bin or insufficiency contract.
+pub fn summarize_vcf_demography_output_truth(
+    metrics: &serde_json::Value,
+) -> Result<VcfDemographyOutputTruthSummaryV1> {
+    let stage_id = json_required_string(metrics, "stage_id")?;
+    let tool_id = json_required_string(metrics, "tool_id")?;
+    let method = json_required_string(metrics, "method")?;
+    let inference_status = json_required_string(metrics, "inference_status")?;
+    let status = json_required_string(metrics, "status")?;
+    let insufficient_reason = json_optional_string(metrics, "insufficient_reason")?;
+    let time_bins = parse_demography_time_bins(metrics, "time_bins", "demography time_bins")?;
+    let ne_estimates = parse_demography_estimates(metrics, "ne_estimates")?;
+    if time_bins.len() != ne_estimates.len() {
+        return Err(anyhow!(
+            "demography time_bins drifted from ne_estimates: bins=`{}`, estimates=`{}`",
+            time_bins.len(),
+            ne_estimates.len()
+        ));
+    }
+    for (time_bin, estimate) in time_bins.iter().zip(&ne_estimates) {
+        if *time_bin != estimate.generation {
+            return Err(anyhow!(
+                "demography estimate generation drifted from time_bins: bin=`{time_bin}`, generation=`{}`",
+                estimate.generation
+            ));
+        }
+    }
+
+    let insufficient_data_probe = parse_demography_insufficient_data_probe(metrics)?;
+    validate_demography_status(
+        status.as_str(),
+        insufficient_reason.as_deref(),
+        &time_bins,
+        &ne_estimates,
+        &insufficient_data_probe,
+    )?;
+
+    Ok(VcfDemographyOutputTruthSummaryV1 {
+        schema_version: VCF_DEMOGRAPHY_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id,
+        tool_id,
+        method,
+        inference_status,
+        status,
+        insufficient_reason,
+        estimate_count: ne_estimates.len() as u64,
+        time_bins,
+        ne_estimates,
+        insufficient_data_probe,
+    })
+}
+
+fn parse_demography_time_bins(
+    metrics: &serde_json::Value,
+    field: &str,
+    label: &str,
+) -> Result<Vec<u64>> {
+    json_required_array(metrics, field)?
+        .iter()
+        .map(|value| value.as_u64().ok_or_else(|| anyhow!("{label} must contain only integers")))
+        .collect()
+}
+
+fn parse_demography_estimates(
+    metrics: &serde_json::Value,
+    field: &str,
+) -> Result<Vec<VcfDemographyEstimateTruthRowV1>> {
+    json_required_array(metrics, field)?
+        .iter()
+        .map(|row| {
+            Ok(VcfDemographyEstimateTruthRowV1 {
+                generation: json_required_u64(row, "generation")?,
+                ne: json_required_f64(row, "ne")?,
+                ci_low: json_required_f64(row, "ci_low")?,
+                ci_high: json_required_f64(row, "ci_high")?,
+            })
+        })
+        .collect()
+}
+
+fn parse_demography_insufficient_data_probe(
+    metrics: &serde_json::Value,
+) -> Result<VcfDemographyInsufficientDataTruthV1> {
+    let probe = metrics.get("insufficient_data_probe").ok_or_else(|| {
+        anyhow!("normalized metrics are missing object field `insufficient_data_probe`")
+    })?;
+    Ok(VcfDemographyInsufficientDataTruthV1 {
+        status: json_required_string(probe, "status")?,
+        insufficient_reason: json_optional_string(probe, "insufficient_reason")?,
+        time_bins: parse_demography_time_bins(
+            probe,
+            "time_bins",
+            "demography insufficient_data_probe time_bins",
+        )?,
+        ne_estimates: parse_demography_estimates(probe, "ne_estimates")?,
+    })
+}
+
+fn validate_demography_status(
+    status: &str,
+    insufficient_reason: Option<&str>,
+    time_bins: &[u64],
+    ne_estimates: &[VcfDemographyEstimateTruthRowV1],
+    insufficient_data_probe: &VcfDemographyInsufficientDataTruthV1,
+) -> Result<()> {
+    match status {
+        "complete" => validate_complete_demography(insufficient_reason, insufficient_data_probe),
+        "insufficient_data" => validate_insufficient_demography(
+            insufficient_reason,
+            time_bins,
+            ne_estimates,
+            insufficient_data_probe,
+        ),
+        other => Err(anyhow!("unsupported demography output truth status `{other}`")),
+    }
+}
+
+fn validate_complete_demography(
+    insufficient_reason: Option<&str>,
+    insufficient_data_probe: &VcfDemographyInsufficientDataTruthV1,
+) -> Result<()> {
+    if insufficient_reason.is_some() {
+        return Err(anyhow!("demography complete metrics must not declare an insufficient_reason"));
+    }
+    if insufficient_data_probe.status != "not_run"
+        || insufficient_data_probe.insufficient_reason.is_some()
+        || !insufficient_data_probe.time_bins.is_empty()
+        || !insufficient_data_probe.ne_estimates.is_empty()
+    {
+        return Err(anyhow!(
+            "demography complete metrics must keep the insufficient-data probe in `not_run` state"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_insufficient_demography(
+    insufficient_reason: Option<&str>,
+    time_bins: &[u64],
+    ne_estimates: &[VcfDemographyEstimateTruthRowV1],
+    insufficient_data_probe: &VcfDemographyInsufficientDataTruthV1,
+) -> Result<()> {
+    if insufficient_reason.is_none() {
+        return Err(anyhow!(
+            "demography insufficient_data metrics must declare an insufficient_reason"
+        ));
+    }
+    if !time_bins.is_empty() || !ne_estimates.is_empty() {
+        return Err(anyhow!("demography insufficient_data metrics must not retain estimate rows"));
+    }
+    if insufficient_data_probe.status != "insufficient_data"
+        || insufficient_data_probe.insufficient_reason.as_deref() != insufficient_reason
+        || !insufficient_data_probe.time_bins.is_empty()
+        || !insufficient_data_probe.ne_estimates.is_empty()
+    {
+        return Err(anyhow!("demography insufficient_data probe drifted from top-level status"));
+    }
+    Ok(())
+}
+
+#[derive(Debug, Clone)]
+struct PopulationMetadataRow {
+    sample_id: String,
+    population_id: String,
+    sex: String,
+    role: String,
+}
+
+#[derive(Debug, Clone)]
+struct CoordinateRow {
+    sample_id: String,
+    population_id: String,
+    pc1: f64,
+    pc2: f64,
+}
+
+/// Summarize normalized PCA metrics against governed sample metadata.
+///
+/// # Errors
+/// Returns an error when normalized metrics cannot be joined to sample metadata.
+pub fn summarize_vcf_pca_output_truth(
+    metrics: &serde_json::Value,
+    sample_metadata_path: &Path,
+) -> Result<VcfPcaOutputTruthSummaryV1> {
+    let stage_id = json_required_string(metrics, "stage_id")?;
+    let tool_id = json_required_string(metrics, "tool_id")?;
+    let metadata_rows = parse_population_metadata_rows(sample_metadata_path)?;
+    let metadata_by_sample =
+        metadata_rows.iter().map(|row| (row.sample_id.as_str(), row)).collect::<BTreeMap<_, _>>();
+    let coordinates = parse_coordinate_rows(json_required_array(metrics, "rows")?)?;
+
+    let rows = coordinates
+        .iter()
+        .map(|coordinate| {
+            let metadata =
+                metadata_by_sample.get(coordinate.sample_id.as_str()).ok_or_else(|| {
+                    anyhow!(
+                        "PCA metrics sample `{}` is missing from metadata `{}`",
+                        coordinate.sample_id,
+                        sample_metadata_path.display()
+                    )
+                })?;
+            if coordinate.population_id != metadata.population_id {
+                return Err(anyhow!(
+                    "PCA metrics sample `{}` population drifted: metrics=`{}`, metadata=`{}`",
+                    coordinate.sample_id,
+                    coordinate.population_id,
+                    metadata.population_id
+                ));
+            }
+            Ok(VcfPopulationCoordinateTruthRowV1 {
+                sample_id: coordinate.sample_id.clone(),
+                population_id: coordinate.population_id.clone(),
+                sex: metadata.sex.clone(),
+                role: metadata.role.clone(),
+                pc1: coordinate.pc1,
+                pc2: coordinate.pc2,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let pairwise_distances = build_population_distance_rows(&rows);
+    let population_ids = collect_population_ids(rows.iter().map(|row| row.population_id.as_str()));
+
+    Ok(VcfPcaOutputTruthSummaryV1 {
+        schema_version: VCF_PCA_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id,
+        tool_id,
+        sample_metadata_path: sample_metadata_path.to_path_buf(),
+        sample_count: usize_to_u32_saturating(rows.len()),
+        joined_sample_count: usize_to_u32_saturating(rows.len()),
+        pair_count: pairwise_distances.len() as u64,
+        population_ids,
+        rows,
+        pairwise_distances,
+    })
+}
+
+/// Summarize normalized admixture metrics against governed sample metadata.
+///
+/// # Errors
+/// Returns an error when normalized metrics cannot be joined to sample metadata.
+pub fn summarize_vcf_admixture_output_truth(
+    metrics: &serde_json::Value,
+    sample_metadata_path: &Path,
+) -> Result<VcfAdmixtureOutputTruthSummaryV1> {
+    let stage_id = json_required_string(metrics, "stage_id")?;
+    let tool_id = json_required_string(metrics, "tool_id")?;
+    let selected_k = json_required_u64(metrics, "selected_k")?;
+    let population_count = json_required_u64(metrics, "population_count")?;
+    let cluster_headers = json_required_array(metrics, "cluster_headers")?
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .map(str::to_string)
+                .ok_or_else(|| anyhow!("admixture cluster_headers must contain only strings"))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let metadata_rows = parse_population_metadata_rows(sample_metadata_path)?;
+    let metadata_by_sample =
+        metadata_rows.iter().map(|row| (row.sample_id.as_str(), row)).collect::<BTreeMap<_, _>>();
+    let metric_rows = json_required_array(metrics, "rows")?;
+    let rows = metric_rows
+        .iter()
+        .map(|row| {
+            let sample_id = json_required_string(row, "sample_id")?;
+            let population_id = json_required_string(row, "population_id")?;
+            let metadata = metadata_by_sample.get(sample_id.as_str()).ok_or_else(|| {
+                anyhow!(
+                    "admixture metrics sample `{sample_id}` is missing from metadata `{}`",
+                    sample_metadata_path.display()
+                )
+            })?;
+            if population_id != metadata.population_id {
+                return Err(anyhow!(
+                    "admixture metrics sample `{sample_id}` population drifted: metrics=`{population_id}`, metadata=`{}`",
+                    metadata.population_id
+                ));
+            }
+            let cluster_fractions = cluster_headers
+                .iter()
+                .map(|header| Ok((header.clone(), json_required_f64(row, header)?)))
+                .collect::<Result<BTreeMap<_, _>>>()?;
+            let (dominant_cluster, dominant_fraction) =
+                dominant_cluster_fraction(&cluster_fractions, &sample_id)?;
+            Ok(VcfAdmixtureOutputTruthRowV1 {
+                sample_id,
+                population_id,
+                sex: metadata.sex.clone(),
+                role: metadata.role.clone(),
+                status: json_required_string(row, "status")?,
+                dominant_cluster,
+                dominant_fraction,
+                cluster_fractions,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let population_ids = collect_population_ids(rows.iter().map(|row| row.population_id.as_str()));
+
+    Ok(VcfAdmixtureOutputTruthSummaryV1 {
+        schema_version: VCF_ADMIXTURE_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id,
+        tool_id,
+        sample_metadata_path: sample_metadata_path.to_path_buf(),
+        selected_k,
+        sample_count: usize_to_u32_saturating(rows.len()),
+        joined_sample_count: usize_to_u32_saturating(rows.len()),
+        population_count,
+        cluster_headers,
+        population_ids,
+        rows,
+    })
+}
+
+/// Summarize normalized population-structure metrics against governed sample metadata.
+///
+/// # Errors
+/// Returns an error when normalized metrics cannot be joined to sample metadata.
+pub fn summarize_vcf_population_structure_output_truth(
+    metrics: &serde_json::Value,
+    sample_metadata_path: &Path,
+) -> Result<VcfPopulationStructureOutputTruthSummaryV1> {
+    let stage_id = json_required_string(metrics, "stage_id")?;
+    let tool_id = json_required_string(metrics, "tool_id")?;
+    let metadata_rows = parse_population_metadata_rows(sample_metadata_path)?;
+    let metadata_by_sample =
+        metadata_rows.iter().map(|row| (row.sample_id.as_str(), row)).collect::<BTreeMap<_, _>>();
+    let metric_rows = json_required_array(metrics, "sample_groups")?;
+    let sample_groups = metric_rows
+        .iter()
+        .map(|row| {
+            let sample_id = json_required_string(row, "sample_id")?;
+            let population_id = json_required_string(row, "population_id")?;
+            let metadata = metadata_by_sample.get(sample_id.as_str()).ok_or_else(|| {
+                anyhow!(
+                    "population-structure metrics sample `{sample_id}` is missing from metadata `{}`",
+                    sample_metadata_path.display()
+                )
+            })?;
+            if population_id != metadata.population_id {
+                return Err(anyhow!(
+                    "population-structure metrics sample `{sample_id}` population drifted: metrics=`{population_id}`, metadata=`{}`",
+                    metadata.population_id
+                ));
+            }
+            Ok(VcfPopulationStructureOutputTruthRowV1 {
+                sample_id,
+                population_id,
+                sex: metadata.sex.clone(),
+                role: metadata.role.clone(),
+                dominant_cluster: json_required_string(row, "dominant_cluster")?,
+                dominant_fraction: json_required_f64(row, "dominant_fraction")?,
+                pc1: json_required_f64(row, "pc1")?,
+                pc2: json_required_f64(row, "pc2")?,
+                status: json_required_string(row, "status")?,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let pairwise_distances = build_population_distance_rows_from_structure(&sample_groups);
+    let (
+        within_population_pair_count,
+        cross_population_pair_count,
+        min_pc_distance,
+        max_pc_distance,
+        mean_pc_distance,
+    ) = summarize_population_distance_rows(&pairwise_distances);
+    let population_ids =
+        collect_population_ids(sample_groups.iter().map(|row| row.population_id.as_str()));
+
+    Ok(VcfPopulationStructureOutputTruthSummaryV1 {
+        schema_version: VCF_POPULATION_STRUCTURE_OUTPUT_TRUTH_SCHEMA_VERSION.to_string(),
+        stage_id,
+        tool_id,
+        sample_metadata_path: sample_metadata_path.to_path_buf(),
+        sample_count: usize_to_u32_saturating(sample_groups.len()),
+        joined_sample_count: usize_to_u32_saturating(sample_groups.len()),
+        pair_count: pairwise_distances.len() as u64,
+        within_population_pair_count,
+        cross_population_pair_count,
+        min_pc_distance,
+        max_pc_distance,
+        mean_pc_distance,
+        population_ids,
+        sample_groups,
+        pairwise_distances,
+    })
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct ImputedTruthComparison {
+    masked_sites: u64,
+    matches: u64,
+    mismatches: u64,
+    unresolved: u64,
+}
+
+fn compare_imputed_truth(
+    doc: &TinyVcfDocument,
+    truth: &TinyVcfDocument,
+) -> Result<ImputedTruthComparison> {
+    let output_sample_index = doc
+        .samples
+        .iter()
+        .enumerate()
+        .map(|(idx, sample_id)| (sample_id.clone(), idx))
+        .collect::<BTreeMap<_, _>>();
+    let truth_sample_index = truth
+        .samples
+        .iter()
+        .enumerate()
+        .map(|(idx, sample_id)| (sample_id.clone(), idx))
+        .collect::<BTreeMap<_, _>>();
+    let output_records = doc
+        .records
+        .iter()
+        .map(|record| (format!("{}:{}", record.chrom, record.pos), record))
+        .collect::<BTreeMap<_, _>>();
+
+    let mut masked_sites = 0_u64;
+    let mut matches = 0_u64;
+    let mut mismatches = 0_u64;
+    let mut unresolved = 0_u64;
+
+    for truth_record in &truth.records {
+        let site_id = format!("{}:{}", truth_record.chrom, truth_record.pos);
+        let Some(output_record) = output_records.get(&site_id) else {
+            for truth_payload in &truth_record.samples {
+                let gt = truth_record
+                    .format
+                    .as_deref()
+                    .and_then(|format| parse_gt_from_sample(format, truth_payload));
+                if gt.is_some_and(|value| !genotype_is_missing(value)) {
+                    unresolved += 1;
+                }
+            }
+            continue;
+        };
+        let Some(truth_format) = truth_record.format.as_deref() else {
+            continue;
+        };
+        let Some(output_format) = output_record.format.as_deref() else {
+            continue;
+        };
+        for (sample_id, truth_index) in &truth_sample_index {
+            let truth_payload = truth_record.samples.get(*truth_index).ok_or_else(|| {
+                anyhow!("truth VCF row `{site_id}` is missing genotype for `{sample_id}`")
+            })?;
+            let Some(truth_gt) = parse_gt_from_sample(truth_format, truth_payload) else {
+                continue;
+            };
+            if genotype_is_missing(truth_gt) {
+                continue;
+            }
+            masked_sites += 1;
+            let Some(output_index) = output_sample_index.get(sample_id) else {
+                unresolved += 1;
+                continue;
+            };
+            let output_payload = output_record.samples.get(*output_index).ok_or_else(|| {
+                anyhow!("imputed VCF row `{site_id}` is missing genotype for `{sample_id}`")
+            })?;
+            let Some(output_gt) = parse_gt_from_sample(output_format, output_payload) else {
+                unresolved += 1;
+                continue;
+            };
+            if genotype_is_missing(output_gt) {
+                unresolved += 1;
+                continue;
+            }
+            if canonicalize_genotype_for_truth(output_gt)
+                == canonicalize_genotype_for_truth(truth_gt)
+            {
+                matches += 1;
+            } else {
+                mismatches += 1;
+            }
+        }
+    }
+
+    Ok(ImputedTruthComparison { masked_sites, matches, mismatches, unresolved })
+}
+
+fn canonicalize_genotype_for_truth(gt: &str) -> String {
+    gt.replace('|', "/")
+}
+
+fn parse_record_info_metric(info: &str, key: &str) -> Option<f64> {
+    info.split(';').find_map(|entry| {
+        let (entry_key, value) = entry.split_once('=')?;
+        if entry_key == key {
+            value.parse::<f64>().ok()
+        } else {
+            None
+        }
+    })
+}
+
+fn parse_population_metadata_rows(path: &Path) -> Result<Vec<PopulationMetadataRow>> {
+    let raw = fs::read_to_string(path)?;
+    let mut lines = raw.lines();
+    let header =
+        lines.next().ok_or_else(|| anyhow!("population metadata `{}` is empty", path.display()))?;
+    let expected = ["sample_id", "population_id", "sex", "role"];
+    for column in expected {
+        if !header.split('\t').any(|value| value == column) {
+            return Err(anyhow!(
+                "population metadata `{}` is missing required column `{column}`",
+                path.display()
+            ));
+        }
+    }
+    lines
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            let columns = line.split('\t').collect::<Vec<_>>();
+            if columns.len() < 4 {
+                return Err(anyhow!(
+                    "population metadata `{}` contains malformed row `{line}`",
+                    path.display()
+                ));
+            }
+            Ok(PopulationMetadataRow {
+                sample_id: columns[0].to_string(),
+                population_id: columns[1].to_string(),
+                sex: columns[2].to_string(),
+                role: columns[3].to_string(),
+            })
+        })
+        .collect()
+}
+
+fn parse_coordinate_rows(rows: &[serde_json::Value]) -> Result<Vec<CoordinateRow>> {
+    rows.iter()
+        .map(|row| {
+            Ok(CoordinateRow {
+                sample_id: json_required_string(row, "sample_id")?,
+                population_id: json_required_string(row, "population_id")?,
+                pc1: json_required_f64(row, "pc1")?,
+                pc2: json_required_f64(row, "pc2")?,
+            })
+        })
+        .collect()
+}
+
+fn build_population_distance_rows(
+    rows: &[VcfPopulationCoordinateTruthRowV1],
+) -> Vec<VcfPopulationDistanceTruthRowV1> {
+    let coordinates = rows
+        .iter()
+        .map(|row| CoordinateRow {
+            sample_id: row.sample_id.clone(),
+            population_id: row.population_id.clone(),
+            pc1: row.pc1,
+            pc2: row.pc2,
+        })
+        .collect::<Vec<_>>();
+    build_population_distance_rows_from_coordinates(&coordinates)
+}
+
+fn build_population_distance_rows_from_structure(
+    rows: &[VcfPopulationStructureOutputTruthRowV1],
+) -> Vec<VcfPopulationDistanceTruthRowV1> {
+    let coordinates = rows
+        .iter()
+        .map(|row| CoordinateRow {
+            sample_id: row.sample_id.clone(),
+            population_id: row.population_id.clone(),
+            pc1: row.pc1,
+            pc2: row.pc2,
+        })
+        .collect::<Vec<_>>();
+    build_population_distance_rows_from_coordinates(&coordinates)
+}
+
+fn build_population_distance_rows_from_coordinates(
+    rows: &[CoordinateRow],
+) -> Vec<VcfPopulationDistanceTruthRowV1> {
+    let mut distances = Vec::new();
+    for left_index in 0..rows.len() {
+        for right_index in (left_index + 1)..rows.len() {
+            let left = &rows[left_index];
+            let right = &rows[right_index];
+            let delta_pc1 = left.pc1 - right.pc1;
+            let delta_pc2 = left.pc2 - right.pc2;
+            distances.push(VcfPopulationDistanceTruthRowV1 {
+                left_sample_id: left.sample_id.clone(),
+                right_sample_id: right.sample_id.clone(),
+                left_population_id: left.population_id.clone(),
+                right_population_id: right.population_id.clone(),
+                distance: (delta_pc1.powi(2) + delta_pc2.powi(2)).sqrt(),
+            });
+        }
+    }
+    distances
+}
+
+fn summarize_population_distance_rows(
+    rows: &[VcfPopulationDistanceTruthRowV1],
+) -> (u64, u64, f64, f64, f64) {
+    let within_population_pair_count =
+        rows.iter().filter(|row| row.left_population_id == row.right_population_id).count() as u64;
+    let cross_population_pair_count = rows.len() as u64 - within_population_pair_count;
+    let min_pc_distance = rows.iter().map(|row| row.distance).reduce(f64::min).unwrap_or(0.0);
+    let max_pc_distance = rows.iter().map(|row| row.distance).reduce(f64::max).unwrap_or(0.0);
+    let mean_pc_distance = if rows.is_empty() {
+        0.0
+    } else {
+        mean_from_sum_and_count(rows.iter().map(|row| row.distance).sum::<f64>(), rows.len())
+    };
+    (
+        within_population_pair_count,
+        cross_population_pair_count,
+        min_pc_distance,
+        max_pc_distance,
+        mean_pc_distance,
+    )
+}
+
+fn dominant_cluster_fraction(
+    cluster_fractions: &BTreeMap<String, f64>,
+    sample_id: &str,
+) -> Result<(String, f64)> {
+    cluster_fractions
+        .iter()
+        .max_by(|left, right| left.1.partial_cmp(right.1).unwrap_or(std::cmp::Ordering::Equal))
+        .map(|(cluster_id, fraction)| (cluster_id.clone(), *fraction))
+        .ok_or_else(|| {
+            anyhow!("admixture metrics sample `{sample_id}` is missing cluster fractions")
+        })
+}
+
+fn collect_population_ids<'a>(population_ids: impl Iterator<Item = &'a str>) -> Vec<String> {
+    collect_sorted_unique_strings(population_ids)
+}
+
+fn collect_sorted_unique_strings<'a>(values: impl Iterator<Item = &'a str>) -> Vec<String> {
+    let mut values = values.map(str::to_string).collect::<Vec<_>>();
+    values.sort();
+    values.dedup();
+    values
+}
+
+fn json_required_array<'a>(
+    value: &'a serde_json::Value,
+    field: &str,
+) -> Result<&'a Vec<serde_json::Value>> {
+    value
+        .get(field)
+        .and_then(serde_json::Value::as_array)
+        .ok_or_else(|| anyhow!("normalized metrics are missing array field `{field}`"))
+}
+
+fn json_required_string(value: &serde_json::Value, field: &str) -> Result<String> {
+    value
+        .get(field)
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string)
+        .ok_or_else(|| anyhow!("normalized metrics are missing string field `{field}`"))
+}
+
+fn json_optional_string(value: &serde_json::Value, field: &str) -> Result<Option<String>> {
+    match value.get(field) {
+        None | Some(serde_json::Value::Null) => Ok(None),
+        Some(serde_json::Value::String(raw)) => Ok(Some(raw.clone())),
+        Some(_) => Err(anyhow!("normalized metrics field `{field}` must be a string or null")),
+    }
+}
+
+fn json_required_u64(value: &serde_json::Value, field: &str) -> Result<u64> {
+    value
+        .get(field)
+        .and_then(serde_json::Value::as_u64)
+        .ok_or_else(|| anyhow!("normalized metrics are missing integer field `{field}`"))
+}
+
+fn json_required_f64(value: &serde_json::Value, field: &str) -> Result<f64> {
+    value
+        .get(field)
+        .and_then(serde_json::Value::as_f64)
+        .ok_or_else(|| anyhow!("normalized metrics are missing numeric field `{field}`"))
+}
+
+fn f64s_match(left: f64, right: f64) -> bool {
+    (left - right).abs() <= 1e-12
 }
 
 /// Apply fixture-safe VCF filtering and report explainable retained/removed consequences.
@@ -1935,6 +3017,7 @@ pub fn build_vcf_scientific_drift_report(
 #[allow(clippy::expect_used)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
 
     fn unique_temp_dir(label: &str) -> PathBuf {
         static COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
@@ -1942,6 +3025,24 @@ mod tests {
         let path = std::env::temp_dir().join(format!("bijux-vcf-{label}-{seq}"));
         std::fs::create_dir_all(&path).expect("create temporary directory");
         path
+    }
+
+    fn assert_f64_eq(left: f64, right: f64) {
+        assert!(f64s_match(left, right), "left=`{left}`, right=`{right}`");
+    }
+
+    fn assert_option_f64_eq(left: Option<f64>, right: f64) {
+        let Some(left) = left else {
+            panic!("expected Some({right}), found None");
+        };
+        assert_f64_eq(left, right);
+    }
+
+    fn assert_map_f64_eq(map: &BTreeMap<String, f64>, key: &str, expected: f64) {
+        let Some(value) = map.get(key).copied() else {
+            panic!("missing key `{key}`");
+        };
+        assert_f64_eq(value, expected);
     }
 
     #[test]
@@ -2028,9 +3129,9 @@ chr1\t30\t.\tAT\tA\t60\tPASS\tDP=7\tGT\t0/1\t0/0\n",
         assert_eq!(summary.missing_genotype_calls, 1);
         assert_eq!(summary.filter_counts.get("PASS"), Some(&2));
         assert_eq!(summary.filter_counts.get("q10"), Some(&1));
-        assert_eq!(summary.per_sample_missingness.get("s1"), Some(&0.0));
-        assert_eq!(summary.per_sample_missingness.get("s2"), Some(&(1.0 / 3.0)));
-        assert_eq!(summary.ti_tv_ratio, Some(1.0));
+        assert_map_f64_eq(&summary.per_sample_missingness, "s1", 0.0);
+        assert_map_f64_eq(&summary.per_sample_missingness, "s2", 1.0 / 3.0);
+        assert_option_f64_eq(summary.ti_tv_ratio, 1.0);
     }
 
     #[test]
@@ -2514,5 +3615,408 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(refused.refusal_codes.contains(&"reference_identity_mismatch".to_string()));
         assert!(refused.refusal_codes.contains(&"trust_class_incompatible".to_string()));
         assert!(refused.refusal_codes.contains(&"caveats_required_for_handoff".to_string()));
+    }
+
+    fn repo_fixture_path(relative_path: &str) -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../").join(relative_path)
+    }
+
+    #[test]
+    fn summarize_vcf_genotype_truth_reports_diploid_counts_from_governed_fixture() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_diploid/raw.diploid.vcf",
+        );
+
+        let summary =
+            summarize_vcf_genotype_truth(&input, "vcf.call_diploid", "bcftools").expect("summary");
+        assert_eq!(summary.schema_version, VCF_GENOTYPE_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.sample_count, 1);
+        assert_eq!(summary.variant_count, 3);
+        assert_eq!(summary.observed_ploidy_widths, vec![2]);
+        assert_eq!(summary.called_calls, 3);
+        assert_eq!(summary.missing_calls, 0);
+        assert_eq!(summary.reference_only_calls, 1);
+        assert_eq!(summary.mixed_allele_calls, 1);
+        assert_eq!(summary.alternate_only_calls, 1);
+        assert_eq!(summary.phased_calls, 0);
+        assert_eq!(summary.unphased_calls, 3);
+        assert_map_f64_eq(&summary.per_sample_missingness, "sample_a", 0.0);
+        assert!(summary.likelihood_fields_present.is_empty());
+    }
+
+    #[test]
+    fn summarize_vcf_genotype_truth_reports_haploid_missingness_from_governed_fixture() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_pseudohaploid/raw.pseudohaploid.vcf",
+        );
+
+        let summary = summarize_vcf_genotype_truth(&input, "vcf.call_pseudohaploid", "angsd")
+            .expect("summary");
+        assert_eq!(summary.observed_ploidy_widths, vec![1]);
+        assert_eq!(summary.called_calls, 2);
+        assert_eq!(summary.missing_calls, 1);
+        assert_eq!(summary.reference_only_calls, 1);
+        assert_eq!(summary.mixed_allele_calls, 0);
+        assert_eq!(summary.alternate_only_calls, 1);
+        assert_eq!(summary.unphased_calls, 2);
+        assert_map_f64_eq(&summary.per_sample_missingness, "sample_lowcov", 1.0 / 3.0);
+    }
+
+    #[test]
+    fn summarize_vcf_genotype_truth_reports_single_likelihood_field_truth() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_gl/raw.gl.vcf",
+        );
+
+        let summary =
+            summarize_vcf_genotype_truth(&input, "vcf.call_gl", "bcftools").expect("summary");
+        assert_eq!(summary.observed_ploidy_widths, vec![2]);
+        assert_eq!(summary.likelihood_fields_present, vec!["PL".to_string()]);
+        assert_eq!(summary.sites_with_likelihood_values.get("PL"), Some(&3));
+        assert!(summary.sites_missing_likelihood_values.is_empty());
+    }
+
+    #[test]
+    fn summarize_vcf_genotype_truth_reports_gl_gp_pl_field_sets() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.gl_propagation/raw.propagated.vcf",
+        );
+
+        let summary = summarize_vcf_genotype_truth(&input, "vcf.gl_propagation", "bcftools")
+            .expect("summary");
+        assert_eq!(
+            summary.likelihood_fields_present,
+            vec!["GL".to_string(), "GP".to_string(), "PL".to_string()]
+        );
+        assert_eq!(summary.sites_with_likelihood_values.get("GL"), Some(&3));
+        assert_eq!(summary.sites_with_likelihood_values.get("GP"), Some(&3));
+        assert_eq!(summary.sites_with_likelihood_values.get("PL"), Some(&3));
+        assert!(summary.sites_missing_likelihood_values.is_empty());
+    }
+
+    #[test]
+    fn summarize_vcf_filter_output_truth_reports_known_filter_labels_from_governed_fixture() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter/raw.filtered.vcf",
+        );
+
+        let summary =
+            summarize_vcf_filter_output_truth(&input, "vcf.filter", "bcftools").expect("summary");
+        assert_eq!(summary.schema_version, VCF_FILTER_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.sample_count, 1);
+        assert_eq!(summary.variant_count, 5);
+        assert_eq!(summary.pass_variant_count, 1);
+        assert_eq!(summary.failed_variant_count, 4);
+        assert_eq!(
+            summary.observed_filter_ids,
+            vec![
+                "HIGH_MISSING".to_string(),
+                "LOWQUAL".to_string(),
+                "LOW_DP".to_string(),
+                "LOW_MQ".to_string()
+            ]
+        );
+        assert_eq!(summary.per_filter_variant_count.get("LOWQUAL"), Some(&1));
+        assert_eq!(summary.per_filter_variant_count.get("LOW_DP"), Some(&1));
+        assert_eq!(summary.per_filter_variant_count.get("HIGH_MISSING"), Some(&1));
+        assert_eq!(summary.per_filter_sites.get("LOWQUAL"), Some(&vec!["chr1:20".to_string()]));
+        assert_eq!(summary.pass_sites, vec!["chr1:10".to_string()]);
+    }
+
+    #[test]
+    fn summarize_vcf_filter_output_truth_reports_retained_damage_filter_sites() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter/raw.damage_filtered.vcf",
+        );
+
+        let summary = summarize_vcf_filter_output_truth(&input, "vcf.damage_filter", "bcftools")
+            .expect("summary");
+        assert_eq!(summary.variant_count, 2);
+        assert_eq!(summary.pass_variant_count, 2);
+        assert_eq!(summary.failed_variant_count, 0);
+        assert!(summary.observed_filter_ids.is_empty());
+        assert_eq!(summary.pass_sites, vec!["chr1:10".to_string(), "chr1:40".to_string()]);
+    }
+
+    #[test]
+    fn summarize_vcf_phasing_output_truth_reports_phase_sets_from_governed_fixture() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/shapeit5/raw.phased.vcf",
+        );
+
+        let summary =
+            summarize_vcf_phasing_output_truth(&input, "vcf.phasing", "shapeit5").expect("summary");
+        assert_eq!(summary.schema_version, VCF_PHASING_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.sample_count, 2);
+        assert_eq!(summary.sample_ids, vec!["cohort_alpha".to_string(), "cohort_beta".to_string()]);
+        assert_eq!(summary.variant_count, 4);
+        assert_eq!(summary.called_genotype_count, 8);
+        assert_eq!(summary.phased_genotype_count, 8);
+        assert_eq!(summary.unphased_genotype_count, 0);
+        assert_eq!(summary.phase_set_count, 4);
+        assert_eq!(
+            summary.phase_sets_by_sample.get("cohort_alpha"),
+            Some(&vec!["101".to_string(), "145".to_string()])
+        );
+        assert_eq!(
+            summary.phase_sets_by_sample.get("cohort_beta"),
+            Some(&vec!["101".to_string(), "145".to_string()])
+        );
+    }
+
+    #[test]
+    fn summarize_vcf_imputation_output_truth_reports_concordance_and_info_scores() {
+        let input = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute/raw.imputed.vcf",
+        );
+        let truth = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute/raw.truth.vcf",
+        );
+
+        let summary =
+            summarize_vcf_imputation_output_truth(&input, Some(&truth), "vcf.impute", "beagle")
+                .expect("summary");
+        assert_eq!(summary.schema_version, VCF_IMPUTATION_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.sample_count, 2);
+        assert_eq!(
+            summary.sample_ids,
+            vec!["masked_sample".to_string(), "donor_sample".to_string()]
+        );
+        assert_eq!(summary.variant_count, 2);
+        assert_eq!(summary.sites_with_info_score, 2);
+        assert_eq!(summary.sites_with_r2_score, 2);
+        assert_option_f64_eq(summary.mean_info_score, 0.825);
+        assert_option_f64_eq(summary.mean_r2_score, 0.775);
+        assert_eq!(summary.masked_truth_site_count, 1);
+        assert_eq!(summary.masked_truth_match_count, 1);
+        assert_eq!(summary.masked_truth_mismatch_count, 0);
+        assert_eq!(summary.unresolved_count, 0);
+        assert_option_f64_eq(summary.genotype_concordance, 1.0);
+    }
+
+    #[test]
+    fn summarize_vcf_pca_output_truth_joins_coordinates_to_metadata() {
+        let artifact_root =
+            repo_fixture_path("benchmarks/tests/fixtures/bench/parsers/vcf/eigensoft/pca");
+        let metadata = repo_fixture_path(
+            "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv",
+        );
+        let metrics =
+            crate::parse_eigensoft_stage_metrics(crate::VcfDomainStage::Pca, &artifact_root)
+                .expect("parse eigensoft pca metrics");
+
+        let summary = summarize_vcf_pca_output_truth(&metrics, &metadata).expect("summary");
+        assert_eq!(summary.schema_version, VCF_PCA_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "vcf.pca");
+        assert_eq!(summary.tool_id, "eigensoft");
+        assert_eq!(summary.sample_count, 4);
+        assert_eq!(summary.joined_sample_count, 4);
+        assert_eq!(summary.pair_count, 6);
+        assert_eq!(
+            summary.population_ids,
+            vec!["cohort_alpha".to_string(), "cohort_beta".to_string()]
+        );
+        assert_eq!(summary.rows[0].sample_id, "sample_a");
+        assert_eq!(summary.rows[0].sex, "female");
+        assert_eq!(summary.rows[0].role, "cohort");
+        assert_f64_eq(summary.rows[0].pc1, 0.01);
+        assert_f64_eq(summary.rows[0].pc2, 0.02);
+        assert_eq!(summary.pairwise_distances[0].left_sample_id, "sample_a");
+        assert_eq!(summary.pairwise_distances[0].right_sample_id, "sample_b");
+        assert_f64_eq(summary.pairwise_distances[0].distance, 0.014_142_135_623_730_95);
+    }
+
+    #[test]
+    fn summarize_vcf_admixture_output_truth_tracks_cluster_fractions_with_metadata() {
+        let artifact_root =
+            repo_fixture_path("benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.admixture");
+        let metadata = repo_fixture_path(
+            "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv",
+        );
+        let metrics =
+            crate::parse_plink2_stage_metrics(crate::VcfDomainStage::Admixture, &artifact_root)
+                .expect("parse plink2 admixture metrics");
+
+        let summary = summarize_vcf_admixture_output_truth(&metrics, &metadata).expect("summary");
+        assert_eq!(summary.schema_version, VCF_ADMIXTURE_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "vcf.admixture");
+        assert_eq!(summary.tool_id, "plink2");
+        assert_eq!(summary.selected_k, 2);
+        assert_eq!(summary.sample_count, 4);
+        assert_eq!(summary.joined_sample_count, 4);
+        assert_eq!(summary.population_count, 2);
+        assert_eq!(summary.cluster_headers, vec!["cluster_1".to_string(), "cluster_2".to_string()]);
+        assert_eq!(summary.rows[0].sample_id, "sample_a");
+        assert_eq!(summary.rows[0].dominant_cluster, "cluster_1");
+        assert_f64_eq(summary.rows[0].dominant_fraction, 1.0);
+        assert_map_f64_eq(&summary.rows[0].cluster_fractions, "cluster_2", 0.0);
+        assert_eq!(summary.rows[2].sample_id, "sample_c");
+        assert_eq!(summary.rows[2].dominant_cluster, "cluster_2");
+        assert_eq!(summary.rows[2].sex, "female");
+    }
+
+    #[test]
+    fn summarize_vcf_population_structure_output_truth_reports_distance_summary() {
+        let artifact_root = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.population_structure",
+        );
+        let metadata = repo_fixture_path(
+            "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv",
+        );
+        let metrics = crate::parse_plink2_stage_metrics(
+            crate::VcfDomainStage::PopulationStructure,
+            &artifact_root,
+        )
+        .expect("parse plink2 population structure metrics");
+
+        let summary =
+            summarize_vcf_population_structure_output_truth(&metrics, &metadata).expect("summary");
+        assert_eq!(summary.schema_version, VCF_POPULATION_STRUCTURE_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "vcf.population_structure");
+        assert_eq!(summary.tool_id, "plink2");
+        assert_eq!(summary.sample_count, 4);
+        assert_eq!(summary.joined_sample_count, 4);
+        assert_eq!(summary.pair_count, 6);
+        assert_eq!(summary.within_population_pair_count, 2);
+        assert_eq!(summary.cross_population_pair_count, 4);
+        assert_f64_eq(summary.min_pc_distance, 0.014_142_135_623_730_95);
+        assert_f64_eq(summary.max_pc_distance, 0.042_426_406_871_192_854);
+        assert_f64_eq(summary.mean_pc_distance, 0.023_570_226_039_551_587);
+        assert_eq!(summary.sample_groups[0].dominant_cluster, "cluster_1");
+        assert_eq!(summary.sample_groups[2].dominant_cluster, "cluster_2");
+        assert_eq!(summary.sample_groups[1].role, "cohort");
+    }
+
+    #[test]
+    fn summarize_vcf_roh_output_truth_reports_interval_rows() {
+        let artifact_root = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/plink2/vcf.roh/complete",
+        );
+        let metrics = crate::parse_segment_stage_metrics(
+            "plink2",
+            crate::VcfDomainStage::Roh,
+            &artifact_root,
+        )
+        .expect("parse plink2 roh metrics");
+
+        let summary = summarize_vcf_roh_output_truth(&metrics).expect("summary");
+        assert_eq!(summary.schema_version, VCF_ROH_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "vcf.roh");
+        assert_eq!(summary.tool_id, "plink2");
+        assert_eq!(summary.status, "complete");
+        assert_eq!(summary.sample_count, 4);
+        assert_eq!(summary.segment_count, 8);
+        assert_eq!(summary.total_length, 8);
+        assert_eq!(
+            summary.sample_ids,
+            vec![
+                "sample_a".to_string(),
+                "sample_b".to_string(),
+                "sample_c".to_string(),
+                "sample_d".to_string()
+            ]
+        );
+        assert_eq!(summary.segments[0].sample_id, "sample_a");
+        assert_eq!(summary.segments[0].start, 3);
+        assert_eq!(summary.segments[7].sample_id, "sample_d");
+        assert_eq!(summary.segments[7].end, 8);
+        assert_eq!(summary.per_sample_summary[0].segment_count, 2);
+        assert_f64_eq(summary.per_sample_summary[0].mean_length, 1.0);
+    }
+
+    #[test]
+    fn summarize_vcf_ibd_output_truth_tracks_pair_lengths_and_marker_overlap() {
+        let artifact_root = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/germline/vcf.ibd/complete",
+        );
+        let metrics = crate::parse_segment_stage_metrics(
+            "germline",
+            crate::VcfDomainStage::Ibd,
+            &artifact_root,
+        )
+        .expect("parse germline ibd metrics");
+
+        let summary = summarize_vcf_ibd_output_truth(&metrics).expect("summary");
+        assert_eq!(summary.schema_version, VCF_IBD_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "vcf.ibd");
+        assert_eq!(summary.tool_id, "germline");
+        assert_eq!(summary.status, "complete");
+        assert_eq!(summary.pair_count, 1);
+        assert_eq!(summary.retained_segment_count, 2);
+        assert_f64_eq(summary.total_length, 9.5);
+        assert_eq!(summary.overlap_marker_total, 41);
+        assert_eq!(summary.sample_ids, vec!["sample_a".to_string(), "sample_b".to_string()]);
+        assert_eq!(summary.rows[0].sample_a, "sample_a");
+        assert_eq!(summary.rows[0].sample_b, "sample_b");
+        assert_eq!(summary.rows[0].segment_count, 2);
+        assert_eq!(summary.insufficient_overlap_probe.status, "not_run");
+    }
+
+    #[test]
+    fn summarize_vcf_ibd_output_truth_preserves_marker_overlap_insufficiency() {
+        let artifact_root = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdseq/vcf.ibd/insufficient_marker_overlap",
+        );
+        let metrics = crate::parse_segment_stage_metrics(
+            "ibdseq",
+            crate::VcfDomainStage::Ibd,
+            &artifact_root,
+        )
+        .expect("parse ibdseq insufficiency metrics");
+
+        let summary = summarize_vcf_ibd_output_truth(&metrics).expect("summary");
+        assert_eq!(summary.status, "insufficient_marker_overlap");
+        assert_eq!(
+            summary.insufficient_reason.as_deref(),
+            Some("no_pairs_met_min_marker_or_length_threshold")
+        );
+        assert_eq!(summary.pair_count, 0);
+        assert_eq!(summary.retained_segment_count, 0);
+        assert_f64_eq(summary.total_length, 0.0);
+        assert_eq!(summary.overlap_marker_total, 0);
+        assert!(summary.sample_ids.is_empty());
+        assert_eq!(summary.insufficient_overlap_probe.status, "insufficient_marker_overlap");
+    }
+
+    #[test]
+    fn summarize_vcf_demography_output_truth_preserves_complete_and_insufficient_states() {
+        let complete_root = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/complete",
+        );
+        let complete_metrics = crate::parse_segment_stage_metrics(
+            "ibdne",
+            crate::VcfDomainStage::Demography,
+            &complete_root,
+        )
+        .expect("parse complete demography metrics");
+        let complete_summary =
+            summarize_vcf_demography_output_truth(&complete_metrics).expect("complete summary");
+        assert_eq!(complete_summary.schema_version, VCF_DEMOGRAPHY_OUTPUT_TRUTH_SCHEMA_VERSION);
+        assert_eq!(complete_summary.status, "complete");
+        assert_eq!(complete_summary.estimate_count, 3);
+        assert_eq!(complete_summary.time_bins, vec![5, 10, 20]);
+        assert_f64_eq(complete_summary.ne_estimates[0].ne, 12_000.0);
+        assert_eq!(complete_summary.insufficient_data_probe.status, "not_run");
+
+        let insufficient_root = repo_fixture_path(
+            "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/insufficient_data",
+        );
+        let insufficient_metrics = crate::parse_segment_stage_metrics(
+            "ibdne",
+            crate::VcfDomainStage::Demography,
+            &insufficient_root,
+        )
+        .expect("parse insufficient demography metrics");
+        let insufficient_summary = summarize_vcf_demography_output_truth(&insufficient_metrics)
+            .expect("insufficient summary");
+        assert_eq!(insufficient_summary.status, "insufficient_data");
+        assert_eq!(
+            insufficient_summary.insufficient_reason.as_deref(),
+            Some("not_enough_ibd_segments")
+        );
+        assert_eq!(insufficient_summary.estimate_count, 0);
+        assert!(insufficient_summary.time_bins.is_empty());
+        assert!(insufficient_summary.ne_estimates.is_empty());
+        assert_eq!(insufficient_summary.insufficient_data_probe.status, "insufficient_data");
     }
 }

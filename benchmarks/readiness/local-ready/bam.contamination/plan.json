@@ -55,6 +55,12 @@
         "optional": false
       },
       {
+        "name": "contamination_estimate",
+        "path": "benchmarks/readiness/local-ready/bam.contamination/contamination.estimate.json",
+        "role": "unknown",
+        "optional": false
+      },
+      {
         "name": "summary",
         "path": "benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json",
         "role": "report_json",

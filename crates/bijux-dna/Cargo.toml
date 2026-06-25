@@ -32,12 +32,15 @@ clap = { workspace = true }
 tracing = { workspace = true }
 serde_json = { workspace = true }
 serde = { workspace = true }
+serde_yaml = { workspace = true }
 regex = { workspace = true }
 toml = { workspace = true }
 sha2 = { workspace = true }
 tar.workspace = true
 flate2.workspace = true
 schemars.workspace = true
+noodles-bam.workspace = true
+noodles-sam.workspace = true
 
 [features]
 bam_downstream = ["bijux-dna-api/bam_downstream"]
@@ -48,10 +51,13 @@ default = []
 
 [dev-dependencies]
 bijux-dna-policies.workspace = true
+bijux-dna-testkit.workspace = true
 tempfile.workspace = true
 predicates.workspace = true
 insta = { workspace = true }
 filetime.workspace = true
+walkdir.workspace = true
+sysinfo.workspace = true
 
 [lints]
 workspace = true

@@ -35,8 +35,10 @@ fn bench_readiness_stage_tool_assets_writes_governed_toml_file() {
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let config_path = repo_root.join("benchmarks/configs/local/stage-tool-assets.toml");
+    let config_path = repo_root.join("configs/bench/local/stage-tool-assets.toml");
     let raw = std::fs::read_to_string(&config_path).expect("read config");
+    assert!(raw.starts_with("# schema_version = 1\n"));
+    assert!(raw.contains("# last_updated = 2026-06-25\n"));
     let parsed: toml::Value = toml::from_str(&raw).expect("parse config");
 
     assert_eq!(
@@ -49,7 +51,7 @@ fn bench_readiness_stage_tool_assets_writes_governed_toml_file() {
     );
 
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 36);
+    assert_eq!(rows.len(), 38);
     assert!(rows.iter().all(|row| {
         row.get("asset_id")
             .and_then(toml::Value::as_str)

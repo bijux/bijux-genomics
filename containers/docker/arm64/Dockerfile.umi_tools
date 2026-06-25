@@ -4,7 +4,7 @@
 # Container definition license: GPL-3.0.
 # The bijux-dna software source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
-FROM python:3.9-slim@sha256:dad5b29e3506c35e0fd222736f4d4ef25d21b219acdd73f7bb41d59996ca8e0d
+FROM python:3.9-slim@sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf1731b1b
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=unknown
@@ -15,8 +15,8 @@ LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" 
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="umi_tools"
 LABEL org.opencontainers.image.title="umi_tools"
-LABEL org.opencontainers.image.base.name="python:3.9-slim@sha256:dad5b29e3506c35e0fd222736f4d4ef25d21b219acdd73f7bb41d59996ca8e0d"
-LABEL org.opencontainers.image.base.digest="sha256:dad5b29e3506c35e0fd222736f4d4ef25d21b219acdd73f7bb41d59996ca8e0d"
+LABEL org.opencontainers.image.base.name="python:3.9-slim@sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf1731b1b"
+LABEL org.opencontainers.image.base.digest="sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf1731b1b"
 ENV DEBIAN_FRONTEND=noninteractive
 
 ARG VERSION_UMI_TOOLS=1.1.6
@@ -31,14 +31,14 @@ RUN apt-get update -qq && \
     rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m venv /opt/venv && \
-    /opt/venv/bin/pip install --no-cache-dir --upgrade pip && \
-    /opt/venv/bin/pip install --no-cache-dir "git+https://github.com/CGATOxford/UMI-tools.git@v${VERSION_UMI_TOOLS}" && \
+    /opt/venv/bin/pip install --no-cache-dir --upgrade "pip==24.3.1" "setuptools<81" wheel && \
+    PIP_USE_PEP517=0 /opt/venv/bin/pip install --no-cache-dir "umi_tools==${VERSION_UMI_TOOLS}" && \
     mv /opt/venv/bin/umi_tools /usr/local/bin/umi_tools-bin && \
     printf '%s\n' \
       '#!/bin/sh' \
-      'case "$1" in' \
+      'case "${1:-}" in' \
       '  --version) echo "${VERSION_UMI_TOOLS}"; exit 0;;' \
-      '  --help|-h) exec /usr/local/bin/umi_tools-bin --help;;' \
+      '  --help|-h|"") exec /usr/local/bin/umi_tools-bin --help;;' \
       '  *) exec /usr/local/bin/umi_tools-bin "$@";; esac' \
       > /usr/local/bin/umi_tools && \
     chmod +x /usr/local/bin/umi_tools

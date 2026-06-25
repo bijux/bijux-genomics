@@ -37,13 +37,13 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_adapter_missing_input_tests_report_structured_failures() {
+fn bench_readiness_adapter_missing_input_audit_report_structured_failures() {
     let payload =
         run_cli_json(&["bench", "readiness", "render-adapter-missing-input-tests", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.adapter_missing_input_tests.v1")
+        Some("bijux.bench.readiness.adapter_missing_input_audit.v1")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),

@@ -1,6 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
+use std::{collections::BTreeSet, process::Command};
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
@@ -118,7 +118,24 @@ fn bench_local_vcf_admixture_smoke_writes_governed_files() {
         Some("bijux-dna bench local run-vcf-admixture-smoke --tool-id plink2")
     );
     let outputs = manifest.get("outputs").and_then(serde_json::Value::as_array).expect("outputs");
-    assert_eq!(outputs.len(), 5);
+    let observed_output_ids = outputs
+        .iter()
+        .filter_map(|row| row.get("artifact_id").and_then(serde_json::Value::as_str))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        observed_output_ids,
+        BTreeSet::from([
+            "admixture_json",
+            "admixture_proxy_eigenval",
+            "admixture_proxy_eigenvec",
+            "admixture_report",
+            "admixture_tsv",
+            "plink2_log",
+            "source_k_selection_json",
+            "source_logs_txt",
+            "source_q_matrix_tsv",
+        ])
+    );
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("admixture_tsv")
             && row.get("realized_path").and_then(serde_json::Value::as_str)

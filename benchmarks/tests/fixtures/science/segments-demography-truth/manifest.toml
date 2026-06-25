@@ -1,0 +1,68 @@
+schema_version = "bijux.bench.segments_demography_truth.v1"
+fixture_id = "segments-demography-truth"
+description = "Governed ROH, IBD, and demography truth bundle covering ROH intervals, relatedness segment lengths, marker-overlap insufficiency, and demography insufficiency across retained VCF segment-analysis backends."
+expected_path = "expected.json"
+source_paths = [
+  "benchmarks/tests/fixtures/bench/parsers/vcf/segments/plink2/vcf.roh",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/segments/germline/vcf.ibd",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdseq/vcf.ibd",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdhap/vcf.ibd",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography",
+  "domain/vcf/stages/roh.yaml",
+  "domain/vcf/stages/ibd.yaml",
+  "domain/vcf/stages/demography.yaml",
+]
+
+[[cases]]
+case_id = "plink2_roh_output"
+stage_id = "vcf.roh"
+tool_id = "plink2"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/segments/plink2/vcf.roh/complete"
+
+[[cases]]
+case_id = "germline_ibd_complete"
+stage_id = "vcf.ibd"
+tool_id = "germline"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/segments/germline/vcf.ibd/complete"
+
+[[cases]]
+case_id = "germline_ibd_insufficient_overlap"
+stage_id = "vcf.ibd"
+tool_id = "germline"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/segments/germline/vcf.ibd/insufficient_marker_overlap"
+
+[[cases]]
+case_id = "ibdseq_ibd_complete"
+stage_id = "vcf.ibd"
+tool_id = "ibdseq"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdseq/vcf.ibd/complete"
+
+[[cases]]
+case_id = "ibdseq_ibd_insufficient_overlap"
+stage_id = "vcf.ibd"
+tool_id = "ibdseq"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdseq/vcf.ibd/insufficient_marker_overlap"
+
+[[cases]]
+case_id = "ibdhap_ibd_complete"
+stage_id = "vcf.ibd"
+tool_id = "ibdhap"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdhap/vcf.ibd/complete"
+
+[[cases]]
+case_id = "ibdhap_ibd_insufficient_overlap"
+stage_id = "vcf.ibd"
+tool_id = "ibdhap"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdhap/vcf.ibd/insufficient_marker_overlap"
+
+[[cases]]
+case_id = "ibdne_demography_complete"
+stage_id = "vcf.demography"
+tool_id = "ibdne"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/complete"
+
+[[cases]]
+case_id = "ibdne_demography_insufficient_data"
+stage_id = "vcf.demography"
+tool_id = "ibdne"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/insufficient_data"

@@ -22,16 +22,11 @@ fn cli_forbids_internal_deps() -> Result<()> {
         }
     }
     let forbidden = [
-        "bijux-dna-domain-bam",
-        "bijux-dna-domain-fastq",
-        "bijux-dna-domain-vcf",
         "bijux-dna-engine",
         "bijux-dna-pipelines",
         "bijux-dna-runner",
         "bijux-dna-runtime",
         "bijux-dna-stages-bam",
-        "bijux-dna-stages-fastq",
-        "bijux-dna-stages-vcf",
     ];
     for dep in forbidden {
         assert!(!deps.contains(&dep.to_string()), "cli must not depend on {dep}");

@@ -167,7 +167,7 @@ fn policy__boundaries__dependency_graph__engine_has_no_domain_or_planner_edges()
 }
 
 #[test]
-fn policy__boundaries__dependency_graph__cli_depends_only_on_api() {
+fn policy__boundaries__dependency_graph__cli_depends_only_on_documented_boundary() {
     let root = workspace_root();
     let metadata = MetadataCommand::new()
         .manifest_path(root.join("Cargo.toml"))
@@ -182,14 +182,22 @@ fn policy__boundaries__dependency_graph__cli_depends_only_on_api() {
     let cli =
         metadata.packages.iter().find(|pkg| pkg.name == "bijux-dna").expect("bijux-dna missing");
     let allowed = BTreeSet::from([
-        "bijux-dna-api".to_string(),
         "bijux-dna-analyze".to_string(),
+        "bijux-dna-api".to_string(),
+        "bijux-dna-core".to_string(),
+        "bijux-dna-db-ref".to_string(),
+        "bijux-dna-domain-bam".to_string(),
         "bijux-dna-domain-compiler".to_string(),
-        "bijux-dna-runtime".to_string(),
-        "bijux-dna-infra".to_string(),
+        "bijux-dna-domain-fastq".to_string(),
         "bijux-dna-domain-vcf".to_string(),
-        "bijux-dna-stages-vcf".to_string(),
         "bijux-dna-db-ena".to_string(),
+        "bijux-dna-infra".to_string(),
+        "bijux-dna-planner-bam".to_string(),
+        "bijux-dna-planner-fastq".to_string(),
+        "bijux-dna-planner-vcf".to_string(),
+        "bijux-dna-stage-contract".to_string(),
+        "bijux-dna-stages-fastq".to_string(),
+        "bijux-dna-stages-vcf".to_string(),
     ]);
     let actual: BTreeSet<String> = cli
         .dependencies
@@ -201,7 +209,7 @@ fn policy__boundaries__dependency_graph__cli_depends_only_on_api() {
     let unexpected: BTreeSet<_> = actual.difference(&allowed).cloned().collect();
     bijux_dna_policies::policy_assert!(
         unexpected.is_empty(),
-        "bijux CLI depends on unexpected workspace crates: {:?}",
+        "bijux CLI depends on unexpected workspace crates outside the documented boundary: {:?}",
         unexpected
     );
 }

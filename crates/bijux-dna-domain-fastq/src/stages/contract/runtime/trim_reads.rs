@@ -133,8 +133,7 @@ pub fn trim_reads(
     }
 
     write_fastq_records(output_r1, &out_left)?;
-    if paired {
-        let out_r2 = output_r2.expect("validated above");
+    if let Some(out_r2) = output_r2 {
         write_fastq_records(out_r2, &out_right)?;
     }
 

@@ -60,13 +60,11 @@ fn policy__boundaries__path_policies__src_bin_requires_bin_targets() {
         if !src_bin.exists() {
             continue;
         }
-        let has_bins = std::fs::read_dir(&src_bin)
-            .map(|entries| {
-                entries.filter_map(Result::ok).any(|entry| {
-                    entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs")
-                })
-            })
-            .unwrap_or(false);
+        let has_bins = std::fs::read_dir(&src_bin).is_ok_and(|entries| {
+            entries
+                .filter_map(Result::ok)
+                .any(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs"))
+        });
         if !has_bins {
             offenders.push(crate_root.display().to_string());
         }

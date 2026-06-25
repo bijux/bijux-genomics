@@ -1,0 +1,42 @@
+{
+  "schema_version": "bijux.bench.readiness.all_domain_local_operational_benchmark_complete.v1",
+  "output_path": "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json",
+  "checked_surface_count": 3,
+  "passed_surface_count": 3,
+  "failed_surface_count": 0,
+  "active_row_count": 141,
+  "benchmark_ready_row_count": 141,
+  "blocker_count": 0,
+  "ok": true,
+  "checks": [
+    {
+      "surface_id": "benchmark_paths_cleanup_proof",
+      "output_path": "benchmarks/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json",
+      "proof_paths": [
+        "benchmarks/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json",
+        "benchmarks/readiness/benchmark-paths-validation.json"
+      ],
+      "ok": true,
+      "detail": "deleted_root_count=3, validator_violation_count=0, readiness_snapshot_count=115"
+    },
+    {
+      "surface_id": "all_domain_active_scope_complete",
+      "output_path": "benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json",
+      "proof_paths": [
+        "benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json"
+      ],
+      "ok": true,
+      "detail": "active_row_count=141, failed_surface_count=0"
+    },
+    {
+      "surface_id": "operational_benchmark_ready",
+      "output_path": "benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json",
+      "proof_paths": [
+        "benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json"
+      ],
+      "ok": true,
+      "detail": "benchmark_ready_row_count=141, blocker_count=0, active_row_count=141"
+    }
+  ],
+  "blockers": []
+}

@@ -428,10 +428,10 @@ mod tests {
         .expect("render FASTQ adapter output contract");
 
         assert_eq!(report.schema_version, FASTQ_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION);
-        assert_eq!(report.row_count, 73);
-        assert_eq!(report.missing_adapter_row_count, 3);
-        assert_eq!(report.adapter_row_count, 70);
-        assert_eq!(report.complete_adapter_row_count, 70);
+        assert_eq!(report.row_count, 71);
+        assert_eq!(report.missing_adapter_row_count, 0);
+        assert_eq!(report.adapter_row_count, 71);
+        assert_eq!(report.complete_adapter_row_count, 71);
         assert_eq!(report.incomplete_adapter_row_count, 0);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "seqkit_stats"
@@ -451,7 +451,11 @@ mod tests {
                 && super::output_contract_status_label(row.output_contract_status) == "complete"
                 && row.stage_output_ids == vec!["duplicate_signal_report".to_string()]
                 && row.stage_expected_artifact_ids == vec!["duplicate_signal_report".to_string()]
-                && row.declared_output_ids == vec!["duplicate_signal_report".to_string()]
+                && row.declared_output_ids
+                    == vec![
+                        "duplicate_signal_report".to_string(),
+                        "library_complexity_report".to_string(),
+                    ]
                 && row.execution_expected_output_ids == vec!["duplicate_signal_report".to_string()]
                 && row.raw_output_artifact_ids == vec!["duplicate_signal_report".to_string()]
                 && row.normalized_metrics_output_id.as_deref() == Some("duplicate_signal_report")

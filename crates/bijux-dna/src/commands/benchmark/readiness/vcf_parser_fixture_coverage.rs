@@ -414,13 +414,13 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH);
-        assert_eq!(report.stage_count, 17);
+        assert_eq!(report.stage_count, 18);
         assert_eq!(report.tool_count, 6);
-        assert_eq!(report.row_count, 20);
-        assert_eq!(report.covered_row_count, 20);
+        assert_eq!(report.row_count, 21);
+        assert_eq!(report.covered_row_count, 21);
         assert_eq!(report.missing_row_count, 0);
         assert!((report.parser_fixture_coverage_percent - 100.0).abs() < f64::EPSILON);
-        assert_eq!(report.coverage_status_counts.get("covered"), Some(&20));
+        assert_eq!(report.coverage_status_counts.get("covered"), Some(&21));
         assert!(report.rows.iter().all(|row| {
             row.schema_id.starts_with("bijux.schemas.bench.vcf-normalized-metrics.")
                 && row.parser_fixture_schema_id.starts_with("bijux.vcf.")
@@ -432,7 +432,7 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.admixture"
                 && row.tool_id == "plink2"
-                && row.parser_fixture_parser_id == "parse_plink2_admixture_report"
+                && row.parser_fixture_parser_id == "parse_plink2_admixture_metrics"
                 && row.parser_fixture_schema_id == "bijux.vcf.admixture.v1"
         }));
         assert!(report.rows.iter().any(|row| {
@@ -440,6 +440,12 @@ mod tests {
                 && row.tool_id == "bcftools"
                 && row.parser_fixture_parser_id == "parse_bcftools_call_metrics"
                 && row.parser_fixture_schema_id == "bijux.vcf.call.v1"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.stage_id == "vcf.roh"
+                && row.tool_id == "plink2"
+                && row.parser_fixture_parser_id == "parse_plink2_roh_segment_metrics"
+                && row.parser_fixture_schema_id == "bijux.vcf.roh.v1"
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.imputation_metrics"
@@ -453,10 +459,7 @@ mod tests {
             row.stage_id == "vcf.postprocess"
                 && row.tool_id == "bcftools"
                 && row.parser_fixture_parser_id == "parse_bcftools_postprocess_metrics"
-                && row
-                    .raw_fixture_paths
-                    .iter()
-                    .any(|path| path.ends_with("raw.postprocess_summary.json"))
+                && row.raw_fixture_paths.iter().any(|path| path.ends_with("raw.postprocess.vcf"))
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.pca"

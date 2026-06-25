@@ -294,7 +294,7 @@ pub fn fastq_pipeline_id_catalog(profile_id: &str) -> Vec<String> {
             .required_stages
             .iter()
             .filter(|stage| stage.starts_with(bijux_dna_domain_fastq::STAGE_PREFIX))
-            .map(|stage| (*stage).to_string())
+            .map(|stage| (*stage).clone())
             .collect();
     }
     Vec::new()

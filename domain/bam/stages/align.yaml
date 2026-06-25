@@ -50,8 +50,18 @@ parameters:
 metrics:
   - name: "mapped_reads"
     meaning: "Mapped-read count derived from governed alignment summaries"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "alignment_rate"
     meaning: "Mapped fraction derived from governed alignment summaries"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
 description: "FASTQ-to-BAM alignment contract for governed BAM benchmark admission."
 required_inputs:
   - fastq_r1

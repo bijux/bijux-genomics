@@ -40,20 +40,20 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.all_domain_retained_tools.v1")
+        Some("bijux.bench.readiness.retained_tool_inventory.v1")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/retained-tools.tsv")
+        Some("benchmarks/readiness/tools/retained-tool-inventory.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(
         payload.get("active_matrix_tool_count").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(71)
     );
     assert_eq!(
         payload.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(71)
     );
     assert_eq!(payload.get("mixed_status_tool_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
@@ -65,12 +65,12 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
         .get("domain_tool_counts")
         .and_then(serde_json::Value::as_object)
         .expect("domain counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(39));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(42));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(25));
     assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(6));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 69);
+    assert_eq!(rows.len(), 71);
 
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("kraken2")
@@ -120,21 +120,22 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqkit")
             && row.get("domains").and_then(serde_json::Value::as_array)
                 == Some(&vec![serde_json::Value::String("fastq".to_string())])
-            && row.get("active_stage_count").and_then(serde_json::Value::as_u64) == Some(5)
-            && row.get("benchmark_ready_stage_count").and_then(serde_json::Value::as_u64) == Some(5)
-            && row.get("active_binding_count").and_then(serde_json::Value::as_u64) == Some(5)
+            && row.get("active_stage_count").and_then(serde_json::Value::as_u64) == Some(6)
+            && row.get("benchmark_ready_stage_count").and_then(serde_json::Value::as_u64) == Some(6)
+            && row.get("active_binding_count").and_then(serde_json::Value::as_u64) == Some(6)
             && row.get("benchmark_ready_binding_count").and_then(serde_json::Value::as_u64)
-                == Some(5)
+                == Some(6)
             && row.get("benchmark_statuses").and_then(serde_json::Value::as_array)
                 == Some(&vec![serde_json::Value::String("benchmark_ready".to_string())])
     }));
-    assert!(
-        rows.iter().all(|row| {
-            !matches!(
-                row.get("tool_id").and_then(serde_json::Value::as_str),
-                Some("star" | "bowtie2_build")
-            )
-        }),
-        "retained tools must exclude not-benchmark-ready-only tools"
-    );
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("star")
+            && row.get("active_stage_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("fastq.index_reference".to_string())])
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2_build")
+            && row.get("active_stage_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("fastq.index_reference".to_string())])
+    }));
 }

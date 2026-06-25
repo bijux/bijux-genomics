@@ -40,6 +40,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "outputs": [
     "overlap_corrected_bam",
     "overlap_corrected_bai",
+    "flagstat_before",
+    "flagstat_after",
+    "idxstats_before",
+    "idxstats_after",
     "summary",
     "stage_metrics"
   ],

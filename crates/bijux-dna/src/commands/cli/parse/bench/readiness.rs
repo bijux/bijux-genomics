@@ -20,8 +20,48 @@ pub enum BenchReadinessCommand {
     RenderBamStageDecisionTable(BenchReadinessRenderBamStageDecisionTableArgs),
     #[command(name = "render-bam-command-adapter-coverage")]
     RenderBamCommandAdapterCoverage(BenchReadinessRenderBamCommandAdapterCoverageArgs),
+    #[command(name = "render-bam-commands")]
+    RenderBamCommands(BenchReadinessRenderBamCommandsArgs),
+    #[command(name = "render-bam-local-container-smoke")]
+    RenderBamLocalContainerSmoke(BenchReadinessRenderBamLocalContainerSmokeArgs),
     #[command(name = "render-bam-corpus-assignment")]
     RenderBamCorpusAssignment(BenchReadinessRenderBamCorpusAssignmentArgs),
+    #[command(name = "render-bam-contamination-sex-haplogroups-ready")]
+    RenderBamContaminationSexHaplogroupsReady(
+        BenchReadinessRenderBamContaminationSexHaplogroupsReadyArgs,
+    ),
+    #[command(name = "render-bam-kinship-ready")]
+    RenderBamKinshipReady(BenchReadinessRenderBamKinshipReadyArgs),
+    #[command(name = "render-bam-recalibration-genotyping-ready")]
+    RenderBamRecalibrationGenotypingReady(BenchReadinessRenderBamRecalibrationGenotypingReadyArgs),
+    #[command(name = "render-bam-active-row-consistency")]
+    RenderBamActiveRowConsistency(BenchReadinessRenderBamActiveRowConsistencyArgs),
+    #[command(name = "render-bam-kinship-complete")]
+    RenderBamKinshipComplete(BenchReadinessRenderBamKinshipCompleteArgs),
+    #[command(name = "render-bam-authenticity-complete")]
+    RenderBamAuthenticityComplete(BenchReadinessRenderBamAuthenticityCompleteArgs),
+    #[command(name = "render-bam-contamination-complete")]
+    RenderBamContaminationComplete(BenchReadinessRenderBamContaminationCompleteArgs),
+    #[command(name = "render-bam-haplogroups-complete")]
+    RenderBamHaplogroupsComplete(BenchReadinessRenderBamHaplogroupsCompleteArgs),
+    #[command(name = "render-bam-genotyping-complete")]
+    RenderBamGenotypingComplete(BenchReadinessRenderBamGenotypingCompleteArgs),
+    #[command(name = "render-bam-recalibration-complete")]
+    RenderBamRecalibrationComplete(BenchReadinessRenderBamRecalibrationCompleteArgs),
+    #[command(name = "render-bam-sex-complete")]
+    RenderBamSexComplete(BenchReadinessRenderBamSexCompleteArgs),
+    #[command(name = "render-bam-damage-complete")]
+    RenderBamDamageComplete(BenchReadinessRenderBamDamageCompleteArgs),
+    #[command(name = "render-bam-damage-authenticity-ready")]
+    RenderBamDamageAuthenticityReady(BenchReadinessRenderBamDamageAuthenticityReadyArgs),
+    #[command(name = "render-bam-insert-size-gc-bias-ready")]
+    RenderBamInsertSizeGcBiasReady(BenchReadinessRenderBamInsertSizeGcBiasReadyArgs),
+    #[command(name = "render-bam-endogenous-content-complete")]
+    RenderBamEndogenousContentComplete(BenchReadinessRenderBamEndogenousContentCompleteArgs),
+    #[command(name = "render-bam-overlap-correction-complete")]
+    RenderBamOverlapCorrectionComplete(BenchReadinessRenderBamOverlapCorrectionCompleteArgs),
+    #[command(name = "render-bam-overlap-endogenous-ready")]
+    RenderBamOverlapEndogenousReady(BenchReadinessRenderBamOverlapEndogenousReadyArgs),
     #[command(name = "render-corpus-incompatibility")]
     RenderCorpusIncompatibility(BenchReadinessRenderCorpusIncompatibilityArgs),
     #[command(name = "render-corpus-centric-report")]
@@ -32,12 +72,24 @@ pub enum BenchReadinessCommand {
     RenderStageToolBenchmarkReady(BenchReadinessRenderStageToolBenchmarkReadyArgs),
     #[command(name = "render-bam-comparable-metrics")]
     RenderBamComparableMetrics(BenchReadinessRenderBamComparableMetricsArgs),
+    #[command(name = "render-stage-scoring")]
+    RenderStageScoring(BenchReadinessRenderStageScoringArgs),
+    #[command(name = "render-scientific-acceptance-thresholds")]
+    RenderScientificAcceptanceThresholds(BenchReadinessRenderScientificAcceptanceThresholdsArgs),
+    #[command(name = "render-science-truth-sets-complete")]
+    RenderScienceTruthSetsComplete(BenchReadinessRenderScienceTruthSetsCompleteArgs),
+    #[command(name = "render-bam-science-thresholds-ready")]
+    RenderBamScienceThresholdsReady(BenchReadinessRenderBamScienceThresholdsReadyArgs),
     #[command(name = "render-bam-normalized-metrics-schema")]
     RenderBamNormalizedMetricsSchema(BenchReadinessRenderBamNormalizedMetricsSchemaArgs),
-    #[command(name = "render-bam-parser-coverage")]
-    RenderBamParserCoverage(BenchReadinessRenderBamParserCoverageArgs),
+    #[command(name = "render-bam-parser-fixture-coverage", alias = "render-bam-parser-coverage")]
+    RenderBamParserFixtureCoverage(BenchReadinessRenderBamParserFixtureCoverageArgs),
     #[command(name = "render-bam-report-map")]
     RenderBamReportMap(BenchReadinessRenderBamReportMapArgs),
+    #[command(name = "render-bam-tool-scores")]
+    RenderBamToolScores(BenchReadinessRenderBamToolScoresArgs),
+    #[command(name = "render-bam-all-retained-tools-complete")]
+    RenderBamAllRetainedToolsComplete(BenchReadinessRenderBamAllRetainedToolsCompleteArgs),
     #[command(name = "render-expected-benchmark-results")]
     RenderExpectedBenchmarkResults(BenchReadinessRenderExpectedBenchmarkResultsArgs),
     #[command(name = "render-missing-result-report")]
@@ -60,6 +112,8 @@ pub enum BenchReadinessCommand {
     ),
     #[command(name = "render-essential-pipelines-ready")]
     RenderEssentialPipelinesReady(BenchReadinessRenderEssentialPipelinesReadyArgs),
+    #[command(name = "render-essential-pipelines-local-complete")]
+    RenderEssentialPipelinesLocalComplete(BenchReadinessRenderEssentialPipelinesLocalCompleteArgs),
     #[command(name = "render-essential-pipeline-report-map")]
     RenderEssentialPipelineReportMap(BenchReadinessRenderEssentialPipelineReportMapArgs),
     #[command(name = "render-essential-pipeline-partial-resume")]
@@ -86,6 +140,10 @@ pub enum BenchReadinessCommand {
     RenderFastqCommands(BenchReadinessRenderFastqCommandsArgs),
     #[command(name = "render-fastq-report-map")]
     RenderFastqReportMap(BenchReadinessRenderFastqReportMapArgs),
+    #[command(name = "render-fastq-tool-scores")]
+    RenderFastqToolScores(BenchReadinessRenderFastqToolScoresArgs),
+    #[command(name = "render-vcf-tool-scores")]
+    RenderVcfToolScores(BenchReadinessRenderVcfToolScoresArgs),
     #[command(name = "render-fastq-active-stage-tool-matrix")]
     RenderFastqActiveStageToolMatrix(BenchReadinessRenderFastqActiveStageToolMatrixArgs),
     #[command(name = "render-fastq-local-container-smoke")]
@@ -110,8 +168,8 @@ pub enum BenchReadinessCommand {
     ),
     #[command(name = "render-all-domain-expected-result-coverage")]
     RenderAllDomainExpectedResultCoverage(BenchReadinessRenderAllDomainExpectedResultCoverageArgs),
-    #[command(name = "render-all-domain-harness-ready")]
-    RenderAllDomainHarnessReady(BenchReadinessRenderAllDomainHarnessReadyArgs),
+    #[command(name = "render-all-domain-local-harness-complete")]
+    RenderAllDomainLocalHarnessComplete(BenchReadinessRenderAllDomainLocalHarnessCompleteArgs),
     #[command(name = "render-all-domain-local-job-coverage")]
     RenderAllDomainLocalJobCoverage(BenchReadinessRenderAllDomainLocalJobCoverageArgs),
     #[command(name = "render-all-domain-no-placeholder-command-check")]
@@ -132,8 +190,14 @@ pub enum BenchReadinessCommand {
     RenderFullBenchmarkDashboard(BenchReadinessRenderFullBenchmarkDashboardArgs),
     #[command(name = "render-full-benchmark-report")]
     RenderFullBenchmarkReport(BenchReadinessRenderFullBenchmarkReportArgs),
+    #[command(name = "render-micro-benchmark-execution-ready")]
+    RenderMicroBenchmarkExecutionReady(BenchReadinessRenderMicroBenchmarkExecutionReadyArgs),
     #[command(name = "render-operational-benchmark-ready")]
     RenderOperationalBenchmarkReady(BenchReadinessRenderOperationalBenchmarkReadyArgs),
+    #[command(name = "render-all-domain-local-operational-benchmark-complete")]
+    RenderAllDomainLocalOperationalBenchmarkComplete(
+        BenchReadinessRenderAllDomainLocalOperationalBenchmarkCompleteArgs,
+    ),
     #[command(name = "render-all-domain-output-declarations")]
     RenderAllDomainOutputDeclarations(BenchReadinessRenderAllDomainOutputDeclarationsArgs),
     #[command(name = "render-all-domain-commands")]
@@ -164,6 +228,24 @@ pub enum BenchReadinessCommand {
     RenderAllDomainNoPlannedRows(BenchReadinessRenderAllDomainNoPlannedRowsArgs),
     #[command(name = "render-all-domain-retained-tools")]
     RenderAllDomainRetainedTools(BenchReadinessRenderAllDomainRetainedToolsArgs),
+    #[command(name = "render-executable-resolution")]
+    RenderExecutableResolution(BenchReadinessRenderExecutableResolutionArgs),
+    #[command(name = "render-apptainer-map")]
+    RenderApptainerMap(BenchReadinessRenderApptainerMapArgs),
+    #[command(name = "render-input-preflight-tests")]
+    RenderInputPreflightTests(BenchReadinessRenderInputPreflightTestsArgs),
+    #[command(name = "render-output-contract-tests")]
+    RenderOutputContractTests(BenchReadinessRenderOutputContractTestsArgs),
+    #[command(name = "render-real-output-parser-smoke")]
+    RenderRealOutputParserSmoke(BenchReadinessRenderRealOutputParserSmokeArgs),
+    #[command(name = "render-retained-toolset-executable-local")]
+    RenderRetainedToolsetExecutableLocal(BenchReadinessRenderRetainedToolsetExecutableLocalArgs),
+    #[command(name = "render-version-probes")]
+    RenderVersionProbes(BenchReadinessRenderVersionProbesArgs),
+    #[command(name = "run-container-tool-smoke")]
+    RunContainerToolSmoke(BenchReadinessRunContainerToolSmokeArgs),
+    #[command(name = "run-host-tool-smoke")]
+    RunHostToolSmoke(BenchReadinessRunHostToolSmokeArgs),
     #[command(name = "render-stage-tool-alias-check")]
     RenderStageToolAliasCheck(BenchReadinessRenderStageToolAliasCheckArgs),
     #[command(name = "render-removed-from-scope")]
@@ -256,6 +338,14 @@ pub enum BenchReadinessCommand {
     RenderStageRegistryExtraPairs(BenchReadinessRenderStageRegistryExtraPairsArgs),
     #[command(name = "validate-tool-execution-modes")]
     ValidateToolExecutionModes(BenchReadinessValidateToolExecutionModesArgs),
+    #[command(name = "validate-stage-scoring")]
+    ValidateStageScoring(BenchReadinessValidateStageScoringArgs),
+    #[command(name = "validate-bam-tool-scores")]
+    ValidateBamToolScores(BenchReadinessValidateBamToolScoresArgs),
+    #[command(name = "validate-fastq-tool-scores")]
+    ValidateFastqToolScores(BenchReadinessValidateFastqToolScoresArgs),
+    #[command(name = "validate-vcf-tool-scores")]
+    ValidateVcfToolScores(BenchReadinessValidateVcfToolScoresArgs),
     #[command(name = "render-tool-id-normalization")]
     RenderToolIdNormalization(BenchReadinessRenderToolIdNormalizationArgs),
     #[command(name = "validate-tool-families")]
@@ -345,7 +435,127 @@ pub struct BenchReadinessRenderBamCommandAdapterCoverageArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamCommandsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamCorpusAssignmentArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamContaminationSexHaplogroupsReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamKinshipReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamRecalibrationGenotypingReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamActiveRowConsistencyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamKinshipCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamAuthenticityCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamContaminationCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamHaplogroupsCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamGenotypingCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamRecalibrationCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamSexCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamDamageCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamDamageAuthenticityReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamInsertSizeGcBiasReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
@@ -386,6 +596,38 @@ pub struct BenchReadinessRenderStageToolBenchmarkReadyArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamComparableMetricsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderStageScoringArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderScientificAcceptanceThresholdsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderScienceTruthSetsCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamScienceThresholdsReadyArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
@@ -467,7 +709,7 @@ pub struct BenchReadinessRenderVcfParserFailureTestsArgs {
 }
 
 #[derive(Debug, Args)]
-pub struct BenchReadinessRenderBamParserCoverageArgs {
+pub struct BenchReadinessRenderBamParserFixtureCoverageArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
@@ -476,6 +718,22 @@ pub struct BenchReadinessRenderBamParserCoverageArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderBamReportMapArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamToolScoresArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamAllRetainedToolsCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
@@ -532,6 +790,14 @@ pub struct BenchReadinessRenderVcfActiveStageToolMatrixArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfLocalContainerSmokeArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamLocalContainerSmokeArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
@@ -612,6 +878,30 @@ pub struct BenchReadinessRenderVcfPopulationStructureReadyArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchReadinessRenderVcfAllRetainedToolsCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamOverlapEndogenousReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamEndogenousContentCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderBamOverlapCorrectionCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
@@ -803,6 +1093,14 @@ pub struct BenchReadinessRenderEssentialPipelinesReadyArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchReadinessRenderEssentialPipelinesLocalCompleteArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
 pub struct BenchReadinessRenderEssentialPipelineReportMapArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
@@ -907,6 +1205,22 @@ pub struct BenchReadinessRenderFastqReportMapArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchReadinessRenderFastqToolScoresArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVcfToolScoresArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
 pub struct BenchReadinessRenderFastqActiveStageToolMatrixArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
@@ -995,7 +1309,7 @@ pub struct BenchReadinessRenderAllDomainExpectedResultCoverageArgs {
 }
 
 #[derive(Debug, Args)]
-pub struct BenchReadinessRenderAllDomainHarnessReadyArgs {
+pub struct BenchReadinessRenderAllDomainLocalHarnessCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
@@ -1067,7 +1381,23 @@ pub struct BenchReadinessRenderFullBenchmarkReportArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchReadinessRenderMicroBenchmarkExecutionReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
 pub struct BenchReadinessRenderOperationalBenchmarkReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderAllDomainLocalOperationalBenchmarkCompleteArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
@@ -1195,6 +1525,82 @@ pub struct BenchReadinessRenderAllDomainRetainedToolsArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchReadinessRenderExecutableResolutionArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderApptainerMapArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderInputPreflightTestsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderOutputContractTestsArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderRealOutputParserSmokeArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderRetainedToolsetExecutableLocalArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRenderVersionProbesArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRunContainerToolSmokeArgs {
+    #[arg(long)]
+    pub output_root: Option<std::path::PathBuf>,
+    #[arg(long, value_name = "TOOL_IDS", help = "Comma-separated retained non-host tool ids")]
+    pub tools: Option<String>,
+    #[arg(long, default_value_t = 300)]
+    pub timeout_seconds: u64,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessRunHostToolSmokeArgs {
+    #[arg(long)]
+    pub output_root: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
 pub struct BenchReadinessRenderStageToolAliasCheckArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
@@ -1246,6 +1652,38 @@ pub struct BenchReadinessRenderStageRegistryExtraPairsArgs {
 pub struct BenchReadinessValidateToolExecutionModesArgs {
     #[arg(long)]
     pub config: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessValidateStageScoringArgs {
+    #[arg(long)]
+    pub config: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessValidateBamToolScoresArgs {
+    #[arg(long)]
+    pub input: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessValidateFastqToolScoresArgs {
+    #[arg(long)]
+    pub input: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchReadinessValidateVcfToolScoresArgs {
+    #[arg(long)]
+    pub input: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }

@@ -42,6 +42,13 @@ struct BamStageDocSpec {
     compatible_tools: BTreeSet<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct BamClosureLedgerRow {
+    tool_status: String,
+    stage_ids: BTreeSet<String>,
+    blocking_reason: String,
+}
+
 fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
     let raw = workspace_file(path);
     let mut rows = Vec::new();
@@ -268,7 +275,7 @@ fn bam_tools_roster_rows() -> BTreeMap<String, BamStageDocSpec> {
                 row.len() >= 4,
                 "BAM tools roster rows must expose stage, status, tools, and rationale columns",
             );
-            let stage_id = row[0].to_string();
+            let stage_id = row[0].clone();
             let compatible_tools = if row[2] == "none" {
                 BTreeSet::new()
             } else {
@@ -279,7 +286,7 @@ fn bam_tools_roster_rows() -> BTreeMap<String, BamStageDocSpec> {
                     .map(ToOwned::to_owned)
                     .collect()
             };
-            (stage_id, BamStageDocSpec { status: row[1].to_string(), compatible_tools })
+            (stage_id, BamStageDocSpec { status: row[1].clone(), compatible_tools })
         })
         .collect()
 }
@@ -300,7 +307,7 @@ fn bam_reference_stage_rows() -> BTreeMap<String, BTreeSet<String>> {
                 row.len() >= 2,
                 "BAM reference rows must expose at least tool and applies-to columns",
             );
-            (row[0].to_string(), backticked_ids(&row[1]))
+            (row[0].clone(), backticked_ids(&row[1]))
         })
         .collect()
 }
@@ -313,9 +320,40 @@ fn bam_stage_taxonomy_rows() -> BTreeMap<String, String> {
                 row.len() >= 4,
                 "BAM stage taxonomy rows must expose stage, phase, class, and status columns",
             );
-            (row[0].to_string(), row[3].to_string())
+            (row[0].clone(), row[3].clone())
         })
         .collect()
+}
+
+fn bam_closure_ledger_rows() -> BTreeMap<String, BamClosureLedgerRow> {
+    let raw = workspace_file("science/docs/upstream/bam/BAM_PRODUCTION_CLOSURE_LEDGER.tsv");
+    let mut rows = raw.lines();
+    let header = rows.next().expect("BAM closure ledger header");
+    assert_eq!(
+        header,
+        "tool_id\tstage_ids\ttool_status\tprimary_locator\tcitation_status\tupstream_identity_status\tscience_review_status\tclosure_status\tblocking_reason\towner\tlast_verified_utc",
+        "BAM closure ledger header drifted"
+    );
+
+    rows.map(|line| {
+        let cols = line.split('\t').collect::<Vec<_>>();
+        assert!(
+            cols.len() >= 11,
+            "BAM closure ledger rows must expose 11 tab-separated columns: {line}"
+        );
+        let tool_id = cols[0].to_string();
+        let stage_ids = cols[1]
+            .split(';')
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(ToOwned::to_owned)
+            .collect::<BTreeSet<_>>();
+        let tool_status = cols[2].to_string();
+        let blocking_reason = cols[8].to_string();
+
+        (tool_id, BamClosureLedgerRow { tool_status, stage_ids, blocking_reason })
+    })
+    .collect()
 }
 
 fn bam_reference_governance_rows() -> BTreeMap<String, BTreeSet<String>> {
@@ -332,7 +370,7 @@ fn bam_reference_governance_rows() -> BTreeMap<String, BTreeSet<String>> {
                 .filter(|value| !value.is_empty() && *value != "none")
                 .map(ToOwned::to_owned)
                 .collect::<BTreeSet<_>>();
-            (row[0].to_string(), hooks)
+            (row[0].clone(), hooks)
         })
         .collect()
 }
@@ -709,4 +747,39 @@ fn policy__contracts__bam_science_docs_policy__reference_governance_covers_refer
         expected, documented,
         "BAM reference governance must cover exactly the stages with non-empty bank hooks"
     );
+}
+
+#[test]
+fn policy__contracts__bam_science_docs_policy__closure_ledger_does_not_leave_fully_supported_bam_tools_planned(
+) {
+    let stage_specs = bam_stage_specs();
+    let ledger = bam_closure_ledger_rows();
+    let mut offenders = Vec::new();
+
+    for (tool_id, row) in ledger {
+        if row.stage_ids.is_empty() {
+            continue;
+        }
+        let all_supported = row.stage_ids.iter().all(|stage_id| {
+            stage_specs
+                .get(stage_id)
+                .unwrap_or_else(|| panic!("missing BAM stage manifest for {stage_id}"))
+                .status
+                == "supported"
+        });
+        if all_supported && row.tool_status != "supported" {
+            offenders.push(format!(
+                "{tool_id}: fully supported BAM stages {:?} must not stay {} in the closure ledger",
+                row.stage_ids, row.tool_status
+            ));
+        }
+        if all_supported && row.blocking_reason.contains("promotion_status:planned") {
+            offenders.push(format!(
+                "{tool_id}: fully supported BAM stages {:?} must not carry promotion_status:planned",
+                row.stage_ids
+            ));
+        }
+    }
+
+    assert!(offenders.is_empty(), "BAM closure ledger promotion drift:\n{}", offenders.join("\n"));
 }

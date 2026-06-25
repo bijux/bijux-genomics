@@ -13,6 +13,18 @@
       "version": "2.3.3"
     },
     {
+      "apptainer_def": "containers/apptainer/shared/addeam.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.addeam",
+      "pinned_commit": "git:f1dd2a5e530975cab1df48e47a1d51ea76bf183a",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "addeam",
+      "upstream": "https://github.com/LouisPwr/AdDeam",
+      "version": "1.0.0"
+    },
+    {
       "apptainer_def": "containers/apptainer/shared/alientrimmer.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.alientrimmer",
       "pinned_commit": "release:3.2",
@@ -73,6 +85,18 @@
       "version": "2.5.2"
     },
     {
+      "apptainer_def": "containers/apptainer/shared/bamutil.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.bamutil",
+      "pinned_commit": "release:1.0.15",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "bamutil",
+      "upstream": "https://github.com/statgen/bamUtil",
+      "version": "1.0.15"
+    },
+    {
       "apptainer_def": "containers/apptainer/shared/bayeshammer.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.bayeshammer",
       "pinned_commit": "sha256:99849ca7576f392a125ce5836e915481ada762cbb4fa9b69593b81c4ca359cd7",
@@ -119,6 +143,18 @@
       "tool_id": "bedtools",
       "upstream": "https://github.com/arq5x/bedtools2",
       "version": "2.31.1"
+    },
+    {
+      "apptainer_def": "containers/apptainer/shared/bijux_dna.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.bijux_dna",
+      "pinned_commit": "release:workspace",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "bijux_dna",
+      "upstream": "https://github.com/bijux/bijux-genomics",
+      "version": "workspace"
     },
     {
       "apptainer_def": "containers/apptainer/shared/bowtie2.def",
@@ -217,6 +253,18 @@
       "version": "1.30.0"
     },
     {
+      "apptainer_def": "containers/apptainer/shared/damageprofiler.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.damageprofiler",
+      "pinned_commit": "release:1.1",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "damageprofiler",
+      "upstream": "https://github.com/Integrative-Transcriptomics/DamageProfiler",
+      "version": "1.1"
+    },
+    {
       "apptainer_def": "containers/apptainer/shared/fastp.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.fastp",
       "pinned_commit": "sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10",
@@ -227,18 +275,6 @@
       "tool_id": "fastp",
       "upstream": "https://github.com/OpenGene/fastp",
       "version": "0.23.4"
-    },
-    {
-      "apptainer_def": "containers/apptainer/shared/vsearch.def",
-      "dockerfile": "containers/docker/arm64/Dockerfile.vsearch",
-      "pinned_commit": "sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3",
-      "runtimes": [
-        "docker",
-        "apptainer"
-      ],
-      "tool_id": "fastq.validate_reads",
-      "upstream": "https://github.com/vsearch/vsearch",
-      "version": "2.28.1"
     },
     {
       "apptainer_def": "containers/apptainer/shared/fastq_scan.def",
@@ -323,6 +359,18 @@
       "tool_id": "fqtools",
       "upstream": "https://github.com/alastair-droop/fqtools",
       "version": "v2.3"
+    },
+    {
+      "apptainer_def": "containers/apptainer/shared/gatk.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.gatk",
+      "pinned_commit": "release:4.6.2.0",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "gatk",
+      "upstream": "https://github.com/broadinstitute/gatk",
+      "version": "4.6.2.0"
     },
     {
       "apptainer_def": "containers/apptainer/shared/kaiju.def",
@@ -445,6 +493,18 @@
       "version": "1.1"
     },
     {
+      "apptainer_def": "containers/apptainer/shared/ngsbriggs.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.ngsbriggs",
+      "pinned_commit": "release:0.1.3",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "ngsbriggs",
+      "upstream": "https://github.com/RAHenriksen/ngsBriggs",
+      "version": "0.1.3"
+    },
+    {
       "apptainer_def": "containers/apptainer/shared/pear.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.pear",
       "pinned_commit": "sha256:4e00e9ffabc5ed46115efab5b6bae946913f1713bb314fd4acb7c379c37efae6",
@@ -457,6 +517,18 @@
       "version": "0.9.6"
     },
     {
+      "apptainer_def": "containers/apptainer/shared/picard.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.picard",
+      "pinned_commit": "release:3.3.0",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "picard",
+      "upstream": "https://github.com/broadinstitute/picard",
+      "version": "3.3.0"
+    },
+    {
       "apptainer_def": "containers/apptainer/shared/pmdtools.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.pmdtools",
       "pinned_commit": "git:cc91fb8d870eadc4566d0bb3fbbc92fa96cd1363",
@@ -467,6 +539,18 @@
       "tool_id": "pmdtools",
       "upstream": "https://github.com/pontussk/PMDtools",
       "version": "0.60"
+    },
+    {
+      "apptainer_def": "containers/apptainer/shared/preseq.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.preseq",
+      "pinned_commit": "release:3.2.0",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "preseq",
+      "upstream": "https://github.com/smithlabcode/preseq",
+      "version": "3.2.0"
     },
     {
       "apptainer_def": "containers/apptainer/shared/prinseq.def",
@@ -659,6 +743,30 @@
       "tool_id": "verifybamid2",
       "upstream": "https://github.com/Griffan/VerifyBamID",
       "version": "2.0.1"
+    },
+    {
+      "apptainer_def": "containers/apptainer/shared/vsearch.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.vsearch",
+      "pinned_commit": "sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "vsearch",
+      "upstream": "https://github.com/vsearch/vsearch",
+      "version": "2.28.1"
+    },
+    {
+      "apptainer_def": "containers/apptainer/shared/yleaf.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.yleaf",
+      "pinned_commit": "git:f3aae50653cb685a7c3d6e4c08aa170c47a85263",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "yleaf",
+      "upstream": "https://github.com/genid/Yleaf",
+      "version": "3.0.3"
     }
   ],
   "schema_version": "bijux.container_manifest.v1"

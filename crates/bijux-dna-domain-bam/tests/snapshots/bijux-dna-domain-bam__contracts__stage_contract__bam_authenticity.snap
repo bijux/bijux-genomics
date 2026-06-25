@@ -9,6 +9,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "name": "authenticity_report"
     },
     {
+      "filename": "damage_profile.json",
+      "name": "damage_profile"
+    },
+    {
+      "filename": "damage_plot.json",
+      "name": "damage_plot"
+    },
+    {
+      "filename": "pmd_scores.json",
+      "name": "pmd_scores"
+    },
+    {
       "filename": "authenticity.summary.json",
       "name": "summary"
     },

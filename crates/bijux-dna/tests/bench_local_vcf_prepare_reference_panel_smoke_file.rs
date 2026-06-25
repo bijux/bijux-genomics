@@ -141,7 +141,7 @@ fn bench_local_vcf_prepare_reference_panel_smoke_writes_governed_files() {
         manifest.get("outputs").and_then(serde_json::Value::as_array).expect("outputs array");
     assert_eq!(outputs.len(), 9);
     assert!(outputs.iter().any(|row| {
-        row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("prepared_panel_vcf")
+        row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("prepared_panel")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
                 == Some("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz")
     }));

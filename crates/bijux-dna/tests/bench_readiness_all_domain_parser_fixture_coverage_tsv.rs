@@ -56,7 +56,7 @@ fn bench_readiness_all_domain_parser_fixture_coverage_writes_governed_tsv_file()
         row == &"fastq\tfastq.index_reference\tbowtie2_build\treference-index-assets\treference_fasta+reference_index_output\tfastq.adapter.index_reference\tfastq.parser.index_reference\tfastq_index_reference_v1\tparse_index_reference_report\tbijux.fastq.index_reference.report.v2\tfixture_case\tfastq.index_reference.report_json\tfastq_parser_fixture_coverage\tcovered\tactive row `fastq.index_reference` / `bowtie2_build` is governed by FASTQ parser fixture case `fastq.index_reference.report_json` using parser `parse_index_reference_report` over canonical `bowtie2_build` report_json data"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"bam\tbam.contamination\tschmutzi\tcorpus-01-adna-bam-mini\treference_fasta+reference_panel\tbam.adapter.contamination\tbam.parser.contamination\tbam_contamination_normalized_v1\tnone\tnone\tfixture_corpus\tfixture:corpus-01-adna-bam-mini\tbam_parser_coverage\tcovered\trow `bam.contamination` / `schmutzi` is benchmark_ready with governed support, adapter-backed command rendering, fixture-backed corpus coverage, and parser-fixture-validated output"
+        row == &"bam\tbam.contamination\tschmutzi\tcorpus-01-adna-bam-mini\treference_fasta+reference_panel\tbam.adapter.contamination\tbam.parser.contamination\tbam_contamination_normalized_v1\tnone\tnone\tfixture_corpus\tfixture:corpus-01-adna-bam-mini\tbam_parser_fixture_coverage\tcovered\trow `bam.contamination` / `schmutzi` is benchmark_ready with governed support, adapter-backed command rendering, fixture-backed corpus coverage, and parser-fixture-validated output"
     }));
     assert!(rows.iter().any(|row| {
         row.starts_with(

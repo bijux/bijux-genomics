@@ -1,9 +1,10 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result};
 use bijux_dna_domain_vcf::{parse_imputation_stage_metrics, VcfDomainStage};
+
+use super::metric_registry::ensure_registered_stage_metrics;
 
 const VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION: &str = "bijux.fixture.vcf_raw_parser.v1";
 
@@ -137,16 +138,15 @@ fn vcf_imputation_fixture_bank_rejects_truth_drift() -> Result<()> {
         .find(|case| case.tool_id == "beagle" && case.stage == VcfDomainStage::Impute)
         .copied()
         .unwrap_or_else(|| panic!("governed beagle impute fixture"));
-    let dir = unique_temp_dir(case.tool_id, case.stage.as_str())?;
+    let dir = unique_temp_dir(case.tool_id, case.stage.as_str());
     copy_fixture_dir(&fixture_dir(&case), &dir)?;
     fs::write(
         dir.join("raw.truth.vcf"),
         "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tmasked_sample\nchr1\t10\t.\tA\tG\t60\tPASS\t.\tGT\t1/1\n",
     )
     .with_context(|| format!("install truth drift probe under {}", dir.display()))?;
-    let error = match parse_imputation_stage_metrics(case.tool_id, case.stage, &dir) {
-        Ok(_) => panic!("truth drift must fail"),
-        Err(error) => error,
+    let Err(error) = parse_imputation_stage_metrics(case.tool_id, case.stage, &dir) else {
+        panic!("truth drift must fail");
     };
     let message = error.to_string();
     assert!(
@@ -161,13 +161,15 @@ fn render_case(case: &VcfImputationFixtureCase) -> Result<serde_json::Value> {
     let normalized =
         parse_imputation_stage_metrics(case.tool_id, case.stage, &fixture_dir(case))
             .with_context(|| format!("parse {} / {}", case.tool_id, case.stage.as_str()))?;
-    Ok(serde_json::json!({
+    let observed = serde_json::json!({
         "schema_version": VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION,
         "stage_id": case.stage.as_str(),
         "tool_id": case.tool_id,
         "parser_id": case.parser_id,
         "normalized": normalized,
-    }))
+    });
+    ensure_registered_stage_metrics(case.stage, &observed)?;
+    Ok(observed)
 }
 
 fn read_expected_json(case: &VcfImputationFixtureCase) -> Result<serde_json::Value> {
@@ -191,13 +193,11 @@ fn repo_root() -> PathBuf {
         .unwrap_or_else(|err| panic!("canonicalize repo root: {err}"))
 }
 
-fn unique_temp_dir(tool_id: &str, stage_id: &str) -> Result<PathBuf> {
-    let stamp =
-        SystemTime::now().duration_since(UNIX_EPOCH).map_or(0_u128, |duration| duration.as_nanos());
-    let path = std::env::temp_dir()
-        .join(format!("bijux-vcf-imputation-{tool_id}-{}-{stamp}", stage_id.replace('.', "_")));
-    fs::create_dir_all(&path).with_context(|| format!("create {}", path.display()))?;
-    Ok(path)
+fn unique_temp_dir(tool_id: &str, stage_id: &str) -> PathBuf {
+    bijux_dna_testkit::temp_path_for(&format!(
+        "vcf-imputation-{tool_id}-{}",
+        stage_id.replace('.', "-")
+    ))
 }
 
 fn copy_fixture_dir(from: &Path, to: &Path) -> Result<()> {

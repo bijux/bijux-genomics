@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::env;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -40,13 +41,7 @@ struct CanonicalStagePlan {
 
 pub(crate) fn collect_benchmark_command_rows(repo_root: &Path) -> Result<Vec<BenchmarkCommandRow>> {
     let fastq_base_plans = canonical_stage_plan_map(repo_root, BenchLocalDomain::Fastq)?;
-    let bam_readiness_by_stage = load_local_stage_inventory(repo_root, BenchLocalDomain::Bam)?
-        .stages
-        .into_iter()
-        .map(|stage| (stage.stage_id, stage.readiness_kind))
-        .collect::<BTreeMap<_, _>>();
     let (_, _, fastq_rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;
-    let (_, _, bam_rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;
 
     let mut rows = Vec::new();
 
@@ -70,6 +65,26 @@ pub(crate) fn collect_benchmark_command_rows(repo_root: &Path) -> Result<Vec<Ben
             argv,
         });
     }
+
+    rows.extend(collect_bam_benchmark_command_rows(repo_root)?);
+
+    rows.sort_by(|left, right| {
+        left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
+    });
+    ensure_unique_rows(&rows)?;
+    Ok(rows)
+}
+
+pub(crate) fn collect_bam_benchmark_command_rows(
+    repo_root: &Path,
+) -> Result<Vec<BenchmarkCommandRow>> {
+    let bam_readiness_by_stage = load_local_stage_inventory(repo_root, BenchLocalDomain::Bam)?
+        .stages
+        .into_iter()
+        .map(|stage| (stage.stage_id, stage.readiness_kind))
+        .collect::<BTreeMap<_, _>>();
+    let (_, _, bam_rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;
+    let mut rows = Vec::new();
 
     for row in bam_rows
         .into_iter()
@@ -244,6 +259,57 @@ fn render_fastq_stage_tool_argv(
         &tool_id_value,
     )
     .with_context(|| format!("load FASTQ execution spec for `{stage_id}` / `{tool_id}`"))?;
+    if stage_id == "fastq.report_qc" {
+        let qc_inputs = base_plan
+            .io
+            .inputs
+            .iter()
+            .map(|artifact| {
+                let mut artifact = artifact.clone();
+                artifact.path = resolve_repo_input_path(repo_root, &artifact.path);
+                artifact
+            })
+            .collect::<Vec<_>>();
+        let paired_mode = if find_fastq_input(base_plan, "reads_r2").is_some() {
+            bijux_dna_domain_fastq::params::PairedMode::PairedEnd
+        } else {
+            bijux_dna_domain_fastq::params::PairedMode::SingleEnd
+        };
+        let report_qc_params = match fastq_stage_params_from_plan(stage_id, base_plan)? {
+            Some(bijux_dna_planner_fastq::FastqStageParameters::ReportQc(params)) => params,
+            _ => bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams {
+                schema_version: bijux_dna_domain_fastq::params::qc_post::REPORT_QC_SCHEMA_VERSION
+                    .to_string(),
+                paired_mode,
+                aggregation_engine:
+                    bijux_dna_domain_fastq::params::qc_post::QcAggregationEngine::Multiqc,
+                aggregation_scope:
+                    bijux_dna_domain_fastq::params::qc_post::QcAggregationScope::GovernedQcArtifacts,
+            },
+        };
+        let out_dir = benchmark_command_out_dir("fastq", stage_id, tool_id).with_context(|| {
+            format!("build benchmark command output dir for `{stage_id}` / `{tool_id}`")
+        })?;
+        let plan = with_repo_root_current_dir(repo_root, || {
+            bijux_dna_planner_fastq::tool_adapters::fastq::report_qc::plan_qc_post_with_qc_inputs(
+                &tool,
+                &qc_inputs,
+                &out_dir,
+                std::collections::BTreeMap::new(),
+                report_qc_params.paired_mode,
+                report_qc_params.aggregation_engine,
+                report_qc_params.aggregation_scope,
+                find_fastq_input(base_plan, "reads_r1")
+                    .map(|path| resolve_repo_input_path(repo_root, path))
+                    .as_deref(),
+                find_fastq_input(base_plan, "reads_r2")
+                    .map(|path| resolve_repo_input_path(repo_root, path))
+                    .as_deref(),
+            )
+        })
+        .with_context(|| format!("plan FASTQ benchmark command row `{stage_id}` / `{tool_id}`"))?;
+        return Ok(plan.command.template);
+    }
     let params = project_fastq_benchmark_params_for_tool(
         stage_id,
         tool_id,
@@ -280,25 +346,27 @@ fn render_fastq_stage_tool_argv(
     let out_dir = benchmark_command_out_dir("fastq", stage_id, tool_id).with_context(|| {
         format!("build benchmark command output dir for `{stage_id}` / `{tool_id}`")
     })?;
-    let plan = bijux_dna_planner_fastq::plan_fastq_stage_binding_with_explicit_inputs(
-        bijux_dna_planner_fastq::FastqStageBinding {
-            stage_id: stage_id.to_string(),
-            stage_instance_id: None,
-            tool,
-            reason: None,
-            params,
-        },
-        &std::collections::BTreeMap::new(),
-        adapter_bank.as_ref(),
-        polyx_bank.as_ref(),
-        contaminant_bank.as_ref(),
-        false,
-        &fallback_r1,
-        fallback_r2.as_deref(),
-        reference_fasta.as_deref(),
-        &explicit_inputs,
-        &out_dir,
-    )
+    let plan = with_repo_root_current_dir(repo_root, || {
+        bijux_dna_planner_fastq::plan_fastq_stage_binding_with_explicit_inputs(
+            bijux_dna_planner_fastq::FastqStageBinding {
+                stage_id: stage_id.to_string(),
+                stage_instance_id: None,
+                tool,
+                reason: None,
+                params,
+            },
+            &std::collections::BTreeMap::new(),
+            adapter_bank.as_ref(),
+            polyx_bank.as_ref(),
+            contaminant_bank.as_ref(),
+            false,
+            &fallback_r1,
+            fallback_r2.as_deref(),
+            reference_fasta.as_deref(),
+            &explicit_inputs,
+            &out_dir,
+        )
+    })
     .with_context(|| format!("plan FASTQ benchmark command row `{stage_id}` / `{tool_id}`"))?;
     Ok(plan.command.template)
 }
@@ -353,17 +421,19 @@ fn render_bam_stage_tool_argv(
     let out_dir = benchmark_command_out_dir("bam", stage_id, tool_id).with_context(|| {
         format!("build benchmark command output dir for `{stage_id}` / `{tool_id}`")
     })?;
-    let plan = bijux_dna_planner_bam::plan_stage(bijux_dna_planner_bam::StagePlanRequest {
-        stage_id,
-        tool: &tool,
-        out_dir: &out_dir,
-        bam: bam.as_deref(),
-        bam_index: bam_index.as_deref(),
-        r1: r1.as_deref(),
-        r2: r2.as_deref(),
-        reference: reference.as_deref(),
-        sample_id,
-        params: params_ref,
+    let plan = with_repo_root_current_dir(repo_root, || {
+        bijux_dna_planner_bam::plan_stage(bijux_dna_planner_bam::StagePlanRequest {
+            stage_id,
+            tool: &tool,
+            out_dir: &out_dir,
+            bam: bam.as_deref(),
+            bam_index: bam_index.as_deref(),
+            r1: r1.as_deref(),
+            r2: r2.as_deref(),
+            reference: reference.as_deref(),
+            sample_id,
+            params: params_ref,
+        })
     })
     .with_context(|| format!("plan BAM benchmark command row `{stage_id}` / `{tool_id}`"))?;
     Ok(plan.command.template)
@@ -379,9 +449,9 @@ fn benchmark_command_out_dir(domain: &str, stage_id: &str, tool_id: &str) -> Res
 
 fn resolve_repo_input_path(repo_root: &Path, path: &Path) -> PathBuf {
     if path.is_absolute() {
-        path.to_path_buf()
+        path.strip_prefix(repo_root).unwrap_or(path).to_path_buf()
     } else {
-        repo_root.join(path)
+        path.to_path_buf()
     }
 }
 
@@ -472,6 +542,11 @@ fn fastq_stage_params_from_plan(
             ))
         }
         "fastq.detect_duplicates_premerge" | "fastq.estimate_library_complexity_prealign" => None,
+        "fastq.report_qc" => Some(bijux_dna_planner_fastq::FastqStageParameters::ReportQc(
+            serde_json::from_value(effective_params.clone()).with_context(|| {
+                format!("decode effective params for `{stage_id}` as QcPostEffectiveParams")
+            })?,
+        )),
         "fastq.extract_umis" => Some(bijux_dna_planner_fastq::FastqStageParameters::ExtractUmis(
             bijux_dna_planner_fastq::ExtractUmisStageParams {
                 threads: json_u32(params, "threads"),
@@ -948,6 +1023,26 @@ fn find_bam_corpus_reference(repo_root: &Path, plan: &StagePlanV1) -> Option<Pat
     let raw = std::fs::read_to_string(&manifest_path).ok()?;
     let manifest: BamCorpusManifestReference = toml::from_str(&raw).ok()?;
     Some(corpus_root.join(manifest.reference_fasta))
+}
+
+fn with_repo_root_current_dir<T>(
+    repo_root: &Path,
+    action: impl FnOnce() -> Result<T>,
+) -> Result<T> {
+    struct CurrentDirGuard(PathBuf);
+
+    impl Drop for CurrentDirGuard {
+        fn drop(&mut self) {
+            let _ = env::set_current_dir(&self.0);
+        }
+    }
+
+    let previous =
+        env::current_dir().context("resolve current directory before benchmark command render")?;
+    env::set_current_dir(repo_root)
+        .with_context(|| format!("set current directory to {}", repo_root.display()))?;
+    let _guard = CurrentDirGuard(previous);
+    action()
 }
 
 fn explicit_input_source_tool_id(

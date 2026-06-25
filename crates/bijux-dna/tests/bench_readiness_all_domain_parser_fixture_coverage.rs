@@ -70,9 +70,9 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(69));
+    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(71));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
-    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(20));
+    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(21));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let proof_source_counts = payload
@@ -83,15 +83,15 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
         proof_source_counts
             .get("fastq_parser_fixture_coverage")
             .and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(71)
     );
     assert_eq!(
-        proof_source_counts.get("bam_parser_coverage").and_then(serde_json::Value::as_u64),
+        proof_source_counts.get("bam_parser_fixture_coverage").and_then(serde_json::Value::as_u64),
         Some(49)
     );
     assert_eq!(
         proof_source_counts.get("vcf_parser_fixture_coverage").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(21)
     );
     assert_eq!(
         proof_source_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
@@ -131,7 +131,7 @@ fn bench_readiness_all_domain_parser_fixture_coverage_reports_complete_active_ro
             && row.get("parser_fixture_reference").and_then(serde_json::Value::as_str)
                 == Some("fixture:corpus-01-adna-bam-mini")
             && row.get("proof_source").and_then(serde_json::Value::as_str)
-                == Some("bam_parser_coverage")
+                == Some("bam_parser_fixture_coverage")
     }));
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")

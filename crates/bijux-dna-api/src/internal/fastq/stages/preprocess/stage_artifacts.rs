@@ -2190,7 +2190,7 @@ mod stage_artifact_tests {
     #[test]
     fn deplete_rrna_extra_artifacts_prefer_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             temp.path().join("rrna_report.json"),
             serde_json::json!({
                 "schema_version": "bijux.fastq.deplete_rrna.report.v2",

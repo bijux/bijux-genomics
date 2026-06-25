@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH: &str =
-    "benchmarks/configs/local/corpus-stage-compatibility.toml";
+    "configs/bench/local/corpus-stage-compatibility.toml";
 pub(crate) const LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_VERSION: &str =
     "bijux.bench.local_corpus_stage_compatibility.v1";
 const LOCAL_CORPUS_STAGE_COMPATIBILITY_VALIDATION_SCHEMA_VERSION: &str =
@@ -506,7 +506,7 @@ mod tests {
                 + report.planner_only_stage_count,
             51
         );
-        assert_eq!(report.corpus_family_counts.get("corpus-01"), Some(&19));
+        assert_eq!(report.corpus_family_counts.get("corpus-01"), Some(&21));
         assert_eq!(report.corpus_family_counts.get("corpus-01-bam"), Some(&16));
         assert_eq!(report.corpus_family_counts.get("corpus-01-adna-bam"), Some(&5));
         assert_eq!(report.corpus_family_counts.get("corpus-01-genotyping"), Some(&1));
@@ -626,7 +626,7 @@ mod tests {
         );
         let temp = tempfile::tempdir().expect("tempdir");
         let temp_matrix = temp.path().join("corpus-stage-compatibility.toml");
-        std::fs::write(&temp_matrix, drifted).expect("write drifted matrix");
+        bijux_dna_infra::write_payload(&temp_matrix, drifted).expect("write drifted matrix");
 
         let error = validate_corpus_stage_compatibility_path(&repo_root, &temp_matrix)
             .expect_err("unknown stage should fail validation");

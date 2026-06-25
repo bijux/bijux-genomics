@@ -35,9 +35,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FULL_BENCHMARK_DASHBOARD_MARKDOWN_PATH: &str =
-    "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md";
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md";
 pub(crate) const DEFAULT_FULL_BENCHMARK_DASHBOARD_JSON_PATH: &str =
-    "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json";
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json";
 const FULL_BENCHMARK_DASHBOARD_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.full_benchmark_dashboard.v1";
 

@@ -24,8 +24,8 @@ pub(crate) struct StageRegistryExtraPairRow {
     pub(crate) contract_status: String,
     pub(crate) registry_sources: Vec<String>,
     pub(crate) registered_stage_ids: Vec<String>,
-    pub(crate) intentional_override_status: String,
-    pub(crate) intentional_override_reason: String,
+    pub(crate) documented_exception_status: String,
+    pub(crate) documented_exception_reason: String,
     pub(crate) reason: String,
 }
 
@@ -107,9 +107,9 @@ pub(crate) fn render_stage_registry_extra_pairs(
             } else {
                 "tool_missing_contract"
             };
-            let intentional_override_reason = String::new();
-            let intentional_override_status =
-                if intentional_override_reason.is_empty() { "none" } else { "explicit_intent" };
+            let documented_exception_reason = String::new();
+            let documented_exception_status =
+                if documented_exception_reason.is_empty() { "none" } else { "explicit_intent" };
             let registered_stage_ids = stage_ids_by_tool.get(tool_id).cloned().unwrap_or_default();
             let registry_sources = registry
                 .pair_sources
@@ -125,8 +125,8 @@ pub(crate) fn render_stage_registry_extra_pairs(
                 contract_status: contract_status.to_string(),
                 registry_sources: registry_sources.clone(),
                 registered_stage_ids: registered_stage_ids.clone(),
-                intentional_override_status: intentional_override_status.to_string(),
-                intentional_override_reason: intentional_override_reason.clone(),
+                documented_exception_status: documented_exception_status.to_string(),
+                documented_exception_reason: documented_exception_reason.clone(),
                 reason: format!(
                     "stage registry admits `{}` / `{}` inside the benchmark scope but domain contracts do not; contract status: {}; registry sources: {}; admitted contract stages for `{}`: {}; stage rationale: {}",
                     stage_id,
@@ -170,7 +170,7 @@ pub(crate) fn render_stage_registry_extra_pairs(
     for row in &rows {
         *domain_counts.entry(row.domain.clone()).or_default() += 1;
     }
-    let ok = rows.iter().all(|row| row.intentional_override_status == "explicit_intent");
+    let ok = rows.iter().all(|row| row.documented_exception_status == "explicit_intent");
 
     Ok(StageRegistryExtraPairsReport {
         schema_version: STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_VERSION,
@@ -184,7 +184,7 @@ pub(crate) fn render_stage_registry_extra_pairs(
 
 fn render_stage_registry_extra_pairs_tsv(rows: &[StageRegistryExtraPairRow]) -> String {
     let mut rendered = String::from(
-        "domain\tstage_id\ttool_id\tcontract_status\tregistry_sources\tregistered_stage_ids\tintentional_override_status\tintentional_override_reason\treason\n",
+        "domain\tstage_id\ttool_id\tcontract_status\tregistry_sources\tregistered_stage_ids\tdocumented_exception_status\tdocumented_exception_reason\treason\n",
     );
     for row in rows {
         rendered.push_str(&format!(
@@ -195,8 +195,8 @@ fn render_stage_registry_extra_pairs_tsv(rows: &[StageRegistryExtraPairRow]) -> 
             sanitize_tsv(&row.contract_status),
             sanitize_tsv(&row.registry_sources.join(",")),
             sanitize_tsv(&row.registered_stage_ids.join(",")),
-            sanitize_tsv(&row.intentional_override_status),
-            sanitize_tsv(&row.intentional_override_reason),
+            sanitize_tsv(&row.documented_exception_status),
+            sanitize_tsv(&row.documented_exception_reason),
             sanitize_tsv(&row.reason),
         ));
     }
@@ -245,21 +245,12 @@ mod tests {
         .expect("render stage registry extra pairs");
 
         assert_eq!(report.schema_version, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_VERSION);
-        assert_eq!(report.extra_pair_count, 1);
-        assert!(!report.ok, "report must fail while registry-only benchmark pairs remain");
-        assert_eq!(report.domain_counts.get("bam"), Some(&1));
-        assert!(report.rows.iter().any(|row| {
-            row.domain == "bam"
-                && row.stage_id == "bam.haplogroups"
-                && row.tool_id == "samtools"
-                && row.contract_status == "pair_missing_from_contract"
-                && row.intentional_override_status == "none"
-        }));
+        assert_eq!(report.extra_pair_count, 0);
+        assert!(report.ok, "report must pass once registry-only benchmark pairs are retired");
+        assert!(report.domain_counts.is_empty());
         assert!(
-            !report.rows.iter().any(|row| {
-                row.domain == "bam" && row.stage_id == "bam.qc_pre" && row.tool_id == "multiqc"
-            }),
-            "bam.qc_pre / multiqc must no longer remain a registry-only pair once the BAM tool contract exists"
+            report.rows.is_empty(),
+            "stage-registry extra-pairs report must be empty once the active benchmark scope is fully contracted"
         );
     }
 }

@@ -1,6 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
@@ -24,15 +23,7 @@ pub struct VcfValidationSummary {
 }
 
 fn run_cmd(bin: &str, args: &[String]) -> Result<String> {
-    let output = Command::new(bin)
-        .args(args)
-        .output()
-        .with_context(|| format!("run command {bin} {}", args.join(" ")))?;
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        bail!("{bin} failed: {stderr}");
-    }
-    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    crate::engine::execution::run_text_command(bin, args.iter().map(String::as_str), None)
 }
 
 fn parse_fields(line: &str) -> Option<Vec<&str>> {
@@ -218,16 +209,34 @@ pub fn vcf_normalize_headers(input: &Path, output: &Path) -> Result<()> {
 /// # Errors
 /// Returns an error if bgzip/tabix indexing fails.
 pub fn vcf_index_bgzip_tabix(input_vcf: &Path, output_vcfgz: &Path) -> Result<PathBuf> {
+    let parent = output_vcfgz.parent().ok_or_else(|| {
+        anyhow!("vcf_index_bgzip_tabix: output has no parent: {}", output_vcfgz.display())
+    })?;
+    std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    let nonce = format!(
+        "{}-{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .context("read system clock for bgzip temp path")?
+            .as_nanos()
+    );
     let output_tbi = PathBuf::from(format!("{}.tbi", output_vcfgz.display()));
-    let tmp_vcfgz = PathBuf::from(format!("{}.tmp", output_vcfgz.display()));
-    let bgzip_output = Command::new("bgzip")
-        .args(["-c", &input_vcf.display().to_string()])
-        .output()
-        .with_context(|| format!("run command bgzip -c {}", input_vcf.display()))?;
-    if !bgzip_output.status.success() {
-        bail!("bgzip failed: {}", String::from_utf8_lossy(&bgzip_output.stderr));
+    let tmp_vcfgz = PathBuf::from(format!("{}.{}.tmp", output_vcfgz.display(), nonce));
+    let tmp_plain_vcf =
+        PathBuf::from(format!("{}.{}.bgzip.tmp.vcf", output_vcfgz.display(), nonce));
+    std::fs::copy(input_vcf, &tmp_plain_vcf)
+        .with_context(|| format!("copy {} -> {}", input_vcf.display(), tmp_plain_vcf.display()))?;
+    let tmp_plain_vcf_s =
+        tmp_plain_vcf.to_str().ok_or_else(|| anyhow!("non-utf8 bgzip temporary input path"))?;
+    crate::engine::execution::run_checked_command("bgzip", ["-f", tmp_plain_vcf_s], None)?;
+    let tmp_plain_vcfgz = PathBuf::from(format!("{}.gz", tmp_plain_vcf.display()));
+    if !tmp_plain_vcfgz.exists() {
+        bail!("vcf_index_bgzip_tabix: bgzip did not create {}", tmp_plain_vcfgz.display());
     }
-    bijux_dna_infra::atomic_write_bytes(&tmp_vcfgz, &bgzip_output.stdout)?;
+    std::fs::rename(&tmp_plain_vcfgz, &tmp_vcfgz).with_context(|| {
+        format!("rename bgzip output {} -> {}", tmp_plain_vcfgz.display(), tmp_vcfgz.display())
+    })?;
     let tabix_args = vec![
         "-f".to_string(),
         "-p".to_string(),
@@ -464,7 +473,7 @@ pub fn vcf_ref_match_check(input_vcf: &Path, species: &SpeciesContext) -> Result
 /// # Errors
 /// Returns an error if overlap computation fails.
 pub fn vcf_panel_overlap(input_vcfgz: &Path, panel_vcfgz: &Path) -> Result<serde_json::Value> {
-    let stamp = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+    let stamp = SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_nanos());
     let isec_tmp = std::env::temp_dir().join(format!("bijux-vcf-isec-{stamp}.vcf.gz"));
     let _ = run_cmd(
         "bcftools",

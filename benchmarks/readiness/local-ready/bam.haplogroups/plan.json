@@ -65,6 +65,12 @@
         "path": "benchmarks/readiness/local-ready/bam.haplogroups/stage.metrics.json",
         "role": "metrics_json",
         "optional": false
+      },
+      {
+        "name": "haplogroup_report",
+        "path": "benchmarks/readiness/local-ready/bam.haplogroups/haplogroup_report.json",
+        "role": "report_json",
+        "optional": false
       }
     ]
   },

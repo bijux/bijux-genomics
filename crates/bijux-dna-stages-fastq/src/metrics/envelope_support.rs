@@ -153,7 +153,7 @@ pub(super) fn stats_or_zero(
                     gc_percent: 0.0,
                 });
             }
-            if std::fs::metadata(path).map(|m| m.len()).unwrap_or(0) == 0 {
+            if std::fs::metadata(path).map_or(0, |m| m.len()) == 0 {
                 return Ok(bijux_dna_core::prelude::measure::SeqkitMetrics {
                     reads: 0,
                     bases: 0,

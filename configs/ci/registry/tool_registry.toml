@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 309abc654f2dfad274ec2582e8e2b3e55fbf4910
+# source_commit: 1d2b65af4fa02dc2f3c0de2f629daa6400aa0b76
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -36,7 +36,7 @@ smoke_help_cmd = "adapterremoval --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "adapterremoval --help"
 expected_bin = "adapterremoval"
-expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_json", "raw_backend_report_txt"]
+expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_txt"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.adapterremoval"
@@ -478,7 +478,7 @@ smoke_help_cmd = "bowtie2 --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "bowtie2 --help"
 expected_bin = "bowtie2"
-expected_artifacts = ["align_bai", "align_bam", "align_metrics", "contaminant_screen_report_json", "contaminant_screened_reads_r1", "contaminant_screened_reads_r2", "flagstat", "host_depleted_reads_r1", "host_depleted_reads_r2", "host_depletion_report_json", "idxstats", "removed_host_reads_r1", "removed_host_reads_r2", "stage_metrics", "stats"]
+expected_artifacts = ["align_bai", "align_bam", "align_metrics", "contaminant_screen_report_json", "contaminant_screened_reads_r1", "contaminant_screened_reads_r2", "flagstat", "host_depleted_reads_r1", "host_depleted_reads_r2", "host_depletion_report_json", "idxstats", "removed_contaminant_reads_r1", "removed_contaminant_reads_r2", "removed_host_reads_r1", "removed_host_reads_r2", "stage_metrics", "stats"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.bowtie2"
@@ -763,8 +763,8 @@ tool_id = "fastp"
 domain = "fastq"
 domains = ["fastq"]
 status = "production"
-stage_ids = ["fastq.filter_reads", "fastq.profile_read_lengths", "fastq.trim_polyg_tails", "fastq.trim_reads"]
-bindings = ["fastq.filter_reads", "fastq.profile_read_lengths", "fastq.trim_polyg_tails", "fastq.trim_reads"]
+stage_ids = ["fastq.filter_low_complexity", "fastq.filter_reads", "fastq.profile_read_lengths", "fastq.trim_polyg_tails", "fastq.trim_reads"]
+bindings = ["fastq.filter_low_complexity", "fastq.filter_reads", "fastq.profile_read_lengths", "fastq.trim_polyg_tails", "fastq.trim_reads"]
 tool_role = "filter"
 version = "0.23.4"
 default_version = "0.23.4"
@@ -784,7 +784,7 @@ smoke_help_cmd = "fastp --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "fastp --help"
 expected_bin = "fastp"
-expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "raw_backend_report_json", "filtered_reads_r1", "filtered_reads_r2", "length_distribution_tsv", "length_distribution_json"]
+expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "raw_backend_report_json", "filtered_reads_r1", "filtered_reads_r2", "filtered_fastq_r1", "filtered_fastq_r2", "filter_report_json", "length_distribution_tsv", "length_distribution_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable with other governed trimming and filtering backends only when stage contract, read layout, and retained report artifacts are matched."
 dockerfile = "containers/docker/arm64/Dockerfile.fastp"
@@ -2533,7 +2533,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.deplete_host"
-required_tool_roles = ["transform"]
+required_tool_roles = ["aligner", "transform"]
 primary_tools = ["bowtie2"]
 optional_alternatives = []
 validation_tools = []
@@ -2593,7 +2593,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.estimate_library_complexity_prealign"
-required_tool_roles = ["transform"]
+required_tool_roles = ["merger", "transform"]
 primary_tools = ["bijux_dna"]
 optional_alternatives = []
 validation_tools = []
@@ -2619,10 +2619,10 @@ requires_reporting = false
 id = "fastq.filter_low_complexity"
 required_tool_roles = ["filter"]
 primary_tools = ["bbduk"]
-optional_alternatives = ["prinseq"]
+optional_alternatives = ["fastp", "prinseq"]
 validation_tools = []
 reporting_tools = []
-planned_out_of_scope = ["fastp", "dustmasker"]
+planned_out_of_scope = ["dustmasker"]
 default_rationale = "Default complexity filtering uses deterministic entropy/polyX thresholds."
 requires_validation = false
 requires_reporting = false
@@ -2713,7 +2713,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.profile_read_lengths"
-required_tool_roles = ["transform"]
+required_tool_roles = ["transform", "filter"]
 primary_tools = ["seqkit_stats"]
 optional_alternatives = ["fastp", "prinseq", "seqfu"]
 validation_tools = []
@@ -2725,7 +2725,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.profile_reads"
-required_tool_roles = ["transform"]
+required_tool_roles = ["transform", "filter"]
 primary_tools = ["seqkit_stats"]
 optional_alternatives = ["seqfu", "seqkit"]
 validation_tools = []

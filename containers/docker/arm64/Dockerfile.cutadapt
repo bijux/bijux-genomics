@@ -40,5 +40,5 @@ RUN --mount=type=cache,target=/var/cache/apt \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "cutadapt \"$@\""]
+ENTRYPOINT ["cutadapt"]
 CMD []

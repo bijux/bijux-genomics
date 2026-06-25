@@ -32,7 +32,7 @@ fn bench_readiness_all_domain_retained_tools_writes_governed_tsv_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/all-domains/retained-tools.tsv");
+    assert_eq!(rendered_path.trim(), "benchmarks/readiness/tools/retained-tool-inventory.tsv");
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read all-domain retained tools");
@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_retained_tools_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 69);
+    assert_eq!(rows.len(), 71);
     assert!(rows.iter().any(|row| {
         row == &"kraken2\tfastq\t1\t1\t1\t1\tbenchmark_ready\tfastq.screen_taxonomy\tfastq.screen_taxonomy"
     }));
@@ -58,8 +58,10 @@ fn bench_readiness_all_domain_retained_tools_writes_governed_tsv_file() {
     assert!(rows.iter().any(|row| {
         row == &"shapeit5\tvcf\t1\t1\t1\t1\tbenchmark_ready\tvcf.phasing\tvcf.phasing"
     }));
-    assert!(
-        rows.iter().all(|row| !row.starts_with("star\t") && !row.starts_with("bowtie2_build\t")),
-        "retained tools TSV must exclude not-benchmark-ready-only tools"
-    );
+    assert!(rows.iter().any(|row| {
+        row == &"star\tfastq\t1\t1\t1\t1\tbenchmark_ready\tfastq.index_reference\tfastq.index_reference"
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"bowtie2_build\tfastq\t1\t1\t1\t1\tbenchmark_ready\tfastq.index_reference\tfastq.index_reference"
+    }));
 }

@@ -76,9 +76,8 @@ fn fastq_stage_plugin_rejects_materializing_unsupported_stage_ids() {
     let plugin = FastqStagePlugin;
     let plan = plan("fastq.not_registered");
 
-    let error = match plugin.materialize(&plan) {
-        Ok(_) => panic!("unsupported FASTQ stages must fail"),
-        Err(error) => error,
+    let Err(error) = plugin.materialize(&plan) else {
+        panic!("unsupported FASTQ stages must fail");
     };
 
     assert!(error.to_string().contains("unsupported FASTQ stage fastq.not_registered"));
@@ -89,9 +88,8 @@ fn fastq_stage_plugin_rejects_parsing_unsupported_stage_ids() {
     let plugin = FastqStagePlugin;
     let plan = plan("fastq.not_registered");
 
-    let error = match plugin.parse_outputs(&plan, &[]) {
-        Ok(_) => panic!("unsupported FASTQ stages must fail"),
-        Err(error) => error,
+    let Err(error) = plugin.parse_outputs(&plan, &[]) else {
+        panic!("unsupported FASTQ stages must fail");
     };
 
     assert!(error.to_string().contains("unsupported FASTQ stage fastq.not_registered"));
@@ -103,9 +101,8 @@ fn fastq_stage_plugin_rejects_empty_command_templates() {
     let mut plan = plan("fastq.detect_adapters");
     plan.command.template.clear();
 
-    let error = match plugin.materialize(&plan) {
-        Ok(_) => panic!("empty command templates must fail"),
-        Err(error) => error,
+    let Err(error) = plugin.materialize(&plan) else {
+        panic!("empty command templates must fail");
     };
 
     assert!(error.to_string().contains("empty command template"));
@@ -117,9 +114,8 @@ fn fastq_stage_plugin_rejects_blank_command_template_arguments() {
     let mut plan = plan("fastq.detect_adapters");
     plan.command.template = vec!["fastqc".to_string(), "   ".to_string()];
 
-    let error = match plugin.materialize(&plan) {
-        Ok(_) => panic!("blank command template arguments must fail"),
-        Err(error) => error,
+    let Err(error) = plugin.materialize(&plan) else {
+        panic!("blank command template arguments must fail");
     };
 
     assert!(error.to_string().contains("blank command template argument"));

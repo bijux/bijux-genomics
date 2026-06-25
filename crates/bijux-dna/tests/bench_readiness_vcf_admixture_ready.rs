@@ -60,6 +60,14 @@ fn bench_readiness_vcf_admixture_ready_reports_complete_active_retained_caller()
             serde_json::Value::String("sample_count".to_string()),
             serde_json::Value::String("population_count".to_string()),
             serde_json::Value::String("status".to_string()),
+            serde_json::Value::String("cluster_headers".to_string()),
+            serde_json::Value::String("maf_summary".to_string()),
+            serde_json::Value::String("rows".to_string()),
+            serde_json::Value::String("variant_count".to_string()),
+            serde_json::Value::String("sample_missingness".to_string()),
+            serde_json::Value::String("variant_missingness".to_string()),
+            serde_json::Value::String("execution_mode".to_string()),
+            serde_json::Value::String("tool_ok".to_string()),
         ])
     );
 
@@ -118,6 +126,20 @@ fn bench_readiness_vcf_admixture_ready_reports_complete_active_retained_caller()
             serde_json::Value::String("cluster_2".to_string()),
         ])
     );
+    assert!(row.get("expected_metrics").and_then(serde_json::Value::as_array).is_some_and(
+        |items| {
+            items.iter().any(|item| item.as_str() == Some("cluster_headers"))
+                && items.iter().any(|item| item.as_str() == Some("execution_mode"))
+                && items.iter().any(|item| item.as_str() == Some("tool_ok"))
+        }
+    ));
+    assert!(row.get("report_metric_columns").and_then(serde_json::Value::as_array).is_some_and(
+        |items| {
+            items.iter().any(|item| item.as_str() == Some("cluster_headers"))
+                && items.iter().any(|item| item.as_str() == Some("execution_mode"))
+                && items.iter().any(|item| item.as_str() == Some("tool_ok"))
+        }
+    ));
     assert_eq!(
         row.get("missing_surfaces").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(0)

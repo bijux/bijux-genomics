@@ -140,6 +140,22 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
     let outputs = payload["io"]["outputs"]
         .as_array()
         .unwrap_or_else(|| panic!("plan outputs must serialize as an array"));
+    let output_ids = outputs
+        .iter()
+        .filter_map(|artifact| artifact["name"].as_str().map(str::to_string))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        output_ids,
+        vec![
+            "genotyping_report".to_string(),
+            "summary".to_string(),
+            "stage_metrics".to_string(),
+            "genotyping_bcf".to_string(),
+            "genotyping_vcf".to_string(),
+            "genotyping_vcf_tbi".to_string(),
+            "genotyping_gl".to_string(),
+        ]
+    );
     let bcf = outputs
         .iter()
         .find(|artifact| artifact["name"] == serde_json::json!("genotyping_bcf"))

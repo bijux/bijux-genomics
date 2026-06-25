@@ -8,8 +8,8 @@ use super::all_domain_expected_benchmark_results::{
     render_all_domain_expected_benchmark_results, AllDomainExpectedBenchmarkResultsReport,
     DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH,
 };
-use super::all_domain_harness_ready::{
-    render_all_domain_harness_ready, DEFAULT_ALL_DOMAIN_HARNESS_READY_PATH,
+use super::all_domain_local_harness_complete::{
+    render_all_domain_local_harness_complete, DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH,
 };
 use super::all_domain_output_declarations::{
     render_all_domain_output_declarations, AllDomainOutputDeclarationStatus,
@@ -401,14 +401,14 @@ pub(crate) fn render_operational_benchmark_ready(
         ));
     }
 
-    let all_domain_harness_ready = render_gate_check(
+    let all_domain_local_harness_complete = render_gate_check(
         &mut checks,
-        "all_domain_harness_ready",
-        DEFAULT_ALL_DOMAIN_HARNESS_READY_PATH,
+        "all_domain_local_harness_complete",
+        DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH,
         || {
-            render_all_domain_harness_ready(
+            render_all_domain_local_harness_complete(
                 repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_HARNESS_READY_PATH),
+                PathBuf::from(DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH),
             )
         },
         |report| {
@@ -419,7 +419,7 @@ pub(crate) fn render_operational_benchmark_ready(
         },
         |report| report.ok,
     );
-    if all_domain_harness_ready.is_none() {
+    if all_domain_local_harness_complete.is_none() {
         blockers.insert(global_blocker(
             "cross",
             "benchmark.harness",
@@ -427,8 +427,8 @@ pub(crate) fn render_operational_benchmark_ready(
             "benchmark_ready",
             "benchmark_ready",
             "surface_render_failed",
-            DEFAULT_ALL_DOMAIN_HARNESS_READY_PATH,
-            "All-domain harness readiness failed",
+            DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH,
+            "All-domain local harness completion failed",
         ));
     }
 
@@ -1235,7 +1235,7 @@ mod tests {
             report.output_path,
             "benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json"
         );
-        assert_eq!(report.benchmark_ready_row_count, 132);
+        assert_eq!(report.benchmark_ready_row_count, 141);
         assert_eq!(report.blocker_count, 0);
         assert_eq!(report.missing_result_row_count, 3);
         assert_eq!(report.insufficient_data_row_count, 1);
@@ -1273,7 +1273,7 @@ mod tests {
         let blocker = binding_blocker(
             &binding,
             "resource_hint_missing",
-            "benchmarks/configs/local/stage-tool-resources.toml",
+            "configs/bench/local/stage-tool-resources.toml",
             "canonical benchmark result is missing governed resource hints",
         );
 
@@ -1283,6 +1283,6 @@ mod tests {
         assert_eq!(blocker.corpus_id, "vcf_production_regression");
         assert_eq!(blocker.asset_profile_id, "vcf_cohort");
         assert_eq!(blocker.blocker_type, "resource_hint_missing");
-        assert_eq!(blocker.blocker_path, "benchmarks/configs/local/stage-tool-resources.toml");
+        assert_eq!(blocker.blocker_path, "configs/bench/local/stage-tool-resources.toml");
     }
 }

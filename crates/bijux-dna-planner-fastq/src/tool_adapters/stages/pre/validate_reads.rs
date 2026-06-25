@@ -473,7 +473,7 @@ fn append_header_sync_commands(commands: &mut Vec<String>, r1: &Path, r2: &Path,
         shell_quote(&pair_sync_r1),
         shell_quote(&pair_sync_r2),
     ));
-    commands.push(format!("rm -f {} {}", shell_quote(&pair_sync_r1), shell_quote(&pair_sync_r2),));
+    commands.push(format!("rm -f {} {}", shell_quote(&pair_sync_r1), shell_quote(&pair_sync_r2)));
 }
 
 fn normalized_fastq_headers_command(reads: &Path, headers_path: &Path) -> String {

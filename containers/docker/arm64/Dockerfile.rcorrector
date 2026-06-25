@@ -66,9 +66,17 @@ RUN chmod +x /usr/local/bin/rcorrector-bin /usr/local/bin/run_rcorrector.pl \
  && printf '%s\n' \
       '#!/usr/bin/env bash' \
       'set -euo pipefail' \
-      'case "$1" in' \
+      'show_and_succeed() {' \
+      '  local tmp' \
+      '  tmp=$(mktemp)' \
+      '  "$@" >"$tmp" 2>&1 || true' \
+      '  cat "$tmp"' \
+      '  rm -f "$tmp"' \
+      '  exit 0' \
+      '}' \
+      'case "${1:-}" in' \
       '  --version) echo "${VERSION_RCORRECTOR}"; exit 0 ;;' \
-      '  --help|-h) exec perl /usr/local/bin/run_rcorrector.pl --help ;;' \
+      '  --help|-h|"") show_and_succeed perl /usr/local/bin/run_rcorrector.pl --help ;;' \
       'esac' \
       'exec perl /usr/local/bin/run_rcorrector.pl "$@"' \
     > /usr/local/bin/rcorrector \
@@ -79,4 +87,5 @@ WORKDIR /data
 HEALTHCHECK --interval=1h --timeout=10s \
   CMD [ "rcorrector", "--version" ]
 
-CMD [ "rcorrector", "--help" ]
+ENTRYPOINT ["rcorrector"]
+CMD ["--help"]

@@ -20,17 +20,17 @@
     {
       "stage_id": "fastq.deplete_host",
       "extension_id": "fastq_deplete_host_v1",
-      "required_key_count": 8
+      "required_key_count": 10
     },
     {
       "stage_id": "fastq.deplete_reference_contaminants",
       "extension_id": "fastq_deplete_reference_contaminants_v1",
-      "required_key_count": 9
+      "required_key_count": 11
     },
     {
       "stage_id": "fastq.deplete_rrna",
       "extension_id": "fastq_deplete_rrna_v2",
-      "required_key_count": 9
+      "required_key_count": 11
     },
     {
       "stage_id": "fastq.detect_adapters",

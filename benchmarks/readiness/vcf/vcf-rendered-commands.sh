@@ -95,5 +95,8 @@ plink --vcf benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisa
 # vcf.qc / plink2
 plink2 --vcf benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf --double-id --allow-extra-chr --missing --freq --het --hardy --out benchmarks/readiness/adapters/plink2/vcf.qc/qc
 
+# vcf.roh / plink2
+plink2 --vcf benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf --double-id --allow-extra-chr --homozyg --out benchmarks/readiness/adapters/descent/plink2/vcf.roh/roh_report
+
 # vcf.stats / bcftools
 bcftools stats -s - -o benchmarks/readiness/adapters/bcftools/vcf.stats/bcftools_stats.txt benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf

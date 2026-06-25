@@ -801,9 +801,9 @@ pub fn verify_evidence_bundle(bundle_path: &Path) -> Result<EvidenceVerification
             missing_paths.push(artifact.path.clone());
         }
         let hash_ok = match (&artifact.sha256, ok) {
-            (Some(expected), true) => bijux_dna_infra::hash_file_sha256(&full)
-                .map(|actual| actual == *expected)
-                .unwrap_or(false),
+            (Some(expected), true) => {
+                bijux_dna_infra::hash_file_sha256(&full).is_ok_and(|actual| actual == *expected)
+            }
             (None, true) => true,
             (_, false) => false,
         };
@@ -1745,7 +1745,7 @@ fn build_citations(
     {
         for (key, value) in global {
             let entries = match value {
-                serde_json::Value::String(single) => vec![single.to_string()],
+                serde_json::Value::String(single) => vec![single.clone()],
                 serde_json::Value::Array(rows) => rows
                     .iter()
                     .filter_map(serde_json::Value::as_str)

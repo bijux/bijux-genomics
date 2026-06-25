@@ -1,0 +1,80 @@
+{
+  "schema_version": "bijux.bench.readiness.retained_toolset_executable_local.v1",
+  "output_path": "benchmarks/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json",
+  "checked_goal_count": 9,
+  "passed_goal_count": 9,
+  "failed_goal_count": 0,
+  "failing_goal_ids": [],
+  "retained_tool_count": 71,
+  "executable_resolution_row_count": 71,
+  "version_probe_row_count": 71,
+  "host_smoke_tool_count": 1,
+  "container_smoke_tool_count": 70,
+  "parser_family_count": 30,
+  "ok": true,
+  "checks": [
+    {
+      "goal_id": 421,
+      "surface": "retained_tool_inventory",
+      "output_path": "benchmarks/readiness/tools/retained-tool-inventory.tsv",
+      "ok": true,
+      "detail": "row_count=71, benchmark_ready_tool_count=71"
+    },
+    {
+      "goal_id": 422,
+      "surface": "retained_tool_executable_resolution",
+      "output_path": "benchmarks/readiness/tools/executable-resolution.tsv",
+      "ok": true,
+      "detail": "row_count=71, host_binary_count=1, container_count=68, unavailable_count=2"
+    },
+    {
+      "goal_id": 423,
+      "surface": "retained_tool_version_probes",
+      "output_path": "benchmarks/readiness/tools/version-probes.json",
+      "ok": true,
+      "detail": "row_count=71, ready_count=69, unavailable_count=2"
+    },
+    {
+      "goal_id": 424,
+      "surface": "retained_tool_host_smoke",
+      "output_path": "runs/bench/tool-smoke/host",
+      "ok": true,
+      "detail": "tool_count=1, success_count=1"
+    },
+    {
+      "goal_id": 425,
+      "surface": "retained_tool_container_smoke",
+      "output_path": "runs/bench/tool-smoke/container",
+      "ok": true,
+      "detail": "tool_count=70, success_count=68, unavailable_count=2, failure_count=0"
+    },
+    {
+      "goal_id": 426,
+      "surface": "retained_tool_apptainer_map",
+      "output_path": "benchmarks/readiness/tools/apptainer-map.tsv",
+      "ok": true,
+      "detail": "row_count=71, docker_runtime=docker-arm64, covered_domain_count=3"
+    },
+    {
+      "goal_id": 427,
+      "surface": "retained_tool_input_preflight",
+      "output_path": "benchmarks/readiness/tools/input-preflight-tests.json",
+      "ok": true,
+      "detail": "row_count=258, passed_row_count=258, covered_tool_count=71"
+    },
+    {
+      "goal_id": 428,
+      "surface": "retained_tool_output_contracts",
+      "output_path": "benchmarks/readiness/tools/output-contract-tests.json",
+      "ok": true,
+      "detail": "row_count=141, passed_row_count=141, failed_row_count=0"
+    },
+    {
+      "goal_id": 429,
+      "surface": "retained_tool_real_output_parser_smoke",
+      "output_path": "benchmarks/readiness/tools/real-output-parser-smoke.json",
+      "ok": true,
+      "detail": "family_count=30, passed_family_count=30, failed_family_count=0"
+    }
+  ]
+}

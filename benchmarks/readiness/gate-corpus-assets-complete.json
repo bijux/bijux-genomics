@@ -2,12 +2,12 @@
   "schema_version": "bijux.bench.readiness.corpus_asset_coverage_gate.v1",
   "output_path": "benchmarks/readiness/gate-corpus-assets-complete.json",
   "passes_gate": true,
-  "row_count": 122,
-  "benchmark_ready_row_count": 118,
-  "gate_row_count": 118,
-  "gate_passed_row_count": 118,
+  "row_count": 120,
+  "benchmark_ready_row_count": 120,
+  "gate_row_count": 120,
+  "gate_passed_row_count": 120,
   "gate_failed_row_count": 0,
-  "excluded_row_count": 4,
+  "excluded_row_count": 0,
   "benchmark_ready_asset_required_row_count": 20,
   "benchmark_ready_asset_assigned_row_count": 20,
   "benchmark_ready_asset_missing_row_count": 0,
@@ -17,20 +17,17 @@
   },
   "domain_tool_counts": {
     "bam": 25,
-    "fastq": 44
+    "fastq": 42
   },
   "domain_row_counts": {
     "bam": 49,
-    "fastq": 73
+    "fastq": 71
   },
   "gate_domain_row_counts": {
     "bam": 49,
-    "fastq": 69
+    "fastq": 71
   },
-  "excluded_readiness_gap_counts": {
-    "corpus": 1,
-    "support": 3
-  },
+  "excluded_readiness_gap_counts": {},
   "rows": [
     {
       "domain": "bam",
@@ -1231,38 +1228,20 @@
     {
       "domain": "fastq",
       "stage_id": "fastq.filter_low_complexity",
-      "tool_id": "dustmasker",
-      "gate_scope": "excluded",
-      "gate_status": "excluded",
-      "benchmark_status": "not_benchmark_ready",
-      "readiness_gap": "support",
-      "support_status": "planned_contract",
-      "adapter_status": "declared_only",
-      "parser_status": "not_normalized",
-      "corpus_status": "fixture:corpus-01-mini",
-      "corpus_assignment_status": "assigned",
-      "asset_assignment_status": "not_required",
-      "required_asset_roles": [],
-      "assigned_assets": [],
-      "reason": "row `fastq.filter_low_complexity` / `dustmasker` is not yet in governed benchmark support for HPC readiness (`planned_contract`)"
-    },
-    {
-      "domain": "fastq",
-      "stage_id": "fastq.filter_low_complexity",
       "tool_id": "fastp",
-      "gate_scope": "excluded",
-      "gate_status": "excluded",
-      "benchmark_status": "not_benchmark_ready",
-      "readiness_gap": "support",
-      "support_status": "planned_contract",
-      "adapter_status": "declared_only",
-      "parser_status": "not_normalized",
+      "gate_scope": "benchmark_submission",
+      "gate_status": "pass",
+      "benchmark_status": "benchmark_ready",
+      "readiness_gap": "none",
+      "support_status": "governed_benchmark_cohort",
+      "adapter_status": "runnable",
+      "parser_status": "benchmark_normalized",
       "corpus_status": "fixture:corpus-01-mini",
       "corpus_assignment_status": "assigned",
       "asset_assignment_status": "not_required",
       "required_asset_roles": [],
       "assigned_assets": [],
-      "reason": "row `fastq.filter_low_complexity` / `fastp` is not yet in governed benchmark support for HPC readiness (`planned_contract`)"
+      "reason": "row `fastq.filter_low_complexity` / `fastp` stays inside the fastq benchmark submission gate with governed fixture-backed corpus assignment coverage and no required asset bindings"
     },
     {
       "domain": "fastq",
@@ -1802,19 +1781,19 @@
       "domain": "fastq",
       "stage_id": "fastq.report_qc",
       "tool_id": "multiqc",
-      "gate_scope": "excluded",
-      "gate_status": "excluded",
-      "benchmark_status": "not_benchmark_ready",
-      "readiness_gap": "corpus",
+      "gate_scope": "benchmark_submission",
+      "gate_status": "pass",
+      "benchmark_status": "benchmark_ready",
+      "readiness_gap": "none",
       "support_status": "observer_specialized_benchmark",
       "adapter_status": "runnable",
       "parser_status": "comparable",
-      "corpus_status": "planner_only",
-      "corpus_assignment_status": "excluded",
+      "corpus_status": "fixture:corpus-01-mini",
+      "corpus_assignment_status": "assigned",
       "asset_assignment_status": "not_required",
       "required_asset_roles": [],
       "assigned_assets": [],
-      "reason": "row `fastq.report_qc` / `multiqc` has governed support, adapter-backed command rendering, and normalized parser output but still resolves only `planner_only` benchmark-scope coverage"
+      "reason": "row `fastq.report_qc` / `multiqc` stays inside the fastq benchmark submission gate with governed fixture-backed corpus assignment coverage and no required asset bindings"
     },
     {
       "domain": "fastq",
@@ -2127,24 +2106,6 @@
       "required_asset_roles": [],
       "assigned_assets": [],
       "reason": "row `fastq.trim_reads` / `seqkit` stays inside the fastq benchmark submission gate with governed fixture-backed corpus assignment coverage and no required asset bindings"
-    },
-    {
-      "domain": "fastq",
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "seqpurge",
-      "gate_scope": "excluded",
-      "gate_status": "excluded",
-      "benchmark_status": "not_benchmark_ready",
-      "readiness_gap": "support",
-      "support_status": "planned_contract",
-      "adapter_status": "declared_only",
-      "parser_status": "not_normalized",
-      "corpus_status": "fixture:corpus-01-mini",
-      "corpus_assignment_status": "assigned",
-      "asset_assignment_status": "not_required",
-      "required_asset_roles": [],
-      "assigned_assets": [],
-      "reason": "row `fastq.trim_reads` / `seqpurge` is not yet in governed benchmark support for HPC readiness (`planned_contract`)"
     },
     {
       "domain": "fastq",

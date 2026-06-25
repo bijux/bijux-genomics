@@ -1,0 +1,34 @@
+schema_version = "bijux.bench.adna_damage_truth.v1"
+fixture_id = "adna-damage-truth"
+description = "Governed aDNA damage truth bundle for terminal-end classification, UDG status, and stage-comparison insufficiency behavior."
+expected_path = "expected.json"
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/manifest.toml",
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/expected_damage.json",
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/reference/adna_damage_reference.fasta",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam",
+]
+
+[[cases]]
+case_id = "non_udg_terminal_damage"
+sample_id = "adna_damage_non_udg"
+cohort = "adna_like"
+alignment_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
+reference_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/reference/adna_damage_reference.fasta"
+udg_model = "non_udg"
+strict_profile = false
+terminal_c_to_t_5p = 0.18
+terminal_g_to_a_3p = 0.11
+
+[[cases]]
+case_id = "half_udg_insufficient_signal"
+sample_id = "adna_like_damage"
+cohort = "adna_like"
+alignment_path = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam"
+reference_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/reference/adna_damage_reference.fasta"
+udg_model = "half_udg"
+strict_profile = false
+terminal_c_to_t_5p = 0.04
+terminal_g_to_a_3p = 0.08

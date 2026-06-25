@@ -44,7 +44,7 @@ fn bench_readiness_fastq_report_map_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 69, "TSV must retain every FASTQ expected-result reporting row");
+    assert_eq!(rows.len(), 71, "TSV must retain every FASTQ expected-result reporting row");
     assert!(
         rows.iter().any(|row| {
             row.contains(

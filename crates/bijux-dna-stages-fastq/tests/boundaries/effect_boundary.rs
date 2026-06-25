@@ -30,14 +30,15 @@ fn production_code_keeps_effects_inside_stage_boundary() {
     for path in rust_source_files(&root.join("src")) {
         let content = std::fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+        let production_content = strip_cfg_test_items(&content);
         for needle in forbidden_everywhere {
-            if content.contains(needle) {
+            if production_content.contains(needle) {
                 offenders.push(format!("{} contains `{needle}`", path.display()));
             }
         }
         if path != write_allow_path {
             for needle in write_effects {
-                if content.contains(needle) {
+                if production_content.contains(needle) {
                     offenders.push(format!("{} contains write effect `{needle}`", path.display()));
                 }
             }
@@ -62,4 +63,35 @@ fn rust_source_files(root: &Path) -> Vec<PathBuf> {
             path.file_name().and_then(|name| name.to_str()) != Some("plugin_contracts.rs")
         })
         .collect()
+}
+
+fn strip_cfg_test_items(source: &str) -> String {
+    let mut output = Vec::new();
+    let mut pending_cfg_test = false;
+    let mut skipped_brace_depth = 0usize;
+
+    for line in source.lines() {
+        if skipped_brace_depth > 0 {
+            skipped_brace_depth += line.matches('{').count();
+            skipped_brace_depth = skipped_brace_depth.saturating_sub(line.matches('}').count());
+            continue;
+        }
+
+        let trimmed = line.trim_start();
+        if trimmed == "#[cfg(test)]" {
+            pending_cfg_test = true;
+            continue;
+        }
+
+        if pending_cfg_test {
+            skipped_brace_depth += line.matches('{').count();
+            skipped_brace_depth = skipped_brace_depth.saturating_sub(line.matches('}').count());
+            pending_cfg_test = false;
+            continue;
+        }
+
+        output.push(line);
+    }
+
+    output.join("\n")
 }

@@ -7,6 +7,8 @@ mod support;
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _repo_lock =
+        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
@@ -99,27 +101,27 @@ fn bench_active_scope_validate_fast_reports_complete_fast_surface() {
             && check.get("output_path").and_then(serde_json::Value::as_str)
                 == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
             && check.get("detail").and_then(serde_json::Value::as_str)
-                == Some("row_count=135, stage_count=65, tool_count=69")
+                == Some("row_count=141, stage_count=69, tool_count=71")
     }));
     assert!(checks.iter().any(|check| {
         check.get("category").and_then(serde_json::Value::as_str) == Some("fixtures")
             && check.get("surface_id").and_then(serde_json::Value::as_str)
                 == Some("benchmark_fixture_root_validation")
             && check.get("detail").and_then(serde_json::Value::as_str)
-                == Some("checked_fixture_count=17, invalid_fixture_count=0")
+                == Some("checked_fixture_count=54, invalid_fixture_count=0")
     }));
     assert!(checks.iter().any(|check| {
         check.get("category").and_then(serde_json::Value::as_str) == Some("commands")
             && check.get("surface_id").and_then(serde_json::Value::as_str)
                 == Some("all_domain_no_placeholder_command_check")
             && check.get("detail").and_then(serde_json::Value::as_str)
-                == Some("valid_row_count=135, invalid_row_count=0, violation_count=0")
+                == Some("valid_row_count=141, invalid_row_count=0, violation_count=0")
     }));
     assert!(checks.iter().any(|check| {
         check.get("category").and_then(serde_json::Value::as_str) == Some("reports")
             && check.get("surface_id").and_then(serde_json::Value::as_str)
                 == Some("all_domain_report_map_coverage")
             && check.get("detail").and_then(serde_json::Value::as_str)
-                == Some("covered_row_count=135, missing_row_count=0")
+                == Some("covered_row_count=141, missing_row_count=0")
     }));
 }

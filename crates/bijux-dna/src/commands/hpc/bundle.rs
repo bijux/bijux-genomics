@@ -155,7 +155,7 @@ fn hex_encode(bytes: &[u8]) -> String {
 }
 
 fn hex_decode(value: &str) -> Result<Vec<u8>> {
-    if value.len() % 2 != 0 {
+    if !value.len().is_multiple_of(2) {
         return Err(anyhow!("hex payload has odd length"));
     }
     let mut out = Vec::with_capacity(value.len() / 2);
@@ -409,7 +409,7 @@ mod tests {
             stage: "fastq.validate_reads",
             tool: "seqkit_v2",
             sample: "sample-1",
-            planned_job_id: "dryrun-0001",
+            planned_job_id: "dryrun-fastq-validate-reads",
             scheduler_job_id: "mock-0001",
             submitted_at: "1700000000",
             backend: "mock-envelope-v1",
@@ -445,7 +445,7 @@ mod tests {
             stage: "fastq.validate_reads",
             tool: "seqkit_v2",
             sample: "sample-1",
-            planned_job_id: "dryrun-0001",
+            planned_job_id: "dryrun-fastq-validate-reads",
             scheduler_job_id: "mock-0001",
             submitted_at: "1700000000",
             backend: "mock-envelope-v1",
@@ -482,7 +482,7 @@ mod tests {
             stage: "fastq.validate_reads",
             tool: "seqkit_v2",
             sample: "sample-1",
-            planned_job_id: "dryrun-0001",
+            planned_job_id: "dryrun-fastq-validate-reads",
             scheduler_job_id: "mock-0001",
             submitted_at: "1700000000",
             backend: "mock-envelope-v1",

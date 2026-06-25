@@ -48,11 +48,11 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows()
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(row_count));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(67));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(69));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(
         payload.get("report_map_binding_count").and_then(serde_json::Value::as_u64),
-        Some(113)
+        Some(141)
     );
     assert_eq!(
         payload.get("covered_row_count").and_then(serde_json::Value::as_u64),
@@ -64,9 +64,9 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows()
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(69));
+    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(71));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
-    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(20));
+    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(21));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let proof_source_counts = payload
@@ -75,7 +75,7 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows()
         .expect("proof source counts");
     assert_eq!(
         proof_source_counts.get("fastq_report_map").and_then(serde_json::Value::as_u64),
-        Some(69)
+        Some(71)
     );
     assert_eq!(
         proof_source_counts.get("bam_report_map").and_then(serde_json::Value::as_u64),
@@ -83,7 +83,7 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows()
     );
     assert_eq!(
         proof_source_counts.get("vcf_report_map").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(21)
     );
     assert_eq!(
         proof_source_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
@@ -96,7 +96,7 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows()
         .expect("report section counts");
     assert_eq!(
         report_section_counts.get("read_cleanup").and_then(serde_json::Value::as_u64),
-        Some(37)
+        Some(38)
     );
     assert_eq!(
         report_section_counts.get("sample_identity").and_then(serde_json::Value::as_u64),
@@ -109,6 +109,10 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows()
     assert_eq!(
         report_section_counts.get("population_structure").and_then(serde_json::Value::as_u64),
         Some(4)
+    );
+    assert_eq!(
+        report_section_counts.get("runs_of_homozygosity").and_then(serde_json::Value::as_u64),
+        Some(1)
     );
 
     let coverage_status_counts = support::json_object(&payload, "coverage_status_counts");
@@ -158,6 +162,15 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows()
                 == Some("population_structure")
             && row.get("summary_table_id").and_then(serde_json::Value::as_str)
                 == Some("population_structure_metrics")
+            && row.get("proof_source").and_then(serde_json::Value::as_str) == Some("vcf_report_map")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("result_id").and_then(serde_json::Value::as_str)
+            == Some("vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2")
+            && row.get("report_section_id").and_then(serde_json::Value::as_str)
+                == Some("runs_of_homozygosity")
+            && row.get("summary_table_id").and_then(serde_json::Value::as_str)
+                == Some("roh_metrics")
             && row.get("proof_source").and_then(serde_json::Value::as_str) == Some("vcf_report_map")
     }));
 

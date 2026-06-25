@@ -67,7 +67,7 @@ fn assert_docs_tree(root: &std::path::Path) {
             "FEATURES.md",
             "PUBLIC_API.md",
             "REQUEST_FLOW.md",
-            "RUNTIME_ITERATION09_OPERATOR_COMMANDS.md",
+            "RUNTIME_OPERATOR_COMMANDS.md",
             "SECURITY.md",
             "TESTS.md",
         ],
@@ -164,7 +164,7 @@ fn assert_v1_tree(root: &std::path::Path) {
     );
     assert_dir_entries(
         &root.join("src/v1/bam"),
-        &["feature_flags.rs", "mod.rs", "plan.rs", "stage_planning/"],
+        &["domain.rs", "feature_flags.rs", "mod.rs", "plan.rs", "stage_planning/"],
         "api v1 bam tree must separate planning internals from the public namespace",
     );
     assert_dir_entries(
@@ -238,6 +238,10 @@ fn assert_test_tree(root: &std::path::Path) {
         &["workspace_paths.rs"],
         "api test support must keep shared helpers out of suite roots",
     );
+    assert_contracts_tree(root);
+}
+
+fn assert_contracts_tree(root: &std::path::Path) {
     assert_dir_entries(
         &root.join("tests/boundaries"),
         &[
@@ -253,27 +257,12 @@ fn assert_test_tree(root: &std::path::Path) {
     );
     assert_dir_entries(
         &root.join("tests/contracts"),
-        &[
-            "fastq_amplicon_governance_contract.rs",
-            "v1_cross_contract_spine.rs",
-            "v1_cross_explain_roundtrip.rs",
-            "v1_cross_profile_contracts.rs",
-            "v1_cross_public_contract.rs",
-            "v1_dry_run_manifest.rs",
-            "v1_fastq_small_integration.rs",
-            "v1_plan_manifest_contract.rs",
-            "v1_report_evidence.rs",
-            "v1_route_adapter_contract.rs",
-            "v1_run_iteration09_bundle_verifier.rs",
-            "v1_run_iteration09_cache_explain.rs",
-            "v1_run_iteration09_failure_injection.rs",
-            "v1_run_iteration09_replay_failed.rs",
-            "v1_run_iteration09_replay_success.rs",
-            "v1_run_iteration09_workflows.rs",
-            "v1_status_evidence.rs",
-        ],
-        "api contract tests must stay split by public v1 behavior",
+        &all_contract_entries(),
+        "api contract tests must stay grouped by enduring public v1 behavior",
     );
+    assert_bam_contracts_tree(root);
+    assert_fastq_contracts_tree(root);
+    assert_cross_contracts_tree(root);
     assert_dir_entries(
         &root.join("tests/schemas"),
         &[
@@ -288,10 +277,135 @@ fn assert_test_tree(root: &std::path::Path) {
     );
 }
 
+fn assert_bam_contracts_tree(root: &std::path::Path) {
+    assert_dir_contains_entries(
+        &root.join("tests/contracts"),
+        &bam_contract_entries(),
+        "api BAM contract tests must stay split by public v1 behavior",
+    );
+}
+
+fn assert_fastq_contracts_tree(root: &std::path::Path) {
+    assert_dir_contains_entries(
+        &root.join("tests/contracts"),
+        &fastq_contract_entries(),
+        "api FASTQ contract tests must stay split by public v1 behavior",
+    );
+}
+
+fn assert_cross_contracts_tree(root: &std::path::Path) {
+    assert_dir_contains_entries(
+        &root.join("tests/contracts"),
+        &cross_contract_entries(),
+        "api cross-cutting contract tests must stay split by public v1 behavior",
+    );
+}
+
 fn assert_dir_entries(path: &std::path::Path, expected: &[&str], message: &str) {
     let entries = dir_entries(path);
     let expected: BTreeSet<_> = expected.iter().copied().map(str::to_string).collect();
     assert_eq!(entries, expected, "{message}");
+}
+
+fn assert_dir_contains_entries(path: &std::path::Path, expected_subset: &[&str], message: &str) {
+    let entries = dir_entries(path);
+    let expected_subset: BTreeSet<_> =
+        expected_subset.iter().copied().map(str::to_string).collect();
+    let missing = expected_subset.difference(&entries).cloned().collect::<Vec<_>>();
+    assert!(missing.is_empty(), "{message}: missing {missing:?}");
+}
+
+fn all_contract_entries() -> Vec<&'static str> {
+    let mut entries = Vec::new();
+    entries.extend_from_slice(bam_contract_entries());
+    entries.extend_from_slice(fastq_contract_entries());
+    entries.extend_from_slice(cross_contract_entries());
+    entries
+}
+
+fn bam_contract_entries() -> &'static [&'static str] {
+    &[
+        "v1_bam_local_align_plan.rs",
+        "v1_bam_local_authenticity_smoke.rs",
+        "v1_bam_local_bias_mitigation_smoke.rs",
+        "v1_bam_local_complexity_smoke.rs",
+        "v1_bam_local_contamination_plan.rs",
+        "v1_bam_local_contamination_smoke.rs",
+        "v1_bam_local_coverage_smoke.rs",
+        "v1_bam_local_damage_smoke.rs",
+        "v1_bam_local_duplication_metrics_smoke.rs",
+        "v1_bam_local_endogenous_content_smoke.rs",
+        "v1_bam_local_filter_smoke.rs",
+        "v1_bam_local_gc_bias_smoke.rs",
+        "v1_bam_local_genotyping_plan.rs",
+        "v1_bam_local_haplogroups_plan.rs",
+        "v1_bam_local_haplogroups_smoke.rs",
+        "v1_bam_local_insert_size_smoke.rs",
+        "v1_bam_local_kinship_smoke.rs",
+        "v1_bam_local_length_filter_smoke.rs",
+        "v1_bam_local_mapping_summary_smoke.rs",
+        "v1_bam_local_mapq_filter_smoke.rs",
+        "v1_bam_local_markdup_smoke.rs",
+        "v1_bam_local_overlap_correction_smoke.rs",
+        "v1_bam_local_qc_pre_smoke.rs",
+        "v1_bam_local_recalibration_smoke.rs",
+        "v1_bam_local_sex_smoke.rs",
+        "v1_bam_local_sex_tool_smoke.rs",
+        "v1_bam_local_validate_smoke.rs",
+    ]
+}
+
+fn fastq_contract_entries() -> &'static [&'static str] {
+    &[
+        "fastq_amplicon_governance_contract.rs",
+        "v1_fastq_local_cluster_otus_smoke.rs",
+        "v1_fastq_local_correct_errors_smoke.rs",
+        "v1_fastq_local_deplete_host_plan.rs",
+        "v1_fastq_local_deplete_reference_contaminants_plan.rs",
+        "v1_fastq_local_deplete_rrna_plan.rs",
+        "v1_fastq_local_detect_adapters_smoke.rs",
+        "v1_fastq_local_detect_duplicates_premerge_smoke.rs",
+        "v1_fastq_local_estimate_library_complexity_prealign_smoke.rs",
+        "v1_fastq_local_extract_umis_smoke.rs",
+        "v1_fastq_local_filter_low_complexity_smoke.rs",
+        "v1_fastq_local_filter_reads_smoke.rs",
+        "v1_fastq_local_index_reference_plan.rs",
+        "v1_fastq_local_infer_asvs_smoke.rs",
+        "v1_fastq_local_merge_pairs_smoke.rs",
+        "v1_fastq_local_normalize_abundance_smoke.rs",
+        "v1_fastq_local_normalize_primers_smoke.rs",
+        "v1_fastq_local_profile_overrepresented_sequences_smoke.rs",
+        "v1_fastq_local_profile_read_lengths_smoke.rs",
+        "v1_fastq_local_profile_reads_smoke.rs",
+        "v1_fastq_local_remove_chimeras_smoke.rs",
+        "v1_fastq_local_remove_duplicates_smoke.rs",
+        "v1_fastq_local_screen_taxonomy_plan.rs",
+        "v1_fastq_local_trim_polyg_tails_smoke.rs",
+        "v1_fastq_local_trim_reads_smoke.rs",
+        "v1_fastq_local_trim_terminal_damage_smoke.rs",
+        "v1_fastq_local_validate_reads_smoke.rs",
+        "v1_fastq_small_integration.rs",
+    ]
+}
+
+fn cross_contract_entries() -> &'static [&'static str] {
+    &[
+        "v1_cross_contract_spine.rs",
+        "v1_cross_explain_roundtrip.rs",
+        "v1_cross_profile_contracts.rs",
+        "v1_cross_public_contract.rs",
+        "v1_dry_run_manifest.rs",
+        "v1_plan_manifest_contract.rs",
+        "v1_report_evidence.rs",
+        "v1_route_adapter_contract.rs",
+        "v1_run_bundle_verifier.rs",
+        "v1_run_cache_explain.rs",
+        "v1_run_failure_injection.rs",
+        "v1_run_replay_failed.rs",
+        "v1_run_replay_success.rs",
+        "v1_run_workflows.rs",
+        "v1_status_evidence.rs",
+    ]
 }
 
 fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {

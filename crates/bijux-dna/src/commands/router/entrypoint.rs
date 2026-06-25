@@ -314,16 +314,18 @@ mod tests {
         let run_dir = observability_run_dir(
             std::path::Path::new("/workspace"),
             std::path::Path::new("artifacts/bench"),
-            "run-001",
+            "run-observability",
         )
         .expect("run dir");
 
-        assert_eq!(run_dir, std::path::Path::new("/workspace/artifacts/bench/run-001"));
+        assert_eq!(run_dir, std::path::Path::new("/workspace/artifacts/bench/run-observability"));
     }
 
     #[test]
     fn observability_run_dir_rejects_path_like_run_ids() {
-        for run_id in ["", "../run-001", "nested/run-001", "/tmp/run-001", "."] {
+        for run_id in
+            ["", "../run-observability", "nested/run-observability", "/tmp/run-observability", "."]
+        {
             let err = observability_run_dir(
                 std::path::Path::new("/workspace"),
                 std::path::Path::new("artifacts/bench"),
@@ -338,8 +340,8 @@ mod tests {
     #[test]
     fn write_observability_log_pack_rejects_empty_runs_without_creating_archive() {
         let temp = tempfile::tempdir().expect("tempdir");
-        let run_dir = temp.path().join("run-001");
-        let out = temp.path().join("run-001.tar");
+        let run_dir = temp.path().join("run-observability");
+        let out = temp.path().join("run-observability.tar");
         bijux_dna_infra::ensure_dir(&run_dir).expect("run dir");
 
         let err = write_observability_log_pack(&run_dir, &out).expect_err("empty pack should fail");
@@ -351,12 +353,13 @@ mod tests {
     #[test]
     fn write_observability_log_pack_is_stable_across_file_metadata_changes() {
         let temp = tempfile::tempdir().expect("tempdir");
-        let run_dir = temp.path().join("run-001");
+        let run_dir = temp.path().join("run-observability");
         let manifest = run_dir.join("run_manifest.json");
         let first_out = temp.path().join("first.tar");
         let second_out = temp.path().join("second.tar");
         bijux_dna_infra::ensure_dir(&run_dir).expect("run dir");
-        bijux_dna_infra::write_bytes(&manifest, b"{\"run\":\"run-001\"}\n").expect("manifest");
+        bijux_dna_infra::write_bytes(&manifest, b"{\"run\":\"run-observability\"}\n")
+            .expect("manifest");
 
         filetime::set_file_mtime(&manifest, filetime::FileTime::from_unix_time(10, 0))
             .expect("old mtime");

@@ -1,0 +1,305 @@
+{
+  "schema_version": "bijux.bench.population_structure_truth.expected.v1",
+  "fixture_id": "population-structure-truth",
+  "cases": [
+    {
+      "case_id": "plink2_pca_output",
+      "pca_metrics": {
+        "schema_version": "bijux.vcf.pca.v1",
+        "stage_id": "vcf.pca",
+        "tool_id": "plink2",
+        "variant_count": 2,
+        "sample_count": 4,
+        "excluded_samples": [],
+        "unexpected_samples": [],
+        "eigenvalues": [1.0, 0.5],
+        "execution_mode": "fallback_proxy",
+        "tool_ok": false,
+        "rows": [
+          { "sample_id": "sample_a", "population_id": "cohort_alpha", "pc1": 0.01, "pc2": 0.02 },
+          { "sample_id": "sample_b", "population_id": "cohort_alpha", "pc1": 0.02, "pc2": 0.03 },
+          { "sample_id": "sample_c", "population_id": "cohort_beta", "pc1": 0.03, "pc2": 0.04 },
+          { "sample_id": "sample_d", "population_id": "cohort_beta", "pc1": 0.04, "pc2": 0.05 }
+        ]
+      },
+      "pca_output_truth": {
+        "schema_version": "bijux.vcf.pca_output_truth.v1",
+        "stage_id": "vcf.pca",
+        "tool_id": "plink2",
+        "sample_metadata_path": "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv",
+        "sample_count": 4,
+        "joined_sample_count": 4,
+        "pair_count": 6,
+        "population_ids": ["cohort_alpha", "cohort_beta"],
+        "rows": [
+          { "sample_id": "sample_a", "population_id": "cohort_alpha", "sex": "female", "role": "cohort", "pc1": 0.01, "pc2": 0.02 },
+          { "sample_id": "sample_b", "population_id": "cohort_alpha", "sex": "male", "role": "cohort", "pc1": 0.02, "pc2": 0.03 },
+          { "sample_id": "sample_c", "population_id": "cohort_beta", "sex": "female", "role": "cohort", "pc1": 0.03, "pc2": 0.04 },
+          { "sample_id": "sample_d", "population_id": "cohort_beta", "sex": "male", "role": "cohort", "pc1": 0.04, "pc2": 0.05 }
+        ],
+        "pairwise_distances": [
+          { "left_sample_id": "sample_a", "right_sample_id": "sample_b", "left_population_id": "cohort_alpha", "right_population_id": "cohort_alpha", "distance": 0.01414213562373095 },
+          { "left_sample_id": "sample_a", "right_sample_id": "sample_c", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.0282842712474619 },
+          { "left_sample_id": "sample_a", "right_sample_id": "sample_d", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.042426406871192854 },
+          { "left_sample_id": "sample_b", "right_sample_id": "sample_c", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.01414213562373095 },
+          { "left_sample_id": "sample_b", "right_sample_id": "sample_d", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.028284271247461905 },
+          { "left_sample_id": "sample_c", "right_sample_id": "sample_d", "left_population_id": "cohort_beta", "right_population_id": "cohort_beta", "distance": 0.014142135623730954 }
+        ]
+      }
+    },
+    {
+      "case_id": "eigensoft_pca_output",
+      "pca_metrics": {
+        "schema_version": "bijux.vcf.pca.v1",
+        "stage_id": "vcf.pca",
+        "tool_id": "eigensoft",
+        "variant_count": 2,
+        "sample_count": 4,
+        "excluded_samples": [],
+        "unexpected_samples": [],
+        "eigenvalues": [1.0, 0.5],
+        "status": "complete",
+        "rows": [
+          { "sample_id": "sample_a", "population_id": "cohort_alpha", "pc1": 0.01, "pc2": 0.02 },
+          { "sample_id": "sample_b", "population_id": "cohort_alpha", "pc1": 0.02, "pc2": 0.03 },
+          { "sample_id": "sample_c", "population_id": "cohort_beta", "pc1": 0.03, "pc2": 0.04 },
+          { "sample_id": "sample_d", "population_id": "cohort_beta", "pc1": 0.04, "pc2": 0.05 }
+        ]
+      },
+      "pca_output_truth": {
+        "schema_version": "bijux.vcf.pca_output_truth.v1",
+        "stage_id": "vcf.pca",
+        "tool_id": "eigensoft",
+        "sample_metadata_path": "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv",
+        "sample_count": 4,
+        "joined_sample_count": 4,
+        "pair_count": 6,
+        "population_ids": ["cohort_alpha", "cohort_beta"],
+        "rows": [
+          { "sample_id": "sample_a", "population_id": "cohort_alpha", "sex": "female", "role": "cohort", "pc1": 0.01, "pc2": 0.02 },
+          { "sample_id": "sample_b", "population_id": "cohort_alpha", "sex": "male", "role": "cohort", "pc1": 0.02, "pc2": 0.03 },
+          { "sample_id": "sample_c", "population_id": "cohort_beta", "sex": "female", "role": "cohort", "pc1": 0.03, "pc2": 0.04 },
+          { "sample_id": "sample_d", "population_id": "cohort_beta", "sex": "male", "role": "cohort", "pc1": 0.04, "pc2": 0.05 }
+        ],
+        "pairwise_distances": [
+          { "left_sample_id": "sample_a", "right_sample_id": "sample_b", "left_population_id": "cohort_alpha", "right_population_id": "cohort_alpha", "distance": 0.01414213562373095 },
+          { "left_sample_id": "sample_a", "right_sample_id": "sample_c", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.0282842712474619 },
+          { "left_sample_id": "sample_a", "right_sample_id": "sample_d", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.042426406871192854 },
+          { "left_sample_id": "sample_b", "right_sample_id": "sample_c", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.01414213562373095 },
+          { "left_sample_id": "sample_b", "right_sample_id": "sample_d", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.028284271247461905 },
+          { "left_sample_id": "sample_c", "right_sample_id": "sample_d", "left_population_id": "cohort_beta", "right_population_id": "cohort_beta", "distance": 0.014142135623730954 }
+        ]
+      }
+    },
+    {
+      "case_id": "plink2_admixture_output",
+      "admixture_metrics": {
+        "schema_version": "bijux.vcf.admixture.v1",
+        "stage_id": "vcf.admixture",
+        "tool_id": "plink2",
+        "selected_k": 2,
+        "status": "complete",
+        "execution_mode": "fallback_proxy",
+        "tool_ok": false,
+        "sample_count": 4,
+        "population_count": 2,
+        "cluster_headers": ["cluster_1", "cluster_2"],
+        "rows": [
+          { "sample_id": "sample_a", "population_id": "cohort_alpha", "K": 2, "status": "complete", "cluster_1": 1.0, "cluster_2": 0.0 },
+          { "sample_id": "sample_b", "population_id": "cohort_alpha", "K": 2, "status": "complete", "cluster_1": 1.0, "cluster_2": 0.0 },
+          { "sample_id": "sample_c", "population_id": "cohort_beta", "K": 2, "status": "complete", "cluster_1": 0.0, "cluster_2": 1.0 },
+          { "sample_id": "sample_d", "population_id": "cohort_beta", "K": 2, "status": "complete", "cluster_1": 0.0, "cluster_2": 1.0 }
+        ]
+      },
+      "admixture_output_truth": {
+        "schema_version": "bijux.vcf.admixture_output_truth.v1",
+        "stage_id": "vcf.admixture",
+        "tool_id": "plink2",
+        "sample_metadata_path": "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv",
+        "selected_k": 2,
+        "sample_count": 4,
+        "joined_sample_count": 4,
+        "population_count": 2,
+        "cluster_headers": ["cluster_1", "cluster_2"],
+        "population_ids": ["cohort_alpha", "cohort_beta"],
+        "rows": [
+          {
+            "sample_id": "sample_a",
+            "population_id": "cohort_alpha",
+            "sex": "female",
+            "role": "cohort",
+            "status": "complete",
+            "dominant_cluster": "cluster_1",
+            "dominant_fraction": 1.0,
+            "cluster_fractions": { "cluster_1": 1.0, "cluster_2": 0.0 }
+          },
+          {
+            "sample_id": "sample_b",
+            "population_id": "cohort_alpha",
+            "sex": "male",
+            "role": "cohort",
+            "status": "complete",
+            "dominant_cluster": "cluster_1",
+            "dominant_fraction": 1.0,
+            "cluster_fractions": { "cluster_1": 1.0, "cluster_2": 0.0 }
+          },
+          {
+            "sample_id": "sample_c",
+            "population_id": "cohort_beta",
+            "sex": "female",
+            "role": "cohort",
+            "status": "complete",
+            "dominant_cluster": "cluster_2",
+            "dominant_fraction": 1.0,
+            "cluster_fractions": { "cluster_1": 0.0, "cluster_2": 1.0 }
+          },
+          {
+            "sample_id": "sample_d",
+            "population_id": "cohort_beta",
+            "sex": "male",
+            "role": "cohort",
+            "status": "complete",
+            "dominant_cluster": "cluster_2",
+            "dominant_fraction": 1.0,
+            "cluster_fractions": { "cluster_1": 0.0, "cluster_2": 1.0 }
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "plink2_population_structure_output",
+      "population_structure_metrics": {
+        "schema_version": "bijux.vcf.population_structure.v1",
+        "stage_id": "vcf.population_structure",
+        "tool_id": "plink2",
+        "consumed_pca": {
+          "sample_count": 4,
+          "variant_count": 2,
+          "execution_mode": "fallback_proxy",
+          "tool_ok": false
+        },
+        "consumed_admixture": {
+          "sample_count": 4,
+          "selected_k": 2,
+          "execution_mode": "fallback_proxy",
+          "tool_ok": false,
+          "status": "complete"
+        },
+        "sample_groups": [
+          { "sample_id": "sample_a", "population_id": "cohort_alpha", "dominant_cluster": "cluster_1", "dominant_fraction": 1.0, "pc1": 0.01, "pc2": 0.02, "status": "complete" },
+          { "sample_id": "sample_b", "population_id": "cohort_alpha", "dominant_cluster": "cluster_1", "dominant_fraction": 1.0, "pc1": 0.02, "pc2": 0.03, "status": "complete" },
+          { "sample_id": "sample_c", "population_id": "cohort_beta", "dominant_cluster": "cluster_2", "dominant_fraction": 1.0, "pc1": 0.03, "pc2": 0.04, "status": "complete" },
+          { "sample_id": "sample_d", "population_id": "cohort_beta", "dominant_cluster": "cluster_2", "dominant_fraction": 1.0, "pc1": 0.04, "pc2": 0.05, "status": "complete" }
+        ],
+        "distance_summary": {
+          "sample_count": 4,
+          "pair_count": 6,
+          "within_population_pair_count": 2,
+          "cross_population_pair_count": 4,
+          "min_pc_distance": 0.01414213562373095,
+          "max_pc_distance": 0.042426406871192854,
+          "mean_pc_distance": 0.023570226039551587
+        },
+        "variant_count": 2,
+        "status": "complete"
+      },
+      "population_structure_output_truth": {
+        "schema_version": "bijux.vcf.population_structure_output_truth.v1",
+        "stage_id": "vcf.population_structure",
+        "tool_id": "plink2",
+        "sample_metadata_path": "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv",
+        "sample_count": 4,
+        "joined_sample_count": 4,
+        "pair_count": 6,
+        "within_population_pair_count": 2,
+        "cross_population_pair_count": 4,
+        "min_pc_distance": 0.01414213562373095,
+        "max_pc_distance": 0.042426406871192854,
+        "mean_pc_distance": 0.023570226039551587,
+        "population_ids": ["cohort_alpha", "cohort_beta"],
+        "sample_groups": [
+          { "sample_id": "sample_a", "population_id": "cohort_alpha", "sex": "female", "role": "cohort", "dominant_cluster": "cluster_1", "dominant_fraction": 1.0, "pc1": 0.01, "pc2": 0.02, "status": "complete" },
+          { "sample_id": "sample_b", "population_id": "cohort_alpha", "sex": "male", "role": "cohort", "dominant_cluster": "cluster_1", "dominant_fraction": 1.0, "pc1": 0.02, "pc2": 0.03, "status": "complete" },
+          { "sample_id": "sample_c", "population_id": "cohort_beta", "sex": "female", "role": "cohort", "dominant_cluster": "cluster_2", "dominant_fraction": 1.0, "pc1": 0.03, "pc2": 0.04, "status": "complete" },
+          { "sample_id": "sample_d", "population_id": "cohort_beta", "sex": "male", "role": "cohort", "dominant_cluster": "cluster_2", "dominant_fraction": 1.0, "pc1": 0.04, "pc2": 0.05, "status": "complete" }
+        ],
+        "pairwise_distances": [
+          { "left_sample_id": "sample_a", "right_sample_id": "sample_b", "left_population_id": "cohort_alpha", "right_population_id": "cohort_alpha", "distance": 0.01414213562373095 },
+          { "left_sample_id": "sample_a", "right_sample_id": "sample_c", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.0282842712474619 },
+          { "left_sample_id": "sample_a", "right_sample_id": "sample_d", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.042426406871192854 },
+          { "left_sample_id": "sample_b", "right_sample_id": "sample_c", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.01414213562373095 },
+          { "left_sample_id": "sample_b", "right_sample_id": "sample_d", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.028284271247461905 },
+          { "left_sample_id": "sample_c", "right_sample_id": "sample_d", "left_population_id": "cohort_beta", "right_population_id": "cohort_beta", "distance": 0.014142135623730954 }
+        ]
+      }
+    },
+    {
+      "case_id": "eigensoft_population_structure_output",
+      "population_structure_metrics": {
+        "schema_version": "bijux.vcf.population_structure.v1",
+        "stage_id": "vcf.population_structure",
+        "tool_id": "eigensoft",
+        "consumed_pca": {
+          "sample_count": 4,
+          "variant_count": 2,
+          "execution_mode": "real_tool",
+          "tool_ok": true,
+          "eigenvalues": [1.0, 0.5]
+        },
+        "consumed_admixture": {
+          "sample_count": 0,
+          "selected_k": 0,
+          "execution_mode": "not_applicable",
+          "tool_ok": false,
+          "status": "not_available"
+        },
+        "sample_groups": [
+          { "sample_id": "sample_a", "population_id": "cohort_alpha", "dominant_cluster": "cohort_alpha", "dominant_fraction": 1.0, "pc1": 0.01, "pc2": 0.02, "status": "complete" },
+          { "sample_id": "sample_b", "population_id": "cohort_alpha", "dominant_cluster": "cohort_alpha", "dominant_fraction": 1.0, "pc1": 0.02, "pc2": 0.03, "status": "complete" },
+          { "sample_id": "sample_c", "population_id": "cohort_beta", "dominant_cluster": "cohort_beta", "dominant_fraction": 1.0, "pc1": 0.03, "pc2": 0.04, "status": "complete" },
+          { "sample_id": "sample_d", "population_id": "cohort_beta", "dominant_cluster": "cohort_beta", "dominant_fraction": 1.0, "pc1": 0.04, "pc2": 0.05, "status": "complete" }
+        ],
+        "distance_summary": {
+          "sample_count": 4,
+          "pair_count": 6,
+          "within_population_pair_count": 2,
+          "cross_population_pair_count": 4,
+          "min_pc_distance": 0.01414213562373095,
+          "max_pc_distance": 0.042426406871192854,
+          "mean_pc_distance": 0.023570226039551587
+        },
+        "status": "complete",
+        "variant_count": 2
+      },
+      "population_structure_output_truth": {
+        "schema_version": "bijux.vcf.population_structure_output_truth.v1",
+        "stage_id": "vcf.population_structure",
+        "tool_id": "eigensoft",
+        "sample_metadata_path": "benchmarks/tests/fixtures/corpora/vcf-mini/metadata/sample_metadata.tsv",
+        "sample_count": 4,
+        "joined_sample_count": 4,
+        "pair_count": 6,
+        "within_population_pair_count": 2,
+        "cross_population_pair_count": 4,
+        "min_pc_distance": 0.01414213562373095,
+        "max_pc_distance": 0.042426406871192854,
+        "mean_pc_distance": 0.023570226039551587,
+        "population_ids": ["cohort_alpha", "cohort_beta"],
+        "sample_groups": [
+          { "sample_id": "sample_a", "population_id": "cohort_alpha", "sex": "female", "role": "cohort", "dominant_cluster": "cohort_alpha", "dominant_fraction": 1.0, "pc1": 0.01, "pc2": 0.02, "status": "complete" },
+          { "sample_id": "sample_b", "population_id": "cohort_alpha", "sex": "male", "role": "cohort", "dominant_cluster": "cohort_alpha", "dominant_fraction": 1.0, "pc1": 0.02, "pc2": 0.03, "status": "complete" },
+          { "sample_id": "sample_c", "population_id": "cohort_beta", "sex": "female", "role": "cohort", "dominant_cluster": "cohort_beta", "dominant_fraction": 1.0, "pc1": 0.03, "pc2": 0.04, "status": "complete" },
+          { "sample_id": "sample_d", "population_id": "cohort_beta", "sex": "male", "role": "cohort", "dominant_cluster": "cohort_beta", "dominant_fraction": 1.0, "pc1": 0.04, "pc2": 0.05, "status": "complete" }
+        ],
+        "pairwise_distances": [
+          { "left_sample_id": "sample_a", "right_sample_id": "sample_b", "left_population_id": "cohort_alpha", "right_population_id": "cohort_alpha", "distance": 0.01414213562373095 },
+          { "left_sample_id": "sample_a", "right_sample_id": "sample_c", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.0282842712474619 },
+          { "left_sample_id": "sample_a", "right_sample_id": "sample_d", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.042426406871192854 },
+          { "left_sample_id": "sample_b", "right_sample_id": "sample_c", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.01414213562373095 },
+          { "left_sample_id": "sample_b", "right_sample_id": "sample_d", "left_population_id": "cohort_alpha", "right_population_id": "cohort_beta", "distance": 0.028284271247461905 },
+          { "left_sample_id": "sample_c", "right_sample_id": "sample_d", "left_population_id": "cohort_beta", "right_population_id": "cohort_beta", "distance": 0.014142135623730954 }
+        ]
+      }
+    }
+  ]
+}

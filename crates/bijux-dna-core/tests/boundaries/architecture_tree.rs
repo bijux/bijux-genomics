@@ -67,6 +67,7 @@ fn assert_contract_layout(root: &Path) {
             "OWNER.toml",
             "contract.rs",
             "graph.rs",
+            "handoff.rs",
             "io.rs",
             "manifest.rs",
             "mod.rs",
@@ -104,7 +105,16 @@ fn assert_identity_layout(root: &Path) {
     );
     assert_eq!(
         dir_entries(&root.join("src/ids/parsing")),
-        entries(["OWNER.toml", "mod.rs", "pipeline.rs", "stage.rs", "symbolic.rs", "tool.rs"]),
+        entries([
+            "OWNER.toml",
+            "benchmark_result.rs",
+            "mod.rs",
+            "pipeline.rs",
+            "stage.rs",
+            "symbolic.rs",
+            "tool.rs",
+            "variant.rs",
+        ]),
         "parsing tree must stay partitioned by identifier family"
     );
 

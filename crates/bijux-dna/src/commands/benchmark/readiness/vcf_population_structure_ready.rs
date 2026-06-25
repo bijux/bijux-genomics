@@ -30,8 +30,14 @@ pub(crate) const DEFAULT_VCF_POPULATION_STRUCTURE_READY_PATH: &str =
 const VCF_POPULATION_STRUCTURE_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_population_structure_ready.v1";
 const VCF_POPULATION_STRUCTURE_STAGE_ID: &str = "vcf.population_structure";
-const REQUIRED_METRIC_NAMES: [&str; 4] =
-    ["sample_count", "pair_count", "within_population_pair_count", "cross_population_pair_count"];
+const REQUIRED_METRIC_NAMES: [&str; 6] = [
+    "consumed_admixture",
+    "consumed_pca",
+    "distance_summary",
+    "sample_groups",
+    "status",
+    "variant_count",
+];
 const REQUIRED_STATUS: &str = "complete";
 const REQUIRED_SAMPLE_COUNT: u64 = 4;
 const REQUIRED_PAIR_COUNT: u64 = 6;
@@ -152,7 +158,7 @@ pub(crate) fn render_vcf_population_structure_ready(
 ) -> Result<VcfPopulationStructureReadyReport> {
     let _lock = bijux_dna_infra::FileLock::acquire(
         &repo_root.join(VCF_POPULATION_STRUCTURE_READY_LOCK_PATH),
-        Duration::from_secs(300),
+        Duration::from_mins(5),
     )
     .with_context(|| {
         format!(
@@ -606,19 +612,22 @@ fn contains_artifact_id(values: &[String], artifact_id: &str) -> bool {
 fn expected_result_id(
     binding: &super::vcf_expected_benchmark_results::VcfExpectedBenchmarkResultRow,
 ) -> String {
-    format!(
-        "vcf:{}:{}:{}:{}",
-        binding.corpus_id, binding.stage_id, binding.asset_profile_id, binding.tool_id
+    crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+        "vcf",
+        &binding.corpus_id,
+        &binding.stage_id,
+        &binding.asset_profile_id,
+        &binding.tool_id,
     )
 }
 
 fn retained_result_id(binding: &VcfStageReadinessBinding) -> String {
-    format!(
-        "vcf:{}:{}:{}:{}",
-        binding.retained_row.corpus_id,
-        binding.retained_row.stage_id,
-        binding.retained_row.asset_profile_id,
-        binding.retained_row.tool_id
+    crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+        "vcf",
+        &binding.retained_row.corpus_id,
+        &binding.retained_row.stage_id,
+        &binding.retained_row.asset_profile_id,
+        &binding.retained_row.tool_id,
     )
 }
 

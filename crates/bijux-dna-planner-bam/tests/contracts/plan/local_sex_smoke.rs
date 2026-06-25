@@ -11,7 +11,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn write_local_sex_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("benchmarks/configs/local");
+    let config_dir = root.join("configs/bench/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-sex.toml"), body)?;
     Ok(())
@@ -95,7 +95,17 @@ fn local_sex_smoke_plans_use_governed_bam_reference_and_expectations() -> Result
         .iter()
         .map(|artifact| artifact.name.as_str().to_string())
         .collect::<Vec<_>>();
-    assert_eq!(output_names, vec!["sex_report", "summary", "stage_metrics"]);
+    assert_eq!(
+        output_names,
+        vec![
+            "sex_report",
+            "sex_estimate",
+            "population_metrics",
+            "haplogroup_report",
+            "summary",
+            "stage_metrics",
+        ]
+    );
 
     let summary_output = case
         .plan
@@ -120,6 +130,45 @@ fn local_sex_smoke_stage_api_surface_stays_callable() {
         &Path,
     ) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalSexSmokeCasePlan>> =
         bijux_dna_planner_bam::stage_api::local_sex_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<Vec<bijux_dna_planner_bam::stage_api::LocalSexSmokeCasePlan>> =
+        bijux_dna_planner_bam::stage_api::local_sex_output_contract_plans;
+}
+
+#[test]
+fn local_sex_output_contract_plans_cover_all_governed_tools() -> Result<()> {
+    let repo_root = repo_root();
+    let plans = bijux_dna_planner_bam::stage_api::local_sex_output_contract_plans(&repo_root)?;
+    let tool_ids = plans
+        .iter()
+        .map(|case| case.plan.tool_id.as_str().to_string())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        tool_ids,
+        std::collections::BTreeSet::from([
+            "angsd".to_string(),
+            "rxy".to_string(),
+            "yleaf".to_string(),
+        ])
+    );
+    for case in &plans {
+        let output_ids = case
+            .plan
+            .io
+            .outputs
+            .iter()
+            .map(|artifact| artifact.name.as_str().to_string())
+            .collect::<std::collections::BTreeSet<_>>();
+        assert!(
+            output_ids.contains("sex_estimate")
+                && output_ids.contains("population_metrics")
+                && output_ids.contains("haplogroup_report"),
+            "sex proof plan for `{}` must retain all governed audit artifacts",
+            case.plan.tool_id.as_str()
+        );
+    }
+    Ok(())
 }
 
 #[test]

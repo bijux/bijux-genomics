@@ -59,7 +59,7 @@ fn bench_local_render_all_domain_slurm_scripts_writes_governed_root() {
     let mut script_paths = Vec::new();
     collect_sbatch_paths(&output_root, &mut script_paths);
     script_paths.sort();
-    assert_eq!(script_paths.len(), 213);
+    assert_eq!(script_paths.len(), 234);
 
     let vcf_script = output_root.join(
         "benchmark-results/vcf/vcf_production_regression/vcf.stats/vcf_cohort/bcftools/job.sbatch",

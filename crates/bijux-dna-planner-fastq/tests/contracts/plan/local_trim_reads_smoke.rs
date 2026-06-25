@@ -13,11 +13,13 @@ fn repo_root() -> PathBuf {
 fn local_trim_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
     let repo_root = repo_root();
     let plans = bijux_dna_planner_fastq::stage_api::local_trim_reads_smoke_plans(&repo_root)?;
-    assert_eq!(plans.len(), 2, "governed trim smoke should keep curated SE and PE cases");
+    assert_eq!(plans.len(), 3, "governed trim smoke should keep curated fastp SE/PE proofs plus single-end bbduk backend-report coverage");
 
     let se_case = plans
         .iter()
-        .find(|case| case.sample_id == "adapter-quality-se")
+        .find(|case| {
+            case.sample_id == "adapter-quality-se" && case.plan.tool_id.as_str() == "fastp"
+        })
         .unwrap_or_else(|| panic!("single-end trim smoke case missing"));
     assert_eq!(se_case.plan.stage_id.as_str(), "fastq.trim_reads");
     assert_eq!(se_case.plan.tool_id.as_str(), "fastp");
@@ -35,7 +37,9 @@ fn local_trim_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
 
     let pe_case = plans
         .iter()
-        .find(|case| case.sample_id == "adapter-quality-pe")
+        .find(|case| {
+            case.sample_id == "adapter-quality-pe" && case.plan.tool_id.as_str() == "fastp"
+        })
         .unwrap_or_else(|| panic!("paired-end trim smoke case missing"));
     assert_eq!(
         pe_case.r1,
@@ -51,6 +55,15 @@ fn local_trim_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
     );
     assert_eq!(pe_case.plan.effective_params["paired_mode"], serde_json::json!("paired_end"));
 
+    let bbduk_case = plans
+        .iter()
+        .find(|case| {
+            case.sample_id == "adapter-quality-se" && case.plan.tool_id.as_str() == "bbduk"
+        })
+        .unwrap_or_else(|| panic!("bbduk single-end trim smoke case missing"));
+    assert_eq!(bbduk_case.plan.stage_id.as_str(), "fastq.trim_reads");
+    assert_eq!(bbduk_case.plan.tool_id.as_str(), "bbduk");
+
     Ok(())
 }
 
@@ -58,4 +71,40 @@ fn local_trim_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
 fn local_trim_reads_smoke_stage_api_surface_stays_callable() {
     let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalTrimReadsSmokeCasePlan>> =
         bijux_dna_planner_fastq::stage_api::local_trim_reads_smoke_plans;
+    let _: fn(&Path) -> anyhow::Result<Vec<bijux_dna_planner_fastq::LocalTrimReadsSmokeCasePlan>> =
+        bijux_dna_planner_fastq::stage_api::local_trim_reads_output_contract_plans;
+}
+
+#[test]
+fn local_trim_reads_output_contract_plans_cover_all_governed_tools() -> Result<()> {
+    let repo_root = repo_root();
+    let plans =
+        bijux_dna_planner_fastq::stage_api::local_trim_reads_output_contract_plans(&repo_root)?;
+    let tool_ids = plans
+        .iter()
+        .map(|case| case.plan.tool_id.as_str().to_string())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        tool_ids,
+        std::collections::BTreeSet::from([
+            "adapterremoval".to_string(),
+            "alientrimmer".to_string(),
+            "atropos".to_string(),
+            "bbduk".to_string(),
+            "cutadapt".to_string(),
+            "fastp".to_string(),
+            "fastx_clipper".to_string(),
+            "leehom".to_string(),
+            "prinseq".to_string(),
+            "seqkit".to_string(),
+            "skewer".to_string(),
+            "trim_galore".to_string(),
+            "trimmomatic".to_string(),
+        ])
+    );
+    assert!(
+        plans.iter().any(|case| { case.plan.tool_id.as_str() == "bbduk" && case.r2.is_some() }),
+        "BBDuk trim proof plans must keep paired-end retained-output coverage"
+    );
+    Ok(())
 }

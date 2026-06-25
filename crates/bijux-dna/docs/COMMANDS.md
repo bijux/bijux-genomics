@@ -61,11 +61,43 @@ Commands listed here are owned by this crate even when their durable behavior is
   FASTA and FAI, single-sample/cohort/phased/panel VCF assets, target-sites BED, and
   sample/population metadata. It fails closed when any declared file is missing, when the
   reference and FAI drift, or when VCF sample ids fall out of sync with the metadata tables.
+  `fixtures validate --corpus vcf-genotype-truth` validates the governed
+  `benchmarks/tests/fixtures/science/vcf-genotype-truth/manifest.toml` bundle against the owned
+  parser-fixture VCFs and command contracts for diploid, pseudohaploid, likelihood-bearing, and
+  propagated-likelihood cases. It fails closed if ploidy widths, genotype-state tallies,
+  per-sample missingness, retained GL/GP/PL fields, or seed-bearing command semantics drift away
+  from the governed science truth.
+  `fixtures validate --corpus vcf-filter-truth` validates the governed
+  `benchmarks/tests/fixtures/science/vcf-filter-truth/manifest.toml` bundle against the owned
+  parser-fixture VCF outputs and normalized filter metrics for retained bcftools and ANGSD VCF
+  filter stages. It fails closed if low-quality, low-depth, mapping-quality, or missingness filter
+  labels drift from the governed fixture, or if damage-aware removal counts and retained PASS sites
+  stop matching the owned filter-output truth.
+  `fixtures validate --corpus phasing-imputation-truth` validates the governed
+  `benchmarks/tests/fixtures/science/phasing-imputation-truth/manifest.toml` bundle against the
+  owned phasing-output and imputation-output truth summaries plus the retained phasing and
+  imputation parser fixtures. It fails closed if phased genotype counts, phase-set evidence,
+  masked-truth match counts, INFO or R² summaries, concordance, or low-confidence imputation
+  signals drift from the governed science fixture.
+  `fixtures validate --corpus population-structure-truth` validates the governed
+  `benchmarks/tests/fixtures/science/population-structure-truth/manifest.toml` bundle against the
+  owned PCA-, admixture-, and population-structure output truth summaries plus the retained
+  PLINK2 and EIGENSOFT parser fixtures. It fails closed if sample coordinates, ancestry fractions,
+  cohort metadata joins, dominant cluster calls, or pairwise distance summaries drift from the
+  governed science fixture.
+  `fixtures validate --corpus segments-demography-truth` validates the governed
+  `benchmarks/tests/fixtures/science/segments-demography-truth/manifest.toml` bundle against the
+  owned ROH-, IBD-, and demography-output truth summaries plus the retained PLINK2, germline,
+  IBDseq, IBDHap, and IBDNe parser fixtures. It fails closed if ROH intervals, relatedness segment
+  lengths, marker-overlap insufficiency evidence, or demography insufficiency status drift from the
+  governed science fixture.
   `fixtures validate --root benchmarks/tests/fixtures --all` writes
   `benchmarks/readiness/benchmark-fixture-root-validation.json` and fails closed unless the
   benchmark-owned `bench`, `corpora`, and `databases` roots all exist, parser-bank domains remain
-  populated, and every governed corpus, taxonomy database, and `vcf-mini` expected-truth contract
-  validates from the benchmark fixture root.
+  populated, and every governed corpus, taxonomy database, and science truth bundle including
+  `vcf-genotype-truth`, `vcf-filter-truth`, `phasing-imputation-truth`, and
+  `population-structure-truth`, and `segments-demography-truth` validates from the benchmark
+  fixture root.
 - `bijux-dna fixtures validate-expected`
   `fixtures validate-expected --corpus vcf-mini` validates the governed
   `benchmarks/tests/fixtures/corpora/vcf-mini/expected/*.json` truth bundle against the owned
@@ -73,6 +105,34 @@ Commands listed here are owned by this crate even when their durable behavior is
   fails closed when variant counts, sample missingness, genotype-state tallies, allele
   frequencies, phasing status, pairwise cohort distances, ROH expectations, or IBD expectations
   drift away from the governed fixture corpus.
+  `fixtures validate-expected --corpus vcf-genotype-truth` validates the governed
+  `benchmarks/tests/fixtures/science/vcf-genotype-truth/expected.json` bundle against the owned
+  VCF genotype truth summarizer, boundary evaluators, and parser-fixture command metadata. It
+  fails closed when diploid or pseudohaploid call classes, GL/GP/PL field retention, genotype
+  missingness, or declared random-seed behavior drift from the governed science fixture.
+  `fixtures validate-expected --corpus vcf-filter-truth` validates the governed
+  `benchmarks/tests/fixtures/science/vcf-filter-truth/expected.json` bundle against the owned VCF
+  filter-output summarizer plus the bcftools and ANGSD normalized metrics parsers. It fails closed
+  when filter-threshold metrics, declared failure labels, retained PASS-only damage-filter output,
+  or tool-specific damage-context removal rules drift from the governed science fixture.
+  `fixtures validate-expected --corpus phasing-imputation-truth` validates the governed
+  `benchmarks/tests/fixtures/science/phasing-imputation-truth/expected.json` bundle against the
+  owned phasing-output and imputation-output truth summarizers plus the retained phasing and
+  imputation normalized metrics parsers. It fails closed when phased genotype tallies, phase-set
+  evidence, masked-truth concordance, INFO or R² retention, or low-confidence imputation counts
+  drift from the governed science fixture.
+  `fixtures validate-expected --corpus population-structure-truth` validates the governed
+  `benchmarks/tests/fixtures/science/population-structure-truth/expected.json` bundle against the
+  owned PCA-, admixture-, and population-structure output truth summarizers plus the retained
+  PLINK2 and EIGENSOFT normalized metrics parsers. It fails closed when coordinate rows, ancestry
+  proportions, metadata joins, dominant-cluster assignments, or pairwise distance summaries drift
+  from the governed science fixture.
+  `fixtures validate-expected --corpus segments-demography-truth` validates the governed
+  `benchmarks/tests/fixtures/science/segments-demography-truth/expected.json` bundle against the
+  owned ROH-, IBD-, and demography-output truth summarizers plus the retained PLINK2, germline,
+  IBDseq, IBDHap, and IBDNe normalized metrics parsers. It fails closed when ROH interval rows,
+  retained IBD pair lengths, marker-overlap insufficiency probes, or demography insufficiency
+  states drift from the governed science fixture.
 
 ### Status
 - `bijux-dna status`
@@ -162,6 +222,33 @@ Visible aliases are part of the operator surface:
   any disposable root survives the cleanup step or if tracked benchmark truth depends on files
   outside `benchmarks/`.
 - `bijux-dna bench run`
+- `bijux-dna bench run-micro`
+  `run-micro` writes `runs/bench/micro/MICRO_BENCHMARK_RUN.json` plus governed aggregate row sets
+  for result rows, output rows, log rows, and normalized metrics under `runs/bench/micro/`, and
+  also writes the governed Markdown and JSON micro benchmark report pair
+  `runs/bench/micro/MICRO_BENCHMARK_REPORT.md` and
+  `runs/bench/micro/MICRO_BENCHMARK_REPORT.json`. The command materializes the current real micro
+  execution slice by combining the all-domain `REAL_SMOKE_CORE_SUMMARY.json` report under
+  `runs/bench/micro/core/` with the retained FASTQ family summary under
+  `runs/bench/micro/fastq/`, the retained BAM family summary under `runs/bench/micro/bam/`, the
+  retained VCF family summary under `runs/bench/micro/vcf/`, the governed amplicon pipeline
+  summary under `runs/bench/micro/pipelines/amplicon/`, the governed aDNA pipeline summary under
+  `runs/bench/micro/pipelines/adna/`, the governed eDNA pipeline summary under
+  `runs/bench/micro/pipelines/edna/`, and the governed core germline pipeline summary under
+  `runs/bench/micro/pipelines/core-germline/`. It then flattens those real reports into one
+  micro-run contract with stable `run_id`, repo revision, written row counts, runtime and
+  memory-source evidence, preserved unavailable rows, and filtered science-threshold rows so the
+  report stays honest about what is complete, unavailable, missing, or insufficient.
+  an explicit run log.
+- `bijux-dna bench local run-fastq-micro-smoke-subset`
+  `run-fastq-micro-smoke-subset` writes `runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json`,
+  choosing one governed retained FASTQ binding per family from the canonical local-container smoke
+  matrix. Families with a real governed `materialize-stage` smoke artifact record host-local
+  evidence under `runs/bench/local-smoke/<stage>/`, while planner-backed families report the
+  checked-in container smoke path instead of inventing a fake host success. The summary keeps the
+  family slice, representative stage/tool, execution status, smoke metadata, and any parsed
+  evidence schema so FASTQ readiness stays grounded in one honest local-or-container verdict per
+  family.
 - `bijux-dna bench status`
 - `bijux-dna bench workspace-value`
 - `bijux-dna bench config-json`
@@ -169,7 +256,7 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench write-screen-taxonomy-database-lineage`
 - `bijux-dna bench validate-matrix`
   `validate-matrix --domain vcf --strict` checks
-  `benchmarks/configs/local/vcf-stage-matrix.toml` against the governed VCF stage catalog, the
+  `configs/bench/local/vcf-stage-matrix.toml` against the governed VCF stage catalog, the
   production-regression VCF benchmark corpus contract, the VCF required-tool and registry files,
   and the owned adapter, parser, and expected-output contracts. It fails closed when any VCF
   catalog stage is missing, any row drifts from the owned contract set, or any row references a
@@ -218,9 +305,10 @@ Visible aliases are part of the operator surface:
   `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `expected_outputs`,
   `expected_metrics`, and `report_section` explicit, and the command fails closed unless result
   identities stay unique and stable across all governed benchmark-ready domains.
-- `bijux-dna bench readiness render-all-domain-harness-ready`
-  `render-all-domain-harness-ready` writes
-  `benchmarks/readiness/ALL_DOMAIN_HARNESS_READY.json` and fail-closes across Goals 278–289.
+- `bijux-dna bench readiness render-all-domain-local-harness-complete`
+  `render-all-domain-local-harness-complete` writes
+  `benchmarks/readiness/all-domains/ALL_DOMAIN_LOCAL_HARNESS_COMPLETE.json` and fail-closes across
+  Goal 398.
   The gate reruns the governed all-domain stage inventory, stage-tool table, expected-result
   table, rendered commands, output declarations, fake-runner, fake failures, completion checker,
   parser collector, missing-result behavior, failure classification, and real-smoke subset, then
@@ -272,23 +360,31 @@ Visible aliases are part of the operator surface:
   distinct from unsupported pairs.
 - `bijux-dna bench readiness render-full-benchmark-dashboard`
   `render-full-benchmark-dashboard` writes
-  `benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md` and
-  `benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json`. It derives the required
-  summary counts for total stages, total tools, total expected jobs, ready jobs, blocked jobs,
-  missing parsers, missing adapters, missing assets, and failed real smokes directly from the
-  governed all-domain stage inventory, expected-result, rendered-command, parser-collector,
-  full-report, and real-smoke surfaces. The command fail-closes unless every dashboard number
-  matches those machine-readable source surfaces exactly.
+  `benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md` and
+  `benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json`. It derives the
+  required summary counts for total stages, total tools, total expected jobs, ready jobs,
+  blocked jobs, missing parsers, missing adapters, missing assets, and failed real smokes
+  directly from the governed all-domain stage inventory, expected-result, rendered-command,
+  parser-collector, full-report, and real-smoke surfaces. The command fail-closes unless every
+  dashboard number matches those machine-readable source surfaces exactly.
 - `bijux-dna bench readiness render-full-benchmark-report`
   `render-full-benchmark-report` writes
-  `benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md` and
-  `benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json`. It renders one canonical report
-  row per all-domain expected benchmark binding, keeps the governed missing-result rows visible,
-  appends the explicit unsupported pair row, and then builds the required stage-centric,
-  tool-centric, corpus-centric, pipeline-centric, runtime, memory, failures, missing-results,
-  comparable-metrics, and unsupported-pairs sections from the governed source surfaces. The
-  command fail-closes unless the report row count stays equal to the expected-result table count
-  plus the explicit unsupported rows.
+  `benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.md` and
+  `benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json`. It renders one
+  canonical report row per all-domain expected benchmark binding, keeps the governed
+  missing-result rows visible, appends the explicit unsupported pair row, and then builds the
+  required stage-centric, tool-centric, corpus-centric, pipeline-centric, runtime, memory,
+  failures, missing-results, comparable-metrics, and unsupported-pairs sections from the
+  governed source surfaces. The command fail-closes unless the report row count stays equal to
+  the expected-result table count plus the explicit unsupported rows.
+- `bijux-dna bench readiness render-micro-benchmark-execution-ready`
+  `render-micro-benchmark-execution-ready` writes
+  `benchmarks/readiness/micro/MICRO_BENCHMARK_EXECUTION_READY.json`. It reruns the governed
+  `bench run-micro` slice, reloads the retained FASTQ, BAM, and VCF family summaries plus the
+  governed core germline, aDNA, eDNA, and amplicon pipeline summaries, and fail-closes unless
+  Goals 471–479 still pass. The gate keeps one explicit row per micro goal and one explicit
+  representative-coverage row per major domain or pipeline family, so unavailable rows remain
+  visible while failed, missing, or insufficient micro evidence cannot quietly pass.
 - `bijux-dna bench readiness render-operational-benchmark-ready`
   `render-operational-benchmark-ready` writes
   `benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json`. It reruns the
@@ -355,9 +451,19 @@ Visible aliases are part of the operator surface:
   summary table that downstream benchmark reporting must use while preserving exact tool-level
   coverage for every retained FASTQ result row.
 - `bijux-dna bench readiness render-bam-report-map`
-  `render-bam-report-map` writes `benchmarks/readiness/bam-report-map.tsv` with one governed
-  row per BAM benchmark-ready stage, fixing the report section, summary table, workflow branch,
-  and benchmark anchor tool that downstream BAM stage reporting must use.
+  `render-bam-report-map` writes `benchmarks/readiness/bam/bam-report-map.tsv` with one governed
+  row per BAM benchmark-ready expected-result binding. Each row carries the owned
+  `result_row_id`, `tool_id`, `corpus_family_id`, `fixture_id`, `sample_scope`, tool
+  `support_status`, stage anchor tool, report section, summary table, optional workflow branch,
+  and any scientific context required to interpret the result, so every retained BAM result stays
+  mapped into reporting instead of relying on stage-only placeholders.
+- `bijux-dna bench readiness render-bam-all-retained-tools-complete`
+  `render-bam-all-retained-tools-complete` writes
+  `benchmarks/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json`, re-checking Goal 379 through
+  Goal 395 against the governed BAM retained-tool slice. The report proves the 49 retained BAM
+  bindings stay synchronized across the BAM serving map, command-adapter coverage, parser
+  fixtures, local/container smoke paths, expected-result rows, rendered commands, and report-map
+  placements before the BAM local-completeness gate can pass.
 - `bijux-dna bench readiness render-corpus-asset-coverage-gate`
   `render-corpus-asset-coverage-gate` writes
   `benchmarks/readiness/gate-corpus-assets-complete.json` with one governed row per FASTQ or
@@ -396,6 +502,12 @@ Visible aliases are part of the operator surface:
   reruns the governed essential pipeline DAG, corpus/assets, command rendering, fake-run,
   partial-resume, failure-isolation, and report-map surfaces, then cross-checks that the shared
   node and output counts still agree.
+- `bijux-dna bench readiness render-essential-pipelines-local-complete`
+  `render-essential-pipelines-local-complete` writes
+  `benchmarks/readiness/pipelines/ESSENTIAL_PIPELINES_LOCAL_COMPLETE.json`, proving the ten
+  essential local pipelines keep exact node-level corpus bindings, asset-profile bindings,
+  declared input and output symbols, rendered command or structured-skip coverage, and report-map
+  output rows before the Goal 397 local-completion gate can pass.
 - `bijux-dna bench readiness render-essential-pipeline-commands`
   `render-essential-pipeline-commands` writes
   `benchmarks/readiness/essential-pipelines-rendered-commands.sh` plus
@@ -432,13 +544,13 @@ Visible aliases are part of the operator surface:
   set matches across the tool-serving map, executable adapter rows, complete output declarations,
   and rendered shell or argv commands.
 - `bijux-dna bench readiness render-stage-tool-containers`
-  `render-stage-tool-containers` writes `benchmarks/configs/local/stage-tool-containers.toml` with one
+  `render-stage-tool-containers` writes `configs/bench/local/stage-tool-containers.toml` with one
   governed row per benchmark-ready FASTQ or BAM stage-tool command, preserving the primary
   execution mode, install kind, declared container identity when available, and the governed
   command entrypoint or explicit host-binary mode needed to keep local and HPC runtime surfaces
   reviewable before submission.
 - `bijux-dna bench readiness render-stage-tool-assets`
-  `render-stage-tool-assets` writes `benchmarks/configs/local/stage-tool-assets.toml` with one
+  `render-stage-tool-assets` writes `configs/bench/local/stage-tool-assets.toml` with one
   governed asset-binding row per local benchmark FASTQ or BAM stage-tool command that depends on
   external taxonomy databases, database artifact IDs, host or contaminant reference catalogs,
   reference index artifacts, rRNA references, reference-index outputs, contamination panels,
@@ -450,7 +562,7 @@ Visible aliases are part of the operator surface:
   canonical local backend selected by the governed plan, and the BAM kinship slice must keep the
   governed `reference_fasta` and `reference_panel` bindings for both `angsd` and `king`.
 - `bijux-dna bench readiness render-stage-tool-resources`
-  `render-stage-tool-resources` writes `benchmarks/configs/local/stage-tool-resources.toml` with one
+  `render-stage-tool-resources` writes `configs/bench/local/stage-tool-resources.toml` with one
   governed row per benchmark-ready FASTQ or BAM stage-tool command, carrying non-zero `threads`,
   `memory_gb`, `walltime_minutes`, and `scratch_gb` hints plus the declared resource-origin
   strategy used to derive those local benchmark defaults.
@@ -480,13 +592,23 @@ Visible aliases are part of the operator surface:
   minimum-overlap thresholds, expected outputs, and pairwise skip behavior. The report cross-checks
   the BAM domain-owned routing contract against the local corpus compatibility matrix and the
   governed BAM fixture/config evidence so corpus drift cannot hide behind stage-level labels.
-- `bijux-dna bench readiness render-bam-parser-coverage`
-  `render-bam-parser-coverage` writes `benchmarks/readiness/bam-parser-coverage.tsv` with one
+- `bijux-dna bench readiness render-bam-parser-fixture-coverage`
+  `render-bam-parser-fixture-coverage` writes `benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv` with one
   governed row per BAM stage-tool binding that is already benchmark-ready. Each row carries
-  `parser_coverage`, `parser_status`, `support_status`, `adapter_status`, and `corpus_status`,
-  proving that the benchmark-ready BAM slice stays fully parser-fixture-validated while still
-  reporting any excluded non-benchmark-ready gaps in the JSON summary instead of hiding coverage
-  drift behind aggregate percentages.
+  `parser_fixture_reference_kind`, `parser_fixture_reference`, `coverage_status`,
+  `parser_status`, `support_status`, `adapter_status`, and `reason`, proving that the
+  benchmark-ready BAM slice stays fully parser-fixture-validated while keeping the governed
+  fixture corpus bound to each active row and surfacing any excluded non-benchmark-ready gaps in
+  the JSON summary instead of hiding coverage drift behind aggregate percentages.
+- `bijux-dna bench readiness render-bam-commands`
+  `render-bam-commands` writes `benchmarks/readiness/bam/bam-rendered-commands.sh` and
+  `benchmarks/readiness/bam/bam-rendered-commands.argv.jsonl` with exactly one governed row per
+  active BAM stage-tool binding. Each row carries the owned `corpus_id`, `asset_profile_id`,
+  `adapter_id`, `parser_id`, `schema_id`, `command_source`, and explicit command-step argv so the
+  benchmark-ready BAM slice keeps a durable execution contract instead of relying on ad hoc shell
+  reconstruction. The shell script is emitted from the same governed row set and is validated with
+  `bash -n`, which makes command drift visible as a BAM-owned readiness failure instead of a late
+  execution surprise.
 - `bijux-dna bench readiness render-bam-normalized-metrics-schema`
   `render-bam-normalized-metrics-schema` writes
   `benchmarks/schemas/bam-normalized-metrics.v1.json` with the governed JSON Schema contract for
@@ -500,6 +622,32 @@ Visible aliases are part of the operator surface:
   the admitted comparable tools, the default tool, the current corpus-routing status, and the
   governed shared metric fields that make same-stage BAM tool comparisons interpretable without
   relying on tool-private report details.
+- `bijux-dna bench readiness render-stage-scoring`
+  `render-stage-scoring` writes `configs/bench/local/stage-scoring.toml`. It materializes
+  one governed scoring row per active FASTQ, BAM, and VCF stage, carrying the decision mode,
+  default tool, benchmark-ready tool set, scoring weights, scientific-threshold applicability,
+  runtime and memory metrics, completion requirements, and failure-class gates so benchmark
+  reports can be turned into durable tool-recommendation decisions without manual interpretation.
+- `bijux-dna bench readiness render-scientific-acceptance-thresholds`
+  `render-scientific-acceptance-thresholds` writes
+  `configs/bench/local/scientific-acceptance-thresholds.toml`. It collects the governed
+  comparable-metric contracts from FASTQ, BAM, and VCF readiness, then materializes one durable
+  acceptance row per comparable metric with explicit direction, tolerance kind and value, pass
+  rule, and insufficiency behavior so benchmark science review does not depend on implicit human
+  interpretation.
+- `bijux-dna bench readiness render-science-truth-sets-complete`
+  `render-science-truth-sets-complete` writes
+  `benchmarks/readiness/science/SCIENCE_TRUTH_SETS_COMPLETE.json`. It fail-closes unless every
+  governed science truth fixture is present and valid, the governed cross-domain FASTQ/BAM/VCF
+  sample-consistency report stays compatible, and every science stage that requires scientific
+  acceptance semantics is still covered by the governed threshold table.
+- `bijux-dna bench readiness render-bam-science-thresholds-ready`
+  `render-bam-science-thresholds-ready` writes
+  `benchmarks/readiness/bam/BAM_SCIENCE_THRESHOLDS_READY.json` with one governed row per
+  comparable BAM stage and one governed contract entry per shared BAM comparison metric. Each
+  metric entry records the scientific pass direction, tolerance kind and value, and insufficiency
+  policy so same-stage BAM tool comparisons carry explicit acceptance semantics instead of relying
+  on implicit reviewer judgment.
 - `bijux-dna bench readiness render-bam-adapter-output-contract`
   `render-bam-adapter-output-contract` writes
   `benchmarks/readiness/bam-adapter-output-contract.tsv` with one governed row per BAM
@@ -558,18 +706,6 @@ Visible aliases are part of the operator surface:
   `parser_coverage`, `parser_status`, `support_status`, `adapter_status`, and `corpus_status`,
   proving that the benchmark-ready FASTQ slice still has full normalized parser coverage instead
   of letting parser drift hide inside the broader readiness summary.
-- `bijux-dna bench readiness render-fastq-parser-fixture-coverage`
-  `render-fastq-parser-fixture-coverage` writes
-  `benchmarks/readiness/fastq/fastq-parser-fixture-coverage.tsv` with one governed row per active
-  FASTQ binding. Each row resolves the exact parser function, schema contract, and governed shared
-  fixture case that proves the parser still accepts canonical FASTQ report payloads for that
-  stage, and the command fails closed unless coverage remains 100%.
-- `bijux-dna bench readiness render-fastq-commands`
-  `render-fastq-commands` writes both `benchmarks/readiness/fastq/fastq-rendered-commands.sh` and
-  `benchmarks/readiness/fastq/fastq-rendered-commands.argv.jsonl` for the active FASTQ slice. The
-  shell script preserves one real command per active FASTQ binding in a `bash -n` parseable form,
-  and the JSONL preserves the same governed rows as structured `command_steps` argv for
-  shell-independent replay.
 - `bijux-dna bench readiness render-fastq-active-stage-tool-matrix`
   `render-fastq-active-stage-tool-matrix` writes
   `benchmarks/readiness/fastq/fastq-active-stage-tool-matrix.tsv` with the governed FASTQ
@@ -641,6 +777,179 @@ Visible aliases are part of the operator surface:
   matrix. Rows remain visible when a BAM tool binding is governed by stage metadata but lacks a BAM
   tool contract (`missing_contract`) or is admitted by stage metadata but not by the BAM tool YAML
   (`mismatched_contract`).
+- `bijux-dna bench readiness render-bam-contamination-sex-haplogroups-ready`
+  `render-bam-contamination-sex-haplogroups-ready` writes
+  `benchmarks/readiness/bam/contamination-sex-haplogroups-ready.json` with governed rows for
+  `bam.contamination` under `contammix`, `schmutzi`, and `verifybamid2`, `bam.sex` under `angsd`,
+  `rxy`, and `yleaf`, and `bam.haplogroups` under `yleaf` when downstream BAM support is enabled.
+  Each row ties active-scope proof, command adapter coverage, output declarations, parser
+  coverage, expected benchmark results, report-map placement, normalized-schema coverage, and
+  stage-aware local proof together. `bam.sex` is backed by owned local-smoke artifacts, while
+  `bam.contamination` and `bam.haplogroups` are backed by governed local-ready plans, keeping
+  contamination estimates, confidence/status caveats, X/Y/autosome coverage calls, haplogroup
+  panel identity, and governed report paths explicit in the BAM benchmark surface.
+- `bijux-dna bench readiness render-bam-kinship-ready`
+  `render-bam-kinship-ready` writes `benchmarks/readiness/bam/kinship-ready.json` with one
+  governed row each for `bam.kinship` under `angsd` and `king` when downstream BAM support is
+  enabled. Each row ties active-scope proof, command adapter coverage, output declarations, parser
+  coverage, expected benchmark results, report-map placement, normalized-schema coverage, and
+  stage-aware local proof together. The stage proof is backed by owned local-smoke kinship
+  artifacts under `king`, keeping pairwise kinship rows, overlap SNP counts, kinship
+  coefficients, insufficient-data status, and governed report paths explicit in the BAM benchmark
+  surface.
+- `bijux-dna bench readiness render-bam-active-row-consistency`
+  `render-bam-active-row-consistency` writes
+  `benchmarks/readiness/bam/BAM_ACTIVE_ROW_CONSISTENCY.json` with the active BAM stage/tool
+  bindings from the all-domain active matrix used as the governed source of truth. The report
+  compares those active BAM bindings against rendered commands, output declarations, expected
+  benchmark results, parser-fixture coverage, local-job coverage, and the BAM report map, then
+  fails if any surface is missing a retained binding, carries an extra binding, or drifts from the
+  active BAM row count.
+- `bijux-dna bench readiness render-bam-kinship-complete`
+  `render-bam-kinship-complete` writes
+  `benchmarks/readiness/bam/stages/bam.kinship.complete.json` with every retained
+  `bam.kinship` binding promoted into a stage-owned completion gate. The report keeps active-scope,
+  command, output, parser, expected-result, report-map, and schema proofs explicit for `angsd`
+  and `king`, while adding owned ready and insufficient-overlap kinship smoke evidence, parser-smoke
+  proof for the governed `kinship.summary.json` contract, and pipeline-locality proof that
+  overlap insufficiency remains scoped to `bam.kinship` instead of blocking unrelated BAM or VCF
+  downstream stages.
+- `bijux-dna bench readiness render-bam-recalibration-genotyping-ready`
+  `render-bam-recalibration-genotyping-ready` writes
+  `benchmarks/readiness/bam/recalibration-genotyping-ready.json` with one governed row for
+  `bam.recalibration` under `gatk` plus one governed row for `bam.genotyping` under `angsd` when
+  downstream BAM support is enabled. Each row ties active-scope proof, command adapter coverage,
+  output declarations, parser coverage, expected benchmark results, report-map placement,
+  normalized-schema coverage, and stage-aware local proof together. `bam.recalibration` is backed
+  by owned local-smoke artifacts so skip reason, coverage gate, known-sites identity, and durable
+  recalibration outputs stay explicit, while `bam.genotyping` is backed by a governed local-ready
+  plan so candidate-sites inputs, target regions, call-rate thresholds, GL/BCF/VCF producer
+  outputs, and governed report paths stay explicit in the BAM benchmark surface.
+- `bijux-dna bench readiness render-bam-insert-size-gc-bias-ready`
+  `render-bam-insert-size-gc-bias-ready` writes
+  `benchmarks/readiness/bam/insert-size-gc-bias-ready.json` with one governed row each for
+  `bam.insert_size` and `bam.gc_bias` under Picard. Each row ties active-scope proof, command
+  adapter coverage, output declarations, parser coverage, expected benchmark results, report-map
+  placement, normalized-schema coverage, and owned local-smoke artifacts together so insert-size
+  distribution metrics, pair counts, GC-bin summaries, bias scores, and governed report paths
+  stay explicit in the BAM benchmark surface.
+- `bijux-dna bench readiness render-bam-overlap-correction-complete`
+  `render-bam-overlap-correction-complete` writes
+  `benchmarks/readiness/bam/stages/bam.overlap_correction.complete.json` with the admitted
+  `bam.overlap_correction` / `bamutil` binding promoted into a stage-owned completion gate. The
+  report keeps active-scope, command, output, parser, expected-result, report-map, schema, and
+  local-smoke proofs explicit while also locking the governed corrected-overlap metrics contract:
+  `pair_count`, `corrected_pairs`, `corrected_overlap_bases`, their expected-vs-observed deltas,
+  and the typed `overlap_correction.summary.json` plus `stage.metrics.json` artifacts.
+- `bijux-dna bench readiness render-bam-endogenous-content-complete`
+  `render-bam-endogenous-content-complete` writes
+  `benchmarks/readiness/bam/stages/bam.endogenous_content.complete.json` with the admitted
+  `bam.endogenous_content` / `samtools` binding promoted into a stage-owned completion gate. The
+  report keeps active-scope, command, output, parser, expected-result, report-map, schema, and
+  local-smoke proofs explicit while also locking the governed endogenous metric contract:
+  `mapped_reads`, `endogenous_reads`, `total_reads`, `endogenous_fraction`, method,
+  `host_reference_scope`, the typed `endogenous.summary.json` plus `stage.metrics.json`
+  artifacts, and an explicit `contaminant_reads` placeholder that remains null until the BAM
+  endogenous-content contract grows a governed contaminant-read field.
+- `bijux-dna bench readiness render-bam-overlap-endogenous-ready`
+  `render-bam-overlap-endogenous-ready` writes
+  `benchmarks/readiness/bam/overlap-endogenous-ready.json` with one governed row each for
+  `bam.overlap_correction` under `bamutil` and `bam.endogenous_content` under `samtools`. Each
+  row ties active-scope proof, command adapter coverage, output declarations, parser coverage,
+  expected benchmark results, report-map placement, normalized-schema coverage, and owned
+  local-smoke artifacts together so corrected overlap counts, corrected overlap bases, mapped
+  reads, total reads, endogenous fractions, and governed report paths stay explicit in the BAM
+  benchmark surface.
+- `bijux-dna bench readiness render-bam-damage-complete`
+  `render-bam-damage-complete` writes
+  `benchmarks/readiness/bam/stages/bam.damage.complete.json` with every retained
+  `bam.damage` binding promoted into a stage-owned completion gate. The report keeps active-scope,
+  command, output, parser, expected-result, report-map, schema, and local-smoke proofs explicit
+  for `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, and `pydamage`, while
+  also locking the governed damage evidence contract across the typed `damage.summary.json`,
+  `damage.unified_metrics.json`, `damage.parser_output.json`, and `stage.metrics.json` artifacts.
+  The gate fails closed unless the retained damage toolset is complete and the shared local-smoke
+  proof preserves terminal 5′/3′ damage metrics, short-fragment fraction, governed damage
+  signal, and normalized per-sample deltas without drift.
+- `bijux-dna bench readiness render-bam-contamination-complete`
+  `render-bam-contamination-complete` writes
+  `benchmarks/readiness/bam/stages/bam.contamination.complete.json` with every retained
+  `bam.contamination` binding promoted into a stage-owned completion gate. The report keeps
+  active-scope, command, output, parser, expected-result, report-map, and schema proofs explicit
+  for `contammix`, `schmutzi`, and `verifybamid2`, while adding owned local-smoke proof for both
+  ready and insufficient contamination cases per tool. The gate fails closed unless the shared
+  contamination parser contract, typed `contamination.summary.json`, typed `stage.metrics.json`,
+  and tool-specific governed outputs such as `contammix.report.txt`, `contamination.estimate.json`,
+  and `mt_consensus.fasta` stay present and the insufficiency path keeps explicit refusal codes.
+- `bijux-dna bench readiness render-bam-haplogroups-complete`
+  `render-bam-haplogroups-complete` writes
+  `benchmarks/readiness/bam/stages/bam.haplogroups.complete.json` with the retained
+  `bam.haplogroups` binding promoted into a stage-owned completion gate. The report keeps
+  active-scope, command, output, parser, expected-result, report-map, and schema proofs explicit
+  for `yleaf`, while adding owned ready and coverage-gated local-smoke proof from the governed
+  Y-panel fixture. The gate fails closed unless the typed `haplogroups.json`,
+  `haplogroups.summary.json`, typed `stage.metrics.json`, and tool-specific
+  `haplogroup_report.json` keep the panel asset path, marker support, haplogroup call,
+  confidence, coverage gate, and explicit `coverage_gate_not_met` behavior coherent.
+- `bijux-dna bench readiness render-bam-recalibration-complete`
+  `render-bam-recalibration-complete` writes
+  `benchmarks/readiness/bam/stages/bam.recalibration.complete.json` with the retained
+  `bam.recalibration` binding promoted into a stage-owned completion gate. The report keeps
+  active-scope, command, output, parser, expected-result, report-map, and schema proofs explicit
+  for `gatk`, then proves the governed local-smoke skip path stays deterministic. The gate fails
+  closed unless the typed `recal.summary.json`, typed `stage.metrics.json`, raw
+  `recal.report.txt`, recalibrated BAM output, known-sites asset identity, coverage gate, and
+  explicit `coverage_below_gate` behavior all remain coherent.
+- `bijux-dna bench readiness render-bam-genotyping-complete`
+  `render-bam-genotyping-complete` writes
+  `benchmarks/readiness/bam/stages/bam.genotyping.complete.json` with the retained
+  `bam.genotyping` binding promoted into a stage-owned completion gate. The report keeps
+  active-scope, command, output, parser, expected-result, report-map, and schema proofs explicit
+  for `angsd`, then proves the governed local-ready producer contract stays compatible with VCF
+  downstream stages. The gate fails closed unless the local-ready plan preserves the governed
+  BCF/VCF/TBI/GL outputs, parser-smoke proof preserves call-rate and posterior metrics, the exact
+  `bam.genotyping -> vcf.filter` handoff stays stable, and downstream VCF readiness keeps explicit
+  variant-count, sample-count, and missingness evidence.
+- `bijux-dna bench readiness render-bam-sex-complete`
+  `render-bam-sex-complete` writes
+  `benchmarks/readiness/bam/stages/bam.sex.complete.json` with every retained `bam.sex`
+  binding promoted into a stage-owned completion gate. The report keeps active-scope, command,
+  output, parser, expected-result, report-map, and schema proofs explicit for `angsd`, `rxy`,
+  and `yleaf`, while adding owned ready and insufficient local-smoke proof per tool. The gate
+  fails closed unless the typed `sex.json`, typed `sex.summary.json`, typed `stage.metrics.json`,
+  and tool-specific governed outputs such as `population_metrics.json`, `sex_estimate.json`, and
+  `haplogroup_report.json` stay present and the insufficient BAM path keeps explicit
+  `insufficient_chromosomes` evidence instead of passing without X/Y/autosome support.
+- `bijux-dna bench readiness render-bam-authenticity-complete`
+  `render-bam-authenticity-complete` writes
+  `benchmarks/readiness/bam/stages/bam.authenticity.complete.json` with every retained
+  `bam.authenticity` binding promoted into a stage-owned completion gate. The report keeps
+  active-scope, command, output, parser, expected-result, report-map, schema, and local-smoke
+  proofs explicit for `authenticct`, `damageprofiler`, and `pmdtools`, while also locking the
+  governed authenticity advisory contract across the typed `authenticity.json`,
+  `authenticity.summary.json`, `authenticity_composite.json`, and `stage.metrics.json`
+  artifacts. The gate fails closed unless the shared local-smoke proof preserves authenticity
+  score, status, confidence, and all five upstream evidence paths for damage, contamination,
+  complexity, coverage, and mapping without drift.
+- `bijux-dna bench readiness render-bam-damage-authenticity-ready`
+  `render-bam-damage-authenticity-ready` writes
+  `benchmarks/readiness/bam/damage-authenticity-ready.json` with governed rows for
+  `bam.damage` under `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, and
+  `pydamage`, plus `bam.authenticity` under `authenticct`, `damageprofiler`, and `pmdtools`.
+  Each row ties active-scope proof, command adapter coverage, output declarations, parser
+  coverage, expected benchmark results, report-map placement, normalized-schema coverage, and
+  owned local-smoke artifacts together so terminal 5′/3′ damage metrics, damage reports,
+  authenticity score/confidence outputs, upstream evidence paths, and governed report paths stay
+  explicit in the BAM benchmark surface.
+- `bijux-dna bench readiness render-bam-local-container-smoke`
+  `render-bam-local-container-smoke` writes
+  `benchmarks/readiness/bam/bam-local-container-smoke.tsv` with one governed row per retained BAM
+  stage-tool binding, resolving each row either to the governed BAM tiny-fixture host smoke
+  contract for that stage or to the registered Docker/Apptainer smoke wrapper for the external
+  binary. Each row keeps `registered_binary`, retained readiness status, selected smoke runtime,
+  the concrete wrapper command, the tracked support path, and any registry-carried minimal-smoke
+  rationale so every retained BAM tool has an explicit local exercise path even when the host
+  smoke contract only covers one governed stage tool.
 - `bijux-dna bench readiness render-vcf-tool-serving-map`
   `render-vcf-tool-serving-map` writes `benchmarks/readiness/vcf-tool-serving-map.tsv` with one
   governed row per VCF stage-tool matrix binding, carrying `tool_id`, `stage_id`,
@@ -906,7 +1215,7 @@ Visible aliases are part of the operator surface:
   `not_benchmark_ready`.
 - `bijux-dna bench readiness render-all-domain-retained-tools`
   `render-all-domain-retained-tools` writes
-  `benchmarks/readiness/all-domains/retained-tools.tsv` with one governed row per retained
+  `benchmarks/readiness/tools/retained-tool-inventory.tsv` with one governed row per retained
   FASTQ, BAM, and VCF tool across the unified active stage-tool surface. Each row keeps
   `tool_id`, `domains`, `active_stage_count`, `benchmark_ready_stage_count`,
   `active_binding_count`, `benchmark_ready_binding_count`, `benchmark_statuses`,
@@ -914,6 +1223,94 @@ Visible aliases are part of the operator surface:
   `future`, equivalent not-yet-active lifecycle rows, declaration-only adapter coverage, and
   `not_benchmark_ready` rows. The command fails closed unless every active matrix tool appears
   exactly once and no retained tool serves zero active stages.
+- `bijux-dna bench readiness render-executable-resolution`
+  `render-executable-resolution` writes
+  `benchmarks/readiness/tools/executable-resolution.tsv` with one governed row per retained tool,
+  resolving each runtime surface to `host_binary`, `docker_image`, `apptainer_image`, or
+  `unavailable_with_reason`. Each row keeps `tool_id`, `domains`, `active_stage_ids`,
+  `install_kind`, `resolution_target`, `command_entrypoint`, `runtime_probe_paths`, and any
+  explicit unavailable reason visible. The command fails closed if cross-domain runtime probes
+  drift or a retained tool falls outside the governed resolution classes.
+- `bijux-dna bench readiness render-apptainer-map`
+  `render-apptainer-map` writes `benchmarks/readiness/tools/apptainer-map.tsv` with one governed
+  row per retained Docker-backed tool, translating the local Docker image surface into the exact
+  Apptainer conversion contract used by the governed HPC cache layout. Each row keeps `tool_id`,
+  `domains`, `active_stage_ids`, `docker_runtime`, `image_uri`, `local_image_name`, `dockerfile`,
+  `apptainer_def`, `apptainer_cache_key`, `cache_root`, `expected_sif_path`,
+  `conversion_command`, `runtime_probe_paths`, and governed registry source paths explicit. The
+  command fails closed if duplicate registry rows disagree on concrete mapping inputs, if a
+  retained Docker-backed tool falls out of scope, or if the rendered SIF target drifts from the
+  stable cache-key derivation shared with `env ensure`.
+- `bijux-dna bench readiness render-version-probes`
+  `render-version-probes` writes `benchmarks/readiness/tools/version-probes.json` with one
+  governed row per retained tool, joining executable-resolution coverage to runtime
+  `version_cmd` declarations and governed registry `expected_version_regex` contracts. Ready rows
+  keep `version_cmd`, `help_cmd`, parser kind `first_dotted_numeric_token`,
+  `expected_version_regex`, declared version, runtime probe paths, and registry source paths;
+  unresolved tools carry `unavailable_with_reason` from executable resolution. The command fails
+  closed if a resolved retained tool lacks a version command, lacks a parser regex, or drifts
+  between runtime probes and governed registries.
+- `bijux-dna bench readiness render-input-preflight-tests`
+  `render-input-preflight-tests` writes
+  `benchmarks/readiness/tools/input-preflight-tests.json` with one governed missing-input probe
+  row per retained-tool readiness binding plus explicit fixture-support coverage where the owned
+  adapter surface does not consume the asset directly. Each row keeps `domain`, `stage_id`,
+  `tool_id`, `contract_surface`, `missing_input_role`, `missing_input_class`, the governed
+  `artifact_path`, exact expected and observed missing-input role fragments, and an explicit
+  reason. The report must not degrade ancillary governed inputs into an ambiguous `other` class;
+  ancillary probes are classified explicitly so reviewers can tell whether a failure came from a
+  panel/interval support file, metadata manifest, report input, table input, or segment input.
+  The command fails closed unless every retained tool is covered, every required input class
+  retains governed probe coverage, and every probe fails before external execution through the
+  real runtime-validation or adapter-contract surface.
+- `bijux-dna bench readiness render-output-contract-tests`
+  `render-output-contract-tests` writes
+  `benchmarks/readiness/tools/output-contract-tests.json` with one governed row per retained-tool
+  readiness binding, joining output declarations to independent execution proof and governed
+  runtime-path proof. Each row keeps `domain`, `stage_id`, `tool_id`, declared raw outputs,
+  normalized metrics, index outputs, governed stdout/stderr plus stage-result manifest paths, the
+  proof surface that observed those artifacts, and an explicit pass or blocker reason. The
+  command fails closed unless every retained binding keeps complete declarations, matching runtime
+  paths, and independent execution proof through a governed local smoke surface rather than a
+  declaration-only or fake-only contract.
+- `bijux-dna bench readiness render-real-output-parser-smoke`
+  `render-real-output-parser-smoke` writes
+  `benchmarks/readiness/tools/real-output-parser-smoke.json` with one governed real-output parser
+  probe per retained tool family. Each row keeps the family id and summary, representative stage
+  and tool, proof path, parser surface, parsed schema version, top-level key audit, normalized
+  snapshot, and an explicit pass reason. The command fails closed unless every retained family has
+  a real tiny output parsed through the owned FASTQ normalization surface, governed BAM summary
+  schema, or governed VCF smoke metric/report contract instead of relying on handcrafted parser
+  fixtures alone.
+- `bijux-dna bench readiness render-retained-toolset-executable-local`
+  `render-retained-toolset-executable-local` writes
+  `benchmarks/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json` as the final local retained
+  tool execution gate for Goals 421–429. The gate rerenders the governed retained inventory,
+  executable-resolution, version-probe, Apptainer-map, input-preflight, output-contract, and
+  real-output parser proof surfaces, and it validates the retained host/container smoke manifests
+  already recorded under `runs/bench/tool-smoke/{host,container}`. The report keeps the checked
+  goal ids, failing goal ids when any, retained-tool and smoke counts, parser-family count, and a
+  per-goal detail line. The command fails closed if any retained active tool is unresolved,
+  unversioned, missing a governed smoke manifest, missing a structured unavailable reason, or
+  absent from the retained-family parser proof surface.
+- `bijux-dna bench readiness run-container-tool-smoke`
+  `run-container-tool-smoke` executes the governed local container smoke wrapper for every
+  retained tool that resolves to a non-host runtime and writes one manifest per tool at
+  `runs/bench/tool-smoke/container/<tool_id>/manifest.json`. Docker-backed tools run through the
+  governed `docker-arm64` smoke surface when Docker is available; Apptainer-backed tools run
+  through the governed `apptainer` smoke surface when Apptainer is available; explicitly
+  unresolved retained tools record `unavailable_with_reason` instead of pretending local support.
+  Each manifest records the smoke runtime, declared wrapper command, applied argv, exit code,
+  stdout, stderr, unavailable reason when present, runtime probe paths, and registry source
+  paths. The command fails closed if any attempted container smoke command exits non-zero or times
+  out.
+- `bijux-dna bench readiness run-host-tool-smoke`
+  `run-host-tool-smoke` executes the governed `version_cmd` for every retained tool that resolves
+  to `host_binary` and writes one manifest per tool at
+  `runs/bench/tool-smoke/host/<tool_id>/manifest.json`. Each manifest records the declared
+  command, applied argv, exit code, stdout, stderr, parsed version, regex match result, runtime
+  probe paths, and registry source paths. The command fails closed if any host tool command fails,
+  does not yield a parseable version, or misses its governed version regex.
 - `bijux-dna bench readiness render-stage-tool-alias-check`
   `render-stage-tool-alias-check` writes
   `benchmarks/readiness/all-domains/stage-tool-alias-check.json` and audits the governed
@@ -1125,26 +1522,32 @@ Visible aliases are part of the operator surface:
   FASTQ or BAM tool-ID alias cluster, carrying `normalized_tool_id`, `canonical_tool_id`,
   `alias_tool_ids`, `domains`, and `reason` so inconsistent `-` versus `_` benchmark tool naming
   cannot drift without an explicit canonical mapping.
+- `bijux-dna bench readiness validate-stage-scoring`
+  `validate-stage-scoring` checks `configs/bench/local/stage-scoring.toml` against the
+  governed active-stage catalog, scientific-threshold table, full benchmark report inputs, micro
+  benchmark metrics, and failure-class contracts. The JSON report carries per-domain stage counts,
+  multi-tool and single-tool totals, the scientific-stage count, and one row per stage so scoring
+  drift fails closed before recommendation logic depends on it.
 - `bijux-dna bench readiness validate-tool-execution-modes`
-  `validate-tool-execution-modes` checks `benchmarks/configs/local/tool-execution-modes.toml` against
+  `validate-tool-execution-modes` checks `configs/bench/local/tool-execution-modes.toml` against
   the governed FASTQ and BAM benchmark serving maps plus each tool's runtime probe contract,
   enforcing one primary operator runtime classification for every benchmark tool. The JSON report
   carries `mode_count`, `tool_count`, `multidomain_tool_count`, `mode_counts`, and one row per
   tool with its `execution_mode`, `expected_install_kind`, domains, benchmark stage scope, and
   required runtime fields.
 - `bijux-dna bench readiness validate-tool-families`
-  `validate-tool-families` checks `benchmarks/configs/local/tool-families.toml` against the governed
-  FASTQ and BAM benchmark serving maps, enforcing one primary-function family assignment for every
-  benchmark tool. The JSON report carries `family_count`, `tool_count`, `multidomain_tool_count`,
-  `family_counts`, and one row per tool with its `family_id`, domains, and governed benchmark
-  stage scope.
+  `validate-tool-families` checks `configs/bench/local/tool-families.toml` against the governed
+  FASTQ, BAM, and VCF benchmark serving maps, enforcing one primary-function family assignment for
+  every benchmark tool. The JSON report carries `family_count`, `tool_count`,
+  `multidomain_tool_count`, `family_counts`, and one row per tool with its `family_id`, domains,
+  and governed benchmark stage scope.
 - `bijux-dna bench readiness render-stage-registry-extra-pairs`
   `render-stage-registry-extra-pairs` writes
   `benchmarks/readiness/stage-registry-extra-pairs.tsv` with one governed row per benchmark-
   scoped stage-registry pair that is present in `configs/ci/registry/tool_registry.toml` but not
   admitted by the domain tool contracts. Each row carries `domain`, `stage_id`, `tool_id`,
-  `contract_status`, `registry_sources`, `registered_stage_ids`, `intentional_override_status`,
-  `intentional_override_reason`, and `reason` so compiled registry scope cannot silently outrun
+  `contract_status`, `registry_sources`, `registered_stage_ids`, `documented_exception_status`,
+  `documented_exception_reason`, and `reason` so compiled registry scope cannot silently outrun
   domain truth.
 - `bijux-dna bench readiness render-unregistered-benchmark-pairs`
   `render-unregistered-benchmark-pairs` writes
@@ -1167,13 +1570,13 @@ Visible aliases are part of the operator surface:
   `benchmarks/readiness/all-domain-stage-list.json` and report separate `domain_counts` plus
   the unified `total_stage_count` so FASTQ, BAM, and VCF coverage cannot silently drift together.
 - `bijux-dna bench local render-vcf-stage-catalog`
-  `render-vcf-stage-catalog` writes `benchmarks/configs/local/vcf-stage-catalog.toml`, deriving the
+  `render-vcf-stage-catalog` writes `configs/bench/local/vcf-stage-catalog.toml`, deriving the
   governed VCF stage catalog from the domain downstream order, stage-spec metadata, and VCF IO
   contracts. Each row keeps `stage_id`, `stage_name`, `support_status`, `default_tool_id`,
   `metrics_schema_id`, `input_types`, `output_types`, `required_assets`, `benchmark_category`,
   and `local_smoke_mode` explicit so the local VCF benchmark surface cannot drift from code.
 - `bijux-dna bench local render-vcf-stage-matrix`
-  `render-vcf-stage-matrix` writes `benchmarks/configs/local/vcf-stage-matrix.toml`, deriving the
+  `render-vcf-stage-matrix` writes `configs/bench/local/vcf-stage-matrix.toml`, deriving the
   governed VCF benchmark matrix from the checked-in VCF stage catalog, the production-regression
   VCF corpus contract, and the owned VCF adapter, parser, and expected-output contracts. Each row
   keeps `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`, `parser_id`, and
@@ -1186,6 +1589,29 @@ Visible aliases are part of the operator surface:
   `stage_count`, `tool_pair_count`, and one explicit row per stage-tool pair with deterministic
   `pair_root`, `artifacts_root`, and `result_manifest_path` values so repeated local smoke runs
   cannot drift onto random temp paths.
+- `bijux-dna bench local run-bam-micro-smoke-subset`
+  `run-bam-micro-smoke-subset` writes `runs/bench/micro/bam/MICRO_BAM_SUMMARY.json`, choosing
+  one governed retained BAM binding per family from the canonical local-smoke matrix. Host-backed
+  families materialize the real tiny-fixture artifact under `runs/bench/local-smoke/<stage>/`,
+  while container-backed families record the exact smoke command and checked-in support path
+  instead of inventing a fake host success. The summary keeps the family slice, representative
+  stage/tool, execution status, smoke metadata, and any parsed evidence schema so BAM readiness
+  stays grounded in one honest local-or-container verdict per family.
+- `bijux-dna bench local run-bam-stage-smoke`
+  `run-bam-stage-smoke` materializes the governed BAM tiny-fixture smoke artifact for one
+  smoke-capable stage under `runs/bench/local-smoke/<stage>/`, using the exact stage-level BAM
+  smoke contract checked in under `configs/bench/local/`. JSON-backed BAM smoke stages print
+  the real governed report in `--json` mode, while TSV-backed stages report the artifact path and
+  format without inventing extra metrics.
+- `bijux-dna bench local run-vcf-micro-smoke-subset`
+  `run-vcf-micro-smoke-subset` writes `runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json`, choosing one
+  governed retained VCF binding per family from the canonical local-container smoke matrix.
+  Families with a real governed local smoke wrapper materialize the exact stage-result manifest
+  under `runs/bench/local-smoke/<stage>/`, while container-backed families record the exact smoke
+  command and checked-in support path instead of inventing a fake host success. The summary keeps
+  the family slice, representative stage/tool, execution status, smoke metadata, and any parsed
+  evidence schema so VCF readiness stays grounded in one honest local-or-container verdict per
+  family.
 - `bijux-dna bench local run-vcf-call-smoke`
   `run-vcf-call-smoke` writes `runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz`,
   `runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz.tbi`, and
@@ -1437,7 +1863,7 @@ Visible aliases are part of the operator surface:
   match the observed classifier summary.
 - `bijux-dna bench local validate-corpus-stage-compatibility`
   `validate-corpus-stage-compatibility` checks
-  `benchmarks/configs/local/corpus-stage-compatibility.toml` against the governed 51-stage local FASTQ
+  `configs/bench/local/corpus-stage-compatibility.toml` against the governed 51-stage local FASTQ
   and BAM inventories, validates every referenced corpus fixture manifest, and reports which stages
   are covered by corpus-01, corpus-02, corpus-03, or an explicit planner-only reason.
 - `bijux-dna bench local validate-pipeline-dag`
@@ -1566,6 +1992,145 @@ Visible aliases are part of the operator surface:
   asset-profile, script path, stdout, stderr, declared outputs, manifest-only dependencies, and
   resource ceilings. The command fails closed if any dependency points at a non-existent local job
   id or if a generated script leaks dependency ordering into `#SBATCH --dependency` headers.
+- `bijux-dna bench local render-hpc-asset-staging-manifest`
+  `render-hpc-asset-staging-manifest` writes
+  `runs/bench/hpc-dry-run/asset-staging-manifest.json`, using the governed
+  `benchmarks/readiness/rendered-commands-all-domains.argv.jsonl` slice as the selected future HPC
+  benchmark job roster. Each job row lists the staged source assets it consumes, including the
+  original repo-relative source path, deterministic staged path under `runs/bench/hpc-dry-run/staged/`,
+  checksum, size, member count for prefix bundles or directories, and the canonical consumer
+  `result_id`, so hidden local benchmark dependencies stay explicit before any cluster transfer
+  logic is added.
+- `bijux-dna bench local validate-hpc-asset-staging-manifest`
+  `validate-hpc-asset-staging-manifest` reloads
+  `runs/bench/hpc-dry-run/asset-staging-manifest.json`, enforces the governed schema and output
+  location, and then rebuilds the expected manifest from the current all-domain command argv slice.
+  The command fails closed if job counts, staged inputs, checksums, staged paths, or consumer
+  result ids drift from the governed dry-run source selection.
+- `bijux-dna bench local render-hpc-scratch-layout`
+  `render-hpc-scratch-layout` writes `runs/bench/hpc-dry-run/scratch-layout.json`, using the
+  governed all-domain SLURM submit manifest together with the rendered benchmark and essential
+  pipeline command argv slices. Each selected job keeps a job-scoped scratch root, an `inputs/`
+  link tree rooted under scratch, the governed output and log roots copied back from the submit
+  manifest, explicit scratch resource ceilings, and a durable cleanup policy so future HPC job
+  layouts never depend on unclear shared paths.
+- `bijux-dna bench local validate-hpc-scratch-layout`
+  `validate-hpc-scratch-layout` reloads `runs/bench/hpc-dry-run/scratch-layout.json`, enforces
+  the governed schema and output location, and then rebuilds the expected layout from the current
+  submit manifest, command argv slices, staged-input discovery rules, and resource hints. The
+  command fails closed if scratch roots, input-link paths, output or log roots, scratch resource
+  ceilings, or cleanup policy rows drift from the governed dry-run layout.
+- `bijux-dna bench local render-hpc-execution-resolver`
+  `render-hpc-execution-resolver` writes `runs/bench/hpc-dry-run/execution-resolver.tsv`, using
+  the governed all-domain SLURM submit manifest as the selected future HPC job roster together
+  with the governed execution-mode map, runtime probes, and Apptainer conversion map. Each row
+  records the selected tool scope, the lookup tool id used for runtime resolution, whether the
+  selected job resolves as a host binary, a governed Apptainer image, or an explicit unavailable
+  reason, so cluster execution never depends on ambiguous operator runtime assumptions.
+- `bijux-dna bench local validate-hpc-execution-resolver`
+  `validate-hpc-execution-resolver` reloads `runs/bench/hpc-dry-run/execution-resolver.tsv` and
+  rebuilds the expected selected-tool runtime surface from the current submit manifest, execution
+  mode assignments, runtime probes, and Apptainer map. The command fails closed if selected tool
+  scope, lookup aliases, final resolution kind, target path, or unavailable reason drift from the
+  governed dry-run execution plan.
+- `bijux-dna bench local render-hpc-dependency-simulation`
+  `render-hpc-dependency-simulation` writes
+  `runs/bench/hpc-dry-run/slurm-dependency-simulation.json`. The render consumes the governed HPC
+  job graph and proves two failure-isolation cases over the selected benchmark-result and
+  essential-pipeline-node scope: a failed node blocks only its descendants, sibling branches keep
+  running, and unrelated benchmark work continues. Each case records per-job status,
+  blocking-dependency evidence, descendant coverage, and simulated timing so dependency behavior is
+  explicit before any cluster submission occurs.
+- `bijux-dna bench local validate-hpc-dependency-simulation`
+  `validate-hpc-dependency-simulation` reloads
+  `runs/bench/hpc-dry-run/slurm-dependency-simulation.json` and rebuilds the expected simulation
+  report from the current governed HPC job graph. The command fails closed if failed-job choice,
+  descendant blocking, sibling continuation, benchmark continuation, or any per-job dependency
+  status drifts from the governed dry-run dependency contract.
+- `bijux-dna bench local render-hpc-resume-simulation`
+  `render-hpc-resume-simulation` writes `runs/bench/hpc-dry-run/resume-simulation.json` together
+  with a sibling `resume-simulation-tree/` that mirrors the governed selected-job result layout.
+  The render seeds valid stage-result manifests for every governed HPC job, then injects one
+  failed manifest, one missing manifest, one stale partial-output case, and one downstream
+  dependency rerun so skip versus rerun behavior is explicit before any real cluster resume flow.
+- `bijux-dna bench local validate-hpc-resume-simulation`
+  `validate-hpc-resume-simulation` reloads `runs/bench/hpc-dry-run/resume-simulation.json` and
+  rebuilds the expected resume report from the current governed HPC job graph and stage-result
+  contract. The command fails closed if valid-completed skips, failed-manifest reruns,
+  missing-manifest reruns, stale partial-output reruns, or dependency-propagated reruns drift from
+  the governed dry-run resume contract.
+- `bijux-dna bench local render-hpc-result-collection-simulation`
+  `render-hpc-result-collection-simulation` writes
+  `runs/bench/hpc-dry-run/result-collection-simulation.json` together with a sibling
+  `result-collection-simulation-tree/` that mirrors the governed selected-job result layout. The
+  render seeds valid stage-result manifests for the governed jobs, then injects one failed
+  manifest, one missing manifest, one insufficient-data output, and one unavailable execution case
+  so report-input collection proves complete, failed, missing, insufficient, and unavailable rows
+  stay distinct before any real cluster result import occurs.
+- `bijux-dna bench local validate-hpc-result-collection-simulation`
+  `validate-hpc-result-collection-simulation` reloads
+  `runs/bench/hpc-dry-run/result-collection-simulation.json` and rebuilds the expected collection
+  report from the current governed HPC job graph, stage-result contract, and execution resolver.
+  The command fails closed if complete, failed, missing, insufficient, or unavailable row
+  classification drifts from the governed dry-run result-collection contract.
+- `bijux-dna bench local render-hpc-candidate-run-manifest`
+  `render-hpc-candidate-run-manifest` writes
+  `benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json`. The render reloads the governed
+  selected-job, asset-staging, execution-resolver, and resource-hint surfaces, then selects the
+  smallest dependency-free benchmark representative for each admitted `(domain, execution_mode)`
+  pair. The manifest proves the first HPC candidate run stays limited to small jobs with known
+  assets, known execution mode, expected outputs, and explicit stop conditions while excluding VCF
+  rows until their execution modes are governed.
+- `bijux-dna bench local validate-hpc-candidate-run-manifest`
+  `validate-hpc-candidate-run-manifest` reloads
+  `benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json` and rebuilds the expected representative
+  subset from the current dry-run inputs. The command fails closed if selected rows, exclusion
+  reasons, small-job ceilings, or stop conditions drift from the governed first-run candidate
+  contract.
+- `bijux-dna bench local render-hpc-dry-run-ready`
+  `render-hpc-dry-run-ready` writes
+  `benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json`. The render validates the governed dry-run
+  artifacts for Goals 481–489, cross-checks benchmark-job counts against the stage array and scratch
+  layout, cross-checks essential-pipeline counts against the pipeline-node array, and proves the
+  first-run candidate remains backed by known assets, explicit execution resolution, dependency
+  manifests, resume rules, and distinct result-collection statuses before any real cluster
+  submission begins.
+- `bijux-dna bench local validate-hpc-dry-run-ready`
+  `validate-hpc-dry-run-ready` reloads
+  `benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json` and rebuilds the expected gate report from
+  the current dry-run inputs. The command fails closed if any governed Goal 481–489 artifact drifts,
+  if cross-surface counts no longer align, or if the first HPC run still depends on manual or
+  ambiguous execution handling.
+- `bijux-dna bench local render-hpc-stage-benchmark-array`
+  `render-hpc-stage-benchmark-array` writes
+  `runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch` together with
+  `runs/bench/hpc-dry-run/slurm/stage-benchmark-array-manifest.json`. The render consumes the
+  governed selected benchmark-result jobs, HPC scratch layout, and execution resolver so each
+  zero-based array index maps to one exact `result_id`, benchmark-result execution argv, resource
+  request, stdout and stderr paths, declared outputs, and execution-resolution metadata before any
+  real cluster submission occurs.
+- `bijux-dna bench local validate-hpc-stage-benchmark-array`
+  `validate-hpc-stage-benchmark-array` reloads
+  `runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch` and its companion manifest, then
+  rebuilds the expected array dispatch surface from the current selected benchmark jobs, HPC
+  scratch layout, and execution resolver. The command fails closed if the array index mapping,
+  benchmark-result execution commands, resource envelope, wrapper script, log paths, or declared
+  outputs drift from the governed dry-run stage benchmark plan.
+- `bijux-dna bench local render-hpc-pipeline-node-array`
+  `render-hpc-pipeline-node-array` writes
+  `runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch` together with
+  `runs/bench/hpc-dry-run/slurm/pipeline-node-array-manifest.json`. The render consumes the
+  governed essential-pipeline nodes from the selected-job manifest, validated pipeline DAGs, and
+  HPC scratch layout so each zero-based array index maps to one exact pipeline node execution
+  command, dependency job list, upstream result ids, dependency output paths, and node expected
+  outputs before any cluster submission or dependency simulation occurs.
+- `bijux-dna bench local validate-hpc-pipeline-node-array`
+  `validate-hpc-pipeline-node-array` reloads
+  `runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch` and its companion manifest, then
+  rebuilds the expected array dispatch surface from the current selected essential-pipeline jobs,
+  validated DAGs, and HPC scratch layout. The command fails closed if dependency ordering,
+  upstream result bindings, expected output paths, wrapper script, or per-node execution commands
+  drift from the governed dry-run pipeline plan.
 - `bijux-dna bench local render-benchmark-summary`
   `render-benchmark-summary` writes both `benchmarks/readiness/local-ready/benchmark-summary.json` and
   `benchmarks/readiness/local-ready/benchmark-summary.md`, summarizing governed fake-run readiness across all 51
@@ -1594,12 +2159,47 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local materialize-stage`
 - `bijux-dna bench local run-real-smoke-core-subset`
   `run-real-smoke-core-subset` writes
-  `target/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json` and records one governed real
+  `artifacts/benchmarks/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json` and records one governed real
   FASTQ smoke stage, one governed real BAM smoke stage, one governed real `vcf.stats` smoke
   stage, and one governed BAM-to-VCF bridge execution through `vcf.call`. Each row keeps the
   parsed evidence path, normalized metrics, and validated `stage-result.json` identity where a
   manifest-backed real execution exists, so the all-domain harness keeps at least one non-fake
   execution slice grounded in real outputs.
+- `bijux-dna bench local run-amplicon-micro-pipeline`
+  `run-amplicon-micro-pipeline` writes
+  `runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json` and validates one governed
+  amplicon-only FASTQ slice for `amplicon-asv-otu-no-vcf`. The report keeps eight stage rows and
+  13 exact-path handoff checks across corpus validation, truth-bundle validation, primer
+  normalization, ASV inference, chimera removal, OTU clustering, abundance normalization, and the
+  final amplicon-output judgment. The judgment row refuses completion unless primer metrics stay
+  self-consistent, ASV and OTU representatives match the governed truth bundle, chimera rows stay
+  explicit, and both the OTU abundance table and normalized abundance table match governed
+  expectations, so the proof cannot pass on file existence alone.
+- `bijux-dna bench local run-adna-micro-pipeline`
+  `run-adna-micro-pipeline` writes
+  `runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json` and executes one governed local
+  aDNA FASTQ→BAM→VCF handoff slice for `adna-pseudohaploid-fastq-bam-vcf`. The report keeps 15
+  stage rows, 21 exact-path handoff checks, real terminal-damage trimming and duplicate removal
+  outputs, a real aligned BAM plus BAI, real `bam.damage` and `bam.authenticity` evidence, the
+  active pseudohaploid VCF branch, and explicit skip reasons for contamination and GL-only VCF
+  branches, so this proof shows which aDNA path actually executed instead of implying full-branch
+  coverage.
+- `bijux-dna bench local run-edna-micro-pipeline`
+  `run-edna-micro-pipeline` writes
+  `runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json` and executes one governed local eDNA
+  FASTQ taxonomy slice for `edna-taxonomy-fastq`. The report keeps five stage rows and eight
+  exact-path handoff checks across taxonomy database validation, eDNA corpus validation,
+  `fastq.validate_reads`, `fastq.screen_taxonomy`, and taxonomy-output judgment, while recording
+  per-sample classifier reports, per-sample unclassified FASTQ outputs, the governed expected-taxa
+  table, and the zero-false-positive judgment path, so eDNA proof stays FASTQ/taxonomy-specific
+  instead of leaking into germline BAM/VCF reporting.
+- `bijux-dna bench local run-core-germline-micro-pipeline`
+  `run-core-germline-micro-pipeline` writes
+  `runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json` and executes one real
+  local FASTQ→BAM→VCF handoff slice for `core-germline-fastq-bam-vcf`. The report keeps 12 stage
+  rows, 19 exact-path handoff checks, the concrete FASTQ trim/filter outputs that feed `bam.align`,
+  the real BAM plus BAI that feed `vcf.call`, and the downstream `vcf.filter`, `vcf.stats`, and
+  `vcf.qc` evidence paths, so this proof cannot pass on DAG validation alone.
 - `bijux-dna bench local fake-run-all-domains`
   `fake-run-all-domains` writes one governed fake-run tree under
   `runs/bench/local-fake-runs/all-domains/` for every benchmark-ready FASTQ, BAM, and VCF result
@@ -1628,7 +2228,7 @@ Visible aliases are part of the operator surface:
   `validate-all-domain-slurm-script-bodies` regenerates the governed all-domain SLURM tree under
   `runs/bench/slurm-dry-run/all-domains/`, then writes
   `runs/bench/slurm-dry-run/all-domains/no-placeholder-report.json`. The report fails closed if any
-  generated `.sbatch` body contains `placeholder`, `TODO`, `echo execute`, unconditional `rc=0`,
+  generated `.sbatch` body contains `placeholder`, a to-do marker, `echo execute`, unconditional `rc=0`,
   an empty executable body, or a missing `bijux-dna` invocation, so reviewers can prove the
   all-domain SLURM surface calls owned repo commands instead of template text.
 - `bijux-dna bench local validate-all-domain-slurm-result-paths`
@@ -1765,6 +2365,21 @@ These commands are hidden in non-debug builds or exist for repository control-pl
 - `bijux-dna compare`
 - `bijux-dna policies audit`
 - `bijux-dna ci validate`
+- `bijux-dna dev ci validate`
+- `bijux-dna dev ci audit`
+- `bijux-dna dev ci changed-paths`
+- `bijux-dna dev ci budget-check`
+- `bijux-dna dev ci audit-features`
+- `bijux-dna dev ci gate`
+- `bijux-dna dev crates graph`
+- `bijux-dna dev crates check-cycles`
+- `bijux-dna dev crates gate`
+- `bijux-dna dev crates metric-registry`
+- `bijux-dna dev crates result-id-stability`
+- `bijux-dna dev crates domain-no-execution`
+- `bijux-dna dev crates parser-no-execution`
+- `bijux-dna dev crates planner-no-parser`
+- `bijux-dna dev crates runner-owns-process-execution`
 - `bijux-dna debug`
 - `bijux-dna collect`
 

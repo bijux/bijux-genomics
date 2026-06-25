@@ -223,10 +223,7 @@ def load_planner_snapshots(root: Path) -> list[dict[str, object]]:
 
 def write_tsv(path: Path, header: list[str], rows: list[list[str]]) -> None:
     def normalize_row(row: list[str]) -> list[str]:
-        normalized = ["" if cell is None else str(cell) for cell in row]
-        while normalized and normalized[-1] == "":
-            normalized.pop()
-        return normalized
+        return ["" if cell is None else str(cell) for cell in row]
 
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:

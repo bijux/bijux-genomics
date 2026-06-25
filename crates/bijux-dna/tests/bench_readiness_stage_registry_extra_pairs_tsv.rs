@@ -38,7 +38,7 @@ fn bench_readiness_stage_registry_extra_pairs_writes_governed_tsv_columns() {
     let mut lines = tsv.lines();
     assert_eq!(
         lines.next(),
-        Some("domain\tstage_id\ttool_id\tcontract_status\tregistry_sources\tregistered_stage_ids\tintentional_override_status\tintentional_override_reason\treason")
+        Some("domain\tstage_id\ttool_id\tcontract_status\tregistry_sources\tregistered_stage_ids\tdocumented_exception_status\tdocumented_exception_reason\treason")
     );
     let rows = lines.collect::<Vec<_>>();
     assert!(rows.is_empty(), "TSV must now show no governed stage-registry drift rows");

@@ -30,7 +30,16 @@ outputs:
   - name: "filtered_reads_r2"
     data_type: "fastq"
     cardinality: "One"
+  - name: "filtered_fastq_r1"
+    data_type: "fastq"
+    cardinality: "One"
+  - name: "filtered_fastq_r2"
+    data_type: "fastq"
+    cardinality: "One"
   - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
+  - name: "filter_report_json"
     data_type: "json"
     cardinality: "One"
   - name: "raw_backend_report_json"
@@ -69,12 +78,11 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/bioinformatics/article/34/17/i884/5093234"
 stage_ids:
+  - "fastq.filter_low_complexity"
   - "fastq.profile_read_lengths"
   - "fastq.trim_reads"
   - "fastq.filter_reads"
   - "fastq.trim_polyg_tails"
-planned_stage_ids:
-  - "fastq.filter_low_complexity"
 stage_contracts:
   fastq.trim_reads:
     required_inputs:
@@ -133,7 +141,7 @@ stage_contracts:
       - "filtered_fastq_r1"
       - "filtered_fastq_r2"
       - "filter_report_json"
-    notes: "Planned low-complexity filtering would emit governed filtered-read artifacts and the canonical filter report."
+    notes: "fastp low-complexity filtering emits governed filtered-read artifacts and the canonical filter report."
   fastq.trim_polyg_tails:
     required_inputs:
       - "reads_r1"
@@ -157,6 +165,9 @@ expected_artifacts:
   - "raw_backend_report_json"
   - "filtered_reads_r1"
   - "filtered_reads_r2"
+  - "filtered_fastq_r1"
+  - "filtered_fastq_r2"
+  - "filter_report_json"
   - "length_distribution_tsv"
   - "length_distribution_json"
 metrics_schema_id: "bijux.stage.metrics.v1"

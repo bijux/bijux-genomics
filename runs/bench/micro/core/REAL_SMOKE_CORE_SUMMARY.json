@@ -1,0 +1,110 @@
+{
+  "schema_version": "bijux.bench.local_real_smoke_core_subset.v1",
+  "output_path": "runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json",
+  "execution_count": 4,
+  "stage_execution_count": 3,
+  "pipeline_bridge_count": 1,
+  "domain_counts": {
+    "bam": 1,
+    "fastq": 1,
+    "vcf": 2
+  },
+  "passes_behavior_test": true,
+  "rows": [
+    {
+      "execution_id": "bam.validate",
+      "execution_kind": "stage",
+      "domain": "bam",
+      "bridge_source_domain": null,
+      "bridge_target_domain": null,
+      "stage_id": "bam.validate",
+      "tool_id": "samtools",
+      "corpus_id": "local_smoke",
+      "asset_profile_id": "sample_set",
+      "evidence_path": "runs/bench/local-smoke/bam.validate/validation.json",
+      "parsed_schema_version": "bijux.bam.validate.local_smoke.report.v1",
+      "stage_result_manifest_path": null,
+      "manifest_status": null,
+      "manifest_exit_code": null,
+      "normalized_metric_count": 4,
+      "normalized_metrics": {
+        "all_cases_matched": true,
+        "case_count": 2,
+        "pass_case_count": 1,
+        "refusal_case_count": 1
+      }
+    },
+    {
+      "execution_id": "fastq.validate_reads",
+      "execution_kind": "stage",
+      "domain": "fastq",
+      "bridge_source_domain": null,
+      "bridge_target_domain": null,
+      "stage_id": "fastq.validate_reads",
+      "tool_id": "fastqc",
+      "corpus_id": "local_smoke",
+      "asset_profile_id": "sample_set",
+      "evidence_path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+      "parsed_schema_version": "bijux.fastq.validate.local_smoke.report.v1",
+      "stage_result_manifest_path": null,
+      "manifest_status": null,
+      "manifest_exit_code": null,
+      "normalized_metric_count": 3,
+      "normalized_metrics": {
+        "all_cases_passed": true,
+        "case_count": 2,
+        "missing_output_marker_present": false
+      }
+    },
+    {
+      "execution_id": "bridge:bam-to-vcf.call",
+      "execution_kind": "pipeline_bridge",
+      "domain": "vcf",
+      "bridge_source_domain": "bam",
+      "bridge_target_domain": "vcf",
+      "stage_id": "vcf.call",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "bam_bundle",
+      "evidence_path": "runs/bench/local-smoke/vcf.call/bcftools/metrics.json",
+      "parsed_schema_version": "bijux.bench.local_vcf_call_smoke.metrics.v1",
+      "stage_result_manifest_path": "runs/bench/local-smoke/vcf.call/bcftools/stage-result.json",
+      "manifest_status": "succeeded",
+      "manifest_exit_code": 0,
+      "normalized_metric_count": 5,
+      "normalized_metrics": {
+        "exit_code": 0,
+        "indel_count": 0,
+        "sample_count": 1,
+        "snp_count": 3,
+        "variant_count": 3
+      }
+    },
+    {
+      "execution_id": "vcf.stats",
+      "execution_kind": "stage",
+      "domain": "vcf",
+      "bridge_source_domain": null,
+      "bridge_target_domain": null,
+      "stage_id": "vcf.stats",
+      "tool_id": "bcftools",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "evidence_path": "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json",
+      "parsed_schema_version": "bijux.bench.local_vcf_stats_smoke.metrics.v1",
+      "stage_result_manifest_path": "runs/bench/local-smoke/vcf.stats/bcftools/stage-result.json",
+      "manifest_status": "succeeded",
+      "manifest_exit_code": 0,
+      "normalized_metric_count": 7,
+      "normalized_metrics": {
+        "indel_count": 1,
+        "sample_count": 2,
+        "snp_count": 3,
+        "ti_tv": 2.0,
+        "transition_count": 2,
+        "transversion_count": 1,
+        "variant_count": 4
+      }
+    }
+  ]
+}

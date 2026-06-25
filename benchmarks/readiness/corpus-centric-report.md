@@ -3,15 +3,15 @@
 ## Summary
 
 - Corpus count: 8
-- Assigned stages: 50
-- Assigned stage-tool rows: 121
-- Benchmark-ready rows: 118
-- Blocked rows: 3
-- Corpora with blocked stages: 1
+- Assigned stages: 51
+- Assigned stage-tool rows: 120
+- Benchmark-ready rows: 120
+- Blocked rows: 0
+- Corpora with blocked stages: 0
 
 | Corpus | Domains | Fixtures | Stages | Tool rows | Ready | Blocked stages | Blocked stage ids |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
-| corpus-01 | bam, fastq | corpus-01-mini | 20 | 63 | 60 | 2 | fastq.trim_reads, fastq.filter_low_complexity |
+| corpus-01 | bam, fastq | corpus-01-mini | 21 | 62 | 62 | 0 | none |
 | corpus-01-adna-bam | bam | corpus-01-adna-bam-mini, corpus-01-adna-damage-mini | 5 | 16 | 16 | 0 | none |
 | corpus-01-bam | bam | corpus-01-bam-mini | 16 | 28 | 28 | 0 | none |
 | corpus-01-genotyping | bam | corpus-01-genotyping-mini | 1 | 1 | 1 | 0 | none |
@@ -24,10 +24,10 @@
 
 - Domains: bam, fastq
 - Fixtures: corpus-01-mini
-- Stages: 20
-- Tool rows: 63
-- Benchmark-ready rows: 60
-- Blocked stages: 2
+- Stages: 21
+- Tool rows: 62
+- Benchmark-ready rows: 62
+- Blocked stages: 0
 
 | Domain | Stage | Fixtures | Report section | Tools | Ready | Blocked | Shared metrics | Blocked tools |
 | --- | --- | --- | --- | ---: | ---: | ---: | --- | --- |
@@ -39,18 +39,19 @@
 | fastq | fastq.estimate_library_complexity_prealign | corpus-01-mini | Quality Profiling | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.trim_terminal_damage | corpus-01-mini | Read Cleanup | 3 | 3 | 0 | not_declared | none |
 | fastq | fastq.trim_polyg_tails | corpus-01-mini | Read Cleanup | 2 | 2 | 0 | not_declared | none |
-| fastq | fastq.trim_reads | corpus-01-mini | Read Cleanup | 14 | 13 | 1 | not_declared | seqpurge (support) |
+| fastq | fastq.trim_reads | corpus-01-mini | Read Cleanup | 13 | 13 | 0 | not_declared | none |
 | fastq | fastq.filter_reads | corpus-01-mini | Read Cleanup | 4 | 4 | 0 | not_declared | none |
 | fastq | fastq.profile_reads | corpus-01-mini | Quality Profiling | 3 | 3 | 0 | not_declared | none |
 | fastq | fastq.deplete_rrna | corpus-01-mini | Contamination Screening | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.merge_pairs | corpus-01-mini | Read Cleanup | 6 | 6 | 0 | not_declared | none |
 | fastq | fastq.remove_duplicates | corpus-01-mini | Read Cleanup | 2 | 2 | 0 | not_declared | none |
-| fastq | fastq.filter_low_complexity | corpus-01-mini | Read Cleanup | 4 | 2 | 2 | not_declared | dustmasker (support), fastp (support) |
+| fastq | fastq.filter_low_complexity | corpus-01-mini | Read Cleanup | 3 | 3 | 0 | not_declared | none |
 | fastq | fastq.deplete_host | corpus-01-mini | Contamination Screening | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.deplete_reference_contaminants | corpus-01-mini | Contamination Screening | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.correct_errors | corpus-01-mini | Read Cleanup | 4 | 4 | 0 | not_declared | none |
 | fastq | fastq.extract_umis | corpus-01-mini | Read Cleanup | 1 | 1 | 0 | not_applicable | none |
 | fastq | fastq.profile_overrepresented_sequences | corpus-01-mini | Quality Profiling | 3 | 3 | 0 | sequence_count, flagged_sequences, top_fraction | none |
+| fastq | fastq.report_qc | corpus-01-mini | Quality Profiling | 1 | 1 | 0 | not_applicable | none |
 
 ## corpus-01-adna-bam
 
@@ -63,9 +64,9 @@
 
 | Domain | Stage | Fixtures | Report section | Tools | Ready | Blocked | Shared metrics | Blocked tools |
 | --- | --- | --- | --- | ---: | ---: | ---: | --- | --- |
-| bam | bam.damage | corpus-01-adna-damage-mini | Ancient Signal | 6 | 6 | 0 | terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb | none |
-| bam | bam.authenticity | corpus-01-adna-damage-mini | Ancient Signal | 3 | 3 | 0 | score, confidence, pmd_like_signal_present, consumed_metric_ids, missing_metric_ids | none |
-| bam | bam.contamination | corpus-01-adna-bam-mini | Ancient Signal | 3 | 3 | 0 | scope, prerequisites_passed, estimate, ci_low, ci_high | none |
+| bam | bam.damage | corpus-01-adna-damage-mini | Ancient Signal | 6 | 6 | 0 | terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal | none |
+| bam | bam.authenticity | corpus-01-adna-damage-mini | Ancient Signal | 3 | 3 | 0 | score, confidence, status, pmd_like_signal_present | none |
+| bam | bam.contamination | corpus-01-adna-bam-mini | Ancient Signal | 3 | 3 | 0 | estimate, ci_low, ci_high | none |
 | bam | bam.sex | corpus-01-adna-bam-mini | Sample Identity | 3 | 3 | 0 | x_coverage, y_coverage, autosomal_coverage, call, confidence, status | none |
 | bam | bam.haplogroups | corpus-01-adna-bam-mini | Sample Identity | 1 | 1 | 0 | not_applicable | none |
 
@@ -80,16 +81,16 @@
 
 | Domain | Stage | Fixtures | Report section | Tools | Ready | Blocked | Shared metrics | Blocked tools |
 | --- | --- | --- | --- | ---: | ---: | ---: | --- | --- |
-| bam | bam.validate | corpus-01-bam-mini | Alignment Intake | 3 | 3 | 0 | validation_status, validation_errors, validation_warnings, input_bam_identity | none |
-| bam | bam.qc_pre | corpus-01-bam-mini | Alignment Intake | 2 | 2 | 0 | total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads, contig_summary | none |
+| bam | bam.validate | corpus-01-bam-mini | Alignment Intake | 3 | 3 | 0 | validation_status, validation_errors, validation_warnings | none |
+| bam | bam.qc_pre | corpus-01-bam-mini | Alignment Intake | 2 | 2 | 0 | total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads | none |
 | bam | bam.mapping_summary | corpus-01-bam-mini | Alignment Intake | 2 | 2 | 0 | mapping_fraction, mapped_reads, unmapped_reads, secondary_reads, supplementary_reads | none |
-| bam | bam.filter | corpus-01-bam-mini | Alignment Refinement | 3 | 3 | 0 | input_reads, kept_reads, removed_reads, active_filters | none |
-| bam | bam.mapq_filter | corpus-01-bam-mini | Alignment Refinement | 2 | 2 | 0 | mapq_threshold, kept_reads, removed_reads, filtered_bam | none |
-| bam | bam.length_filter | corpus-01-bam-mini | Alignment Refinement | 2 | 2 | 0 | min_length_threshold, kept_reads, removed_reads, filtered_bam | none |
-| bam | bam.markdup | corpus-01-bam-mini | Library Complexity | 2 | 2 | 0 | marked_bam, duplicate_metrics, duplicate_count, duplicate_fraction | none |
+| bam | bam.filter | corpus-01-bam-mini | Alignment Refinement | 3 | 3 | 0 | input_reads, kept_reads, removed_reads | none |
+| bam | bam.mapq_filter | corpus-01-bam-mini | Alignment Refinement | 2 | 2 | 0 | mapq_threshold, kept_reads, removed_reads | none |
+| bam | bam.length_filter | corpus-01-bam-mini | Alignment Refinement | 2 | 2 | 0 | min_length_threshold, kept_reads, removed_reads | none |
+| bam | bam.markdup | corpus-01-bam-mini | Library Complexity | 2 | 2 | 0 | duplicate_count, duplicate_fraction | none |
 | bam | bam.duplication_metrics | corpus-01-bam-mini | Library Complexity | 2 | 2 | 0 | duplicate_count, duplicate_fraction, estimated_library_size | none |
 | bam | bam.complexity | corpus-01-bam-mini | Library Complexity | 1 | 1 | 0 | not_applicable | none |
-| bam | bam.coverage | corpus-01-bam-mini | Coverage and Quality | 3 | 3 | 0 | mean_depth, breadth_1x, covered_bases, observed_region_count, region_ids | none |
+| bam | bam.coverage | corpus-01-bam-mini | Coverage and Quality | 3 | 3 | 0 | mean_depth, breadth_1x, covered_bases | none |
 | bam | bam.insert_size | corpus-01-bam-mini | Coverage and Quality | 1 | 1 | 0 | not_applicable | none |
 | bam | bam.gc_bias | corpus-01-bam-mini | Coverage and Quality | 1 | 1 | 0 | not_applicable | none |
 | bam | bam.endogenous_content | corpus-01-bam-mini | Coverage and Quality | 1 | 1 | 0 | not_applicable | none |

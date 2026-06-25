@@ -1,0 +1,75 @@
+{
+  "schema_version": "bijux.crates.benchmarking_ready_gate.v1",
+  "workspace_manifest": "Cargo.toml",
+  "output_path": "benchmarks/readiness/crates/CRATE_SHAPE_FOR_BENCHMARKING_READY.json",
+  "cargo_target_dir": "artifacts/rust/crate-shape-gate-target",
+  "ok": true,
+  "checks": [
+    {
+      "goal_id": "411",
+      "ok": true,
+      "command": "bijux-dna dev crates graph --output benchmarks/readiness/crates/crate-dependency-map.json",
+      "detail": "benchmarks/readiness/crates/crate-dependency-map.json"
+    },
+    {
+      "goal_id": "412",
+      "ok": true,
+      "command": "bijux-dna dev crates domain-no-execution --output benchmarks/readiness/crates/domain-no-execution.json",
+      "detail": "benchmarks/readiness/crates/domain-no-execution.json"
+    },
+    {
+      "goal_id": "413",
+      "ok": true,
+      "command": "bijux-dna dev crates parser-no-execution --output benchmarks/readiness/crates/parser-no-execution.json",
+      "detail": "benchmarks/readiness/crates/parser-no-execution.json"
+    },
+    {
+      "goal_id": "414",
+      "ok": true,
+      "command": "bijux-dna dev crates planner-no-parser --output benchmarks/readiness/crates/planner-no-parser.json",
+      "detail": "benchmarks/readiness/crates/planner-no-parser.json"
+    },
+    {
+      "goal_id": "415",
+      "ok": true,
+      "command": "bijux-dna dev crates runner-owns-process-execution --output benchmarks/readiness/crates/runner-owns-process-execution.json",
+      "detail": "benchmarks/readiness/crates/runner-owns-process-execution.json"
+    },
+    {
+      "goal_id": "416",
+      "ok": true,
+      "command": "cargo test -p bijux-dna-api typed_artifact_handoff_rejects_wrong_stage_inputs -- --nocapture",
+      "detail": "typed artifact handoff proof passed"
+    },
+    {
+      "goal_id": "417",
+      "ok": true,
+      "command": "bijux-dna dev crates metric-registry --output benchmarks/readiness/crates/metric-registry.tsv && cargo test -p bijux-dna-domain-vcf --test contracts vcf_metric_registry_rejects_unregistered_stage_metrics -- --nocapture",
+      "detail": "benchmarks/readiness/crates/metric-registry.tsv"
+    },
+    {
+      "goal_id": "418",
+      "ok": true,
+      "command": "bijux-dna dev crates result-id-stability --output benchmarks/readiness/crates/result-id-stability.json",
+      "detail": "benchmarks/readiness/crates/result-id-stability.json"
+    },
+    {
+      "goal_id": "419",
+      "ok": true,
+      "command": "bijux-dna dev crates check-cycles --output benchmarks/readiness/crates/no-crate-cycles.json",
+      "detail": "benchmarks/readiness/crates/no-crate-cycles.json"
+    }
+  ],
+  "passed_goal_ids": [
+    "411",
+    "412",
+    "413",
+    "414",
+    "415",
+    "416",
+    "417",
+    "418",
+    "419"
+  ],
+  "failed_goal_ids": []
+}

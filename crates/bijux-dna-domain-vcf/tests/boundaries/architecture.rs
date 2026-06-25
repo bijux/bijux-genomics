@@ -31,6 +31,7 @@ fn crate_tree_matches_domain_vcf_boundary() {
     assert_eq!(docs_entries, expected_docs, "domain-vcf docs spine must stay explicit");
 
     let expected_src: BTreeSet<_> = [
+        "artifacts/",
         "artifacts.rs",
         "contracts/",
         "contracts.rs",

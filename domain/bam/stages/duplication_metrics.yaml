@@ -24,10 +24,25 @@ parameters: []
 metrics:
   - name: "duplicate_count"
     meaning: "Observed duplicate-read count preserved in the governed BAM duplication-metrics benchmark row"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.05
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "duplicate_fraction"
     meaning: "Observed duplicate-read fraction preserved in the governed BAM duplication-metrics benchmark row"
+    scientific_threshold:
+      pass_direction: "maximum"
+      tolerance_kind: "absolute_delta"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "estimated_library_size"
     meaning: "Estimated library size preserved in the governed BAM duplication-metrics benchmark row when the admitted tool can derive one"
+    scientific_threshold:
+      pass_direction: "minimum"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.2
+      insufficiency_policy: "warn_and_exclude_stage"
 description: "BAM duplication-metrics contract for governed duplicate-burden benchmarking, histogram reporting, and library-size estimation when available."
 required_inputs:
   - bam

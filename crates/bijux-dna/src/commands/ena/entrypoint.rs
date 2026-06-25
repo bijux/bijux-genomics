@@ -291,11 +291,21 @@ fn validate_record(record: &EnaRecord) -> Result<LayoutKind, String> {
     if record.base_count.unwrap_or(0) == 0 || record.read_count.unwrap_or(0) == 0 {
         return Err("missing base_count/read_count".to_string());
     }
-    if record.instrument_model.as_deref().map(str::trim).filter(|value| !value.is_empty()).is_none()
+    if record
+        .instrument_model
+        .as_deref()
+        .map(str::trim)
+        .as_ref()
+        .is_none_or(|value| value.is_empty())
     {
         return Err("missing instrument_model".to_string());
     }
-    if record.library_strategy.as_deref().map(str::trim).filter(|value| !value.is_empty()).is_none()
+    if record
+        .library_strategy
+        .as_deref()
+        .map(str::trim)
+        .as_ref()
+        .is_none_or(|value| value.is_empty())
     {
         return Err("missing library_strategy".to_string());
     }

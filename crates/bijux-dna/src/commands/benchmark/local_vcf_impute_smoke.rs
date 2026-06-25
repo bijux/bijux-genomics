@@ -40,6 +40,7 @@ const DEFAULT_OUTPUT_WARNINGS_NAME: &str = "warnings.json";
 const DEFAULT_OUTPUT_ACCEPT_NAME: &str = "imputation_accept.json";
 const DEFAULT_OUTPUT_PANEL_MISMATCH_NAME: &str = "panel_mismatch_diagnostics.json";
 const DEFAULT_OUTPUT_MAF_BINS_NAME: &str = "maf_bins.tsv";
+const DEFAULT_OUTPUT_INFO_HIST_NAME: &str = "info_hist.json";
 const DEFAULT_OUTPUT_LOGS_NAME: &str = "logs.txt";
 const DEFAULT_OUTPUT_METRICS_NAME: &str = "metrics.json";
 const EXPECTED_SAMPLE_IDS: [&str; 2] = ["masked_sample", "donor_sample"];
@@ -111,6 +112,7 @@ pub(crate) struct LocalVcfImputeSmokeReport {
     pub(crate) imputation_accept_path: String,
     pub(crate) panel_mismatch_path: String,
     pub(crate) maf_bins_path: String,
+    pub(crate) info_hist_path: String,
     pub(crate) logs_path: String,
     pub(crate) metrics_path: String,
     pub(crate) stage_result_manifest_path: String,
@@ -277,6 +279,10 @@ pub(crate) fn run_local_vcf_impute_smoke(
             stage_outputs.maf_bin_quality_tsv.display(),
             maf_bins_path.display()
         )
+    })?;
+    let info_hist_path = output_root.join(DEFAULT_OUTPUT_INFO_HIST_NAME);
+    fs::copy(&stage_outputs.info_hist_json, &info_hist_path).with_context(|| {
+        format!("copy {} to {}", stage_outputs.info_hist_json.display(), info_hist_path.display())
     })?;
     let logs_path = output_root.join(DEFAULT_OUTPUT_LOGS_NAME);
     fs::copy(&stage_outputs.logs_txt, &logs_path).with_context(|| {
@@ -458,10 +464,16 @@ pub(crate) fn run_local_vcf_impute_smoke(
                 "report_output",
             ),
             (
-                "maf_bins_tsv",
+                "maf_bin_quality_tsv",
                 DEFAULT_OUTPUT_MAF_BINS_NAME.to_string(),
                 maf_bins_path.as_path(),
                 "table_output",
+            ),
+            (
+                "info_hist_json",
+                DEFAULT_OUTPUT_INFO_HIST_NAME.to_string(),
+                info_hist_path.as_path(),
+                "report_output",
             ),
             ("logs_txt", DEFAULT_OUTPUT_LOGS_NAME.to_string(), logs_path.as_path(), "log_output"),
             (
@@ -501,6 +513,7 @@ pub(crate) fn run_local_vcf_impute_smoke(
         imputation_accept_path: path_relative_to_repo(repo_root, &imputation_accept_path),
         panel_mismatch_path: path_relative_to_repo(repo_root, &panel_mismatch_path),
         maf_bins_path: path_relative_to_repo(repo_root, &maf_bins_path),
+        info_hist_path: path_relative_to_repo(repo_root, &info_hist_path),
         logs_path: path_relative_to_repo(repo_root, &logs_path),
         metrics_path: path_relative_to_repo(repo_root, &metrics_path),
         stage_result_manifest_path: path_relative_to_repo(repo_root, &stage_result_manifest_path),

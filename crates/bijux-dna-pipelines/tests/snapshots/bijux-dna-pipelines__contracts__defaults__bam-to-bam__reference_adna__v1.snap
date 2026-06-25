@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/defaults/defaults_ledger.rs
+assertion_line: 50
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -7,6 +8,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "citations": {},
   "param_provenance": {
     "bam.authenticity": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.complexity": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -138,6 +151,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
+    "bam.qc_pre": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
     "bam.sex": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -168,6 +193,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "disallow_certification": true,
       "evidence_only": true,
       "mode": "aggregate"
+    },
+    "bam.complexity": {
+      "min_reads": 100000,
+      "projection_points": [
+        1000000,
+        2000000
+      ]
     },
     "bam.contamination": {
       "assumptions": null,
@@ -247,6 +279,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "min_length": 0,
       "remove_duplicates": false
     },
+    "bam.qc_pre": {
+      "regions": null
+    },
     "bam.sex": {
       "chromosome_system": "xy",
       "expected_sex": null,
@@ -262,6 +297,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "thresholds": {},
   "tool_provenance": {
     "bam.authenticity": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.complexity": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -393,6 +440,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
+    "bam.qc_pre": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
     "bam.sex": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -420,6 +479,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "tools": {
     "bam.authenticity": "authenticct",
+    "bam.complexity": "preseq",
     "bam.contamination": "schmutzi",
     "bam.coverage": "mosdepth",
     "bam.damage": "mapdamage2",
@@ -430,6 +490,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "bam.mapping_summary": "samtools",
     "bam.mapq_filter": "samtools",
     "bam.overlap_correction": "bamutil",
+    "bam.qc_pre": "samtools",
     "bam.sex": "rxy",
     "bam.validate": "samtools"
   }

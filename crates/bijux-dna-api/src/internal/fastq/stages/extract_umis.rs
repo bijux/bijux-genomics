@@ -1091,7 +1091,7 @@ fn write_governed_local_smoke_log(
     params: &bijux_dna_domain_fastq::FastqUmiParams,
     report: &ExtractUmisReportV1,
 ) -> Result<()> {
-    let mut file = std::fs::File::create(path)?;
+    let mut file = bijux_dna_infra::create_file(path)?;
     writeln!(file, "governed_local_smoke_runtime=bijux")?;
     writeln!(file, "planned_tool_id={planned_tool_id}")?;
     writeln!(file, "umi_pattern={}", params.umi_pattern.as_deref().unwrap_or("NNNNNNNN"))?;

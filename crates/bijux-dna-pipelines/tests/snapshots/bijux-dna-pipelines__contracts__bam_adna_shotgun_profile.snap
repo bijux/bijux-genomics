@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
+assertion_line: 123
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -109,11 +110,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     ],
     "required_stages": [
       "bam.validate",
+      "bam.qc_pre",
       "bam.mapping_summary",
       "bam.filter",
       "bam.mapq_filter",
       "bam.length_filter",
       "bam.duplication_metrics",
+      "bam.complexity",
       "bam.coverage",
       "bam.endogenous_content",
       "bam.overlap_correction",
@@ -134,6 +137,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "disallow_certification": true,
         "evidence_only": true,
         "mode": "aggregate"
+      },
+      "bam.complexity": {
+        "min_reads": 100000,
+        "projection_points": [
+          1000000,
+          2000000
+        ]
       },
       "bam.contamination": {
         "assumptions": null,
@@ -213,6 +223,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "min_length": 0,
         "remove_duplicates": false
       },
+      "bam.qc_pre": {
+        "regions": null
+      },
       "bam.sex": {
         "chromosome_system": "xy",
         "expected_sex": null,
@@ -226,6 +239,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     "rationales": {
       "bam.authenticity": "pipeline default",
+      "bam.complexity": "pipeline default",
       "bam.contamination": "pipeline default",
       "bam.coverage": "pipeline default",
       "bam.damage": "pipeline default",
@@ -236,11 +250,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.mapping_summary": "pipeline default",
       "bam.mapq_filter": "pipeline default",
       "bam.overlap_correction": "pipeline default",
+      "bam.qc_pre": "pipeline default",
       "bam.sex": "pipeline default",
       "bam.validate": "pipeline default"
     },
     "tools": {
       "bam.authenticity": "authenticct",
+      "bam.complexity": "preseq",
       "bam.contamination": "schmutzi",
       "bam.coverage": "mosdepth",
       "bam.damage": "mapdamage2",
@@ -251,6 +267,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.mapping_summary": "samtools",
       "bam.mapq_filter": "samtools",
       "bam.overlap_correction": "bamutil",
+      "bam.qc_pre": "samtools",
       "bam.sex": "rxy",
       "bam.validate": "samtools"
     }

@@ -7,10 +7,12 @@
   "incomplete_row_count": 0,
   "checked_surface_count": 8,
   "required_metric_names": [
-    "sample_count",
-    "pair_count",
-    "within_population_pair_count",
-    "cross_population_pair_count"
+    "consumed_admixture",
+    "consumed_pca",
+    "distance_summary",
+    "sample_groups",
+    "status",
+    "variant_count"
   ],
   "tool_status_counts": {
     "experimental,production": 1
@@ -74,20 +76,24 @@
         "population_structure_report"
       ],
       "expected_metrics": [
-        "sample_count",
-        "pair_count",
-        "within_population_pair_count",
-        "cross_population_pair_count"
+        "consumed_admixture",
+        "consumed_pca",
+        "distance_summary",
+        "sample_groups",
+        "status",
+        "variant_count"
       ],
       "report_section_id": "population_structure",
       "report_ready": true,
       "report_map_proof_path": "benchmarks/readiness/vcf/vcf-report-map.tsv",
       "summary_table_id": "population_structure_metrics",
       "report_metric_columns": [
-        "sample_count",
-        "pair_count",
-        "within_population_pair_count",
-        "cross_population_pair_count"
+        "consumed_admixture",
+        "consumed_pca",
+        "distance_summary",
+        "sample_groups",
+        "status",
+        "variant_count"
       ],
       "smoke_ready": true,
       "smoke_command": "bijux-dna bench local run-vcf-population-structure-smoke --tool-id plink2",
@@ -171,10 +177,12 @@
         "mean_pc_distance": 0.023570226039551587
       },
       "required_metric_names": [
-        "sample_count",
-        "pair_count",
-        "within_population_pair_count",
-        "cross_population_pair_count"
+        "consumed_admixture",
+        "consumed_pca",
+        "distance_summary",
+        "sample_groups",
+        "status",
+        "variant_count"
       ],
       "missing_surfaces": [],
       "coverage_status": "complete",

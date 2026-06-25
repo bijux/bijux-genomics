@@ -17,7 +17,7 @@
       "schema_version": "bijux.bench.local_stage_inventory.v1",
       "domain": "fastq",
       "stage_matrix_schema_version": "bijux.bench.fastq.local_stage_matrix.v1",
-      "stage_matrix_path": "benchmarks/configs/local/fastq-stage-matrix.toml",
+      "stage_matrix_path": "configs/bench/local/fastq-stage-matrix.toml",
       "stage_count": 27,
       "stages": [
         {
@@ -134,7 +134,7 @@
       "schema_version": "bijux.bench.local_stage_inventory.v1",
       "domain": "bam",
       "stage_matrix_schema_version": "bijux.bench.bam.local_stage_matrix.v1",
-      "stage_matrix_path": "benchmarks/configs/local/bam-stage-matrix.toml",
+      "stage_matrix_path": "configs/bench/local/bam-stage-matrix.toml",
       "stage_count": 24,
       "stages": [
         {
@@ -239,7 +239,7 @@
       "schema_version": "bijux.bench.local_stage_inventory.v1",
       "domain": "vcf",
       "stage_matrix_schema_version": "bijux.bench.vcf.local_stage_matrix.v1",
-      "stage_matrix_path": "benchmarks/configs/local/vcf-stage-matrix.toml",
+      "stage_matrix_path": "configs/bench/local/vcf-stage-matrix.toml",
       "stage_count": 20,
       "stages": [
         {

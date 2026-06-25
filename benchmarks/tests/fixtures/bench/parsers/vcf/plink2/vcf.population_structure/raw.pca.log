@@ -1,0 +1,3 @@
+toolchain=plink2
+stage=population_pca
+tool_success=false

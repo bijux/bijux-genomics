@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
+use anyhow::Result;
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
@@ -33,9 +34,44 @@ fn tool_for_stage(stage: &str) -> ToolExecutionSpecV1 {
     }
 }
 
+fn normalize_graph_snapshot_paths(value: serde_json::Value) -> serde_json::Value {
+    match value {
+        serde_json::Value::Array(items) => serde_json::Value::Array(
+            items.into_iter().map(normalize_graph_snapshot_paths).collect(),
+        ),
+        serde_json::Value::Object(map) => {
+            let normalized = map
+                .into_iter()
+                .map(|(key, value)| {
+                    let value = match (key.as_str(), value) {
+                        ("path", serde_json::Value::String(path)) => {
+                            serde_json::Value::String(snapshot_leaf(&path))
+                        }
+                        ("out_dir", serde_json::Value::String(path)) => {
+                            serde_json::Value::String(snapshot_leaf(&path))
+                        }
+                        (_, nested) => normalize_graph_snapshot_paths(nested),
+                    };
+                    (key, value)
+                })
+                .collect();
+            serde_json::Value::Object(normalized)
+        }
+        other => other,
+    }
+}
+
+fn snapshot_leaf(path: &str) -> String {
+    let trimmed = path.trim_end_matches('/');
+    PathBuf::from(trimmed)
+        .file_name()
+        .and_then(|leaf| leaf.to_str())
+        .map_or_else(|| trimmed.to_string(), str::to_string)
+}
+
 /// Snapshot locks graph structure for the default FASTQ pipeline.
 #[test]
-fn fastq_default_pipeline_graph_is_pure() -> anyhow::Result<()> {
+fn fastq_default_pipeline_graph_is_pure() -> Result<()> {
     let pipeline = default_pipeline_spec(DefaultPipelineOptions::default());
     let stage_toolsets = pipeline
         .ordered_nodes()
@@ -68,6 +104,7 @@ fn fastq_default_pipeline_graph_is_pure() -> anyhow::Result<()> {
 
     let graph = plan_fastq_to_fastq__default__v1(&inputs, DefaultPipelineOptions::default())?;
     let json = serde_json::to_value(&graph)?;
+    let json = normalize_graph_snapshot_paths(json);
     let json = bijux_dna_core::contract::canonical::canonicalize_truth_json(&json);
     let mut settings = insta::Settings::clone_current();
     settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));

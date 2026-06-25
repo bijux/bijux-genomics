@@ -49,14 +49,14 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
         Some("benchmarks/readiness/corpus-centric-report.md")
     );
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(8));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(50));
-    assert_eq!(payload.get("tool_row_count").and_then(serde_json::Value::as_u64), Some(121));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(51));
+    assert_eq!(payload.get("tool_row_count").and_then(serde_json::Value::as_u64), Some(120));
     assert_eq!(
         payload.get("benchmark_ready_tool_row_count").and_then(serde_json::Value::as_u64),
-        Some(118)
+        Some(120)
     );
-    assert_eq!(payload.get("blocked_tool_row_count").and_then(serde_json::Value::as_u64), Some(3));
-    assert_eq!(payload.get("blocked_corpus_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(payload.get("blocked_tool_row_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("blocked_corpus_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload
             .get("domain_counts")
@@ -69,7 +69,7 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
             .get("domain_counts")
             .and_then(|value| value.get("fastq"))
             .and_then(serde_json::Value::as_u64),
-        Some(26)
+        Some(27)
     );
     assert_eq!(
         payload
@@ -209,6 +209,23 @@ fn bench_readiness_corpus_centric_report_tracks_governed_corpus_coverage() {
         })
         .expect("contamination stage");
     assert_eq!(contamination.get("tool_count").and_then(serde_json::Value::as_u64), Some(3));
+
+    let bam = corpora
+        .iter()
+        .find(|corpus| {
+            corpus.get("corpus_family_id").and_then(serde_json::Value::as_str)
+                == Some("corpus-01-bam")
+        })
+        .expect("bam corpus");
+    assert_eq!(bam.get("stage_count").and_then(serde_json::Value::as_u64), Some(16));
+    let bam_stages = bam.get("stages").and_then(serde_json::Value::as_array).expect("bam stages");
+    let qc_pre = bam_stages
+        .iter()
+        .find(|stage| {
+            stage.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.qc_pre")
+        })
+        .expect("bam qc-pre stage");
+    assert_eq!(qc_pre.get("tool_count").and_then(serde_json::Value::as_u64), Some(2));
 
     let genotyping = corpora
         .iter()

@@ -135,6 +135,10 @@ stage_contracts:
       - "reads_r1"
     optional_inputs:
       - "reads_r2"
+    execution_contract:
+      expected_outputs:
+        - "qc_json"
+        - "qc_tsv"
     expected_artifacts:
       - "qc_json"
       - "qc_tsv"

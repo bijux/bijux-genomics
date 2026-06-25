@@ -3,8 +3,14 @@ use std::collections::BTreeSet;
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_domain_bam::{
     comparable_benchmark_stage_contracts, comparable_benchmark_stage_ids,
-    comparable_tool_ids_for_stage, stage_comparable_metric_fields_for_stage,
+    comparable_tool_ids_for_stage, stage_comparable_metric_contracts_for_stage,
+    stage_comparable_metric_fields_for_stage, BamScientificInsufficiencyPolicy,
+    BamScientificPassDirection, BamScientificToleranceKind,
 };
+
+fn assert_f64_eq(left: f64, right: f64) {
+    assert!((left - right).abs() < f64::EPSILON, "left=`{left}`, right=`{right}`");
+}
 
 #[test]
 fn multi_tool_bam_comparable_stage_slice_stays_explicit() {
@@ -47,8 +53,13 @@ fn multi_tool_bam_comparable_stages_publish_shared_metrics() {
             contract.stage_id
         );
         assert!(
-            !contract.shared_metric_fields.is_empty(),
+            !contract.shared_metrics.is_empty(),
             "multi-tool comparable BAM stage `{}` must publish governed shared metrics",
+            contract.stage_id
+        );
+        assert!(
+            contract.shared_metrics.iter().all(|metric| metric.scientific_threshold.is_some()),
+            "multi-tool comparable BAM stage `{}` must publish scientific threshold semantics for every shared metric",
             contract.stage_id
         );
     }
@@ -70,7 +81,6 @@ fn bam_comparable_contracts_retain_shared_metric_fields_for_real_comparison_surf
             "validation_status".to_string(),
             "validation_errors".to_string(),
             "validation_warnings".to_string(),
-            "input_bam_identity".to_string(),
         ]
     );
     assert_eq!(
@@ -85,33 +95,20 @@ fn bam_comparable_contracts_retain_shared_metric_fields_for_real_comparison_surf
     );
     assert_eq!(
         stage_comparable_metric_fields_for_stage(&StageId::from_static("bam.coverage")),
-        vec![
-            "mean_depth".to_string(),
-            "breadth_1x".to_string(),
-            "covered_bases".to_string(),
-            "observed_region_count".to_string(),
-            "region_ids".to_string(),
-        ]
+        vec!["mean_depth".to_string(), "breadth_1x".to_string(), "covered_bases".to_string(),]
     );
     assert_eq!(
         stage_comparable_metric_fields_for_stage(&StageId::from_static("bam.authenticity")),
         vec![
             "score".to_string(),
             "confidence".to_string(),
+            "status".to_string(),
             "pmd_like_signal_present".to_string(),
-            "consumed_metric_ids".to_string(),
-            "missing_metric_ids".to_string(),
         ]
     );
     assert_eq!(
         stage_comparable_metric_fields_for_stage(&StageId::from_static("bam.contamination")),
-        vec![
-            "scope".to_string(),
-            "prerequisites_passed".to_string(),
-            "estimate".to_string(),
-            "ci_low".to_string(),
-            "ci_high".to_string(),
-        ]
+        vec!["estimate".to_string(), "ci_low".to_string(), "ci_high".to_string(),]
     );
     assert_eq!(
         stage_comparable_metric_fields_for_stage(&StageId::from_static("bam.sex")),
@@ -132,5 +129,45 @@ fn bam_comparable_contracts_retain_shared_metric_fields_for_real_comparison_surf
             "status".to_string(),
             "pairwise_results".to_string(),
         ]
+    );
+}
+
+#[test]
+fn bam_comparable_metrics_carry_governed_scientific_threshold_contracts() {
+    let damage_metrics =
+        stage_comparable_metric_contracts_for_stage(&StageId::from_static("bam.damage"));
+    assert_eq!(damage_metrics.len(), 3);
+
+    let Some(damage_signal) = damage_metrics.iter().find(|metric| metric.name == "damage_signal")
+    else {
+        panic!("damage signal metric");
+    };
+    let Some(threshold) = damage_signal.scientific_threshold.as_ref() else {
+        panic!("damage threshold");
+    };
+    assert_eq!(threshold.pass_direction, BamScientificPassDirection::ExactMatch);
+    assert_eq!(threshold.tolerance_kind, BamScientificToleranceKind::ExactMatch);
+    assert_f64_eq(threshold.tolerance_value, 0.0);
+    assert_eq!(
+        threshold.insufficiency_policy,
+        BamScientificInsufficiencyPolicy::WarnAndExcludeStage
+    );
+
+    let Some(validation_errors) =
+        stage_comparable_metric_contracts_for_stage(&StageId::from_static("bam.validate"))
+            .into_iter()
+            .find(|metric| metric.name == "validation_errors")
+    else {
+        panic!("validation error metric");
+    };
+    let Some(threshold) = validation_errors.scientific_threshold.as_ref() else {
+        panic!("validation threshold");
+    };
+    assert_eq!(threshold.pass_direction, BamScientificPassDirection::StructuredMatch);
+    assert_eq!(threshold.tolerance_kind, BamScientificToleranceKind::NormalizedSetOverlap);
+    assert_f64_eq(threshold.tolerance_value, 1.0);
+    assert_eq!(
+        threshold.insufficiency_policy,
+        BamScientificInsufficiencyPolicy::RefuseStageComparison
     );
 }

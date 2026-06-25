@@ -1,0 +1,18 @@
+{
+  "schema_version": "bijux.bench.readiness.bam_kinship_ready.v1",
+  "output_path": "benchmarks/readiness/bam/kinship-ready.json",
+  "active_row_count": 0,
+  "complete_row_count": 0,
+  "incomplete_row_count": 0,
+  "checked_surface_count": 8,
+  "stage_count": 0,
+  "expected_tool_ids_by_stage": {},
+  "required_output_ids_by_stage": {},
+  "expected_local_proof_kind_by_stage": {},
+  "required_local_proof_fields_by_stage": {},
+  "coverage_status_counts": {},
+  "violation_count": 0,
+  "ok": true,
+  "rows": [],
+  "violations": []
+}

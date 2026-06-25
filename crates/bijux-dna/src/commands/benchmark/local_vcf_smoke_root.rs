@@ -1,10 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
-use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_api::v1::api::run::run_command_with_context;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
@@ -84,9 +83,11 @@ pub(crate) fn render_vcf_smoke_root(
         &smoke_root,
         "local VCF smoke output root",
     )?;
-    fs::create_dir_all(&smoke_root).with_context(|| format!("create {}", smoke_root.display()))?;
+    bijux_dna_infra::ensure_dir(&smoke_root)
+        .with_context(|| format!("create {}", smoke_root.display()))?;
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
 
     let repo_revision = git_stdout(repo_root, &["rev-parse", "HEAD"])?;
@@ -205,15 +206,17 @@ fn build_run_id(repo_revision: &str, corpus_id: &str, rows: &[LocalVcfSmokeRootR
 }
 
 fn git_stdout(repo_root: &Path, args: &[&str]) -> Result<String> {
-    let output = Command::new("git")
-        .current_dir(repo_root)
-        .args(args)
-        .output()
-        .with_context(|| format!("run git {}", args.join(" ")))?;
-    if !output.status.success() {
-        bail!("git {} failed: {}", args.join(" "), String::from_utf8_lossy(&output.stderr).trim());
+    let output = run_command_with_context(
+        "git",
+        &args.iter().map(|arg| (*arg).to_string()).collect::<Vec<_>>(),
+        Some(repo_root),
+        None,
+    )
+    .with_context(|| format!("run git {}", args.join(" ")))?;
+    if output.exit_code != 0 {
+        bail!("git {} failed: {}", args.join(" "), output.stderr.trim());
     }
-    Ok(String::from_utf8(output.stdout).context("decode git stdout")?.trim().to_string())
+    Ok(output.stdout.trim().to_string())
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -300,13 +303,13 @@ mod tests {
     #[test]
     fn vcf_smoke_root_keeps_governed_root_when_manifest_path_is_redirected() {
         let repo_root = repo_root();
-        let report = render_vcf_smoke_root(
-            &repo_root,
-            PathBuf::from("artifacts/test-output/local-vcf-smoke-root.json"),
-        )
-        .expect("render VCF smoke root with redirected manifest");
+        let redirected_manifest =
+            bijux_dna_testkit::TestPaths::new("local-vcf-smoke-root-redirect")
+                .child("local-vcf-smoke-root.json");
+        let report = render_vcf_smoke_root(&repo_root, redirected_manifest.clone())
+            .expect("render VCF smoke root with redirected manifest");
 
-        assert_eq!(report.manifest_path, "artifacts/test-output/local-vcf-smoke-root.json");
+        assert_eq!(report.manifest_path, redirected_manifest.to_string_lossy().replace('\\', "/"));
         assert_eq!(report.root_path, "runs/bench/local-smoke/vcf");
         assert!(report
             .rows

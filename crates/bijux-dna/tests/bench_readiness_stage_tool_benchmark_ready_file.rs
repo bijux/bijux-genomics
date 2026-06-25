@@ -54,23 +54,16 @@ fn bench_readiness_stage_tool_benchmark_ready_writes_json_output() {
     assert_eq!(json_value.get("passes_gate").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(
         json_value.get("benchmark_ready_pair_count").and_then(serde_json::Value::as_u64),
-        Some(118)
+        Some(120)
     );
-    assert_eq!(json_value.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(json_value.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(json_value.get("failing_pair_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let excluded_pairs = json_value
         .get("excluded_pairs")
         .and_then(serde_json::Value::as_array)
         .expect("excluded pairs");
-    assert!(excluded_pairs.iter().any(|row| {
-        row.get("row_id").and_then(serde_json::Value::as_str)
-            == Some("fastq:fastq.report_qc:multiqc")
-            && row.get("excluded_from_generated_jobs").and_then(serde_json::Value::as_bool)
-                == Some(true)
-            && row.get("excluded_from_expected_results").and_then(serde_json::Value::as_bool)
-                == Some(true)
-    }));
+    assert!(excluded_pairs.is_empty(), "persisted ready-slice gate must not retain excluded pairs");
 
     let surfaces = json_value
         .get("surface_summaries")
@@ -78,7 +71,7 @@ fn bench_readiness_stage_tool_benchmark_ready_writes_json_output() {
         .expect("surface summaries");
     assert!(surfaces.iter().any(|surface| {
         surface.get("surface_id").and_then(serde_json::Value::as_str) == Some("expected_results")
-            && surface.get("covered_count").and_then(serde_json::Value::as_u64) == Some(118)
-            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(4)
+            && surface.get("covered_count").and_then(serde_json::Value::as_u64) == Some(120)
+            && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(0)
     }));
 }

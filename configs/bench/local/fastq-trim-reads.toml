@@ -1,0 +1,28 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local benchmark fixture plan for fastq.trim_reads.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-06-22
+
+schema_version = "bijux.bench.fastq.local_trim_reads.v1"
+tool_id = "fastp"
+supplemental_tool_ids = ["bbduk"]
+threads = 1
+min_length = 4
+quality_cutoff = 20
+adapter_policy = "bank"
+adapter_preset = "illumina-default"
+polyx_policy = "none"
+n_policy = "retain"
+contaminant_policy = "none"
+output_dir = "runs/bench/local-smoke/fastq.trim_reads"
+
+[[cases]]
+sample_id = "adapter-quality-se"
+r1 = "assets/toy/core-v1/fastq/reads_with_trim_signals.fastq"
+
+[[cases]]
+sample_id = "adapter-quality-pe"
+r1 = "assets/toy/core-v1/fastq/reads_with_trim_signals_R1.fastq"
+r2 = "assets/toy/core-v1/fastq/reads_with_trim_signals_R2.fastq"

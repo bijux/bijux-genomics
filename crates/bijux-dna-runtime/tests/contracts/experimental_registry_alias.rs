@@ -41,15 +41,15 @@ impl Drop for EnvGuard {
 }
 
 #[test]
-fn experimental_registry_is_loaded_from_runtime_and_api_aliases() {
+fn experimental_registry_aliases_leave_generated_registry_stable_without_extra_rows() {
     let _lock = env_lock().lock().unwrap_or_else(|err| panic!("lock env mutation tests: {err}"));
     let _include_guard = EnvGuard::capture("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
     let _api_guard = EnvGuard::capture("BIJUX_EXPERIMENTAL_TOOLS");
     std::env::remove_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
     std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
 
-    let stage_id = StageId::from_static("bam.damage");
-    let tool_id = ToolId::from_static("addeam");
+    let stage_id = StageId::from_static("fastq.trim_reads");
+    let tool_id = ToolId::from_static("seqpurge");
     let registry = load_manifests(&registry_path())
         .unwrap_or_else(|err| panic!("load governed registry: {err}"));
     assert!(
@@ -61,8 +61,8 @@ fn experimental_registry_is_loaded_from_runtime_and_api_aliases() {
     let registry = load_manifests(&registry_path())
         .unwrap_or_else(|err| panic!("load registry with api alias: {err}"));
     assert!(
-        registry.tool_by_id(&stage_id, &tool_id).is_some(),
-        "experimental registry should load when the API experimental toggle is enabled"
+        registry.tool_by_id(&stage_id, &tool_id).is_none(),
+        "generated registry must stay stable when the experimental alias is enabled but no generated experimental rows exist"
     );
 
     std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
@@ -70,26 +70,26 @@ fn experimental_registry_is_loaded_from_runtime_and_api_aliases() {
     let registry = load_manifests(&registry_path())
         .unwrap_or_else(|err| panic!("load registry with runtime toggle: {err}"));
     assert!(
-        registry.tool_by_id(&stage_id, &tool_id).is_some(),
-        "experimental registry should still load with the runtime toggle"
+        registry.tool_by_id(&stage_id, &tool_id).is_none(),
+        "runtime and API experimental aliases must behave identically when the generated experimental registry is empty"
     );
 }
 
 #[test]
-fn addeam_damage_binding_is_present_when_experimental_registry_is_enabled() {
+fn addeam_damage_binding_is_present_in_the_governed_registry() {
     let _lock = env_lock().lock().unwrap_or_else(|err| panic!("lock env mutation tests: {err}"));
     let _include_guard = EnvGuard::capture("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
     let _api_guard = EnvGuard::capture("BIJUX_EXPERIMENTAL_TOOLS");
     std::env::remove_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
-    std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", "1");
+    std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
 
     let registry = load_manifests(&registry_path())
-        .unwrap_or_else(|err| panic!("load registry with api alias: {err}"));
+        .unwrap_or_else(|err| panic!("load governed registry: {err}"));
     let stage_id = StageId::from_static("bam.damage");
     let tool_id = ToolId::from_static("addeam");
     assert!(
         registry.tool_by_id(&stage_id, &tool_id).is_some(),
-        "addeam must be registered for bam.damage when the experimental registry is enabled"
+        "addeam must stay registered for bam.damage in the governed production registry"
     );
 }
 

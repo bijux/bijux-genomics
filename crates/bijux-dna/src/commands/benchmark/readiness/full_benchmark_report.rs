@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -27,6 +28,12 @@ use super::full_benchmark_result_collector::{
     FullBenchmarkResultStatus, FullBenchmarkResultSurfaceKind,
     DEFAULT_FULL_BENCHMARK_RESULT_COLLECTOR_PATH,
 };
+use super::scientific_acceptance_thresholds::{
+    render_scientific_acceptance_thresholds_from_reports, scientific_acceptance_direction_label,
+    scientific_acceptance_insufficiency_behavior_label, scientific_acceptance_pass_rule_label,
+    scientific_acceptance_tolerance_kind_label, ScientificAcceptanceThresholdRow,
+    DEFAULT_SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH,
+};
 use super::stage_tool_resources::{render_stage_tool_resources, DEFAULT_STAGE_TOOL_RESOURCES_PATH};
 use super::vcf_comparable_metrics::{
     render_vcf_comparable_metrics, VcfComparableMetricsReport, DEFAULT_VCF_COMPARABLE_METRICS_PATH,
@@ -36,9 +43,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH: &str =
-    "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md";
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.md";
 pub(crate) const DEFAULT_FULL_BENCHMARK_REPORT_JSON_PATH: &str =
-    "benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
 const FULL_BENCHMARK_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.full_benchmark_report.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -203,15 +210,19 @@ pub(crate) struct FullBenchmarkMissingResultRow {
     pub(crate) reason: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub(crate) struct FullBenchmarkComparableMetricRow {
     pub(crate) domain: String,
     pub(crate) stage_id: String,
     pub(crate) metric_id: String,
     pub(crate) metric_name: String,
     pub(crate) unit: Option<String>,
-    pub(crate) direction: Option<String>,
-    pub(crate) required: Option<bool>,
+    pub(crate) direction: String,
+    pub(crate) tolerance_kind: String,
+    pub(crate) tolerance_value: f64,
+    pub(crate) pass_rule: String,
+    pub(crate) insufficiency_behavior: String,
+    pub(crate) required: bool,
     pub(crate) tool_ids: Vec<String>,
     pub(crate) contract_status: String,
     pub(crate) reason: String,
@@ -297,6 +308,7 @@ pub(crate) fn render_full_benchmark_report(
     repo_root: &Path,
     markdown_output_path: PathBuf,
 ) -> Result<FullBenchmarkReport> {
+    let _cwd_guard = CurrentDirGuard::change_to(repo_root);
     let markdown_output_path = repo_relative_path(repo_root, &markdown_output_path);
     let json_output_path = derive_json_output_path(&markdown_output_path);
 
@@ -325,6 +337,13 @@ pub(crate) fn render_full_benchmark_report(
     let vcf_comparable_report = render_vcf_comparable_metrics(
         repo_root,
         PathBuf::from(DEFAULT_VCF_COMPARABLE_METRICS_PATH),
+    )?;
+    let scientific_acceptance_report = render_scientific_acceptance_thresholds_from_reports(
+        repo_root,
+        PathBuf::from(DEFAULT_SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH),
+        &fastq_comparable_report,
+        &bam_comparable_report,
+        &vcf_comparable_report,
     )?;
 
     let fake_run_runtime_by_result_id =
@@ -358,7 +377,8 @@ pub(crate) fn render_full_benchmark_report(
         &fastq_comparable_report,
         &bam_comparable_report,
         &vcf_comparable_report,
-    );
+        &scientific_acceptance_report.rows,
+    )?;
     let comparable_metric_counts_by_stage = comparable_metrics.iter().fold(
         BTreeMap::<(String, String), usize>::new(),
         |mut acc, row| {
@@ -614,7 +634,10 @@ fn collect_real_smoke_runtime_by_binding(
             binding_key(&row.domain, &row.stage_id, &row.tool_id),
             RealSmokeRuntimeEvidence {
                 execution_id: row.record_id.clone(),
-                elapsed_seconds: manifest.as_ref().map(|manifest| manifest.runtime.elapsed_seconds),
+                // Real-smoke wall-clock timings vary across hosts and runs, so governed
+                // readiness artifacts keep the stable execution identity without serializing
+                // volatile elapsed-seconds values into durable report files.
+                elapsed_seconds: None,
                 memory_mb: manifest
                     .as_ref()
                     .and_then(|manifest| manifest.resource_metrics.memory_mb),
@@ -946,19 +969,32 @@ fn collect_full_benchmark_comparable_metrics(
     fastq_report: &FastqComparableMetricsReport,
     bam_report: &BamComparableMetricsReport,
     vcf_report: &VcfComparableMetricsReport,
-) -> Vec<FullBenchmarkComparableMetricRow> {
+    acceptance_rows: &[ScientificAcceptanceThresholdRow],
+) -> Result<Vec<FullBenchmarkComparableMetricRow>> {
+    let acceptance_by_metric = acceptance_rows_by_metric(acceptance_rows)?;
     let mut rows = Vec::new();
 
     for row in &fastq_report.rows {
         for metric in &row.shared_metric_fields {
+            let acceptance = acceptance_row(&acceptance_by_metric, "fastq", &row.stage_id, metric)?;
             rows.push(FullBenchmarkComparableMetricRow {
                 domain: "fastq".to_string(),
                 stage_id: row.stage_id.clone(),
                 metric_id: metric.clone(),
                 metric_name: metric.clone(),
-                unit: None,
-                direction: None,
-                required: None,
+                unit: acceptance.unit.clone(),
+                direction: scientific_acceptance_direction_label(acceptance.direction).to_string(),
+                tolerance_kind: scientific_acceptance_tolerance_kind_label(
+                    acceptance.tolerance_kind,
+                )
+                .to_string(),
+                tolerance_value: acceptance.tolerance_value,
+                pass_rule: scientific_acceptance_pass_rule_label(acceptance.pass_rule).to_string(),
+                insufficiency_behavior: scientific_acceptance_insufficiency_behavior_label(
+                    acceptance.insufficiency_behavior,
+                )
+                .to_string(),
+                required: acceptance.required,
                 tool_ids: row.tool_ids.clone(),
                 contract_status: fastq_contract_status_label(row.comparison_contract_status)
                     .to_string(),
@@ -969,14 +1005,25 @@ fn collect_full_benchmark_comparable_metrics(
 
     for row in &bam_report.rows {
         for metric in &row.shared_metric_fields {
+            let acceptance = acceptance_row(&acceptance_by_metric, "bam", &row.stage_id, metric)?;
             rows.push(FullBenchmarkComparableMetricRow {
                 domain: "bam".to_string(),
                 stage_id: row.stage_id.clone(),
                 metric_id: metric.clone(),
                 metric_name: metric.clone(),
-                unit: None,
-                direction: None,
-                required: None,
+                unit: acceptance.unit.clone(),
+                direction: scientific_acceptance_direction_label(acceptance.direction).to_string(),
+                tolerance_kind: scientific_acceptance_tolerance_kind_label(
+                    acceptance.tolerance_kind,
+                )
+                .to_string(),
+                tolerance_value: acceptance.tolerance_value,
+                pass_rule: scientific_acceptance_pass_rule_label(acceptance.pass_rule).to_string(),
+                insufficiency_behavior: scientific_acceptance_insufficiency_behavior_label(
+                    acceptance.insufficiency_behavior,
+                )
+                .to_string(),
+                required: acceptance.required,
                 tool_ids: row.tool_ids.clone(),
                 contract_status: bam_contract_status_label(row.comparison_contract_status)
                     .to_string(),
@@ -986,14 +1033,24 @@ fn collect_full_benchmark_comparable_metrics(
     }
 
     for row in &vcf_report.rows {
+        let acceptance =
+            acceptance_row(&acceptance_by_metric, "vcf", &row.stage_id, &row.metric_id)?;
         rows.push(FullBenchmarkComparableMetricRow {
             domain: "vcf".to_string(),
             stage_id: row.stage_id.clone(),
             metric_id: row.metric_id.clone(),
             metric_name: row.metric_name.clone(),
-            unit: Some(row.unit.clone()),
-            direction: Some(row.direction.clone()),
-            required: Some(row.required),
+            unit: acceptance.unit.clone(),
+            direction: scientific_acceptance_direction_label(acceptance.direction).to_string(),
+            tolerance_kind: scientific_acceptance_tolerance_kind_label(acceptance.tolerance_kind)
+                .to_string(),
+            tolerance_value: acceptance.tolerance_value,
+            pass_rule: scientific_acceptance_pass_rule_label(acceptance.pass_rule).to_string(),
+            insufficiency_behavior: scientific_acceptance_insufficiency_behavior_label(
+                acceptance.insufficiency_behavior,
+            )
+            .to_string(),
+            required: acceptance.required,
             tool_ids: row.tools_covered.clone(),
             contract_status: "declared".to_string(),
             reason: format!(
@@ -1010,7 +1067,40 @@ fn collect_full_benchmark_comparable_metrics(
             .then_with(|| left.stage_id.cmp(&right.stage_id))
             .then_with(|| left.metric_id.cmp(&right.metric_id))
     });
-    rows
+    Ok(rows)
+}
+
+fn acceptance_rows_by_metric(
+    rows: &[ScientificAcceptanceThresholdRow],
+) -> Result<BTreeMap<(String, String, String), ScientificAcceptanceThresholdRow>> {
+    let mut by_metric = BTreeMap::new();
+    for row in rows {
+        let key = (row.domain.clone(), row.stage_id.clone(), row.metric_id.clone());
+        if by_metric.insert(key.clone(), row.clone()).is_some() {
+            return Err(anyhow!(
+                "full benchmark report found duplicate scientific acceptance threshold row for `{}:{}/{}`",
+                key.0,
+                key.1,
+                key.2
+            ));
+        }
+    }
+    Ok(by_metric)
+}
+
+fn acceptance_row<'a>(
+    by_metric: &'a BTreeMap<(String, String, String), ScientificAcceptanceThresholdRow>,
+    domain: &str,
+    stage_id: &str,
+    metric_id: &str,
+) -> Result<&'a ScientificAcceptanceThresholdRow> {
+    by_metric
+        .get(&(domain.to_string(), stage_id.to_string(), metric_id.to_string()))
+        .ok_or_else(|| {
+            anyhow!(
+                "full benchmark report is missing scientific acceptance semantics for `{domain}` / `{stage_id}` / `{metric_id}`"
+            )
+        })
 }
 
 fn ensure_full_benchmark_report_contract(
@@ -1279,18 +1369,24 @@ fn render_full_benchmark_report_markdown(report: &FullBenchmarkReport) -> String
     rendered.push('\n');
 
     rendered.push_str("## Comparable Metrics\n\n");
-    rendered.push_str("| Domain | Stage | Metric ID | Metric Name | Unit | Direction | Required | Tools | Contract Status |\n");
-    rendered.push_str("| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n");
+    rendered.push_str("| Domain | Stage | Metric ID | Metric Name | Unit | Direction | Tolerance Kind | Tolerance | Pass Rule | Insufficiency Behavior | Required | Tools | Contract Status |\n");
+    rendered.push_str(
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n",
+    );
     for row in &report.comparable_metrics {
         rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+            "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
             sanitize_markdown_cell(&row.domain),
             sanitize_markdown_cell(&row.stage_id),
             sanitize_markdown_cell(&row.metric_id),
             sanitize_markdown_cell(&row.metric_name),
             sanitize_markdown_cell(row.unit.as_deref().unwrap_or("")),
-            sanitize_markdown_cell(row.direction.as_deref().unwrap_or("")),
-            row.required.map(|value| value.to_string()).unwrap_or_default(),
+            sanitize_markdown_cell(&row.direction),
+            sanitize_markdown_cell(&row.tolerance_kind),
+            format_threshold_value(row.tolerance_value),
+            sanitize_markdown_cell(&row.pass_rule),
+            sanitize_markdown_cell(&row.insufficiency_behavior),
+            row.required,
             sanitize_markdown_cell(&row.tool_ids.join(", ")),
             sanitize_markdown_cell(&row.contract_status)
         ));
@@ -1317,7 +1413,7 @@ fn render_full_benchmark_report_markdown(report: &FullBenchmarkReport) -> String
 fn runtime_source_label(row: &FullBenchmarkReportRow) -> &'static str {
     if row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair {
         "not_applicable"
-    } else if row.real_smoke_elapsed_seconds.is_some() {
+    } else if row.real_smoke_execution_id.is_some() || row.real_smoke_elapsed_seconds.is_some() {
         "fake_run_and_real_smoke"
     } else {
         "fake_run_simulated"
@@ -1433,6 +1529,29 @@ fn format_optional_u32(value: Option<u32>) -> String {
     value.map(|value| value.to_string()).unwrap_or_default()
 }
 
+fn format_threshold_value(value: f64) -> String {
+    let rendered = format!("{value:.6}");
+    rendered.trim_end_matches('0').trim_end_matches('.').to_string()
+}
+
+struct CurrentDirGuard {
+    original_dir: PathBuf,
+}
+
+impl CurrentDirGuard {
+    fn change_to(path: &Path) -> Self {
+        let original_dir = env::current_dir().expect("capture current dir");
+        env::set_current_dir(path).expect("set current dir");
+        Self { original_dir }
+    }
+}
+
+impl Drop for CurrentDirGuard {
+    fn drop(&mut self) {
+        env::set_current_dir(&self.original_dir).expect("restore current dir");
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{render_full_benchmark_report, DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH};
@@ -1475,6 +1594,10 @@ mod tests {
         assert_eq!(report.memory.len(), report.row_count);
         assert_eq!(report.missing_results.len(), 3);
         assert_eq!(report.unsupported_pairs.len(), 1);
+        assert!(report.comparable_metrics.iter().all(|row| !row.direction.is_empty()));
+        assert!(report.comparable_metrics.iter().all(|row| !row.tolerance_kind.is_empty()));
+        assert!(report.comparable_metrics.iter().all(|row| !row.pass_rule.is_empty()));
+        assert!(report.comparable_metrics.iter().all(|row| !row.insufficiency_behavior.is_empty()));
         assert!(report.passes_behavior_test);
     }
 
@@ -1499,6 +1622,9 @@ mod tests {
         assert!(markdown.contains("## Missing Results"));
         assert!(markdown.contains("## Comparable Metrics"));
         assert!(markdown.contains("## Unsupported Pairs"));
+        assert!(markdown.contains("Tolerance Kind"));
+        assert!(markdown.contains("Insufficiency Behavior"));
+        assert!(markdown.contains("match_reference_structure"));
         assert!(
             markdown.contains("fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2")
         );

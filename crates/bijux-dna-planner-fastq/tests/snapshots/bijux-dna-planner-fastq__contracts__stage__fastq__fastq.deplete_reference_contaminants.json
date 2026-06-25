@@ -23,6 +23,8 @@
       "reads_R2.fastq.gz",
       "--un-conc-gz",
       "out/contaminant_screened_R%.fastq.gz",
+      "--al-conc-gz",
+      "out/removed_contaminant_R%.fastq.gz",
       "--met-file",
       "out/bowtie2.contaminant.metrics.txt"
     ]
@@ -68,6 +70,18 @@
         "optional": false
       },
       {
+        "name": "removed_contaminant_reads_r1",
+        "path": "out/removed_contaminant_R1.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "removed_contaminant_reads_r2",
+        "path": "out/removed_contaminant_R2.fastq.gz",
+        "role": "reads",
+        "optional": true
+      },
+      {
         "name": "contaminant_screen_report_json",
         "path": "out/contaminant_screen_report.json",
         "role": "report_json",
@@ -86,6 +100,8 @@
     "raw_backend_report_format": "bowtie2_met_file",
     "reference_index": "contaminant_reference_index",
     "reference_index_backend": "bowtie2_build",
+    "removed_reads_r1": "out/removed_contaminant_R1.fastq.gz",
+    "removed_reads_r2": "out/removed_contaminant_R2.fastq.gz",
     "report_json": "out/contaminant_screen_report.json",
     "threads": 1,
     "tool": "bowtie2"

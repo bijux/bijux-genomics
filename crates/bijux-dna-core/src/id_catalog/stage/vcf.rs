@@ -16,6 +16,8 @@ pub const VCF_GL_PROPAGATION: &str = "vcf.gl_propagation";
 pub const VCF_IMPUTATION_METRICS: &str = "vcf.imputation_metrics";
 /// Canonical VCF imputation stage.
 pub const VCF_IMPUTE: &str = "vcf.impute";
+/// Canonical VCF admixture stage.
+pub const VCF_ADMIXTURE: &str = "vcf.admixture";
 /// Canonical VCF PCA stage.
 pub const VCF_PCA: &str = "vcf.pca";
 /// Canonical VCF phasing stage.
@@ -28,5 +30,7 @@ pub const VCF_POSTPROCESS: &str = "vcf.postprocess";
 pub const VCF_PREPARE_REFERENCE_PANEL: &str = "vcf.prepare_reference_panel";
 /// Canonical VCF QC stage.
 pub const VCF_QC: &str = "vcf.qc";
+/// Canonical VCF runs-of-homozygosity stage.
+pub const VCF_ROH: &str = "vcf.roh";
 /// Canonical VCF statistics stage.
 pub const VCF_STATS: &str = "vcf.stats";

@@ -39,14 +39,25 @@ parameters: []
 metrics:
   - name: "terminal_c_to_t_5p"
     meaning: "Observed 5' terminal C-to-T damage rate preserved in the governed BAM damage benchmark row"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "absolute_delta"
+      tolerance_value: 0.02
+      insufficiency_policy: "warn_and_exclude_stage"
   - name: "terminal_g_to_a_3p"
     meaning: "Observed 3' terminal G-to-A damage rate preserved in the governed BAM damage benchmark row"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "absolute_delta"
+      tolerance_value: 0.02
+      insufficiency_policy: "warn_and_exclude_stage"
   - name: "damage_signal"
     meaning: "Governed categorical damage signal preserved in the BAM damage benchmark row"
-  - name: "runtime_s"
-    meaning: "Wall-clock runtime in seconds"
-  - name: "memory_mb"
-    meaning: "Peak memory usage in MB"
+    scientific_threshold:
+      pass_direction: "exact_match"
+      tolerance_kind: "exact_match"
+      tolerance_value: 0.0
+      insufficiency_policy: "warn_and_exclude_stage"
 description: "BAM damage stage contract with governed damage report, terminal-position metrics, parser-output JSON, and benchmark-facing damage signal semantics."
 required_inputs:
   - bam

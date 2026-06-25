@@ -14,8 +14,8 @@ use super::all_domain_failure_classification::{
     render_all_domain_failure_classification, AllDomainFailureClassificationReport,
     DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH,
 };
-use super::all_domain_missing_result_test::{
-    render_all_domain_missing_result_test, AllDomainMissingResultStatus,
+use super::all_domain_missing_result_audit::{
+    render_all_domain_missing_result_audit, AllDomainMissingResultStatus,
     AllDomainMissingResultTestReport, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH,
 };
 use crate::commands::benchmark::local_all_domain_fake_failures::{
@@ -162,7 +162,7 @@ pub(crate) fn render_full_benchmark_result_collector(
         PathBuf::from(DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT),
         7,
     )?;
-    let missing_result_report = render_all_domain_missing_result_test(
+    let missing_result_report = render_all_domain_missing_result_audit(
         repo_root,
         PathBuf::from(DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH),
     )?;
@@ -398,7 +398,7 @@ fn collect_missing_result_rows(
         .iter()
         .map(|row| FullBenchmarkResultCollectorRow {
             record_id: format!("missing-audit:{}", row.result_id),
-            source_surface: "all_domain_missing_result_test".to_string(),
+            source_surface: "all_domain_missing_result_audit".to_string(),
             surface_kind: FullBenchmarkResultSurfaceKind::MissingResultAudit,
             result_status: match row.result_status {
                 AllDomainMissingResultStatus::Present => FullBenchmarkResultStatus::Present,

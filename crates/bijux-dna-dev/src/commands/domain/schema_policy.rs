@@ -533,7 +533,6 @@ pub(super) fn check_external_tool_policy(workspace: &Workspace) -> Result<Domain
         "bamutil",
         "ngsbriggs",
         "dustmasker",
-        "seqfu",
         "seqprep",
         "seqpurge",
         "diamond",

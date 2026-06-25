@@ -398,9 +398,9 @@ fn build_fastq_asset_backed_expected_result_row(
 }
 
 fn ensure_expected_result_contract(rows: &[ExpectedBenchmarkResultRow]) -> Result<()> {
-    if rows.len() != 118 {
+    if rows.len() != 120 {
         return Err(anyhow!(
-            "expected benchmark result table must retain exactly 118 benchmark-ready rows, found {}",
+            "expected benchmark result table must retain exactly 120 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -492,7 +492,13 @@ fn result_row_id(
     sample_scope: &str,
     tool_id: &str,
 ) -> String {
-    format!("{domain}:{fixture_id}:{stage_id}:{sample_scope}:{tool_id}")
+    crate::commands::benchmark::benchmark_result_ids::build_sample_scoped_benchmark_result_id(
+        domain,
+        fixture_id,
+        stage_id,
+        sample_scope,
+        tool_id,
+    )
 }
 
 fn result_root_path(fixture_id: &str, stage_id: &str, sample_scope: &str, tool_id: &str) -> String {
@@ -572,10 +578,10 @@ mod tests {
 
         assert_eq!(report.schema_version, EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 118);
-        assert_eq!(report.stage_count, 50);
-        assert_eq!(report.rows.len(), 118);
-        assert_eq!(report.domain_counts.get("fastq").copied(), Some(69));
+        assert_eq!(report.row_count, 120);
+        assert_eq!(report.stage_count, 51);
+        assert_eq!(report.rows.len(), 120);
+        assert_eq!(report.domain_counts.get("fastq").copied(), Some(71));
         assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
         assert!(report.rows.iter().any(|row| {
             row.domain == "fastq"

@@ -1,7 +1,8 @@
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_api::v1::api::run::{run_command_with_context, CommandOutputV1};
 use serde::Serialize;
 
 use crate::commands::cli::parse;
@@ -167,16 +168,21 @@ pub(crate) fn validate_benchmark_paths(
 ) -> Result<BenchmarkPathsValidationReport> {
     let absolute_output_path = repo_root.join(&output_path);
     if let Some(parent) = absolute_output_path.parent() {
-        std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
 
+    let tracked_paths = git_list_tracked_paths(repo_root)?;
     let roots = REQUIRED_BENCHMARK_ROOTS
         .iter()
-        .map(|contract| benchmark_root_status(repo_root, contract))
+        .map(|contract| benchmark_root_status(repo_root, contract, &tracked_paths))
         .collect::<Result<Vec<_>>>()?;
-    let legacy_fixture_wrapper = legacy_fixture_wrapper_status(repo_root)?;
-    let readiness_snapshots =
-        collect_readiness_snapshots(&repo_root.join("benchmarks/readiness"), repo_root)?;
+    let legacy_fixture_wrapper = legacy_fixture_wrapper_status(repo_root, &tracked_paths)?;
+    let readiness_snapshots = collect_readiness_snapshots(
+        &repo_root.join("benchmarks/readiness"),
+        repo_root,
+        &tracked_paths,
+    )?;
     let readiness_snapshot_count = readiness_snapshots.len();
     let readiness_json_snapshot_count =
         readiness_snapshots.iter().filter(|path| path.ends_with(".json")).count();
@@ -247,7 +253,8 @@ pub(crate) fn prove_disposable_root_cleanup(
     )?;
     let absolute_output_path = repo_root.join(&output_path);
     if let Some(parent) = absolute_output_path.parent() {
-        std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
     let ok = validator_report.ok && deleted_roots.iter().all(|root| !root.exists_after);
     let report = DisposableRootCleanupProofReport {
@@ -296,6 +303,7 @@ pub(crate) fn prove_disposable_root_cleanup(
 fn benchmark_root_status(
     repo_root: &Path,
     contract: &BenchmarkRootContract,
+    tracked_paths: &BTreeSet<String>,
 ) -> Result<BenchmarkRootStatus> {
     let root_path = repo_root.join(contract.relative_path);
     let marker_path = repo_root.join(contract.marker_path);
@@ -306,7 +314,7 @@ fn benchmark_root_status(
         marker_exists: marker_path.is_file(),
         ignored_by_git: git_check_ignored(repo_root, contract.relative_path)?
             || git_check_ignored(repo_root, contract.marker_path)?,
-        marker_tracked_by_git: git_check_tracked(repo_root, contract.marker_path)?,
+        marker_tracked_by_git: tracked_paths.contains(contract.marker_path),
     })
 }
 
@@ -323,7 +331,7 @@ fn delete_disposable_root(
         if file_type.is_dir() && !file_type.is_symlink() {
             remove_directory_tree(&absolute_path)?;
         } else {
-            std::fs::remove_file(&absolute_path)
+            bijux_dna_infra::remove_file(&absolute_path)
                 .with_context(|| format!("remove file {}", absolute_path.display()))?;
         }
         "deleted".to_string()
@@ -339,26 +347,14 @@ fn delete_disposable_root(
 }
 
 fn remove_directory_tree(path: &Path) -> Result<()> {
-    #[cfg(unix)]
-    {
-        let status = Command::new("rm")
-            .arg("-rf")
-            .arg(path)
-            .status()
-            .with_context(|| format!("remove directory {}", path.display()))?;
-        if !status.success() {
-            bail!("remove directory {} returned {}", path.display(), status);
-        }
-        Ok(())
-    }
-    #[cfg(not(unix))]
-    {
-        std::fs::remove_dir_all(path)
-            .with_context(|| format!("remove directory {}", path.display()))
-    }
+    bijux_dna_infra::remove_dir_all(path)
+        .with_context(|| format!("remove directory {}", path.display()))
 }
 
-fn legacy_fixture_wrapper_status(repo_root: &Path) -> Result<LegacyFixtureWrapperStatus> {
+fn legacy_fixture_wrapper_status(
+    repo_root: &Path,
+    tracked_paths: &BTreeSet<String>,
+) -> Result<LegacyFixtureWrapperStatus> {
     let wrapper_path = repo_root.join(LEGACY_FIXTURE_WRAPPER_PATH);
     let metadata = std::fs::symlink_metadata(&wrapper_path).ok();
     let is_symlink = metadata
@@ -386,7 +382,7 @@ fn legacy_fixture_wrapper_status(repo_root: &Path) -> Result<LegacyFixtureWrappe
         is_symlink,
         root_tests_readme_path: ROOT_TESTS_README_PATH.to_string(),
         root_tests_readme_exists: root_tests_readme_path.is_file(),
-        root_tests_readme_tracked_by_git: git_check_tracked(repo_root, ROOT_TESTS_README_PATH)?,
+        root_tests_readme_tracked_by_git: tracked_paths.contains(ROOT_TESTS_README_PATH),
         root_tests_regular_file_count,
     })
 }
@@ -493,9 +489,13 @@ fn collect_path_violations(
     violations
 }
 
-fn collect_readiness_snapshots(root: &Path, repo_root: &Path) -> Result<Vec<String>> {
+fn collect_readiness_snapshots(
+    root: &Path,
+    repo_root: &Path,
+    tracked_paths: &BTreeSet<String>,
+) -> Result<Vec<String>> {
     let mut snapshots = Vec::new();
-    collect_readiness_snapshots_recursive(root, repo_root, &mut snapshots)?;
+    collect_readiness_snapshots_recursive(root, repo_root, tracked_paths, &mut snapshots)?;
     snapshots.sort();
     Ok(snapshots)
 }
@@ -503,6 +503,7 @@ fn collect_readiness_snapshots(root: &Path, repo_root: &Path) -> Result<Vec<Stri
 fn collect_readiness_snapshots_recursive(
     path: &Path,
     repo_root: &Path,
+    tracked_paths: &BTreeSet<String>,
     snapshots: &mut Vec<String>,
 ) -> Result<()> {
     if !path.exists() {
@@ -517,7 +518,12 @@ fn collect_readiness_snapshots_recursive(
             .file_type()
             .with_context(|| format!("read file type for {}", entry_path.display()))?;
         if file_type.is_dir() {
-            collect_readiness_snapshots_recursive(&entry_path, repo_root, snapshots)?;
+            collect_readiness_snapshots_recursive(
+                &entry_path,
+                repo_root,
+                tracked_paths,
+                snapshots,
+            )?;
             continue;
         }
         if !file_type.is_file() {
@@ -531,11 +537,25 @@ fn collect_readiness_snapshots_recursive(
             .strip_prefix(repo_root)
             .with_context(|| format!("strip repo root from {}", entry_path.display()))?;
         let relative_path = relative_path.display().to_string();
-        if git_check_tracked(repo_root, &relative_path)? {
+        if tracked_paths.contains(relative_path.as_str()) {
             snapshots.push(relative_path);
         }
     }
     Ok(())
+}
+
+fn git_list_tracked_paths(repo_root: &Path) -> Result<BTreeSet<String>> {
+    let output = run_git(repo_root, &["ls-files", "-z"])
+        .with_context(|| format!("run git ls-files for {}", repo_root.display()))?;
+    if output.exit_code != 0 {
+        return Err(anyhow!(
+            "git ls-files returned {} for {}: {}",
+            output.exit_code,
+            repo_root.display(),
+            output.stderr.trim()
+        ));
+    }
+    Ok(output.stdout.split('\0').filter(|path| !path.is_empty()).map(ToOwned::to_owned).collect())
 }
 
 fn count_regular_files_without_following_symlinks(path: &Path) -> Result<usize> {
@@ -560,41 +580,39 @@ fn count_regular_files_without_following_symlinks(path: &Path) -> Result<usize> 
 }
 
 fn git_check_ignored(repo_root: &Path, relative_path: &str) -> Result<bool> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repo_root)
-        .args(["check-ignore", "-q", "--no-index", relative_path])
-        .output()
+    let output = run_git(repo_root, &["check-ignore", "-q", "--no-index", relative_path])
         .with_context(|| format!("run git check-ignore for {relative_path}"))?;
-    match output.status.code() {
-        Some(0) => Ok(true),
-        Some(1) => Ok(false),
-        Some(code) => Err(anyhow!(
+    match output.exit_code {
+        0 => Ok(true),
+        1 => Ok(false),
+        code => Err(anyhow!(
             "git check-ignore returned {code} for {relative_path}: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
+            output.stderr.trim()
         )),
-        None => {
-            Err(anyhow!("git check-ignore terminated without an exit code for {relative_path}"))
-        }
     }
 }
 
 fn git_check_tracked(repo_root: &Path, relative_path: &str) -> Result<bool> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repo_root)
-        .args(["ls-files", "--error-unmatch", relative_path])
-        .output()
+    let output = run_git(repo_root, &["ls-files", "--error-unmatch", relative_path])
         .with_context(|| format!("run git ls-files for {relative_path}"))?;
-    match output.status.code() {
-        Some(0) => Ok(true),
-        Some(1) => Ok(false),
-        Some(code) => Err(anyhow!(
+    match output.exit_code {
+        0 => Ok(true),
+        1 => Ok(false),
+        code => Err(anyhow!(
             "git ls-files returned {code} for {relative_path}: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
+            output.stderr.trim()
         )),
-        None => Err(anyhow!("git ls-files terminated without an exit code for {relative_path}")),
     }
+}
+
+fn run_git(repo_root: &Path, args: &[&str]) -> Result<CommandOutputV1> {
+    run_command_with_context(
+        "git",
+        &args.iter().map(|arg| (*arg).to_string()).collect::<Vec<_>>(),
+        Some(repo_root),
+        None,
+    )
+    .with_context(|| format!("run git {}", args.join(" ")))
 }
 
 #[cfg(test)]
@@ -608,51 +626,26 @@ mod tests {
 
     fn write_text(path: &Path, content: &str) {
         if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent).expect("create parent");
+            bijux_dna_infra::ensure_dir(parent).expect("create parent");
         }
-        std::fs::write(path, content).expect("write text");
+        bijux_dna_infra::write_string(path, content).expect("write text");
     }
 
     fn init_repo(root: &Path) {
-        let output = std::process::Command::new("git")
-            .arg("-C")
-            .arg(root)
-            .args(["init", "-q"])
-            .output()
-            .expect("git init");
-        assert!(
-            output.status.success(),
-            "git init failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        let output = std::process::Command::new("git")
-            .arg("-C")
-            .arg(root)
-            .args(["config", "user.email", "benchmarks@example.test"])
-            .output()
+        let output = super::run_git(root, &["init", "-q"]).expect("git init");
+        assert!(output.exit_code == 0, "git init failed: {}", output.stderr);
+        let output = super::run_git(root, &["config", "user.email", "benchmarks@example.test"])
             .expect("git config user.email");
-        assert!(output.status.success());
-        let output = std::process::Command::new("git")
-            .arg("-C")
-            .arg(root)
-            .args(["config", "user.name", "benchmarks"])
-            .output()
+        assert_eq!(output.exit_code, 0);
+        let output = super::run_git(root, &["config", "user.name", "benchmarks"])
             .expect("git config user.name");
-        assert!(output.status.success());
+        assert_eq!(output.exit_code, 0);
     }
 
     fn stage_all(root: &Path) {
-        let output = std::process::Command::new("git")
-            .arg("-C")
-            .arg(root)
-            .args(["add", "benchmarks", "tests", ".gitignore"])
-            .output()
-            .expect("git add");
-        assert!(
-            output.status.success(),
-            "git add failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
+        let output =
+            super::run_git(root, &["add", "benchmarks", "tests", ".gitignore"]).expect("git add");
+        assert!(output.exit_code == 0, "git add failed: {}", output.stderr);
     }
 
     fn write_benchmark_root(root: &Path) {
@@ -661,8 +654,12 @@ mod tests {
         write_text(&root.join("benchmarks/schemas/README.md"), "# Benchmark Schemas\n");
         write_text(&root.join("benchmarks/tests/README.md"), "# Benchmark Tests\n");
         write_text(&root.join("benchmarks/readiness/README.md"), "# Benchmark Readiness\n");
+        write_text(
+            &root.join("benchmarks/readiness/local-ready/README.md"),
+            "# Local Benchmark Ready\n",
+        );
         write_text(&root.join("tests/README.md"), "# Root Tests\n");
-        std::fs::create_dir_all(root.join("tests")).expect("create tests root");
+        bijux_dna_infra::ensure_dir(root.join("tests")).expect("create tests root");
         #[cfg(unix)]
         std::os::unix::fs::symlink("../benchmarks/tests/fixtures", root.join("tests/fixtures"))
             .expect("symlink tests fixtures");
@@ -692,9 +689,9 @@ mod tests {
         .expect("validate benchmark paths");
 
         assert!(report.ok);
-        assert_eq!(report.root_count, 5);
-        assert_eq!(report.existing_root_count, 5);
-        assert_eq!(report.tracked_marker_count, 5);
+        assert_eq!(report.root_count, 6);
+        assert_eq!(report.existing_root_count, 6);
+        assert_eq!(report.tracked_marker_count, 6);
         assert_eq!(report.ignored_root_count, 0);
         assert_eq!(report.readiness_snapshot_count, 2);
         assert_eq!(report.readiness_json_snapshot_count, 1);

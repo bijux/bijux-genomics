@@ -12,9 +12,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_RETAINED_TOOLS_PATH: &str =
-    "benchmarks/readiness/all-domains/retained-tools.tsv";
+    "benchmarks/readiness/tools/retained-tool-inventory.tsv";
 const ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_retained_tools.v1";
+    "bijux.bench.readiness.retained_tool_inventory.v1";
 const BENCHMARK_READY_STATUS: &str = "benchmark_ready";
 const NO_BENCHMARK_READY_STAGE_IDS: &str = "none";
 
@@ -77,8 +77,7 @@ pub(crate) fn render_all_domain_retained_tools(
     output_path: PathBuf,
 ) -> Result<AllDomainRetainedToolsReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
-    let source_rows = collect_all_domain_active_stage_tool_matrix_rows(repo_root)?;
-    let rows = collect_all_domain_retained_tool_rows(&source_rows)?;
+    let rows = collect_all_domain_retained_tool_rows(repo_root)?;
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -113,7 +112,14 @@ pub(crate) fn render_all_domain_retained_tools(
     })
 }
 
-fn collect_all_domain_retained_tool_rows(
+pub(crate) fn collect_all_domain_retained_tool_rows(
+    repo_root: &Path,
+) -> Result<Vec<AllDomainRetainedToolRow>> {
+    let source_rows = collect_all_domain_active_stage_tool_matrix_rows(repo_root)?;
+    build_all_domain_retained_tool_rows(&source_rows)
+}
+
+fn build_all_domain_retained_tool_rows(
     source_rows: &[AllDomainActiveStageToolMatrixRow],
 ) -> Result<Vec<AllDomainRetainedToolRow>> {
     let mut by_tool = BTreeMap::<String, ToolAccumulator>::new();
@@ -154,16 +160,14 @@ fn ensure_all_domain_retained_tool_contract(
 ) -> Result<()> {
     let inventory_tool_ids = rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>();
     if inventory_tool_ids.len() != rows.len() {
-        return Err(anyhow!(
-            "all-domain retained tool inventory must keep exactly one row per tool_id"
-        ));
+        return Err(anyhow!("retained tool inventory must keep exactly one row per tool_id"));
     }
 
     let active_matrix_tool_ids =
         source_rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>();
     if inventory_tool_ids != active_matrix_tool_ids {
         return Err(anyhow!(
-            "all-domain retained tool inventory drifted from the governed active stage-tool scope"
+            "retained tool inventory drifted from the governed active stage-tool scope"
         ));
     }
 
@@ -176,19 +180,19 @@ fn ensure_all_domain_retained_tool_contract(
             || row.benchmark_statuses.is_empty()
         {
             return Err(anyhow!(
-                "all-domain retained tool row `{}` is missing a required retained-scope field",
+                "retained tool inventory row `{}` is missing a required retained-scope field",
                 row.tool_id
             ));
         }
         if row.active_stage_count != row.active_stage_ids.len() {
             return Err(anyhow!(
-                "all-domain retained tool row `{}` drifted from its active stage ids",
+                "retained tool inventory row `{}` drifted from its active stage ids",
                 row.tool_id
             ));
         }
         if row.benchmark_ready_stage_count != row.benchmark_ready_stage_ids.len() {
             return Err(anyhow!(
-                "all-domain retained tool row `{}` drifted from its benchmark-ready stage ids",
+                "retained tool inventory row `{}` drifted from its benchmark-ready stage ids",
                 row.tool_id
             ));
         }
@@ -196,7 +200,7 @@ fn ensure_all_domain_retained_tool_contract(
             || row.benchmark_ready_stage_count > row.active_stage_count
         {
             return Err(anyhow!(
-                "all-domain retained tool row `{}` overcounts benchmark-ready coverage",
+                "retained tool inventory row `{}` overcounts benchmark-ready coverage",
                 row.tool_id
             ));
         }

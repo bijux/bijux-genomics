@@ -52,12 +52,7 @@ fn parse_sample_population_labels(
 }
 
 fn run_tool(bin: &str, args: &[&str], workdir: Option<&Path>) -> bool {
-    let mut cmd = std::process::Command::new(bin);
-    cmd.args(args);
-    if let Some(dir) = workdir {
-        cmd.current_dir(dir);
-    }
-    cmd.output().map(|x| x.status.success()).unwrap_or(false)
+    crate::engine::execution::command_succeeds(bin, args.iter().copied(), workdir)
 }
 
 fn parse_plink2_eigenvec(path: &Path, components: usize) -> Option<String> {

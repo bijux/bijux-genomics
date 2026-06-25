@@ -142,8 +142,8 @@ mod tests {
     #[test]
     fn load_bam_domain_tool_stage_output_contract_reads_validate_outputs() -> Result<()> {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.validate".to_string());
-        let tool_id = ToolId::new("samtools");
+        let stage_id = StageId::from_static("bam.validate");
+        let tool_id = ToolId::from_static("samtools");
 
         let contract = load_bam_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
 
@@ -164,8 +164,8 @@ mod tests {
     fn load_bam_domain_tool_stage_output_contract_falls_back_for_single_stage_tools() -> Result<()>
     {
         let repo_root = repo_root();
-        let stage_id = StageId::new("bam.contamination".to_string());
-        let tool_id = ToolId::new("verifybamid2");
+        let stage_id = StageId::from_static("bam.contamination");
+        let tool_id = ToolId::from_static("verifybamid2");
 
         let contract = load_bam_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;
 

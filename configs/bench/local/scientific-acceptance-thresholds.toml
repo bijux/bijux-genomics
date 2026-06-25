@@ -1,0 +1,1231 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Governed scientific acceptance thresholds for local benchmark comparisons.
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-06-25
+
+schema_version = "bijux.bench.local_scientific_acceptance_thresholds.v1"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.align"
+metric_id = "alignment_rate"
+metric_name = "alignment_rate"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.align"
+metric_id = "mapped_reads"
+metric_name = "mapped_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.authenticity"
+metric_id = "confidence"
+metric_name = "confidence"
+direction = "range"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.1
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.authenticity"
+metric_id = "pmd_like_signal_present"
+metric_name = "pmd_like_signal_present"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.authenticity"
+metric_id = "score"
+metric_name = "score"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.1
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.authenticity"
+metric_id = "status"
+metric_name = "status"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.contamination"
+metric_id = "ci_high"
+metric_name = "ci_high"
+direction = "maximum"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.02
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.contamination"
+metric_id = "ci_low"
+metric_name = "ci_low"
+direction = "maximum"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.02
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.contamination"
+metric_id = "estimate"
+metric_name = "estimate"
+direction = "maximum"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.01
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.coverage"
+metric_id = "breadth_1x"
+metric_name = "breadth_1x"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.coverage"
+metric_id = "covered_bases"
+metric_name = "covered_bases"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.coverage"
+metric_id = "mean_depth"
+metric_name = "mean_depth"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.1
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+metric_id = "damage_signal"
+metric_name = "damage_signal"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+metric_id = "terminal_c_to_t_5p"
+metric_name = "terminal_c_to_t_5p"
+direction = "range"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
+metric_id = "terminal_g_to_a_3p"
+metric_name = "terminal_g_to_a_3p"
+direction = "range"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.duplication_metrics"
+metric_id = "duplicate_count"
+metric_name = "duplicate_count"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.duplication_metrics"
+metric_id = "duplicate_fraction"
+metric_name = "duplicate_fraction"
+direction = "maximum"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.02
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.duplication_metrics"
+metric_id = "estimated_library_size"
+metric_name = "estimated_library_size"
+direction = "minimum"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.2
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.filter"
+metric_id = "input_reads"
+metric_name = "input_reads"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.filter"
+metric_id = "kept_reads"
+metric_name = "kept_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.filter"
+metric_id = "removed_reads"
+metric_name = "removed_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.kinship"
+metric_id = "observed_max_overlap_snps"
+metric_name = "observed_max_overlap_snps"
+direction = "minimum"
+tolerance_kind = "absolute_delta"
+tolerance_value = 100.0
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.kinship"
+metric_id = "pair_count"
+metric_name = "pair_count"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.kinship"
+metric_id = "pairwise_results"
+metric_name = "pairwise_results"
+direction = "structured_match"
+tolerance_kind = "normalized_record_overlap"
+tolerance_value = 1.0
+pass_rule = "match_reference_structure"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.kinship"
+metric_id = "status"
+metric_name = "status"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.length_filter"
+metric_id = "kept_reads"
+metric_name = "kept_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.length_filter"
+metric_id = "min_length_threshold"
+metric_name = "min_length_threshold"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.length_filter"
+metric_id = "removed_reads"
+metric_name = "removed_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapping_summary"
+metric_id = "mapped_reads"
+metric_name = "mapped_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapping_summary"
+metric_id = "mapping_fraction"
+metric_name = "mapping_fraction"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapping_summary"
+metric_id = "secondary_reads"
+metric_name = "secondary_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapping_summary"
+metric_id = "supplementary_reads"
+metric_name = "supplementary_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapping_summary"
+metric_id = "unmapped_reads"
+metric_name = "unmapped_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapq_filter"
+metric_id = "kept_reads"
+metric_name = "kept_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapq_filter"
+metric_id = "mapq_threshold"
+metric_name = "mapq_threshold"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.mapq_filter"
+metric_id = "removed_reads"
+metric_name = "removed_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.markdup"
+metric_id = "duplicate_count"
+metric_name = "duplicate_count"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.markdup"
+metric_id = "duplicate_fraction"
+metric_name = "duplicate_fraction"
+direction = "maximum"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.02
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.qc_pre"
+metric_id = "duplicate_flagged_reads"
+metric_name = "duplicate_flagged_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.qc_pre"
+metric_id = "mapped_reads"
+metric_name = "mapped_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.qc_pre"
+metric_id = "total_reads"
+metric_name = "total_reads"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.qc_pre"
+metric_id = "unmapped_reads"
+metric_name = "unmapped_reads"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.02
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+metric_id = "autosomal_coverage"
+metric_name = "autosomal_coverage"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.1
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+metric_id = "call"
+metric_name = "call"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+metric_id = "confidence"
+metric_name = "confidence"
+direction = "minimum"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.1
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+metric_id = "status"
+metric_name = "status"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+metric_id = "x_coverage"
+metric_name = "x_coverage"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.15
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+metric_id = "y_coverage"
+metric_name = "y_coverage"
+direction = "range"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.15
+pass_rule = "remain_within_reference_range"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.validate"
+metric_id = "validation_errors"
+metric_name = "validation_errors"
+direction = "structured_match"
+tolerance_kind = "normalized_set_overlap"
+tolerance_value = 1.0
+pass_rule = "match_reference_structure"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.validate"
+metric_id = "validation_status"
+metric_name = "validation_status"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.validate"
+metric_id = "validation_warnings"
+metric_name = "validation_warnings"
+direction = "structured_match"
+tolerance_kind = "normalized_set_overlap"
+tolerance_value = 1.0
+pass_rule = "match_reference_structure"
+insufficiency_behavior = "drop_metric_from_stage"
+required = true
+declaration_origin = "bam_stage_metric_contract"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.index_reference"
+metric_id = "index_build_exit_code"
+metric_name = "index_build_exit_code"
+unit = "exit_code"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "fastq_comparable_metric_policy"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_overrepresented_sequences"
+metric_id = "flagged_sequences"
+metric_name = "flagged_sequences"
+unit = "sequences"
+direction = "exact_match_preferred"
+tolerance_kind = "absolute_delta"
+tolerance_value = 1.0
+pass_rule = "match_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "fastq_comparable_metric_policy"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_overrepresented_sequences"
+metric_id = "sequence_count"
+metric_name = "sequence_count"
+unit = "reads"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "fastq_comparable_metric_policy"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.profile_overrepresented_sequences"
+metric_id = "top_fraction"
+metric_name = "top_fraction"
+unit = "fraction"
+direction = "exact_match_preferred"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.05
+pass_rule = "match_reference"
+insufficiency_behavior = "warn_and_exclude_stage"
+required = true
+declaration_origin = "fastq_comparable_metric_policy"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+metric_id = "format_validation_pass_rate"
+metric_name = "format_validation_pass_rate"
+unit = "fraction"
+direction = "higher_is_better"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.01
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "fastq_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.admixture"
+metric_id = "population_count"
+metric_name = "population count"
+unit = "populations"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.admixture"
+metric_id = "sample_count"
+metric_name = "sample count"
+unit = "samples"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.admixture"
+metric_id = "selected_k"
+metric_name = "selected cluster count"
+unit = "clusters"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_gl"
+metric_id = "missing_likelihoods"
+metric_name = "missing likelihoods"
+unit = "sites"
+direction = "lower_is_better"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_gl"
+metric_id = "sites_with_likelihoods"
+metric_name = "sites with likelihoods"
+unit = "sites"
+direction = "higher_is_better"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_pseudohaploid"
+metric_id = "called_sites"
+metric_name = "called sites"
+unit = "sites"
+direction = "higher_is_better"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.call_pseudohaploid"
+metric_id = "missing_sites"
+metric_name = "missing sites"
+unit = "sites"
+direction = "lower_is_better"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.damage_filter"
+metric_id = "removed_variants"
+metric_name = "removed variants"
+unit = "variants"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.damage_filter"
+metric_id = "retained_variants"
+metric_name = "retained variants"
+unit = "variants"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.damage_filter"
+metric_id = "terminal_damage_filtered_variants"
+metric_name = "terminal damage filtered variants"
+unit = "variants"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.gl_propagation"
+metric_id = "sample_count"
+metric_name = "sample count"
+unit = "samples"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.gl_propagation"
+metric_id = "site_count_after"
+metric_name = "site count after propagation"
+unit = "sites"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.gl_propagation"
+metric_id = "site_count_before"
+metric_name = "site count before propagation"
+unit = "sites"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.ibd"
+metric_id = "pair_count"
+metric_name = "pair count"
+unit = "pairs"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.imputation_metrics"
+metric_id = "concordance"
+metric_name = "concordance"
+unit = "fraction"
+direction = "higher_is_better"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.02
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.imputation_metrics"
+metric_id = "dosage_r2"
+metric_name = "dosage r-squared"
+unit = "score"
+direction = "higher_is_better"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.05
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "drop_metric_from_stage"
+required = false
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.imputation_metrics"
+metric_id = "low_confidence_sites"
+metric_name = "low-confidence sites"
+unit = "sites"
+direction = "lower_is_better"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.imputation_metrics"
+metric_id = "masked_truth_sites"
+metric_name = "masked-truth sites"
+unit = "sites"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.imputation_metrics"
+metric_id = "mean_info_score"
+metric_name = "mean info score"
+unit = "score"
+direction = "higher_is_better"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.05
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
+metric_id = "imputed_genotypes"
+metric_name = "imputed genotypes"
+unit = "genotypes"
+direction = "higher_is_better"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
+metric_id = "low_confidence_count"
+metric_name = "low-confidence sites"
+unit = "sites"
+direction = "lower_is_better"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
+metric_id = "masked_truth_match_count"
+metric_name = "masked-truth matches"
+unit = "sites"
+direction = "higher_is_better"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
+metric_id = "missing_after"
+metric_name = "missing genotypes after imputation"
+unit = "genotypes"
+direction = "lower_is_better"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
+metric_id = "missing_before"
+metric_name = "missing genotypes before imputation"
+unit = "genotypes"
+direction = "lower_is_better"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
+metric_id = "unresolved_count"
+metric_name = "unresolved sites"
+unit = "sites"
+direction = "lower_is_better"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.05
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.pca"
+metric_id = "sample_count"
+metric_name = "sample count"
+unit = "samples"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.pca"
+metric_id = "variant_count"
+metric_name = "variant count"
+unit = "variants"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.phasing"
+metric_id = "phase_block_n50"
+metric_name = "phase block n50"
+unit = "bases"
+direction = "higher_is_better"
+tolerance_kind = "relative_fraction"
+tolerance_value = 0.15
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.phasing"
+metric_id = "switch_error_proxy"
+metric_name = "switch error proxy"
+unit = "fraction"
+direction = "lower_is_better"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.02
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.population_structure"
+metric_id = "pair_count"
+metric_name = "pair count"
+unit = "pairs"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.population_structure"
+metric_id = "sample_count"
+metric_name = "sample count"
+unit = "samples"
+direction = "exact_match_preferred"
+tolerance_kind = "exact_match"
+tolerance_value = 0.0
+pass_rule = "match_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.qc"
+metric_id = "concordance"
+metric_name = "concordance"
+unit = "fraction"
+direction = "higher_is_better"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.02
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.qc"
+metric_id = "imputation_info_mean"
+metric_name = "mean imputation info"
+unit = "score"
+direction = "higher_is_better"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.05
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.qc"
+metric_id = "missingness_post"
+metric_name = "post-qc missingness"
+unit = "fraction"
+direction = "lower_is_better"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.02
+pass_rule = "not_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.qc"
+metric_id = "rsq_mean"
+metric_name = "mean r-squared"
+unit = "score"
+direction = "higher_is_better"
+tolerance_kind = "absolute_delta"
+tolerance_value = 0.05
+pass_rule = "meet_or_exceed_reference"
+insufficiency_behavior = "refuse_stage_comparison"
+required = true
+declaration_origin = "vcf_comparable_metric_policy"

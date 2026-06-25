@@ -44,11 +44,11 @@ fn bench_readiness_corpus_centric_report_writes_named_corpus_sections() {
 
     assert!(markdown.contains("# Corpus-Centric Benchmark Report"));
     assert!(markdown.contains("- Corpus count: 8"));
-    assert!(markdown.contains("- Assigned stages: 50"));
-    assert!(markdown.contains("- Assigned stage-tool rows: 121"));
-    assert!(markdown.contains("- Benchmark-ready rows: 118"));
-    assert!(markdown.contains("- Blocked rows: 3"));
-    assert!(markdown.contains("- Corpora with blocked stages: 1"));
+    assert!(markdown.contains("- Assigned stages: 51"));
+    assert!(markdown.contains("- Assigned stage-tool rows: 120"));
+    assert!(markdown.contains("- Benchmark-ready rows: 120"));
+    assert!(markdown.contains("- Blocked rows: 0"));
+    assert!(markdown.contains("- Corpora with blocked stages: 0"));
 
     assert!(markdown.contains("## corpus-02"));
     assert!(markdown.contains("| fastq | fastq.screen_taxonomy | corpus-02-edna-mini | Contamination Screening | 4 | 4 | 0 | not_declared | none |"));
@@ -60,8 +60,11 @@ fn bench_readiness_corpus_centric_report_writes_named_corpus_sections() {
     assert!(markdown.contains("| fastq | fastq.remove_chimeras | corpus-03-amplicon-mini | Amplicon Interpretation | 1 | 1 | 0 | not_applicable | none |"));
 
     assert!(markdown.contains("## corpus-01-adna-bam"));
-    assert!(markdown.contains("| bam | bam.damage | corpus-01-adna-damage-mini | Ancient Signal | 6 | 6 | 0 | terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal, runtime_s, memory_mb | none |"));
-    assert!(markdown.contains("| bam | bam.contamination | corpus-01-adna-bam-mini | Ancient Signal | 3 | 3 | 0 | scope, prerequisites_passed, estimate, ci_low, ci_high | none |"));
+    assert!(markdown.contains("| bam | bam.damage | corpus-01-adna-damage-mini | Ancient Signal | 6 | 6 | 0 | terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal | none |"));
+    assert!(markdown.contains("| bam | bam.contamination | corpus-01-adna-bam-mini | Ancient Signal | 3 | 3 | 0 | estimate, ci_low, ci_high | none |"));
+
+    assert!(markdown.contains("## corpus-01-bam"));
+    assert!(markdown.contains("| bam | bam.qc_pre | corpus-01-bam-mini | Alignment Intake | 2 | 2 | 0 | total_reads, mapped_reads, unmapped_reads, duplicate_flagged_reads | none |"));
 
     assert!(markdown.contains("## corpus-01-genotyping"));
     assert!(markdown.contains("| bam | bam.genotyping | corpus-01-genotyping-mini | Downstream Readiness | 1 | 1 | 0 | not_applicable | none |"));

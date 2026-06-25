@@ -1,0 +1,27 @@
+schema_version = "bijux.bench.fastq_taxonomy_truth.v1"
+fixture_id = "fastq-taxonomy-truth"
+description = "Governed FASTQ taxonomy truth bundle for expected taxa, unexpected taxa, unclassified reads, and false-positive screening checks."
+corpus_manifest_path = "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml"
+expected_taxa_path = "expected_taxa.tsv"
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_a.fastq.gz",
+  "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_b.fastq.gz",
+  "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/observed_taxonomy/mock_community_sample_a.classification_report.json",
+  "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/observed_taxonomy/mock_community_sample_b.classification_report.json",
+]
+
+[[samples]]
+sample_id = "mock_community_sample_a"
+observed_report_path = "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/observed_taxonomy/mock_community_sample_a.classification_report.json"
+expected_unclassified_percent = 0.0
+expected_unclassified_read_count = 0
+expected_false_positive_count = 0
+expected_unexpected_taxa = []
+
+[[samples]]
+sample_id = "mock_community_sample_b"
+observed_report_path = "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/observed_taxonomy/mock_community_sample_b.classification_report.json"
+expected_unclassified_percent = 0.0
+expected_unclassified_read_count = 0
+expected_false_positive_count = 0
+expected_unexpected_taxa = []

@@ -7,20 +7,26 @@ default_version: "2.15.0"
 install_kind: "container"
 license: "Public-Domain"
 citation: "paper:https://journals.sagepub.com/doi/abs/10.1089/cmb.2006.13.1028"
-planned_stage_ids: ["fastq.filter_low_complexity"]
-stage_ids: ["fastq.filter_low_complexity"]
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+stage_ids:
+  - "fastq.filter_low_complexity"
+expected_artifacts: ["filtered_fastq_r1", "filtered_fastq_r2", "filter_report_json"]
 stage_contracts:
   fastq.filter_low_complexity:
     required_inputs:
       - "reads_r1"
+    execution_contract:
+      expected_outputs:
+        - "filtered_fastq_r1"
+        - "filter_report_json"
+      optional_outputs:
+        - "filtered_fastq_r2"
     expected_artifacts:
       - "filtered_fastq_r1"
       - "filtered_fastq_r2"
       - "filter_report_json"
-    notes: "Planned low-complexity filtering would emit governed filtered-read artifacts together with the normalized filter report."
-status: "planned"
-scope: "pre_hpc_pre_vcf"
-expected_artifacts: ["filtered_fastq_r1", "filtered_fastq_r2", "filter_report_json"]
+    notes: "Retained non-governed low-complexity backend keeps its read-layout and artifact contract explicit until full runtime admission."
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "dustmasker -version"
@@ -28,7 +34,7 @@ help_cmd: "dustmasker -help"
 comparability:
   comparable_with: ["prinseq", "bbduk"]
   non_comparable_with: []
-comparability_notes: "Comparable when complexity thresholds and masking-to-filter conversion policy are matched."
+comparability_notes: "No governed benchmark binding is admitted until the tool owns a full execution contract, normalized output contract, and reviewer-stable local smoke proof."
 capabilities:
   - SE
   - PE

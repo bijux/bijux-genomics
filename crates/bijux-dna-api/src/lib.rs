@@ -11,7 +11,7 @@ pub(crate) mod internal;
 pub(crate) mod runtime;
 pub(crate) mod support;
 pub(crate) mod surface;
-pub(crate) use internal::public_bridge;
+pub(crate) use internal::public_surface;
 pub(crate) use runtime::persistence as writers;
 pub(crate) use runtime::validation as input_validation;
 pub(crate) use runtime::{cross_runtime, execution_kernel, run};

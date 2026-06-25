@@ -2,9 +2,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::run::run_command_with_context;
 use serde::Serialize;
 
 use super::all_domain_expected_benchmark_results::{
@@ -14,12 +14,12 @@ use super::all_domain_stage_tool_table::{
     render_all_domain_stage_tool_table, AllDomainStageToolTableReport,
     DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH,
 };
-use super::vcf_adapter_missing_input_tests::{
-    render_vcf_adapter_missing_input_tests, VcfAdapterMissingInputTestsReport,
+use super::vcf_adapter_missing_input_audit::{
+    render_vcf_adapter_missing_input_audit, VcfAdapterMissingInputTestsReport,
     DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH,
 };
-use super::vcf_parser_failure_tests::{
-    render_vcf_parser_failure_tests, VcfParserFailureTestsReport,
+use super::vcf_parser_failure_audit::{
+    render_vcf_parser_failure_audit, VcfParserFailureTestsReport,
     DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH,
 };
 use crate::commands::benchmark::local_stage_fake_runs::path_relative_to_repo;
@@ -38,7 +38,7 @@ const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_VERSION: &str =
 const INSUFFICIENT_DATA_FIXTURE_PATH: &str =
     "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/insufficient_data/expected.normalized.json";
 
-const REQUIRED_FAILURE_CLASSES: [&str; 7] = [
+pub(crate) const REQUIRED_FAILURE_CLASSES: [&str; 7] = [
     "missing_input",
     "tool_not_found",
     "command_failed",
@@ -111,7 +111,8 @@ pub(crate) fn render_all_domain_failure_classification(
     let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
 
     let fixture_root =
@@ -122,10 +123,10 @@ pub(crate) fn render_all_domain_failure_classification(
         "all-domain failure-classification fixture root",
     )?;
     if fixture_root.exists() {
-        fs::remove_dir_all(&fixture_root)
+        bijux_dna_infra::remove_dir_all(&fixture_root)
             .with_context(|| format!("remove {}", fixture_root.display()))?;
     }
-    fs::create_dir_all(&fixture_root)
+    bijux_dna_infra::ensure_dir(&fixture_root)
         .with_context(|| format!("create {}", fixture_root.display()))?;
 
     let rows = collect_all_domain_failure_classification_rows(repo_root, &fixture_root)?;
@@ -167,11 +168,11 @@ fn collect_all_domain_failure_classification_rows(
     repo_root: &Path,
     fixture_root: &Path,
 ) -> Result<Vec<AllDomainFailureClassificationRow>> {
-    let missing_input_report = render_vcf_adapter_missing_input_tests(
+    let missing_input_report = render_vcf_adapter_missing_input_audit(
         repo_root,
         PathBuf::from(DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH),
     )?;
-    let parser_failure_report = render_vcf_parser_failure_tests(
+    let parser_failure_report = render_vcf_parser_failure_audit(
         repo_root,
         PathBuf::from(DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH),
     )?;
@@ -206,7 +207,7 @@ fn classify_missing_input(
         stage_id: row.stage_id.clone(),
         tool_id: row.tool_id.clone(),
         result_id: None,
-        source_surface: "vcf_adapter_missing_input_tests".to_string(),
+        source_surface: "vcf_adapter_missing_input_audit".to_string(),
         evidence_path: row.artifact_path.clone(),
         observed_status: if row.passed {
             "missing_input".to_string()
@@ -239,19 +240,21 @@ fn classify_tool_not_found(
         .join(&binding.domain)
         .join(&binding.stage_id)
         .join(&binding.tool_id);
-    fs::create_dir_all(&probe_root).with_context(|| format!("create {}", probe_root.display()))?;
+    bijux_dna_infra::ensure_dir(&probe_root)
+        .with_context(|| format!("create {}", probe_root.display()))?;
     let missing_executable_path = probe_root.join("missing-tool");
     let command_script_path = probe_root.join("command.sh");
-    fs::write(&command_script_path, format!("{} --version\n", missing_executable_path.display()))
+    let command_script = format!("{} --version\n", missing_executable_path.display());
+    bijux_dna_infra::write_bytes(&command_script_path, command_script.as_bytes())
         .with_context(|| format!("write {}", command_script_path.display()))?;
 
-    let observed = Command::new(&missing_executable_path).arg("--version").output();
+    let observed = std::fs::metadata(&missing_executable_path);
     let (triggered, observed_status, observed_error) = match observed {
         Ok(_) => (
             false,
             "unexpected_success".to_string(),
             format!(
-                "tool-not-found probe unexpectedly executed `{}`",
+                "tool-not-found probe unexpectedly resolved `{}`",
                 missing_executable_path.display()
             ),
         ),
@@ -299,19 +302,26 @@ fn classify_command_failed(
         .join(&binding.domain)
         .join(&binding.stage_id)
         .join(&binding.tool_id);
-    fs::create_dir_all(&probe_root).with_context(|| format!("create {}", probe_root.display()))?;
+    bijux_dna_infra::ensure_dir(&probe_root)
+        .with_context(|| format!("create {}", probe_root.display()))?;
     let command_script_path = probe_root.join("command.sh");
-    fs::write(&command_script_path, "printf 'governed command-failed probe\\n' >&2\nexit 23\n")
-        .with_context(|| format!("write {}", command_script_path.display()))?;
-    let output = Command::new("sh")
-        .arg(&command_script_path)
-        .output()
-        .with_context(|| format!("run {}", command_script_path.display()))?;
+    bijux_dna_infra::write_bytes(
+        &command_script_path,
+        b"printf 'governed command-failed probe\\n' >&2\nexit 23\n",
+    )
+    .with_context(|| format!("write {}", command_script_path.display()))?;
+    let output = run_command_with_context(
+        "sh",
+        &[command_script_path.display().to_string()],
+        Some(repo_root),
+        None,
+    )
+    .with_context(|| format!("run {}", command_script_path.display()))?;
     let stderr_path = probe_root.join("stderr.txt");
-    fs::write(&stderr_path, &output.stderr)
+    bijux_dna_infra::write_bytes(&stderr_path, output.stderr.as_bytes())
         .with_context(|| format!("write {}", stderr_path.display()))?;
-    let observed_error = String::from_utf8_lossy(&output.stderr).trim().to_string();
-    let exit_code = output.status.code();
+    let observed_error = output.stderr.trim().to_string();
+    let exit_code = output.exit_code;
     Ok(AllDomainFailureClassificationRow {
         class_id: "command_failed".to_string(),
         domain: binding.domain,
@@ -320,14 +330,14 @@ fn classify_command_failed(
         result_id: Some(binding.result_id),
         source_surface: "governed_command_failed_probe".to_string(),
         evidence_path: path_relative_to_repo(repo_root, &stderr_path),
-        observed_status: if exit_code == Some(23) {
+        observed_status: if exit_code == 23 {
             "command_failed".to_string()
         } else {
             "unexpected_success".to_string()
         },
         observed_error,
         detail: "governed shell probe exits with code 23 after writing stderr".to_string(),
-        triggered: exit_code == Some(23),
+        triggered: exit_code == 23,
     })
 }
 
@@ -352,7 +362,8 @@ fn classify_missing_output(
         .join(&binding.domain)
         .join(&binding.stage_id)
         .join(&binding.tool_id);
-    fs::create_dir_all(&probe_root).with_context(|| format!("create {}", probe_root.display()))?;
+    bijux_dna_infra::ensure_dir(&probe_root)
+        .with_context(|| format!("create {}", probe_root.display()))?;
     let evidence_manifest_path = probe_root.join("expected-output.json");
     let missing_output_path = probe_root.join(format!("{artifact_id}.missing"));
     let payload = serde_json::json!({
@@ -398,7 +409,7 @@ fn classify_parser_failed(
         stage_id: row.stage_id.clone(),
         tool_id: row.tool_id.clone(),
         result_id: None,
-        source_surface: "vcf_parser_failure_tests".to_string(),
+        source_surface: "vcf_parser_failure_audit".to_string(),
         evidence_path: row.probe_artifact_path.clone(),
         observed_status: if row.passed {
             "parser_failed".to_string()

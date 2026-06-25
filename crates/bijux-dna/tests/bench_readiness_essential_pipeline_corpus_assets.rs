@@ -70,7 +70,7 @@ fn bench_readiness_essential_pipeline_corpus_assets_reports_governed_rows() {
             .get("status_counts")
             .and_then(|value| value.get("resolved_fixture_bound"))
             .and_then(serde_json::Value::as_u64),
-        Some(51)
+        Some(53)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");

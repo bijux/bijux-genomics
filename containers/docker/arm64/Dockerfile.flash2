@@ -37,5 +37,5 @@ RUN cd /opt/FLASH2 && \
     rm -rf /opt/FLASH2
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "flash2 \"$@\""]
+ENTRYPOINT ["flash2"]
 CMD []

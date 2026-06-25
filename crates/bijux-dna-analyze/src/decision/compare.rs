@@ -110,8 +110,7 @@ fn regression_risk_for(deltas: &JsonBlob) -> RegressionRisk {
             continue;
         };
         let semantics = resolve_semantics(metric);
-        let direction =
-            semantics.as_ref().map(|spec| spec.direction.as_str()).unwrap_or("HigherBetter");
+        let direction = semantics.as_ref().map_or("HigherBetter", |spec| spec.direction.as_str());
         let epsilon = 1e-9_f64;
         if delta.abs() <= epsilon {
             unchanged.push(metric.clone());

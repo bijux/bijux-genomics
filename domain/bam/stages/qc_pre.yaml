@@ -36,14 +36,32 @@ parameters: []
 metrics:
   - name: "total_reads"
     meaning: "Total reads observed in the input BAM"
+    scientific_threshold:
+      pass_direction: "exact_match"
+      tolerance_kind: "exact_match"
+      tolerance_value: 0.0
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "mapped_reads"
     meaning: "Reads reported as mapped in the governed flagstat summary"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "unmapped_reads"
     meaning: "Reads reported as unmapped in the governed flagstat summary"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "duplicate_flagged_reads"
     meaning: "Reads carrying the duplicate flag in the governed flagstat summary"
-  - name: "contig_summary"
-    meaning: "Per-contig idxstats summary with mapped and unmapped read counts"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.05
+      insufficiency_policy: "refuse_stage_comparison"
 description: "BAM pre-QC contract for governed pre-filter integrity summaries and benchmark-facing count reports."
 required_inputs:
   - bam

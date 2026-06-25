@@ -39,6 +39,12 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_nodes() {
     let payload =
         run_cli_json(&["bench", "readiness", "render-essential-pipeline-commands", "--json"]);
+    let expected_tool_id = if cfg!(feature = "bam_downstream") { "angsd" } else { "bijux-dna" };
+    let expected_command_source = if cfg!(feature = "bam_downstream") {
+        "bam_governed_stage_command"
+    } else {
+        "local_stage_materialization"
+    };
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -126,20 +132,18 @@ fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_n
                 && row.get("node_id").and_then(serde_json::Value::as_str) == Some("fastq.report_qc")
         })
         .expect("eDNA report_qc row");
-    assert_eq!(report_qc_row.get("tool_id").and_then(serde_json::Value::as_str), Some("bijux-dna"));
+    assert_eq!(report_qc_row.get("tool_id").and_then(serde_json::Value::as_str), Some("multiqc"));
     assert_eq!(
         report_qc_row.get("command_source").and_then(serde_json::Value::as_str),
-        Some("local_stage_materialization")
+        Some("fastq_governed_stage_command")
     );
     assert!(
         report_qc_row.get("script_commands").and_then(serde_json::Value::as_array).is_some_and(
             |commands| commands.iter().any(|item| {
-                item.as_str().is_some_and(|command| {
-                    command.contains("bench local materialize-stage --stage-id fastq.report_qc")
-                })
+                item.as_str().is_some_and(|command| command.contains("multiqc -o"))
             })
         ),
-        "fastq.report_qc row must render the owned local-stage materialization command"
+        "fastq.report_qc row must render the governed multiqc aggregation command"
     );
 
     let bam_genotyping_row = rows
@@ -152,11 +156,11 @@ fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_n
         .expect("bam.genotyping row");
     assert_eq!(
         bam_genotyping_row.get("tool_id").and_then(serde_json::Value::as_str),
-        Some("bijux-dna")
+        Some(expected_tool_id)
     );
     assert_eq!(
         bam_genotyping_row.get("command_source").and_then(serde_json::Value::as_str),
-        Some("local_stage_materialization")
+        Some(expected_command_source)
     );
     assert!(
         bam_genotyping_row
@@ -164,9 +168,16 @@ fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_n
             .and_then(serde_json::Value::as_array)
             .is_some_and(|commands| commands.iter().any(|item| {
                 item.as_str().is_some_and(|command| {
-                    command.contains("bench local materialize-stage --stage-id bam.genotyping")
+                    if cfg!(feature = "bam_downstream") {
+                        command.contains("angsd -i")
+                            && command.contains("genotyping.bcf")
+                            && command.contains("genotyping.vcf.gz")
+                    } else {
+                        command.contains("bench local materialize-stage")
+                            && command.contains("--stage-id bam.genotyping")
+                    }
                 })
             })),
-        "bam.genotyping row must render the owned local-stage materialization command"
+        "bam.genotyping row must render the supported command path for the active feature set"
     );
 }

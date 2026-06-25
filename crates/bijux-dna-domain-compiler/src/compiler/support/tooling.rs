@@ -276,9 +276,14 @@ pub(crate) fn required_tool_roles_for_stage(stage_id: &str) -> Vec<String> {
         }
         "bam.qc_pre" => vec!["qc", "transform"],
         "bam.validate" => vec!["validator", "filter", "transform"],
+        "fastq.deplete_host" => vec!["aligner", "transform"],
         "fastq.deplete_reference_contaminants" => vec!["screen", "transform", "aligner"],
-        "fastq.merge_pairs" => vec!["merger", "transform"],
-        "fastq.normalize_abundance" => vec!["transform", "filter"],
+        "fastq.estimate_library_complexity_prealign" | "fastq.merge_pairs" => {
+            vec!["merger", "transform"]
+        }
+        "fastq.normalize_abundance" | "fastq.profile_read_lengths" | "fastq.profile_reads" => {
+            vec!["transform", "filter"]
+        }
         "fastq.profile_overrepresented_sequences" => vec!["transform", "filter", "trimmer"],
         "fastq.trim_polyg_tails" => vec!["trimmer", "filter"],
         "fastq.trim_reads" | "fastq.trim_terminal_damage" => {

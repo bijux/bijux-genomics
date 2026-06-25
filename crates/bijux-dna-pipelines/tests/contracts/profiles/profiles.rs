@@ -437,7 +437,7 @@ fn profile_hash_depends_on_manifest_only_not_capability_ordering() {
 }
 
 #[test]
-fn production_fastq_profiles_cover_iteration_14_templates() {
+fn production_fastq_profiles_cover_workflow_templates() {
     let profiles = [
         fastq_qc_only_profile(),
         fastq_trim_qc_profile(),
@@ -507,7 +507,7 @@ fn production_fastq_profiles_cover_iteration_14_templates() {
 }
 
 #[test]
-fn fastq_iteration_11_template_links_cover_adna_and_primer_review_surfaces() {
+fn fastq_workflow_template_links_cover_adna_and_primer_review_surfaces() {
     assert_eq!(
         fastq_reference_adna_profile().capabilities.workflow_template_ids,
         vec!["fastq.ancient_dna_preprocessing".to_string()],
@@ -519,7 +519,7 @@ fn fastq_iteration_11_template_links_cover_adna_and_primer_review_surfaces() {
 }
 
 #[test]
-fn bam_iteration_12_template_links_cover_production_surfaces() {
+fn bam_workflow_template_links_cover_production_surfaces() {
     assert_eq!(
         bam_default_profile().capabilities.workflow_template_ids,
         vec![
@@ -547,7 +547,7 @@ fn bam_iteration_12_template_links_cover_production_surfaces() {
 }
 
 #[test]
-fn vcf_iteration_13_template_links_cover_production_surfaces() {
+fn vcf_workflow_template_links_cover_production_surfaces() {
     assert_eq!(
         vcf_minimal_profile().capabilities.workflow_template_ids,
         vec![

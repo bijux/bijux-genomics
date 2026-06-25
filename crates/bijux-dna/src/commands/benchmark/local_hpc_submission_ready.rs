@@ -97,6 +97,7 @@ const DEFAULT_SLURM_DEPENDENCY_CHECK_REPORT_PATH: &str =
 const DEFAULT_SLURM_SHELL_SYNTAX_REPORT_PATH: &str = "runs/bench/slurm-dry-run/bash-n-report.json";
 const DEFAULT_SLURM_SCRIPT_BODY_REPORT_PATH: &str =
     "runs/bench/slurm-dry-run/no-placeholder-report.json";
+const EXPECTED_ALL_DOMAIN_SLURM_SCRIPT_COUNT: usize = 285;
 const DEFAULT_CORPUS_SKIP_REPORT_PATH: &str =
     "benchmarks/readiness/local-ready/corpus-skip-report.json";
 const DEFAULT_HPC_SUPPORT_ROOT: &str = "artifacts/hpc/hpc-submission-ready";
@@ -356,7 +357,7 @@ fn evaluate_fastq_inventory_goal(
                 1,
                 "stage_matrices",
                 "FASTQ stage matrix covers the governed local inventory",
-                Some("benchmarks/configs/local/fastq-stage-matrix.toml".to_string()),
+                Some("configs/bench/local/fastq-stage-matrix.toml".to_string()),
                 format!("{err:#}"),
             ));
             None
@@ -394,7 +395,7 @@ fn evaluate_bam_inventory_goal(
                 28,
                 "stage_matrices",
                 "BAM stage matrix covers the governed local inventory",
-                Some("benchmarks/configs/local/bam-stage-matrix.toml".to_string()),
+                Some("configs/bench/local/bam-stage-matrix.toml".to_string()),
                 format!("{err:#}"),
             ));
             None
@@ -1910,7 +1911,7 @@ fn evaluate_slurm_script_body_goal(
     checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
     report: &BenchLocalSlurmScriptBodyReport,
 ) {
-    if report.ok && report.script_count == 269 {
+    if report.ok && report.script_count == EXPECTED_ALL_DOMAIN_SLURM_SCRIPT_COUNT {
         checks.push(ok_check(
             94,
             "slurm_dry_run",
@@ -1936,7 +1937,7 @@ fn evaluate_slurm_shell_syntax_goal(
     checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
     report: &BenchLocalSlurmShellSyntaxReport,
 ) {
-    if report.ok && report.script_count == 269 {
+    if report.ok && report.script_count == EXPECTED_ALL_DOMAIN_SLURM_SCRIPT_COUNT {
         checks.push(ok_check(
             95,
             "slurm_dry_run",

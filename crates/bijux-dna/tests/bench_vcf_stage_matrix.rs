@@ -43,12 +43,12 @@ fn bench_vcf_stage_matrix_matches_owned_vcf_contracts() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/configs/local/vcf-stage-matrix.toml")
+        Some("configs/bench/local/vcf-stage-matrix.toml")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("supported_stage_count").and_then(serde_json::Value::as_u64), Some(17));
-    assert_eq!(payload.get("planned_stage_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("supported_stage_count").and_then(serde_json::Value::as_u64), Some(18));
+    assert_eq!(payload.get("planned_stage_count").and_then(serde_json::Value::as_u64), Some(2));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 20);

@@ -1,4 +1,3 @@
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -72,7 +71,8 @@ pub(crate) fn render_local_tool_comparison_template(
     let absolute_output_path =
         if output_path.is_absolute() { output_path } else { repo_root.join(&output_path) };
     if let Some(parent) = absolute_output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
 
     fake_run_local_stage_commands(repo_root, absolute_fake_run_root.clone())?;
@@ -112,7 +112,8 @@ pub(crate) fn render_local_tool_comparison_template(
         row_count: rows.len(),
         rows,
     };
-    fs::write(&absolute_output_path, render_tool_comparison_template_tsv(&report.rows))
+    let rendered = render_tool_comparison_template_tsv(&report.rows);
+    bijux_dna_infra::write_bytes(&absolute_output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", absolute_output_path.display()))?;
     Ok(report)
 }

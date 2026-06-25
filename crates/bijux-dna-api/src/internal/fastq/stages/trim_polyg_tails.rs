@@ -35,15 +35,23 @@ use crate::internal::handlers::fastq::{
 };
 use serde::Serialize;
 
-const LOCAL_TRIM_POLYG_TAILS_SMOKE_METRICS_SCHEMA_VERSION: &str =
-    "bijux.fastq.trim_polyg_tails.local_smoke.metrics.v1";
+const LOCAL_TRIM_POLYG_TAILS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.trim_polyg_tails.local_smoke.report.v2";
 
 #[derive(Debug, Clone, Serialize)]
-struct LocalTrimPolygTailsSmokeMetrics {
+#[serde(rename_all = "snake_case")]
+enum LocalTrimPolygTailsSmokeLayout {
+    SingleEnd,
+    PairedEnd,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalTrimPolygTailsSmokeCaseReport {
     schema_version: String,
     stage_id: String,
     sample_id: String,
     tool_id: String,
+    layout: LocalTrimPolygTailsSmokeLayout,
     trim_polyg: bool,
     min_polyg_run: u32,
     input_reads: u64,
@@ -55,10 +63,19 @@ struct LocalTrimPolygTailsSmokeMetrics {
     bases_removed: u64,
     trimmed_tail_count: u64,
     bases_trimmed_polyg: u64,
-    trimmed_fastq_gz: String,
+    trimmed_reads_r1: String,
+    trimmed_reads_r2: Option<String>,
     report_json: String,
     raw_backend_report: String,
     used_fallback: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct LocalTrimPolygTailsSmokeReport {
+    schema_version: String,
+    stage_id: String,
+    case_count: u64,
+    cases: Vec<LocalTrimPolygTailsSmokeCaseReport>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -197,16 +214,19 @@ fn admitted_stage_tools() -> Vec<String> {
 pub fn write_local_trim_polyg_tails_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases = bijux_dna_planner_fastq::stage_api::local_trim_polyg_tails_smoke_plans(&repo_root)?;
-    let [case] = cases.as_slice() else {
-        return Err(anyhow!(
-            "local-smoke fastq.trim_polyg_tails expects exactly one governed case, found {}",
-            cases.len()
-        ));
-    };
 
     let output_root = repo_root.join("runs/bench/local-smoke/fastq.trim_polyg_tails");
     bijux_dna_infra::ensure_dir(&output_root)?;
-    let metrics = materialize_local_trim_polyg_tails_smoke_case(&repo_root, case, &output_root)?;
+    let cases = cases
+        .iter()
+        .map(|case| materialize_local_trim_polyg_tails_smoke_case(&repo_root, case))
+        .collect::<Result<Vec<_>>>()?;
+    let metrics = LocalTrimPolygTailsSmokeReport {
+        schema_version: LOCAL_TRIM_POLYG_TAILS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: STAGE_TRIM_POLYG_TAILS.as_str().to_string(),
+        case_count: cases.len() as u64,
+        cases,
+    };
     let metrics_path = output_root.join("metrics.json");
     bijux_dna_infra::atomic_write_json(&metrics_path, &metrics)?;
     Ok(metrics_path)
@@ -507,14 +527,20 @@ fn u64_to_f64(value: u64) -> f64 {
 fn materialize_local_trim_polyg_tails_smoke_case(
     repo_root: &Path,
     case: &bijux_dna_planner_fastq::LocalTrimPolygTailsSmokeCasePlan,
-    output_root: &Path,
-) -> Result<LocalTrimPolygTailsSmokeMetrics> {
+) -> Result<LocalTrimPolygTailsSmokeCaseReport> {
     let effective_params =
         serde_json::from_value::<TrimPolygTailsParams>(case.plan.effective_params.clone())
             .context("decode trim polyG local-smoke effective params")?;
     let input_r1 = repo_root.join(&case.r1);
+    let input_r2 = case.r2.as_ref().map(|path| repo_root.join(path));
     let output_r1 =
         resolve_output_path(repo_root, &required_plan_output_path(&case.plan, "trimmed_reads_r1")?);
+    let output_r2 = case
+        .r2
+        .as_ref()
+        .map(|_| required_plan_output_path(&case.plan, "trimmed_reads_r2"))
+        .transpose()?
+        .map(|path| resolve_output_path(repo_root, &path));
     let report_path =
         resolve_output_path(repo_root, &required_plan_output_path(&case.plan, "report_json")?);
     let raw_backend_report = resolve_output_path(
@@ -534,8 +560,14 @@ fn materialize_local_trim_polyg_tails_smoke_case(
             bijux_dna_infra::ensure_dir(parent)?;
         }
     }
+    if let Some(output_r2) = output_r2.as_ref() {
+        if let Some(parent) = output_r2.parent() {
+            bijux_dna_infra::ensure_dir(parent)?;
+        }
+    }
 
     let input_records = read_fastq_records(&input_r1)?;
+    let input_records_r2 = input_r2.as_ref().map(|path| read_fastq_records(path)).transpose()?;
     let mut trimmed_tail_count = 0_u64;
     let mut bases_trimmed_polyg = 0_u64;
     let trimmed_records = input_records
@@ -551,18 +583,39 @@ fn materialize_local_trim_polyg_tails_smoke_case(
             trimmed
         })
         .collect::<Vec<_>>();
+    let trimmed_records_r2 = input_records_r2.as_ref().map(|records| {
+        records
+            .iter()
+            .map(|record| {
+                let (trimmed, removed_bases, trimmed_tail) = trim_polyg_record_locally(
+                    record,
+                    effective_params.trim_polyg,
+                    effective_params.min_polyg_run as usize,
+                );
+                trimmed_tail_count += u64::from(trimmed_tail);
+                bases_trimmed_polyg += removed_bases;
+                trimmed
+            })
+            .collect::<Vec<_>>()
+    });
 
     write_fastq_records(&output_r1, &trimmed_records)?;
+    if let Some((output_r2, trimmed_records_r2)) =
+        output_r2.as_ref().zip(trimmed_records_r2.as_ref())
+    {
+        write_fastq_records(output_r2, trimmed_records_r2)?;
+    }
 
-    let top_level_trimmed = output_root.join("trimmed.fastq.gz");
-    write_fastq_records(&top_level_trimmed, &trimmed_records)?;
-
-    let input_reads = input_records.len() as u64;
-    let output_reads = trimmed_records.len() as u64;
+    let input_reads = input_records.len() as u64
+        + input_records_r2.as_ref().map_or(0, |records| records.len() as u64);
+    let output_reads = trimmed_records.len() as u64
+        + trimmed_records_r2.as_ref().map_or(0, |records| records.len() as u64);
     let reads_retained = output_reads;
     let reads_dropped = input_reads.saturating_sub(output_reads);
-    let input_bases = total_bases(&input_records);
-    let output_bases = total_bases(&trimmed_records);
+    let input_bases = total_bases(&input_records)
+        + input_records_r2.as_ref().map_or(0, |records| total_bases(records));
+    let output_bases = total_bases(&trimmed_records)
+        + trimmed_records_r2.as_ref().map_or(0, |records| total_bases(records));
     let bases_removed = input_bases.saturating_sub(output_bases);
     let raw_backend_report_format =
         if case.plan.tool_id.as_str() == "fastp" { "fastp_json" } else { "bbduk_stats" };
@@ -579,15 +632,19 @@ fn materialize_local_trim_polyg_tails_smoke_case(
         input_r1: case.r1.display().to_string(),
         input_r2: case.r2.as_ref().map(|path| path.display().to_string()),
         output_r1: path_relative_to_repo(repo_root, &output_r1),
-        output_r2: None,
+        output_r2: output_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
         reads_in: Some(input_reads),
         reads_out: Some(output_reads),
         bases_in: Some(input_bases),
         bases_out: Some(output_bases),
-        pairs_in: None,
-        pairs_out: None,
-        mean_q_before: mean_quality(&input_records),
-        mean_q_after: mean_quality(&trimmed_records),
+        pairs_in: input_records_r2
+            .as_ref()
+            .map(|records| input_records.len().min(records.len()) as u64),
+        pairs_out: trimmed_records_r2
+            .as_ref()
+            .map(|records| trimmed_records.len().min(records.len()) as u64),
+        mean_q_before: mean_quality_across([Some(&input_records), input_records_r2.as_ref()]),
+        mean_q_after: mean_quality_across([Some(&trimmed_records), trimmed_records_r2.as_ref()]),
         trimmed_tail_count: Some(trimmed_tail_count),
         bases_trimmed_polyg: Some(bases_trimmed_polyg),
         polyx_bank_id: None,
@@ -614,11 +671,16 @@ fn materialize_local_trim_polyg_tails_smoke_case(
         bases_trimmed_polyg,
     )?;
 
-    Ok(LocalTrimPolygTailsSmokeMetrics {
-        schema_version: LOCAL_TRIM_POLYG_TAILS_SMOKE_METRICS_SCHEMA_VERSION.to_string(),
+    Ok(LocalTrimPolygTailsSmokeCaseReport {
+        schema_version: LOCAL_TRIM_POLYG_TAILS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
         stage_id: STAGE_TRIM_POLYG_TAILS.as_str().to_string(),
         sample_id: case.sample_id.clone(),
         tool_id: case.plan.tool_id.as_str().to_string(),
+        layout: if case.r2.is_some() {
+            LocalTrimPolygTailsSmokeLayout::PairedEnd
+        } else {
+            LocalTrimPolygTailsSmokeLayout::SingleEnd
+        },
         trim_polyg: effective_params.trim_polyg,
         min_polyg_run: effective_params.min_polyg_run,
         input_reads,
@@ -630,7 +692,8 @@ fn materialize_local_trim_polyg_tails_smoke_case(
         bases_removed,
         trimmed_tail_count,
         bases_trimmed_polyg,
-        trimmed_fastq_gz: path_relative_to_repo(repo_root, &top_level_trimmed),
+        trimmed_reads_r1: path_relative_to_repo(repo_root, &output_r1),
+        trimmed_reads_r2: output_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
         report_json: path_relative_to_repo(repo_root, &report_path),
         raw_backend_report: path_relative_to_repo(repo_root, &raw_backend_report),
         used_fallback: true,
@@ -653,17 +716,21 @@ fn total_bases(records: &[FastqRecord]) -> u64 {
     records.iter().map(|record| record.sequence.len() as u64).sum()
 }
 
-fn mean_quality(records: &[FastqRecord]) -> Option<f64> {
-    let total_bases = total_bases(records);
-    if total_bases == 0 {
+fn mean_quality_across(record_sets: [Option<&Vec<FastqRecord>>; 2]) -> Option<f64> {
+    let mut total_quality = 0_u64;
+    let mut total_base_count = 0_u64;
+    for records in record_sets.into_iter().flatten() {
+        total_base_count += total_bases(records);
+        total_quality += records
+            .iter()
+            .flat_map(|record| record.quality.bytes())
+            .map(|value| u64::from(value.saturating_sub(33)))
+            .sum::<u64>();
+    }
+    if total_base_count == 0 {
         return None;
     }
-    let total_quality = records
-        .iter()
-        .flat_map(|record| record.quality.bytes())
-        .map(|value| u64::from(value.saturating_sub(33)))
-        .sum::<u64>();
-    Some(u64_to_f64(total_quality) / u64_to_f64(total_bases))
+    Some(u64_to_f64(total_quality) / u64_to_f64(total_base_count))
 }
 
 fn trim_polyg_record_locally(
@@ -730,7 +797,7 @@ fn write_fastq_records(path: &Path, records: &[FastqRecord]) -> Result<()> {
         .and_then(|ext| ext.to_str())
         .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
     {
-        let file = std::fs::File::create(path)?;
+        let file = bijux_dna_infra::create_file(path)?;
         let mut encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
         for record in records {
             writeln!(encoder, "{}", record.header)?;
@@ -740,7 +807,7 @@ fn write_fastq_records(path: &Path, records: &[FastqRecord]) -> Result<()> {
         }
         encoder.finish()?;
     } else {
-        let file = std::fs::File::create(path)?;
+        let file = bijux_dna_infra::create_file(path)?;
         let mut writer = std::io::BufWriter::new(file);
         for record in records {
             writeln!(writer, "{}", record.header)?;

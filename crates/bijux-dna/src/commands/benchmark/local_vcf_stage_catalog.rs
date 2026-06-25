@@ -12,10 +12,16 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_STAGE_CATALOG_PATH: &str =
-    "benchmarks/configs/local/vcf-stage-catalog.toml";
+    "configs/bench/local/vcf-stage-catalog.toml";
 const LOCAL_VCF_STAGE_CATALOG_SCHEMA_VERSION: &str = "bijux.bench.vcf.local_stage_catalog.v1";
 const LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_stage_catalog.v1";
+const LOCAL_VCF_STAGE_CATALOG_HEADER: &str = "# schema_version = 1\n\
+# owner = bijux-dna-bench\n\
+# purpose = Governed VCF local benchmark stage catalog.\n\
+# authority = bijux-dna-bench\n\
+# stability = evolving\n\
+# last_updated = 2026-06-25\n\n";
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -76,7 +82,8 @@ pub(crate) fn render_vcf_stage_catalog(
         schema_version: LOCAL_VCF_STAGE_CATALOG_SCHEMA_VERSION.to_string(),
         rows: rows.clone(),
     };
-    let rendered = toml::to_string_pretty(&config).context("serialize VCF stage catalog TOML")?;
+    let body = toml::to_string_pretty(&config).context("serialize VCF stage catalog TOML")?;
+    let rendered = format!("{LOCAL_VCF_STAGE_CATALOG_HEADER}{body}");
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -391,7 +398,7 @@ mod tests {
         assert_eq!(report.schema_version, LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_VERSION);
         assert_eq!(report.config_path, DEFAULT_VCF_STAGE_CATALOG_PATH);
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.supported_stage_count, 9);
-        assert_eq!(report.planned_stage_count, 11);
+        assert_eq!(report.supported_stage_count, 18);
+        assert_eq!(report.planned_stage_count, 2);
     }
 }

@@ -21,7 +21,7 @@ use crate::commands::cli::render;
 const LOCAL_STAGE_COMMAND_MANIFEST_SCHEMA_VERSION: &str = "bijux.bench.local_stage_commands.v3";
 const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
     "benchmarks/readiness/local-ready/rendered-stage-commands.sh";
-const LOCAL_REPORT_QC_CONFIG_PATH: &str = "benchmarks/configs/local/fastq-report-qc.toml";
+const LOCAL_REPORT_QC_CONFIG_PATH: &str = "configs/bench/local/fastq-report-qc.toml";
 const LOCAL_REPORT_QC_CONFIG_SCHEMA_VERSION: &str = "bijux.bench.fastq.local_report_qc.v1";
 const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.report_qc";
 
@@ -106,6 +106,10 @@ pub(crate) fn run_materialize_stage(args: &parse::BenchLocalMaterializeStageArgs
     Ok(())
 }
 
+pub(crate) fn run_bam_stage_smoke(args: &parse::BenchLocalRunBamStageSmokeArgs) -> Result<()> {
+    super::local_bam_stage_smoke::run_bam_stage_smoke(args)
+}
+
 pub(crate) fn run_render_stage_commands(
     args: &parse::BenchLocalRenderStageCommandsArgs,
 ) -> Result<()> {
@@ -127,14 +131,12 @@ pub(crate) fn materialize_local_stage(repo_root: &Path, stage_id: &str) -> Resul
         "fastq.cluster_otus" => {
             bijux_dna_api::v1::api::fastq::write_local_cluster_otus_smoke_report()
         }
-        "fastq.correct_errors" => {
-            bijux_dna_api::v1::api::fastq::write_local_correct_errors_smoke_plan()
-        }
-        "fastq.deplete_host" => bijux_dna_api::v1::api::fastq::write_local_deplete_host_plan(),
+        "fastq.correct_errors" => materialize_local_stage_from_plans(repo_root, stage_id),
+        "fastq.deplete_host" => materialize_local_stage_from_plans(repo_root, stage_id),
         "fastq.deplete_reference_contaminants" => {
-            bijux_dna_api::v1::api::fastq::write_local_deplete_reference_contaminants_plan()
+            materialize_local_stage_from_plans(repo_root, stage_id)
         }
-        "fastq.deplete_rrna" => bijux_dna_api::v1::api::fastq::write_local_deplete_rrna_plan(),
+        "fastq.deplete_rrna" => materialize_local_stage_from_plans(repo_root, stage_id),
         "fastq.detect_adapters" => {
             bijux_dna_api::v1::api::fastq::write_local_detect_adapters_smoke_report()
         }
@@ -154,9 +156,7 @@ pub(crate) fn materialize_local_stage(repo_root: &Path, stage_id: &str) -> Resul
         "fastq.filter_reads" => {
             bijux_dna_api::v1::api::fastq::write_local_filter_reads_smoke_report()
         }
-        "fastq.index_reference" => {
-            bijux_dna_api::v1::api::fastq::write_local_index_reference_plan()
-        }
+        "fastq.index_reference" => materialize_local_stage_from_plans(repo_root, stage_id),
         "fastq.infer_asvs" => {
             bijux_dna_api::v1::api::fastq::write_local_infer_asvs_smoke_report()
         }
@@ -183,9 +183,7 @@ pub(crate) fn materialize_local_stage(repo_root: &Path, stage_id: &str) -> Resul
             bijux_dna_api::v1::api::fastq::write_local_remove_duplicates_smoke_report()
         }
         "fastq.report_qc" => materialize_local_report_qc_smoke_report(repo_root),
-        "fastq.screen_taxonomy" => {
-            bijux_dna_api::v1::api::fastq::write_local_screen_taxonomy_plan()
-        }
+        "fastq.screen_taxonomy" => materialize_local_stage_from_plans(repo_root, stage_id),
         "fastq.trim_polyg_tails" => {
             bijux_dna_api::v1::api::fastq::write_local_trim_polyg_tails_smoke_report()
         }
@@ -198,14 +196,14 @@ pub(crate) fn materialize_local_stage(repo_root: &Path, stage_id: &str) -> Resul
         "fastq.validate_reads" => {
             bijux_dna_api::v1::api::fastq::write_local_validate_reads_smoke_report()
         }
-        "bam.align" => bijux_dna_api::v1::api::bam::write_local_align_plan(),
+        "bam.align" => materialize_local_stage_from_plans(repo_root, stage_id),
         "bam.authenticity" => {
             bijux_dna_api::v1::api::bam::write_local_authenticity_smoke_report()
         }
         "bam.complexity" => {
             bijux_dna_api::v1::api::bam::write_local_complexity_smoke_report()
         }
-        "bam.contamination" => bijux_dna_api::v1::api::bam::write_local_contamination_plan(),
+        "bam.contamination" => materialize_local_stage_from_plans(repo_root, stage_id),
         "bam.coverage" => bijux_dna_api::v1::api::bam::write_local_coverage_smoke_summary(),
         "bam.damage" => bijux_dna_api::v1::api::bam::write_local_damage_smoke_report(),
         "bam.duplication_metrics" => {
@@ -238,12 +236,34 @@ pub(crate) fn materialize_local_stage(repo_root: &Path, stage_id: &str) -> Resul
         }
         "bam.sex" => bijux_dna_api::v1::api::bam::write_local_sex_smoke_report(),
         "bam.validate" => bijux_dna_api::v1::api::bam::write_local_validate_smoke_report(),
-        other => materialize_feature_gated_stage(other),
+        other => materialize_feature_gated_stage(repo_root, other),
     }
 }
 
+pub(crate) fn bam_stage_smoke_command(stage_id: &str) -> Result<String> {
+    super::local_bam_stage_smoke::bam_stage_smoke_command(stage_id)
+}
+
+pub(crate) fn bam_stage_smoke_support_path(
+    repo_root: &Path,
+    stage_id: &str,
+) -> Result<Option<String>> {
+    super::local_bam_stage_smoke::bam_stage_smoke_support_path(repo_root, stage_id)
+}
+
+pub(crate) fn governed_bam_local_smoke_tool_id(
+    repo_root: &Path,
+    stage_id: &str,
+) -> Result<Option<String>> {
+    super::local_bam_stage_smoke::governed_bam_local_smoke_tool_id(repo_root, stage_id)
+}
+
+pub(crate) fn has_bam_local_ready_only_contract(stage_id: &str) -> bool {
+    super::local_bam_stage_smoke::has_bam_local_ready_only_contract(stage_id)
+}
+
 #[cfg(feature = "bam_downstream")]
-fn materialize_feature_gated_stage(stage_id: &str) -> Result<PathBuf> {
+fn materialize_feature_gated_stage(_repo_root: &Path, stage_id: &str) -> Result<PathBuf> {
     match stage_id {
         "bam.bias_mitigation" => {
             bijux_dna_api::v1::api::bam::write_local_bias_mitigation_smoke_report()
@@ -256,7 +276,7 @@ fn materialize_feature_gated_stage(stage_id: &str) -> Result<PathBuf> {
 }
 
 #[cfg(not(feature = "bam_downstream"))]
-fn materialize_feature_gated_stage(stage_id: &str) -> Result<PathBuf> {
+fn materialize_feature_gated_stage(_repo_root: &Path, stage_id: &str) -> Result<PathBuf> {
     match stage_id {
         "bam.bias_mitigation" | "bam.genotyping" | "bam.haplogroups" | "bam.kinship" => {
             Err(anyhow!(
@@ -264,6 +284,59 @@ fn materialize_feature_gated_stage(stage_id: &str) -> Result<PathBuf> {
             ))
         }
         other => Err(anyhow!("unsupported local benchmark stage `{other}`")),
+    }
+}
+
+fn materialize_local_stage_from_plans(repo_root: &Path, stage_id: &str) -> Result<PathBuf> {
+    let plans = local_stage_plans(repo_root, stage_id)?;
+    let mut proof_path = None;
+    for plan in &plans {
+        let plan_dir = repo_relative_pathbuf(repo_root, &plan.out_dir);
+        let plan_path = plan_dir.join("plan.json");
+        bijux_dna_infra::atomic_write_json(&plan_path, plan)
+            .with_context(|| format!("materialize {}", plan_path.display()))?;
+        for artifact in &plan.io.outputs {
+            let resolved = repo_relative_pathbuf(repo_root, &artifact.path);
+            materialize_declared_output(&resolved)?;
+            proof_path.get_or_insert(resolved);
+        }
+    }
+    proof_path.ok_or_else(|| anyhow!("local benchmark stage `{stage_id}` declares no outputs"))
+}
+
+pub(crate) fn materialize_declared_output(path: &Path) -> Result<()> {
+    if output_path_prefers_directory(path) {
+        if path.is_file() {
+            fs::remove_file(path)
+                .with_context(|| format!("remove conflicting file {}", path.display()))?;
+        }
+        fs::create_dir_all(path).with_context(|| format!("create {}", path.display()))?;
+        return Ok(());
+    }
+
+    if path.is_dir() {
+        fs::remove_dir_all(path)
+            .with_context(|| format!("remove conflicting directory {}", path.display()))?;
+    }
+    let payload = placeholder_output_bytes(path);
+    bijux_dna_infra::atomic_write_bytes(path, &payload)
+        .with_context(|| format!("materialize {}", path.display()))?;
+    Ok(())
+}
+
+fn output_path_prefers_directory(path: &Path) -> bool {
+    path.extension().is_none()
+}
+
+fn placeholder_output_bytes(path: &Path) -> Vec<u8> {
+    match path.extension().and_then(|value| value.to_str()) {
+        Some("json") => b"{}\n".to_vec(),
+        Some("jsonl") => b"{}\n".to_vec(),
+        Some("html") => b"<html><body>bijux local proof</body></html>\n".to_vec(),
+        Some("tsv") => b"placeholder\tvalue\n".to_vec(),
+        Some("csv") => b"placeholder,value\n".to_vec(),
+        Some("txt" | "log" | "md") => b"bijux local proof\n".to_vec(),
+        _ => Vec::new(),
     }
 }
 
@@ -359,7 +432,16 @@ fn build_local_stage_command_entry(
     repo_root: &Path,
     bundle: BenchLocalStagePlanBundle,
 ) -> Result<BenchLocalStageCommandEntry> {
-    let plans = bundle.plans;
+    let primary_tool_id = bundle
+        .plans
+        .first()
+        .ok_or_else(|| {
+            anyhow!("local benchmark stage `{}` did not yield any governed plans", bundle.stage_id)
+        })?
+        .tool_id
+        .clone();
+    let plans =
+        bundle.plans.into_iter().filter(|plan| plan.tool_id == primary_tool_id).collect::<Vec<_>>();
     if plans.is_empty() {
         return Err(anyhow!(
             "local benchmark stage `{}` did not yield any governed plans",
@@ -371,14 +453,6 @@ fn build_local_stage_command_entry(
     let threads = plans[0].resources.threads.max(1);
     let memory_mb = plans[0].resources.mem_gb.max(1) * 1024;
     for plan in &plans[1..] {
-        if plan.tool_id != plans[0].tool_id {
-            return Err(anyhow!(
-                "local benchmark stage `{}` mixes tool_ids `{}` and `{}` across governed plans",
-                bundle.stage_id,
-                plans[0].tool_id.as_str(),
-                plan.tool_id.as_str()
-            ));
-        }
         if plan.resources.threads.max(1) != threads {
             return Err(anyhow!(
                 "local benchmark stage `{}` mixes thread counts `{threads}` and `{}` across governed plans",
@@ -855,6 +929,9 @@ fn materialize_local_report_qc_smoke_report(repo_root: &Path) -> Result<PathBuf>
         manifest.contributors.iter().map(report_contributor_from_manifest).collect();
     report.governed_qc_lineage_hash = manifest.lineage_hash;
 
+    let canonical_report_path = output_root.join("report_qc_report.json");
+    bijux_dna_infra::atomic_write_json(&canonical_report_path, &report)?;
+
     let report_output_path = output_root.join("report.json");
     bijux_dna_infra::atomic_write_json(&report_output_path, &report)?;
     Ok(report_output_path)
@@ -888,7 +965,8 @@ fn copy_file(source: &Path, destination: &Path) -> Result<()> {
     if let Some(parent) = destination.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::copy(source, destination).with_context(|| {
+    let payload = fs::read(source).with_context(|| format!("read fixture {}", source.display()))?;
+    bijux_dna_infra::atomic_write_bytes(destination, &payload).with_context(|| {
         format!("copy fixture {} -> {}", source.display(), destination.display())
     })?;
     Ok(())
@@ -954,7 +1032,10 @@ fn repo_relative_pathbuf(repo_root: &Path, path: &Path) -> PathBuf {
 mod tests {
     use std::path::PathBuf;
 
-    use super::{materialize_local_report_qc_smoke_report, render_local_stage_commands};
+    use super::{
+        local_stage_plans, materialize_local_report_qc_smoke_report, materialize_local_stage,
+        render_local_stage_commands,
+    };
     #[cfg(feature = "bam_downstream")]
     use super::{
         BenchLocalDomain, DEFAULT_RENDERED_STAGE_COMMANDS_PATH,
@@ -1054,6 +1135,47 @@ mod tests {
     }
 
     #[test]
+    fn local_deplete_rrna_materialization_creates_declared_plan_outputs() {
+        let root = repo_root();
+        let proof_path = materialize_local_stage(&root, "fastq.deplete_rrna")
+            .expect("materialize local fastq.deplete_rrna outputs");
+        assert!(proof_path.exists(), "proof path should exist");
+
+        let plans = local_stage_plans(&root, "fastq.deplete_rrna")
+            .expect("collect local fastq.deplete_rrna plans");
+        assert!(!plans.is_empty(), "deplete_rrna should expose governed plans");
+        for plan in &plans {
+            for artifact in &plan.io.outputs {
+                let resolved = root.join(&artifact.path);
+                assert!(
+                    resolved.exists(),
+                    "declared output should be materialized: {}",
+                    resolved.display()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn local_align_materialization_creates_declared_plan_outputs() {
+        let root = repo_root();
+        let proof_path = materialize_local_stage(&root, "bam.align")
+            .expect("materialize local bam.align outputs");
+        assert!(proof_path.exists(), "proof path should exist");
+
+        let plans = local_stage_plans(&root, "bam.align").expect("collect local bam.align plans");
+        assert_eq!(plans.len(), 1, "bam.align should expose one governed plan");
+        for artifact in &plans[0].io.outputs {
+            let resolved = root.join(&artifact.path);
+            assert!(
+                resolved.exists(),
+                "declared output should be materialized: {}",
+                resolved.display()
+            );
+        }
+    }
+
+    #[test]
     fn local_report_qc_smoke_materialization_writes_governed_bundle() {
         let root = repo_root();
         let report_path = materialize_local_report_qc_smoke_report(&root)
@@ -1064,11 +1186,43 @@ mod tests {
             "runs/bench/local-smoke/fastq.report_qc/report.json"
         );
         assert!(root
+            .join("runs/bench/local-smoke/fastq.report_qc/report_qc_report.json")
+            .is_file());
+        assert!(root
             .join("runs/bench/local-smoke/fastq.report_qc/governed_qc_inputs_manifest.json")
             .is_file());
         assert!(root.join("runs/bench/local-smoke/fastq.report_qc/multiqc_report.html").is_file());
         assert!(root
             .join("runs/bench/local-smoke/fastq.report_qc/multiqc_data/multiqc_data.json")
             .is_file());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn local_report_qc_smoke_materialization_overwrites_readonly_governed_outputs() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let root = repo_root();
+        let contributors_dir = root.join("runs/bench/local-smoke/fastq.report_qc/contributors");
+        std::fs::create_dir_all(&contributors_dir).expect("create contributors dir");
+        let contributor = contributors_dir.join("detect_adapters.report.json");
+        bijux_dna_infra::write_payload(&contributor, br#"{"stale":true}"#)
+            .expect("seed stale contributor");
+        std::fs::set_permissions(&contributor, std::fs::Permissions::from_mode(0o444))
+            .expect("set readonly contributor");
+
+        let report_path = materialize_local_report_qc_smoke_report(&root)
+            .expect("materialize local report_qc smoke report over readonly outputs");
+        assert!(report_path.is_file(), "report should be rewritten");
+
+        let raw = std::fs::read_to_string(&contributor).expect("read rewritten contributor");
+        assert!(
+            raw.contains("detect_adapters"),
+            "rewritten contributor should come from governed fixture content"
+        );
+        assert!(
+            root.join("runs/bench/local-smoke/fastq.report_qc/report_qc_report.json").is_file(),
+            "canonical stage-contract report should be regenerated"
+        );
     }
 }

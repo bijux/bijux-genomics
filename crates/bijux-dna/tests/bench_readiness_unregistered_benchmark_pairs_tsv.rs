@@ -43,7 +43,10 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 3, "TSV must retain the governed unregistered-pair row count");
+    assert!(
+        rows.is_empty(),
+        "TSV must be empty once the governed unregistered-pair slice is cleared"
+    );
     assert!(
         !rows
             .iter()
@@ -65,22 +68,16 @@ fn bench_readiness_unregistered_benchmark_pairs_writes_governed_tsv_columns() {
         "TSV must not retain a fastq.estimate_library_complexity_prealign / bijux_dna registry drift row once the pair is registered"
     );
     assert!(
-        rows.iter().any(|row| {
-            row == &"fastq\tfastq.filter_low_complexity\tdustmasker\tplanned_contract\ttool_missing\t\tbenchmark matrix references `fastq.filter_low_complexity` / `dustmasker` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `dustmasker`: <none>"
-        }),
-        "TSV must retain the governed fastq.filter_low_complexity / dustmasker registry drift row"
+        !rows.iter().any(|row| row.starts_with("fastq\tfastq.filter_low_complexity\tdustmasker\t")),
+        "TSV must not retain a dustmasker registry-drift row once the placeholder binding is retired"
     );
     assert!(
-        rows.iter().any(|row| {
-            row == &"fastq\tfastq.filter_low_complexity\tfastp\tplanned_contract\ttool_registered_pair_missing\tfastq.filter_reads,fastq.profile_read_lengths,fastq.trim_polyg_tails,fastq.trim_reads\tbenchmark matrix references `fastq.filter_low_complexity` / `fastp` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_registered_pair_missing; registered stages for `fastp`: fastq.filter_reads, fastq.profile_read_lengths, fastq.trim_polyg_tails, fastq.trim_reads"
-        }),
-        "TSV must retain the governed fastq.filter_low_complexity / fastp registry drift row"
+        !rows.iter().any(|row| row.starts_with("fastq\tfastq.filter_low_complexity\tfastp\t")),
+        "TSV must not retain a fastp registry-drift row once the governed pair is registered"
     );
     assert!(
-        rows.iter().any(|row| {
-            row == &"fastq\tfastq.trim_reads\tseqpurge\tplanned_contract\ttool_missing\t\tbenchmark matrix references `fastq.trim_reads` / `seqpurge` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: tool_missing; registered stages for `seqpurge`: <none>"
-        }),
-        "TSV must retain the governed fastq.trim_reads / seqpurge registry drift row"
+        !rows.iter().any(|row| row.starts_with("fastq\tfastq.trim_reads\tseqpurge\t")),
+        "TSV must not retain a seqpurge registry-drift row once the placeholder binding is retired"
     );
     assert!(
         !rows.iter().any(|row| row.starts_with("fastq\tfastq.normalize_abundance\tseqfu\t")),

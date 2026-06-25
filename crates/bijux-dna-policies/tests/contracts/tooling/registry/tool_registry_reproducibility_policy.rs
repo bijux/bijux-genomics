@@ -123,6 +123,13 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registry_
                         "{rel}: tool={id}: dockerfile must reference expected_bin `{expected_bin}`"
                     ));
                 }
+                if content.contains("ENTRYPOINT [\"/bin/sh\", \"-c\",")
+                    && content.contains("\"$@\"")
+                {
+                    offenders.push(format!(
+                        "{rel}: tool={id}: dockerfile must not use shell-form ENTRYPOINT with `$@`; use an exec-form entrypoint for deterministic argument forwarding"
+                    ));
+                }
             }
         }
     }

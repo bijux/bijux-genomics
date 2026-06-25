@@ -68,7 +68,7 @@ fn validate_gzip_path(path: &std::path::Path) -> Result<bool> {
     }
     let args = vec!["-t".to_string(), path.to_string_lossy().into_owned()];
     let output = bijux_dna_runner::command_runner::run_command("gzip", &args);
-    Ok(output.map(|result| result.exit_code == 0).unwrap_or(false))
+    Ok(output.is_ok_and(|result| result.exit_code == 0))
 }
 
 fn quality_encoding_confidence(min_ascii: u8, max_ascii: u8) -> String {

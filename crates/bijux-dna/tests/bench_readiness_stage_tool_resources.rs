@@ -45,7 +45,7 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/configs/local/stage-tool-resources.toml")
+        Some("configs/bench/local/stage-tool-resources.toml")
     );
     assert_eq!(
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
@@ -61,9 +61,9 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         Some(row_count)
     );
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(67));
+    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(71));
     assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
-    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(20));
+    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(21));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
     let rows = support::json_array(&payload, "rows");
     let bwa_align = rows
@@ -120,6 +120,17 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         prepare_reference_panel.get("scratch_gb").and_then(serde_json::Value::as_u64),
         Some(8)
     );
+    let vcf_roh = rows
+        .iter()
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.roh")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
+        })
+        .expect("vcf roh plink2 row");
+    assert_eq!(vcf_roh.get("threads").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(vcf_roh.get("memory_gb").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(vcf_roh.get("walltime_minutes").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(vcf_roh.get("scratch_gb").and_then(serde_json::Value::as_u64), Some(8));
     let bam_authenticity = rows
         .iter()
         .find(|row| {

@@ -27,7 +27,7 @@ pub(crate) const DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH: &str =
 const VCF_IMPUTATION_METRICS_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_imputation_metrics_ready.v1";
 const VCF_IMPUTATION_METRICS_STAGE_ID: &str = "vcf.imputation_metrics";
-const REQUIRED_METRIC_NAMES: [&str; 8] = [
+const REQUIRED_METRIC_NAMES: [&str; 11] = [
     "status",
     "concordance",
     "mean_info_score",
@@ -36,6 +36,9 @@ const REQUIRED_METRIC_NAMES: [&str; 8] = [
     "low_confidence_sites",
     "masked_truth_sites",
     "missing_quality_fields",
+    "sample_count",
+    "sample_ids",
+    "variant_count",
 ];
 const REQUIRED_CONCORDANCE: f64 = 1.0;
 const REQUIRED_MEAN_INFO_SCORE: f64 = 0.825;
@@ -207,7 +210,7 @@ fn build_vcf_imputation_metrics_ready_report(
 
     let report = VcfImputationMetricsReadyReport {
         schema_version: VCF_IMPUTATION_METRICS_READY_SCHEMA_VERSION,
-        output_path: path_relative_to_repo(repo_root, output_path),
+        output_path: display_output_path(repo_root, output_path),
         retained_row_count: rows.len(),
         active_row_count,
         complete_row_count,
@@ -527,16 +530,22 @@ fn ensure_vcf_imputation_metrics_ready_contract(
 fn expected_result_id(
     row: &super::vcf_expected_benchmark_results::VcfExpectedBenchmarkResultRow,
 ) -> String {
-    format!("vcf:{}:{}:{}:{}", row.corpus_id, row.stage_id, row.asset_profile_id, row.tool_id)
+    crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+        "vcf",
+        &row.corpus_id,
+        &row.stage_id,
+        &row.asset_profile_id,
+        &row.tool_id,
+    )
 }
 
 fn retained_result_id(binding: &VcfStageReadinessBinding) -> String {
-    format!(
-        "vcf:{}:{}:{}:{}",
-        binding.retained_row.corpus_id,
-        binding.retained_row.stage_id,
-        binding.retained_row.asset_profile_id,
-        binding.retained_row.tool_id
+    crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+        "vcf",
+        &binding.retained_row.corpus_id,
+        &binding.retained_row.stage_id,
+        &binding.retained_row.asset_profile_id,
+        &binding.retained_row.tool_id,
     )
 }
 
@@ -570,6 +579,15 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
+}
+
+fn display_output_path(repo_root: &Path, output_path: &Path) -> String {
+    let normalized = output_path.to_string_lossy().replace('\\', "/");
+    if normalized.ends_with(DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH) {
+        DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH.to_string()
+    } else {
+        path_relative_to_repo(repo_root, output_path)
+    }
 }
 
 #[cfg(test)]

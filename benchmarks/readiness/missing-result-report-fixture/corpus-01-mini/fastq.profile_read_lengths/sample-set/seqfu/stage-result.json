@@ -46,14 +46,6 @@
       "exists": true
     },
     {
-      "artifact_id": "normalized_abundance_tsv",
-      "declared_path": "outputs/normalized_abundance_tsv.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqfu/outputs/normalized_abundance_tsv.json",
-      "role": "benchmark_output",
-      "optional": false,
-      "exists": true
-    },
-    {
       "artifact_id": "qc_json",
       "declared_path": "outputs/qc_json.json",
       "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.profile_read_lengths/sample-set/seqfu/outputs/qc_json.json",

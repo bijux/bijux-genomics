@@ -44,29 +44,75 @@ fn write_local_deplete_host_plan_materializes_governed_target_output() -> Result
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
+    let inputs =
+        payload["io"]["inputs"].as_array().unwrap_or_else(|| panic!("plan inputs missing"));
+    let outputs =
+        payload["io"]["outputs"].as_array().unwrap_or_else(|| panic!("plan outputs missing"));
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.deplete_host"));
     assert_eq!(payload["tool_id"], serde_json::json!("bowtie2"));
     assert_eq!(payload["resources"]["threads"], serde_json::json!(4));
     assert_eq!(payload["resources"]["mem_gb"], serde_json::json!(8));
     assert_eq!(
-        payload["io"]["inputs"][0]["path"],
+        inputs
+            .iter()
+            .find(|artifact| artifact["name"] == "reads_r1")
+            .unwrap_or_else(|| panic!("reads_r1 input missing"))["path"],
         serde_json::json!("assets/toy/core-v1/fastq/reads_1.fastq")
     );
     assert_eq!(
-        payload["io"]["inputs"][1]["path"],
+        inputs
+            .iter()
+            .find(|artifact| artifact["name"] == "reads_r2")
+            .unwrap_or_else(|| panic!("reads_r2 input missing"))["path"],
+        serde_json::json!("assets/toy/core-v1/fastq/reads_2.fastq")
+    );
+    assert_eq!(
+        inputs
+            .iter()
+            .find(|artifact| artifact["name"] == "reference_index")
+            .unwrap_or_else(|| panic!("reference_index input missing"))["path"],
         serde_json::json!("assets/reference/host/references/toy_host_reference")
     );
     assert_eq!(
-        payload["params"]["removed_host_reads"],
+        outputs
+            .iter()
+            .find(|artifact| artifact["name"] == "removed_host_reads_r1")
+            .unwrap_or_else(|| panic!("removed_host_reads_r1 output missing"))["path"],
         serde_json::json!(
-            "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host.fastq.gz"
+            "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R1.fastq.gz"
+        )
+    );
+    assert_eq!(
+        outputs
+            .iter()
+            .find(|artifact| artifact["name"] == "removed_host_reads_r2")
+            .unwrap_or_else(|| panic!("removed_host_reads_r2 output missing"))["path"],
+        serde_json::json!(
+            "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R2.fastq.gz"
+        )
+    );
+    assert_eq!(
+        payload["params"]["removed_host_r1"],
+        serde_json::json!(
+            "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R1.fastq.gz"
+        )
+    );
+    assert_eq!(
+        payload["params"]["removed_host_r2"],
+        serde_json::json!(
+            "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R2.fastq.gz"
         )
     );
     assert_eq!(payload["effective_params"]["emit_removed_reads"], serde_json::json!(true));
+    assert_eq!(payload["effective_params"]["paired_mode"], serde_json::json!("paired_end"));
     assert!(
         payload["command"]["template"].as_array().is_some_and(|command| command
             .iter()
             .any(|part| { part == "assets/reference/host/references/toy_host_reference" })
+            && command.iter().any(|part| { part == "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R%.fastq.gz" })
+            && command.iter().any(|part| {
+                part == "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R%.fastq.gz"
+            })
             && command.iter().any(|part| {
                 part == "benchmarks/readiness/local-ready/fastq.deplete_host/bowtie2.host.metrics.txt"
             })),

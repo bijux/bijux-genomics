@@ -43,5 +43,5 @@ RUN echo '#!/bin/sh' > /usr/local/bin/samtools && \
     chmod +x /usr/local/bin/samtools
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "samtools \"$@\""]
+ENTRYPOINT ["samtools"]
 CMD ["--help"]

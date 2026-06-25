@@ -834,9 +834,15 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
             }
         }
         let logs = read_utf8(&artifact_dir.join("logs.txt")).unwrap_or_default();
-        for key in
-            ["example_id=", "corpus_id=", "mini_supported=", "step1=", "step2=", "step3=", "step4="]
-        {
+        for key in [
+            "example_id=",
+            "corpus_id=",
+            "mini_supported=",
+            "container_image_plan=",
+            "suite_contract_check=",
+            "golden_output_collection=",
+            "report_bundle_write=",
+        ] {
             if !logs.contains(key) {
                 errors.push(format!("{example_id}: logs.txt missing {key}"));
             }

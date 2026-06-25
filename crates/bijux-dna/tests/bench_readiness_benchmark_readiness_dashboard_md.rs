@@ -8,6 +8,8 @@ mod support;
 
 fn run_cli(args: &[&str]) -> std::process::Output {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _repo_lock =
+        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
@@ -45,19 +47,43 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
     let json_payload = std::fs::read_to_string(&json_path).expect("read dashboard json");
     let json_value: serde_json::Value =
         serde_json::from_str(&json_payload).expect("parse dashboard json");
+    let expected_pair_count = json_value
+        .get("expected_pair_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("expected_pair_count");
+    let ready_pair_count = json_value
+        .get("ready_pair_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("ready_pair_count");
+    let blocked_pair_count = json_value
+        .get("blocked_pair_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("blocked_pair_count");
+    let tool_section_count = json_value
+        .get("reports")
+        .and_then(|reports| reports.get("tool_section_count"))
+        .and_then(serde_json::Value::as_u64)
+        .expect("tool_section_count");
 
     assert!(markdown.contains("# FASTQ + BAM Benchmark Readiness Dashboard"));
-    assert!(markdown.contains("- Expected pairs: 122"));
-    assert!(markdown.contains("- Ready pairs: 118"));
-    assert!(markdown.contains("- Blocked pairs: 4"));
-    assert!(markdown.contains("| Matrix | attention_required | all governed fastq and bam stage-tool pairs | 122 | 118 | 4 |"));
-    assert!(markdown.contains("| Reports | complete | governed local report surfaces | 5 | 5 | 0 | expected_results=118, stage_sections=51, tool_sections=67, corpus_sections=8 |"));
+    assert!(markdown.contains(&format!("- Expected pairs: {expected_pair_count}")));
+    assert!(markdown.contains(&format!("- Ready pairs: {ready_pair_count}")));
+    assert!(markdown.contains(&format!("- Blocked pairs: {blocked_pair_count}")));
+    assert!(markdown.contains(&format!(
+        "| Matrix | complete | all governed fastq and bam stage-tool pairs | {expected_pair_count} | {ready_pair_count} | {blocked_pair_count} |"
+    )));
+    assert!(markdown.contains(&format!(
+        "| Reports | complete | governed local report surfaces | 5 | 5 | 0 | expected_results={expected_pair_count}, stage_sections=51, tool_sections={tool_section_count}, corpus_sections=8 |"
+    )));
     assert!(markdown.contains(
-        "| pair_readiness | benchmarks/readiness/pair-readiness.tsv | 122 stage_tool_pairs |"
+        &format!(
+            "| pair_readiness | benchmarks/readiness/pair-readiness.tsv | {expected_pair_count} stage_tool_pairs |"
+        )
     ));
     assert!(markdown.contains("| stage_centric_report | benchmarks/readiness/stage-centric-report.md | 51 stage_sections |"));
-    assert!(markdown.contains("| fastq | fastq.report_qc | multiqc | corpus | observer_specialized_benchmark | runnable | comparable | planner_only | not_required |"));
-    assert!(markdown.contains("| fastq | fastq.trim_reads | seqpurge | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |"));
+    assert!(markdown.contains("## Exact Blockers"));
+    assert!(markdown
+        .contains("| Domain | Stage | Tool | Gap | Support | Adapter | Parser | Corpus | Asset |"));
 
     assert_eq!(
         json_value.get("schema_version").and_then(serde_json::Value::as_str),

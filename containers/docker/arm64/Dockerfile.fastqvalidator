@@ -79,6 +79,5 @@ RUN printf '%s\n' \
   ln -sf /usr/local/bin/fastq-validator /usr/local/bin/fastqvalidator
 
 WORKDIR /data
-
-# Default to showing help
-CMD ["fastq-validator", "--help"]
+ENTRYPOINT ["fastqvalidator"]
+CMD ["--help"]

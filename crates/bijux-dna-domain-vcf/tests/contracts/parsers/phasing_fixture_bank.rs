@@ -1,9 +1,10 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result};
 use bijux_dna_domain_vcf::parse_phasing_stage_metrics;
+
+use super::metric_registry::ensure_registered_stage_metrics;
 
 const VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION: &str = "bijux.fixture.vcf_raw_parser.v1";
 
@@ -90,13 +91,12 @@ fn vcf_phasing_fixture_bank_matches_expected_normalized_json() -> Result<()> {
 #[test]
 fn vcf_phasing_fixture_bank_rejects_all_unphased_output() -> Result<()> {
     for case in VCF_PHASING_FIXTURE_CASES {
-        let dir = unique_temp_dir(case.tool_id)?;
+        let dir = unique_temp_dir(case.tool_id);
         copy_fixture_dir(&fixture_dir(case), &dir)?;
         fs::copy(dir.join("raw.unphased.vcf"), dir.join("raw.phased.vcf"))
             .with_context(|| format!("install unphased probe for `{}`", case.tool_id))?;
-        let error = match parse_phasing_stage_metrics(case.tool_id, &dir) {
-            Ok(_) => panic!("all-unphased phasing output must fail"),
-            Err(error) => error,
+        let Err(error) = parse_phasing_stage_metrics(case.tool_id, &dir) else {
+            panic!("all-unphased phasing output must fail");
         };
         let message = error.to_string();
         assert!(
@@ -112,13 +112,15 @@ fn vcf_phasing_fixture_bank_rejects_all_unphased_output() -> Result<()> {
 fn render_case(case: &VcfPhasingFixtureCase) -> Result<serde_json::Value> {
     let normalized = parse_phasing_stage_metrics(case.tool_id, &fixture_dir(case))
         .with_context(|| format!("parse phasing fixture for `{}`", case.tool_id))?;
-    Ok(serde_json::json!({
+    let observed = serde_json::json!({
         "schema_version": VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION,
         "stage_id": "vcf.phasing",
         "tool_id": case.tool_id,
         "parser_id": case.parser_id,
         "normalized": normalized,
-    }))
+    });
+    ensure_registered_stage_metrics(bijux_dna_domain_vcf::VcfDomainStage::Phasing, &observed)?;
+    Ok(observed)
 }
 
 fn read_expected_json(case: &VcfPhasingFixtureCase) -> Result<serde_json::Value> {
@@ -139,12 +141,8 @@ fn repo_root() -> PathBuf {
         .unwrap_or_else(|err| panic!("canonicalize repo root: {err}"))
 }
 
-fn unique_temp_dir(tool_id: &str) -> Result<PathBuf> {
-    let stamp =
-        SystemTime::now().duration_since(UNIX_EPOCH).map_or(0_u128, |duration| duration.as_nanos());
-    let path = std::env::temp_dir().join(format!("bijux-vcf-phasing-{tool_id}-{stamp}"));
-    fs::create_dir_all(&path).with_context(|| format!("create {}", path.display()))?;
-    Ok(path)
+fn unique_temp_dir(tool_id: &str) -> PathBuf {
+    bijux_dna_testkit::temp_path_for(&format!("vcf-phasing-{tool_id}"))
 }
 
 fn copy_fixture_dir(from: &Path, to: &Path) -> Result<()> {

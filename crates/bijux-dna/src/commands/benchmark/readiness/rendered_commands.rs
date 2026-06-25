@@ -1,4 +1,3 @@
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -50,7 +49,8 @@ pub(crate) fn render_commands(
     let rows = collect_rendered_command_rows(repo_root)?;
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
     let rendered = render_commands_shell_script(&rows);
     bijux_dna_infra::atomic_write_bytes(&output_path, rendered.as_bytes())?;
@@ -140,8 +140,8 @@ mod tests {
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.rendered_commands.v1");
         assert_eq!(report.output_path, "benchmarks/readiness/rendered-commands.sh");
-        assert_eq!(report.row_count, 118);
-        assert_eq!(report.rows.len(), 118);
+        assert_eq!(report.row_count, 120);
+        assert_eq!(report.rows.len(), 120);
         assert!(report.rows.iter().all(|row| {
             !row.argv.is_empty()
                 && !row.command.is_empty()

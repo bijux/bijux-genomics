@@ -400,7 +400,7 @@ pub(crate) fn render_essential_pipelines_ready(
             )?;
             if report.pipeline_count != 10
                 || report.stage_count != 45
-                || report.tool_count != 24
+                || report.tool_count != 26
                 || report.row_count != 267
                 || report.report_section_count != 22
                 || report.failure_column_count != 1

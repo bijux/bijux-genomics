@@ -209,7 +209,7 @@ mod tests {
             report.argv_output_path,
             "benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl"
         );
-        assert_eq!(report.row_count, 20);
+        assert_eq!(report.row_count, 21);
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.prepare_reference_panel" && row.tool_id == "bcftools"
         }));

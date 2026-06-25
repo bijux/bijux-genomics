@@ -667,7 +667,7 @@ fn write_top_level_cluster_otus_table(
             fields[0], fields[1], fields[2], fields[1], representative_path
         );
     }
-    std::fs::write(top_level_otu_table, rendered)
+    bijux_dna_infra::write_payload(top_level_otu_table, rendered)
         .with_context(|| format!("write {}", top_level_otu_table.display()))?;
     Ok(())
 }
@@ -694,7 +694,7 @@ fn write_smoke_cluster_otus_uc_report(
             let _ = writeln!(report, "S\t0\t{}\t*\t*\t*\t*\t*\t{}\t*", line.len(), id);
         }
     }
-    std::fs::write(raw_backend_report, report)
+    bijux_dna_infra::write_payload(raw_backend_report, report)
         .with_context(|| format!("write {}", raw_backend_report.display()))?;
     Ok(())
 }

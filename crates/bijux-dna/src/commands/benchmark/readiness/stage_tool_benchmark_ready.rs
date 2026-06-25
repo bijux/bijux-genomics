@@ -826,28 +826,23 @@ mod tests {
 
         assert_eq!(report.schema_version, STAGE_TOOL_BENCHMARK_READY_SCHEMA_VERSION);
         assert!(report.passes_gate);
-        assert_eq!(report.expected_pair_count, 122);
-        assert_eq!(report.benchmark_ready_pair_count, 118);
-        assert_eq!(report.excluded_pair_count, 4);
+        assert_eq!(report.expected_pair_count, 120);
+        assert_eq!(report.benchmark_ready_pair_count, 120);
+        assert_eq!(report.excluded_pair_count, 0);
         assert_eq!(report.failing_pair_count, 0);
-        assert_eq!(report.generated_job_pair_count, 118);
-        assert_eq!(report.expected_result_pair_count, 118);
-        assert_eq!(report.benchmark_ready_stage_count, 50);
-        assert_eq!(report.excluded_registry_gap_count, 3);
+        assert_eq!(report.generated_job_pair_count, 120);
+        assert_eq!(report.expected_result_pair_count, 120);
+        assert_eq!(report.benchmark_ready_stage_count, 51);
+        assert_eq!(report.excluded_registry_gap_count, 0);
         assert!(
             report.surface_summaries.iter().any(|surface| {
                 surface.surface_id == "tool_registry"
                     && surface.failing_count == 0
-                    && surface.excluded_count == 3
+                    && surface.excluded_count == 0
             }),
             "tool registry surface must keep excluded registry drift visible without failing the ready slice"
         );
-        assert!(report.excluded_pairs.iter().any(|row| {
-            row.row_id == "fastq:fastq.trim_reads:seqpurge"
-                && row.registry_status == "tool_missing"
-                && row.excluded_from_generated_jobs
-                && row.excluded_from_expected_results
-        }));
+        assert!(report.excluded_pairs.is_empty());
         assert!(
             report.excluded_pairs.iter().all(|row| !row.row_id.starts_with("fastq:fastq.index_reference:")),
             "asset-backed index-reference pairs must stay out of the excluded slice once corpus assignments are governed"

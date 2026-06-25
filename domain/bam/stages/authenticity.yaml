@@ -33,14 +33,32 @@ parameters: []
 metrics:
   - name: "score"
     meaning: "Governed authenticity evidence score preserved across admitted BAM authenticity tools"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.1
+      insufficiency_policy: "warn_and_exclude_stage"
   - name: "confidence"
     meaning: "Confidence assigned to the governed BAM authenticity evidence score"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "absolute_delta"
+      tolerance_value: 0.1
+      insufficiency_policy: "warn_and_exclude_stage"
+  - name: "status"
+    meaning: "Threshold-derived authenticity evidence status emitted alongside score and confidence"
+    scientific_threshold:
+      pass_direction: "exact_match"
+      tolerance_kind: "exact_match"
+      tolerance_value: 0.0
+      insufficiency_policy: "warn_and_exclude_stage"
   - name: "pmd_like_signal_present"
     meaning: "PMD-like authenticity signal retained in the governed BAM authenticity comparison surface"
-  - name: "consumed_metric_ids"
-    meaning: "Upstream evidence inputs consumed by the governed BAM authenticity stage metrics contract"
-  - name: "missing_metric_ids"
-    meaning: "Expected authenticity evidence inputs that remained unavailable for the governed BAM authenticity benchmark row"
+    scientific_threshold:
+      pass_direction: "exact_match"
+      tolerance_kind: "exact_match"
+      tolerance_value: 0.0
+      insufficiency_policy: "warn_and_exclude_stage"
 description: "BAM authenticity stage contract."
 required_inputs:
   - bam

@@ -75,4 +75,28 @@ fn local_index_reference_plan_uses_governed_repo_inputs() -> Result<()> {
 fn local_index_reference_plan_stage_api_surface_stays_callable() {
     let _: fn(&std::path::Path) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> =
         bijux_dna_planner_fastq::stage_api::local_index_reference_plan;
+    let _: fn(&std::path::Path) -> anyhow::Result<Vec<bijux_dna_stage_contract::StagePlanV1>> =
+        bijux_dna_planner_fastq::stage_api::local_index_reference_output_contract_plans;
+}
+
+#[test]
+fn local_index_reference_output_contract_plans_cover_all_governed_tools() -> Result<()> {
+    let repo_root = repo_root();
+    let plans = bijux_dna_planner_fastq::stage_api::local_index_reference_output_contract_plans(
+        &repo_root,
+    )?;
+    let tool_ids = plans.iter().map(|plan| plan.tool_id.as_str()).collect::<Vec<_>>();
+    assert_eq!(tool_ids, vec!["bowtie2_build", "star"]);
+    assert!(
+        plans.iter().any(|plan| {
+            plan.tool_id.as_str() == "star"
+                && plan
+                    .io
+                    .outputs
+                    .iter()
+                    .any(|artifact| artifact.name.as_str() == "reference_index")
+        }),
+        "STAR proof plans must retain the governed reference_index output"
+    );
+    Ok(())
 }

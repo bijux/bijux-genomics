@@ -27,8 +27,20 @@ pub(crate) const DEFAULT_VCF_ADMIXTURE_READY_PATH: &str =
     "benchmarks/readiness/vcf/admixture-ready.json";
 const VCF_ADMIXTURE_READY_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_admixture_ready.v1";
 const VCF_ADMIXTURE_STAGE_ID: &str = "vcf.admixture";
-const REQUIRED_METRIC_NAMES: [&str; 4] =
-    ["selected_k", "sample_count", "population_count", "status"];
+const REQUIRED_METRIC_NAMES: [&str; 12] = [
+    "selected_k",
+    "sample_count",
+    "population_count",
+    "status",
+    "cluster_headers",
+    "maf_summary",
+    "rows",
+    "variant_count",
+    "sample_missingness",
+    "variant_missingness",
+    "execution_mode",
+    "tool_ok",
+];
 const REQUIRED_STATUS: &str = "complete";
 const REQUIRED_SELECTED_K: usize = 2;
 const REQUIRED_SAMPLE_COUNT: u64 = 4;
@@ -152,7 +164,7 @@ pub(crate) fn render_vcf_admixture_ready(
 ) -> Result<VcfAdmixtureReadyReport> {
     let _lock = bijux_dna_infra::FileLock::acquire(
         &repo_root.join(VCF_ADMIXTURE_READY_LOCK_PATH),
-        Duration::from_secs(300),
+        Duration::from_mins(5),
     )
     .with_context(|| {
         format!(
@@ -581,19 +593,22 @@ fn contains_artifact_id(values: &[String], artifact_id: &str) -> bool {
 fn expected_result_id(
     binding: &super::vcf_expected_benchmark_results::VcfExpectedBenchmarkResultRow,
 ) -> String {
-    format!(
-        "vcf:{}:{}:{}:{}",
-        binding.corpus_id, binding.stage_id, binding.asset_profile_id, binding.tool_id
+    crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+        "vcf",
+        &binding.corpus_id,
+        &binding.stage_id,
+        &binding.asset_profile_id,
+        &binding.tool_id,
     )
 }
 
 fn retained_result_id(binding: &VcfStageReadinessBinding) -> String {
-    format!(
-        "vcf:{}:{}:{}:{}",
-        binding.retained_row.corpus_id,
-        binding.retained_row.stage_id,
-        binding.retained_row.asset_profile_id,
-        binding.retained_row.tool_id
+    crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
+        "vcf",
+        &binding.retained_row.corpus_id,
+        &binding.retained_row.stage_id,
+        &binding.retained_row.asset_profile_id,
+        &binding.retained_row.tool_id,
     )
 }
 

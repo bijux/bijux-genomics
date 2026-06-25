@@ -13,6 +13,12 @@ const FORBIDDEN_NETWORK_TOKENS: &[&str] = &[
     "std::process::Command::new(\"wget\")",
 ];
 
+const FORBIDDEN_PROCESS_EXECUTION_TOKENS: &[&str] = &[
+    concat!("Command", "::new"),
+    concat!("std::process::", "Command"),
+    concat!("tokio::process::", "Command"),
+];
+
 #[test]
 fn production_source_rejects_network_effect_apis() {
     for file in rust_source_files(&crate_root().join("src")) {
@@ -23,6 +29,22 @@ fn production_source_rejects_network_effect_apis() {
             assert!(
                 !source.contains(forbidden),
                 "stages-vcf must not introduce network effect token {forbidden} in {}",
+                file.display()
+            );
+        }
+    }
+}
+
+#[test]
+fn production_source_rejects_direct_process_execution_apis() {
+    for file in rust_source_files(&crate_root().join("src")) {
+        let source = std::fs::read_to_string(&file)
+            .unwrap_or_else(|err| panic!("read {}: {err}", file.display()));
+
+        for forbidden in FORBIDDEN_PROCESS_EXECUTION_TOKENS {
+            assert!(
+                !source.contains(forbidden),
+                "stages-vcf must route process execution through bijux-dna-runner instead of {forbidden} in {}",
                 file.display()
             );
         }

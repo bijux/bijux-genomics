@@ -1,0 +1,23 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local benchmark fixture plan for fastq.trim_polyg_tails.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-06-22
+
+schema_version = "bijux.bench.fastq.local_trim_polyg_tails.v1"
+tool_id = "fastp"
+supplemental_tool_ids = ["bbduk"]
+threads = 1
+trim_polyg = true
+min_polyg_run = 6
+output_dir = "runs/bench/local-smoke/fastq.trim_polyg_tails"
+
+[[cases]]
+sample_id = "polyg-hit-se"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_polyg_trim_signals_R1.fastq.gz"
+
+[[cases]]
+sample_id = "polyg-hit-pe"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_pe_trim_signals_R1.fastq.gz"
+r2 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_pe_trim_signals_R2.fastq.gz"

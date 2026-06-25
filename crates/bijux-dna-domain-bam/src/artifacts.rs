@@ -3,7 +3,7 @@ use std::fmt::Write as _;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
 use bijux_dna_core::prelude::ArtifactId;
 use noodles_bam as bam;
@@ -25,6 +25,14 @@ pub const BAM_QC_PRE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.qc_pre.v1";
 pub const BAM_MAPPING_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapping_summary.v1";
 pub const BAM_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.filter.v1";
 pub const BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapq_filter.v1";
+pub const BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.alignment_truth.v1";
+pub const BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION: &str =
+    "bijux.bam.duplicate_insert_truth.v1";
+pub const BAM_GC_BIAS_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.gc_bias_truth.v1";
+pub const BAM_COVERAGE_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_truth.v1";
+pub const BAM_ADNA_DAMAGE_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.adna_damage_truth.v1";
+pub const BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION: &str =
+    "bijux.bam.adna_contamination_truth.v1";
 pub const BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.length_filter.v1";
 pub const BAM_MARKDUP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.markdup.v1";
 pub const BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.duplication_metrics.v1";
@@ -52,8 +60,10 @@ pub const BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.damage_evidence.
 pub const BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION: &str = "bijux.bam.authenticity_advisory.v1";
 pub const BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.contamination_evidence.v1";
 pub const BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION: &str = "bijux.bam.endogenous_content.v1";
+pub const BAM_ENDOGENOUS_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.endogenous_truth.v1";
 pub const BAM_SEX_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.sex_summary.v1";
 pub const BAM_SEX_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.sex_evidence.v1";
+pub const BAM_HAPLOGROUP_TRUTH_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.haplogroup_truth.v1";
 pub const BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION: &str = "bijux.bam.haplogroup_readiness.v1";
 pub const BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION: &str = "bijux.bam.kinship_prerequisites.v1";
 pub const BAM_KINSHIP_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.kinship_summary.v1";
@@ -164,6 +174,165 @@ pub struct BamTinyAlignmentInspectionV1 {
     pub read_group_ids: Vec<String>,
     pub mapped_record_contigs: Vec<String>,
     pub record_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAlignmentTruthRecordV1 {
+    pub qname: String,
+    pub mapped: bool,
+    pub reference_name: Option<String>,
+    pub position: Option<u64>,
+    pub mapq: u8,
+    pub cigar: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAlignmentTruthPositionV1 {
+    pub reference_name: String,
+    pub position: u64,
+    pub read_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAlignmentTruthMapqClassV1 {
+    pub mapq: u8,
+    pub read_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAlignmentTruthCigarClassV1 {
+    pub cigar: String,
+    pub read_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAlignmentTruthSummaryV1 {
+    pub schema_version: String,
+    pub total_reads: u64,
+    pub mapped_reads: u64,
+    pub unmapped_reads: u64,
+    pub mapped_contigs: Vec<String>,
+    pub mapped_positions: Vec<BamAlignmentTruthPositionV1>,
+    pub mapped_mapq_classes: Vec<BamAlignmentTruthMapqClassV1>,
+    pub cigar_classes: Vec<BamAlignmentTruthCigarClassV1>,
+    pub records: Vec<BamAlignmentTruthRecordV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamDuplicateFamilyHistogramBinV1 {
+    pub family_size: u64,
+    pub family_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamInsertSizeHistogramBinV1 {
+    pub insert_size: u64,
+    pub pair_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamDuplicateInsertTruthSummaryV1 {
+    pub schema_version: String,
+    pub total_reads: u64,
+    pub mapped_reads: u64,
+    pub unmapped_reads: u64,
+    pub examined_reads: u64,
+    pub duplicate_reads: u64,
+    pub duplicate_pairs: u64,
+    pub duplicate_family_histogram: Vec<BamDuplicateFamilyHistogramBinV1>,
+    pub pair_count: u64,
+    pub insert_size_histogram: Vec<BamInsertSizeHistogramBinV1>,
+    #[serde(default)]
+    pub median_insert_size: Option<f64>,
+    #[serde(default)]
+    pub mean_insert_size: Option<f64>,
+    #[serde(default)]
+    pub min_insert_size: Option<u64>,
+    #[serde(default)]
+    pub max_insert_size: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamGcBiasTruthSummaryV1 {
+    pub schema_version: String,
+    pub window_size: u32,
+    pub total_clusters: u64,
+    pub aligned_reads: u64,
+    pub windows: u64,
+    pub read_starts: u64,
+    pub at_dropout: f64,
+    pub gc_dropout: f64,
+    pub gc_bias_score: f64,
+    #[serde(default)]
+    pub insufficient_reference_reason: Option<String>,
+    pub gc_bins: Vec<BamGcBiasBinSummaryV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamCoverageTruthSummaryV1 {
+    pub schema_version: String,
+    pub depth_thresholds: Vec<u32>,
+    pub mean_depth: f64,
+    pub breadth_1x: f64,
+    pub covered_bases: u64,
+    pub total_bases: u64,
+    pub coverage_regime: String,
+    pub coverage_family: String,
+    pub region_summaries: Vec<BamCoverageRegionSummaryV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAdnaDamageTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub udg_model: String,
+    pub terminal_c_to_t_5p: f64,
+    pub terminal_g_to_a_3p: f64,
+    pub short_fragment_fraction: f64,
+    pub damage_signal: String,
+    pub strict_profile_upgraded: bool,
+    pub terminal_5p_class: String,
+    pub terminal_3p_class: String,
+    pub terminal_pattern_class: String,
+    #[serde(default)]
+    pub insufficiency_reason: Option<String>,
+    pub insufficiency_policy: String,
+    pub advisory_only: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAdnaContaminationTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool: String,
+    pub scope: String,
+    pub prerequisites_passed: bool,
+    pub status: String,
+    pub confidence_interval_status: String,
+    #[serde(default)]
+    pub estimate: Option<f64>,
+    #[serde(default)]
+    pub ci_low: Option<f64>,
+    #[serde(default)]
+    pub ci_high: Option<f64>,
+    #[serde(default)]
+    pub insufficiency_reason: Option<String>,
+    pub insufficiency_policy: String,
+    pub advisory_only: bool,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -741,6 +910,7 @@ pub struct BamAuthenticityAdvisoryV1 {
     pub stage_id: String,
     pub score: f64,
     pub confidence: f64,
+    pub status: String,
     pub pmd_like_signal_present: bool,
     pub advisory_boundary: BamAdvisoryBoundaryV1,
     #[serde(default)]
@@ -787,6 +957,30 @@ pub struct BamEndogenousContentEstimateV1 {
     pub host_reference_scope: Option<String>,
     pub prealignment_meaning: String,
     pub postalignment_meaning: String,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamEndogenousTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    #[serde(default)]
+    pub host_reference_scope: Option<String>,
+    pub total_reads: u64,
+    pub mapped_reads: u64,
+    pub contaminant_reads: u64,
+    pub retained_reads: u64,
+    pub endogenous_reads: u64,
+    pub contaminant_fraction: f64,
+    pub retained_fraction: f64,
+    pub endogenous_fraction: f64,
+    #[serde(default)]
+    pub prealignment_fraction: Option<f64>,
+    pub postalignment_fraction: f64,
+    pub count_provenance: String,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -908,6 +1102,34 @@ pub struct BamHaplogroupReadinessV1 {
     pub refusal_codes: Vec<String>,
     #[serde(default)]
     pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamHaplogroupTruthSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    pub input_bam: PathBuf,
+    pub reference_panel: PathBuf,
+    pub reference_panel_id: String,
+    pub reference_build: String,
+    pub population_scope: String,
+    pub minimum_coverage: f64,
+    pub observed_mean_coverage: f64,
+    pub ready: bool,
+    #[serde(default)]
+    pub haplogroup_call: Option<String>,
+    pub confidence: f64,
+    pub status: String,
+    pub markers_total: u64,
+    pub markers_supported: u64,
+    #[serde(default)]
+    pub supported_marker_ids: Vec<String>,
+    #[serde(default)]
+    pub lineage_scope: Option<String>,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -1098,7 +1320,14 @@ fn parse_tag_value(field: &str, key: &str) -> Option<String> {
 
 fn parse_tiny_alignment(path: &Path) -> Result<TinySamDocument> {
     match path.extension().and_then(std::ffi::OsStr::to_str) {
-        Some("bam") => parse_tiny_bam(path),
+        Some("bam") => parse_tiny_bam(path).or_else(|bam_error| {
+            parse_tiny_sam(path).map_err(|sam_error| {
+                anyhow!(
+                    "failed to parse {} as BAM ({bam_error}) or SAM ({sam_error})",
+                    path.display()
+                )
+            })
+        }),
         _ => parse_tiny_sam(path),
     }
 }
@@ -1137,6 +1366,196 @@ pub fn inspect_tiny_alignment(path: &Path) -> Result<BamTinyAlignmentInspectionV
         read_group_ids,
         mapped_record_contigs,
         record_count: document.records.len() as u64,
+    })
+}
+
+/// Summarize exact tiny-alignment truth for governed BAM/SAM fixtures.
+///
+/// # Errors
+/// Returns an error when the alignment fixture cannot be parsed.
+pub fn summarize_tiny_bam_alignment_truth(input_bam: &Path) -> Result<BamAlignmentTruthSummaryV1> {
+    let document = parse_tiny_alignment(input_bam)?;
+
+    let total_reads = document.records.len() as u64;
+    let mapped_reads = document.records.iter().filter(|record| record.is_mapped()).count() as u64;
+    let unmapped_reads = total_reads.saturating_sub(mapped_reads);
+
+    let mut mapped_contigs = document
+        .records
+        .iter()
+        .filter(|record| record.is_mapped())
+        .map(|record| record.rname.clone())
+        .collect::<Vec<_>>();
+    mapped_contigs.sort();
+    mapped_contigs.dedup();
+
+    let mut mapped_positions = HashMap::<(String, u64), u64>::new();
+    let mut mapped_mapq_classes = HashMap::<u8, u64>::new();
+    let mut cigar_classes = HashMap::<String, u64>::new();
+    let mut records = document
+        .records
+        .iter()
+        .map(|record| {
+            *cigar_classes.entry(record.cigar.clone()).or_insert(0) += 1;
+            if record.is_mapped() {
+                *mapped_positions.entry((record.rname.clone(), record.pos)).or_insert(0) += 1;
+                *mapped_mapq_classes.entry(record.mapq).or_insert(0) += 1;
+            }
+            BamAlignmentTruthRecordV1 {
+                qname: record.qname.clone(),
+                mapped: record.is_mapped(),
+                reference_name: record.is_mapped().then(|| record.rname.clone()),
+                position: record.is_mapped().then_some(record.pos),
+                mapq: record.mapq,
+                cigar: record.cigar.clone(),
+            }
+        })
+        .collect::<Vec<_>>();
+    records.sort_by(|left, right| {
+        left.mapped
+            .cmp(&right.mapped)
+            .reverse()
+            .then(left.reference_name.cmp(&right.reference_name))
+            .then(left.position.cmp(&right.position))
+            .then(left.qname.cmp(&right.qname))
+            .then(left.cigar.cmp(&right.cigar))
+            .then(left.mapq.cmp(&right.mapq))
+    });
+
+    let mut mapped_positions = mapped_positions
+        .into_iter()
+        .map(|((reference_name, position), read_count)| BamAlignmentTruthPositionV1 {
+            reference_name,
+            position,
+            read_count,
+        })
+        .collect::<Vec<_>>();
+    mapped_positions.sort_by(|left, right| {
+        left.reference_name
+            .cmp(&right.reference_name)
+            .then(left.position.cmp(&right.position))
+            .then(left.read_count.cmp(&right.read_count))
+    });
+
+    let mut mapped_mapq_classes = mapped_mapq_classes
+        .into_iter()
+        .map(|(mapq, read_count)| BamAlignmentTruthMapqClassV1 { mapq, read_count })
+        .collect::<Vec<_>>();
+    mapped_mapq_classes.sort_by_key(|row| row.mapq);
+
+    let mut cigar_classes = cigar_classes
+        .into_iter()
+        .map(|(cigar, read_count)| BamAlignmentTruthCigarClassV1 { cigar, read_count })
+        .collect::<Vec<_>>();
+    cigar_classes.sort_by(|left, right| left.cigar.cmp(&right.cigar));
+
+    Ok(BamAlignmentTruthSummaryV1 {
+        schema_version: BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        total_reads,
+        mapped_reads,
+        unmapped_reads,
+        mapped_contigs,
+        mapped_positions,
+        mapped_mapq_classes,
+        cigar_classes,
+        records,
+    })
+}
+
+/// Summarize duplicate burden and insert-size geometry for a tiny BAM/SAM fixture.
+///
+/// # Errors
+/// Returns an error when the alignment fixture cannot be parsed.
+pub fn summarize_tiny_bam_duplicate_insert_truth(
+    input_bam: &Path,
+) -> Result<BamDuplicateInsertTruthSummaryV1> {
+    let document = parse_tiny_alignment(input_bam)?;
+    let total_reads = document.records.len() as u64;
+    let mapped_reads = document.records.iter().filter(|record| record.is_mapped()).count() as u64;
+    let unmapped_reads = total_reads.saturating_sub(mapped_reads);
+
+    let duplicate_family_sizes = tiny_duplicate_family_sizes(&document.records);
+    let examined_reads = duplicate_family_sizes.iter().sum::<u64>();
+    let duplicate_reads =
+        duplicate_family_sizes.iter().map(|family_size| family_size.saturating_sub(1)).sum::<u64>();
+    let duplicate_family_histogram = family_size_histogram_bins(&duplicate_family_sizes);
+
+    let (pair_count, duplicate_pairs, insert_size_histogram) =
+        tiny_pair_duplicate_insert_metrics(&document.records);
+    let insert_size_metrics = tiny_insert_size_metrics(&document.records);
+    let populated_insert_metrics =
+        (insert_size_metrics.read_pairs > 0).then_some(&insert_size_metrics);
+
+    Ok(BamDuplicateInsertTruthSummaryV1 {
+        schema_version: BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        total_reads,
+        mapped_reads,
+        unmapped_reads,
+        examined_reads,
+        duplicate_reads,
+        duplicate_pairs,
+        duplicate_family_histogram,
+        pair_count,
+        insert_size_histogram,
+        median_insert_size: populated_insert_metrics.map(|metrics| metrics.median_insert_size),
+        mean_insert_size: populated_insert_metrics.map(|metrics| metrics.mean_insert_size),
+        min_insert_size: populated_insert_metrics.map(|metrics| metrics.min_insert_size),
+        max_insert_size: populated_insert_metrics.map(|metrics| metrics.max_insert_size),
+    })
+}
+
+/// Summarize tiny BAM/SAM GC-bias truth without embedding runtime-local file paths.
+///
+/// # Errors
+/// Returns an error if the BAM/SAM or reference FASTA cannot be parsed.
+pub fn summarize_tiny_bam_gc_bias_truth(
+    input_bam: &Path,
+    reference_fasta: &Path,
+    window_size: u32,
+) -> Result<BamGcBiasTruthSummaryV1> {
+    let (summary, gc_bins) = summarize_tiny_bam_gc_bias(input_bam, reference_fasta, window_size)?;
+    Ok(BamGcBiasTruthSummaryV1 {
+        schema_version: BAM_GC_BIAS_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        window_size,
+        total_clusters: summary.total_clusters,
+        aligned_reads: summary.aligned_reads,
+        windows: summary.windows,
+        read_starts: summary.read_starts,
+        at_dropout: summary.at_dropout,
+        gc_dropout: summary.gc_dropout,
+        gc_bias_score: summary.gc_bias_score,
+        insufficient_reference_reason: summary.insufficient_reference_reason,
+        gc_bins,
+    })
+}
+
+/// Summarize tiny BAM/SAM coverage truth over governed regions without embedding runtime-local
+/// file paths.
+///
+/// # Errors
+/// Returns an error if the BAM/SAM or BED regions input cannot be parsed.
+pub fn summarize_tiny_bam_coverage_truth(
+    input_bam: &Path,
+    regions_path: &Path,
+    depth_thresholds: &[u32],
+) -> Result<BamCoverageTruthSummaryV1> {
+    let (summary, region_summaries) =
+        summarize_tiny_bam_coverage_regions(input_bam, Some(regions_path), depth_thresholds)?;
+    let regime = summary
+        .regime
+        .ok_or_else(|| anyhow!("bam.coverage truth summary requires a classified regime"))?;
+    let covered_bases = region_summaries.iter().map(|row| row.covered_bases).sum::<u64>();
+    let total_bases = region_summaries.iter().map(|row| row.length).sum::<u64>();
+    Ok(BamCoverageTruthSummaryV1 {
+        schema_version: BAM_COVERAGE_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        depth_thresholds: summary.depth_thresholds,
+        mean_depth: summary.mean_depth.unwrap_or(0.0),
+        breadth_1x: regime.breadth_1x,
+        covered_bases,
+        total_bases,
+        coverage_regime: regime.regime_id,
+        coverage_family: regime.enforced_label,
+        region_summaries,
     })
 }
 
@@ -2736,7 +3155,7 @@ pub fn filter_tiny_bam_by_mapq(
     output_bam: &Path,
     mapq_threshold: u8,
 ) -> Result<BamMapqFilterSummaryV1> {
-    let input = parse_tiny_sam(input_bam)?;
+    let input = parse_tiny_alignment(input_bam)?;
     let before = flagstat_from_records(&input.records);
     let filtered_records = input
         .records
@@ -2946,7 +3365,7 @@ pub fn filter_tiny_bam_by_length(
         base_quality_threshold: 20,
     };
     let summary = filter_tiny_bam(input_bam, output_bam, &params)?;
-    let output = parse_tiny_sam(output_bam)?;
+    let output = parse_tiny_alignment(output_bam)?;
     let observed_lengths = output
         .records
         .iter()
@@ -2980,7 +3399,7 @@ pub fn filter_tiny_bam(
     output_bam: &Path,
     params: &FilterEffectiveParams,
 ) -> Result<BamFilterSummaryV1> {
-    let input = parse_tiny_sam(input_bam)?;
+    let input = parse_tiny_alignment(input_bam)?;
     let include_mask = params.include_flags.iter().fold(0_u16, |mask, flag| mask | flag);
     let mut exclude_flags = params.exclude_flags.clone();
     if params.remove_duplicates && !exclude_flags.contains(&0x400_u16) {
@@ -3237,7 +3656,7 @@ fn round_metric(metric: f64) -> f64 {
 /// # Errors
 /// Returns an error if the input cannot be parsed.
 pub fn summarize_tiny_bam_qc_pre(input_bam: &Path) -> Result<BamQcPreSummaryV1> {
-    let document = parse_tiny_sam(input_bam)?;
+    let document = parse_tiny_alignment(input_bam)?;
     let flagstat = flagstat_from_records(&document.records);
     let idxstats = idxstats_from_tiny_document(&document);
 
@@ -3290,6 +3709,89 @@ pub fn summarize_tiny_bam_damage_evidence(
     Ok(execute_ancient_damage_evidence(&metrics, strict_profile))
 }
 
+/// Build a path-free aDNA damage truth summary for governed tiny BAM fixtures.
+///
+/// # Errors
+/// Returns an error if the tiny BAM fixture cannot be summarized into pre-QC metrics.
+pub fn summarize_tiny_bam_adna_damage_truth(
+    input_bam: &Path,
+    damage: &crate::metrics::DamageMetricsV1,
+    strict_profile: bool,
+    udg_model: crate::params::UdgModel,
+) -> Result<BamAdnaDamageTruthSummaryV1> {
+    let evidence = summarize_tiny_bam_damage_evidence(input_bam, damage, strict_profile)?;
+    let terminal_5p_class = classify_terminal_damage_end(evidence.terminal_c_to_t_5p);
+    let terminal_3p_class = classify_terminal_damage_end(evidence.terminal_g_to_a_3p);
+    let insufficiency_reason = classify_damage_truth_insufficiency(&evidence);
+
+    Ok(BamAdnaDamageTruthSummaryV1 {
+        schema_version: BAM_ADNA_DAMAGE_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: evidence.stage_id,
+        udg_model: udg_model_label(udg_model).to_string(),
+        terminal_c_to_t_5p: evidence.terminal_c_to_t_5p,
+        terminal_g_to_a_3p: evidence.terminal_g_to_a_3p,
+        short_fragment_fraction: evidence.short_fragment_fraction,
+        damage_signal: evidence.damage_signal,
+        strict_profile_upgraded: evidence.strict_profile_upgraded,
+        terminal_5p_class: terminal_5p_class.to_string(),
+        terminal_3p_class: terminal_3p_class.to_string(),
+        terminal_pattern_class: classify_terminal_pattern(
+            evidence.terminal_c_to_t_5p,
+            evidence.terminal_g_to_a_3p,
+            insufficiency_reason.is_some(),
+        )
+        .to_string(),
+        insufficiency_reason,
+        insufficiency_policy: damage_truth_insufficiency_policy().to_string(),
+        advisory_only: evidence.advisory_boundary.advisory_only,
+    })
+}
+
+/// Build a path-free aDNA contamination truth summary from governed contamination evidence.
+///
+/// # Errors
+/// Returns an error if the requested contamination tool is unsupported.
+pub fn summarize_bam_adna_contamination_truth(
+    tool: &str,
+    metrics: &crate::metrics::BamMetricsV1,
+    minimum_mean_coverage: f64,
+    has_mito_reference: bool,
+    has_damage_context: bool,
+    has_reference_panel: bool,
+    panel_build_compatible: bool,
+    sex_context_available: bool,
+) -> Result<BamAdnaContaminationTruthSummaryV1> {
+    let evidence = match tool {
+        "schmutzi" => execute_mitochondrial_contamination_workflow(
+            metrics,
+            has_mito_reference,
+            has_damage_context,
+            minimum_mean_coverage,
+        ),
+        "verifybamid2" => execute_nuclear_contamination_workflow(
+            metrics,
+            has_reference_panel,
+            panel_build_compatible,
+            sex_context_available,
+            minimum_mean_coverage,
+        ),
+        "contammix" => {
+            let mut evidence = execute_nuclear_contamination_workflow(
+                metrics,
+                has_reference_panel,
+                panel_build_compatible,
+                sex_context_available,
+                minimum_mean_coverage,
+            );
+            evidence.tool = "contammix".to_string();
+            evidence
+        }
+        _ => return Err(anyhow!("unsupported aDNA contamination truth tool `{tool}`")),
+    };
+
+    Ok(contamination_truth_from_evidence(evidence))
+}
+
 /// Build typed `bam.authenticity` advisory evidence for a tiny BAM fixture from damage metrics.
 ///
 /// # Errors
@@ -3304,6 +3806,108 @@ pub fn summarize_tiny_bam_authenticity_advisory(
     metrics.mapq = qc_pre.mapq;
     metrics.damage = damage.clone();
     Ok(execute_pmd_authenticity_advisory(&metrics))
+}
+
+fn classify_terminal_damage_end(rate: f64) -> &'static str {
+    if rate >= 0.10 {
+        "terminal_damage_enriched"
+    } else {
+        "terminal_damage_limited"
+    }
+}
+
+fn classify_terminal_pattern(c_to_t_5p: f64, g_to_a_3p: f64, insufficient: bool) -> &'static str {
+    if insufficient {
+        "insufficient_terminal_damage"
+    } else if c_to_t_5p > g_to_a_3p {
+        "ct5p_dominant"
+    } else if g_to_a_3p > c_to_t_5p {
+        "ga3p_dominant"
+    } else {
+        "balanced_terminal_damage"
+    }
+}
+
+fn classify_damage_truth_insufficiency(evidence: &BamDamageEvidenceV1) -> Option<String> {
+    if evidence.damage_signal == "low" {
+        Some("terminal_damage_below_comparison_threshold".to_string())
+    } else {
+        None
+    }
+}
+
+fn stage_truth_insufficiency_policy(stage_id: &str) -> &'static str {
+    let stage_id = bijux_dna_core::ids::StageId::new(stage_id);
+    crate::comparison_contract::stage_comparable_metric_contracts_for_stage(&stage_id)
+        .into_iter()
+        .find_map(|metric| {
+            metric.scientific_threshold.map(|threshold| match threshold.insufficiency_policy {
+                crate::comparison_contract::BamScientificInsufficiencyPolicy::WarnAndExcludeStage => {
+                    "warn_and_exclude_stage"
+                }
+                crate::comparison_contract::BamScientificInsufficiencyPolicy::DropMetricFromStage => {
+                    "drop_metric_from_stage"
+                }
+                crate::comparison_contract::BamScientificInsufficiencyPolicy::RefuseStageComparison => {
+                    "refuse_stage_comparison"
+                }
+            })
+        })
+        .unwrap_or("warn_and_exclude_stage")
+}
+
+fn damage_truth_insufficiency_policy() -> &'static str {
+    stage_truth_insufficiency_policy("bam.damage")
+}
+
+fn contamination_truth_from_evidence(
+    evidence: BamContaminationEvidenceV1,
+) -> BamAdnaContaminationTruthSummaryV1 {
+    let confidence_interval_status = match (
+        evidence.estimate.is_some(),
+        evidence.ci_low.is_some(),
+        evidence.ci_high.is_some(),
+    ) {
+        (true, true, true) => "reported",
+        (false, false, false) => "excluded",
+        _ => "partial",
+    };
+    let insufficiency_reason = (!evidence.prerequisites_passed).then(|| {
+        evidence
+            .refusal_codes
+            .first()
+            .cloned()
+            .unwrap_or_else(|| "prerequisites_failed".to_string())
+    });
+
+    BamAdnaContaminationTruthSummaryV1 {
+        schema_version: BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: evidence.stage_id,
+        tool: evidence.tool,
+        scope: evidence.scope,
+        prerequisites_passed: evidence.prerequisites_passed,
+        status: if evidence.prerequisites_passed {
+            "ok".to_string()
+        } else {
+            "insufficient".to_string()
+        },
+        confidence_interval_status: confidence_interval_status.to_string(),
+        estimate: evidence.estimate,
+        ci_low: evidence.ci_low,
+        ci_high: evidence.ci_high,
+        insufficiency_reason,
+        insufficiency_policy: stage_truth_insufficiency_policy("bam.contamination").to_string(),
+        advisory_only: evidence.advisory_boundary.advisory_only,
+        refusal_codes: evidence.refusal_codes,
+    }
+}
+
+const fn udg_model_label(udg_model: crate::params::UdgModel) -> &'static str {
+    match udg_model {
+        crate::params::UdgModel::NonUdg => "non_udg",
+        crate::params::UdgModel::HalfUdg => "half_udg",
+        crate::params::UdgModel::Udg => "udg",
+    }
 }
 
 fn idxstats_from_tiny_document(document: &TinySamDocument) -> crate::metrics::IdxstatsSummaryV1 {
@@ -3378,6 +3982,102 @@ fn build_insert_size_summary(
             .map(|metrics| metrics.pair_orientation_fr_fraction),
         insufficient_pairs_reason,
     }
+}
+
+fn tiny_duplicate_family_sizes(records: &[TinySamRecord]) -> Vec<u64> {
+    let mut observed = HashMap::<String, u64>::new();
+    for record in records.iter().filter(|record| record.is_mapped()) {
+        let key = format!("{}:{}:{}:{}", record.rname, record.pos, record.cigar, record.seq);
+        *observed.entry(key).or_insert(0) += 1;
+    }
+    observed.into_values().collect::<Vec<_>>()
+}
+
+fn family_size_histogram_bins(family_sizes: &[u64]) -> Vec<BamDuplicateFamilyHistogramBinV1> {
+    let mut histogram = HashMap::<u64, u64>::new();
+    for family_size in family_sizes {
+        *histogram.entry(*family_size).or_insert(0) += 1;
+    }
+    let mut bins = histogram
+        .into_iter()
+        .map(|(family_size, family_count)| BamDuplicateFamilyHistogramBinV1 {
+            family_size,
+            family_count,
+        })
+        .collect::<Vec<_>>();
+    bins.sort_by_key(|bin| bin.family_size);
+    bins
+}
+
+fn tiny_pair_duplicate_insert_metrics(
+    records: &[TinySamRecord],
+) -> (u64, u64, Vec<BamInsertSizeHistogramBinV1>) {
+    let mut qname_groups = HashMap::<String, Vec<&TinySamRecord>>::new();
+    for record in records.iter().filter(|record| is_mapped_proper_pair_component(record)) {
+        qname_groups.entry(record.qname.clone()).or_default().push(record);
+    }
+
+    let mut pair_family_counts = HashMap::<String, u64>::new();
+    let mut insert_size_counts = HashMap::<u64, u64>::new();
+    let mut pair_count = 0_u64;
+
+    for group in qname_groups.values() {
+        let first = group.iter().copied().find(|record| is_first_observed_pair_record(record));
+        let second = group.iter().copied().find(|record| is_second_observed_pair_record(record));
+        let Some(first) = first else {
+            continue;
+        };
+        let insert_size = u64::try_from(first.template_length).unwrap_or(0);
+        if insert_size == 0 {
+            continue;
+        }
+        pair_count += 1;
+        *insert_size_counts.entry(insert_size).or_insert(0) += 1;
+
+        let pair_key = if let Some(second) = second {
+            format!(
+                "{}:{}:{}:{}|{}:{}:{}:{}",
+                first.rname,
+                first.pos,
+                first.cigar,
+                first.seq,
+                second.rname,
+                second.pos,
+                second.cigar,
+                second.seq
+            )
+        } else {
+            format!("{}:{}:{}:{}", first.rname, first.pos, first.cigar, first.seq)
+        };
+        *pair_family_counts.entry(pair_key).or_insert(0) += 1;
+    }
+
+    let duplicate_pairs =
+        pair_family_counts.values().map(|family_size| family_size.saturating_sub(1)).sum::<u64>();
+    let mut insert_size_histogram = insert_size_counts
+        .into_iter()
+        .map(|(insert_size, pair_count)| BamInsertSizeHistogramBinV1 { insert_size, pair_count })
+        .collect::<Vec<_>>();
+    insert_size_histogram.sort_by_key(|bin| bin.insert_size);
+
+    (pair_count, duplicate_pairs, insert_size_histogram)
+}
+
+fn is_mapped_proper_pair_component(record: &TinySamRecord) -> bool {
+    (record.flag & 0x1) != 0
+        && (record.flag & 0x2) != 0
+        && (record.flag & 0x4) == 0
+        && (record.flag & 0x8) == 0
+}
+
+fn is_first_observed_pair_record(record: &TinySamRecord) -> bool {
+    is_mapped_proper_pair_component(record)
+        && (record.flag & 0x40) != 0
+        && record.template_length > 0
+}
+
+fn is_second_observed_pair_record(record: &TinySamRecord) -> bool {
+    is_mapped_proper_pair_component(record) && (record.flag & 0x80) != 0
 }
 
 fn tiny_gc_bias_rows(
@@ -3541,7 +4241,7 @@ fn median_f64(values: &[f64]) -> f64 {
     let mut sorted = values.to_vec();
     sorted.sort_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal));
     let middle = sorted.len() / 2;
-    if sorted.len() % 2 == 0 {
+    if sorted.len().is_multiple_of(2) {
         f64::midpoint(sorted[middle - 1], sorted[middle])
     } else {
         sorted[middle]
@@ -3595,7 +4295,7 @@ pub fn summarize_tiny_bam_coverage_regions(
     regions_path: Option<&Path>,
     depth_thresholds: &[u32],
 ) -> Result<(BamCoverageSummaryV1, Vec<BamCoverageRegionSummaryV1>)> {
-    let document = parse_tiny_sam(input_bam)?;
+    let document = parse_tiny_alignment(input_bam)?;
     let coverage_vectors = tiny_coverage_vectors(&document);
     let regions = regions_path
         .map(parse_tiny_bed_regions)
@@ -3991,6 +4691,7 @@ pub fn execute_pmd_authenticity_advisory(metrics: &BamMetricsV1) -> BamAuthentic
         stage_id: "bam.authenticity".to_string(),
         score: authenticity.score,
         confidence: authenticity.confidence,
+        status: authenticity.status,
         pmd_like_signal_present: authenticity.evidence.damage_high,
         advisory_boundary,
         assumptions,
@@ -4173,6 +4874,46 @@ pub fn summarize_tiny_bam_endogenous_content(
     ))
 }
 
+/// Build a governed endogenous-count truth summary from explicit mapped/total read counts.
+#[must_use]
+pub fn summarize_bam_endogenous_truth(
+    stage_id: &str,
+    method: &str,
+    total_reads: u64,
+    mapped_reads: u64,
+    prealignment_fraction: Option<f64>,
+    host_reference_scope: Option<&str>,
+) -> BamEndogenousTruthSummaryV1 {
+    let estimate = summarize_bam_endogenous_content(
+        stage_id,
+        method,
+        total_reads,
+        mapped_reads,
+        prealignment_fraction,
+        host_reference_scope,
+    );
+    endogenous_truth_from_estimate(estimate)
+}
+
+/// Summarize governed endogenous-count truth directly from a tiny SAM/BAM fixture.
+///
+/// # Errors
+/// Returns an error if the tiny fixture cannot be parsed.
+pub fn summarize_tiny_bam_endogenous_truth(
+    input_bam: &Path,
+    method: &str,
+    host_reference_scope: &str,
+    prealignment_fraction: Option<f64>,
+) -> Result<BamEndogenousTruthSummaryV1> {
+    let estimate = summarize_tiny_bam_endogenous_content(
+        input_bam,
+        method,
+        host_reference_scope,
+        prealignment_fraction,
+    )?;
+    Ok(endogenous_truth_from_estimate(estimate))
+}
+
 /// Summarize sex-inference coverage signals from a tiny SAM/BAM fixture plus reference context.
 ///
 /// # Errors
@@ -4274,6 +5015,149 @@ pub fn summarize_tiny_bam_sex(
         status: insufficiency_reason.clone().unwrap_or_else(|| "ok".to_string()),
         insufficiency_reason,
     })
+}
+
+#[derive(Debug, Clone)]
+struct TinyHaplogroupMarker {
+    marker_id: String,
+    contig: String,
+    position: u64,
+    haplogroup: String,
+    lineage_scope: String,
+}
+
+/// Summarize tiny BAM/SAM haplogroup support against a governed marker panel.
+///
+/// # Errors
+/// Returns an error if the tiny fixture or haplogroup panel cannot be parsed.
+pub fn summarize_tiny_bam_haplogroup_truth(
+    input_bam: &Path,
+    method: &str,
+    reference_panel: &Path,
+    reference_panel_id: &str,
+    reference_build: &str,
+    population_scope: &str,
+    minimum_coverage: f64,
+) -> Result<BamHaplogroupTruthSummaryV1> {
+    let observed_mean_coverage =
+        summarize_tiny_bam_coverage(input_bam, &[1])?.mean_depth.unwrap_or(0.0);
+    let markers = load_tiny_haplogroup_panel(reference_panel)?;
+    let supported_markers = covered_tiny_haplogroup_markers(input_bam, &markers)?;
+    let markers_total = markers.len() as u64;
+    let markers_supported = supported_markers.len() as u64;
+    let confidence =
+        if markers_total > 0 { markers_supported as f64 / markers_total as f64 } else { 0.0 };
+    let selected_marker = select_supported_haplogroup_marker(&supported_markers);
+    let mut refusal_codes = Vec::new();
+    let (ready, haplogroup_call, status) = if observed_mean_coverage < minimum_coverage {
+        refusal_codes.push("coverage_below_haplogroup_minimum".to_string());
+        (false, None, "coverage_gate_not_met".to_string())
+    } else if supported_markers.is_empty() {
+        refusal_codes.push("no_supported_markers".to_string());
+        (false, None, "no_supported_markers".to_string())
+    } else if markers_supported < markers_total {
+        refusal_codes.push("marker_support_incomplete".to_string());
+        (
+            false,
+            selected_marker.as_ref().map(|marker| marker.haplogroup.clone()),
+            "uncertain_marker_support".to_string(),
+        )
+    } else {
+        (
+            true,
+            selected_marker.as_ref().map(|marker| marker.haplogroup.clone()),
+            "ready".to_string(),
+        )
+    };
+
+    Ok(BamHaplogroupTruthSummaryV1 {
+        schema_version: BAM_HAPLOGROUP_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.haplogroups".to_string(),
+        method: method.to_string(),
+        input_bam: input_bam.to_path_buf(),
+        reference_panel: reference_panel.to_path_buf(),
+        reference_panel_id: reference_panel_id.to_string(),
+        reference_build: reference_build.to_string(),
+        population_scope: population_scope.to_string(),
+        minimum_coverage,
+        observed_mean_coverage,
+        ready,
+        haplogroup_call,
+        confidence: if ready || status == "uncertain_marker_support" { confidence } else { 0.0 },
+        status,
+        markers_total,
+        markers_supported,
+        supported_marker_ids: supported_markers
+            .iter()
+            .map(|marker| marker.marker_id.clone())
+            .collect(),
+        lineage_scope: selected_marker.map(|marker| marker.lineage_scope.clone()),
+        refusal_codes,
+    })
+}
+
+fn load_tiny_haplogroup_panel(reference_panel: &Path) -> Result<Vec<TinyHaplogroupMarker>> {
+    let raw = std::fs::read_to_string(reference_panel)
+        .with_context(|| format!("read {}", reference_panel.display()))?;
+    let mut markers = Vec::new();
+    for line in raw.lines() {
+        if line.is_empty() || line.starts_with('#') || line.starts_with("marker_id\t") {
+            continue;
+        }
+        let fields = line.split('\t').collect::<Vec<_>>();
+        if fields.len() < 7 {
+            return Err(anyhow!("haplogroup panel row must have 7 tab-delimited fields: `{line}`"));
+        }
+        markers.push(TinyHaplogroupMarker {
+            marker_id: fields[0].to_string(),
+            contig: fields[1].to_string(),
+            position: fields[2]
+                .parse::<u64>()
+                .with_context(|| format!("parse haplogroup panel position `{}`", fields[2]))?,
+            haplogroup: fields[5].to_string(),
+            lineage_scope: fields[6].to_string(),
+        });
+    }
+    if markers.is_empty() {
+        return Err(anyhow!(
+            "haplogroup panel `{}` must carry at least one marker row",
+            reference_panel.display()
+        ));
+    }
+    Ok(markers)
+}
+
+fn covered_tiny_haplogroup_markers(
+    input_bam: &Path,
+    markers: &[TinyHaplogroupMarker],
+) -> Result<Vec<TinyHaplogroupMarker>> {
+    let raw = std::fs::read_to_string(input_bam)
+        .with_context(|| format!("read {}", input_bam.display()))?;
+    let mut supported = Vec::new();
+    for marker in markers {
+        let covered = raw.lines().filter(|line| !line.starts_with('@')).any(|line| {
+            let fields = line.split('\t').collect::<Vec<_>>();
+            if fields.len() < 11 || fields[2] != marker.contig {
+                return false;
+            }
+            let Ok(start) = fields[3].parse::<u64>() else {
+                return false;
+            };
+            let read_len = fields[9].len() as u64;
+            let end = start.saturating_add(read_len.saturating_sub(1));
+            marker.position >= start && marker.position <= end
+        });
+        if covered {
+            supported.push(marker.clone());
+        }
+    }
+    Ok(supported)
+}
+
+fn select_supported_haplogroup_marker(
+    supported_markers: &[TinyHaplogroupMarker],
+) -> Option<&TinyHaplogroupMarker> {
+    supported_markers.iter().max_by_key(|marker| (marker.haplogroup.len(), marker.position))
 }
 
 /// Summarize pairwise kinship signals from a tiny SAM/BAM fixture with governed panel context.
@@ -4550,6 +5434,36 @@ fn build_endogenous_content_estimate(
         postalignment_meaning: "fraction of aligned reads relative to total reads after alignment"
             .to_string(),
         caveats,
+    }
+}
+
+fn endogenous_truth_from_estimate(
+    estimate: BamEndogenousContentEstimateV1,
+) -> BamEndogenousTruthSummaryV1 {
+    let contaminant_reads = estimate.total_reads.saturating_sub(estimate.mapped_reads);
+    let contaminant_fraction = if estimate.total_reads > 0 {
+        contaminant_reads as f64 / estimate.total_reads as f64
+    } else {
+        0.0
+    };
+    let retained_reads = estimate.mapped_reads;
+    BamEndogenousTruthSummaryV1 {
+        schema_version: BAM_ENDOGENOUS_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: estimate.stage_id,
+        method: estimate.method,
+        host_reference_scope: estimate.host_reference_scope,
+        total_reads: estimate.total_reads,
+        mapped_reads: estimate.mapped_reads,
+        contaminant_reads,
+        retained_reads,
+        endogenous_reads: estimate.endogenous_reads,
+        contaminant_fraction,
+        retained_fraction: estimate.postalignment_fraction,
+        endogenous_fraction: estimate.endogenous_fraction,
+        prealignment_fraction: estimate.prealignment_fraction,
+        postalignment_fraction: estimate.postalignment_fraction,
+        count_provenance: "mapped reads are retained endogenous reads under the governed host-reference scope; unmapped reads are counted as contaminant or background relative to that scope".to_string(),
+        caveats: estimate.caveats,
     }
 }
 
@@ -5720,6 +6634,53 @@ mod tests {
     }
 
     #[test]
+    fn bam_endogenous_truth_summary_counts_contaminant_and_retained_reads() {
+        let summary = summarize_bam_endogenous_truth(
+            "bam.endogenous_content",
+            "mapped_fraction_from_flagstat",
+            5,
+            3,
+            Some(0.58),
+            Some("human_host"),
+        );
+        assert_eq!(summary.schema_version, BAM_ENDOGENOUS_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.total_reads, 5);
+        assert_eq!(summary.mapped_reads, 3);
+        assert_eq!(summary.contaminant_reads, 2);
+        assert_eq!(summary.retained_reads, 3);
+        assert_eq!(summary.endogenous_reads, 3);
+        assert!((summary.contaminant_fraction - 0.4).abs() < 1e-9);
+        assert!((summary.retained_fraction - 0.6).abs() < 1e-9);
+        assert!(summary.count_provenance.contains("mapped reads are retained endogenous reads"));
+    }
+
+    #[test]
+    fn summarize_tiny_bam_endogenous_truth_preserves_fully_retained_counts() {
+        let input = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| panic!("workspace root"))
+            .join(
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_target_window_coverage.sam",
+            );
+        let summary = summarize_tiny_bam_endogenous_truth(
+            &input,
+            "mapped_fraction_from_flagstat",
+            "human_host",
+            Some(1.0),
+        )
+        .expect("summarize endogenous truth");
+        assert_eq!(summary.total_reads, 3);
+        assert_eq!(summary.mapped_reads, 3);
+        assert_eq!(summary.contaminant_reads, 0);
+        assert_eq!(summary.retained_reads, 3);
+        assert_eq!(summary.endogenous_reads, 3);
+        assert!((summary.contaminant_fraction - 0.0).abs() < 1e-9);
+        assert!((summary.retained_fraction - 1.0).abs() < 1e-9);
+        assert_eq!(summary.host_reference_scope.as_deref(), Some("human_host"));
+    }
+
+    #[test]
     fn bam_overlap_correction_summary_round_trips() {
         let summary = summarize_bam_overlap_correction(
             "bam.overlap_correction",
@@ -5751,12 +6712,7 @@ mod tests {
 
     #[test]
     fn correct_tiny_bam_overlaps_reports_pair_count_and_trimmed_bases() {
-        let unique = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("unix epoch")
-            .as_nanos();
-        let temp = std::env::temp_dir().join(format!("bijux-overlap-correction-{unique}"));
-        std::fs::create_dir_all(&temp).expect("create temp dir");
+        let temp = bijux_dna_testkit::TestPaths::new("bam-overlap-correction").root().to_path_buf();
         let input = temp.join("input.sam");
         let output = temp.join("overlap.corrected.sam");
         std::fs::write(
@@ -5785,8 +6741,6 @@ pair_spaced\t147\tchr1\t55\t60\t10M\t=\t40\t-25\tCCCCAAAAGG\tFFFFFFFFFF\tRG:Z:rg
         assert_eq!(written.corrected_pairs, Some(1));
         assert_eq!(written.corrected_overlap_bases, Some(7));
         assert_eq!(written.insufficiency_reason, None);
-
-        std::fs::remove_dir_all(&temp).expect("remove temp dir");
     }
 
     #[test]
@@ -5941,6 +6895,194 @@ r001\t99\tchr1\n",
         assert_eq!(inspection.read_group_ids.len(), 1);
         assert_eq!(inspection.mapped_record_contigs, vec!["chr1".to_string()]);
         assert_eq!(inspection.record_count, 2);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_alignment_truth_accepts_governed_binary_bam_fixture() {
+        let repo_root = workspace_root();
+        let bam = repo_root.join("assets/toy/core-v1/bam/validation_pass.bam");
+
+        let summary = summarize_tiny_bam_alignment_truth(&bam).expect("summarize BAM fixture");
+        assert_eq!(summary.schema_version, BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.total_reads, 2);
+        assert_eq!(summary.mapped_reads, 2);
+        assert_eq!(summary.unmapped_reads, 0);
+        assert_eq!(summary.mapped_contigs, vec!["chr1".to_string()]);
+        assert_eq!(
+            summary.mapped_positions,
+            vec![
+                BamAlignmentTruthPositionV1 {
+                    reference_name: "chr1".to_string(),
+                    position: 1,
+                    read_count: 1,
+                },
+                BamAlignmentTruthPositionV1 {
+                    reference_name: "chr1".to_string(),
+                    position: 7,
+                    read_count: 1,
+                },
+            ]
+        );
+        assert_eq!(
+            summary.mapped_mapq_classes,
+            vec![BamAlignmentTruthMapqClassV1 { mapq: 60, read_count: 2 }]
+        );
+        assert_eq!(
+            summary.cigar_classes,
+            vec![BamAlignmentTruthCigarClassV1 { cigar: "6M".to_string(), read_count: 2 }]
+        );
+    }
+
+    #[test]
+    fn summarize_tiny_bam_alignment_truth_tracks_mapped_unmapped_positions_and_classes() {
+        let repo_root = workspace_root();
+        let sam = repo_root.join("assets/toy/core-v1/bam/filter_mixed_constraints.sam");
+
+        let summary = summarize_tiny_bam_alignment_truth(&sam).expect("summarize SAM fixture");
+        assert_eq!(summary.schema_version, BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.total_reads, 5);
+        assert_eq!(summary.mapped_reads, 4);
+        assert_eq!(summary.unmapped_reads, 1);
+        assert_eq!(summary.mapped_contigs, vec!["chr1".to_string()]);
+        assert_eq!(
+            summary.mapped_positions,
+            vec![
+                BamAlignmentTruthPositionV1 {
+                    reference_name: "chr1".to_string(),
+                    position: 1,
+                    read_count: 1,
+                },
+                BamAlignmentTruthPositionV1 {
+                    reference_name: "chr1".to_string(),
+                    position: 10,
+                    read_count: 1,
+                },
+                BamAlignmentTruthPositionV1 {
+                    reference_name: "chr1".to_string(),
+                    position: 20,
+                    read_count: 1,
+                },
+                BamAlignmentTruthPositionV1 {
+                    reference_name: "chr1".to_string(),
+                    position: 30,
+                    read_count: 1,
+                },
+            ]
+        );
+        assert_eq!(
+            summary.mapped_mapq_classes,
+            vec![
+                BamAlignmentTruthMapqClassV1 { mapq: 10, read_count: 1 },
+                BamAlignmentTruthMapqClassV1 { mapq: 60, read_count: 3 },
+            ]
+        );
+        assert_eq!(
+            summary.cigar_classes,
+            vec![
+                BamAlignmentTruthCigarClassV1 { cigar: "*".to_string(), read_count: 1 },
+                BamAlignmentTruthCigarClassV1 { cigar: "6M".to_string(), read_count: 1 },
+                BamAlignmentTruthCigarClassV1 { cigar: "8M".to_string(), read_count: 3 },
+            ]
+        );
+    }
+
+    #[test]
+    fn summarize_tiny_bam_duplicate_insert_truth_reports_governed_duplicate_cluster() {
+        let repo_root = workspace_root();
+        let sam = repo_root.join(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_cluster.sam",
+        );
+
+        let summary = summarize_tiny_bam_duplicate_insert_truth(&sam)
+            .expect("summarize duplicate and insert truth");
+        assert_eq!(summary.schema_version, BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.total_reads, 4);
+        assert_eq!(summary.mapped_reads, 3);
+        assert_eq!(summary.unmapped_reads, 1);
+        assert_eq!(summary.examined_reads, 3);
+        assert_eq!(summary.duplicate_reads, 1);
+        assert_eq!(summary.duplicate_pairs, 0);
+        assert_eq!(
+            summary.duplicate_family_histogram,
+            vec![
+                BamDuplicateFamilyHistogramBinV1 { family_size: 1, family_count: 1 },
+                BamDuplicateFamilyHistogramBinV1 { family_size: 2, family_count: 1 },
+            ]
+        );
+        assert_eq!(summary.pair_count, 0);
+        assert!(summary.insert_size_histogram.is_empty());
+        assert_eq!(summary.median_insert_size, None);
+        assert_eq!(summary.mean_insert_size, None);
+        assert_eq!(summary.min_insert_size, None);
+        assert_eq!(summary.max_insert_size, None);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_duplicate_insert_truth_reports_governed_insert_size_triplet() {
+        let repo_root = workspace_root();
+        let sam = repo_root.join(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_insert_size_triplet.sam",
+        );
+
+        let summary = summarize_tiny_bam_duplicate_insert_truth(&sam)
+            .expect("summarize duplicate and insert truth");
+        assert_eq!(summary.schema_version, BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.total_reads, 6);
+        assert_eq!(summary.mapped_reads, 6);
+        assert_eq!(summary.unmapped_reads, 0);
+        assert_eq!(summary.examined_reads, 6);
+        assert_eq!(summary.duplicate_reads, 0);
+        assert_eq!(summary.duplicate_pairs, 0);
+        assert_eq!(
+            summary.duplicate_family_histogram,
+            vec![BamDuplicateFamilyHistogramBinV1 { family_size: 1, family_count: 6 }]
+        );
+        assert_eq!(summary.pair_count, 3);
+        assert_eq!(
+            summary.insert_size_histogram,
+            vec![
+                BamInsertSizeHistogramBinV1 { insert_size: 15, pair_count: 1 },
+                BamInsertSizeHistogramBinV1 { insert_size: 20, pair_count: 1 },
+                BamInsertSizeHistogramBinV1 { insert_size: 30, pair_count: 1 },
+            ]
+        );
+        assert_eq!(summary.median_insert_size, Some(20.0));
+        assert_eq!(summary.mean_insert_size, Some(21.666_666_666_666_668));
+        assert_eq!(summary.min_insert_size, Some(15));
+        assert_eq!(summary.max_insert_size, Some(30));
+    }
+
+    #[test]
+    fn summarize_tiny_bam_duplicate_insert_truth_counts_duplicate_pairs() {
+        let temp = unique_temp_dir("bam-duplicate-insert-truth");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:200\n\
+@RG\tID:rg1\tSM:sampleA\n\
+pair001\t99\tchr1\t1\t60\t5M\t=\t16\t20\tACGTA\tFFFFF\tRG:Z:rg1\n\
+pair001\t147\tchr1\t16\t60\t5M\t=\t1\t-20\tTGCAT\tFFFFF\tRG:Z:rg1\n\
+pair002\t99\tchr1\t1\t60\t5M\t=\t16\t20\tACGTA\tFFFFF\tRG:Z:rg1\n\
+pair002\t147\tchr1\t16\t60\t5M\t=\t1\t-20\tTGCAT\tFFFFF\tRG:Z:rg1\n\
+pair003\t99\tchr1\t40\t60\t5M\t=\t50\t15\tCCCCC\tFFFFF\tRG:Z:rg1\n\
+pair003\t147\tchr1\t50\t60\t5M\t=\t40\t-15\tGGGGG\tFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write paired duplicate fixture");
+
+        let summary = summarize_tiny_bam_duplicate_insert_truth(&input)
+            .expect("summarize duplicate and insert truth");
+        assert_eq!(summary.examined_reads, 6);
+        assert_eq!(summary.duplicate_reads, 2);
+        assert_eq!(summary.duplicate_pairs, 1);
+        assert_eq!(summary.pair_count, 3);
+        assert_eq!(
+            summary.insert_size_histogram,
+            vec![
+                BamInsertSizeHistogramBinV1 { insert_size: 15, pair_count: 1 },
+                BamInsertSizeHistogramBinV1 { insert_size: 20, pair_count: 2 },
+            ]
+        );
     }
 
     #[test]
@@ -6462,6 +7604,62 @@ gc100_001\t0\tchrgc\t21\t60\t10M\t*\t0\t0\tCCCCCGGGGG\tFFFFFFFFFF\tRG:Z:rg1\n",
     }
 
     #[test]
+    fn summarize_tiny_bam_gc_bias_truth_omits_runtime_paths() {
+        let temp = unique_temp_dir("bam-gc-bias-truth");
+        let input = temp.join("input.sam");
+        let reference = temp.join("reference.fasta");
+        std::fs::write(&reference, ">chrgc\nAAAAATTTTTACGTACGTACCCCCCGGGGG\n")
+            .expect("write gc-bias truth reference");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chrgc\tLN:30\n\
+@RG\tID:rg1\tSM:sampleA\n\
+gc00_001\t0\tchrgc\t1\t60\t10M\t*\t0\t0\tAAAAATTTTT\tFFFFFFFFFF\tRG:Z:rg1\n\
+gc50_001\t0\tchrgc\t11\t60\t10M\t*\t0\t0\tACGTACGTAC\tFFFFFFFFFF\tRG:Z:rg1\n\
+gc50_002\t0\tchrgc\t13\t60\t10M\t*\t0\t0\tGTACGTACCC\tFFFFFFFFFF\tRG:Z:rg1\n\
+gc100_001\t0\tchrgc\t21\t60\t10M\t*\t0\t0\tCCCCCGGGGG\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write gc-bias truth fixture");
+
+        let summary =
+            summarize_tiny_bam_gc_bias_truth(&input, &reference, 10).expect("gc-bias truth");
+        assert_eq!(summary.schema_version, BAM_GC_BIAS_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.window_size, 10);
+        assert_eq!(summary.total_clusters, 4);
+        assert_eq!(summary.aligned_reads, 4);
+        assert_eq!(summary.windows, 3);
+        assert_eq!(summary.read_starts, 4);
+        assert!((summary.at_dropout - 25.0).abs() <= f64::EPSILON);
+        assert!((summary.gc_dropout - 25.0).abs() <= f64::EPSILON);
+        assert!((summary.gc_bias_score - 0.25).abs() <= f64::EPSILON);
+        assert_eq!(summary.insufficient_reference_reason, None);
+        assert_eq!(
+            summary.gc_bins,
+            vec![
+                BamGcBiasBinSummaryV1 {
+                    gc_bin: 0,
+                    windows: 1,
+                    read_starts: 1,
+                    normalized_coverage: 0.75,
+                },
+                BamGcBiasBinSummaryV1 {
+                    gc_bin: 50,
+                    windows: 1,
+                    read_starts: 2,
+                    normalized_coverage: 1.5,
+                },
+                BamGcBiasBinSummaryV1 {
+                    gc_bin: 100,
+                    windows: 1,
+                    read_starts: 1,
+                    normalized_coverage: 0.75,
+                },
+            ]
+        );
+    }
+
+    #[test]
     fn summarize_tiny_bam_bias_mitigation_projects_gc_bias_reduction() {
         let temp = unique_temp_dir("bam-bias-mitigation");
         let input = temp.join("input.sam");
@@ -6836,6 +8034,202 @@ y1\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n",
     }
 
     #[test]
+    fn summarize_tiny_bam_sex_reports_x_autosome_female_call() {
+        let temp = unique_temp_dir("bam-sex-female");
+        let input = temp.join("input.sam");
+        let reference = temp.join("reference.fasta");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:20\n\
+@SQ\tSN:chrX\tLN:20\n\
+@SQ\tSN:chrY\tLN:20\n\
+@RG\tID:rg1\tSM:sampleA\n\
+auto1\t0\tchr1\t1\t60\t10M\t*\t0\t0\tACGTACGTAC\tFFFFFFFFFF\tRG:Z:rg1\n\
+auto2\t0\tchr1\t11\t60\t10M\t*\t0\t0\tGTACGTACGT\tFFFFFFFFFF\tRG:Z:rg1\n\
+x1\t0\tchrX\t1\t60\t10M\t*\t0\t0\tTTTTCCCCAA\tFFFFFFFFFF\tRG:Z:rg1\n\
+x2\t0\tchrX\t11\t60\t10M\t*\t0\t0\tAAGGGGTTTT\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write sex fixture");
+        std::fs::write(
+            &reference,
+            ">chr1\nACGTACGTACGTACGTACGT\n>chrX\nTTTTCCCCAAAAGGGGTTTT\n>chrY\nGGGGAAAATTTTCCCCGGGG\n",
+        )
+        .expect("write reference fixture");
+
+        let summary = summarize_tiny_bam_sex(&input, &reference, "rxy", Some("xy"), Some(0))
+            .expect("summarize sex");
+        assert_eq!(summary.call, SexConfidenceClass::Female);
+        assert!((summary.x_coverage - 1.0).abs() <= 1e-9);
+        assert!((summary.y_coverage - 0.0).abs() <= 1e-9);
+        assert!((summary.autosomal_coverage - 1.0).abs() <= 1e-9);
+        assert_eq!(summary.x_covered_sites, 20);
+        assert_eq!(summary.y_covered_sites, 0);
+        assert_eq!(summary.x_to_y_ratio, None);
+        assert!((summary.confidence - 0.9).abs() <= 1e-9);
+        assert_eq!(summary.status, "ok");
+        assert_eq!(summary.insufficiency_reason, None);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_sex_reports_xy_autosome_ambiguous_call() {
+        let temp = unique_temp_dir("bam-sex-ambiguous");
+        let input = temp.join("input.sam");
+        let reference = temp.join("reference.fasta");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:20\n\
+@SQ\tSN:chrX\tLN:20\n\
+@SQ\tSN:chrY\tLN:20\n\
+@RG\tID:rg1\tSM:sampleA\n\
+auto1\t0\tchr1\t1\t60\t10M\t*\t0\t0\tACGTACGTAC\tFFFFFFFFFF\tRG:Z:rg1\n\
+auto2\t0\tchr1\t11\t60\t10M\t*\t0\t0\tGTACGTACGT\tFFFFFFFFFF\tRG:Z:rg1\n\
+x1\t0\tchrX\t1\t60\t10M\t*\t0\t0\tTTTTCCCCAA\tFFFFFFFFFF\tRG:Z:rg1\n\
+x2\t0\tchrX\t11\t60\t10M\t*\t0\t0\tAAGGGGTTTT\tFFFFFFFFFF\tRG:Z:rg1\n\
+y1\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write sex fixture");
+        std::fs::write(
+            &reference,
+            ">chr1\nACGTACGTACGTACGTACGT\n>chrX\nTTTTCCCCAAAAGGGGTTTT\n>chrY\nGGGGAAAATTTTCCCCGGGG\n",
+        )
+        .expect("write reference fixture");
+
+        let summary = summarize_tiny_bam_sex(&input, &reference, "rxy", Some("xy"), Some(1))
+            .expect("summarize sex");
+        assert_eq!(summary.call, SexConfidenceClass::Ambiguous);
+        assert!((summary.x_coverage - 1.0).abs() <= 1e-9);
+        assert!((summary.y_coverage - 0.5).abs() <= 1e-9);
+        assert!((summary.autosomal_coverage - 1.0).abs() <= 1e-9);
+        assert_eq!(summary.x_covered_sites, 20);
+        assert_eq!(summary.y_covered_sites, 10);
+        assert_eq!(summary.x_to_y_ratio, Some(2.0));
+        assert!((summary.confidence - 0.5).abs() <= 1e-9);
+        assert_eq!(summary.status, "ok");
+        assert_eq!(summary.insufficiency_reason, None);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_sex_reports_insufficient_chromosome_context() {
+        let repo_root = workspace_root();
+        let input = repo_root.join(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_y_haplogroup_panel.sam",
+        );
+        let reference = repo_root.join(
+            "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
+        );
+
+        let summary = summarize_tiny_bam_sex(&input, &reference, "rxy", Some("xy"), Some(1))
+            .expect("summarize sex");
+        assert_eq!(summary.call, SexConfidenceClass::Insufficient);
+        assert!((summary.x_coverage - 0.0).abs() <= 1e-9);
+        assert!((summary.y_coverage - 2.0).abs() <= 1e-9);
+        assert!((summary.autosomal_coverage - 0.0).abs() <= 1e-9);
+        assert_eq!(summary.x_covered_sites, 0);
+        assert_eq!(summary.y_covered_sites, 20);
+        assert_eq!(summary.x_to_y_ratio, Some(0.0));
+        assert!((summary.confidence - 0.0).abs() <= 1e-9);
+        assert_eq!(summary.status, "insufficient_chromosomes");
+        assert_eq!(summary.insufficiency_reason.as_deref(), Some("insufficient_chromosomes"));
+    }
+
+    #[test]
+    fn summarize_tiny_bam_haplogroup_truth_reports_ready_uncertain_and_coverage_gate_cases() {
+        let temp = unique_temp_dir("bam-haplogroup-truth");
+        let ready_input = temp.join("ready.sam");
+        let uncertain_input = temp.join("uncertain.sam");
+        let panel = temp.join("panel.tsv");
+        std::fs::write(
+            &ready_input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chrY\tLN:20\n\
+@RG\tID:rg1\tSM:sampleA\n\
+yhap1\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n\
+yhap2\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n\
+yhap3\t0\tchrY\t11\t60\t10M\t*\t0\t0\tCCGGTTCCGG\tFFFFFFFFFF\tRG:Z:rg1\n\
+yhap4\t0\tchrY\t11\t60\t10M\t*\t0\t0\tCCGGTTCCGG\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write ready haplogroup fixture");
+        std::fs::write(
+            &uncertain_input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chrY\tLN:20\n\
+@RG\tID:rg1\tSM:sampleA\n\
+yhap1\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n\
+yhap2\t0\tchrY\t1\t60\t10M\t*\t0\t0\tGGGGAAAATT\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write uncertain haplogroup fixture");
+        std::fs::write(
+            &panel,
+            "# panel\nmarker_id\tcontig\tposition\tref\talt\thaplogroup\tlineage_scope\n\
+adna-y-snp1\tchrY\t4\tG\tA\tR1b\tscreening\n\
+adna-y-snp2\tchrY\t15\tC\tT\tR1b1a\tscreening\n",
+        )
+        .expect("write haplogroup panel");
+
+        let ready = summarize_tiny_bam_haplogroup_truth(
+            &ready_input,
+            "yleaf",
+            &panel,
+            "adna-y-hg38-mini",
+            "hg38",
+            "adna_y_haplogroup_panel",
+            2.0,
+        )
+        .expect("summarize ready haplogroup truth");
+        assert_eq!(ready.stage_id, "bam.haplogroups");
+        assert_eq!(ready.method, "yleaf");
+        assert_eq!(ready.reference_panel_id, "adna-y-hg38-mini");
+        assert!((ready.observed_mean_coverage - 2.0).abs() <= 1e-9);
+        assert!(ready.ready);
+        assert_eq!(ready.haplogroup_call.as_deref(), Some("R1b1a"));
+        assert!((ready.confidence - 1.0).abs() <= 1e-9);
+        assert_eq!(ready.status, "ready");
+        assert_eq!(ready.markers_total, 2);
+        assert_eq!(ready.markers_supported, 2);
+        assert_eq!(ready.supported_marker_ids, vec!["adna-y-snp1", "adna-y-snp2"]);
+        assert_eq!(ready.lineage_scope.as_deref(), Some("screening"));
+        assert!(ready.refusal_codes.is_empty());
+
+        let uncertain = summarize_tiny_bam_haplogroup_truth(
+            &uncertain_input,
+            "yleaf",
+            &panel,
+            "adna-y-hg38-mini",
+            "hg38",
+            "adna_y_haplogroup_panel",
+            1.0,
+        )
+        .expect("summarize uncertain haplogroup truth");
+        assert!((uncertain.observed_mean_coverage - 1.0).abs() <= 1e-9);
+        assert!(!uncertain.ready);
+        assert_eq!(uncertain.haplogroup_call.as_deref(), Some("R1b"));
+        assert!((uncertain.confidence - 0.5).abs() <= 1e-9);
+        assert_eq!(uncertain.status, "uncertain_marker_support");
+        assert_eq!(uncertain.markers_total, 2);
+        assert_eq!(uncertain.markers_supported, 1);
+        assert_eq!(uncertain.supported_marker_ids, vec!["adna-y-snp1"]);
+        assert_eq!(uncertain.refusal_codes, vec!["marker_support_incomplete"]);
+
+        let insufficient = summarize_tiny_bam_haplogroup_truth(
+            &ready_input,
+            "yleaf",
+            &panel,
+            "adna-y-hg38-mini",
+            "hg38",
+            "adna_y_haplogroup_panel",
+            2.5,
+        )
+        .expect("summarize insufficient haplogroup truth");
+        assert!(!insufficient.ready);
+        assert_eq!(insufficient.haplogroup_call, None);
+        assert!((insufficient.confidence - 0.0).abs() <= 1e-9);
+        assert_eq!(insufficient.status, "coverage_gate_not_met");
+        assert_eq!(insufficient.refusal_codes, vec!["coverage_below_haplogroup_minimum"]);
+    }
+
+    #[test]
     fn bam_kinship_summary_round_trips() {
         let summary = BamKinshipSummaryV1 {
             schema_version: BAM_KINSHIP_SUMMARY_SCHEMA_VERSION.to_string(),
@@ -7003,6 +8397,176 @@ r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFF
     }
 
     #[test]
+    fn summarize_tiny_bam_adna_damage_truth_reports_terminal_classes_and_udg_status() {
+        let temp = unique_temp_dir("bam-adna-damage-truth");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chranc\tLN:120\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchranc\t5\t60\t20M\t*\t0\t0\tTCTTTCTTTCTTTCTTTCTT\tFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchranc\t19\t60\t24M\t*\t0\t0\tCTTTCCAAACTTTCCAAACTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchranc\t47\t60\t28M\t*\t0\t0\tTTCCCAAAGGGTTTCCCAAAGGGTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write damage fixture");
+
+        let summary = summarize_tiny_bam_adna_damage_truth(
+            &input,
+            &crate::metrics::DamageMetricsV1 {
+                c_to_t_5p: 0.18,
+                g_to_a_3p: 0.11,
+                pmd_score_histogram: Vec::new(),
+            },
+            false,
+            crate::params::UdgModel::NonUdg,
+        )
+        .expect("summarize aDNA damage truth");
+
+        assert_eq!(summary.schema_version, BAM_ADNA_DAMAGE_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.udg_model, "non_udg");
+        assert_eq!(summary.terminal_5p_class, "terminal_damage_enriched");
+        assert_eq!(summary.terminal_3p_class, "terminal_damage_enriched");
+        assert_eq!(summary.terminal_pattern_class, "ct5p_dominant");
+        assert_eq!(summary.insufficiency_reason, None);
+        assert_eq!(summary.insufficiency_policy, "warn_and_exclude_stage");
+        assert!(summary.advisory_only);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_adna_damage_truth_marks_low_signal_as_insufficient() {
+        let temp = unique_temp_dir("bam-adna-damage-insufficient");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chranc\tLN:120\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchranc\t5\t60\t20M\t*\t0\t0\tTCTTTCTTTCTTTCTTTCTT\tFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchranc\t19\t60\t24M\t*\t0\t0\tCTTTCCAAACTTTCCAAACTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchranc\t47\t60\t28M\t*\t0\t0\tTTCCCAAAGGGTTTCCCAAAGGGTTTCC\tFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n\
+r04\t0\tchranc\t79\t60\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write damage fixture");
+
+        let summary = summarize_tiny_bam_adna_damage_truth(
+            &input,
+            &crate::metrics::DamageMetricsV1 {
+                c_to_t_5p: 0.04,
+                g_to_a_3p: 0.08,
+                pmd_score_histogram: Vec::new(),
+            },
+            false,
+            crate::params::UdgModel::HalfUdg,
+        )
+        .expect("summarize insufficient aDNA damage truth");
+
+        assert_eq!(summary.udg_model, "half_udg");
+        assert_eq!(summary.damage_signal, "low");
+        assert_eq!(summary.terminal_5p_class, "terminal_damage_limited");
+        assert_eq!(summary.terminal_3p_class, "terminal_damage_limited");
+        assert_eq!(summary.terminal_pattern_class, "insufficient_terminal_damage");
+        assert_eq!(
+            summary.insufficiency_reason.as_deref(),
+            Some("terminal_damage_below_comparison_threshold")
+        );
+        assert_eq!(summary.insufficiency_policy, "warn_and_exclude_stage");
+    }
+
+    #[test]
+    fn summarize_bam_adna_contamination_truth_reports_ready_mitochondrial_signal() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.coverage.mean = 4.0;
+        metrics.contamination.method = "schmutzi".to_string();
+        metrics.contamination.estimate = 0.02;
+        metrics.contamination.ci_low = 0.01;
+        metrics.contamination.ci_high = 0.03;
+
+        let summary = summarize_bam_adna_contamination_truth(
+            "schmutzi", &metrics, 0.5, true, true, false, false, false,
+        )
+        .expect("summarize ready mitochondrial contamination truth");
+
+        assert_eq!(summary.schema_version, BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.stage_id, "bam.contamination");
+        assert_eq!(summary.tool, "schmutzi");
+        assert_eq!(summary.scope, "mitochondrial");
+        assert!(summary.prerequisites_passed);
+        assert_eq!(summary.status, "ok");
+        assert_eq!(summary.confidence_interval_status, "reported");
+        assert_eq!(summary.estimate, Some(0.02));
+        assert_eq!(summary.ci_low, Some(0.01));
+        assert_eq!(summary.ci_high, Some(0.03));
+        assert_eq!(summary.insufficiency_reason, None);
+        assert_eq!(summary.insufficiency_policy, "warn_and_exclude_stage");
+        assert!(summary.advisory_only);
+        assert!(summary.refusal_codes.is_empty());
+    }
+
+    #[test]
+    fn summarize_bam_adna_contamination_truth_marks_missing_sex_context_as_insufficient() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.coverage.mean = 4.0;
+        metrics.contamination.method = "verifybamid2".to_string();
+        metrics.contamination.estimate = 0.08;
+        metrics.contamination.ci_low = 0.05;
+        metrics.contamination.ci_high = 0.12;
+
+        let summary = summarize_bam_adna_contamination_truth(
+            "verifybamid2",
+            &metrics,
+            0.5,
+            false,
+            false,
+            true,
+            true,
+            false,
+        )
+        .expect("summarize insufficient nuclear contamination truth");
+
+        assert_eq!(summary.tool, "verifybamid2");
+        assert_eq!(summary.scope, "nuclear");
+        assert!(!summary.prerequisites_passed);
+        assert_eq!(summary.status, "insufficient");
+        assert_eq!(summary.confidence_interval_status, "excluded");
+        assert_eq!(summary.estimate, None);
+        assert_eq!(summary.ci_low, None);
+        assert_eq!(summary.ci_high, None);
+        assert_eq!(summary.insufficiency_reason.as_deref(), Some("sex_context_required"));
+        assert_eq!(summary.insufficiency_policy, "warn_and_exclude_stage");
+        assert!(summary.refusal_codes.contains(&"sex_context_required".to_string()));
+    }
+
+    #[test]
+    fn summarize_bam_adna_contamination_truth_preserves_contammix_tool_identity() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.coverage.mean = 5.0;
+        metrics.contamination.method = "contammix".to_string();
+        metrics.contamination.estimate = 0.02;
+        metrics.contamination.ci_low = 0.01;
+        metrics.contamination.ci_high = 0.03;
+
+        let summary = summarize_bam_adna_contamination_truth(
+            "contammix",
+            &metrics,
+            0.5,
+            false,
+            false,
+            true,
+            true,
+            true,
+        )
+        .expect("summarize contammix contamination truth");
+
+        assert_eq!(summary.tool, "contammix");
+        assert_eq!(summary.scope, "nuclear");
+        assert_eq!(summary.status, "ok");
+        assert_eq!(summary.confidence_interval_status, "reported");
+        assert_eq!(summary.estimate, Some(0.02));
+    }
+
+    #[test]
     fn summarize_tiny_bam_authenticity_advisory_reports_composed_signal() {
         let temp = unique_temp_dir("bam-authenticity-advisory");
         let input = temp.join("input.sam");
@@ -7031,6 +8595,7 @@ r04\t0\tchranc\t89\t25\t32M\t*\t0\t0\tCTTCTTGGAACTTCTTGGAACTTCTTGGAACT\tFFFFFFFF
         assert_eq!(advisory.stage_id, "bam.authenticity");
         assert!((advisory.score - 0.866_666_666_666_666_7).abs() <= 1e-12);
         assert!((advisory.confidence - 0.946_666_666_666_666_8).abs() <= 1e-12);
+        assert_eq!(advisory.status, "pass");
         assert!(advisory.pmd_like_signal_present);
         assert!(advisory.advisory_boundary.advisory_only);
         assert_eq!(advisory.advisory_boundary.stage_id, "bam.authenticity");
@@ -7089,6 +8654,62 @@ r03\t0\tchr2\t2\t45\t3M\t*\t0\t0\tGGA\tFFF\tRG:Z:rg1\n",
         assert!((summary.mean_depth.expect("mean depth") - 1.1).abs() <= 1e-9);
         let regime = summary.regime.expect("coverage regime");
         assert!((regime.breadth_1x - 0.9).abs() <= 1e-9);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_coverage_truth_reports_weighted_region_metrics() {
+        let temp = unique_temp_dir("bam-coverage-truth");
+        let input = temp.join("input.sam");
+        let regions = temp.join("regions.bed");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:12\n\
+@SQ\tSN:chr2\tLN:8\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t1\t45\t4M\t*\t0\t0\tACGT\tFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t3\t45\t4M\t*\t0\t0\tTTAA\tFFFF\tRG:Z:rg1\n\
+r03\t0\tchr2\t2\t45\t3M\t*\t0\t0\tGGA\tFFF\tRG:Z:rg1\n",
+        )
+        .expect("write coverage truth fixture");
+        std::fs::write(&regions, "chr1\t0\t6\tchr1_window\nchr2\t1\t5\tchr2_window\n")
+            .expect("write coverage truth regions");
+
+        let summary =
+            summarize_tiny_bam_coverage_truth(&input, &regions, &[1, 5]).expect("coverage truth");
+        assert_eq!(summary.schema_version, BAM_COVERAGE_TRUTH_SUMMARY_SCHEMA_VERSION);
+        assert_eq!(summary.depth_thresholds, vec![1, 5]);
+        assert!((summary.mean_depth - 1.1).abs() <= 1e-9);
+        assert!((summary.breadth_1x - 0.9).abs() <= 1e-9);
+        assert_eq!(summary.covered_bases, 9);
+        assert_eq!(summary.total_bases, 10);
+        assert_eq!(summary.coverage_regime, "low_pass");
+        assert_eq!(summary.coverage_family, "guardrail_required");
+        assert_eq!(
+            summary.region_summaries,
+            vec![
+                BamCoverageRegionSummaryV1 {
+                    region_id: "chr1_window".to_string(),
+                    contig: "chr1".to_string(),
+                    start: 1,
+                    end: 6,
+                    length: 6,
+                    mean_depth: 4.0 / 3.0,
+                    breadth_1x: 1.0,
+                    covered_bases: 6,
+                },
+                BamCoverageRegionSummaryV1 {
+                    region_id: "chr2_window".to_string(),
+                    contig: "chr2".to_string(),
+                    start: 2,
+                    end: 5,
+                    length: 4,
+                    mean_depth: 0.75,
+                    breadth_1x: 0.75,
+                    covered_bases: 3,
+                },
+            ]
+        );
     }
 
     #[test]

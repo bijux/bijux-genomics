@@ -41,7 +41,7 @@ fn bench_local_validate_all_domain_slurm_shell_syntax_writes_governed_report_pat
         serde_json::from_slice(&fs::read(&report_path).expect("read report"))
             .expect("parse report");
     assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(true));
-    assert_eq!(report.get("script_count").and_then(serde_json::Value::as_u64), Some(213));
+    assert_eq!(report.get("script_count").and_then(serde_json::Value::as_u64), Some(234));
 
     let benchmark_script = repo_root.join(
         "runs/bench/slurm-dry-run/all-domains/benchmark-results/vcf/vcf_production_regression/vcf.stats/vcf_cohort/bcftools/job.sbatch",

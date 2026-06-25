@@ -1,0 +1,160 @@
+{
+  "schema_version": "bijux.bench.adna_contamination_truth.expected.v1",
+  "fixture_id": "adna-contamination-truth",
+  "truths": [
+    {
+      "case_id": "schmutzi_mitochondrial_ready",
+      "sample_id": "adna_contamination_panel_screen",
+      "cohort": "adna_like",
+      "tool": "schmutzi",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+      "summary": {
+        "schema_version": "bijux.bam.adna_contamination_truth.v1",
+        "stage_id": "bam.contamination",
+        "tool": "schmutzi",
+        "scope": "mitochondrial",
+        "prerequisites_passed": true,
+        "status": "ok",
+        "confidence_interval_status": "reported",
+        "estimate": 0.02,
+        "ci_low": 0.01,
+        "ci_high": 0.03,
+        "insufficiency_reason": null,
+        "insufficiency_policy": "warn_and_exclude_stage",
+        "advisory_only": true,
+        "refusal_codes": []
+      }
+    },
+    {
+      "case_id": "schmutzi_mitochondrial_insufficient",
+      "sample_id": "adna_contamination_panel_screen",
+      "cohort": "adna_like",
+      "tool": "schmutzi",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+      "summary": {
+        "schema_version": "bijux.bam.adna_contamination_truth.v1",
+        "stage_id": "bam.contamination",
+        "tool": "schmutzi",
+        "scope": "mitochondrial",
+        "prerequisites_passed": false,
+        "status": "insufficient",
+        "confidence_interval_status": "excluded",
+        "estimate": null,
+        "ci_low": null,
+        "ci_high": null,
+        "insufficiency_reason": "mitochondrial_reference_required",
+        "insufficiency_policy": "warn_and_exclude_stage",
+        "advisory_only": true,
+        "refusal_codes": [
+          "mitochondrial_reference_required",
+          "damage_context_required",
+          "coverage_below_minimum_for_mito_contamination"
+        ]
+      }
+    },
+    {
+      "case_id": "verifybamid2_nuclear_ready",
+      "sample_id": "adna_contamination_panel_screen",
+      "cohort": "adna_like",
+      "tool": "verifybamid2",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+      "summary": {
+        "schema_version": "bijux.bam.adna_contamination_truth.v1",
+        "stage_id": "bam.contamination",
+        "tool": "verifybamid2",
+        "scope": "nuclear",
+        "prerequisites_passed": true,
+        "status": "ok",
+        "confidence_interval_status": "reported",
+        "estimate": 0.02,
+        "ci_low": 0.01,
+        "ci_high": 0.03,
+        "insufficiency_reason": null,
+        "insufficiency_policy": "warn_and_exclude_stage",
+        "advisory_only": true,
+        "refusal_codes": []
+      }
+    },
+    {
+      "case_id": "verifybamid2_nuclear_insufficient",
+      "sample_id": "adna_contamination_panel_screen",
+      "cohort": "adna_like",
+      "tool": "verifybamid2",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+      "summary": {
+        "schema_version": "bijux.bam.adna_contamination_truth.v1",
+        "stage_id": "bam.contamination",
+        "tool": "verifybamid2",
+        "scope": "nuclear",
+        "prerequisites_passed": false,
+        "status": "insufficient",
+        "confidence_interval_status": "excluded",
+        "estimate": null,
+        "ci_low": null,
+        "ci_high": null,
+        "insufficiency_reason": "sex_context_required",
+        "insufficiency_policy": "warn_and_exclude_stage",
+        "advisory_only": true,
+        "refusal_codes": [
+          "sex_context_required",
+          "coverage_below_minimum_for_nuclear_contamination"
+        ]
+      }
+    },
+    {
+      "case_id": "contammix_nuclear_ready",
+      "sample_id": "adna_contamination_panel_screen",
+      "cohort": "adna_like",
+      "tool": "contammix",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+      "summary": {
+        "schema_version": "bijux.bam.adna_contamination_truth.v1",
+        "stage_id": "bam.contamination",
+        "tool": "contammix",
+        "scope": "nuclear",
+        "prerequisites_passed": true,
+        "status": "ok",
+        "confidence_interval_status": "reported",
+        "estimate": 0.02,
+        "ci_low": 0.01,
+        "ci_high": 0.03,
+        "insufficiency_reason": null,
+        "insufficiency_policy": "warn_and_exclude_stage",
+        "advisory_only": true,
+        "refusal_codes": []
+      }
+    },
+    {
+      "case_id": "contammix_nuclear_insufficient",
+      "sample_id": "adna_contamination_panel_screen",
+      "cohort": "adna_like",
+      "tool": "contammix",
+      "alignment_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_contamination_panel_screen.sam",
+      "reference_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+      "summary": {
+        "schema_version": "bijux.bam.adna_contamination_truth.v1",
+        "stage_id": "bam.contamination",
+        "tool": "contammix",
+        "scope": "nuclear",
+        "prerequisites_passed": false,
+        "status": "insufficient",
+        "confidence_interval_status": "excluded",
+        "estimate": null,
+        "ci_low": null,
+        "ci_high": null,
+        "insufficiency_reason": "panel_build_incompatible",
+        "insufficiency_policy": "warn_and_exclude_stage",
+        "advisory_only": true,
+        "refusal_codes": [
+          "panel_build_incompatible",
+          "coverage_below_minimum_for_nuclear_contamination"
+        ]
+      }
+    }
+  ]
+}

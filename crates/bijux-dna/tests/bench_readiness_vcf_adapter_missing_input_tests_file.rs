@@ -6,7 +6,7 @@ use std::process::Command;
 mod support;
 
 #[test]
-fn bench_readiness_vcf_adapter_missing_input_tests_writes_governed_json_file() {
+fn bench_readiness_vcf_adapter_missing_input_audit_writes_governed_json_file() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
@@ -39,14 +39,15 @@ fn bench_readiness_vcf_adapter_missing_input_tests_writes_governed_json_file() {
             .expect("parse report json");
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.vcf_adapter_missing_input_tests.v1")
+        Some("bijux.bench.readiness.vcf_adapter_missing_input_audit.v1")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(10));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert!(
         rows.iter().any(|row| {
-            row.get("missing_input_role").and_then(serde_json::Value::as_str) == Some("fai")
+            row.get("missing_input_role").and_then(serde_json::Value::as_str)
+                == Some("reference_fai")
                 && row.get("artifact_id").and_then(serde_json::Value::as_str)
                     == Some("reference_fai")
                 && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
@@ -56,7 +57,7 @@ fn bench_readiness_vcf_adapter_missing_input_tests_writes_governed_json_file() {
     assert!(
         rows.iter().any(|row| {
             row.get("missing_input_role").and_then(serde_json::Value::as_str)
-                == Some("sample_metadata")
+                == Some("sample_metadata_manifest")
                 && row.get("artifact_id").and_then(serde_json::Value::as_str)
                     == Some("sample_metadata_manifest")
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")

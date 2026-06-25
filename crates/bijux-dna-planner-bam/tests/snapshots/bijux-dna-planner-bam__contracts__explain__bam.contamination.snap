@@ -4,7 +4,7 @@ expression: reason_json
 ---
 {
   "details": {
-    "contract_hash": "3341f894677ab1e6a3b7c82c5ac901944b7e110e997e64f6fe1d0216df1e370b",
+    "contract_hash": "33c8d6f650be705ca1a21c3e1fafefd397979b298ce05799b4742719887e80f9",
     "defaults_diff": {},
     "resource_plan": {
       "cpu_threads": 4,

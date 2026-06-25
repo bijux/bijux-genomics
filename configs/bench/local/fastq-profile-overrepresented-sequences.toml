@@ -1,0 +1,16 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local benchmark fixture plan for fastq.profile_overrepresented_sequences.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-06-22
+
+schema_version = "bijux.bench.fastq.local_profile_overrepresented_sequences.v1"
+tool_id = "seqkit"
+threads = 1
+top_k = 5
+output_dir = "runs/bench/local-smoke/fastq.profile_overrepresented_sequences"
+
+[[cases]]
+sample_id = "known-repeat-se"
+r1 = "assets/toy/core-v1/fastq/reads_with_overrepresented_sequences.fastq"

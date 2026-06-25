@@ -1,4 +1,4 @@
-pub use crate::internal::public_bridge::handlers::cross::run_fastq_to_bam_profile;
+pub use crate::internal::public_surface::handlers::cross::run_fastq_to_bam_profile;
 pub use crate::runtime::run::{
     assess_failed_replay_eligibility, browse_runs, cache_explain, cancel_run, dry_run,
     environment_identity, evidence_gap, execute, execute_and_report, execute_local_bam_workflow,

@@ -1630,7 +1630,7 @@ mod tests {
             runtime_s: Some(15.2),
             memory_mb: Some(512.0),
         };
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &report_path,
             serde_json::to_vec(&report).expect("serialize taxonomy report"),
         )

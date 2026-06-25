@@ -62,6 +62,6 @@ fn bench_readiness_all_domain_expected_benchmark_results_writes_governed_tsv_fil
         row == &"vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools\tvcf\tvcf.postprocess\tbcftools\tvcf_production_regression\tvcf_single_sample\tpostprocess_vcf\treadable_vcf,tabix_present,contigs_consistent_with_species_context,left_align_applied,multiallelic_records_split,indels_normalized,variant_ids_normalized,invalid_records_removed,filter_standardized_to_pass\tnormalization"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle\tvcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\timputation_metrics_json\tstatus,concordance,mean_info_score,r2_available,dosage_r2,low_confidence_sites,masked_truth_sites,missing_quality_fields\timputation"
+        row == &"vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle\tvcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\timputation_metrics_json\tstatus,concordance,mean_info_score,r2_available,dosage_r2,low_confidence_sites,masked_truth_sites,missing_quality_fields,sample_count,sample_ids,variant_count\timputation"
     }));
 }

@@ -60,7 +60,17 @@ impl ReadinessToolContract {
         }
     }
 
-    pub(crate) fn admitted_stage_ids(&self) -> Vec<String> {
+    pub(crate) fn benchmark_stage_ids(&self) -> Vec<String> {
+        if self.support_status == "planned" {
+            return Vec::new();
+        }
+        let mut stage_ids =
+            self.stage_ids.iter().cloned().collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
+        stage_ids.sort();
+        stage_ids
+    }
+
+    pub(crate) fn declared_stage_ids(&self) -> Vec<String> {
         let mut stage_ids = self
             .stage_ids
             .iter()
@@ -77,7 +87,7 @@ impl ReadinessToolContract {
         &self,
         benchmark_stage_ids: &BTreeSet<String>,
     ) -> Vec<String> {
-        self.admitted_stage_ids()
+        self.benchmark_stage_ids()
             .into_iter()
             .filter(|stage_id| benchmark_stage_ids.contains(stage_id))
             .collect()
@@ -214,12 +224,6 @@ pub(crate) fn load_stage_admissions(
 }
 
 pub(crate) fn load_registry_tool_matrix(repo_root: &Path) -> Result<RegistryToolMatrix> {
-    let registry_path = repo_root.join("configs/ci/registry/tool_registry.toml");
-    let raw = fs::read_to_string(&registry_path)
-        .with_context(|| format!("read {}", registry_path.display()))?;
-    let parsed: toml::Value =
-        toml::from_str(&raw).with_context(|| format!("parse {}", registry_path.display()))?;
-
     let mut tool_stage_pairs = BTreeSet::<(String, String)>::new();
     let mut pair_sources = BTreeMap::<(String, String), BTreeSet<String>>::new();
     let mut stage_ids_by_tool = BTreeMap::<String, BTreeSet<String>>::new();
@@ -227,59 +231,75 @@ pub(crate) fn load_registry_tool_matrix(repo_root: &Path) -> Result<RegistryTool
     let mut stage_default_rationales = BTreeMap::<String, String>::new();
     let mut stage_policies = BTreeMap::<String, RegistryStagePolicy>::new();
 
-    for tool in value_array(&parsed, "tools", &registry_path)? {
-        let tool_id = required_string(tool, "id", &registry_path)?;
-        known_tool_ids.insert(tool_id.clone());
-        for stage_id in string_list(tool, "stage_ids", &registry_path)?
-            .into_iter()
-            .chain(string_list(tool, "bindings", &registry_path)?)
-        {
-            tool_stage_pairs.insert((stage_id.clone(), tool_id.clone()));
-            pair_sources
-                .entry((stage_id.clone(), tool_id.clone()))
-                .or_default()
-                .insert("tools".to_string());
-            stage_ids_by_tool.entry(tool_id.clone()).or_default().insert(stage_id);
-        }
-    }
+    for (registry_rel, is_production_registry) in [
+        ("configs/ci/registry/tool_registry.toml", true),
+        ("configs/ci/registry/tool_registry_experimental.toml", false),
+    ] {
+        let registry_path = repo_root.join(registry_rel);
+        let raw = fs::read_to_string(&registry_path)
+            .with_context(|| format!("read {}", registry_path.display()))?;
+        let parsed: toml::Value =
+            toml::from_str(&raw).with_context(|| format!("parse {}", registry_path.display()))?;
 
-    for stage in value_array(&parsed, "stages", &registry_path)? {
-        let stage_id = required_string(stage, "id", &registry_path)?;
-        let primary_tool_ids = string_list(stage, "primary_tools", &registry_path)?;
-        let optional_alternative_tool_ids =
-            string_list(stage, "optional_alternatives", &registry_path)?;
-        let validation_tool_ids = string_list(stage, "validation_tools", &registry_path)?;
-        let reporting_tool_ids = string_list(stage, "reporting_tools", &registry_path)?;
-        let default_rationale = stage
-            .get("default_rationale")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("")
-            .trim()
-            .to_string();
-        if !default_rationale.is_empty() {
-            stage_default_rationales.insert(stage_id.clone(), default_rationale.clone());
-        }
-        stage_policies.insert(
-            stage_id.clone(),
-            RegistryStagePolicy {
-                stage_id: stage_id.clone(),
-                primary_tool_ids: primary_tool_ids.clone(),
-                optional_alternative_tool_ids: optional_alternative_tool_ids.clone(),
-                validation_tool_ids: validation_tool_ids.clone(),
-                reporting_tool_ids: reporting_tool_ids.clone(),
-                default_rationale: default_rationale.clone(),
-            },
-        );
-        for key in ["primary_tools", "optional_alternatives", "validation_tools", "reporting_tools"]
-        {
-            for tool_id in string_list(stage, key, &registry_path)? {
-                known_tool_ids.insert(tool_id.clone());
+        for tool in value_array(&parsed, "tools", &registry_path)? {
+            let tool_id = required_string(tool, "id", &registry_path)?;
+            known_tool_ids.insert(tool_id.clone());
+            for stage_id in string_list(tool, "stage_ids", &registry_path)?
+                .into_iter()
+                .chain(string_list(tool, "bindings", &registry_path)?)
+            {
                 tool_stage_pairs.insert((stage_id.clone(), tool_id.clone()));
                 pair_sources
                     .entry((stage_id.clone(), tool_id.clone()))
                     .or_default()
-                    .insert(format!("stages.{key}"));
-                stage_ids_by_tool.entry(tool_id).or_default().insert(stage_id.clone());
+                    .insert(format!("{registry_rel}:tools"));
+                stage_ids_by_tool.entry(tool_id.clone()).or_default().insert(stage_id);
+            }
+        }
+
+        if !is_production_registry {
+            continue;
+        }
+
+        for stage in value_array(&parsed, "stages", &registry_path)? {
+            let stage_id = required_string(stage, "id", &registry_path)?;
+            let primary_tool_ids = string_list(stage, "primary_tools", &registry_path)?;
+            let optional_alternative_tool_ids =
+                string_list(stage, "optional_alternatives", &registry_path)?;
+            let validation_tool_ids = string_list(stage, "validation_tools", &registry_path)?;
+            let reporting_tool_ids = string_list(stage, "reporting_tools", &registry_path)?;
+            let default_rationale = stage
+                .get("default_rationale")
+                .and_then(toml::Value::as_str)
+                .unwrap_or("")
+                .trim()
+                .to_string();
+            if !default_rationale.is_empty() {
+                stage_default_rationales.insert(stage_id.clone(), default_rationale.clone());
+            }
+            stage_policies.insert(
+                stage_id.clone(),
+                RegistryStagePolicy {
+                    stage_id: stage_id.clone(),
+                    primary_tool_ids: primary_tool_ids.clone(),
+                    optional_alternative_tool_ids: optional_alternative_tool_ids.clone(),
+                    validation_tool_ids: validation_tool_ids.clone(),
+                    reporting_tool_ids: reporting_tool_ids.clone(),
+                    default_rationale: default_rationale.clone(),
+                },
+            );
+            for key in
+                ["primary_tools", "optional_alternatives", "validation_tools", "reporting_tools"]
+            {
+                for tool_id in string_list(stage, key, &registry_path)? {
+                    known_tool_ids.insert(tool_id.clone());
+                    tool_stage_pairs.insert((stage_id.clone(), tool_id.clone()));
+                    pair_sources
+                        .entry((stage_id.clone(), tool_id.clone()))
+                        .or_default()
+                        .insert(format!("{registry_rel}:stages.{key}"));
+                    stage_ids_by_tool.entry(tool_id).or_default().insert(stage_id.clone());
+                }
             }
         }
     }
@@ -356,6 +376,7 @@ mod tests {
             vec![
                 "addeam".to_string(),
                 "damageprofiler".to_string(),
+                "ngsbriggs".to_string(),
                 "pmdtools".to_string(),
                 "pydamage".to_string()
             ]
@@ -389,6 +410,28 @@ mod tests {
         assert!(
             bam_complexity.optional_alternative_tool_ids.is_empty(),
             "bam.complexity currently carries a single governed preseq benchmark row"
+        );
+    }
+
+    #[test]
+    fn registry_tool_matrix_includes_experimental_fastq_benchmark_pairs() {
+        let matrix = load_registry_tool_matrix(&repo_root()).expect("load registry tool matrix");
+
+        assert!(
+            matrix
+                .tool_stage_pairs
+                .contains(&(String::from("fastq.profile_read_lengths"), String::from("seqfu"))),
+            "experimental fastq benchmark rows must remain visible to readiness audits"
+        );
+        assert!(
+            matrix
+                .tool_stage_pairs
+                .contains(&(String::from("fastq.profile_reads"), String::from("seqfu"))),
+            "experimental fastq profile-read rows must remain visible to readiness audits"
+        );
+        assert!(
+            matrix.known_tool_ids.contains("seqfu"),
+            "experimental tool ids must remain visible when benchmark readiness expects them"
         );
     }
 }

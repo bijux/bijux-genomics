@@ -1,5 +1,5 @@
 use crate::commands::benchmark::path_resolution::BenchmarkPathResolver;
-use crate::commands::fastq::api_bridge::resolve_profile_alias;
+use crate::commands::fastq::api_translation::resolve_profile_alias;
 use crate::commands::support::prelude::{
     anyhow, cli, load_manifests, render, PipelinesCommand, Result,
 };

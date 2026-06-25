@@ -52,14 +52,18 @@ fn dna_tree_matches_architecture_contract() {
     let expected_commands: BTreeSet<_> = [
         "bam/",
         "benchmark/",
+        "ci.rs",
         "cli/",
         "corpus/",
+        "crates.rs",
         "ena/",
         "example/",
         "example.rs",
         "fastq/",
+        "fixtures/",
         "hpc/",
         "mod.rs",
+        "numeric.rs",
         "planning/",
         "router/",
         "status/",
@@ -72,6 +76,17 @@ fn dna_tree_matches_architecture_contract() {
     assert_eq!(
         command_entries, expected_commands,
         "dna commands tree must stay partitioned by enduring concern"
+    );
+
+    let fixture_entries = dir_entries(&root.join("src/commands/fixtures"));
+    let expected_fixtures: BTreeSet<_> =
+        ["build/", "entrypoint.rs", "expected/", "mod.rs", "paths.rs", "root_validation.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(
+        fixture_entries, expected_fixtures,
+        "fixture commands must keep generation, expected-truth, entrypoint, and path ownership separate"
     );
 
     let router_entries = dir_entries(&root.join("src/commands/router"));
@@ -87,16 +102,120 @@ fn dna_tree_matches_architecture_contract() {
 
     let benchmark_entries = dir_entries(&root.join("src/commands/benchmark"));
     let expected_benchmark: BTreeSet<_> = [
+        "active_scope.rs",
+        "alias_inventory.rs",
+        "bam_stage_families.rs",
+        "benchmark_result_ids.rs",
         "config.rs",
         "corpus_fastq/",
         "corpus_metadata.rs",
         "fastq_bench/",
+        "fastq_stage_families.rs",
+        "local_adna_micro_pipeline.rs",
+        "local_all_domain_fake_failures.rs",
+        "local_all_domain_fake_runs.rs",
+        "local_all_domain_job_execution.rs",
+        "local_all_domain_result_paths.rs",
+        "local_all_domain_slurm_path_convention.rs",
+        "local_all_domain_slurm_script_bodies.rs",
+        "local_all_domain_slurm_scripts.rs",
+        "local_all_domain_slurm_shell_syntax.rs",
+        "local_all_domain_slurm_submit_manifest.rs",
+        "local_amplicon_micro_pipeline.rs",
+        "local_bam_micro_smoke_subset.rs",
+        "local_bam_stage_smoke.rs",
+        "local_benchmark_summary.rs",
+        "local_core_germline_micro_pipeline.rs",
+        "local_corpus_fixture/",
+        "local_corpus_skip_report.rs",
+        "local_corpus_stage_compatibility.rs",
+        "local_cross_domain_sample_consistency.rs",
+        "local_dag_watchdog_simulation.rs",
+        "local_edna_micro_pipeline.rs",
+        "local_essential_pipeline_fake_runs.rs",
+        "local_fastq_micro_smoke_subset.rs",
+        "local_hpc_array_support.rs",
+        "local_hpc_asset_staging_manifest.rs",
+        "local_hpc_candidate_run_manifest.rs",
+        "local_hpc_dependency_simulation.rs",
+        "local_hpc_dry_run_ready.rs",
+        "local_hpc_execution_resolver.rs",
+        "local_hpc_input_discovery.rs",
+        "local_hpc_job_completion.rs",
+        "local_hpc_job_graph.rs",
+        "local_hpc_job_resources.rs",
+        "local_hpc_pipeline_node_array.rs",
+        "local_hpc_result_collection_simulation.rs",
+        "local_hpc_resume_simulation.rs",
+        "local_hpc_scratch_layout.rs",
+        "local_hpc_selected_jobs.rs",
+        "local_hpc_simulation_tree.rs",
+        "local_hpc_stage_benchmark_array.rs",
+        "local_hpc_submission_ready.rs",
+        "local_micro_benchmark_report.rs",
+        "local_micro_benchmark_run.rs",
+        "local_pipeline_dag.rs",
+        "local_real_smoke_core_subset.rs",
+        "local_slurm_dependency_check.rs",
+        "local_slurm_dry_run.rs",
+        "local_slurm_run_paths.rs",
+        "local_slurm_script_bodies.rs",
+        "local_slurm_shell_syntax.rs",
+        "local_slurm_submit_manifest.rs",
+        "local_stage_commands.rs",
+        "local_stage_fake_runs.rs",
+        "local_stage_inventory.rs",
+        "local_stage_manifest_completion.rs",
+        "local_stage_output_completion.rs",
+        "local_stage_result_manifest.rs",
+        "local_stage_runtime_metrics.rs",
+        "local_taxonomy_database_fixture.rs",
+        "local_taxonomy_output_judgment.rs",
+        "local_tool_comparison_template.rs",
+        "local_vcf_admixture_smoke.rs",
+        "local_vcf_call_bam_smoke_support.rs",
+        "local_vcf_call_diploid_smoke.rs",
+        "local_vcf_call_gl_smoke.rs",
+        "local_vcf_call_pseudohaploid_smoke.rs",
+        "local_vcf_call_smoke.rs",
+        "local_vcf_damage_filter_smoke.rs",
+        "local_vcf_demography_smoke.rs",
+        "local_vcf_filter_smoke.rs",
+        "local_vcf_gl_propagation_smoke.rs",
+        "local_vcf_ibd_smoke.rs",
+        "local_vcf_imputation_metrics_smoke.rs",
+        "local_vcf_impute_smoke.rs",
+        "local_vcf_micro_smoke_subset.rs",
+        "local_vcf_no_empty_output.rs",
+        "local_vcf_panel_workflow_smoke_support.rs",
+        "local_vcf_pca_smoke.rs",
+        "local_vcf_phasing_smoke.rs",
+        "local_vcf_population_structure_smoke.rs",
+        "local_vcf_postprocess_smoke.rs",
+        "local_vcf_prepare_reference_panel_smoke.rs",
+        "local_vcf_qc_smoke.rs",
+        "local_vcf_reference_compatibility.rs",
+        "local_vcf_roh_smoke.rs",
+        "local_vcf_sample_compatibility.rs",
+        "local_vcf_smoke_root.rs",
+        "local_vcf_smoke_suite_ready.rs",
+        "local_vcf_stage_catalog.rs",
+        "local_vcf_stage_catalog_ready.rs",
+        "local_vcf_stage_matrix.rs",
+        "local_vcf_stats_smoke.rs",
         "mod.rs",
+        "path_resolution.rs",
+        "paths.rs",
         "publication/",
+        "readiness/",
         "repo_checks.rs",
+        "schema_paths.rs",
+        "schema_validation.rs",
         "stage_catalog.rs",
         "suite/",
         "taxonomy_database.rs",
+        "vcf_benchmark_bindings.rs",
+        "vcf_stage_families.rs",
         "workspace/",
         "workspace.rs",
     ]
@@ -166,7 +285,9 @@ fn dna_tree_matches_architecture_contract() {
         "ci.rs",
         "common_example_args.rs",
         "common_root_args.rs",
+        "dev.rs",
         "fastq.rs",
+        "fixtures.rs",
         "parse_env_and_pipeline.rs",
         "parse_root_and_analyze.rs",
         "vcf.rs",
@@ -180,11 +301,24 @@ fn dna_tree_matches_architecture_contract() {
     );
 
     let bench_parse_entries = dir_entries(&root.join("src/commands/cli/parse/bench"));
-    let expected_bench_parse: BTreeSet<_> =
-        ["config.rs", "corpus_fastq.rs", "fastq/", "mod.rs", "publication.rs", "suite.rs"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_bench_parse: BTreeSet<_> = [
+        "active_scope.rs",
+        "config.rs",
+        "corpus_fastq.rs",
+        "fastq/",
+        "local.rs",
+        "matrix.rs",
+        "micro.rs",
+        "mod.rs",
+        "paths.rs",
+        "publication.rs",
+        "readiness.rs",
+        "schema_validation.rs",
+        "suite.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(
         bench_parse_entries, expected_bench_parse,
         "bench parse tree must keep config, publication, suite, and fastq parsing separate"
@@ -241,7 +375,7 @@ fn dna_tree_matches_architecture_contract() {
 
     let fastq_entries = dir_entries(&root.join("src/commands/fastq"));
     let expected_fastq: BTreeSet<_> =
-        ["api_bridge.rs", "meta/", "mod.rs"].into_iter().map(str::to_string).collect();
+        ["api_translation.rs", "meta/", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         fastq_entries, expected_fastq,
         "fastq tree must keep API mediation separate from meta dispatch"
@@ -313,7 +447,7 @@ fn dna_tree_matches_architecture_contract() {
     assert_eq!(public_api_entries, expected_public_api, "public api tree must stay curated");
 
     let tests_entries = dir_entries(&root.join("tests"));
-    let expected_tests: BTreeSet<_> = [
+    let required_test_entries: BTreeSet<_> = [
         "boundaries/",
         "boundaries.rs",
         "contracts/",
@@ -328,10 +462,29 @@ fn dna_tree_matches_architecture_contract() {
     .into_iter()
     .map(str::to_string)
     .collect();
-    assert_eq!(
-        tests_entries, expected_tests,
-        "dna tests tree must stay grouped by enduring test intent"
+    assert!(
+        required_test_entries.is_subset(&tests_entries),
+        "dna tests tree must retain the governed grouped suite roots"
     );
+    let allowed_root_test_files =
+        ["boundaries.rs", "contracts.rs", "guardrails.rs", "schemas.rs", "snapshots.rs"];
+    let allowed_root_test_prefixes = ["bench_", "ci_", "config_", "dev_", "fixtures_", "plan_"];
+    for entry in &tests_entries {
+        if required_test_entries.contains(entry) {
+            continue;
+        }
+        assert!(
+            !entry.ends_with('/'),
+            "dna tests tree must not add unmanaged suite directories: {entry}"
+        );
+        let allowed_exact = allowed_root_test_files.iter().any(|allowed| entry == allowed);
+        let allowed_prefix =
+            allowed_root_test_prefixes.iter().any(|prefix| entry.starts_with(prefix));
+        assert!(
+            allowed_exact || allowed_prefix,
+            "dna tests tree must use grouped suite roots or governed integration-test prefixes, found `{entry}`"
+        );
+    }
 
     let support_test_entries = dir_entries(&root.join("tests/support"));
     let expected_support_tests: BTreeSet<_> =

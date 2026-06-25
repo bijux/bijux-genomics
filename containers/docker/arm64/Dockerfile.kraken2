@@ -35,5 +35,5 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "kraken2 \"$@\""]
+ENTRYPOINT ["kraken2"]
 CMD []

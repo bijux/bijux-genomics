@@ -1,0 +1,28 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local benchmark fixture plan for fastq.normalize_primers.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-06-22
+
+schema_version = "bijux.bench.fastq.local_normalize_primers.v1"
+tool_id = "cutadapt"
+threads = 1
+primer_set_id = "16S_universal_v1"
+marker_id = "16S"
+primer_fasta = "assets/reference/primers/16S_universal_v1.fasta"
+orientation_policy = "normalize_to_forward_primer"
+max_mismatch_rate = 0.10
+min_overlap_bp = 6
+strict_5p_anchor = true
+allow_iupac_codes = true
+output_dir = "runs/bench/local-smoke/fastq.normalize_primers"
+
+[[cases]]
+sample_id = "amplicon-16s-se"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-se.fastq.gz"
+
+[[cases]]
+sample_id = "amplicon-16s-pe"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-pe_R1.fastq.gz"
+r2 = "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-pe_R2.fastq.gz"

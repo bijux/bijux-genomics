@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
 
-pub use crate::internal::public_bridge::handlers::bam::BamBenchOutcome;
-pub use crate::internal::public_bridge::handlers::bam::{bench_bam_pipeline, bench_bam_stage};
+pub use crate::internal::public_surface::handlers::bam::BamBenchOutcome;
+pub use crate::internal::public_surface::handlers::bam::{bench_bam_pipeline, bench_bam_stage};
 pub use crate::surface::request_contracts::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
 pub use bijux_dna_core::contract::objective_spec;
 pub use bijux_dna_core::contract::{Objective, ObjectiveSpec, ObjectiveWeights};
@@ -23,8 +23,8 @@ pub use bijux_dna_planner_fastq::stage_api::*;
 
 /// Stability: v1 (stable).
 /// Alias for `BenchOutcome<M: StageMetricSchema>` from the fastq handlers.
-pub type BenchOutcome<M> = crate::internal::public_bridge::handlers::fastq::BenchOutcome<M>;
-pub use crate::internal::public_bridge::handlers::fastq::*;
+pub type BenchOutcome<M> = crate::internal::public_surface::handlers::fastq::BenchOutcome<M>;
+pub use crate::internal::public_surface::handlers::fastq::*;
 
 /// Render the governed FASTQ normalized metrics schema.
 #[must_use]
@@ -58,6 +58,8 @@ pub fn write_bam_normalized_metrics_schema(path: &Path) -> Result<()> {
         .with_context(|| format!("write {}", path.display()))
 }
 
+/// Stability: v1 (stable).
+/// Descriptor for one governed stage-specific VCF normalized metrics schema.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct VcfNormalizedMetricsStageSchemaDescriptor {
     pub stage_id: String,

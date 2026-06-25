@@ -7,6 +7,7 @@ pub(super) const CONTRACTS: &[ObserverSpecializationContract] = &[
     contract("fastq.filter_reads", "seqkit", "report_json"),
     contract("fastq.filter_reads", "prinseq", "report_json"),
     contract("fastq.filter_reads", "bbduk", "report_json"),
+    contract("fastq.filter_low_complexity", id_catalog::TOOL_FASTP, "filter_report_json"),
     contract("fastq.filter_low_complexity", "prinseq", "filter_report_json"),
     contract("fastq.filter_low_complexity", "bbduk", "filter_report_json"),
     contract("fastq.deplete_rrna", "sortmerna", "rrna_report_json"),

@@ -42,7 +42,7 @@ fn bench_readiness_vcf_parser_fixture_coverage_writes_governed_tsv_columns() {
         Some("stage_id\ttool_id\tcorpus_id\tasset_profile_id\tadapter_id\tparser_id\tschema_id\tparser_fixture_parser_id\tparser_fixture_schema_id\tparser_fixture_root_path\texpected_normalized_path\traw_fixture_count\traw_fixture_paths\tcoverage_status\treason")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 20);
+    assert_eq!(rows.len(), 21);
     assert!(
         rows.iter().any(|row| {
             row.starts_with(

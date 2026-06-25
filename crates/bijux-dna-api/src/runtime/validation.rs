@@ -2,7 +2,7 @@ use std::io::BufRead;
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
-use bijux_dna_core::contract::ExecutionStep;
+use bijux_dna_core::contract::{validate_typed_input_handoffs, ExecutionStep};
 use flate2::read::MultiGzDecoder;
 
 fn has_extension(path: &Path, ext: &str) -> bool {
@@ -90,6 +90,7 @@ pub fn validate_fastq_format(input: &Path) -> Result<()> {
 /// # Errors
 /// Returns an error if any known input contract fails.
 pub fn validate_stage_inputs(step: &ExecutionStep) -> Result<()> {
+    validate_typed_input_handoffs(step)?;
     for artifact in &step.io.inputs {
         let path = &artifact.path;
         if !path.exists() {
@@ -209,5 +210,26 @@ mod tests {
         )]);
 
         validate_stage_inputs(&step)
+    }
+
+    #[test]
+    fn typed_artifact_handoff_rejects_wrong_stage_inputs() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+        let bam = temp.path().join("aligned.bam");
+        bijux_dna_infra::write_bytes(&bam, b"bam")?;
+        bijux_dna_infra::write_bytes(temp.path().join("aligned.bai"), b"index")?;
+        let step = validation_step(vec![ArtifactSpec::required(
+            ArtifactId::new("reads"),
+            bam,
+            ArtifactRole::Reads,
+        )]);
+
+        let err = match validate_stage_inputs(&step) {
+            Ok(()) => panic!("typed handoff mismatch should fail"),
+            Err(err) => err,
+        };
+
+        assert!(err.to_string().contains("typed artifact handoff expected FASTQ"), "{err}");
+        Ok(())
     }
 }

@@ -8,6 +8,8 @@ mod support;
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _repo_lock =
+        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
@@ -44,11 +46,11 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() {
     );
     assert_eq!(
         payload.get("markdown_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.md")
+        Some("benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.md")
     );
     assert_eq!(
         payload.get("json_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/FASTQ_BAM_VCF_BENCHMARK_REPORT.json")
+        Some("benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json")
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     let expected_result_row_count = support::json_u64(&payload, "expected_result_row_count")

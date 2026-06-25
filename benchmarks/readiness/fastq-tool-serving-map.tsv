@@ -21,8 +21,7 @@ cutadapt	fastq.normalize_primers	governed_benchmark_cohort	runnable	benchmark_no
 cutadapt	fastq.trim_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 cutadapt	fastq.trim_terminal_damage	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 dada2	fastq.infer_asvs	governed_execution	runnable	parse_normalized	fixture:corpus-03-amplicon-mini
-dustmasker	fastq.filter_low_complexity	planned_contract	declared_only	not_normalized	fixture:corpus-01-mini
-fastp	fastq.filter_low_complexity	planned_contract	declared_only	not_normalized	fixture:corpus-01-mini
+fastp	fastq.filter_low_complexity	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 fastp	fastq.filter_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 fastp	fastq.profile_read_lengths	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 fastp	fastq.trim_polyg_tails	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
@@ -43,7 +42,7 @@ krakenuniq	fastq.screen_taxonomy	governed_benchmark_cohort	runnable	benchmark_no
 leehom	fastq.merge_pairs	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 leehom	fastq.trim_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 lighter	fastq.correct_errors	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
-multiqc	fastq.report_qc	observer_specialized_benchmark	runnable	comparable	planner_only
+multiqc	fastq.report_qc	observer_specialized_benchmark	runnable	comparable	fixture:corpus-01-mini
 musket	fastq.correct_errors	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 pear	fastq.merge_pairs	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 prinseq	fastq.filter_low_complexity	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
@@ -61,7 +60,6 @@ seqkit	fastq.trim_reads	governed_benchmark_cohort	runnable	benchmark_normalized	
 seqkit	fastq.trim_terminal_damage	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 seqkit_stats	fastq.profile_read_lengths	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 seqkit_stats	fastq.profile_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
-seqpurge	fastq.trim_reads	planned_contract	declared_only	not_normalized	fixture:corpus-01-mini
 seqtk	fastq.validate_reads	observer_specialized_benchmark	runnable	comparable	fixture:corpus-01-mini
 skewer	fastq.trim_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 sortmerna	fastq.deplete_rrna	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini

@@ -7,6 +7,8 @@ mod support;
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _repo_lock =
+        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
@@ -50,10 +52,10 @@ fn bench_readiness_vcf_missing_result_report_tracks_one_removed_row() {
         payload.get("fake_result_root").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf-missing-result-report-fixture")
     );
-    assert_eq!(payload.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(21));
     assert_eq!(
         payload.get("present_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(19)
+        Some(20)
     );
     assert_eq!(
         payload.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
@@ -65,7 +67,7 @@ fn bench_readiness_vcf_missing_result_report_tracks_one_removed_row() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 20);
+    assert_eq!(rows.len(), 21);
     let missing_rows = rows
         .iter()
         .filter(|row| {

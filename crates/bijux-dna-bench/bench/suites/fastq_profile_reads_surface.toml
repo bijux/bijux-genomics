@@ -31,7 +31,7 @@ min_replicates_for_bootstrap = 5
 [[stages]]
 stage = "fastq.profile_reads"
 stage_instance_id = "fastq.profile_reads.neutral_profile"
-tools = ["seqkit_stats"]
+tools = ["seqfu", "seqkit_stats"]
 
 [[stages.param_bindings]]
 stage_instance_id = "fastq.profile_reads.neutral_profile"

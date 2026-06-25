@@ -809,6 +809,22 @@ pub(super) fn bijux_command_prefix() -> Vec<String> {
         .collect()
 }
 
+fn merge_bijux_command_env(envs: &[(String, String)]) -> Vec<(String, String)> {
+    let mut merged = envs.to_vec();
+    for key in ["BIJUX_BIN", "BIJUX_TOOL_REGISTRY_PATH"] {
+        if merged.iter().any(|(existing, _)| existing == key) {
+            continue;
+        }
+        if let Ok(value) = std::env::var(key) {
+            let trimmed = value.trim();
+            if !trimmed.is_empty() {
+                merged.push((key.to_string(), trimmed.to_string()));
+            }
+        }
+    }
+    merged
+}
+
 pub(super) fn run_runtime_smoke_contract(
     workspace: &Workspace,
     runtime: &str,
@@ -833,6 +849,7 @@ pub(super) fn run_environment_prep_for_with_env(
     stage: Option<String>,
     envs: &[(String, String)],
 ) -> Result<ContainerCommandOutcome> {
+    let envs = merge_bijux_command_env(envs);
     let mut argv = bijux_command_prefix();
     argv.extend(["environment".to_string(), "prep".to_string(), runtime.to_string()]);
     if let Some(stage) = stage.filter(|value| !value.is_empty()) {
@@ -843,7 +860,7 @@ pub(super) fn run_environment_prep_for_with_env(
     } else {
         argv.push(primary_tools_csv(workspace)?);
     }
-    run_argv_with_env(workspace, &argv, envs)
+    run_argv_with_env(workspace, &argv, &envs)
 }
 
 pub(super) fn run_environment_smoke_for(
@@ -862,6 +879,7 @@ pub(super) fn run_environment_smoke_for_with_env(
     stage: Option<String>,
     envs: &[(String, String)],
 ) -> Result<ContainerCommandOutcome> {
+    let envs = merge_bijux_command_env(envs);
     let mut argv = bijux_command_prefix();
     argv.extend(["environment".to_string(), "smoke".to_string(), runtime.to_string()]);
     if let Some(stage) = stage.filter(|value| !value.is_empty()) {
@@ -872,7 +890,25 @@ pub(super) fn run_environment_smoke_for_with_env(
     } else {
         argv.push(primary_tools_csv(workspace)?);
     }
-    run_argv_with_env(workspace, &argv, envs)
+    run_argv_with_env(workspace, &argv, &envs)
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use super::merge_bijux_command_env;
+
+    #[test]
+    fn merge_bijux_command_env_preserves_explicit_values() {
+        let merged = merge_bijux_command_env(&[
+            ("BIJUX_BIN".to_string(), "/tmp/custom-bijux".to_string()),
+            ("OTHER".to_string(), "value".to_string()),
+        ]);
+        assert!(merged
+            .iter()
+            .any(|(key, value)| key == "BIJUX_BIN" && value == "/tmp/custom-bijux"));
+        assert!(merged.iter().any(|(key, value)| key == "OTHER" && value == "value"));
+    }
 }
 
 pub(super) fn resolved_smoke_tools(workspace: &Workspace) -> Result<String> {

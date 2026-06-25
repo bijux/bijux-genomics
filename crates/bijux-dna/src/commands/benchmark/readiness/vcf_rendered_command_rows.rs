@@ -364,7 +364,7 @@ fn validate_vcf_rendered_command_row(row: &VcfRenderedCommandRow) -> Result<()> 
         let command_lower = step.command.to_ascii_lowercase();
         if command_lower.contains("todo") {
             return Err(anyhow!(
-                "VCF rendered command row `{}` / `{}` step `{}` still contains TODO text",
+                "VCF rendered command row `{}` / `{}` step `{}` still contains a to-do marker",
                 row.stage_id,
                 row.tool_id,
                 step.step_id
@@ -435,11 +435,13 @@ mod tests {
         let rows = collect_vcf_rendered_command_rows(&repo_root())
             .expect("collect VCF rendered command rows");
 
-        assert_eq!(rows.len(), 8);
+        assert_eq!(rows.len(), 21);
         assert!(rows.iter().all(|row| row.benchmark_status == "benchmark_ready"));
         assert!(rows.iter().all(|row| !row.script_commands.is_empty()));
         assert!(rows.iter().any(|row| row.stage_id == "vcf.call" && row.tool_id == "bcftools"));
         assert!(rows.iter().any(|row| row.stage_id == "vcf.stats" && row.tool_id == "bcftools"));
-        assert!(rows.iter().all(|row| row.tool_id == "bcftools"));
+        assert!(rows.iter().any(|row| row.stage_id == "vcf.impute" && row.tool_id == "beagle"));
+        assert!(rows.iter().any(|row| row.stage_id == "vcf.qc" && row.tool_id == "plink2"));
+        assert!(rows.iter().any(|row| row.stage_id == "vcf.phasing" && row.tool_id == "shapeit5"));
     }
 }

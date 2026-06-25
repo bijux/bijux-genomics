@@ -36,12 +36,14 @@ fn bench_vcf_stage_catalog_writes_governed_toml_file() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "benchmarks/configs/local/vcf-stage-catalog.toml"
+        "configs/bench/local/vcf-stage-catalog.toml"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let config_path = repo_root.join("benchmarks/configs/local/vcf-stage-catalog.toml");
+    let config_path = repo_root.join("configs/bench/local/vcf-stage-catalog.toml");
     let raw = std::fs::read_to_string(&config_path).expect("read config");
+    assert!(raw.starts_with("# schema_version = 1\n"));
+    assert!(raw.contains("# last_updated = 2026-06-25\n"));
     let parsed: toml::Value = toml::from_str(&raw).expect("parse config");
 
     assert_eq!(

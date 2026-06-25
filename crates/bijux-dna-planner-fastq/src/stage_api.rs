@@ -189,6 +189,18 @@ pub fn local_profile_reads_smoke_plans(
     crate::planner::local_profile_reads_smoke_plans(repo_root)
 }
 
+/// Build the governed all-tool local-smoke case plans for `fastq.profile_reads` retained-output
+/// proof coverage.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or one of the admitted tool plans cannot be built.
+pub fn local_profile_reads_output_contract_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalProfileReadsSmokeCasePlan>> {
+    crate::planner::local_profile_reads_output_contract_plans(repo_root)
+}
+
 /// Build the governed local-smoke plan for `fastq.report_qc`.
 ///
 /// # Errors
@@ -322,6 +334,18 @@ pub fn local_trim_terminal_damage_smoke_plans(
     crate::planner::local_trim_terminal_damage_smoke_plans(repo_root)
 }
 
+/// Build the governed all-tool local-smoke case plans for
+/// `fastq.trim_terminal_damage` retained-output proof coverage.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or one of the admitted tool plans cannot be built.
+pub fn local_trim_terminal_damage_output_contract_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalTrimTerminalDamageSmokeCasePlan>> {
+    crate::planner::local_trim_terminal_damage_output_contract_plans(repo_root)
+}
+
 /// Build the governed local-smoke case plans for `fastq.trim_polyg_tails`.
 ///
 /// # Errors
@@ -342,6 +366,18 @@ pub fn local_trim_reads_smoke_plans(
     repo_root: &std::path::Path,
 ) -> anyhow::Result<Vec<crate::LocalTrimReadsSmokeCasePlan>> {
     crate::planner::local_trim_reads_smoke_plans(repo_root)
+}
+
+/// Build the governed all-tool local-smoke case plans for `fastq.trim_reads` retained-output
+/// proof coverage.
+///
+/// # Errors
+/// Returns an error if the governed local-smoke config is invalid, the fixture inputs do not
+/// exist, or one of the admitted tool plans cannot be built.
+pub fn local_trim_reads_output_contract_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<crate::LocalTrimReadsSmokeCasePlan>> {
+    crate::planner::local_trim_reads_output_contract_plans(repo_root)
 }
 
 /// Build the governed local-ready dry-run plan for `fastq.deplete_rrna`.
@@ -386,6 +422,16 @@ pub fn local_screen_taxonomy_plan(
     repo_root: &std::path::Path,
 ) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
     crate::planner::local_screen_taxonomy_plan(repo_root)
+}
+
+/// # Errors
+/// Returns an error if the governed local-ready config or runtime profile cannot be read or if one
+/// of the admitted `fastq.screen_taxonomy` tool plans cannot be built for output-contract
+/// coverage.
+pub fn local_screen_taxonomy_output_contract_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<bijux_dna_stage_contract::StagePlanV1>> {
+    crate::planner::local_screen_taxonomy_output_contract_plans(repo_root)
 }
 
 #[must_use]
@@ -576,6 +622,16 @@ pub fn local_index_reference_plan(
     repo_root: &std::path::Path,
 ) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
     crate::planner::local_index_reference_plan(repo_root)
+}
+
+/// # Errors
+/// Returns an error if the governed local-ready config or runtime profile cannot be read or if one
+/// of the admitted `fastq.index_reference` tool plans cannot be built for output-contract
+/// coverage.
+pub fn local_index_reference_output_contract_plans(
+    repo_root: &std::path::Path,
+) -> anyhow::Result<Vec<bijux_dna_stage_contract::StagePlanV1>> {
+    crate::planner::local_index_reference_output_contract_plans(repo_root)
 }
 
 /// Build the governed local-smoke `fastq.validate_reads` plans from repository-owned config.

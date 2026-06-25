@@ -50,6 +50,7 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         "cluster_otus_artifacts",
         "artifacts::{",
         "comparison_contract",
+        "contracts::{",
         "chunking",
         "FastqDomain",
         "execution_support",

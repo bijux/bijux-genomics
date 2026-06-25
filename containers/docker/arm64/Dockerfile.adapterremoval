@@ -44,5 +44,5 @@ RUN echo '#!/bin/sh' > /usr/local/bin/adapterremoval && \
     chmod +x /usr/local/bin/adapterremoval
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "adapterremoval \"$@\""]
+ENTRYPOINT ["adapterremoval"]
 CMD ["--help"]

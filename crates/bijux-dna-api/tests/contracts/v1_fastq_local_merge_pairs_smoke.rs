@@ -123,10 +123,7 @@ fn read_gzip_fastq_sequences(path: &Path) -> Result<Vec<String>> {
     let reader = BufReader::new(MultiGzDecoder::new(file));
     let mut lines = reader.lines();
     let mut sequences = Vec::new();
-    loop {
-        let Some(header) = lines.next() else {
-            break;
-        };
+    while let Some(header) = lines.next() {
         let _header = header?;
         let sequence = lines.next().ok_or_else(|| anyhow!("missing sequence line"))??;
         let _plus = lines.next().ok_or_else(|| anyhow!("missing plus line"))??;

@@ -51,6 +51,7 @@ fn write_local_recalibration_smoke_report_materializes_governed_outputs() -> Res
         payload["schema_version"],
         serde_json::json!("bijux.bam.recalibration.local_smoke.report.v1")
     );
+    assert_eq!(payload["tool_id"], serde_json::json!("gatk"));
     assert_eq!(payload["sample_id"], serde_json::json!("human_like_recalibration_low_coverage"));
     assert_eq!(payload["expectation_matched"], serde_json::json!(true));
     assert_eq!(payload["requested_mode"], serde_json::json!("standard"));
@@ -60,6 +61,10 @@ fn write_local_recalibration_smoke_report_materializes_governed_outputs() -> Res
     assert_eq!(
         payload["known_sites"],
         serde_json::json!(["benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
+    );
+    assert_eq!(
+        payload["known_sites_asset_ids"],
+        serde_json::json!(["human_like_recalibration_known_sites"])
     );
     assert_eq!(
         payload["coverage_gate"],
@@ -151,8 +156,16 @@ fn write_local_recalibration_smoke_report_materializes_governed_outputs() -> Res
         serde_json::json!(["benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
     );
     assert_eq!(
+        stage_metrics_json["expected_known_sites_asset_ids"],
+        serde_json::json!(["human_like_recalibration_known_sites"])
+    );
+    assert_eq!(
         stage_metrics_json["known_sites"],
         serde_json::json!(["benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_recalibration_known_sites.vcf"])
+    );
+    assert_eq!(
+        stage_metrics_json["known_sites_asset_ids"],
+        serde_json::json!(["human_like_recalibration_known_sites"])
     );
     assert_eq!(
         stage_metrics_json["expected_coverage_gate"],

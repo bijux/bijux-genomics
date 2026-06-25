@@ -74,8 +74,8 @@
       "tool_id": "cutadapt",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/fastq.trim_terminal_damage/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 3,
-      "present_output_count": 3,
+      "declared_output_count": 7,
+      "present_output_count": 7,
       "complete": true
     },
     {
@@ -84,8 +84,8 @@
       "tool_id": "cutadapt",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/fastq.normalize_primers/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 4,
-      "present_output_count": 4,
+      "declared_output_count": 9,
+      "present_output_count": 9,
       "complete": true
     },
     {
@@ -94,18 +94,18 @@
       "tool_id": "fastp",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/fastq.trim_polyg_tails/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 3,
-      "present_output_count": 3,
+      "declared_output_count": 7,
+      "present_output_count": 7,
       "complete": true
     },
     {
       "stage_id": "fastq.trim_reads",
       "readiness_kind": "smoke",
-      "tool_id": "fastp",
+      "tool_id": "bbduk",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/fastq.trim_reads/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 7,
-      "present_output_count": 7,
+      "declared_output_count": 3,
+      "present_output_count": 3,
       "complete": true
     },
     {
@@ -114,8 +114,8 @@
       "tool_id": "fastp",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/fastq.filter_reads/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 2,
-      "present_output_count": 2,
+      "declared_output_count": 5,
+      "present_output_count": 5,
       "complete": true
     },
     {
@@ -134,8 +134,8 @@
       "tool_id": "sortmerna",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/fastq.deplete_rrna/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 4,
-      "present_output_count": 4,
+      "declared_output_count": 6,
+      "present_output_count": 6,
       "complete": true
     },
     {
@@ -164,8 +164,8 @@
       "tool_id": "bbduk",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/fastq.filter_low_complexity/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 2,
-      "present_output_count": 2,
+      "declared_output_count": 5,
+      "present_output_count": 5,
       "complete": true
     },
     {
@@ -174,8 +174,8 @@
       "tool_id": "bowtie2",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/fastq.deplete_host/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 3,
-      "present_output_count": 3,
+      "declared_output_count": 5,
+      "present_output_count": 5,
       "complete": true
     },
     {
@@ -184,8 +184,8 @@
       "tool_id": "bowtie2",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/fastq.deplete_reference_contaminants/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 2,
-      "present_output_count": 2,
+      "declared_output_count": 5,
+      "present_output_count": 5,
       "complete": true
     },
     {
@@ -274,8 +274,8 @@
       "tool_id": "kraken2",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/fastq.screen_taxonomy/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 3,
-      "present_output_count": 3,
+      "declared_output_count": 4,
+      "present_output_count": 4,
       "complete": true
     },
     {
@@ -324,8 +324,8 @@
       "tool_id": "verifybamid2",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/bam.contamination/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 3,
-      "present_output_count": 3,
+      "declared_output_count": 4,
+      "present_output_count": 4,
       "complete": true
     },
     {
@@ -344,8 +344,8 @@
       "tool_id": "ngsbriggs",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/bam.damage/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 4,
-      "present_output_count": 4,
+      "declared_output_count": 6,
+      "present_output_count": 6,
       "complete": true
     },
     {
@@ -404,8 +404,8 @@
       "tool_id": "yleaf",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/bam.haplogroups/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 3,
-      "present_output_count": 3,
+      "declared_output_count": 4,
+      "present_output_count": 4,
       "complete": true
     },
     {
@@ -504,8 +504,8 @@
       "tool_id": "rxy",
       "stage_manifest_path": "runs/bench/local-fake-runs/stages-manifest-completion-missing/bam.sex/stage-result.json",
       "manifest_exists": true,
-      "declared_output_count": 3,
-      "present_output_count": 3,
+      "declared_output_count": 6,
+      "present_output_count": 6,
       "complete": true
     },
     {

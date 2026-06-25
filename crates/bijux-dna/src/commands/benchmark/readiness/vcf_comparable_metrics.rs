@@ -1,5 +1,4 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -74,9 +73,11 @@ pub(crate) fn render_vcf_comparable_metrics(
     }
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&output_path, render_vcf_comparable_metrics_tsv(&rows))
+    let rendered = render_vcf_comparable_metrics_tsv(&rows);
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", output_path.display()))?;
 
     Ok(VcfComparableMetricsReport {
@@ -150,7 +151,7 @@ fn collect_vcf_comparable_metric_rows(
 
 fn collect_retained_tools_by_stage(repo_root: &Path) -> Result<BTreeMap<String, BTreeSet<String>>> {
     let scratch_root = repo_root.join("artifacts/bench-readiness/vcf-comparable-metrics");
-    fs::create_dir_all(&scratch_root)
+    bijux_dna_infra::ensure_dir(&scratch_root)
         .with_context(|| format!("create {}", scratch_root.display()))?;
 
     let mut stage_tools = BTreeMap::<String, BTreeSet<String>>::new();
@@ -356,8 +357,8 @@ mod tests {
         assert_eq!(report.output_path, DEFAULT_VCF_COMPARABLE_METRICS_PATH);
         assert_eq!(report.stage_count, 12);
         assert_eq!(report.multi_tool_stage_count, 12);
-        assert_eq!(report.retained_tool_row_count, 30);
-        assert_eq!(report.row_count, 33);
+        assert_eq!(report.retained_tool_row_count, 31);
+        assert_eq!(report.row_count, 35);
 
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.call_gl"
@@ -373,7 +374,8 @@ mod tests {
                 && row.metric_id == "concordance"
                 && row.unit == "fraction"
                 && row.direction == "higher_is_better"
-                && row.tools_covered == vec!["plink".to_string(), "plink2".to_string()]
+                && row.tools_covered
+                    == vec!["bcftools".to_string(), "plink".to_string(), "plink2".to_string()]
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.phasing"

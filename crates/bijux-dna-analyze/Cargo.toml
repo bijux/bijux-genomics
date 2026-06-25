@@ -9,7 +9,7 @@ rust-version.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
-rusqlite = { version = "0.31", optional = true }
+rusqlite = { version = "0.40.1", optional = true }
 tracing.workspace = true
 anyhow.workspace = true
 chrono.workspace = true
@@ -36,7 +36,6 @@ tempfile.workspace = true
 insta = { version = "1", features = ["json"] }
 bijux-dna-planner-fastq = { path = "../bijux-dna-planner-fastq" }
 bijux-dna-planner-bam = { path = "../bijux-dna-planner-bam" }
-bijux-dna-bench = { path = "../bijux-dna-bench" }
 walkdir.workspace = true
 toml.workspace = true
 

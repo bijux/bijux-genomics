@@ -1129,11 +1129,43 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "called_genotypes",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "called_sites",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "called_variants",
         "schema_version": "bijux.metrics.v1"
       },
       {
         "metric_id": "cluster_assignments",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "cluster_headers",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "concordance",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "consumed_admixture",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "consumed_pca",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "contigs_consistent_with_species_context",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "covered_sites",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -1149,11 +1181,35 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "damage_context_rule",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "damage_ratio_filtered_variants",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "damage_strategy_applied",
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "depth_threshold",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "diploid_called_variants",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "distance_summary",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "dosage_r2",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "duplicate_sites_removed",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -1166,6 +1222,22 @@
       },
       {
         "metric_id": "excluded_variants",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "execution_mode",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "failed_variants",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "filter_ids",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "filter_standardized_to_pass",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -1201,6 +1273,18 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "heterozygous_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "homozygous_alt_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "homozygous_ref_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "hwe_summary",
         "schema_version": "bijux.metrics.v1"
       },
@@ -1221,11 +1305,31 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "imputed_genotypes",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "indel_count",
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "indels_normalized",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "inference_status",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "input_genotypes",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "input_likelihood_fields",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "input_variants",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -1241,11 +1345,43 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "invalid_records_removed",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "left_align_applied",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "likelihood_field",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "lost_fields",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "low_confidence_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "low_confidence_sites",
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "low_quality_filtered_variants",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "maf_summary",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "masked_truth_match_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "masked_truth_site_count",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -1265,11 +1401,59 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "missing_after",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "missing_before",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "missing_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "missing_likelihoods",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "missing_quality_fields",
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "missing_sites",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "missingness_threshold",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "multiallelic_records_split",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "ne_estimates",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "normalization_status",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "not_imputable_reasons",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "output_likelihood_fields",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "output_variant_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "output_variants",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -1278,6 +1462,14 @@
       },
       {
         "metric_id": "pairwise_ibd_sharing_matrix",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "parseable",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "pass_variants",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -1297,7 +1489,23 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "phase_block_n50",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "phase_set_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "phased_genotypes",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "phasing_status",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "ploidy",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -1329,11 +1537,31 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "quality_threshold",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "r2_available",
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "random_seed",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "readable_vcf",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "reference_panel_status",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "removed_variants",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "retained_variants",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -1361,7 +1589,19 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "sample_consistent",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "sample_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "sample_groups",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "sample_ids",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -1370,6 +1610,14 @@
       },
       {
         "metric_id": "sample_missingness_exclusion_threshold",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "samples_with_likelihoods",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "sampling_policy",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -1385,6 +1633,18 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "site_count_after",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "site_count_before",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "sites_with_likelihoods",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "snp_count",
         "schema_version": "bijux.metrics.v1"
       },
@@ -1393,11 +1653,35 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "switch_error_proxy",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "tabix_present",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "target_sites",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "terminal_context_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "terminal_damage_filtered_variants",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "ti_tv",
         "schema_version": "bijux.metrics.v1"
       },
       {
         "metric_id": "time_bins",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "tool_ok",
         "schema_version": "bijux.metrics.v1"
       },
       {
@@ -1417,7 +1701,19 @@
         "schema_version": "bijux.metrics.v1"
       },
       {
+        "metric_id": "unphased_genotypes",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "unresolved_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
         "metric_id": "variant_count",
+        "schema_version": "bijux.metrics.v1"
+      },
+      {
+        "metric_id": "variant_ids_normalized",
         "schema_version": "bijux.metrics.v1"
       },
       {

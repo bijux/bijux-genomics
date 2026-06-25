@@ -46,10 +46,10 @@ fn bench_readiness_all_domain_active_scope_complete_reports_unambiguous_active_s
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json")
     );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(136));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(66));
-    assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(141));
+    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(69));
+    assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(payload.get("passed_surface_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(payload.get("failed_surface_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -61,6 +61,17 @@ fn bench_readiness_all_domain_active_scope_complete_reports_unambiguous_active_s
         .iter()
         .all(|check| check.get("ok").and_then(serde_json::Value::as_bool) == Some(true)));
 
+    assert!(checks.iter().any(|check| {
+        check.get("surface_id").and_then(serde_json::Value::as_str)
+            == Some("all_domain_retained_tools")
+            && check.get("proof_paths").and_then(serde_json::Value::as_array).is_some_and(|paths| {
+                paths.iter().any(|path| {
+                    path.as_str() == Some("benchmarks/readiness/tools/retained-tool-inventory.tsv")
+                })
+            })
+            && check.get("detail").and_then(serde_json::Value::as_str)
+                == Some("row_count=71, active_matrix_tool_count=71, benchmark_ready_tool_count=71")
+    }));
     assert!(checks.iter().any(|check| {
         check.get("surface_id").and_then(serde_json::Value::as_str)
             == Some("active_scope_validate_fast")

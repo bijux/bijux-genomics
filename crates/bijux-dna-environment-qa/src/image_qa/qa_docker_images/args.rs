@@ -27,10 +27,8 @@ fn has_flag(args: &[String], flag: &str) -> bool {
 }
 
 fn env_flag(name: &str) -> bool {
-    std::env::var(name)
-        .map(|value| {
-            let value = value.trim();
-            value == "1" || value.eq_ignore_ascii_case("true")
-        })
-        .unwrap_or(false)
+    std::env::var(name).is_ok_and(|value| {
+        let value = value.trim();
+        value == "1" || value.eq_ignore_ascii_case("true")
+    })
 }

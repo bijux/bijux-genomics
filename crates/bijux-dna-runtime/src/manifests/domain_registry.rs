@@ -71,6 +71,10 @@ fn load_yaml<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T> {
     bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
+fn status_admits_runtime_binding(status: Option<&str>) -> bool {
+    !matches!(status, Some("planned"))
+}
+
 #[allow(clippy::too_many_lines)]
 pub(super) fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
     let mut registry = ToolRegistry::default();
@@ -176,7 +180,7 @@ pub(super) fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
                         tool.tool_id
                     ));
                 }
-                if stage_ids.is_empty() {
+                if stage_ids.is_empty() || !status_admits_runtime_binding(tool.status.as_deref()) {
                     continue;
                 }
                 for stage_id_raw in stage_ids {

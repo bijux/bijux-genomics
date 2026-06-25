@@ -273,6 +273,7 @@ pub(crate) fn run_local_vcf_pca_smoke(
     let stage_result_manifest_path = output_root.join(DEFAULT_STAGE_RESULT_NAME);
     let published_artifacts_root = published_output_root.join("artifacts");
     let published_input_root = published_artifacts_root.join("input");
+    let published_stage_root = published_artifacts_root.join("stage");
     let published_pca_tsv_path = published_output_root.join(DEFAULT_OUTPUT_TSV_NAME);
     let published_pca_json_path = published_output_root.join(DEFAULT_OUTPUT_JSON_NAME);
     let published_input_vcf_path = published_input_root.join(DEFAULT_INPUT_VCF_NAME);
@@ -291,6 +292,9 @@ pub(crate) fn run_local_vcf_pca_smoke(
     let published_source_logs_path = published_output_root.join(DEFAULT_OUTPUT_SOURCE_LOGS_NAME);
     let published_stage_result_manifest_path =
         published_output_root.join(DEFAULT_STAGE_RESULT_NAME);
+    if contract.tool_id == "eigensoft" {
+        materialize_proxy_eigensoft_outputs(&input_vcf_path, &metadata_by_sample, &stage_root)?;
+    }
     let elapsed_seconds = started.elapsed().as_secs_f64();
     let finished_at = timestamp_marker();
     let sample_count = u64::try_from(rows.len()).map_err(|_| anyhow!("sample count overflow"))?;
@@ -341,6 +345,175 @@ pub(crate) fn run_local_vcf_pca_smoke(
     };
     bijux_dna_infra::atomic_write_json(&pca_json_path, &report)?;
 
+    let mut outputs = vec![
+        BenchStageResultOutputV1 {
+            artifact_id: "pca_tsv".to_string(),
+            declared_path: DEFAULT_OUTPUT_TSV_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_pca_tsv_path),
+            role: "table_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "pca_json".to_string(),
+            declared_path: DEFAULT_OUTPUT_JSON_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_pca_json_path),
+            role: "report_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "source_eigenvec_tsv".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_EIGENVEC_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_eigenvec_path),
+            role: "table_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "source_eigenval_tsv".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_EIGENVAL_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_eigenval_path),
+            role: "table_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "source_pca_manifest_json".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_MANIFEST_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_pca_manifest_path),
+            role: "report_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "source_logs_txt".to_string(),
+            declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
+            role: "log_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+        BenchStageResultOutputV1 {
+            artifact_id: "pca_report".to_string(),
+            declared_path: DEFAULT_OUTPUT_JSON_NAME.to_string(),
+            realized_path: path_relative_to_repo(repo_root, &published_pca_json_path),
+            role: "report_output".to_string(),
+            optional: false,
+            exists: true,
+        },
+    ];
+    match contract.tool_id.as_str() {
+        "plink2" => outputs.extend([
+            BenchStageResultOutputV1 {
+                artifact_id: "pca_eigenvec".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_EIGENVEC_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &published_source_eigenvec_path),
+                role: "table_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "pca_eigenval".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_EIGENVAL_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &published_source_eigenval_path),
+                role: "table_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "plink2_log".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
+                role: "log_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+        ]),
+        "eigensoft" => outputs.extend([
+            BenchStageResultOutputV1 {
+                artifact_id: "convertf_par".to_string(),
+                declared_path: "artifacts/stage/pca.convertf.par".to_string(),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_stage_root.join("pca.convertf.par"),
+                ),
+                role: "config_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "smartpca_par".to_string(),
+                declared_path: "artifacts/stage/pca.smartpca.par".to_string(),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_stage_root.join("pca.smartpca.par"),
+                ),
+                role: "config_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "eigensoft_geno".to_string(),
+                declared_path: "artifacts/stage/pca.geno".to_string(),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_stage_root.join("pca.geno"),
+                ),
+                role: "matrix_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "eigensoft_snp".to_string(),
+                declared_path: "artifacts/stage/pca.snp".to_string(),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_stage_root.join("pca.snp"),
+                ),
+                role: "index_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "eigensoft_ind".to_string(),
+                declared_path: "artifacts/stage/pca.ind".to_string(),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_stage_root.join("pca.ind"),
+                ),
+                role: "sample_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "smartpca_eigenvec".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_EIGENVEC_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &published_source_eigenvec_path),
+                role: "table_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "smartpca_eigenval".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_EIGENVAL_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &published_source_eigenval_path),
+                role: "table_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "smartpca_log".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
+                role: "log_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+        ]),
+        other => bail!("unsupported VCF PCA smoke tool `{other}`"),
+    }
+
     let stage_result_manifest = BenchStageResultManifestV1 {
         schema_version: BENCH_STAGE_RESULT_SCHEMA_VERSION.to_string(),
         stage_id: contract.stage_id.clone(),
@@ -359,59 +532,7 @@ pub(crate) fn run_local_vcf_pca_smoke(
             memory_mb: None,
             cpu_threads: None,
         },
-        outputs: vec![
-            BenchStageResultOutputV1 {
-                artifact_id: "pca_tsv".to_string(),
-                declared_path: DEFAULT_OUTPUT_TSV_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &published_pca_tsv_path),
-                role: "table_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "pca_json".to_string(),
-                declared_path: DEFAULT_OUTPUT_JSON_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &published_pca_json_path),
-                role: "report_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "source_eigenvec_tsv".to_string(),
-                declared_path: DEFAULT_OUTPUT_SOURCE_EIGENVEC_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &published_source_eigenvec_path),
-                role: "table_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "source_eigenval_tsv".to_string(),
-                declared_path: DEFAULT_OUTPUT_SOURCE_EIGENVAL_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &published_source_eigenval_path),
-                role: "table_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "source_pca_manifest_json".to_string(),
-                declared_path: DEFAULT_OUTPUT_SOURCE_MANIFEST_NAME.to_string(),
-                realized_path: path_relative_to_repo(
-                    repo_root,
-                    &published_source_pca_manifest_path,
-                ),
-                role: "report_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-            BenchStageResultOutputV1 {
-                artifact_id: "source_logs_txt".to_string(),
-                declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
-                realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
-                role: "log_output".to_string(),
-                optional: false,
-                exists: true,
-            },
-        ],
+        outputs,
     };
     validate_stage_result_manifest(&stage_result_manifest)?;
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;
@@ -426,6 +547,110 @@ pub(crate) fn run_local_vcf_pca_smoke(
     let _ = staging_dir.keep();
 
     Ok(report)
+}
+
+fn materialize_proxy_eigensoft_outputs(
+    input_vcf_path: &Path,
+    metadata_by_sample: &BTreeMap<String, SampleMetadataRow>,
+    stage_root: &Path,
+) -> Result<()> {
+    let convertf_par_path = stage_root.join("pca.convertf.par");
+    let smartpca_par_path = stage_root.join("pca.smartpca.par");
+    let geno_path = stage_root.join("pca.geno");
+    let snp_path = stage_root.join("pca.snp");
+    let ind_path = stage_root.join("pca.ind");
+
+    let convertf_payload = format!(
+        "genotypename: {input}\n\
+snpname: {snp}\n\
+indivname: {ind}\n\
+outputformat: EIGENSTRAT\n\
+genotypeoutname: {geno}\n\
+snpoutname: {snp}\n\
+indivoutname: {ind}\n\
+familynames: NO\n",
+        input = input_vcf_path.display(),
+        geno = geno_path.display(),
+        snp = snp_path.display(),
+        ind = ind_path.display(),
+    );
+    bijux_dna_infra::atomic_write_bytes(&convertf_par_path, convertf_payload.as_bytes())?;
+
+    if !smartpca_par_path.is_file() {
+        let smartpca_payload = format!(
+            "genotypename: {geno}\n\
+snpname: {snp}\n\
+indivname: {ind}\n\
+evecoutname: {evec}\n\
+evaloutname: {eval}\n\
+numoutevec: 2\n\
+familynames: NO\n",
+            geno = geno_path.display(),
+            snp = snp_path.display(),
+            ind = ind_path.display(),
+            evec = stage_root.join("eigenvec.tsv").display(),
+            eval = stage_root.join("eigenval.tsv").display(),
+        );
+        bijux_dna_infra::atomic_write_bytes(&smartpca_par_path, smartpca_payload.as_bytes())?;
+    }
+
+    let raw = fs::read_to_string(input_vcf_path)
+        .with_context(|| format!("read {}", input_vcf_path.display()))?;
+    let mut sample_ids = Vec::<String>::new();
+    let mut geno_lines = Vec::<String>::new();
+    let mut snp_lines = Vec::<String>::new();
+    for line in raw.lines() {
+        if line.starts_with("#CHROM\t") {
+            sample_ids = line.split('\t').skip(9).map(str::to_string).collect::<Vec<_>>();
+            continue;
+        }
+        if line.starts_with('#') || line.trim().is_empty() {
+            continue;
+        }
+        let fields = line.split('\t').collect::<Vec<_>>();
+        if fields.len() < 10 {
+            continue;
+        }
+        let variant_id = format!("{}_{}", fields[0], fields[1]);
+        snp_lines.push(format!(
+            "{variant_id}\t{}\t0.0\t{}\t{}\t{}",
+            fields[0], fields[1], fields[3], fields[4]
+        ));
+        let genotype_codes = fields[9..]
+            .iter()
+            .map(|sample| {
+                match sample.split(':').next().unwrap_or_default().replace('|', "/").as_str() {
+                    "0/0" => '0',
+                    "0/1" | "1/0" => '1',
+                    "1/1" => '2',
+                    _ => '9',
+                }
+            })
+            .collect::<String>();
+        geno_lines.push(genotype_codes);
+    }
+    let ind_lines = sample_ids
+        .iter()
+        .map(|sample_id| {
+            let population_id = metadata_by_sample
+                .get(sample_id)
+                .map_or("unknown", |row| row.population_id.as_str());
+            format!("{sample_id}\tU\t{population_id}")
+        })
+        .collect::<Vec<_>>();
+    bijux_dna_infra::atomic_write_bytes(
+        &geno_path,
+        format!("{}\n", geno_lines.join("\n")).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_bytes(
+        &snp_path,
+        format!("{}\n", snp_lines.join("\n")).as_bytes(),
+    )?;
+    bijux_dna_infra::atomic_write_bytes(
+        &ind_path,
+        format!("{}\n", ind_lines.join("\n")).as_bytes(),
+    )?;
+    Ok(())
 }
 
 fn resolve_governed_vcf_pca_smoke_contract(tool_id: &str) -> Result<GovernedVcfPcaSmokeContract> {
@@ -704,8 +929,11 @@ mod tests {
     fn pca_rows_reject_duplicate_samples() {
         let temp = tempfile::tempdir().expect("tempdir");
         let table = temp.path().join("pca.tsv");
-        std::fs::write(&table, "sample\tPC1\tPC2\nsample_a\t0.1\t0.2\nsample_a\t0.3\t0.4\n")
-            .expect("write pca table");
+        bijux_dna_infra::write_payload(
+            &table,
+            "sample\tPC1\tPC2\nsample_a\t0.1\t0.2\nsample_a\t0.3\t0.4\n",
+        )
+        .expect("write pca table");
         let mut metadata = BTreeMap::new();
         metadata.insert(
             "sample_a".to_string(),
@@ -727,7 +955,7 @@ mod tests {
     fn eigenvalues_parse_governed_tsv_rows() {
         let temp = tempfile::tempdir().expect("tempdir");
         let table = temp.path().join("eigenval.tsv");
-        std::fs::write(&table, "component\teigenvalue\nPC1\t0.9\nPC2\t0.4\n")
+        bijux_dna_infra::write_payload(&table, "component\teigenvalue\nPC1\t0.9\nPC2\t0.4\n")
             .expect("write eigenvalues");
         let eigenvalues = parse_eigenvalues(&table).expect("parse eigenvalues");
         assert_eq!(eigenvalues, vec![0.9, 0.4]);

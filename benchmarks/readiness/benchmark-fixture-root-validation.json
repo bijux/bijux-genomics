@@ -2,10 +2,10 @@
   "schema_version": "bijux.bench.fixture_root_validation.v1",
   "output_path": "benchmarks/readiness/benchmark-fixture-root-validation.json",
   "root_path": "benchmarks/tests/fixtures",
-  "required_subroot_count": 3,
+  "required_subroot_count": 4,
   "parser_domain_count": 3,
-  "checked_fixture_count": 17,
-  "valid_fixture_count": 17,
+  "checked_fixture_count": 54,
+  "valid_fixture_count": 54,
   "invalid_fixture_count": 0,
   "ok": true,
   "rows": [
@@ -65,6 +65,24 @@
     },
     {
       "fixture_kind": "corpus",
+      "fixture_id": "corpus-01-vcf-cohort-bam-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_corpus_fixture.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "corpus",
+      "fixture_id": "corpus-01-vcf-cohort-fastq-mini",
+      "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.fastq_corpus_fixture.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "corpus",
       "fixture_id": "corpus-02-edna-mini",
       "manifest_path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml",
       "detail_path": null,
@@ -101,12 +119,165 @@
     },
     {
       "fixture_kind": "expected_truth",
+      "fixture_id": "adna-contamination-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/adna-contamination-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/adna-contamination-truth/expected.json",
+      "schema_version": "bijux.bench.adna_contamination_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=6,validated_insufficient_cases=3"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "adna-damage-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/adna-damage-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/adna-damage-truth/expected.json",
+      "schema_version": "bijux.bench.adna_damage_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=2,validated_insufficient_cases=1"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "amplicon-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/amplicon-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/amplicon-truth/expected.json",
+      "schema_version": "bijux.bench.amplicon_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_sections=8,validated_rows=21"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "bam-alignment-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/bam-alignment-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/bam-alignment-truth/expected.json",
+      "schema_version": "bijux.bench.bam_alignment_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_samples=4,validated_records=14"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "bam-duplicate-insert-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/bam-duplicate-insert-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/bam-duplicate-insert-truth/expected.json",
+      "schema_version": "bijux.bench.bam_duplicate_insert_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_samples=2,validated_duplicate_family_bins=3,validated_insert_size_bins=3"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "bam-gc-coverage-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/bam-gc-coverage-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/bam-gc-coverage-truth/expected.json",
+      "schema_version": "bijux.bench.bam_gc_coverage_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_coverage_samples=1,validated_gc_bias_samples=1,validated_coverage_regions=2,validated_gc_bias_bins=3"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "endogenous-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/endogenous-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/endogenous-truth/expected.json",
+      "schema_version": "bijux.bench.bam_endogenous_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_samples=2,validated_total_reads=8,validated_contaminant_reads=2,validated_retained_reads=6"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "fastq-duplicates-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/fastq-duplicates-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/fastq-duplicates-truth/expected.json",
+      "schema_version": "bijux.bench.fastq_duplicates_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=3"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "fastq-taxonomy-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/fastq-taxonomy-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/fastq-taxonomy-truth/expected_taxa.tsv",
+      "schema_version": "bijux.bench.fastq_taxonomy_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_samples=2,validated_taxa_rows=6"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "fastq-trimming-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/fastq-trimming-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/fastq-trimming-truth/expected.json",
+      "schema_version": "bijux.bench.fastq_trimming_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=7"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "haplogroup-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/haplogroup-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/haplogroup-truth/expected.json",
+      "schema_version": "bijux.bench.bam_haplogroup_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=3,validated_ready_cases=1,validated_uncertain_cases=1,validated_coverage_gate_cases=1"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "phasing-imputation-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/phasing-imputation-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/phasing-imputation-truth/expected.json",
+      "schema_version": "bijux.bench.phasing_imputation_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=11"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "population-structure-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/population-structure-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/population-structure-truth/expected.json",
+      "schema_version": "bijux.bench.population_structure_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=5"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "segments-demography-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/segments-demography-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/segments-demography-truth/expected.json",
+      "schema_version": "bijux.bench.segments_demography_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=9"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "sex-inference-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/sex-inference-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/sex-inference-truth/expected.json",
+      "schema_version": "bijux.bench.bam_sex_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=4,validated_ok_cases=3,validated_insufficient_cases=1"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "vcf-filter-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/vcf-filter-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/vcf-filter-truth/expected.json",
+      "schema_version": "bijux.bench.vcf_filter_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=3"
+    },
+    {
+      "fixture_kind": "expected_truth",
+      "fixture_id": "vcf-genotype-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/vcf-genotype-truth/manifest.toml",
+      "detail_path": "benchmarks/tests/fixtures/science/vcf-genotype-truth/expected.json",
+      "schema_version": "bijux.bench.vcf_genotype_truth.validation.v1",
+      "valid": true,
+      "detail": "validated_cases=6"
+    },
+    {
+      "fixture_kind": "expected_truth",
       "fixture_id": "vcf-mini",
       "manifest_path": "benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml",
       "detail_path": "benchmarks/tests/fixtures/corpora/vcf-mini/expected",
       "schema_version": "bijux.bench.vcf_expected_truth_validation.v1",
       "valid": true,
-      "detail": "truth_file_count=8"
+      "detail": "truth_files=8"
     },
     {
       "fixture_kind": "fixture_subroot",
@@ -131,6 +302,15 @@
       "fixture_id": "databases",
       "manifest_path": null,
       "detail_path": "benchmarks/tests/fixtures/databases",
+      "schema_version": null,
+      "valid": true,
+      "detail": "present"
+    },
+    {
+      "fixture_kind": "fixture_subroot",
+      "fixture_id": "science",
+      "manifest_path": null,
+      "detail_path": "benchmarks/tests/fixtures/science",
       "schema_version": null,
       "valid": true,
       "detail": "present"
@@ -161,6 +341,159 @@
       "schema_version": null,
       "valid": true,
       "detail": "present"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "adna-contamination-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/adna-contamination-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.adna_contamination_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "adna-damage-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/adna-damage-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.adna_damage_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "amplicon-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/amplicon-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.amplicon_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "bam-alignment-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/bam-alignment-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_alignment_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "bam-duplicate-insert-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/bam-duplicate-insert-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_duplicate_insert_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "bam-gc-coverage-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/bam-gc-coverage-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_gc_coverage_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "endogenous-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/endogenous-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_endogenous_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "fastq-duplicates-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/fastq-duplicates-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.fastq_duplicates_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "fastq-taxonomy-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/fastq-taxonomy-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.fastq_taxonomy_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "fastq-trimming-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/fastq-trimming-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.fastq_trimming_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "haplogroup-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/haplogroup-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_haplogroup_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "phasing-imputation-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/phasing-imputation-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.phasing_imputation_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "population-structure-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/population-structure-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.population_structure_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "segments-demography-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/segments-demography-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.segments_demography_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "sex-inference-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/sex-inference-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.bam_sex_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "vcf-filter-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/vcf-filter-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.vcf_filter_truth.v1",
+      "valid": true,
+      "detail": "valid"
+    },
+    {
+      "fixture_kind": "science_fixture",
+      "fixture_id": "vcf-genotype-truth",
+      "manifest_path": "benchmarks/tests/fixtures/science/vcf-genotype-truth/manifest.toml",
+      "detail_path": null,
+      "schema_version": "bijux.bench.vcf_genotype_truth.v1",
+      "valid": true,
+      "detail": "valid"
     }
   ]
 }

@@ -44,16 +44,31 @@ fn write_local_screen_taxonomy_plan_materializes_governed_target_output() -> Res
     assert!(plan_path.is_file(), "local-ready taxonomy plan artifact must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
+    let inputs =
+        payload["io"]["inputs"].as_array().unwrap_or_else(|| panic!("plan inputs missing"));
     assert_eq!(payload["stage_id"], serde_json::json!("fastq.screen_taxonomy"));
     assert_eq!(payload["tool_id"], serde_json::json!("kraken2"));
     assert_eq!(payload["resources"]["threads"], serde_json::json!(4));
     assert_eq!(payload["resources"]["mem_gb"], serde_json::json!(16));
     assert_eq!(
-        payload["io"]["inputs"][0]["path"],
+        inputs
+            .iter()
+            .find(|artifact| artifact["name"] == "reads_r1")
+            .unwrap_or_else(|| panic!("reads_r1 input missing"))["path"],
         serde_json::json!("assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq")
     );
     assert_eq!(
-        payload["io"]["inputs"][1]["path"],
+        inputs
+            .iter()
+            .find(|artifact| artifact["name"] == "reads_r2")
+            .unwrap_or_else(|| panic!("reads_r2 input missing"))["path"],
+        serde_json::json!("assets/toy/corpus-02-edna-mini/fastq/mock_community_reads_R2.fastq")
+    );
+    assert_eq!(
+        inputs
+            .iter()
+            .find(|artifact| artifact["name"] == "taxonomy_database_root")
+            .unwrap_or_else(|| panic!("taxonomy_database_root input missing"))["path"],
         serde_json::json!("assets/reference/taxonomy/references/mock_community_taxonomy")
     );
     assert_eq!(
@@ -61,10 +76,17 @@ fn write_local_screen_taxonomy_plan_materializes_governed_target_output() -> Res
         serde_json::json!("assets/reference/taxonomy/references/mock_community_taxonomy")
     );
     assert_eq!(payload["effective_params"]["emit_unclassified"], serde_json::json!(true));
+    assert_eq!(payload["effective_params"]["paired_mode"], serde_json::json!("paired_end"));
     assert_eq!(
         payload["params"]["unclassified_reads_r1"],
         serde_json::json!(
-            "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq"
+            "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_1.fastq"
+        )
+    );
+    assert_eq!(
+        payload["params"]["unclassified_reads_r2"],
+        serde_json::json!(
+            "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_2.fastq"
         )
     );
     assert!(
@@ -76,7 +98,8 @@ fn write_local_screen_taxonomy_plan_materializes_governed_target_output() -> Res
                 script.contains("--db 'assets/reference/taxonomy/references/mock_community_taxonomy/kraken2'")
                     && script.contains("'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv'")
                     && script.contains("'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.native.tsv'")
-                    && script.contains("--unclassified-out 'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq'")
+                    && script.contains("--paired 'assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq' 'assets/toy/corpus-02-edna-mini/fastq/mock_community_reads_R2.fastq'")
+                    && script.contains("--unclassified-out 'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_#.fastq'")
             }),
         "local-ready taxonomy plan command must carry the governed taxonomy database root and report path"
     );

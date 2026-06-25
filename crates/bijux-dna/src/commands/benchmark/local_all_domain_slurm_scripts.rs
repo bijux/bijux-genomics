@@ -10,6 +10,9 @@ use super::local_all_domain_job_execution::{
     rendered_essential_pipeline_node_execution_argv,
 };
 use super::local_all_domain_result_paths::{benchmark_result_root, essential_pipeline_result_root};
+use super::local_hpc_job_resources::{
+    load_local_hpc_job_resource_hints, resolve_local_hpc_job_resource_hint, LocalHpcJobResourceHint,
+};
 use super::local_pipeline_dag::{
     benchmark_local_pipeline_config_path, validate_pipeline_dag_path,
     LocalPipelineDagValidationNodeReport,
@@ -25,10 +28,6 @@ use super::readiness::essential_pipeline_corpus_assets::ESSENTIAL_PIPELINE_IDS;
 use super::readiness::essential_pipeline_rendered_commands::{
     collect_essential_pipeline_rendered_command_rows, EssentialPipelineRenderedCommandRow,
 };
-use super::readiness::stage_tool_resources::{
-    StageToolResourcesConfig, DEFAULT_STAGE_TOOL_RESOURCES_PATH,
-    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION,
-};
 use crate::commands::benchmark::path_resolution::{
     ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
 };
@@ -39,20 +38,6 @@ pub(crate) const DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT: &str =
     "runs/bench/slurm-dry-run/all-domains";
 const LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_VERSION: &str =
     "bijux.bench.local_all_domain_slurm_scripts.v1";
-const DEFAULT_TIME_LIMIT: &str = "00:20:00";
-const DEFAULT_FASTQ_CPUS: u32 = 4;
-const DEFAULT_FASTQ_MEMORY_MB: u32 = 2048;
-const DEFAULT_BAM_CPUS: u32 = 3;
-const DEFAULT_BAM_MEMORY_MB: u32 = 2048;
-const DEFAULT_VCF_CPUS: u32 = 1;
-const DEFAULT_VCF_MEMORY_MB: u32 = 2048;
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct ResourceKey {
-    domain: String,
-    stage_id: String,
-    tool_id: String,
-}
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct BenchLocalAllDomainSlurmScriptEntry {
@@ -90,12 +75,7 @@ pub(crate) struct BenchLocalAllDomainSlurmScriptsReport {
     pub(crate) scripts: Vec<BenchLocalAllDomainSlurmScriptEntry>,
 }
 
-#[derive(Debug, Clone)]
-struct SlurmResourceHint {
-    cpus_per_task: u32,
-    memory_mb: u32,
-    time_limit: String,
-}
+type SlurmResourceHint = LocalHpcJobResourceHint;
 
 #[derive(Debug, Clone)]
 struct ScriptArtifacts {
@@ -169,7 +149,7 @@ pub(crate) fn render_all_domain_slurm_scripts(
                 expected.result_id
             )
         })?;
-        let resource_hint = benchmark_resource_hint(&resource_hints, expected, command);
+        let resource_hint = benchmark_resource_hint(&resource_hints, expected);
         let artifacts = benchmark_script_artifacts(&absolute_output_root, expected)?;
         write_all_domain_slurm_script(
             repo_root,
@@ -320,83 +300,33 @@ fn expected_essential_pipeline_node_count(repo_root: &Path) -> Result<usize> {
 
 fn load_stage_tool_resource_hints(
     repo_root: &Path,
-) -> Result<BTreeMap<ResourceKey, SlurmResourceHint>> {
-    let path = repo_root.join(DEFAULT_STAGE_TOOL_RESOURCES_PATH);
-    let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    let config = toml::from_str::<StageToolResourcesConfig>(&raw)
-        .with_context(|| format!("parse {}", path.display()))?;
-    if config.schema_version != LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION {
-        return Err(anyhow!(
-            "unexpected stage-tool resources schema `{}` in {}",
-            config.schema_version,
-            path.display()
-        ));
-    }
-    Ok(config
-        .rows
-        .into_iter()
-        .map(|row| {
-            (
-                ResourceKey { domain: row.domain, stage_id: row.stage_id, tool_id: row.tool_id },
-                SlurmResourceHint {
-                    cpus_per_task: row.threads.max(1),
-                    memory_mb: row.memory_gb.max(1) * 1024,
-                    time_limit: minutes_to_time_limit(row.walltime_minutes.max(1)),
-                },
-            )
-        })
-        .collect())
+) -> Result<BTreeMap<(String, String, String), SlurmResourceHint>> {
+    load_local_hpc_job_resource_hints(repo_root)
 }
 
 fn benchmark_resource_hint(
-    resource_hints: &BTreeMap<ResourceKey, SlurmResourceHint>,
+    resource_hints: &BTreeMap<(String, String, String), SlurmResourceHint>,
     expected: &AllDomainExpectedBenchmarkResultRow,
-    command: &AllDomainRenderedCommandRow,
 ) -> SlurmResourceHint {
-    let key = ResourceKey {
-        domain: expected.domain.clone(),
-        stage_id: expected.stage_id.clone(),
-        tool_id: expected.tool_id.clone(),
-    };
-    resource_hints.get(&key).cloned().unwrap_or_else(|| default_resource_hint(&command.domain))
+    resolve_local_hpc_job_resource_hint(
+        resource_hints,
+        &expected.domain,
+        &expected.stage_id,
+        &expected.tool_id,
+    )
 }
 
 fn essential_pipeline_resource_hint(
-    resource_hints: &BTreeMap<ResourceKey, SlurmResourceHint>,
+    resource_hints: &BTreeMap<(String, String, String), SlurmResourceHint>,
     node: &LocalPipelineDagValidationNodeReport,
     command: &EssentialPipelineRenderedCommandRow,
 ) -> SlurmResourceHint {
-    let key = ResourceKey {
-        domain: command.domain.clone(),
-        stage_id: node.stage_id.clone(),
-        tool_id: command.tool_id.clone(),
-    };
-    resource_hints.get(&key).cloned().unwrap_or_else(|| default_resource_hint(&command.domain))
-}
-
-fn default_resource_hint(domain: &str) -> SlurmResourceHint {
-    match domain {
-        "fastq" => SlurmResourceHint {
-            cpus_per_task: DEFAULT_FASTQ_CPUS,
-            memory_mb: DEFAULT_FASTQ_MEMORY_MB,
-            time_limit: DEFAULT_TIME_LIMIT.to_string(),
-        },
-        "bam" => SlurmResourceHint {
-            cpus_per_task: DEFAULT_BAM_CPUS,
-            memory_mb: DEFAULT_BAM_MEMORY_MB,
-            time_limit: DEFAULT_TIME_LIMIT.to_string(),
-        },
-        "vcf" => SlurmResourceHint {
-            cpus_per_task: DEFAULT_VCF_CPUS,
-            memory_mb: DEFAULT_VCF_MEMORY_MB,
-            time_limit: DEFAULT_TIME_LIMIT.to_string(),
-        },
-        _ => SlurmResourceHint {
-            cpus_per_task: 1,
-            memory_mb: 1024,
-            time_limit: DEFAULT_TIME_LIMIT.to_string(),
-        },
-    }
+    resolve_local_hpc_job_resource_hint(
+        resource_hints,
+        &command.domain,
+        &node.stage_id,
+        &command.tool_id,
+    )
 }
 
 fn benchmark_script_artifacts(
@@ -717,12 +647,6 @@ fn ensure_all_domain_slurm_script_contract(
         ));
     }
     Ok(())
-}
-
-fn minutes_to_time_limit(minutes: u32) -> String {
-    let hours = minutes / 60;
-    let remainder_minutes = minutes % 60;
-    format!("{hours:02}:{remainder_minutes:02}:00")
 }
 
 fn sanitize_job_name(value: &str) -> String {

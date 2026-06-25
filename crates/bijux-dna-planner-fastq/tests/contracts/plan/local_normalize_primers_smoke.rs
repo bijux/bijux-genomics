@@ -14,13 +14,20 @@ fn local_normalize_primers_smoke_plans_use_governed_amplicon_fixture() -> Result
     let repo_root = repo_root();
     let plans =
         bijux_dna_planner_fastq::stage_api::local_normalize_primers_smoke_plans(&repo_root)?;
-    assert_eq!(plans.len(), 1, "governed normalize-primers smoke should keep one curated case");
+    assert_eq!(plans.len(), 2, "governed normalize-primers smoke should cover curated single-end and paired-end amplicon cases");
 
-    let case = &plans[0];
-    assert_eq!(case.sample_id, "amplicon-16s-se");
+    let case = plans
+        .iter()
+        .find(|case| case.sample_id == "amplicon-16s-se")
+        .unwrap_or_else(|| panic!("single-end normalize-primers smoke case missing"));
     assert_eq!(case.plan.stage_id.as_str(), "fastq.normalize_primers");
     assert_eq!(case.plan.tool_id.as_str(), "cutadapt");
-    assert_eq!(case.r1, PathBuf::from("assets/toy/core-v1/fastq/reads_with_primers.fastq"));
+    assert_eq!(
+        case.r1,
+        PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-se.fastq.gz"
+        )
+    );
     assert_eq!(case.r2, None);
     assert_eq!(
         case.plan.out_dir,
@@ -44,6 +51,23 @@ fn local_normalize_primers_smoke_plans_use_governed_amplicon_fixture() -> Result
         serde_json::json!("normalize_to_forward_primer")
     );
     assert_eq!(case.plan.effective_params["min_overlap_bp"], serde_json::json!(6));
+
+    let paired_case = plans
+        .iter()
+        .find(|case| case.sample_id == "amplicon-16s-pe")
+        .unwrap_or_else(|| panic!("paired-end normalize-primers smoke case missing"));
+    assert_eq!(
+        paired_case.r1,
+        PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-pe_R1.fastq.gz"
+        )
+    );
+    assert_eq!(
+        paired_case.r2,
+        Some(PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-pe_R2.fastq.gz"
+        ))
+    );
 
     Ok(())
 }

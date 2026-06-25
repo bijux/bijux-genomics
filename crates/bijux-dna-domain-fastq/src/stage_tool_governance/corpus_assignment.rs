@@ -93,10 +93,10 @@ pub fn benchmark_corpus_assignment_for_stage_tool(
             rationale:
                 "General FASTQ preprocessing and screening stages stay on the governed corpus-01 slice for local benchmark comparability.",
         },
-        "fastq.report_qc" => BenchmarkCorpusAssignment::Excluded {
-            reason_code: "governed_multiqc_bundle_fixture_missing",
+        "fastq.report_qc" => BenchmarkCorpusAssignment::Assigned {
+            family: BenchmarkCorpusFamily::Corpus01,
             rationale:
-                "The governed QC-report bundle is not yet owned by a corpus fixture with reviewer-stable benchmark expectations.",
+                "QC aggregation reuses governed corpus-01 contributor artifacts, so the benchmark row remains anchored to the general FASTQ corpus family rather than a planner-only bundle.",
         },
         "fastq.validate_reads"
         | "fastq.profile_read_lengths"

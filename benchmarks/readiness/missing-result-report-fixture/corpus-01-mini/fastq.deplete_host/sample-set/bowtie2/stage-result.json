@@ -70,6 +70,22 @@
       "exists": true
     },
     {
+      "artifact_id": "removed_contaminant_reads_r1",
+      "declared_path": "outputs/removed_contaminant_reads_r1.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.deplete_host/sample-set/bowtie2/outputs/removed_contaminant_reads_r1.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
+      "artifact_id": "removed_contaminant_reads_r2",
+      "declared_path": "outputs/removed_contaminant_reads_r2.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.deplete_host/sample-set/bowtie2/outputs/removed_contaminant_reads_r2.json",
+      "role": "benchmark_output",
+      "optional": false,
+      "exists": true
+    },
+    {
       "artifact_id": "host_depletion_report_json",
       "declared_path": "outputs/host_depletion_report_json.json",
       "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.deplete_host/sample-set/bowtie2/outputs/host_depletion_report_json.json",

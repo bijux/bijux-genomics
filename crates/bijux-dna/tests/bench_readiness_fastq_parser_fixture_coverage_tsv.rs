@@ -47,7 +47,7 @@ fn bench_readiness_fastq_parser_fixture_coverage_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 69);
+    assert_eq!(rows.len(), 71);
     assert!(rows.iter().any(|row| {
         row.starts_with(
             "fastq.trim_reads\ttrimmomatic\tcorpus-01-mini\tcorpus_only\tfastq.adapter.trim_reads\tfastq.parser.trim_reads\tfastq_trim_reads_v2\tparse_trim_reads_report\tbijux.fastq.trim_reads.report.v2\tfixture_case\tfastq.trim_reads.report_json\treport_json\tfastp\tcovered\tactive row `fastq.trim_reads` / `trimmomatic` is governed by FASTQ parser fixture case `fastq.trim_reads.report_json` using parser `parse_trim_reads_report` over canonical `fastp` report_json data"

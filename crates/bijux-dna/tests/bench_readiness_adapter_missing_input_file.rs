@@ -45,7 +45,7 @@ fn bench_readiness_adapter_missing_input_file_writes_self_describing_report() {
 
     assert_eq!(
         report.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.adapter_missing_input_tests.v1")
+        Some("bijux.bench.readiness.adapter_missing_input_audit.v1")
     );
     assert_eq!(report.get("row_count").and_then(serde_json::Value::as_u64), Some(33));
     assert_eq!(report.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(33));

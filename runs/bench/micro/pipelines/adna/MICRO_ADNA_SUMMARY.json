@@ -1,0 +1,635 @@
+{
+  "schema_version": "bijux.bench.local_adna_micro_pipeline.v1",
+  "command": "bijux-dna bench local run-adna-micro-pipeline",
+  "output_path": "runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json",
+  "pipeline_id": "adna-pseudohaploid-fastq-bam-vcf",
+  "sample_id": "adna-micro",
+  "reference_fasta_path": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta",
+  "started_at": "1704067200",
+  "finished_at": "1704067201",
+  "elapsed_seconds": 1.0,
+  "stage_count": 15,
+  "handoff_count": 21,
+  "skipped_count": 3,
+  "passes_behavior_test": true,
+  "rows": [
+    {
+      "stage_id": "fastq.validate_reads",
+      "domain": "fastq",
+      "tool_id": "fastqvalidator",
+      "execution_mode": "domain_contract",
+      "status": "succeeded",
+      "reason": "validated synthetic aDNA-like read pairs",
+      "evidence_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.validate_reads/validation.json",
+      "parsed_schema_version": "bijux.fastq.validate.report.v1",
+      "consumed_inputs": {
+        "raw_reads_r1_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.source/raw_R1.fastq",
+        "raw_reads_r2_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.source/raw_R2.fastq"
+      },
+      "outputs": {
+        "validated_reads_manifest": "runs/bench/micro/pipelines/adna/artifacts/fastq.validate_reads/validated_reads_manifest.json",
+        "validated_reads_r1_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.source/raw_R1.fastq",
+        "validated_reads_r2_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.source/raw_R2.fastq",
+        "validation_report": "runs/bench/micro/pipelines/adna/artifacts/fastq.validate_reads/validation.json"
+      },
+      "metrics": {
+        "strict_pass": false,
+        "validated_pairs": 3
+      }
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "domain": "fastq",
+      "tool_id": "cutadapt",
+      "execution_mode": "governed_runtime",
+      "status": "succeeded",
+      "reason": "trimmed one base from each read end while preserving residual terminal damage signal",
+      "evidence_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trim_terminal_damage_report.json",
+      "parsed_schema_version": "bijux.fastq.trim_terminal_damage.report.v2",
+      "consumed_inputs": {
+        "validated_reads_r1_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.source/raw_R1.fastq",
+        "validated_reads_r2_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.source/raw_R2.fastq"
+      },
+      "outputs": {
+        "terminal_damage_trim_report_json": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trim_terminal_damage_report.json",
+        "terminal_damage_trimmed_reads_r1_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trimmed_R1.fastq",
+        "terminal_damage_trimmed_reads_r2_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trimmed_R2.fastq",
+        "trim_terminal_damage_backend_json": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trim_terminal_damage.backend.json"
+      },
+      "metrics": {
+        "bases_removed": 12,
+        "reads_in": 6,
+        "reads_out": 6
+      }
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "domain": "fastq",
+      "tool_id": "bijux",
+      "execution_mode": "domain_contract",
+      "status": "succeeded",
+      "reason": "removed exact duplicate aDNA-like read pairs while preserving first-observed order",
+      "evidence_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplication_report.json",
+      "parsed_schema_version": "bijux.fastq.remove_duplicates.report.v2",
+      "consumed_inputs": {
+        "terminal_damage_trimmed_reads_r1_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trimmed_R1.fastq",
+        "terminal_damage_trimmed_reads_r2_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trimmed_R2.fastq"
+      },
+      "outputs": {
+        "deduplicated_reads_r1_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplicated_R1.fastq",
+        "deduplicated_reads_r2_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplicated_R2.fastq",
+        "deduplication_report": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplication_report.json",
+        "duplicate_classes_tsv": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/duplicate_classes.tsv",
+        "duplicate_provenance_json": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/duplicate_provenance.json"
+      },
+      "metrics": {
+        "duplicates_removed": 4,
+        "reads_in": 6,
+        "reads_out": 2
+      }
+    },
+    {
+      "stage_id": "bam.align",
+      "domain": "bam",
+      "tool_id": "bowtie2",
+      "execution_mode": "synthetic_alignment",
+      "status": "succeeded",
+      "reason": "aligned duplicate-aware aDNA-like reads against the governed ancient-DNA reference",
+      "evidence_path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/alignment.provenance.json",
+      "parsed_schema_version": "bijux.bam.alignment_provenance.v1",
+      "consumed_inputs": {
+        "deduplicated_reads_r1_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplicated_R1.fastq",
+        "deduplicated_reads_r2_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplicated_R2.fastq",
+        "reference_fasta_contract": "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_bam_reference.fasta"
+      },
+      "outputs": {
+        "align_metrics": "runs/bench/micro/pipelines/adna/artifacts/bam.align/alignment.mapping_summary.json",
+        "align_provenance": "runs/bench/micro/pipelines/adna/artifacts/bam.align/alignment.provenance.json",
+        "align_sam": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.sam",
+        "aligned_bai": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam.bai",
+        "aligned_bam": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam"
+      },
+      "metrics": {
+        "mapped_reads": 1,
+        "total_reads": 2
+      }
+    },
+    {
+      "stage_id": "bam.validate",
+      "domain": "bam",
+      "tool_id": "samtools",
+      "execution_mode": "domain_contract",
+      "status": "succeeded",
+      "reason": "validated the aligned BAM against coordinate sort, index, and reference coherence rules",
+      "evidence_path": "runs/bench/micro/pipelines/adna/artifacts/bam.validate/validation.json",
+      "parsed_schema_version": "bijux.bam.validate.v1",
+      "consumed_inputs": {
+        "aligned_bai": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam.bai",
+        "aligned_bam": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam"
+      },
+      "outputs": {
+        "bam_validation_report": "runs/bench/micro/pipelines/adna/artifacts/bam.validate/validation.json"
+      },
+      "metrics": {
+        "mapped_reads": 2,
+        "validation_report_present": true
+      }
+    },
+    {
+      "stage_id": "bam.mapping_summary",
+      "domain": "bam",
+      "tool_id": "samtools",
+      "execution_mode": "domain_contract",
+      "status": "succeeded",
+      "reason": "summarized mapping behavior from the aligned aDNA-like BAM",
+      "evidence_path": "runs/bench/micro/pipelines/adna/artifacts/bam.mapping_summary/mapping_summary.json",
+      "parsed_schema_version": "bijux.bam.mapping_summary.v1",
+      "consumed_inputs": {
+        "align_sam": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.sam",
+        "bam_validation_report": "runs/bench/micro/pipelines/adna/artifacts/bam.validate/validation.json"
+      },
+      "outputs": {
+        "mapping_summary_report_json": "runs/bench/micro/pipelines/adna/artifacts/bam.mapping_summary/mapping_summary.json"
+      },
+      "metrics": {
+        "mapped_fraction": 1.0,
+        "mapped_reads": 2
+      }
+    },
+    {
+      "stage_id": "bam.coverage",
+      "domain": "bam",
+      "tool_id": "samtools",
+      "execution_mode": "domain_contract",
+      "status": "succeeded",
+      "reason": "measured coverage across the governed ancient-DNA reference contigs",
+      "evidence_path": "runs/bench/micro/pipelines/adna/artifacts/bam.coverage/coverage.summary.json",
+      "parsed_schema_version": "bijux.bam.coverage_summary.v1",
+      "consumed_inputs": {
+        "align_sam": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.sam",
+        "mapping_summary_report_json": "runs/bench/micro/pipelines/adna/artifacts/bam.mapping_summary/mapping_summary.json"
+      },
+      "outputs": {
+        "coverage_regions_json": "runs/bench/micro/pipelines/adna/artifacts/bam.coverage/coverage.regions.json",
+        "coverage_report_json": "runs/bench/micro/pipelines/adna/artifacts/bam.coverage/coverage.summary.json"
+      },
+      "metrics": {
+        "covered_bases": 44,
+        "mean_depth": 0.44
+      }
+    },
+    {
+      "stage_id": "bam.damage",
+      "domain": "bam",
+      "tool_id": "mapdamage2",
+      "execution_mode": "domain_contract",
+      "status": "succeeded",
+      "reason": "derived ancient-DNA terminal damage evidence from the aligned and trimmed read support",
+      "evidence_path": "runs/bench/micro/pipelines/adna/artifacts/bam.damage/damage.summary.json",
+      "parsed_schema_version": "bijux.bam.damage_evidence.v1",
+      "consumed_inputs": {
+        "aligned_bam": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam"
+      },
+      "outputs": {
+        "damage_metrics_json": "runs/bench/micro/pipelines/adna/artifacts/bam.damage/damage.metrics.json",
+        "damage_report_json": "runs/bench/micro/pipelines/adna/artifacts/bam.damage/damage.summary.json"
+      },
+      "metrics": {
+        "short_fragment_fraction": 1.0,
+        "terminal_c_to_t_5p": 1.0,
+        "terminal_g_to_a_3p": 1.0
+      }
+    },
+    {
+      "stage_id": "bam.authenticity",
+      "domain": "bam",
+      "tool_id": "pmdtools",
+      "execution_mode": "domain_contract",
+      "status": "succeeded",
+      "reason": "composed authenticity advisory evidence from damage-bearing aligned molecules",
+      "evidence_path": "runs/bench/micro/pipelines/adna/artifacts/bam.authenticity/authenticity.summary.json",
+      "parsed_schema_version": "bijux.bam.authenticity_advisory.v1",
+      "consumed_inputs": {
+        "aligned_bam": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam",
+        "damage_report_json": "runs/bench/micro/pipelines/adna/artifacts/bam.damage/damage.summary.json"
+      },
+      "outputs": {
+        "authenticity_report_json": "runs/bench/micro/pipelines/adna/artifacts/bam.authenticity/authenticity.summary.json"
+      },
+      "metrics": {
+        "confidence": 0.8666666666666667,
+        "pmd_like_signal_present": true,
+        "score": 0.6666666666666666
+      }
+    },
+    {
+      "stage_id": "bam.contamination",
+      "domain": "bam",
+      "tool_id": "verifybamid2",
+      "execution_mode": "not_executed",
+      "status": "skipped",
+      "reason": "synthetic aDNA micro execution does not claim panel-backed contamination evidence; authenticity stays damage-driven in this run",
+      "evidence_path": null,
+      "parsed_schema_version": null,
+      "consumed_inputs": {},
+      "outputs": {},
+      "metrics": {}
+    },
+    {
+      "stage_id": "vcf.call_pseudohaploid",
+      "domain": "vcf",
+      "tool_id": "bcftools",
+      "execution_mode": "governed_runtime",
+      "status": "succeeded",
+      "reason": "called a governed pseudohaploid VCF from the aligned aDNA-like BAM",
+      "evidence_path": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/report.json",
+      "parsed_schema_version": "bijux.bench.local_adna_micro_pipeline.pseudohaploid_call.v1",
+      "consumed_inputs": {
+        "aligned_bam": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam",
+        "authenticity_report_json": "runs/bench/micro/pipelines/adna/artifacts/bam.authenticity/authenticity.summary.json",
+        "coverage_report_json": "runs/bench/micro/pipelines/adna/artifacts/bam.coverage/coverage.summary.json",
+        "damage_report_json": "runs/bench/micro/pipelines/adna/artifacts/bam.damage/damage.summary.json"
+      },
+      "outputs": {
+        "call_stage_metrics": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/report.json",
+        "pseudohaploid_vcf": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/called_pseudohaploid.vcf.gz",
+        "pseudohaploid_vcf_tbi": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/called_pseudohaploid.vcf.gz.tbi"
+      },
+      "metrics": {
+        "haploid_compatible": true,
+        "sample_count": 1,
+        "variant_count": 43
+      }
+    },
+    {
+      "stage_id": "vcf.call_gl",
+      "domain": "vcf",
+      "tool_id": "angsd",
+      "execution_mode": "not_executed",
+      "status": "skipped",
+      "reason": "aDNA micro execution chooses the governed pseudohaploid branch; likelihood-bearing calling remains covered by dedicated GL smoke proof",
+      "evidence_path": null,
+      "parsed_schema_version": null,
+      "consumed_inputs": {},
+      "outputs": {},
+      "metrics": {}
+    },
+    {
+      "stage_id": "vcf.gl_propagation",
+      "domain": "vcf",
+      "tool_id": "angsd",
+      "execution_mode": "not_executed",
+      "status": "skipped",
+      "reason": "aDNA micro execution does not produce a GL-bearing VCF because the pseudohaploid branch is the active governed path for this summary",
+      "evidence_path": null,
+      "parsed_schema_version": null,
+      "consumed_inputs": {},
+      "outputs": {},
+      "metrics": {}
+    },
+    {
+      "stage_id": "vcf.damage_filter",
+      "domain": "vcf",
+      "tool_id": "bcftools",
+      "execution_mode": "governed_runtime",
+      "status": "succeeded",
+      "reason": "applied damage-aware proxy filtering to the pseudohaploid VCF",
+      "evidence_path": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/report.json",
+      "parsed_schema_version": "bijux.bench.local_adna_micro_pipeline.damage_filter.v1",
+      "consumed_inputs": {
+        "pseudohaploid_vcf": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/called_pseudohaploid.vcf.gz",
+        "pseudohaploid_vcf_tbi": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/called_pseudohaploid.vcf.gz.tbi"
+      },
+      "outputs": {
+        "damage_bias_audit_report": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/report.json",
+        "damage_filter_metrics": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/damage_filter_counts.json",
+        "damage_filtered_vcf": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/damage_filtered.vcf.gz",
+        "damage_filtered_vcf_tbi": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/damage_filtered.vcf.gz.tbi"
+      },
+      "metrics": {
+        "damage_ratio_filtered_variants": 0,
+        "retained_variants": 43,
+        "terminal_damage_filtered_variants": 0
+      }
+    },
+    {
+      "stage_id": "vcf.stats",
+      "domain": "vcf",
+      "tool_id": "bcftools",
+      "execution_mode": "governed_runtime",
+      "status": "succeeded",
+      "reason": "summarized the retained ancient-DNA pseudohaploid calls after damage filtering",
+      "evidence_path": "runs/bench/micro/pipelines/adna/artifacts/vcf.stats/report.json",
+      "parsed_schema_version": "bijux.bench.local_adna_micro_pipeline.stats.v1",
+      "consumed_inputs": {
+        "damage_filtered_vcf": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/damage_filtered.vcf.gz",
+        "damage_filtered_vcf_tbi": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/damage_filtered.vcf.gz.tbi"
+      },
+      "outputs": {
+        "bcftools_stats_txt": "runs/bench/micro/pipelines/adna/artifacts/vcf.stats/bcftools_stats.txt",
+        "stats_json": "runs/bench/micro/pipelines/adna/artifacts/vcf.stats/stats.json"
+      },
+      "metrics": {
+        "indel_count": 0,
+        "snp_count": 43,
+        "variant_count": 43
+      }
+    }
+  ],
+  "handoffs": [
+    {
+      "handoff_id": "fastq.validate_reads:validated_reads_r1_path->fastq.trim_terminal_damage:validated_reads_r1_path",
+      "source_stage_id": "fastq.validate_reads",
+      "target_stage_id": "fastq.trim_terminal_damage",
+      "source_output_id": "validated_reads_r1_path",
+      "target_input_id": "validated_reads_r1_path",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.source/raw_R1.fastq",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.source/raw_R1.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "fastq.validate_reads:validated_reads_r2_path->fastq.trim_terminal_damage:validated_reads_r2_path",
+      "source_stage_id": "fastq.validate_reads",
+      "target_stage_id": "fastq.trim_terminal_damage",
+      "source_output_id": "validated_reads_r2_path",
+      "target_input_id": "validated_reads_r2_path",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.source/raw_R2.fastq",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.source/raw_R2.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "fastq.trim_terminal_damage:terminal_damage_trimmed_reads_r1_path->fastq.remove_duplicates:terminal_damage_trimmed_reads_r1_path",
+      "source_stage_id": "fastq.trim_terminal_damage",
+      "target_stage_id": "fastq.remove_duplicates",
+      "source_output_id": "terminal_damage_trimmed_reads_r1_path",
+      "target_input_id": "terminal_damage_trimmed_reads_r1_path",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trimmed_R1.fastq",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trimmed_R1.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "fastq.trim_terminal_damage:terminal_damage_trimmed_reads_r2_path->fastq.remove_duplicates:terminal_damage_trimmed_reads_r2_path",
+      "source_stage_id": "fastq.trim_terminal_damage",
+      "target_stage_id": "fastq.remove_duplicates",
+      "source_output_id": "terminal_damage_trimmed_reads_r2_path",
+      "target_input_id": "terminal_damage_trimmed_reads_r2_path",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trimmed_R2.fastq",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trimmed_R2.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "fastq.remove_duplicates:deduplicated_reads_r1_path->bam.align:deduplicated_reads_r1_path",
+      "source_stage_id": "fastq.remove_duplicates",
+      "target_stage_id": "bam.align",
+      "source_output_id": "deduplicated_reads_r1_path",
+      "target_input_id": "deduplicated_reads_r1_path",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplicated_R1.fastq",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplicated_R1.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "fastq.remove_duplicates:deduplicated_reads_r2_path->bam.align:deduplicated_reads_r2_path",
+      "source_stage_id": "fastq.remove_duplicates",
+      "target_stage_id": "bam.align",
+      "source_output_id": "deduplicated_reads_r2_path",
+      "target_input_id": "deduplicated_reads_r2_path",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplicated_R2.fastq",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplicated_R2.fastq",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "bam.align:aligned_bam->bam.validate:aligned_bam",
+      "source_stage_id": "bam.align",
+      "target_stage_id": "bam.validate",
+      "source_output_id": "aligned_bam",
+      "target_input_id": "aligned_bam",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "bam.validate:bam_validation_report->bam.mapping_summary:bam_validation_report",
+      "source_stage_id": "bam.validate",
+      "target_stage_id": "bam.mapping_summary",
+      "source_output_id": "bam_validation_report",
+      "target_input_id": "bam_validation_report",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/bam.validate/validation.json",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/bam.validate/validation.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "bam.align:align_sam->bam.mapping_summary:align_sam",
+      "source_stage_id": "bam.align",
+      "target_stage_id": "bam.mapping_summary",
+      "source_output_id": "align_sam",
+      "target_input_id": "align_sam",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.sam",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.sam",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "bam.align:align_sam->bam.coverage:align_sam",
+      "source_stage_id": "bam.align",
+      "target_stage_id": "bam.coverage",
+      "source_output_id": "align_sam",
+      "target_input_id": "align_sam",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.sam",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.sam",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "bam.mapping_summary:mapping_summary_report_json->bam.coverage:mapping_summary_report_json",
+      "source_stage_id": "bam.mapping_summary",
+      "target_stage_id": "bam.coverage",
+      "source_output_id": "mapping_summary_report_json",
+      "target_input_id": "mapping_summary_report_json",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/bam.mapping_summary/mapping_summary.json",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/bam.mapping_summary/mapping_summary.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "bam.align:aligned_bam->bam.damage:aligned_bam",
+      "source_stage_id": "bam.align",
+      "target_stage_id": "bam.damage",
+      "source_output_id": "aligned_bam",
+      "target_input_id": "aligned_bam",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "bam.damage:damage_report_json->bam.authenticity:damage_report_json",
+      "source_stage_id": "bam.damage",
+      "target_stage_id": "bam.authenticity",
+      "source_output_id": "damage_report_json",
+      "target_input_id": "damage_report_json",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/bam.damage/damage.summary.json",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/bam.damage/damage.summary.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "bam.align:aligned_bam->vcf.call_pseudohaploid:aligned_bam",
+      "source_stage_id": "bam.align",
+      "target_stage_id": "vcf.call_pseudohaploid",
+      "source_output_id": "aligned_bam",
+      "target_input_id": "aligned_bam",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "bam.coverage:coverage_report_json->vcf.call_pseudohaploid:coverage_report_json",
+      "source_stage_id": "bam.coverage",
+      "target_stage_id": "vcf.call_pseudohaploid",
+      "source_output_id": "coverage_report_json",
+      "target_input_id": "coverage_report_json",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/bam.coverage/coverage.summary.json",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/bam.coverage/coverage.summary.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "bam.damage:damage_report_json->vcf.call_pseudohaploid:damage_report_json",
+      "source_stage_id": "bam.damage",
+      "target_stage_id": "vcf.call_pseudohaploid",
+      "source_output_id": "damage_report_json",
+      "target_input_id": "damage_report_json",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/bam.damage/damage.summary.json",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/bam.damage/damage.summary.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "bam.authenticity:authenticity_report_json->vcf.call_pseudohaploid:authenticity_report_json",
+      "source_stage_id": "bam.authenticity",
+      "target_stage_id": "vcf.call_pseudohaploid",
+      "source_output_id": "authenticity_report_json",
+      "target_input_id": "authenticity_report_json",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/bam.authenticity/authenticity.summary.json",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/bam.authenticity/authenticity.summary.json",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "vcf.call_pseudohaploid:pseudohaploid_vcf->vcf.damage_filter:pseudohaploid_vcf",
+      "source_stage_id": "vcf.call_pseudohaploid",
+      "target_stage_id": "vcf.damage_filter",
+      "source_output_id": "pseudohaploid_vcf",
+      "target_input_id": "pseudohaploid_vcf",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/called_pseudohaploid.vcf.gz",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/called_pseudohaploid.vcf.gz",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "vcf.call_pseudohaploid:pseudohaploid_vcf_tbi->vcf.damage_filter:pseudohaploid_vcf_tbi",
+      "source_stage_id": "vcf.call_pseudohaploid",
+      "target_stage_id": "vcf.damage_filter",
+      "source_output_id": "pseudohaploid_vcf_tbi",
+      "target_input_id": "pseudohaploid_vcf_tbi",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/called_pseudohaploid.vcf.gz.tbi",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/called_pseudohaploid.vcf.gz.tbi",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "vcf.damage_filter:damage_filtered_vcf->vcf.stats:damage_filtered_vcf",
+      "source_stage_id": "vcf.damage_filter",
+      "target_stage_id": "vcf.stats",
+      "source_output_id": "damage_filtered_vcf",
+      "target_input_id": "damage_filtered_vcf",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/damage_filtered.vcf.gz",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/damage_filtered.vcf.gz",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    },
+    {
+      "handoff_id": "vcf.damage_filter:damage_filtered_vcf_tbi->vcf.stats:damage_filtered_vcf_tbi",
+      "source_stage_id": "vcf.damage_filter",
+      "target_stage_id": "vcf.stats",
+      "source_output_id": "damage_filtered_vcf_tbi",
+      "target_input_id": "damage_filtered_vcf_tbi",
+      "source_path": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/damage_filtered.vcf.gz.tbi",
+      "target_path": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/damage_filtered.vcf.gz.tbi",
+      "source_exists": true,
+      "target_exists": true,
+      "exact_path_match": true,
+      "accepted": true,
+      "detail": "exact governed handoff observed"
+    }
+  ]
+}

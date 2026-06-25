@@ -130,7 +130,7 @@ pub(super) fn execute_preprocess_batch(
     for (idx, result) in resumable {
         results[idx] = Some(result);
     }
-    for ((idx, _), result) in pending.into_iter().zip(executed.into_iter()) {
+    for ((idx, _), result) in pending.into_iter().zip(executed) {
         results[idx] = Some(result);
     }
     results

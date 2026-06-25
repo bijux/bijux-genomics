@@ -48,7 +48,7 @@ fn bench_readiness_essential_pipeline_report_map_tracks_all_pipeline_outputs() {
     );
     assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(45));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(24));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(26));
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(267));
     assert_eq!(payload.get("report_section_count").and_then(serde_json::Value::as_u64), Some(22));
     assert_eq!(payload.get("failure_column_count").and_then(serde_json::Value::as_u64), Some(1));

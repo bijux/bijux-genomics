@@ -1,0 +1,246 @@
+{
+  "schema_version": "bijux.bench.fastq_trimming_truth.expected.v1",
+  "fixture_id": "fastq-trimming-truth",
+  "stage_truths": [
+    {
+      "stage_id": "fastq.trim_reads",
+      "cases": [
+        {
+          "sample_id": "adapter-quality-pe",
+          "tool_id": "fastp",
+          "layout": "paired_end",
+          "bases_removed": 17,
+          "quality_cutoff": 20,
+          "trimmed_tail_count": null,
+          "outputs": [
+            {
+              "read_end": "r1",
+              "records": [
+                {
+                  "read_id": "@pair1/1",
+                  "sequence": "ACGT",
+                  "quality": "FFFF"
+                },
+                {
+                  "read_id": "@pair2/1",
+                  "sequence": "GGGG",
+                  "quality": "FFFF"
+                }
+              ]
+            },
+            {
+              "read_end": "r2",
+              "records": [
+                {
+                  "read_id": "@pair1/2",
+                  "sequence": "TTTTCCCC",
+                  "quality": "FFFFFFFF"
+                },
+                {
+                  "read_id": "@pair2/2",
+                  "sequence": "AAAACCCC",
+                  "quality": "FFFFFFFF"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "sample_id": "adapter-quality-se",
+          "tool_id": "bbduk",
+          "layout": "single_end",
+          "bases_removed": 13,
+          "quality_cutoff": null,
+          "trimmed_tail_count": null,
+          "outputs": [
+            {
+              "read_end": "r1",
+              "records": [
+                {
+                  "read_id": "@adapter-trim-se",
+                  "sequence": "ACGTACGT",
+                  "quality": "FFFFFFFF"
+                },
+                {
+                  "read_id": "@quality-trim-se",
+                  "sequence": "TTTTGGGG",
+                  "quality": "FFFF!!!!"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "sample_id": "adapter-quality-se",
+          "tool_id": "fastp",
+          "layout": "single_end",
+          "bases_removed": 17,
+          "quality_cutoff": 20,
+          "trimmed_tail_count": null,
+          "outputs": [
+            {
+              "read_end": "r1",
+              "records": [
+                {
+                  "read_id": "@adapter-trim-se",
+                  "sequence": "ACGTACGT",
+                  "quality": "FFFFFFFF"
+                },
+                {
+                  "read_id": "@quality-trim-se",
+                  "sequence": "TTTT",
+                  "quality": "FFFF"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "cases": [
+        {
+          "sample_id": "polyg-hit-pe",
+          "tool_id": "bbduk",
+          "layout": "paired_end",
+          "bases_removed": 0,
+          "quality_cutoff": null,
+          "trimmed_tail_count": 0,
+          "outputs": [
+            {
+              "read_end": "r1",
+              "records": [
+                {
+                  "read_id": "@pair1/1",
+                  "sequence": "ACGTAGATCGGAAGAGC",
+                  "quality": "FFFFFFFFFFFFFFFFF"
+                },
+                {
+                  "read_id": "@pair2/1",
+                  "sequence": "GGGGTTTT",
+                  "quality": "FFFF!!!!"
+                }
+              ]
+            },
+            {
+              "read_end": "r2",
+              "records": [
+                {
+                  "read_id": "@pair1/2",
+                  "sequence": "TTTTCCCC",
+                  "quality": "FFFFFFFF"
+                },
+                {
+                  "read_id": "@pair2/2",
+                  "sequence": "AAAACCCC",
+                  "quality": "FFFFFFFF"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "sample_id": "polyg-hit-pe",
+          "tool_id": "fastp",
+          "layout": "paired_end",
+          "bases_removed": 0,
+          "quality_cutoff": null,
+          "trimmed_tail_count": 0,
+          "outputs": [
+            {
+              "read_end": "r1",
+              "records": [
+                {
+                  "read_id": "@pair1/1",
+                  "sequence": "ACGTAGATCGGAAGAGC",
+                  "quality": "FFFFFFFFFFFFFFFFF"
+                },
+                {
+                  "read_id": "@pair2/1",
+                  "sequence": "GGGGTTTT",
+                  "quality": "FFFF!!!!"
+                }
+              ]
+            },
+            {
+              "read_end": "r2",
+              "records": [
+                {
+                  "read_id": "@pair1/2",
+                  "sequence": "TTTTCCCC",
+                  "quality": "FFFFFFFF"
+                },
+                {
+                  "read_id": "@pair2/2",
+                  "sequence": "AAAACCCC",
+                  "quality": "FFFFFFFF"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "sample_id": "polyg-hit-se",
+          "tool_id": "bbduk",
+          "layout": "single_end",
+          "bases_removed": 14,
+          "quality_cutoff": null,
+          "trimmed_tail_count": 2,
+          "outputs": [
+            {
+              "read_end": "r1",
+              "records": [
+                {
+                  "read_id": "@polyg-hit-1",
+                  "sequence": "ACGTACGT",
+                  "quality": "FFFFFFFF"
+                },
+                {
+                  "read_id": "@polyg-hit-2",
+                  "sequence": "TTCAA",
+                  "quality": "FFFFF"
+                },
+                {
+                  "read_id": "@polyg-miss-1",
+                  "sequence": "GGGACGTACGT",
+                  "quality": "FFFFFFFFFFF"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "sample_id": "polyg-hit-se",
+          "tool_id": "fastp",
+          "layout": "single_end",
+          "bases_removed": 14,
+          "quality_cutoff": null,
+          "trimmed_tail_count": 2,
+          "outputs": [
+            {
+              "read_end": "r1",
+              "records": [
+                {
+                  "read_id": "@polyg-hit-1",
+                  "sequence": "ACGTACGT",
+                  "quality": "FFFFFFFF"
+                },
+                {
+                  "read_id": "@polyg-hit-2",
+                  "sequence": "TTCAA",
+                  "quality": "FFFFF"
+                },
+                {
+                  "read_id": "@polyg-miss-1",
+                  "sequence": "GGGACGTACGT",
+                  "quality": "FFFFFFFFFFF"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

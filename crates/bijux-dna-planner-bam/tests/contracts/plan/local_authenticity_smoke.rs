@@ -77,7 +77,7 @@ fn local_authenticity_smoke_plans_use_governed_bam_fixture() -> Result<()> {
         .iter()
         .map(|artifact| artifact.name.as_str().to_string())
         .collect::<Vec<_>>();
-    assert_eq!(output_names, vec!["authenticity_report", "summary", "stage_metrics"]);
+    assert_eq!(output_names, vec!["authenticity_report", "summary", "stage_metrics",]);
 
     let authenticity_output = case
         .plan
@@ -103,10 +103,47 @@ fn local_authenticity_smoke_stage_api_surface_stays_callable() {
     ) -> anyhow::Result<
         Vec<bijux_dna_planner_bam::stage_api::LocalAuthenticitySmokeCasePlan>,
     > = bijux_dna_planner_bam::stage_api::local_authenticity_smoke_plans;
+    let _: fn(
+        &Path,
+    ) -> anyhow::Result<
+        Vec<bijux_dna_planner_bam::stage_api::LocalAuthenticitySmokeCasePlan>,
+    > = bijux_dna_planner_bam::stage_api::local_authenticity_output_contract_plans;
+}
+
+#[test]
+fn local_authenticity_output_contract_plans_cover_all_governed_tools() -> Result<()> {
+    let repo_root = repo_root();
+    let plans =
+        bijux_dna_planner_bam::stage_api::local_authenticity_output_contract_plans(&repo_root)?;
+    let tool_ids = plans
+        .iter()
+        .map(|case| case.plan.tool_id.as_str().to_string())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        tool_ids,
+        std::collections::BTreeSet::from([
+            "authenticct".to_string(),
+            "damageprofiler".to_string(),
+            "pmdtools".to_string(),
+        ])
+    );
+    assert!(
+        plans.iter().any(|case| {
+            case.plan.tool_id.as_str() == "pmdtools"
+                && case
+                    .plan
+                    .io
+                    .outputs
+                    .iter()
+                    .any(|artifact| artifact.name.as_str() == "pmd_scores")
+        }),
+        "PMDtools authenticity proof plans must retain pmd_scores"
+    );
+    Ok(())
 }
 
 fn write_local_authenticity_config(root: &Path, body: &str) -> Result<()> {
-    let config_dir = root.join("benchmarks/configs/local");
+    let config_dir = root.join("configs/bench/local");
     fs::create_dir_all(&config_dir)?;
     fs::write(config_dir.join("bam-authenticity.toml"), body)?;
     Ok(())

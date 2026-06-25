@@ -396,7 +396,19 @@
       "inputs": [
         {
           "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_pe_trim_signals_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r1",
           "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_pe_trim_signals_R2.fastq.gz",
           "role": "reads",
           "optional": false
         }
@@ -404,9 +416,21 @@
       "outputs": [
         {
           "artifact_id": "raw_backend_report_json",
+          "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/trim_terminal_damage.cutadapt.raw.json",
+          "role": "report_json",
+          "optional": true
+        },
+        {
+          "artifact_id": "raw_backend_report_json",
           "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.raw.json",
           "role": "report_json",
           "optional": true
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/trim_terminal_damage_report.json",
+          "role": "report_json",
+          "optional": false
         },
         {
           "artifact_id": "report_json",
@@ -416,7 +440,19 @@
         },
         {
           "artifact_id": "trimmed_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/R1.trim_terminal_damage.cutadapt.fastq.gz",
+          "role": "trimmed_reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "trimmed_reads_r1",
           "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-se/cutadapt/trim_terminal_damage.cutadapt.fastq.gz",
+          "role": "trimmed_reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "trimmed_reads_r2",
+          "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/adna-like-pe/cutadapt/R2.trim_terminal_damage.cutadapt.fastq.gz",
           "role": "trimmed_reads",
           "optional": false
         }
@@ -453,7 +489,19 @@
         },
         {
           "artifact_id": "reads_r1",
-          "path": "assets/toy/core-v1/fastq/reads_with_primers.fastq",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-pe_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-se.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-pe_R2.fastq.gz",
           "role": "reads",
           "optional": false
         }
@@ -461,8 +509,26 @@
       "outputs": [
         {
           "artifact_id": "normalized_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-pe/cutadapt/R1.primer_normalized.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "normalized_reads_r1",
           "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_normalized.fastq.gz",
           "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "normalized_reads_r2",
+          "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-pe/cutadapt/R2.primer_normalized.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "primer_orientation_report",
+          "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-pe/cutadapt/primer_orientation.tsv",
+          "role": "summary_tsv",
           "optional": false
         },
         {
@@ -473,8 +539,20 @@
         },
         {
           "artifact_id": "primer_stats_json",
+          "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-pe/cutadapt/primer_stats.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "primer_stats_json",
           "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_stats.json",
           "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.normalize_primers/amplicon-16s-pe/cutadapt/normalize_primers_report.json",
+          "role": "report_json",
           "optional": false
         },
         {
@@ -510,7 +588,19 @@
       "inputs": [
         {
           "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_pe_trim_signals_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r1",
           "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_polyg_trim_signals_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_pe_trim_signals_R2.fastq.gz",
           "role": "reads",
           "optional": false
         }
@@ -518,9 +608,21 @@
       "outputs": [
         {
           "artifact_id": "raw_backend_report_json",
+          "path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/trim_polyg_tails_report.fastp.json",
+          "role": "report_json",
+          "optional": true
+        },
+        {
+          "artifact_id": "raw_backend_report_json",
           "path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/trim_polyg_tails_report.fastp.json",
           "role": "report_json",
           "optional": true
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/trim_polyg_tails_report.json",
+          "role": "report_json",
+          "optional": false
         },
         {
           "artifact_id": "report_json",
@@ -530,7 +632,19 @@
         },
         {
           "artifact_id": "trimmed_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/R1.polyg.fastp.fastq.gz",
+          "role": "trimmed_reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "trimmed_reads_r1",
           "path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-se/fastp/polyg.fastp.fastq.gz",
+          "role": "trimmed_reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "trimmed_reads_r2",
+          "path": "runs/bench/local-smoke/fastq.trim_polyg_tails/polyg-hit-pe/fastp/R2.polyg.fastp.fastq.gz",
           "role": "trimmed_reads",
           "optional": false
         }
@@ -557,67 +671,31 @@
     {
       "stage_id": "fastq.trim_reads",
       "readiness_kind": "smoke",
-      "tool_id": "fastp",
+      "tool_id": "bbduk",
       "inputs": [
         {
           "artifact_id": "reads_r1",
           "path": "assets/toy/core-v1/fastq/reads_with_trim_signals.fastq",
           "role": "reads",
           "optional": false
-        },
-        {
-          "artifact_id": "reads_r1",
-          "path": "assets/toy/core-v1/fastq/reads_with_trim_signals_R1.fastq",
-          "role": "reads",
-          "optional": false
-        },
-        {
-          "artifact_id": "reads_r2",
-          "path": "assets/toy/core-v1/fastq/reads_with_trim_signals_R2.fastq",
-          "role": "reads",
-          "optional": false
         }
       ],
       "outputs": [
         {
-          "artifact_id": "raw_backend_report_json",
-          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.fastp.json",
-          "role": "report_json",
-          "optional": true
-        },
-        {
-          "artifact_id": "raw_backend_report_json",
-          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.fastp.json",
-          "role": "report_json",
+          "artifact_id": "raw_backend_report_txt",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.bbduk.stats.txt",
+          "role": "log",
           "optional": true
         },
         {
           "artifact_id": "report_json",
-          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/trim_report.json",
-          "role": "report_json",
-          "optional": false
-        },
-        {
-          "artifact_id": "report_json",
-          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/trim_report.json",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/trim_report.json",
           "role": "report_json",
           "optional": false
         },
         {
           "artifact_id": "trimmed_reads_r1",
-          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R1.fastp.fastq.gz",
-          "role": "trimmed_reads",
-          "optional": false
-        },
-        {
-          "artifact_id": "trimmed_reads_r1",
-          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/fastp/fastp.fastq.gz",
-          "role": "trimmed_reads",
-          "optional": false
-        },
-        {
-          "artifact_id": "trimmed_reads_r2",
-          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-pe/fastp/R2.fastp.fastq.gz",
+          "path": "runs/bench/local-smoke/fastq.trim_reads/adapter-quality-se/bbduk/bbduk.fastq.gz",
           "role": "trimmed_reads",
           "optional": false
         }
@@ -648,7 +726,19 @@
       "inputs": [
         {
           "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r1",
           "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz",
           "role": "reads",
           "optional": false
         }
@@ -656,8 +746,26 @@
       "outputs": [
         {
           "artifact_id": "filtered_reads_r1",
+          "path": "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/R1.fastp.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "filtered_reads_r1",
           "path": "runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp/fastp.fastq.gz",
           "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "filtered_reads_r2",
+          "path": "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/R2.fastp.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "report_json",
+          "path": "runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp/filter_report.json",
+          "role": "report_json",
           "optional": false
         },
         {
@@ -773,6 +881,12 @@
           "optional": false
         },
         {
+          "artifact_id": "reads_r2",
+          "path": "assets/toy/core-v1/fastq/reads_2.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
           "artifact_id": "rrna_reference",
           "path": "assets/reference/rrna/references/sortmerna_common_rrna_reference.fasta",
           "role": "reference",
@@ -782,13 +896,25 @@
       "outputs": [
         {
           "artifact_id": "rrna_filtered_reads_r1",
-          "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered.fastq.gz",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "rrna_filtered_reads_r2",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered_R2.fastq.gz",
           "role": "reads",
           "optional": false
         },
         {
           "artifact_id": "rrna_removed_reads_r1",
-          "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna.fastq.gz",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "rrna_removed_reads_r2",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/removed_rrna_R2.fastq.gz",
           "role": "reads",
           "optional": false
         },
@@ -969,12 +1095,30 @@
       "inputs": [
         {
           "artifact_id": "reads_r1",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r1",
           "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_se_filter_signals_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "reads_r2",
+          "path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz",
           "role": "reads",
           "optional": false
         }
       ],
       "outputs": [
+        {
+          "artifact_id": "filter_report_json",
+          "path": "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk/low_complexity_report.json",
+          "role": "report_json",
+          "optional": false
+        },
         {
           "artifact_id": "filter_report_json",
           "path": "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/low_complexity_report.json",
@@ -983,7 +1127,19 @@
         },
         {
           "artifact_id": "filtered_fastq_r1",
+          "path": "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk/R1.bbduk.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "filtered_fastq_r1",
           "path": "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "filtered_fastq_r2",
+          "path": "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk/R2.bbduk.fastq.gz",
           "role": "reads",
           "optional": false
         }
@@ -1019,6 +1175,12 @@
           "optional": false
         },
         {
+          "artifact_id": "reads_r2",
+          "path": "assets/toy/core-v1/fastq/reads_2.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
           "artifact_id": "reference_index",
           "path": "assets/reference/host/references/toy_host_reference",
           "role": "index",
@@ -1028,7 +1190,13 @@
       "outputs": [
         {
           "artifact_id": "host_depleted_reads_r1",
-          "path": "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted.fastq.gz",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "host_depleted_reads_r2",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R2.fastq.gz",
           "role": "reads",
           "optional": false
         },
@@ -1040,9 +1208,15 @@
         },
         {
           "artifact_id": "removed_host_reads_r1",
-          "path": "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host.fastq.gz",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R1.fastq.gz",
           "role": "reads",
           "optional": false
+        },
+        {
+          "artifact_id": "removed_host_reads_r2",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_host/removed_host_R2.fastq.gz",
+          "role": "reads",
+          "optional": true
         }
       ],
       "threads": 4,
@@ -1076,6 +1250,12 @@
           "optional": false
         },
         {
+          "artifact_id": "reads_r2",
+          "path": "assets/toy/core-v1/fastq/reads_2.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
           "artifact_id": "reference_index",
           "path": "assets/reference/contaminants/references/toy_contaminant_reference",
           "role": "index",
@@ -1091,9 +1271,27 @@
         },
         {
           "artifact_id": "contaminant_screened_reads_r1",
-          "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened.fastq.gz",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R1.fastq.gz",
           "role": "reads",
           "optional": false
+        },
+        {
+          "artifact_id": "contaminant_screened_reads_r2",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R2.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "removed_contaminant_reads_r1",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R1.fastq.gz",
+          "role": "reads",
+          "optional": false
+        },
+        {
+          "artifact_id": "removed_contaminant_reads_r2",
+          "path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R2.fastq.gz",
+          "role": "reads",
+          "optional": true
         }
       ],
       "threads": 4,
@@ -1595,6 +1793,12 @@
           "optional": false
         },
         {
+          "artifact_id": "reads_r2",
+          "path": "assets/toy/corpus-02-edna-mini/fastq/mock_community_reads_R2.fastq",
+          "role": "reads",
+          "optional": false
+        },
+        {
           "artifact_id": "taxonomy_database_root",
           "path": "assets/reference/taxonomy/references/mock_community_taxonomy",
           "role": "reference",
@@ -1616,7 +1820,13 @@
         },
         {
           "artifact_id": "unclassified_reads_r1",
-          "path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads.fastq",
+          "path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_1.fastq",
+          "role": "reads",
+          "optional": true
+        },
+        {
+          "artifact_id": "unclassified_reads_r2",
+          "path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_2.fastq",
           "role": "reads",
           "optional": true
         }
@@ -1942,6 +2152,12 @@
       ],
       "outputs": [
         {
+          "artifact_id": "contamination_estimate",
+          "path": "benchmarks/readiness/local-ready/bam.contamination/contamination.estimate.json",
+          "role": "unknown",
+          "optional": false
+        },
+        {
           "artifact_id": "contamination_report",
           "path": "benchmarks/readiness/local-ready/bam.contamination/contamination.json",
           "role": "report_json",
@@ -2043,6 +2259,18 @@
         }
       ],
       "outputs": [
+        {
+          "artifact_id": "damage_parameters",
+          "path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_parameters.json",
+          "role": "unknown",
+          "optional": false
+        },
+        {
+          "artifact_id": "damage_profile",
+          "path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage_profile.json",
+          "role": "unknown",
+          "optional": false
+        },
         {
           "artifact_id": "damage_report",
           "path": "runs/bench/local-smoke/bam.damage/adna_damage_non_udg/ngsbriggs/damage.summary.json",
@@ -2380,13 +2608,13 @@
           "artifact_id": "genotyping_bcf",
           "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf",
           "role": "variant",
-          "optional": true
+          "optional": false
         },
         {
           "artifact_id": "genotyping_gl",
           "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.gl.json",
           "role": "report_json",
-          "optional": true
+          "optional": false
         },
         {
           "artifact_id": "genotyping_report",
@@ -2398,13 +2626,13 @@
           "artifact_id": "genotyping_vcf",
           "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz",
           "role": "variant",
-          "optional": true
+          "optional": false
         },
         {
           "artifact_id": "genotyping_vcf_tbi",
           "path": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz.tbi",
           "role": "index",
-          "optional": true
+          "optional": false
         },
         {
           "artifact_id": "stage_metrics",
@@ -2469,6 +2697,12 @@
         }
       ],
       "outputs": [
+        {
+          "artifact_id": "haplogroup_report",
+          "path": "benchmarks/readiness/local-ready/bam.haplogroups/haplogroup_report.json",
+          "role": "report_json",
+          "optional": false
+        },
         {
           "artifact_id": "haplogroups",
           "path": "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.json",
@@ -3171,6 +3405,24 @@
         }
       ],
       "outputs": [
+        {
+          "artifact_id": "haplogroup_report",
+          "path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/haplogroup_report.json",
+          "role": "report_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "population_metrics",
+          "path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/population_metrics.json",
+          "role": "metrics_json",
+          "optional": false
+        },
+        {
+          "artifact_id": "sex_estimate",
+          "path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex_estimate.json",
+          "role": "unknown",
+          "optional": false
+        },
         {
           "artifact_id": "sex_report",
           "path": "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.json",

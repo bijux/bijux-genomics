@@ -1,0 +1,135 @@
+[
+  {
+    "execution_id": "bam.validate",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "all_cases_matched",
+    "value": true,
+    "source_path": "runs/bench/local-smoke/bam.validate/validation.json"
+  },
+  {
+    "execution_id": "bam.validate",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "case_count",
+    "value": 2,
+    "source_path": "runs/bench/local-smoke/bam.validate/validation.json"
+  },
+  {
+    "execution_id": "bam.validate",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "pass_case_count",
+    "value": 1,
+    "source_path": "runs/bench/local-smoke/bam.validate/validation.json"
+  },
+  {
+    "execution_id": "bam.validate",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "refusal_case_count",
+    "value": 1,
+    "source_path": "runs/bench/local-smoke/bam.validate/validation.json"
+  },
+  {
+    "execution_id": "bridge:bam-to-vcf.call",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "exit_code",
+    "value": 0,
+    "source_path": "runs/bench/local-smoke/vcf.call/bcftools/metrics.json"
+  },
+  {
+    "execution_id": "bridge:bam-to-vcf.call",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "indel_count",
+    "value": 0,
+    "source_path": "runs/bench/local-smoke/vcf.call/bcftools/metrics.json"
+  },
+  {
+    "execution_id": "bridge:bam-to-vcf.call",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "sample_count",
+    "value": 1,
+    "source_path": "runs/bench/local-smoke/vcf.call/bcftools/metrics.json"
+  },
+  {
+    "execution_id": "bridge:bam-to-vcf.call",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "snp_count",
+    "value": 3,
+    "source_path": "runs/bench/local-smoke/vcf.call/bcftools/metrics.json"
+  },
+  {
+    "execution_id": "bridge:bam-to-vcf.call",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "variant_count",
+    "value": 3,
+    "source_path": "runs/bench/local-smoke/vcf.call/bcftools/metrics.json"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "all_cases_passed",
+    "value": true,
+    "source_path": "runs/bench/local-smoke/fastq.validate_reads/report.json"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "case_count",
+    "value": 2,
+    "source_path": "runs/bench/local-smoke/fastq.validate_reads/report.json"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "missing_output_marker_present",
+    "value": false,
+    "source_path": "runs/bench/local-smoke/fastq.validate_reads/report.json"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "indel_count",
+    "value": 1,
+    "source_path": "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "sample_count",
+    "value": 2,
+    "source_path": "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "snp_count",
+    "value": 3,
+    "source_path": "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "ti_tv",
+    "value": 2.0,
+    "source_path": "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "transition_count",
+    "value": 2,
+    "source_path": "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "transversion_count",
+    "value": 1,
+    "source_path": "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "metric_id": "variant_count",
+    "value": 4,
+    "source_path": "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json"
+  }
+]

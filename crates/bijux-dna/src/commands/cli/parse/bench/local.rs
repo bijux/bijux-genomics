@@ -31,6 +31,22 @@ pub enum BenchLocalCommand {
     RenderVcfStageMatrix(BenchLocalRenderVcfStageMatrixArgs),
     #[command(name = "render-vcf-smoke-root")]
     RenderVcfSmokeRoot(BenchLocalRenderVcfSmokeRootArgs),
+    #[command(name = "run-fastq-micro-smoke-subset")]
+    RunFastqMicroSmokeSubset(BenchLocalRunFastqMicroSmokeSubsetArgs),
+    #[command(name = "run-bam-micro-smoke-subset")]
+    RunBamMicroSmokeSubset(BenchLocalRunBamMicroSmokeSubsetArgs),
+    #[command(name = "run-vcf-micro-smoke-subset")]
+    RunVcfMicroSmokeSubset(BenchLocalRunVcfMicroSmokeSubsetArgs),
+    #[command(name = "run-amplicon-micro-pipeline")]
+    RunAmpliconMicroPipeline(BenchLocalRunAmpliconMicroPipelineArgs),
+    #[command(name = "run-adna-micro-pipeline")]
+    RunAdnaMicroPipeline(BenchLocalRunAdnaMicroPipelineArgs),
+    #[command(name = "run-edna-micro-pipeline")]
+    RunEdnaMicroPipeline(BenchLocalRunEdnaMicroPipelineArgs),
+    #[command(name = "run-core-germline-micro-pipeline")]
+    RunCoreGermlineMicroPipeline(BenchLocalRunCoreGermlineMicroPipelineArgs),
+    #[command(name = "run-bam-stage-smoke")]
+    RunBamStageSmoke(BenchLocalRunBamStageSmokeArgs),
     #[command(name = "run-vcf-call-smoke")]
     RunVcfCallSmoke(BenchLocalRunVcfCallSmokeArgs),
     #[command(name = "run-vcf-call-diploid-smoke")]
@@ -55,6 +71,8 @@ pub enum BenchLocalCommand {
     RunVcfRohSmoke(BenchLocalRunVcfRohSmokeArgs),
     #[command(name = "run-vcf-pca-smoke")]
     RunVcfPcaSmoke(BenchLocalRunVcfPcaSmokeArgs),
+    #[command(name = "run-vcf-postprocess-smoke")]
+    RunVcfPostprocessSmoke(BenchLocalRunVcfPostprocessSmokeArgs),
     #[command(name = "run-vcf-stats-smoke")]
     RunVcfStatsSmoke(BenchLocalRunVcfStatsSmokeArgs),
     #[command(name = "run-vcf-gl-propagation-smoke")]
@@ -79,6 +97,8 @@ pub enum BenchLocalCommand {
     ValidateVcfReferenceCompatibility(BenchLocalValidateVcfReferenceCompatibilityArgs),
     #[command(name = "validate-vcf-sample-compatibility")]
     ValidateVcfSampleCompatibility(BenchLocalValidateVcfSampleCompatibilityArgs),
+    #[command(name = "validate-cross-domain-sample-consistency")]
+    ValidateCrossDomainSampleConsistency(BenchLocalValidateCrossDomainSampleConsistencyArgs),
     #[command(name = "validate-hpc-submission-ready")]
     ValidateHpcSubmissionReady(BenchLocalValidateHpcSubmissionReadyArgs),
     #[command(name = "simulate-dag-watchdog")]
@@ -107,6 +127,46 @@ pub enum BenchLocalCommand {
     ValidateAllDomainSlurmScriptBodies(BenchLocalValidateAllDomainSlurmScriptBodiesArgs),
     #[command(name = "validate-all-domain-slurm-result-paths")]
     ValidateAllDomainSlurmResultPaths(BenchLocalValidateAllDomainSlurmResultPathsArgs),
+    #[command(name = "validate-hpc-asset-staging-manifest")]
+    ValidateHpcAssetStagingManifest(BenchLocalValidateHpcAssetStagingManifestArgs),
+    #[command(name = "render-hpc-asset-staging-manifest")]
+    RenderHpcAssetStagingManifest(BenchLocalRenderHpcAssetStagingManifestArgs),
+    #[command(name = "validate-hpc-candidate-run-manifest")]
+    ValidateHpcCandidateRunManifest(BenchLocalValidateHpcCandidateRunManifestArgs),
+    #[command(name = "render-hpc-candidate-run-manifest")]
+    RenderHpcCandidateRunManifest(BenchLocalRenderHpcCandidateRunManifestArgs),
+    #[command(name = "validate-hpc-dry-run-ready")]
+    ValidateHpcDryRunReady(BenchLocalValidateHpcDryRunReadyArgs),
+    #[command(name = "render-hpc-dry-run-ready")]
+    RenderHpcDryRunReady(BenchLocalRenderHpcDryRunReadyArgs),
+    #[command(name = "validate-hpc-scratch-layout")]
+    ValidateHpcScratchLayout(BenchLocalValidateHpcScratchLayoutArgs),
+    #[command(name = "render-hpc-scratch-layout")]
+    RenderHpcScratchLayout(BenchLocalRenderHpcScratchLayoutArgs),
+    #[command(name = "validate-hpc-execution-resolver")]
+    ValidateHpcExecutionResolver(BenchLocalValidateHpcExecutionResolverArgs),
+    #[command(name = "render-hpc-execution-resolver")]
+    RenderHpcExecutionResolver(BenchLocalRenderHpcExecutionResolverArgs),
+    #[command(name = "validate-hpc-dependency-simulation")]
+    ValidateHpcDependencySimulation(BenchLocalValidateHpcDependencySimulationArgs),
+    #[command(name = "render-hpc-dependency-simulation")]
+    RenderHpcDependencySimulation(BenchLocalRenderHpcDependencySimulationArgs),
+    #[command(name = "validate-hpc-resume-simulation")]
+    ValidateHpcResumeSimulation(BenchLocalValidateHpcResumeSimulationArgs),
+    #[command(name = "render-hpc-resume-simulation")]
+    RenderHpcResumeSimulation(BenchLocalRenderHpcResumeSimulationArgs),
+    #[command(name = "validate-hpc-result-collection-simulation")]
+    ValidateHpcResultCollectionSimulation(BenchLocalValidateHpcResultCollectionSimulationArgs),
+    #[command(name = "render-hpc-result-collection-simulation")]
+    RenderHpcResultCollectionSimulation(BenchLocalRenderHpcResultCollectionSimulationArgs),
+    #[command(name = "validate-hpc-stage-benchmark-array")]
+    ValidateHpcStageBenchmarkArray(BenchLocalValidateHpcStageBenchmarkArrayArgs),
+    #[command(name = "render-hpc-stage-benchmark-array")]
+    RenderHpcStageBenchmarkArray(BenchLocalRenderHpcStageBenchmarkArrayArgs),
+    #[command(name = "validate-hpc-pipeline-node-array")]
+    ValidateHpcPipelineNodeArray(BenchLocalValidateHpcPipelineNodeArrayArgs),
+    #[command(name = "render-hpc-pipeline-node-array")]
+    RenderHpcPipelineNodeArray(BenchLocalRenderHpcPipelineNodeArrayArgs),
     #[command(name = "render-all-domain-slurm-submit-manifest")]
     RenderAllDomainSlurmSubmitManifest(BenchLocalRenderAllDomainSlurmSubmitManifestArgs),
     #[command(name = "render-slurm-submit-manifest")]
@@ -177,6 +237,230 @@ pub struct BenchLocalRenderVcfStageMatrixArgs {
 pub struct BenchLocalRenderVcfSmokeRootArgs {
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcAssetStagingManifestArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcAssetStagingManifestArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcCandidateRunManifestArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcCandidateRunManifestArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcDryRunReadyArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcDryRunReadyArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcScratchLayoutArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcScratchLayoutArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcExecutionResolverArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcExecutionResolverArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcDependencySimulationArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcDependencySimulationArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcResumeSimulationArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcResumeSimulationArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcResultCollectionSimulationArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcResultCollectionSimulationArgs {
+    #[arg(long)]
+    pub manifest: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcStageBenchmarkArrayArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcStageBenchmarkArrayArgs {
+    #[arg(long)]
+    pub script: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRenderHpcPipelineNodeArrayArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateHpcPipelineNodeArrayArgs {
+    #[arg(long)]
+    pub script: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunFastqMicroSmokeSubsetArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunBamMicroSmokeSubsetArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunVcfMicroSmokeSubsetArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunAmpliconMicroPipelineArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunAdnaMicroPipelineArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunEdnaMicroPipelineArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunCoreGermlineMicroPipelineArgs {
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalRunBamStageSmokeArgs {
+    #[arg(long)]
+    pub stage_id: String,
     #[arg(long, default_value_t = false)]
     pub json: bool,
 }
@@ -278,6 +562,14 @@ pub struct BenchLocalRunVcfPcaSmokeArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchLocalRunVcfPostprocessSmokeArgs {
+    #[arg(long, default_value = "bcftools")]
+    pub tool_id: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
 pub struct BenchLocalRunVcfStatsSmokeArgs {
     #[arg(long, default_value = "bcftools")]
     pub tool_id: String,
@@ -373,6 +665,20 @@ pub struct BenchLocalValidateVcfReferenceCompatibilityArgs {
 pub struct BenchLocalValidateVcfSampleCompatibilityArgs {
     #[arg(long)]
     pub manifest: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub output: Option<std::path::PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchLocalValidateCrossDomainSampleConsistencyArgs {
+    #[arg(long)]
+    pub fastq_manifest: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub bam_manifest: Option<std::path::PathBuf>,
+    #[arg(long)]
+    pub vcf_manifest: Option<std::path::PathBuf>,
     #[arg(long)]
     pub output: Option<std::path::PathBuf>,
     #[arg(long, default_value_t = false)]

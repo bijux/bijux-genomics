@@ -1,0 +1,1254 @@
+{
+  "schema_version": "bijux.crates.dependency_map.v1",
+  "workspace_manifest": "Cargo.toml",
+  "output_path": "benchmarks/readiness/crates/crate-dependency-map.json",
+  "crate_count": 30,
+  "edge_count": 168,
+  "crates": [
+    {
+      "crate_name": "bijux-dna",
+      "manifest_path": "crates/bijux-dna/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-analyze",
+        "bijux-dna-api",
+        "bijux-dna-core",
+        "bijux-dna-db-ena",
+        "bijux-dna-db-ref",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-compiler",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-domain-vcf",
+        "bijux-dna-infra",
+        "bijux-dna-planner-bam",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-planner-vcf",
+        "bijux-dna-policies",
+        "bijux-dna-stage-contract",
+        "bijux-dna-stages-fastq",
+        "bijux-dna-stages-vcf"
+      ],
+      "direct_workspace_dependents": []
+    },
+    {
+      "crate_name": "bijux-dna-analyze",
+      "manifest_path": "crates/bijux-dna-analyze/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-infra",
+        "bijux-dna-pipelines",
+        "bijux-dna-planner-bam",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-policies",
+        "bijux-dna-runtime",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-api",
+        "bijux-dna-bench",
+        "bijux-dna-environment-qa"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-api",
+      "manifest_path": "crates/bijux-dna-api/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-analyze",
+        "bijux-dna-core",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-domain-vcf",
+        "bijux-dna-engine",
+        "bijux-dna-environment",
+        "bijux-dna-infra",
+        "bijux-dna-pipelines",
+        "bijux-dna-planner-bam",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-policies",
+        "bijux-dna-runner",
+        "bijux-dna-runtime",
+        "bijux-dna-stage-contract",
+        "bijux-dna-stages-vcf",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-dev"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-bench",
+      "manifest_path": "crates/bijux-dna-bench/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-analyze",
+        "bijux-dna-bench-model",
+        "bijux-dna-core",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-infra",
+        "bijux-dna-policies",
+        "bijux-dna-runtime",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": []
+    },
+    {
+      "crate_name": "bijux-dna-bench-model",
+      "manifest_path": "crates/bijux-dna-bench-model/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-policies",
+        "bijux-dna-stage-contract",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna-bench"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-core",
+      "manifest_path": "crates/bijux-dna-core/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-policies"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-analyze",
+        "bijux-dna-api",
+        "bijux-dna-bench",
+        "bijux-dna-bench-model",
+        "bijux-dna-dev",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-engine",
+        "bijux-dna-environment",
+        "bijux-dna-environment-qa",
+        "bijux-dna-pipelines",
+        "bijux-dna-planner-bam",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-planner-vcf",
+        "bijux-dna-policies",
+        "bijux-dna-runner",
+        "bijux-dna-runtime",
+        "bijux-dna-stage-contract",
+        "bijux-dna-stages-bam",
+        "bijux-dna-stages-fastq",
+        "bijux-dna-stages-vcf"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-db-ena",
+      "manifest_path": "crates/bijux-dna-db-ena/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-policies"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-dev"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-db-ref",
+      "manifest_path": "crates/bijux-dna-db-ref/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-domain-vcf",
+        "bijux-dna-policies"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-dev",
+        "bijux-dna-planner-vcf",
+        "bijux-dna-stages-vcf"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-dev",
+      "manifest_path": "crates/bijux-dna-dev/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-api",
+        "bijux-dna-core",
+        "bijux-dna-db-ena",
+        "bijux-dna-db-ref",
+        "bijux-dna-infra",
+        "bijux-dna-policies"
+      ],
+      "direct_workspace_dependents": []
+    },
+    {
+      "crate_name": "bijux-dna-domain-bam",
+      "manifest_path": "crates/bijux-dna-domain-bam/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-infra",
+        "bijux-dna-policies",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-analyze",
+        "bijux-dna-api",
+        "bijux-dna-bench",
+        "bijux-dna-domain-compiler",
+        "bijux-dna-pipelines",
+        "bijux-dna-planner-bam",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-stages-bam"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-domain-compiler",
+      "manifest_path": "crates/bijux-dna-domain-compiler/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-domain-vcf",
+        "bijux-dna-infra",
+        "bijux-dna-policies"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-domain-fastq",
+      "manifest_path": "crates/bijux-dna-domain-fastq/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-infra",
+        "bijux-dna-policies",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-analyze",
+        "bijux-dna-api",
+        "bijux-dna-bench",
+        "bijux-dna-bench-model",
+        "bijux-dna-domain-compiler",
+        "bijux-dna-environment-qa",
+        "bijux-dna-pipelines",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-stages-fastq"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-domain-vcf",
+      "manifest_path": "crates/bijux-dna-domain-vcf/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-policies"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-api",
+        "bijux-dna-db-ref",
+        "bijux-dna-domain-compiler",
+        "bijux-dna-pipelines",
+        "bijux-dna-planner-vcf",
+        "bijux-dna-stages-vcf"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-engine",
+      "manifest_path": "crates/bijux-dna-engine/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-infra",
+        "bijux-dna-policies",
+        "bijux-dna-runtime"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna-api"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-environment",
+      "manifest_path": "crates/bijux-dna-environment/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-infra",
+        "bijux-dna-policies",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna-api",
+        "bijux-dna-environment-qa",
+        "bijux-dna-runner"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-environment-qa",
+      "manifest_path": "crates/bijux-dna-environment-qa/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-analyze",
+        "bijux-dna-core",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-environment",
+        "bijux-dna-infra",
+        "bijux-dna-policies",
+        "bijux-dna-runtime",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": []
+    },
+    {
+      "crate_name": "bijux-dna-infra",
+      "manifest_path": "crates/bijux-dna-infra/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-policies",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-analyze",
+        "bijux-dna-api",
+        "bijux-dna-bench",
+        "bijux-dna-dev",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-compiler",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-engine",
+        "bijux-dna-environment",
+        "bijux-dna-environment-qa",
+        "bijux-dna-planner-bam",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-runner",
+        "bijux-dna-runtime",
+        "bijux-dna-science",
+        "bijux-dna-stages-bam",
+        "bijux-dna-stages-fastq",
+        "bijux-dna-stages-vcf"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-pipelines",
+      "manifest_path": "crates/bijux-dna-pipelines/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-domain-vcf",
+        "bijux-dna-policies",
+        "bijux-dna-runtime",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna-analyze",
+        "bijux-dna-api",
+        "bijux-dna-planner-bam",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-policies"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-planner-bam",
+      "manifest_path": "crates/bijux-dna-planner-bam/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-domain-bam",
+        "bijux-dna-infra",
+        "bijux-dna-pipelines",
+        "bijux-dna-policies",
+        "bijux-dna-stage-contract",
+        "bijux-dna-stages-bam",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-analyze",
+        "bijux-dna-api"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-planner-fastq",
+      "manifest_path": "crates/bijux-dna-planner-fastq/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-infra",
+        "bijux-dna-pipelines",
+        "bijux-dna-policies",
+        "bijux-dna-stage-contract",
+        "bijux-dna-stages-fastq",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-analyze",
+        "bijux-dna-api"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-planner-vcf",
+      "manifest_path": "crates/bijux-dna-planner-vcf/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-db-ref",
+        "bijux-dna-domain-vcf",
+        "bijux-dna-policies",
+        "bijux-dna-stage-contract"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-policies",
+      "manifest_path": "crates/bijux-dna-policies/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-pipelines",
+        "bijux-dna-runtime",
+        "bijux-dna-stage-contract",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-analyze",
+        "bijux-dna-api",
+        "bijux-dna-bench",
+        "bijux-dna-bench-model",
+        "bijux-dna-core",
+        "bijux-dna-db-ena",
+        "bijux-dna-db-ref",
+        "bijux-dna-dev",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-compiler",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-domain-vcf",
+        "bijux-dna-engine",
+        "bijux-dna-environment",
+        "bijux-dna-environment-qa",
+        "bijux-dna-infra",
+        "bijux-dna-pipelines",
+        "bijux-dna-planner-bam",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-planner-vcf",
+        "bijux-dna-runner",
+        "bijux-dna-runtime",
+        "bijux-dna-science",
+        "bijux-dna-stage-contract",
+        "bijux-dna-stages-bam",
+        "bijux-dna-stages-fastq",
+        "bijux-dna-stages-vcf",
+        "bijux-dna-testkit"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-runner",
+      "manifest_path": "crates/bijux-dna-runner/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-environment",
+        "bijux-dna-infra",
+        "bijux-dna-policies",
+        "bijux-dna-runtime"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna-api",
+        "bijux-dna-stages-vcf"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-runtime",
+      "manifest_path": "crates/bijux-dna-runtime/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-infra",
+        "bijux-dna-policies",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna-analyze",
+        "bijux-dna-api",
+        "bijux-dna-bench",
+        "bijux-dna-engine",
+        "bijux-dna-environment-qa",
+        "bijux-dna-pipelines",
+        "bijux-dna-policies",
+        "bijux-dna-runner"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-science",
+      "manifest_path": "crates/bijux-dna-science/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-infra",
+        "bijux-dna-policies"
+      ],
+      "direct_workspace_dependents": []
+    },
+    {
+      "crate_name": "bijux-dna-stage-contract",
+      "manifest_path": "crates/bijux-dna-stage-contract/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-policies",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-api",
+        "bijux-dna-bench-model",
+        "bijux-dna-planner-bam",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-planner-vcf",
+        "bijux-dna-policies",
+        "bijux-dna-stages-bam",
+        "bijux-dna-stages-fastq"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-stages-bam",
+      "manifest_path": "crates/bijux-dna-stages-bam/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-domain-bam",
+        "bijux-dna-infra",
+        "bijux-dna-policies",
+        "bijux-dna-stage-contract",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna-planner-bam"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-stages-fastq",
+      "manifest_path": "crates/bijux-dna-stages-fastq/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-infra",
+        "bijux-dna-policies",
+        "bijux-dna-stage-contract",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-planner-fastq"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-stages-vcf",
+      "manifest_path": "crates/bijux-dna-stages-vcf/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-core",
+        "bijux-dna-db-ref",
+        "bijux-dna-domain-vcf",
+        "bijux-dna-infra",
+        "bijux-dna-policies",
+        "bijux-dna-runner",
+        "bijux-dna-testkit"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna",
+        "bijux-dna-api"
+      ]
+    },
+    {
+      "crate_name": "bijux-dna-testkit",
+      "manifest_path": "crates/bijux-dna-testkit/Cargo.toml",
+      "direct_workspace_dependencies": [
+        "bijux-dna-policies"
+      ],
+      "direct_workspace_dependents": [
+        "bijux-dna-analyze",
+        "bijux-dna-api",
+        "bijux-dna-bench",
+        "bijux-dna-bench-model",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-environment",
+        "bijux-dna-environment-qa",
+        "bijux-dna-infra",
+        "bijux-dna-pipelines",
+        "bijux-dna-planner-bam",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-policies",
+        "bijux-dna-runtime",
+        "bijux-dna-stage-contract",
+        "bijux-dna-stages-bam",
+        "bijux-dna-stages-fastq",
+        "bijux-dna-stages-vcf"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-analyze"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-api"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-db-ena"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-db-ref"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-domain-bam"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-domain-compiler"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-domain-fastq"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-domain-vcf"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-planner-bam"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-planner-fastq"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-planner-vcf"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-stage-contract"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-stages-fastq"
+    },
+    {
+      "from": "bijux-dna",
+      "to": "bijux-dna-stages-vcf"
+    },
+    {
+      "from": "bijux-dna-analyze",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-analyze",
+      "to": "bijux-dna-domain-bam"
+    },
+    {
+      "from": "bijux-dna-analyze",
+      "to": "bijux-dna-domain-fastq"
+    },
+    {
+      "from": "bijux-dna-analyze",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-analyze",
+      "to": "bijux-dna-pipelines"
+    },
+    {
+      "from": "bijux-dna-analyze",
+      "to": "bijux-dna-planner-bam"
+    },
+    {
+      "from": "bijux-dna-analyze",
+      "to": "bijux-dna-planner-fastq"
+    },
+    {
+      "from": "bijux-dna-analyze",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-analyze",
+      "to": "bijux-dna-runtime"
+    },
+    {
+      "from": "bijux-dna-analyze",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-analyze"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-domain-bam"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-domain-fastq"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-domain-vcf"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-engine"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-environment"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-pipelines"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-planner-bam"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-planner-fastq"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-runner"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-runtime"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-stage-contract"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-stages-vcf"
+    },
+    {
+      "from": "bijux-dna-api",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-bench",
+      "to": "bijux-dna-analyze"
+    },
+    {
+      "from": "bijux-dna-bench",
+      "to": "bijux-dna-bench-model"
+    },
+    {
+      "from": "bijux-dna-bench",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-bench",
+      "to": "bijux-dna-domain-bam"
+    },
+    {
+      "from": "bijux-dna-bench",
+      "to": "bijux-dna-domain-fastq"
+    },
+    {
+      "from": "bijux-dna-bench",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-bench",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-bench",
+      "to": "bijux-dna-runtime"
+    },
+    {
+      "from": "bijux-dna-bench",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-bench-model",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-bench-model",
+      "to": "bijux-dna-domain-fastq"
+    },
+    {
+      "from": "bijux-dna-bench-model",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-bench-model",
+      "to": "bijux-dna-stage-contract"
+    },
+    {
+      "from": "bijux-dna-bench-model",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-core",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-db-ena",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-db-ref",
+      "to": "bijux-dna-domain-vcf"
+    },
+    {
+      "from": "bijux-dna-db-ref",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-dev",
+      "to": "bijux-dna-api"
+    },
+    {
+      "from": "bijux-dna-dev",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-dev",
+      "to": "bijux-dna-db-ena"
+    },
+    {
+      "from": "bijux-dna-dev",
+      "to": "bijux-dna-db-ref"
+    },
+    {
+      "from": "bijux-dna-dev",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-dev",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-domain-bam",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-domain-bam",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-domain-bam",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-domain-bam",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-domain-compiler",
+      "to": "bijux-dna-domain-bam"
+    },
+    {
+      "from": "bijux-dna-domain-compiler",
+      "to": "bijux-dna-domain-fastq"
+    },
+    {
+      "from": "bijux-dna-domain-compiler",
+      "to": "bijux-dna-domain-vcf"
+    },
+    {
+      "from": "bijux-dna-domain-compiler",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-domain-compiler",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-domain-fastq",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-domain-fastq",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-domain-fastq",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-domain-fastq",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-domain-vcf",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-engine",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-engine",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-engine",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-engine",
+      "to": "bijux-dna-runtime"
+    },
+    {
+      "from": "bijux-dna-environment",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-environment",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-environment",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-environment",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-environment-qa",
+      "to": "bijux-dna-analyze"
+    },
+    {
+      "from": "bijux-dna-environment-qa",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-environment-qa",
+      "to": "bijux-dna-domain-fastq"
+    },
+    {
+      "from": "bijux-dna-environment-qa",
+      "to": "bijux-dna-environment"
+    },
+    {
+      "from": "bijux-dna-environment-qa",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-environment-qa",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-environment-qa",
+      "to": "bijux-dna-runtime"
+    },
+    {
+      "from": "bijux-dna-environment-qa",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-infra",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-infra",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-pipelines",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-pipelines",
+      "to": "bijux-dna-domain-bam"
+    },
+    {
+      "from": "bijux-dna-pipelines",
+      "to": "bijux-dna-domain-fastq"
+    },
+    {
+      "from": "bijux-dna-pipelines",
+      "to": "bijux-dna-domain-vcf"
+    },
+    {
+      "from": "bijux-dna-pipelines",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-pipelines",
+      "to": "bijux-dna-runtime"
+    },
+    {
+      "from": "bijux-dna-pipelines",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-planner-bam",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-planner-bam",
+      "to": "bijux-dna-domain-bam"
+    },
+    {
+      "from": "bijux-dna-planner-bam",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-planner-bam",
+      "to": "bijux-dna-pipelines"
+    },
+    {
+      "from": "bijux-dna-planner-bam",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-planner-bam",
+      "to": "bijux-dna-stage-contract"
+    },
+    {
+      "from": "bijux-dna-planner-bam",
+      "to": "bijux-dna-stages-bam"
+    },
+    {
+      "from": "bijux-dna-planner-bam",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-planner-fastq",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-planner-fastq",
+      "to": "bijux-dna-domain-bam"
+    },
+    {
+      "from": "bijux-dna-planner-fastq",
+      "to": "bijux-dna-domain-fastq"
+    },
+    {
+      "from": "bijux-dna-planner-fastq",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-planner-fastq",
+      "to": "bijux-dna-pipelines"
+    },
+    {
+      "from": "bijux-dna-planner-fastq",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-planner-fastq",
+      "to": "bijux-dna-stage-contract"
+    },
+    {
+      "from": "bijux-dna-planner-fastq",
+      "to": "bijux-dna-stages-fastq"
+    },
+    {
+      "from": "bijux-dna-planner-fastq",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-planner-vcf",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-planner-vcf",
+      "to": "bijux-dna-db-ref"
+    },
+    {
+      "from": "bijux-dna-planner-vcf",
+      "to": "bijux-dna-domain-vcf"
+    },
+    {
+      "from": "bijux-dna-planner-vcf",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-planner-vcf",
+      "to": "bijux-dna-stage-contract"
+    },
+    {
+      "from": "bijux-dna-policies",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-policies",
+      "to": "bijux-dna-pipelines"
+    },
+    {
+      "from": "bijux-dna-policies",
+      "to": "bijux-dna-runtime"
+    },
+    {
+      "from": "bijux-dna-policies",
+      "to": "bijux-dna-stage-contract"
+    },
+    {
+      "from": "bijux-dna-policies",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-runner",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-runner",
+      "to": "bijux-dna-environment"
+    },
+    {
+      "from": "bijux-dna-runner",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-runner",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-runner",
+      "to": "bijux-dna-runtime"
+    },
+    {
+      "from": "bijux-dna-runtime",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-runtime",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-runtime",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-runtime",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-science",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-science",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-stage-contract",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-stage-contract",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-stage-contract",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-stages-bam",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-stages-bam",
+      "to": "bijux-dna-domain-bam"
+    },
+    {
+      "from": "bijux-dna-stages-bam",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-stages-bam",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-stages-bam",
+      "to": "bijux-dna-stage-contract"
+    },
+    {
+      "from": "bijux-dna-stages-bam",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-stages-fastq",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-stages-fastq",
+      "to": "bijux-dna-domain-fastq"
+    },
+    {
+      "from": "bijux-dna-stages-fastq",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-stages-fastq",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-stages-fastq",
+      "to": "bijux-dna-stage-contract"
+    },
+    {
+      "from": "bijux-dna-stages-fastq",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-stages-vcf",
+      "to": "bijux-dna-core"
+    },
+    {
+      "from": "bijux-dna-stages-vcf",
+      "to": "bijux-dna-db-ref"
+    },
+    {
+      "from": "bijux-dna-stages-vcf",
+      "to": "bijux-dna-domain-vcf"
+    },
+    {
+      "from": "bijux-dna-stages-vcf",
+      "to": "bijux-dna-infra"
+    },
+    {
+      "from": "bijux-dna-stages-vcf",
+      "to": "bijux-dna-policies"
+    },
+    {
+      "from": "bijux-dna-stages-vcf",
+      "to": "bijux-dna-runner"
+    },
+    {
+      "from": "bijux-dna-stages-vcf",
+      "to": "bijux-dna-testkit"
+    },
+    {
+      "from": "bijux-dna-testkit",
+      "to": "bijux-dna-policies"
+    }
+  ]
+}

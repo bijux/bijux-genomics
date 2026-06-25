@@ -22,6 +22,9 @@ metrics:
   - name: "low_confidence_sites"
   - name: "masked_truth_sites"
   - name: "missing_quality_fields"
+  - name: "sample_count"
+  - name: "sample_ids"
+  - name: "variant_count"
 compatible_tools: ["beagle", "glimpse", "impute5", "minimac4"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:

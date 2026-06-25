@@ -2,12 +2,15 @@
 
 pub(crate) mod bam;
 pub(crate) mod benchmark;
+pub(crate) mod ci;
 pub mod cli;
 pub(crate) mod corpus;
+pub(crate) mod crates;
 pub(crate) mod ena;
 pub(crate) mod fastq;
 pub(crate) mod fixtures;
 pub mod hpc;
+pub(crate) mod numeric;
 pub(crate) mod planning;
 mod router;
 mod status;

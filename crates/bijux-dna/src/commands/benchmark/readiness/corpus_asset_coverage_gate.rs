@@ -701,12 +701,12 @@ mod tests {
 
         assert_eq!(report.schema_version, CORPUS_ASSET_COVERAGE_GATE_SCHEMA_VERSION);
         assert!(report.passes_gate);
-        assert_eq!(report.row_count, 122);
-        assert_eq!(report.benchmark_ready_row_count, 118);
-        assert_eq!(report.gate_row_count, 118);
-        assert_eq!(report.gate_passed_row_count, 118);
+        assert_eq!(report.row_count, 120);
+        assert_eq!(report.benchmark_ready_row_count, 120);
+        assert_eq!(report.gate_row_count, 120);
+        assert_eq!(report.gate_passed_row_count, 120);
         assert_eq!(report.gate_failed_row_count, 0);
-        assert_eq!(report.excluded_row_count, 4);
+        assert_eq!(report.excluded_row_count, 0);
         assert_eq!(report.benchmark_ready_asset_required_row_count, 20);
         assert_eq!(report.benchmark_ready_asset_assigned_row_count, 20);
         assert_eq!(report.benchmark_ready_asset_missing_row_count, 0);

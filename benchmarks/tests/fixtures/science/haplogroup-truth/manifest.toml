@@ -1,0 +1,39 @@
+schema_version = "bijux.bench.bam_haplogroup_truth.v1"
+fixture_id = "haplogroup-truth"
+description = "Governed BAM haplogroup truth bundle for ready, partial-marker-support, and coverage-gated outcomes against the ancient-like Y-marker screening panel."
+corpus_manifest_path = "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml"
+expected_path = "expected.json"
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/manifest.toml",
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_panel.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/aligned/adna_y_haplogroup_partial_panel.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv",
+  "domain/bam/stages/haplogroups.yaml",
+]
+
+[[cases]]
+case_id = "screening_panel_ready"
+sample_id = "adna_y_haplogroup_panel"
+method = "yleaf"
+reference_panel_id = "adna-y-hg38-mini"
+reference_build = "hg38"
+population_scope = "adna_y_haplogroup_panel"
+minimum_coverage = 2.0
+
+[[cases]]
+case_id = "screening_panel_partial_support"
+sample_id = "adna_y_haplogroup_partial_panel"
+method = "yleaf"
+reference_panel_id = "adna-y-hg38-mini"
+reference_build = "hg38"
+population_scope = "adna_y_haplogroup_panel"
+minimum_coverage = 1.0
+
+[[cases]]
+case_id = "screening_panel_coverage_gate"
+sample_id = "adna_y_haplogroup_panel"
+method = "yleaf"
+reference_panel_id = "adna-y-hg38-mini"
+reference_build = "hg38"
+population_scope = "adna_y_haplogroup_panel"
+minimum_coverage = 2.5

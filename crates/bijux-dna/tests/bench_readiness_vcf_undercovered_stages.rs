@@ -56,14 +56,14 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
             .get("decision_counts")
             .and_then(|value| value.get("future_not_benchmark_ready"))
             .and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(8)
     );
     assert_eq!(
         payload
             .get("decision_counts")
             .and_then(|value| value.get("limit_to_specialized_tool"))
             .and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(2)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
@@ -99,11 +99,39 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
         "future_not_benchmark_ready",
     ));
     assert!(has_row(
+        "vcf.call_gl",
+        &["genotype_likelihood_calling", "variant_processing"],
+        &["bcftools"],
+        &["angsd"],
+        "future_not_benchmark_ready",
+    ));
+    assert!(has_row(
+        "vcf.call_pseudohaploid",
+        &["genotype_likelihood_calling", "variant_processing"],
+        &["bcftools"],
+        &["angsd"],
+        "future_not_benchmark_ready",
+    ));
+    assert!(has_row(
+        "vcf.damage_filter",
+        &["genotype_likelihood_calling", "variant_processing"],
+        &["bcftools"],
+        &["angsd"],
+        "future_not_benchmark_ready",
+    ));
+    assert!(has_row(
+        "vcf.gl_propagation",
+        &["genotype_likelihood_calling", "variant_processing"],
+        &["bcftools"],
+        &["angsd"],
+        "future_not_benchmark_ready",
+    ));
+    assert!(has_row(
         "vcf.phasing",
         &["phasing"],
         &["shapeit5"],
         &["beagle", "eagle", "shapeit"],
-        "future_not_benchmark_ready",
+        "limit_to_specialized_tool",
     ));
     assert!(has_row(
         "vcf.ibd",

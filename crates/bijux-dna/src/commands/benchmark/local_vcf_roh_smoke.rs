@@ -323,6 +323,30 @@ pub(crate) fn run_local_vcf_roh_smoke(
                 exists: true,
             },
             BenchStageResultOutputV1 {
+                artifact_id: "roh_hom".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_SEGMENTS_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &source_roh_segments_path),
+                role: "table_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "roh_report".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_ROH_REPORT_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &source_roh_report_path),
+                role: "report_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "logs_txt".to_string(),
+                declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
+                realized_path: path_relative_to_repo(repo_root, &source_logs_path),
+                role: "log_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
                 artifact_id: "source_roh_segments_tsv".to_string(),
                 declared_path: DEFAULT_OUTPUT_SOURCE_SEGMENTS_NAME.to_string(),
                 realized_path: path_relative_to_repo(repo_root, &source_roh_segments_path),
@@ -695,7 +719,7 @@ mod tests {
     fn roh_segments_parser_rejects_unexpected_samples() {
         let temp = tempfile::tempdir().expect("tempdir");
         let path = temp.path().join("segments.tsv");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &path,
             "sample\tcontig\tstart\tend\tlength_bp\tn_sites\npanel_ref_1\tchr1\t10\t20\t10\t2\n",
         )
@@ -709,7 +733,7 @@ mod tests {
     fn roh_per_sample_parser_rejects_duplicate_samples() {
         let temp = tempfile::tempdir().expect("tempdir");
         let path = temp.path().join("per-sample.tsv");
-        std::fs::write(
+        bijux_dna_infra::write_payload(
             &path,
             "sample\tsegment_count\ttotal_length_bp\tmean_length_bp\nsample_a\t1\t20\t20.0\nsample_a\t0\t0\t0.0\n",
         )

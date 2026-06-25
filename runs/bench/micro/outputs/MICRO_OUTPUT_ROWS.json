@@ -1,0 +1,1784 @@
+[
+  {
+    "execution_id": "bam.align",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "align_metrics",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/alignment.mapping_summary.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.align",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "align_metrics",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/mapping_summary.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.align",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "align_provenance",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/alignment.provenance.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.align",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "align_provenance",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/alignment.provenance.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.align",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "align_sam",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.sam",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.align",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "align_sam",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.sam",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.align",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "align_semantic_sam",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.semantic.sam",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.align",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "aligned_bai",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam.bai",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.align",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "aligned_bai",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam.bai",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.align",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "aligned_bam",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/align.bam",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.align",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "aligned_bam",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/align.bam",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.align",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.align/alignment.provenance.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.align",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.align/alignment.provenance.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.authenticity",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "authenticity_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.authenticity/authenticity.summary.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.authenticity",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.authenticity/authenticity.summary.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.complexity",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.complexity/complexity.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.contamination_sex_haplogroups",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.sex/sex.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.coverage",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "coverage_regions_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.coverage/coverage.regions.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.coverage",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "coverage_regions_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.coverage/coverage.regions.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.coverage",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "coverage_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.coverage/coverage.summary.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.coverage",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "coverage_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.coverage/coverage.summary.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.coverage",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.coverage/coverage.summary.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.coverage",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.coverage/coverage.summary.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.damage",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "damage_metrics_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.damage/damage.metrics.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.damage",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "damage_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.damage/damage.summary.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.damage",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.damage/damage.summary.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.damage_authenticity",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.authenticity/authenticity.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.duplicate_handling",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.markdup/duplicates.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.filtering",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.filter/filter_metrics.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.insert_size_gc_bias",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.insert_size/insert_size.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.mapping_summary",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.mapping_summary/mapping_summary.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.mapping_summary",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "mapping_summary_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.mapping_summary/mapping_summary.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.overlap_endogenous_content",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.qc_pre",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.qc_pre/qc_pre.summary.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.qc_pre",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "qc_pre_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.qc_pre/qc_pre.summary.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.recalibration_genotyping",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.recalibration/recalibration.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "bam.validate",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "bam_validation_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.validate/validation.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.validate",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "bam_validation_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.validate/validation.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.validate",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "evidence",
+    "role": "evidence_report",
+    "path": "runs/bench/local-smoke/bam.validate/validation.json",
+    "exists": true,
+    "source": "real_smoke_core_subset"
+  },
+  {
+    "execution_id": "bam.validate",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/bam.validate/validation.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.validate",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/bam.validate/validation.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "bam.validation_core_qc",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.validate/validation.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
+    "execution_id": "benchmark.amplicon_corpus_fixture",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "amplicon_abundance_table",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/tables/corpus-03-otu-abundance.tsv",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.amplicon_corpus_fixture",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "chimera_expectations_path",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.amplicon_corpus_fixture",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/benchmark.amplicon_corpus_fixture/report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.amplicon_corpus_fixture",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "expected_asvs_path",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/expected_asvs.tsv",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.amplicon_corpus_fixture",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "primers_tsv_path",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.amplicon_output_judgment",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/benchmark.amplicon_output_judgment/report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.amplicon_output_judgment",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "judgment_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/benchmark.amplicon_output_judgment/report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.amplicon_truth_fixture",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/benchmark.amplicon_truth_fixture/report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.amplicon_truth_fixture",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "expected_path",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/science/amplicon-truth/expected.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.edna_corpus_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "corpus_manifest",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.edna_corpus_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.edna_corpus_fixture/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.edna_corpus_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "expected_taxa",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/expected_taxa.tsv",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.edna_corpus_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_a_fastq",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_a.fastq.gz",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.edna_corpus_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_b_fastq",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/normalized/mock_community_sample_b.fastq.gz",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.edna_corpus_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "validation_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.edna_corpus_fixture/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "centrifuge_backend_index",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/databases/taxonomy-mini/centrifuge/reference.1.cf",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_database_fixture/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "kaiju_backend_index",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/databases/taxonomy-mini/kaiju/nodes.dmp",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "kraken2_backend_index",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/databases/taxonomy-mini/kraken2/hash.k2d",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "krakenuniq_backend_index",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/databases/taxonomy-mini/krakenuniq/database.kdb",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "lineage_table",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/databases/taxonomy-mini/lineage.tsv",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "taxonomy_database_manifest",
+    "role": "pipeline_stage_output",
+    "path": "benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_database_fixture",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "validation_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_database_fixture/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_output_judgment",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "benchmark.taxonomy_output_judgment",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "taxonomy_output_judgment",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "bridge:bam-to-vcf.call",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "called_vcf",
+    "role": "vcf_output",
+    "path": "runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz",
+    "exists": true,
+    "source": "stage_result_manifest"
+  },
+  {
+    "execution_id": "bridge:bam-to-vcf.call",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "called_vcf_tbi",
+    "role": "vcf_index",
+    "path": "runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz.tbi",
+    "exists": true,
+    "source": "stage_result_manifest"
+  },
+  {
+    "execution_id": "bridge:bam-to-vcf.call",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "evidence",
+    "role": "evidence_report",
+    "path": "runs/bench/local-smoke/vcf.call/bcftools/metrics.json",
+    "exists": true,
+    "source": "real_smoke_core_subset"
+  },
+  {
+    "execution_id": "bridge:bam-to-vcf.call",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "metrics_json",
+    "role": "report_output",
+    "path": "runs/bench/local-smoke/vcf.call/bcftools/metrics.json",
+    "exists": true,
+    "source": "stage_result_manifest"
+  },
+  {
+    "execution_id": "fastq.adapter_detection",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.detect_adapters/adapters.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.amplicon",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.normalize_primers/report.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.cluster_otus",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "case_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/cluster_otus_report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.cluster_otus",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.cluster_otus",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "otu_representatives_fasta",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/otu_representatives.fasta",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.cluster_otus",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "otu_table_tsv",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/otu_table.tsv",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.cluster_otus",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "taxonomy_ready_fasta",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fasta",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.cluster_otus",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "taxonomy_ready_fastq",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.cluster_otus/corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fastq",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.complexity_correction",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.duplicate_handling",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.detect_duplicates_premerge/duplicates.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.filter_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filter.report.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.filter_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "filter_backend_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filter.backend.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.filter_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "filter_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filter.report.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.filter_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "filtered_reads_r1_path",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filtered_R1.fastq",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.filter_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "filtered_reads_r2_path",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.filter_reads/filtered_R2.fastq",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.filtering",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.filter_low_complexity/report.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.infer_asvs",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "asv_table_tsv",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/corpus-03-amplicon-se/dada2/asv_table.tsv",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.infer_asvs",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "case_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/corpus-03-amplicon-se/dada2/infer_asvs_report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.infer_asvs",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.infer_asvs",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "raw_backend_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/corpus-03-amplicon-se/dada2/infer_asvs_backend_report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.infer_asvs",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "representatives_fasta",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.infer_asvs",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "taxonomy_ready_fasta",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/corpus-03-amplicon-se/dada2/taxonomy_ready.fasta",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.infer_asvs",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "taxonomy_ready_fastq",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/corpus-03-amplicon-se/dada2/taxonomy_ready.fastq",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.merge_umi",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.merge_pairs/report.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.normalize_abundance",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "case_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/corpus-03-otu-abundance-table/seqkit/normalize_abundance_report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.normalize_abundance",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.normalize_abundance",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "normalized_abundance_tsv",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/normalized_abundance.tsv",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.normalize_abundance",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "otu_abundance_table",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_abundance/otu_abundance.tsv",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.normalize_primers",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_primers/report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.normalize_primers",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "normalized_reads_r1",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_normalized.fastq.gz",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.normalize_primers",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "primer_orientation_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_orientation.tsv",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.normalize_primers",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "primer_stats_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_primers/amplicon-16s-se/cutadapt/primer_stats.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.normalize_primers",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.normalize_primers/amplicon-16s-se/cutadapt/normalize_primers_report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.profile_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.profile_reads/profile.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.profile_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "validated_profile",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.profile_reads/profile.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.qc_reporting",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.report_qc/report.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.read_profiling",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/overrepresented.tsv",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.remove_chimeras",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "case_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/chimera-control-se/vsearch/remove_chimeras_report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.remove_chimeras",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "chimera_metrics_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/chimera-control-se/vsearch/chimera_metrics.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.remove_chimeras",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "chimeras_fasta",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/chimera-control-se/vsearch/chimeras.fasta",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.remove_chimeras",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "chimeras_tsv",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/chimeras.tsv",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.remove_chimeras",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/report.json",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.remove_chimeras",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "non_chimeric_fasta",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.remove_chimeras",
+    "component_id": "amplicon_micro_pipeline",
+    "artifact_id": "raw_backend_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/chimera-control-se/vsearch/uchime.tsv",
+    "exists": true,
+    "source": "amplicon_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.remove_duplicates",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "deduplicated_reads_r1_path",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplicated_R1.fastq",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.remove_duplicates",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "deduplicated_reads_r2_path",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplicated_R2.fastq",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.remove_duplicates",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "deduplication_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplication_report.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.remove_duplicates",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "duplicate_classes_tsv",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/duplicate_classes.tsv",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.remove_duplicates",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "duplicate_provenance_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/duplicate_provenance.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.remove_duplicates",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.remove_duplicates/deduplication_report.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_a_classification_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_a/kraken2.classifications.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_a_screen_report_tsv",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_a/kraken2.report.tsv",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_a_unclassified_reads_r1",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_a/kraken2.unclassified_reads.fastq.gz",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_b_classification_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_b/kraken2.classifications.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_b_screen_report_tsv",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_b/kraken2.report.tsv",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.screen_taxonomy",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_b_unclassified_reads_r1",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/mock_community_sample_b/kraken2.unclassified_reads.fastq.gz",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.trim_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trim.report.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.trim_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "trim_backend_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trim.backend.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.trim_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "trim_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trim.report.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.trim_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "trimmed_reads_r1_path",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trimmed_R1.fastq",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.trim_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "trimmed_reads_r2_path",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.trim_reads/trimmed_R2.fastq",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.trim_terminal_damage",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trim_terminal_damage_report.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.trim_terminal_damage",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "terminal_damage_trim_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trim_terminal_damage_report.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.trim_terminal_damage",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "terminal_damage_trimmed_reads_r1_path",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trimmed_R1.fastq",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.trim_terminal_damage",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "terminal_damage_trimmed_reads_r2_path",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trimmed_R2.fastq",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.trim_terminal_damage",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "trim_terminal_damage_backend_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.trim_terminal_damage/trim_terminal_damage.backend.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.trimming",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.trim_terminal_damage/metrics.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "evidence",
+    "role": "evidence_report",
+    "path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+    "exists": true,
+    "source": "real_smoke_core_subset"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "fastq_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/fastq.validate_reads/report.json",
+    "exists": true,
+    "source": "fastq_micro_smoke_subset"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.validate_reads/validation.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.validate_reads/validation.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/report.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_a_validated_reads_manifest",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/mock_community_sample_a/validated_reads_manifest.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_a_validation_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/mock_community_sample_a/validation.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_b_validated_reads_manifest",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/mock_community_sample_b/validated_reads_manifest.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "edna_micro_pipeline",
+    "artifact_id": "mock_community_sample_b_validation_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/edna/artifacts/fastq.validate_reads/mock_community_sample_b/validation.json",
+    "exists": true,
+    "source": "edna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "validated_reads_manifest",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.validate_reads/validated_reads_manifest.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "validated_reads_manifest",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.validate_reads/validated_reads_manifest.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "validated_reads_r1_path",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.source/raw_R1.fastq",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "validated_reads_r1_path",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R1.fastq",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "validated_reads_r2_path",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.source/raw_R2.fastq",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "validated_reads_r2_path",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.source/raw_R2.fastq",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "validation_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/fastq.validate_reads/validation.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "fastq.validate_reads",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "validation_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/fastq.validate_reads/validation.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.call",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "call_manifest_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/call_manifest.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.call",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "call_metrics_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/call_metrics.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.call",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "called_vcf",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/called_diploid.vcf.gz",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.call",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "called_vcf_tbi",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/runtime/called_diploid.vcf.gz.tbi",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.call",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.call/report.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.call_pseudohaploid",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "call_stage_metrics",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/report.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.call_pseudohaploid",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/report.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.call_pseudohaploid",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "pseudohaploid_vcf",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/called_pseudohaploid.vcf.gz",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.call_pseudohaploid",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "pseudohaploid_vcf_tbi",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/vcf.call_pseudohaploid/called_pseudohaploid.vcf.gz.tbi",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.calling",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.call/bcftools/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
+    "execution_id": "vcf.damage_filter",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "damage_bias_audit_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/report.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.damage_filter",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "damage_filter_metrics",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/damage_filter_counts.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.damage_filter",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "damage_filtered_vcf",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/damage_filtered.vcf.gz",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.damage_filter",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "damage_filtered_vcf_tbi",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/damage_filtered.vcf.gz.tbi",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.damage_filter",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/vcf.damage_filter/report.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.descent_and_demography",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.ibd/germline/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
+    "execution_id": "vcf.filter",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/report.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.filter",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "filter_breakdown_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filter_breakdown.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.filter",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "filter_report_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/report.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.filter",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "filtered_vcf",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filtered.vcf.gz",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.filter",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "filtered_vcf_tbi",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.filter/filtered.vcf.gz.tbi",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.imputation",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.impute/beagle/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
+    "execution_id": "vcf.phasing",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.phasing/shapeit5/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
+    "execution_id": "vcf.population_structure",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.population_structure/plink2/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
+    "execution_id": "vcf.qc",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.qc/report.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.qc",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "qc_report",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.qc/qc_summary.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.qc",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "qc_stage_metrics",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.qc/qc_summary.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.qc",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "qc_tables_tsv",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.qc/qc_tables.tsv",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.quality_control",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.stats/bcftools/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
+    "execution_id": "vcf.reference_panel_preparation",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "bcftools_stats_txt",
+    "role": "report_output",
+    "path": "runs/bench/local-smoke/vcf.stats/bcftools/bcftools_stats.txt",
+    "exists": true,
+    "source": "stage_result_manifest"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "bcftools_stats_txt",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/vcf.stats/bcftools_stats.txt",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "bcftools_stats_txt",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.stats/bcftools_stats.txt",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "evidence",
+    "role": "evidence_report",
+    "path": "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json",
+    "exists": true,
+    "source": "real_smoke_core_subset"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/vcf.stats/report.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "evidence",
+    "role": "pipeline_stage_evidence",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.stats/report.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "metrics_json",
+    "role": "report_output",
+    "path": "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json",
+    "exists": true,
+    "source": "stage_result_manifest"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "real_smoke_core_subset",
+    "artifact_id": "stats_json",
+    "role": "report_output",
+    "path": "runs/bench/local-smoke/vcf.stats/bcftools/stats.json",
+    "exists": true,
+    "source": "stage_result_manifest"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "adna_micro_pipeline",
+    "artifact_id": "stats_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/adna/artifacts/vcf.stats/stats.json",
+    "exists": true,
+    "source": "adna_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "stats_json",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.stats/stats.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.stats",
+    "component_id": "core_germline_micro_pipeline",
+    "artifact_id": "stats_stage_metrics",
+    "role": "pipeline_stage_output",
+    "path": "runs/bench/micro/pipelines/core-germline/artifacts/vcf.stats/stats.json",
+    "exists": true,
+    "source": "core_germline_micro_pipeline"
+  },
+  {
+    "execution_id": "vcf.variant_curation",
+    "component_id": "vcf_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/vcf.damage_filter/bcftools/stage-result.json",
+    "exists": true,
+    "source": "vcf_micro_smoke_subset"
+  }
+]

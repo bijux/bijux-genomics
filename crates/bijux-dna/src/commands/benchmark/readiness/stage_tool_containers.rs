@@ -18,7 +18,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_TOOL_CONTAINERS_PATH: &str =
-    "benchmarks/configs/local/stage-tool-containers.toml";
+    "configs/bench/local/stage-tool-containers.toml";
 pub(crate) const LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_VERSION: &str =
     "bijux.bench.local_stage_tool_containers.v1";
 const STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_VERSION: &str =
@@ -275,7 +275,8 @@ fn render_stage_tool_containers_toml(config: &StageToolContainersConfig) -> Resu
          # owner = bijux-dna-bench\n\
          # purpose = Governed runtime declarations for benchmark-ready FASTQ and BAM stage-tool commands.\n\
          # authority = bijux-dna-bench\n\
-         # stability = evolving\n\n{body}"
+         # stability = evolving\n\
+         # last_updated = 2026-06-25\n\n{body}"
     ))
 }
 
@@ -313,14 +314,14 @@ mod tests {
                 .expect("render stage-tool containers");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_containers.v1");
-        assert_eq!(report.config_path, "benchmarks/configs/local/stage-tool-containers.toml");
+        assert_eq!(report.config_path, "configs/bench/local/stage-tool-containers.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_runtime_declarations");
-        assert_eq!(report.row_count, 118);
-        assert_eq!(report.benchmark_ready_row_count, 118);
-        assert_eq!(report.external_row_count, 116);
-        assert_eq!(report.container_declared_row_count, 116);
-        assert_eq!(report.command_entrypoint_row_count, 118);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&69));
+        assert_eq!(report.row_count, 120);
+        assert_eq!(report.benchmark_ready_row_count, 120);
+        assert_eq!(report.external_row_count, 118);
+        assert_eq!(report.container_declared_row_count, 118);
+        assert_eq!(report.command_entrypoint_row_count, 120);
+        assert_eq!(report.domain_counts.get("fastq"), Some(&71));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
         assert!(report.rows.iter().all(|row| {
             row.container_id.is_some()
@@ -395,7 +396,7 @@ mod tests {
             row.stage_id == "bam.overlap_correction"
                 && row.tool_id == "bamutil"
                 && row.execution_mode == "containerized"
-                && row.command_entrypoint.as_deref() == Some("bam")
+                && row.command_entrypoint.as_deref() == Some("bamutil")
                 && row.container_id.as_deref() == Some("bijuxdna/bamutil:1.0.15")
         }));
         assert!(report.rows.iter().any(|row| {
@@ -518,7 +519,7 @@ mod tests {
 
         assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_VERSION);
         assert_eq!(config.classification_scope, STAGE_TOOL_CONTAINERS_SCOPE);
-        assert_eq!(config.rows.len(), 118);
+        assert_eq!(config.rows.len(), 120);
         assert!(config.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()
@@ -594,7 +595,7 @@ mod tests {
             row.stage_id == "bam.overlap_correction"
                 && row.tool_id == "bamutil"
                 && row.execution_mode == "containerized"
-                && row.command_entrypoint.as_deref() == Some("bam")
+                && row.command_entrypoint.as_deref() == Some("bamutil")
                 && row.container_id.as_deref() == Some("bijuxdna/bamutil:1.0.15")
         }));
         for (tool_id, container_id) in [

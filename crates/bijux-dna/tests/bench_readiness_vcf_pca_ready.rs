@@ -61,6 +61,10 @@ fn bench_readiness_vcf_pca_ready_reports_complete_active_retained_callers() {
             serde_json::Value::String("excluded_samples".to_string()),
             serde_json::Value::String("unexpected_samples".to_string()),
             serde_json::Value::String("eigenvalues".to_string()),
+            serde_json::Value::String("status".to_string()),
+            serde_json::Value::String("rows".to_string()),
+            serde_json::Value::String("execution_mode".to_string()),
+            serde_json::Value::String("tool_ok".to_string()),
         ])
     );
 
@@ -132,6 +136,18 @@ fn bench_readiness_vcf_pca_ready_reports_complete_active_retained_callers() {
                     && item.get("pc2").and_then(serde_json::Value::as_f64).is_some()
             })
     }));
+    assert!(plink2.get("expected_metrics").and_then(serde_json::Value::as_array).is_some_and(
+        |items| {
+            items.iter().any(|item| item.as_str() == Some("execution_mode"))
+                && items.iter().any(|item| item.as_str() == Some("tool_ok"))
+        }
+    ));
+    assert!(plink2.get("report_metric_columns").and_then(serde_json::Value::as_array).is_some_and(
+        |items| {
+            items.iter().any(|item| item.as_str() == Some("execution_mode"))
+                && items.iter().any(|item| item.as_str() == Some("tool_ok"))
+        }
+    ));
 
     let eigensoft = rows
         .iter()
@@ -190,6 +206,12 @@ fn bench_readiness_vcf_pca_ready_reports_complete_active_retained_callers() {
         .get("smoke_eigenvalues")
         .and_then(serde_json::Value::as_array)
         .is_some_and(|items| items.len() >= 2));
+    assert!(eigensoft.get("expected_metrics").and_then(serde_json::Value::as_array).is_some_and(
+        |items| {
+            items.iter().any(|item| item.as_str() == Some("execution_mode"))
+                && items.iter().any(|item| item.as_str() == Some("tool_ok"))
+        }
+    ));
     assert_eq!(
         eigensoft.get("missing_surfaces").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(0)

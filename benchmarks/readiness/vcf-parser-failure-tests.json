@@ -1,5 +1,5 @@
 {
-  "schema_version": "bijux.bench.readiness.vcf_parser_failure_tests.v1",
+  "schema_version": "bijux.bench.readiness.vcf_parser_failure_audit.v1",
   "output_path": "benchmarks/readiness/vcf-parser-failure-tests.json",
   "row_count": 7,
   "passed_row_count": 7,

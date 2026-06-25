@@ -1,0 +1,62 @@
+schema_version = "bijux.bench.bam_corpus_fixture.v1"
+corpus_id = "corpus-01-vcf-cohort-bam-mini"
+species = "Homo sapiens"
+description = "Tiny BAM cohort fixture with VCF-mini sample identities, aligned read groups, and shared VCF-mini reference for cross-domain sample consistency checks."
+reference_id = "vcf-mini-reference"
+reference_fasta = "../vcf-mini/reference/vcf_mini_reference.fasta"
+
+[[samples]]
+sample_id = "sample_a"
+cohort = "vcf_cohort"
+alignment_path = "aligned/sample_a.sam"
+index_path = "aligned/sample_a.sam.bai"
+expected_contigs = ["chr1", "chr2"]
+expected_header_sample_ids = ["sample_a"]
+expected_read_group_ids = ["rg-sample-a"]
+expected_record_count = 1
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/aligned/sample_a.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_a.fastq",
+]
+
+[[samples]]
+sample_id = "sample_b"
+cohort = "vcf_cohort"
+alignment_path = "aligned/sample_b.sam"
+index_path = "aligned/sample_b.sam.bai"
+expected_contigs = ["chr1", "chr2"]
+expected_header_sample_ids = ["sample_b"]
+expected_read_group_ids = ["rg-sample-b"]
+expected_record_count = 1
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/aligned/sample_b.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_b.fastq",
+]
+
+[[samples]]
+sample_id = "sample_c"
+cohort = "vcf_cohort"
+alignment_path = "aligned/sample_c.sam"
+index_path = "aligned/sample_c.sam.bai"
+expected_contigs = ["chr1", "chr2"]
+expected_header_sample_ids = ["sample_c"]
+expected_read_group_ids = ["rg-sample-c"]
+expected_record_count = 1
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/aligned/sample_c.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_c.fastq",
+]
+
+[[samples]]
+sample_id = "sample_d"
+cohort = "vcf_cohort"
+alignment_path = "aligned/sample_d.sam"
+index_path = "aligned/sample_d.sam.bai"
+expected_contigs = ["chr1", "chr2"]
+expected_header_sample_ids = ["sample_d"]
+expected_read_group_ids = ["rg-sample-d"]
+expected_record_count = 1
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-bam-mini/aligned/sample_d.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-vcf-cohort-fastq-mini/source/sample_d.fastq",
+]

@@ -279,7 +279,7 @@ fn copy_fastq_artifact(source: &Path, destination: &Path) -> Result<()> {
 
     let input = std::fs::File::open(source)
         .with_context(|| format!("open local merge smoke artifact {}", source.display()))?;
-    let output = std::fs::File::create(destination)
+    let output = bijux_dna_infra::create_file(destination)
         .with_context(|| format!("create local merge smoke artifact {}", destination.display()))?;
 
     if destination_is_gz {

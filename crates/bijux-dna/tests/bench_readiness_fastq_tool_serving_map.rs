@@ -496,22 +496,30 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
             "FASTQ readiness map must retain the governed filter-low-complexity row for {tool_id}"
         );
     }
-    for tool_id in ["dustmasker", "fastp"] {
+    assert!(
+        !rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("dustmasker")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.filter_low_complexity")
+        }),
+        "FASTQ readiness map must not retain the retired dustmasker low-complexity placeholder row"
+    );
+    for tool_id in ["bbduk", "fastp", "prinseq"] {
         assert!(
             rows.iter().any(|row| {
                 row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
                     && row.get("stage_id").and_then(serde_json::Value::as_str)
                         == Some("fastq.filter_low_complexity")
                     && row.get("support_status").and_then(serde_json::Value::as_str)
-                        == Some("planned_contract")
+                        == Some("governed_benchmark_cohort")
                     && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                        == Some("declared_only")
+                        == Some("runnable")
                     && row.get("parser_status").and_then(serde_json::Value::as_str)
-                        == Some("not_normalized")
+                        == Some("benchmark_normalized")
                     && row.get("corpus_status").and_then(serde_json::Value::as_str)
                         == Some("fixture:corpus-01-mini")
             }),
-            "FASTQ readiness map must retain the planned filter-low-complexity row for {tool_id}"
+            "FASTQ readiness map must retain the governed filter-low-complexity row for {tool_id}"
         );
     }
     for tool_id in ["bbduk", "fastp"] {
@@ -569,18 +577,12 @@ fn bench_readiness_fastq_tool_serving_map_reports_governed_fastq_stage_rows() {
         );
     }
     assert!(
-        rows.iter().any(|row| {
+        !rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqpurge")
                 && row.get("stage_id").and_then(serde_json::Value::as_str)
                     == Some("fastq.trim_reads")
-                && row.get("support_status").and_then(serde_json::Value::as_str)
-                    == Some("planned_contract")
-                && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                    == Some("declared_only")
-                && row.get("parser_status").and_then(serde_json::Value::as_str)
-                    == Some("not_normalized")
         }),
-        "FASTQ readiness map must retain the planned seqpurge trim-reads row"
+        "FASTQ readiness map must not retain the retired seqpurge trim placeholder row"
     );
     assert!(
         !rows.iter().any(|row| {

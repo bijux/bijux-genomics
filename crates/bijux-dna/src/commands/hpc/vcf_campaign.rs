@@ -1202,7 +1202,7 @@ mod tests {
     }
 
     #[test]
-    fn vcf_catalog_includes_iteration_12_and_13_goals() {
+    fn vcf_catalog_covers_declared_id_span() {
         assert_eq!(VCF_GOALS_CATALOG.len(), 20);
         assert_eq!(VCF_GOALS_CATALOG[0].goal_id, "G141");
         assert_eq!(VCF_GOALS_CATALOG[9].goal_id, "G150");
@@ -1305,7 +1305,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_141_emits_validation_checks() {
+    fn emits_validation_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G141".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1331,7 +1331,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_142_emits_stats_checks() {
+    fn emits_stats_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G142".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1357,7 +1357,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_143_emits_filtering_checks() {
+    fn emits_filtering_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G143".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -1373,7 +1373,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_144_emits_normalization_checks() {
+    fn emits_normalization_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G144".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1399,7 +1399,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_145_emits_reference_context_checks() {
+    fn emits_reference_context_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G145".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1425,7 +1425,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_146_emits_damage_aware_filtering_checks() {
+    fn emits_damage_aware_filtering_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G146".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1451,7 +1451,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_147_emits_diploid_boundary_checks() {
+    fn emits_diploid_boundary_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G147".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1477,7 +1477,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_148_emits_pseudohaploid_checks() {
+    fn emits_pseudohaploid_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G148".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1503,7 +1503,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_149_emits_gl_workflow_checks() {
+    fn emits_gl_workflow_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G149".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1526,7 +1526,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_150_emits_phasing_workflow_checks() {
+    fn emits_phasing_workflow_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G150".to_string()];
         let queue = vec![HardeningQueueEntry {
@@ -1550,7 +1550,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_151_emits_imputation_workflow_checks() {
+    fn emits_imputation_workflow_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G151".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -1566,7 +1566,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_152_emits_cohort_qc_checks() {
+    fn emits_cohort_qc_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G152".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -1582,7 +1582,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_153_emits_population_guardrail_checks() {
+    fn emits_population_guardrail_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G153".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -1598,7 +1598,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_154_emits_roh_ibd_boundary_checks() {
+    fn emits_roh_ibd_boundary_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G154".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -1614,7 +1614,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_155_emits_demography_boundary_checks() {
+    fn emits_demography_boundary_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G155".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1640,7 +1640,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_156_emits_annotation_provenance_checks() {
+    fn emits_annotation_provenance_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G156".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1666,7 +1666,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_157_emits_structural_variant_boundary_checks() {
+    fn emits_structural_variant_boundary_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G157".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
@@ -1682,7 +1682,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_158_emits_population_handoff_checks() {
+    fn emits_population_handoff_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G158".to_string()];
         let queue = vec![HardeningQueueEntry {
@@ -1706,7 +1706,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_159_emits_large_file_behavior_checks() {
+    fn emits_large_file_behavior_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G159".to_string()];
         let findings = vec![AppraisalFinding {
@@ -1732,7 +1732,7 @@ mod tests {
     }
 
     #[test]
-    fn goal_160_emits_full_template_checks() {
+    fn emits_full_template_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G160".to_string()];
         let queue = vec![HardeningQueueEntry {

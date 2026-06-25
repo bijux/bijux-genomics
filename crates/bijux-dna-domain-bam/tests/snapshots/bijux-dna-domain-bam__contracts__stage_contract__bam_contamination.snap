@@ -9,6 +9,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "name": "contamination_report"
     },
     {
+      "filename": "contamination.estimate.json",
+      "name": "contamination_estimate"
+    },
+    {
       "filename": "contamination.summary.json",
       "name": "summary"
     },
@@ -35,6 +39,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "outputs": [
     "contamination_report",
+    "contamination_estimate",
     "summary",
     "stage_metrics"
   ],

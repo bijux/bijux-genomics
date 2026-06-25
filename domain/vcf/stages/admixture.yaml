@@ -1,6 +1,6 @@
 schema_version: "bijux.stage.v1"
 stage_id: "vcf.admixture"
-status: "planned"
+status: "supported"
 scope: "post_vcf"
 domain: "vcf"
 description: "VCF stage contract for vcf.admixture in the governed domain registry."
@@ -20,6 +20,14 @@ metrics:
   - name: "sample_count"
   - name: "population_count"
   - name: "status"
+  - name: "cluster_headers"
+  - name: "maf_summary"
+  - name: "rows"
+  - name: "variant_count"
+  - name: "sample_missingness"
+  - name: "variant_missingness"
+  - name: "execution_mode"
+  - name: "tool_ok"
 compatible_tools: ["plink", "plink2"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:

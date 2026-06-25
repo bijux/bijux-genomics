@@ -1,0 +1,563 @@
+domain	stage_id	metric_id	meaning	contract_kind	stage_contract_surface	domain_registry_surface
+bam	bam.align	alignment_rate	Mapped fraction derived from governed alignment summaries	yaml_stage_metrics	domain/bam/stages/align.yaml	domain/bam/metrics.yaml
+bam	bam.align	mapped_reads	Mapped-read count derived from governed alignment summaries	yaml_stage_metrics	domain/bam/stages/align.yaml	domain/bam/metrics.yaml
+bam	bam.authenticity	confidence	Confidence assigned to the governed BAM authenticity evidence score	yaml_stage_metrics	domain/bam/stages/authenticity.yaml	domain/bam/metrics.yaml
+bam	bam.authenticity	consumed_metric_ids	Upstream evidence inputs consumed by the governed BAM authenticity stage metrics contract	yaml_stage_metrics	domain/bam/stages/authenticity.yaml	domain/bam/metrics.yaml
+bam	bam.authenticity	missing_metric_ids	Expected authenticity evidence inputs that remained unavailable for the governed BAM authenticity benchmark row	yaml_stage_metrics	domain/bam/stages/authenticity.yaml	domain/bam/metrics.yaml
+bam	bam.authenticity	pmd_like_signal_present	PMD-like authenticity signal retained in the governed BAM authenticity comparison surface	yaml_stage_metrics	domain/bam/stages/authenticity.yaml	domain/bam/metrics.yaml
+bam	bam.authenticity	score	Governed authenticity evidence score preserved across admitted BAM authenticity tools	yaml_stage_metrics	domain/bam/stages/authenticity.yaml	domain/bam/metrics.yaml
+bam	bam.bias_mitigation	memory_mb	Peak memory usage in MB	yaml_stage_metrics	domain/bam/stages/bias_mitigation.yaml	domain/bam/metrics.yaml
+bam	bam.bias_mitigation	runtime_s	Wall-clock runtime in seconds	yaml_stage_metrics	domain/bam/stages/bias_mitigation.yaml	domain/bam/metrics.yaml
+bam	bam.complexity	estimated_library_size	Projected unique-read yield preserved as the governed BAM complexity benchmark estimate when extrapolation is supported	yaml_stage_metrics	domain/bam/stages/complexity.yaml	domain/bam/metrics.yaml
+bam	bam.complexity	saturation_estimate	Observed library saturation estimate preserved in the governed BAM complexity benchmark row when extrapolation is supported	yaml_stage_metrics	domain/bam/stages/complexity.yaml	domain/bam/metrics.yaml
+bam	bam.contamination	ci_high	Upper confidence interval bound preserved for the governed BAM contamination estimate	yaml_stage_metrics	domain/bam/stages/contamination.yaml	domain/bam/metrics.yaml
+bam	bam.contamination	ci_low	Lower confidence interval bound preserved for the governed BAM contamination estimate	yaml_stage_metrics	domain/bam/stages/contamination.yaml	domain/bam/metrics.yaml
+bam	bam.contamination	estimate	Contamination estimate preserved across admitted BAM contamination tools when prerequisites pass	yaml_stage_metrics	domain/bam/stages/contamination.yaml	domain/bam/metrics.yaml
+bam	bam.contamination	prerequisites_passed	Whether the admitted BAM contamination tool satisfied the governed prerequisite checks	yaml_stage_metrics	domain/bam/stages/contamination.yaml	domain/bam/metrics.yaml
+bam	bam.contamination	scope	Contamination scope preserved for the governed BAM contamination benchmark row	yaml_stage_metrics	domain/bam/stages/contamination.yaml	domain/bam/metrics.yaml
+bam	bam.coverage	breadth_1x	Fraction of governed target positions with at least one aligned base	yaml_stage_metrics	domain/bam/stages/coverage.yaml	domain/bam/metrics.yaml
+bam	bam.coverage	covered_bases	Count of governed target positions with at least one aligned base	yaml_stage_metrics	domain/bam/stages/coverage.yaml	domain/bam/metrics.yaml
+bam	bam.coverage	mean_depth	Mean observed depth across the governed target space	yaml_stage_metrics	domain/bam/stages/coverage.yaml	domain/bam/metrics.yaml
+bam	bam.coverage	observed_region_count	Count of governed target regions materialized in the BAM coverage comparison output	yaml_stage_metrics	domain/bam/stages/coverage.yaml	domain/bam/metrics.yaml
+bam	bam.coverage	region_ids	Governed ordered region identifiers preserved in the BAM coverage comparison output	yaml_stage_metrics	domain/bam/stages/coverage.yaml	domain/bam/metrics.yaml
+bam	bam.damage	damage_signal	Governed categorical damage signal preserved in the BAM damage benchmark row	yaml_stage_metrics	domain/bam/stages/damage.yaml	domain/bam/metrics.yaml
+bam	bam.damage	memory_mb	Peak memory usage in MB	yaml_stage_metrics	domain/bam/stages/damage.yaml	domain/bam/metrics.yaml
+bam	bam.damage	runtime_s	Wall-clock runtime in seconds	yaml_stage_metrics	domain/bam/stages/damage.yaml	domain/bam/metrics.yaml
+bam	bam.damage	terminal_c_to_t_5p	Observed 5' terminal C-to-T damage rate preserved in the governed BAM damage benchmark row	yaml_stage_metrics	domain/bam/stages/damage.yaml	domain/bam/metrics.yaml
+bam	bam.damage	terminal_g_to_a_3p	Observed 3' terminal G-to-A damage rate preserved in the governed BAM damage benchmark row	yaml_stage_metrics	domain/bam/stages/damage.yaml	domain/bam/metrics.yaml
+bam	bam.duplication_metrics	duplicate_count	Observed duplicate-read count preserved in the governed BAM duplication-metrics benchmark row	yaml_stage_metrics	domain/bam/stages/duplication_metrics.yaml	domain/bam/metrics.yaml
+bam	bam.duplication_metrics	duplicate_fraction	Observed duplicate-read fraction preserved in the governed BAM duplication-metrics benchmark row	yaml_stage_metrics	domain/bam/stages/duplication_metrics.yaml	domain/bam/metrics.yaml
+bam	bam.duplication_metrics	estimated_library_size	Estimated library size preserved in the governed BAM duplication-metrics benchmark row when the admitted tool can derive one	yaml_stage_metrics	domain/bam/stages/duplication_metrics.yaml	domain/bam/metrics.yaml
+bam	bam.endogenous_content	endogenous_fraction	Estimated endogenous fraction preserved in the governed BAM endogenous-content benchmark row	yaml_stage_metrics	domain/bam/stages/endogenous_content.yaml	domain/bam/metrics.yaml
+bam	bam.endogenous_content	endogenous_reads	Estimated endogenous read count preserved in the governed BAM endogenous-content benchmark row	yaml_stage_metrics	domain/bam/stages/endogenous_content.yaml	domain/bam/metrics.yaml
+bam	bam.endogenous_content	mapped_reads	Observed mapped read count preserved in the governed BAM endogenous-content benchmark row	yaml_stage_metrics	domain/bam/stages/endogenous_content.yaml	domain/bam/metrics.yaml
+bam	bam.endogenous_content	memory_mb	Peak memory usage in MB	yaml_stage_metrics	domain/bam/stages/endogenous_content.yaml	domain/bam/metrics.yaml
+bam	bam.endogenous_content	runtime_s	Wall-clock runtime in seconds	yaml_stage_metrics	domain/bam/stages/endogenous_content.yaml	domain/bam/metrics.yaml
+bam	bam.endogenous_content	total_reads	Observed total read count preserved in the governed BAM endogenous-content benchmark row	yaml_stage_metrics	domain/bam/stages/endogenous_content.yaml	domain/bam/metrics.yaml
+bam	bam.filter	active_filters	Named filter clauses that define the governed BAM filter benchmark row	yaml_stage_metrics	domain/bam/stages/filter.yaml	domain/bam/metrics.yaml
+bam	bam.filter	input_reads	Input read count preserved in the governed BAM filter benchmark row	yaml_stage_metrics	domain/bam/stages/filter.yaml	domain/bam/metrics.yaml
+bam	bam.filter	kept_reads	Read count retained after the governed BAM filter policy is applied	yaml_stage_metrics	domain/bam/stages/filter.yaml	domain/bam/metrics.yaml
+bam	bam.filter	removed_reads	Read count removed by the governed BAM filter policy	yaml_stage_metrics	domain/bam/stages/filter.yaml	domain/bam/metrics.yaml
+bam	bam.gc_bias	at_dropout	Observed AT-dropout percentage preserved in the governed BAM GC-bias benchmark row	yaml_stage_metrics	domain/bam/stages/gc_bias.yaml	domain/bam/metrics.yaml
+bam	bam.gc_bias	gc_bias_score	Observed GC-bias score preserved in the governed BAM GC-bias benchmark row	yaml_stage_metrics	domain/bam/stages/gc_bias.yaml	domain/bam/metrics.yaml
+bam	bam.gc_bias	gc_dropout	Observed GC-dropout percentage preserved in the governed BAM GC-bias benchmark row	yaml_stage_metrics	domain/bam/stages/gc_bias.yaml	domain/bam/metrics.yaml
+bam	bam.gc_bias	memory_mb	Peak memory usage in MB	yaml_stage_metrics	domain/bam/stages/gc_bias.yaml	domain/bam/metrics.yaml
+bam	bam.gc_bias	runtime_s	Wall-clock runtime in seconds	yaml_stage_metrics	domain/bam/stages/gc_bias.yaml	domain/bam/metrics.yaml
+bam	bam.genotyping	memory_mb	Peak memory usage in MB	yaml_stage_metrics	domain/bam/stages/genotyping.yaml	domain/bam/metrics.yaml
+bam	bam.genotyping	runtime_s	Wall-clock runtime in seconds	yaml_stage_metrics	domain/bam/stages/genotyping.yaml	domain/bam/metrics.yaml
+bam	bam.haplogroups	memory_mb	Peak memory usage in MB	yaml_stage_metrics	domain/bam/stages/haplogroups.yaml	domain/bam/metrics.yaml
+bam	bam.haplogroups	runtime_s	Wall-clock runtime in seconds	yaml_stage_metrics	domain/bam/stages/haplogroups.yaml	domain/bam/metrics.yaml
+bam	bam.insert_size	mean_insert_size	Mean observed insert size preserved in the governed BAM insert-size benchmark row	yaml_stage_metrics	domain/bam/stages/insert_size.yaml	domain/bam/metrics.yaml
+bam	bam.insert_size	median_insert_size	Median observed insert size preserved in the governed BAM insert-size benchmark row	yaml_stage_metrics	domain/bam/stages/insert_size.yaml	domain/bam/metrics.yaml
+bam	bam.insert_size	memory_mb	Peak memory usage in MB	yaml_stage_metrics	domain/bam/stages/insert_size.yaml	domain/bam/metrics.yaml
+bam	bam.insert_size	read_pairs	Observed proper-pair count preserved in the governed BAM insert-size benchmark row	yaml_stage_metrics	domain/bam/stages/insert_size.yaml	domain/bam/metrics.yaml
+bam	bam.insert_size	runtime_s	Wall-clock runtime in seconds	yaml_stage_metrics	domain/bam/stages/insert_size.yaml	domain/bam/metrics.yaml
+bam	bam.insert_size	standard_deviation	Observed insert-size standard deviation preserved in the governed BAM insert-size benchmark row	yaml_stage_metrics	domain/bam/stages/insert_size.yaml	domain/bam/metrics.yaml
+bam	bam.kinship	observed_max_overlap_snps	Maximum observed SNP overlap preserved in the governed BAM kinship comparison surface	yaml_stage_metrics	domain/bam/stages/kinship.yaml	domain/bam/metrics.yaml
+bam	bam.kinship	pair_count	Count of pairwise kinship results emitted by the governed BAM kinship benchmark row	yaml_stage_metrics	domain/bam/stages/kinship.yaml	domain/bam/metrics.yaml
+bam	bam.kinship	pairwise_results	Governed pairwise kinship results carrying comparable relationship labels and concordance outputs	yaml_stage_metrics	domain/bam/stages/kinship.yaml	domain/bam/metrics.yaml
+bam	bam.kinship	status	Governed kinship result status preserved across admitted BAM kinship tools	yaml_stage_metrics	domain/bam/stages/kinship.yaml	domain/bam/metrics.yaml
+bam	bam.length_filter	filtered_bam	Filtered BAM artifact emitted for the governed BAM length-filter benchmark row	yaml_stage_metrics	domain/bam/stages/length_filter.yaml	domain/bam/metrics.yaml
+bam	bam.length_filter	kept_reads	Read count retained after applying the governed BAM length threshold	yaml_stage_metrics	domain/bam/stages/length_filter.yaml	domain/bam/metrics.yaml
+bam	bam.length_filter	min_length_threshold	Minimum retained read length preserved in the governed BAM length-filter benchmark row	yaml_stage_metrics	domain/bam/stages/length_filter.yaml	domain/bam/metrics.yaml
+bam	bam.length_filter	removed_reads	Read count removed by the governed BAM length threshold	yaml_stage_metrics	domain/bam/stages/length_filter.yaml	domain/bam/metrics.yaml
+bam	bam.mapping_summary	mapped_reads	Mapped reads reported by the governed BAM mapping summary row	yaml_stage_metrics	domain/bam/stages/mapping_summary.yaml	domain/bam/metrics.yaml
+bam	bam.mapping_summary	mapping_fraction	Fraction of reads reported as mapped for the governed BAM input	yaml_stage_metrics	domain/bam/stages/mapping_summary.yaml	domain/bam/metrics.yaml
+bam	bam.mapping_summary	secondary_reads	Secondary alignment count preserved in the governed BAM mapping summary row	yaml_stage_metrics	domain/bam/stages/mapping_summary.yaml	domain/bam/metrics.yaml
+bam	bam.mapping_summary	supplementary_reads	Supplementary alignment count preserved in the governed BAM mapping summary row	yaml_stage_metrics	domain/bam/stages/mapping_summary.yaml	domain/bam/metrics.yaml
+bam	bam.mapping_summary	unmapped_reads	Unmapped reads preserved in the governed BAM mapping summary row	yaml_stage_metrics	domain/bam/stages/mapping_summary.yaml	domain/bam/metrics.yaml
+bam	bam.mapq_filter	filtered_bam	Filtered BAM artifact emitted for the governed BAM MAPQ-filter benchmark row	yaml_stage_metrics	domain/bam/stages/mapq_filter.yaml	domain/bam/metrics.yaml
+bam	bam.mapq_filter	kept_reads	Read count retained after applying the governed BAM MAPQ threshold	yaml_stage_metrics	domain/bam/stages/mapq_filter.yaml	domain/bam/metrics.yaml
+bam	bam.mapq_filter	mapq_threshold	Mapping-quality threshold preserved in the governed BAM MAPQ-filter benchmark row	yaml_stage_metrics	domain/bam/stages/mapq_filter.yaml	domain/bam/metrics.yaml
+bam	bam.mapq_filter	removed_reads	Read count removed by the governed BAM MAPQ threshold	yaml_stage_metrics	domain/bam/stages/mapq_filter.yaml	domain/bam/metrics.yaml
+bam	bam.markdup	duplicate_count	Duplicate-read count preserved in the governed BAM markdup benchmark row	yaml_stage_metrics	domain/bam/stages/markdup.yaml	domain/bam/metrics.yaml
+bam	bam.markdup	duplicate_fraction	Duplicate-read fraction preserved in the governed BAM markdup benchmark row	yaml_stage_metrics	domain/bam/stages/markdup.yaml	domain/bam/metrics.yaml
+bam	bam.markdup	duplicate_metrics	Governed duplicate-marking summary artifact that carries comparable duplicate burden outputs	yaml_stage_metrics	domain/bam/stages/markdup.yaml	domain/bam/metrics.yaml
+bam	bam.markdup	marked_bam	Duplicate-marked BAM artifact emitted for the governed BAM markdup benchmark row	yaml_stage_metrics	domain/bam/stages/markdup.yaml	domain/bam/metrics.yaml
+bam	bam.overlap_correction	corrected_bam	Corrected BAM artifact preserved in the governed BAM overlap-correction benchmark row	yaml_stage_metrics	domain/bam/stages/overlap_correction.yaml	domain/bam/metrics.yaml
+bam	bam.overlap_correction	corrected_overlap_bases	Observed corrected overlap-base count preserved in the governed BAM overlap-correction benchmark row	yaml_stage_metrics	domain/bam/stages/overlap_correction.yaml	domain/bam/metrics.yaml
+bam	bam.overlap_correction	corrected_pairs	Observed corrected read-pair count preserved in the governed BAM overlap-correction benchmark row	yaml_stage_metrics	domain/bam/stages/overlap_correction.yaml	domain/bam/metrics.yaml
+bam	bam.overlap_correction	memory_mb	Peak memory usage in MB	yaml_stage_metrics	domain/bam/stages/overlap_correction.yaml	domain/bam/metrics.yaml
+bam	bam.overlap_correction	runtime_s	Wall-clock runtime in seconds	yaml_stage_metrics	domain/bam/stages/overlap_correction.yaml	domain/bam/metrics.yaml
+bam	bam.qc_pre	contig_summary	Per-contig idxstats summary with mapped and unmapped read counts	yaml_stage_metrics	domain/bam/stages/qc_pre.yaml	domain/bam/metrics.yaml
+bam	bam.qc_pre	duplicate_flagged_reads	Reads carrying the duplicate flag in the governed flagstat summary	yaml_stage_metrics	domain/bam/stages/qc_pre.yaml	domain/bam/metrics.yaml
+bam	bam.qc_pre	mapped_reads	Reads reported as mapped in the governed flagstat summary	yaml_stage_metrics	domain/bam/stages/qc_pre.yaml	domain/bam/metrics.yaml
+bam	bam.qc_pre	total_reads	Total reads observed in the input BAM	yaml_stage_metrics	domain/bam/stages/qc_pre.yaml	domain/bam/metrics.yaml
+bam	bam.qc_pre	unmapped_reads	Reads reported as unmapped in the governed flagstat summary	yaml_stage_metrics	domain/bam/stages/qc_pre.yaml	domain/bam/metrics.yaml
+bam	bam.recalibration	memory_mb	Peak memory usage in MB	yaml_stage_metrics	domain/bam/stages/recalibration.yaml	domain/bam/metrics.yaml
+bam	bam.recalibration	runtime_s	Wall-clock runtime in seconds	yaml_stage_metrics	domain/bam/stages/recalibration.yaml	domain/bam/metrics.yaml
+bam	bam.sex	autosomal_coverage	Observed autosomal coverage preserved in the governed BAM sex-inference comparison surface	yaml_stage_metrics	domain/bam/stages/sex.yaml	domain/bam/metrics.yaml
+bam	bam.sex	call	Governed sex-inference call preserved across admitted BAM sex-inference tools	yaml_stage_metrics	domain/bam/stages/sex.yaml	domain/bam/metrics.yaml
+bam	bam.sex	confidence	Confidence assigned to the governed BAM sex-inference call	yaml_stage_metrics	domain/bam/stages/sex.yaml	domain/bam/metrics.yaml
+bam	bam.sex	status	Governed BAM sex-inference status preserved when admitted tools cannot emit a final call	yaml_stage_metrics	domain/bam/stages/sex.yaml	domain/bam/metrics.yaml
+bam	bam.sex	x_coverage	Observed X-chromosome coverage preserved in the governed BAM sex-inference comparison surface	yaml_stage_metrics	domain/bam/stages/sex.yaml	domain/bam/metrics.yaml
+bam	bam.sex	y_coverage	Observed Y-chromosome coverage preserved in the governed BAM sex-inference comparison surface	yaml_stage_metrics	domain/bam/stages/sex.yaml	domain/bam/metrics.yaml
+bam	bam.validate	input_bam_identity	Governed input BAM identity payload preserved for cross-tool validation comparison	yaml_stage_metrics	domain/bam/stages/validate.yaml	domain/bam/metrics.yaml
+bam	bam.validate	validation_errors	Deterministic refusal codes emitted when validation fails	yaml_stage_metrics	domain/bam/stages/validate.yaml	domain/bam/metrics.yaml
+bam	bam.validate	validation_status	Governed validation outcome for the input BAM	yaml_stage_metrics	domain/bam/stages/validate.yaml	domain/bam/metrics.yaml
+bam	bam.validate	validation_warnings	Non-fatal validation findings reserved for future warning-grade checks	yaml_stage_metrics	domain/bam/stages/validate.yaml	domain/bam/metrics.yaml
+fastq	fastq.build_contaminant_db	source_sequence_count	Number of contaminant source sequences admitted to the governed database build.	yaml_stage_metrics	domain/fastq/stages/build_contaminant_db.yaml	domain/fastq/metrics.yaml
+fastq	fastq.build_rrna_db	source_sequence_count	Number of rRNA source sequences admitted to the governed database build.	yaml_stage_metrics	domain/fastq/stages/build_rrna_db.yaml	domain/fastq/metrics.yaml
+fastq	fastq.build_taxonomy_db	source_record_count	Number of source taxonomy records admitted to the governed database build.	yaml_stage_metrics	domain/fastq/stages/build_taxonomy_db.yaml	domain/fastq/metrics.yaml
+fastq	fastq.capture_provenance_snapshot	provenance_entry_count	Number of plan, tool, asset, and input entries captured in the provenance snapshot.	yaml_stage_metrics	domain/fastq/stages/capture_provenance_snapshot.yaml	domain/fastq/metrics.yaml
+fastq	fastq.classify_layout	layout_confidence	Confidence score for inferred single-end, paired-end, interleaved, or merged-read layout.	yaml_stage_metrics	domain/fastq/stages/classify_layout.yaml	domain/fastq/metrics.yaml
+fastq	fastq.cluster_otus	clustering_threshold	Canonical benchmark alias for the governed OTU identity threshold.	yaml_stage_metrics	domain/fastq/stages/cluster_otus.yaml	domain/fastq/metrics.yaml
+fastq	fastq.cluster_otus	memory_mb	Peak memory usage in MB	yaml_stage_metrics	domain/fastq/stages/cluster_otus.yaml	domain/fastq/metrics.yaml
+fastq	fastq.cluster_otus	otu_count	Number of OTU clusters emitted.	yaml_stage_metrics	domain/fastq/stages/cluster_otus.yaml	domain/fastq/metrics.yaml
+fastq	fastq.cluster_otus	reads_in	Number of input reads contributing to OTU clustering.	yaml_stage_metrics	domain/fastq/stages/cluster_otus.yaml	domain/fastq/metrics.yaml
+fastq	fastq.cluster_otus	representative_count	Number of representative OTU sequences emitted.	yaml_stage_metrics	domain/fastq/stages/cluster_otus.yaml	domain/fastq/metrics.yaml
+fastq	fastq.cluster_otus	representative_sequence_count	Canonical benchmark alias for the representative OTU sequence count emitted with the OTU table.	yaml_stage_metrics	domain/fastq/stages/cluster_otus.yaml	domain/fastq/metrics.yaml
+fastq	fastq.cluster_otus	runtime_s	Stage runtime in seconds	yaml_stage_metrics	domain/fastq/stages/cluster_otus.yaml	domain/fastq/metrics.yaml
+fastq	fastq.cluster_otus	sample_count	Number of samples represented in the governed OTU abundance table.	yaml_stage_metrics	domain/fastq/stages/cluster_otus.yaml	domain/fastq/metrics.yaml
+fastq	fastq.concatenate_lanes	lane_count	Number of input lanes concatenated under governed ordering.	yaml_stage_metrics	domain/fastq/stages/concatenate_lanes.yaml	domain/fastq/metrics.yaml
+fastq	fastq.correct_errors	bases_in	Number of input bases	yaml_stage_metrics	domain/fastq/stages/correct_errors.yaml	domain/fastq/metrics.yaml
+fastq	fastq.correct_errors	bases_out	Number of corrected bases	yaml_stage_metrics	domain/fastq/stages/correct_errors.yaml	domain/fastq/metrics.yaml
+fastq	fastq.correct_errors	changed_reads	Number of reads whose sequence or quality changed during correction	yaml_stage_metrics	domain/fastq/stages/correct_errors.yaml	domain/fastq/metrics.yaml
+fastq	fastq.correct_errors	corrected_reads	Number of reads emitted through the corrected FASTQ outputs	yaml_stage_metrics	domain/fastq/stages/correct_errors.yaml	domain/fastq/metrics.yaml
+fastq	fastq.correct_errors	kmer_fix_rate	Rate of k-mer fixes applied	yaml_stage_metrics	domain/fastq/stages/correct_errors.yaml	domain/fastq/metrics.yaml
+fastq	fastq.correct_errors	mean_q_after	Mean base quality after correction	yaml_stage_metrics	domain/fastq/stages/correct_errors.yaml	domain/fastq/metrics.yaml
+fastq	fastq.correct_errors	mean_q_before	Mean base quality before correction	yaml_stage_metrics	domain/fastq/stages/correct_errors.yaml	domain/fastq/metrics.yaml
+fastq	fastq.correct_errors	pairs_in	Number of input read pairs	yaml_stage_metrics	domain/fastq/stages/correct_errors.yaml	domain/fastq/metrics.yaml
+fastq	fastq.correct_errors	pairs_out	Number of output read pairs	yaml_stage_metrics	domain/fastq/stages/correct_errors.yaml	domain/fastq/metrics.yaml
+fastq	fastq.correct_errors	reads_in	Number of input reads	yaml_stage_metrics	domain/fastq/stages/correct_errors.yaml	domain/fastq/metrics.yaml
+fastq	fastq.correct_errors	reads_out	Number of corrected reads	yaml_stage_metrics	domain/fastq/stages/correct_errors.yaml	domain/fastq/metrics.yaml
+fastq	fastq.correct_errors	unchanged_reads	Number of reads preserved byte-equivalent across correction outputs	yaml_stage_metrics	domain/fastq/stages/correct_errors.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deinterleave_reads	pairs_deinterleaved	Number of paired reads recovered from interleaved FASTQ layout.	yaml_stage_metrics	domain/fastq/stages/deinterleave_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.demultiplex_reads	assigned_reads	Number of reads assigned to governed sample barcodes.	yaml_stage_metrics	domain/fastq/stages/demultiplex_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_host	bases_in	Number of input bases.	yaml_stage_metrics	domain/fastq/stages/deplete_host.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_host	bases_out	Number of output bases after host depletion.	yaml_stage_metrics	domain/fastq/stages/deplete_host.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_host	depleted_reads	Canonical benchmark alias for reads removed during host depletion.	yaml_stage_metrics	domain/fastq/stages/deplete_host.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_host	depletion_summary	Structured governed depletion summary for host depletion.	yaml_stage_metrics	domain/fastq/stages/deplete_host.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_host	host_fraction_removed	Fraction of input reads removed during host depletion.	yaml_stage_metrics	domain/fastq/stages/deplete_host.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_host	host_hit_rate	Canonical benchmark alias for fraction of input reads classified as host.	yaml_stage_metrics	domain/fastq/stages/deplete_host.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_host	pairs_in	Number of input read pairs.	yaml_stage_metrics	domain/fastq/stages/deplete_host.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_host	pairs_out	Number of output read pairs after host depletion.	yaml_stage_metrics	domain/fastq/stages/deplete_host.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_host	reads_in	Number of input reads.	yaml_stage_metrics	domain/fastq/stages/deplete_host.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_host	reads_out	Number of reads after host depletion.	yaml_stage_metrics	domain/fastq/stages/deplete_host.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_reference_contaminants	bases_in	Number of input bases.	yaml_stage_metrics	domain/fastq/stages/deplete_reference_contaminants.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_reference_contaminants	bases_out	Number of retained bases after contaminant depletion.	yaml_stage_metrics	domain/fastq/stages/deplete_reference_contaminants.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_reference_contaminants	contaminant_fraction_removed	Fraction of reads removed during reference contaminant depletion.	yaml_stage_metrics	domain/fastq/stages/deplete_reference_contaminants.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_reference_contaminants	contaminant_hit_rate	Canonical benchmark alias for fraction of reads removed as reference contaminants.	yaml_stage_metrics	domain/fastq/stages/deplete_reference_contaminants.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_reference_contaminants	contaminant_reads	Canonical benchmark alias for reads removed during contaminant depletion.	yaml_stage_metrics	domain/fastq/stages/deplete_reference_contaminants.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_reference_contaminants	depletion_summary	Structured governed depletion summary for contaminant depletion.	yaml_stage_metrics	domain/fastq/stages/deplete_reference_contaminants.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_reference_contaminants	pairs_in	Number of input read pairs.	yaml_stage_metrics	domain/fastq/stages/deplete_reference_contaminants.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_reference_contaminants	pairs_out	Number of retained read pairs after contaminant depletion.	yaml_stage_metrics	domain/fastq/stages/deplete_reference_contaminants.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_reference_contaminants	reads_in	Number of input reads.	yaml_stage_metrics	domain/fastq/stages/deplete_reference_contaminants.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_reference_contaminants	reads_out	Reads retained after contaminant depletion.	yaml_stage_metrics	domain/fastq/stages/deplete_reference_contaminants.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_rrna	bases_in	Number of input bases	yaml_stage_metrics	domain/fastq/stages/deplete_rrna.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_rrna	bases_out	Number of retained bases after rRNA filtering	yaml_stage_metrics	domain/fastq/stages/deplete_rrna.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_rrna	depletion_rate	Canonical benchmark alias for fraction of reads removed as rRNA	yaml_stage_metrics	domain/fastq/stages/deplete_rrna.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_rrna	depletion_summary	Structured governed depletion summary for rRNA depletion	yaml_stage_metrics	domain/fastq/stages/deplete_rrna.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_rrna	pairs_in	Number of input read pairs	yaml_stage_metrics	domain/fastq/stages/deplete_rrna.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_rrna	pairs_out	Number of retained read pairs after rRNA filtering	yaml_stage_metrics	domain/fastq/stages/deplete_rrna.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_rrna	reads_in	Number of input reads	yaml_stage_metrics	domain/fastq/stages/deplete_rrna.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_rrna	reads_out	Reads retained after rRNA filtering	yaml_stage_metrics	domain/fastq/stages/deplete_rrna.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_rrna	reads_removed	Reads removed as rRNA during depletion	yaml_stage_metrics	domain/fastq/stages/deplete_rrna.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_rrna	removed_reads	Canonical benchmark alias for reads removed as rRNA during depletion	yaml_stage_metrics	domain/fastq/stages/deplete_rrna.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_rrna	retained_reads	Canonical benchmark alias for retained reads after rRNA depletion	yaml_stage_metrics	domain/fastq/stages/deplete_rrna.yaml	domain/fastq/metrics.yaml
+fastq	fastq.deplete_rrna	rrna_fraction_removed	Fraction of input reads removed as rRNA	yaml_stage_metrics	domain/fastq/stages/deplete_rrna.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_adapters	adapter_report	Canonical adapter-inspection report path emitted for governed benchmark collection.	yaml_stage_metrics	domain/fastq/stages/detect_adapters.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_adapters	adapter_trimmed_fraction	Fraction of reads with detectable adapter evidence when the backend can estimate it	yaml_stage_metrics	domain/fastq/stages/detect_adapters.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_adapters	bases_in	Number of input bases inspected for adapter evidence.	yaml_stage_metrics	domain/fastq/stages/detect_adapters.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_adapters	bases_out	Number of bases preserved after governed adapter inspection.	yaml_stage_metrics	domain/fastq/stages/detect_adapters.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_adapters	candidate_adapter_count	Number of governed adapter candidates detected in the evidence report	yaml_stage_metrics	domain/fastq/stages/detect_adapters.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_adapters	detected_adapter_ids	Governed adapter-bank identifiers admitted by adapter inspection after stronger parent motifs suppress nested partial seeds.	yaml_stage_metrics	domain/fastq/stages/detect_adapters.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_adapters	detection_confidence	Highest governed per-adapter support fraction among the admitted adapter identities.	yaml_stage_metrics	domain/fastq/stages/detect_adapters.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_adapters	detection_threshold	Minimum governed support fraction required to admit an adapter identity for this report.	yaml_stage_metrics	domain/fastq/stages/detect_adapters.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_adapters	mean_q	Mean base quality observed across the inspected reads.	yaml_stage_metrics	domain/fastq/stages/detect_adapters.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_adapters	reads_in	Number of input reads inspected for adapter evidence.	yaml_stage_metrics	domain/fastq/stages/detect_adapters.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_adapters	reads_out	Number of reads preserved after governed adapter inspection.	yaml_stage_metrics	domain/fastq/stages/detect_adapters.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_duplicates_premerge	duplicate_count	Number of reads flagged by the report-only premerge duplicate detector.	yaml_stage_metrics	domain/fastq/stages/detect_duplicates_premerge.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_duplicates_premerge	duplicate_detection_policy	Resolved report-only duplicate-detection policy recorded by the governed internal harness.	yaml_stage_metrics	domain/fastq/stages/detect_duplicates_premerge.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_duplicates_premerge	duplicate_fraction	Fraction of input reads flagged by the report-only premerge duplicate detector.	yaml_stage_metrics	domain/fastq/stages/detect_duplicates_premerge.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_duplicates_premerge	inspected_pair_count	Number of read-pair observations inspected when paired-end input is present.	yaml_stage_metrics	domain/fastq/stages/detect_duplicates_premerge.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_duplicates_premerge	measurement_scope	Measurement scope used to interpret premerge duplicate-like sequence signatures.	yaml_stage_metrics	domain/fastq/stages/detect_duplicates_premerge.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_duplicates_premerge	reads_in	Number of input reads inspected by the report-only premerge duplicate detector.	yaml_stage_metrics	domain/fastq/stages/detect_duplicates_premerge.yaml	domain/fastq/metrics.yaml
+fastq	fastq.detect_instrument_artifacts	artifact_signal_count	Number of governed instrument-artifact signals detected in FASTQ quality or sequence patterns.	yaml_stage_metrics	domain/fastq/stages/detect_instrument_artifacts.yaml	domain/fastq/metrics.yaml
+fastq	fastq.estimate_library_complexity_prealign	estimated_complexity	Canonical prealignment complexity estimate exposed for comparison rows when input data is sufficient.	yaml_stage_metrics	domain/fastq/stages/estimate_library_complexity_prealign.yaml	domain/fastq/metrics.yaml
+fastq	fastq.estimate_library_complexity_prealign	estimated_duplicate_fraction	Prealignment estimate of library duplication or redundancy.	yaml_stage_metrics	domain/fastq/stages/estimate_library_complexity_prealign.yaml	domain/fastq/metrics.yaml
+fastq	fastq.estimate_library_complexity_prealign	insufficient_data_reason	Deterministic reason emitted when the governed estimator cannot produce a comparable complexity estimate.	yaml_stage_metrics	domain/fastq/stages/estimate_library_complexity_prealign.yaml	domain/fastq/metrics.yaml
+fastq	fastq.estimate_library_complexity_prealign	reads_in	Number of reads inspected by the governed prealignment library-complexity estimator.	yaml_stage_metrics	domain/fastq/stages/estimate_library_complexity_prealign.yaml	domain/fastq/metrics.yaml
+fastq	fastq.extract_umis	bases_in	Number of input bases	yaml_stage_metrics	domain/fastq/stages/extract_umis.yaml	domain/fastq/metrics.yaml
+fastq	fastq.extract_umis	bases_out	Number of output bases	yaml_stage_metrics	domain/fastq/stages/extract_umis.yaml	domain/fastq/metrics.yaml
+fastq	fastq.extract_umis	extracted_umi_count	Canonical number of reads emitted with extracted UMI tags.	yaml_stage_metrics	domain/fastq/stages/extract_umis.yaml	domain/fastq/metrics.yaml
+fastq	fastq.extract_umis	failed_extractions	Number of reads for which governed UMI extraction did not yield a valid UMI tag.	yaml_stage_metrics	domain/fastq/stages/extract_umis.yaml	domain/fastq/metrics.yaml
+fastq	fastq.extract_umis	invalid_umi_count	Canonical number of reads that remained untagged because UMI extraction failed.	yaml_stage_metrics	domain/fastq/stages/extract_umis.yaml	domain/fastq/metrics.yaml
+fastq	fastq.extract_umis	pairs_in	Number of input read pairs	yaml_stage_metrics	domain/fastq/stages/extract_umis.yaml	domain/fastq/metrics.yaml
+fastq	fastq.extract_umis	pairs_out	Number of output read pairs after UMI extraction	yaml_stage_metrics	domain/fastq/stages/extract_umis.yaml	domain/fastq/metrics.yaml
+fastq	fastq.extract_umis	reads_in	Number of input reads	yaml_stage_metrics	domain/fastq/stages/extract_umis.yaml	domain/fastq/metrics.yaml
+fastq	fastq.extract_umis	reads_out	Number of reads after UMI extraction and tag propagation	yaml_stage_metrics	domain/fastq/stages/extract_umis.yaml	domain/fastq/metrics.yaml
+fastq	fastq.extract_umis	reads_with_umi	Number of reads for which a UMI was extracted and attached.	yaml_stage_metrics	domain/fastq/stages/extract_umis.yaml	domain/fastq/metrics.yaml
+fastq	fastq.extract_umis	tag_header_format	Canonical FASTQ header tag format used to propagate extracted UMIs.	yaml_stage_metrics	domain/fastq/stages/extract_umis.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_low_complexity	bases_in	Number of input bases before low-complexity filtering.	yaml_stage_metrics	domain/fastq/stages/filter_low_complexity.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_low_complexity	bases_out	Number of output bases after low-complexity filtering.	yaml_stage_metrics	domain/fastq/stages/filter_low_complexity.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_low_complexity	delta_metrics	Derived read and base retention deltas for low-complexity filtering.	yaml_stage_metrics	domain/fastq/stages/filter_low_complexity.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_low_complexity	filtered_fastq_r1	Canonical filtered FASTQ output for read one or single-end input.	yaml_stage_metrics	domain/fastq/stages/filter_low_complexity.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_low_complexity	filtered_fastq_r2	Canonical filtered FASTQ output for read two when paired-end input is provided.	yaml_stage_metrics	domain/fastq/stages/filter_low_complexity.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_low_complexity	mean_q_after	Mean base quality after low-complexity filtering.	yaml_stage_metrics	domain/fastq/stages/filter_low_complexity.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_low_complexity	mean_q_before	Mean base quality before low-complexity filtering.	yaml_stage_metrics	domain/fastq/stages/filter_low_complexity.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_low_complexity	reads_in	Number of input reads.	yaml_stage_metrics	domain/fastq/stages/filter_low_complexity.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_low_complexity	reads_out	Number of output reads.	yaml_stage_metrics	domain/fastq/stages/filter_low_complexity.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_low_complexity	reads_removed_low_complexity	Reads removed due to low complexity filters.	yaml_stage_metrics	domain/fastq/stages/filter_low_complexity.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	bases_in	Number of input bases	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	bases_out	Number of output bases	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	delta_metrics	Derived retention and quality deltas	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	mean_q_after	Mean base quality after filtering	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	mean_q_before	Mean base quality before filtering	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	pairs_in	Number of input read pairs	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	pairs_out	Number of output read pairs	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	reads_dropped	Number of reads removed by filtering	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	reads_in	Number of input reads	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	reads_out	Number of output reads	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	reads_removed_by_entropy	Reads removed due to low complexity/entropy	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	reads_removed_by_kmer	Reads removed due to k-mer contaminant filtering	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	reads_removed_by_length	Reads removed due to length thresholds	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	reads_removed_by_n	Reads removed due to N content	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	reads_removed_contaminant_kmer	Reads removed due to contaminant k-mer filtering	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.filter_reads	reads_removed_low_complexity	Reads removed due to low complexity filter	yaml_stage_metrics	domain/fastq/stages/filter_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.index_reference	elapsed_time_s	Canonical benchmark alias for governed index build runtime in seconds.	yaml_stage_metrics	domain/fastq/stages/index_reference.yaml	domain/fastq/metrics.yaml
+fastq	fastq.index_reference	index_bytes	Total bytes written for the reference index	yaml_stage_metrics	domain/fastq/stages/index_reference.yaml	domain/fastq/metrics.yaml
+fastq	fastq.index_reference	index_directory	Canonical benchmark alias for the emitted index directory consumed by downstream reference-guided stages.	yaml_stage_metrics	domain/fastq/stages/index_reference.yaml	domain/fastq/metrics.yaml
+fastq	fastq.index_reference	index_file_count	Number of emitted reference index files	yaml_stage_metrics	domain/fastq/stages/index_reference.yaml	domain/fastq/metrics.yaml
+fastq	fastq.index_reference	index_files	Structured benchmark list of emitted index files and their sizes.	yaml_stage_metrics	domain/fastq/stages/index_reference.yaml	domain/fastq/metrics.yaml
+fastq	fastq.index_reference	index_size_bytes	Canonical benchmark alias for total bytes written for the emitted reference index.	yaml_stage_metrics	domain/fastq/stages/index_reference.yaml	domain/fastq/metrics.yaml
+fastq	fastq.index_reference	reference_bytes	Total bytes in the indexed reference FASTA input	yaml_stage_metrics	domain/fastq/stages/index_reference.yaml	domain/fastq/metrics.yaml
+fastq	fastq.infer_asvs	asv_count	Number of inferred ASVs	yaml_stage_metrics	domain/fastq/stages/infer_asvs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.infer_asvs	representative_sequence_count	Number of representative sequences emitted alongside the ASV abundance table.	yaml_stage_metrics	domain/fastq/stages/infer_asvs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.infer_asvs	sample_count	Number of samples represented in the ASV table	yaml_stage_metrics	domain/fastq/stages/infer_asvs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.interleave_reads	pairs_interleaved	Number of paired reads written to interleaved FASTQ layout.	yaml_stage_metrics	domain/fastq/stages/interleave_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.materialize_qc_manifest	report_count	Number of FASTQ QC reports represented in the governed manifest.	yaml_stage_metrics	domain/fastq/stages/materialize_qc_manifest.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	bases_in	Number of input bases observed across both mates before merging	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	bases_out	Number of output bases emitted after merge and unmerged handling	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	discarded_pair_count	Canonical number of input read pairs discarded after merge handling	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	input_pair_count	Canonical number of input read pairs eligible for merging	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	merge_rate	Fraction of input pairs that merged	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	merged_pair_count	Canonical number of merged read pairs emitted by the benchmark row	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	pairs_in	Number of input read pairs eligible for merging	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	pairs_out	Number of output read pairs represented after merge processing	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	reads_in	Number of input reads observed across both mates before merging	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	reads_merged	Number of successfully merged pairs	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	reads_out	Number of reads emitted after merge and unmerged handling	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	reads_r1	Number of forward reads	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	reads_r2	Number of reverse reads	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	reads_unmerged	Number of pairs left unmerged	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.merge_pairs	unmerged_pair_count	Canonical number of unmerged read pairs retained by the benchmark row	yaml_stage_metrics	domain/fastq/stages/merge_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_abundance	feature_count	Number of distinct features represented in the normalized abundance table.	yaml_stage_metrics	domain/fastq/stages/normalize_abundance.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_abundance	normalization_method	Canonical benchmark alias for the governed abundance-normalization method.	yaml_stage_metrics	domain/fastq/stages/normalize_abundance.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_abundance	numeric_output_valid	Whether every governed sample total matches the expected compositional target for the selected normalization method.	yaml_stage_metrics	domain/fastq/stages/normalize_abundance.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_abundance	sample_count	Number of samples in the normalized abundance table	yaml_stage_metrics	domain/fastq/stages/normalize_abundance.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_abundance	sample_totals	Per-sample normalized abundance totals used to validate the compositional output contract.	yaml_stage_metrics	domain/fastq/stages/normalize_abundance.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_abundance	table_rows	Number of rows in the normalized abundance table	yaml_stage_metrics	domain/fastq/stages/normalize_abundance.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_abundance	zero_fraction	Fraction of normalized cells equal to zero	yaml_stage_metrics	domain/fastq/stages/normalize_abundance.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_primers	matched_primers	Number of reads whose configured primer sequence was matched and trimmed during normalization.	yaml_stage_metrics	domain/fastq/stages/normalize_primers.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_primers	orientation_forward_fraction	Fraction of reads normalized to forward orientation	yaml_stage_metrics	domain/fastq/stages/normalize_primers.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_primers	primer_trimmed_fraction	Fraction of reads that required primer trimming	yaml_stage_metrics	domain/fastq/stages/normalize_primers.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_primers	reads_in	Number of input reads presented for primer normalization.	yaml_stage_metrics	domain/fastq/stages/normalize_primers.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_primers	reads_out	Number of reads emitted after primer normalization.	yaml_stage_metrics	domain/fastq/stages/normalize_primers.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_primers	trimmed_primer_bases	Number of primer-derived bases removed while normalizing read orientation and primer boundaries.	yaml_stage_metrics	domain/fastq/stages/normalize_primers.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_primers	unmatched_reads	Number of input reads that did not match the governed primer set during normalization.	yaml_stage_metrics	domain/fastq/stages/normalize_primers.yaml	domain/fastq/metrics.yaml
+fastq	fastq.normalize_read_names	renamed_reads	Number of read headers modified by governed normalization.	yaml_stage_metrics	domain/fastq/stages/normalize_read_names.yaml	domain/fastq/metrics.yaml
+fastq	fastq.prepare_adapter_bank	adapter_count	Number of adapter records admitted to the governed bank.	yaml_stage_metrics	domain/fastq/stages/prepare_adapter_bank.yaml	domain/fastq/metrics.yaml
+fastq	fastq.prepare_host_reference_bundle	bundle_file_count	Number of governed files emitted for the host reference bundle.	yaml_stage_metrics	domain/fastq/stages/prepare_host_reference_bundle.yaml	domain/fastq/metrics.yaml
+fastq	fastq.prepare_primer_bank	primer_count	Number of primer records admitted to the governed bank.	yaml_stage_metrics	domain/fastq/stages/prepare_primer_bank.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_overrepresented_sequences	flagged_sequences	Number of overrepresented sequences that crossed the governed reporting threshold.	yaml_stage_metrics	domain/fastq/stages/profile_overrepresented_sequences.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_overrepresented_sequences	sequence_count	Number of profiled overrepresented sequences	yaml_stage_metrics	domain/fastq/stages/profile_overrepresented_sequences.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_overrepresented_sequences	top_fraction	Fraction carried by the dominant overrepresented sequence	yaml_stage_metrics	domain/fastq/stages/profile_overrepresented_sequences.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_read_lengths	distinct_lengths	Number of distinct read lengths observed in the governed profile.	yaml_stage_metrics	domain/fastq/stages/profile_read_lengths.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_read_lengths	max_read_length	Maximum read length observed in the governed profile.	yaml_stage_metrics	domain/fastq/stages/profile_read_lengths.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_read_lengths	mean_read_length	Average read length before trimming.	yaml_stage_metrics	domain/fastq/stages/profile_read_lengths.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_read_lengths	median_read_length	Median read length before trimming.	yaml_stage_metrics	domain/fastq/stages/profile_read_lengths.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_read_lengths	min_read_length	Minimum read length observed before trimming.	yaml_stage_metrics	domain/fastq/stages/profile_read_lengths.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_read_lengths	read_count	Number of reads observed.	yaml_stage_metrics	domain/fastq/stages/profile_read_lengths.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_reads	bases_total	Total bases observed	yaml_stage_metrics	domain/fastq/stages/profile_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_reads	gc_percent	GC percentage	yaml_stage_metrics	domain/fastq/stages/profile_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_reads	length_histogram	Read length histogram	yaml_stage_metrics	domain/fastq/stages/profile_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_reads	mean_q	Mean base quality	yaml_stage_metrics	domain/fastq/stages/profile_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.profile_reads	reads_total	Total reads observed	yaml_stage_metrics	domain/fastq/stages/profile_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_chimeras	chimera_count	Canonical benchmark alias for the representative-sequence count removed as chimeric.	yaml_stage_metrics	domain/fastq/stages/remove_chimeras.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_chimeras	chimera_fraction	Fraction of input reads flagged as chimeric.	yaml_stage_metrics	domain/fastq/stages/remove_chimeras.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_chimeras	chimeras_removed	Number of reads removed as chimeric.	yaml_stage_metrics	domain/fastq/stages/remove_chimeras.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_chimeras	non_chimera_count	Canonical benchmark alias for the retained non-chimeric representative-sequence count.	yaml_stage_metrics	domain/fastq/stages/remove_chimeras.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_chimeras	reads_in	Number of input reads.	yaml_stage_metrics	domain/fastq/stages/remove_chimeras.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_chimeras	reads_out	Number of non-chimeric output reads.	yaml_stage_metrics	domain/fastq/stages/remove_chimeras.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	dedup_mode	Governed duplicate-definition mode applied by the selected backend.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	dedup_rate	Fraction of reads removed as duplicates.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	duplicate_class_count	Number of duplicate classes preserved in the governed duplicate-class summary.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	duplicate_provenance_json	Structured governed duplicate provenance summary emitted by the backend.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	duplicate_reads	Canonical benchmark alias for the number of reads removed as duplicates.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	duplicates_removed	Number of reads removed as duplicates.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	input_reads	Canonical benchmark alias for the number of input reads.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	keep_order	Whether the governed plan preserves input read order in emitted deduplicated reads.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	output_reads	Canonical benchmark alias for the number of output reads.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	pair_count_match	Whether paired duplicate removal preserved the governed pair count contract.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	paired_mode	Whether duplicate removal ran on single-end or paired-end reads.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	raw_backend_report_format	Native backend report format preserved alongside the governed duplicate summary.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	reads_in	Number of input reads.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	reads_out	Number of output reads.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	threads	Resolved worker threads executed by the selected duplicate-removal backend.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	tool	Resolved tool identifier for duplicate-removal observation.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.remove_duplicates	unique_reads	Canonical benchmark alias for the number of deduplicated reads retained.	yaml_stage_metrics	domain/fastq/stages/remove_duplicates.yaml	domain/fastq/metrics.yaml
+fastq	fastq.repair_pairs	orphan_reads	Number of reads that could not be reconciled into synchronized pairs.	yaml_stage_metrics	domain/fastq/stages/repair_pairs.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	adapter_content_max	Maximum observed adapter-content burden across governed QC contributors	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	adapter_content_mean	Mean adapter-content burden across governed QC contributors	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	aggregation_engine	Aggregation backend selected for governed QC reporting	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	aggregation_scope	Governed QC aggregation scope used to select upstream contributors	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	bases_in	Number of input bases	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	bases_out	Number of output bases (post-QC reference)	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	contamination_rate	Estimated contamination rate	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	duplication_rate	Duplicate-rate summary carried into the governed QC aggregation report	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	governed_qc_contributor_stage_ids	Distinct governed contributor stage identifiers	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	governed_qc_contributor_tool_ids	Distinct governed contributor tool identifiers	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	governed_qc_input_count	Number of governed QC artifacts aggregated into the canonical report	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	governed_qc_lineage_hash	Stable governed QC lineage fingerprint for the aggregated inputs	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	kmer_warning_count	Count of governed k-mer warning events represented in the QC aggregation report	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	mean_q	Mean base quality	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	multiqc_data	Path to MultiQC data directory	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	multiqc_module_count	Number of modules represented in the MultiQC report	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	multiqc_report	Path to MultiQC HTML report	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	multiqc_sample_count	Number of samples represented in the MultiQC report	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	n_rate	Ambiguous-base rate summary carried into the governed QC aggregation report	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	overrepresented_sequence_count	Count of governed overrepresented-sequence findings represented in the QC aggregation report	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	pairs_in	Number of input read pairs	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	pairs_out	Number of output read pairs	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	raw_fastqc_dir	Path to raw FastQC output directory	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	reads_in	Number of input reads	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	reads_out	Number of output reads (post-QC reference)	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.report_qc	trimmed_fastqc_dir	Path to trimmed FastQC output directory	yaml_stage_metrics	domain/fastq/stages/report_qc.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	bases_in	Number of input bases	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	bases_out	Number of output bases (screening does not remove bases)	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	classified_fraction	Fraction of reads assigned to non-unclassified taxa under the governed taxonomy report	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	classified_reads	Canonical benchmark read count derived from the governed classified fraction and input read total.	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	classifier	Governed classifier backend selected for taxonomy screening	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	contamination_rate	Fraction of reads classified as contaminants	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	contamination_summary	Structured governed taxonomy summary entries reduced from the raw classifier report	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	database_artifact_id	Artifact identifier of the taxonomy database used for screening	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	database_catalog_id	Catalog identifier of the taxonomy database used for screening	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	emit_unclassified	Whether unclassified reads were retained in governed taxonomy outputs	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	minimum_confidence	Minimum classification confidence threshold enforced by governed screening	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	pairs_in	Number of input read pairs	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	pairs_out	Number of output read pairs	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	reads_in	Number of input reads	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	reads_out	Number of output reads (screening does not remove reads)	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	report_format	Governed format emitted for taxonomy screening summaries	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	taxonomy_database_id	Canonical benchmark alias for the governed taxonomy database artifact identifier.	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	top_taxa	Highest-abundance classified taxa preserved under the governed taxonomy report contract	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	unclassified_fraction	Fraction of reads remaining unclassified under the governed taxonomy report	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.screen_taxonomy	unclassified_reads	Canonical benchmark read count derived from the governed unclassified fraction and input read total.	yaml_stage_metrics	domain/fastq/stages/screen_taxonomy.yaml	domain/fastq/metrics.yaml
+fastq	fastq.subsample_reads	reads_sampled	Number of reads retained by governed subsampling.	yaml_stage_metrics	domain/fastq/stages/subsample_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	bases_in	Number of input bases before polyG trimming.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	bases_out	Number of output bases after polyG trimming.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	bases_trimmed_polyg	Number of bases removed from polyG tails.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	delta_metrics	Derived read/base retention and quality deltas for polyG trimming.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	mean_q_after	Mean base quality after polyG trimming.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	mean_q_before	Mean base quality before polyG trimming.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	min_polyg_run	Minimum terminal polyG run length required before trimming is applied.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	paired_mode	Whether the stage ran on single-end or paired-end reads.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	pairs_in	Number of input read pairs observed before polyG trimming.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	pairs_out	Number of output read pairs emitted after polyG trimming.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	polyx_bank_hash	Resolved polyX bank hash used to record chemistry provenance for the run.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	polyx_bank_id	Resolved polyX bank identifier used to govern polyG trimming chemistry defaults.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	polyx_preset	Resolved polyX bank preset used to govern trim-polyg chemistry defaults.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	raw_backend_report_format	Native backend report format preserved inside the governed trim-polyg report.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	reads_in	Number of input reads.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	reads_out	Number of output reads after polyG trimming.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	threads	Resolved trim-polyg worker threads executed by the selected backend.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	trim_polyg	Whether terminal polyG trimming was enabled for the run.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_polyg_tails	trimmed_tail_count	Number of reads whose terminal polyG tail was trimmed.	yaml_stage_metrics	domain/fastq/stages/trim_polyg_tails.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	adapter_bank_hash	Checksum of adapter bank used for trimming	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	adapter_bank_id	Adapter bank id used for trimming	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	adapter_overrides	Adapter enable/disable overrides used for trimming	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	adapter_policy	Resolved adapter handling policy executed by the selected trim backend	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	adapter_preset	Adapter preset name used for trimming	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	bases_in	Number of input bases	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	bases_out	Number of output bases	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	bases_removed	Number of bases removed between input and trimmed output	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	contaminant_policy	Resolved contaminant handoff or trimming policy executed by the selected trim backend	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	delta_metrics	Derived retention and quality deltas	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	mean_q_after	Mean base quality after trimming	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	mean_q_before	Mean base quality before trimming	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	n_policy	Resolved ambiguous-base handling policy executed by the selected trim backend	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	paired_mode	Whether the executed trim run operated on single-end or paired-end reads	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	pairs_in	Number of input read pairs	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	pairs_out	Number of output read pairs	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	polyx_policy	Resolved polyX handling policy executed by the selected trim backend	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	raw_backend_report_format	Backend-native report format preserved alongside the governed trim report when available	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	reads_dropped	Number of reads removed by trimming or post-trim retention rules	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	reads_in	Number of input reads	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_reads	reads_out	Number of output reads	yaml_stage_metrics	domain/fastq/stages/trim_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	bases_in	Number of input bases before damage-aware trimming.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	bases_out	Number of output bases after damage-aware trimming.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	bases_removed	Number of bases removed by damage-aware terminal trimming.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	ct_ga_asymmetry_post	Terminal C>T / G>A asymmetry after trimming.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	ct_ga_asymmetry_pre	Terminal C>T / G>A asymmetry before trimming.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	damage_mode	Resolved damage trimming mode used by the governed execution policy.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	delta_metrics	Derived read/base retention and quality deltas after damage-aware trimming.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	execution_policy	Resolved execution policy applied to terminal damage handling.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	mean_q_after	Mean base quality after damage-aware trimming.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	mean_q_before	Mean base quality before damage-aware trimming.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	pairs_in	Number of input read pairs observed before damage-aware trimming.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	pairs_out	Number of output read pairs emitted after damage-aware trimming.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	reads_in	Number of input reads.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	reads_out	Number of reads after damage-aware pretrim.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	reads_retained	Number of reads retained after damage-aware pretrim.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	requested_trim_3p_bases	Requested 3' trim length recorded by governed terminal-damage planning.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	requested_trim_5p_bases	Requested 5' trim length recorded by governed terminal-damage planning.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	trim_3p_bases	Resolved 3' trim length applied during damage-aware trimming.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	trim_5p_bases	Resolved 5' trim length applied during damage-aware trimming.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.trim_terminal_damage	udg_classification	UDG handling classification used for terminal damage policy.	yaml_stage_metrics	domain/fastq/stages/trim_terminal_damage.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	bases_in	Number of input bases	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	bases_out	Number of bases carried forward by this report-only validation stage	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	failure_class	Governed validation failure classification summarizing the dominant validation issue class.	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	mean_q	Mean Phred quality score	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	pair_count_match	Whether paired-end read counts matched between mates under governed validation.	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	pair_sync_checked	Whether pair-synchronization checks were executed for this validation run.	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	pair_sync_pass	Whether pair-synchronization checks passed when pair synchronization was evaluated.	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	pairs_in	Number of input read pairs	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	pairs_out	Number of read pairs carried forward by this report-only validation stage	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	reads_in	Number of input reads	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	reads_invalid	Number of reads that failed validation	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	reads_out	Number of reads carried forward by this report-only validation stage	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	reads_total	Total number of reads observed	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	reads_valid	Number of reads that passed validation	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	strict_pass	Whether strict validation policy criteria passed for this run.	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	validated_inputs	Number of FASTQ inputs examined by the governed validator.	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.validate_reads	validated_pairs	Number of read pairs examined by the governed validator when paired input is present.	yaml_stage_metrics	domain/fastq/stages/validate_reads.yaml	domain/fastq/metrics.yaml
+fastq	fastq.verify_assets	verified_asset_count	Number of locked runtime assets verified before execution.	yaml_stage_metrics	domain/fastq/stages/verify_assets.yaml	domain/fastq/metrics.yaml
+vcf	vcf.admixture	population_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.admixture	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.admixture	selected_k		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.admixture	status		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call	indel_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call	snp_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call	variant_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_diploid	called_genotypes		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_diploid	heterozygous_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_diploid	homozygous_alt_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_diploid	homozygous_ref_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_diploid	missing_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_diploid	ploidy		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_diploid	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_gl	likelihood_field		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_gl	missing_likelihoods		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_gl	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_gl	samples_with_likelihoods		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_gl	sites_with_likelihoods		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_pseudohaploid	called_sites		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_pseudohaploid	covered_sites		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_pseudohaploid	missing_sites		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_pseudohaploid	random_seed		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_pseudohaploid	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_pseudohaploid	sampling_policy		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.call_pseudohaploid	target_sites		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.damage_filter	damage_context_rule		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.damage_filter	damage_ratio_filtered_variants		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.damage_filter	input_variants		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.damage_filter	low_quality_filtered_variants		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.damage_filter	removed_variants		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.damage_filter	retained_variants		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.damage_filter	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.damage_filter	terminal_context_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.damage_filter	terminal_damage_filtered_variants		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.demography	inference_status		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.demography	insufficient_data_probe		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.demography	insufficient_reason		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.demography	method		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.demography	ne_estimates		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.demography	status		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.demography	time_bins		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.filter	depth_threshold		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.filter	failed_variants		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.filter	filter_ids		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.filter	input_variants		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.filter	missingness_threshold		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.filter	pass_variants		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.filter	quality_threshold		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.filter	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.gl_propagation	input_likelihood_fields		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.gl_propagation	lost_fields		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.gl_propagation	output_likelihood_fields		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.gl_propagation	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.gl_propagation	site_count_after		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.gl_propagation	site_count_before		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.ibd	insufficient_overlap_probe		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.ibd	insufficient_reason		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.ibd	pair_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.ibd	rows		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.ibd	status		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.imputation_metrics	concordance		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.imputation_metrics	dosage_r2		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.imputation_metrics	low_confidence_sites		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.imputation_metrics	masked_truth_sites		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.imputation_metrics	mean_info_score		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.imputation_metrics	missing_quality_fields		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.imputation_metrics	r2_available		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.imputation_metrics	status		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.impute	imputed_genotypes		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.impute	low_confidence_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.impute	masked_truth_match_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.impute	masked_truth_site_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.impute	missing_after		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.impute	missing_before		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.impute	not_imputable_reasons		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.impute	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.impute	sample_ids		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.impute	unresolved_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.impute	variant_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.pca	eigenvalues		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.pca	excluded_samples		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.pca	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.pca	unexpected_samples		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.pca	variant_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.phasing	input_genotypes		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.phasing	output_variant_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.phasing	phase_set_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.phasing	phased_genotypes		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.phasing	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.phasing	sample_ids		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.phasing	status		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.phasing	unphased_genotypes		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.population_structure	cross_population_pair_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.population_structure	pair_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.population_structure	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.population_structure	within_population_pair_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.postprocess	contigs_consistent_with_species_context		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.postprocess	filter_standardized_to_pass		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.postprocess	indels_normalized		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.postprocess	invalid_records_removed		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.postprocess	left_align_applied		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.postprocess	multiallelic_records_split		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.postprocess	readable_vcf		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.postprocess	tabix_present		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.postprocess	variant_ids_normalized		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.prepare_reference_panel	duplicate_sites_removed		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.prepare_reference_panel	input_variants		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.prepare_reference_panel	normalization_status		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.prepare_reference_panel	output_variants		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.prepare_reference_panel	parseable		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.prepare_reference_panel	sample_consistent		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.prepare_reference_panel	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.prepare_reference_panel	sample_ids		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.qc	excluded_samples		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.qc	excluded_variants		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.qc	heterozygosity		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.qc	hwe_summary		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.qc	maf_summary		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.qc	sample_missingness		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.qc	sample_missingness_exclusion_threshold		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.qc	variant_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.qc	variant_missingness		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.qc	variant_missingness_exclusion_threshold		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.roh	per_sample_summary		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.roh	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.roh	segment_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.roh	segments		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.roh	status		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.roh	total_length		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.stats	indel_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.stats	sample_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.stats	snp_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.stats	ti_tv		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.stats	transition_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.stats	transversion_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml
+vcf	vcf.stats	variant_count		rust_stage_metrics_contract	crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs	domain/vcf/metrics.yaml

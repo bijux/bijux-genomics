@@ -36,12 +36,25 @@ parameters: []
 metrics:
   - name: "input_reads"
     meaning: "Input read count preserved in the governed BAM filter benchmark row"
+    scientific_threshold:
+      pass_direction: "exact_match"
+      tolerance_kind: "exact_match"
+      tolerance_value: 0.0
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "kept_reads"
     meaning: "Read count retained after the governed BAM filter policy is applied"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
   - name: "removed_reads"
     meaning: "Read count removed by the governed BAM filter policy"
-  - name: "active_filters"
-    meaning: "Named filter clauses that define the governed BAM filter benchmark row"
+    scientific_threshold:
+      pass_direction: "range"
+      tolerance_kind: "relative_fraction"
+      tolerance_value: 0.02
+      insufficiency_policy: "refuse_stage_comparison"
 description: "BAM filter contract for governed retention-count benchmarking and deterministic filter-policy reporting."
 required_inputs:
   - bam

@@ -206,7 +206,7 @@ pub(crate) struct VcfNormalizedMetricsFieldContract {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct VcfNormalizedMetricsStageSchemaDescriptor {
+pub(crate) struct VcfNormalizedMetricsStageSchemaDescriptor {
     pub stage_id: String,
     pub schema_version: String,
     pub schema_id: String,

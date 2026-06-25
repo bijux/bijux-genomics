@@ -1,5 +1,5 @@
 {
-  "schema_version": "bijux.bench.readiness.adapter_missing_input_tests.v1",
+  "schema_version": "bijux.bench.readiness.adapter_missing_input_audit.v1",
   "output_path": "benchmarks/readiness/adapter-missing-input-tests.json",
   "row_count": 33,
   "passed_row_count": 33,
@@ -19,7 +19,7 @@
       "missing_input_role": "input_r1",
       "missing_input_class": "fastq",
       "expected_error_fragment": "input FASTQ is missing",
-      "observed_error": "local-ready fastq.deplete_host input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-eBgZ1q/artifacts/bench-readiness/missing-inputs/fastq/deplete_host/bowtie2/input_r1",
+      "observed_error": "local-ready fastq.deplete_host input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-PoF10w/artifacts/bench-readiness/missing-inputs/fastq/deplete_host/bowtie2/input_r1",
       "passed": true
     },
     {
@@ -30,7 +30,7 @@
       "missing_input_role": "reference_index",
       "missing_input_class": "reference",
       "expected_error_fragment": "reference index prefix is incomplete",
-      "observed_error": "local-ready fastq.deplete_host reference index prefix is incomplete, missing /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-SLAyk9/artifacts/bench-readiness/missing-inputs/fastq/deplete_host/bowtie2/reference_index.1.bt2",
+      "observed_error": "local-ready fastq.deplete_host reference index prefix is incomplete, missing /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-LTpi5o/artifacts/bench-readiness/missing-inputs/fastq/deplete_host/bowtie2/reference_index.1.bt2",
       "passed": true
     },
     {
@@ -41,7 +41,7 @@
       "missing_input_role": "input_r1",
       "missing_input_class": "fastq",
       "expected_error_fragment": "input FASTQ is missing",
-      "observed_error": "local-ready fastq.deplete_reference_contaminants input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-KDXd77/artifacts/bench-readiness/missing-inputs/fastq/deplete_reference_contaminants/bowtie2/input_r1",
+      "observed_error": "local-ready fastq.deplete_reference_contaminants input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-5odyHQ/artifacts/bench-readiness/missing-inputs/fastq/deplete_reference_contaminants/bowtie2/input_r1",
       "passed": true
     },
     {
@@ -52,7 +52,7 @@
       "missing_input_role": "reference_index",
       "missing_input_class": "reference",
       "expected_error_fragment": "reference index prefix is incomplete",
-      "observed_error": "local-ready fastq.deplete_reference_contaminants reference index prefix is incomplete, missing /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-FbdRrq/artifacts/bench-readiness/missing-inputs/fastq/deplete_reference_contaminants/bowtie2/reference_index.1.bt2",
+      "observed_error": "local-ready fastq.deplete_reference_contaminants reference index prefix is incomplete, missing /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-OYZ0rx/artifacts/bench-readiness/missing-inputs/fastq/deplete_reference_contaminants/bowtie2/reference_index.1.bt2",
       "passed": true
     },
     {
@@ -63,7 +63,7 @@
       "missing_input_role": "input_r1",
       "missing_input_class": "fastq",
       "expected_error_fragment": "input FASTQ is missing",
-      "observed_error": "local-ready fastq.deplete_rrna input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-8yK1nL/artifacts/bench-readiness/missing-inputs/fastq/deplete_rrna/sortmerna/input_r1",
+      "observed_error": "local-ready fastq.deplete_rrna input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-gTvLV7/artifacts/bench-readiness/missing-inputs/fastq/deplete_rrna/sortmerna/input_r1",
       "passed": true
     },
     {
@@ -74,7 +74,7 @@
       "missing_input_role": "rrna_db",
       "missing_input_class": "reference",
       "expected_error_fragment": "rRNA reference is missing",
-      "observed_error": "local-ready fastq.deplete_rrna rRNA reference is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-LTHM42/artifacts/bench-readiness/missing-inputs/fastq/deplete_rrna/sortmerna/rrna_db",
+      "observed_error": "local-ready fastq.deplete_rrna rRNA reference is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-Dn6PpY/artifacts/bench-readiness/missing-inputs/fastq/deplete_rrna/sortmerna/rrna_db",
       "passed": true
     },
     {
@@ -85,7 +85,7 @@
       "missing_input_role": "input_r1",
       "missing_input_class": "fastq",
       "expected_error_fragment": "input FASTQ is missing",
-      "observed_error": "local-ready fastq.screen_taxonomy input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-ERmC7Y/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/centrifuge/input_r1",
+      "observed_error": "local-ready fastq.screen_taxonomy input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-Z37yDp/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/centrifuge/input_r1",
       "passed": true
     },
     {
@@ -96,7 +96,7 @@
       "missing_input_role": "database_root",
       "missing_input_class": "database",
       "expected_error_fragment": "taxonomy database root is missing",
-      "observed_error": "local-ready fastq.screen_taxonomy taxonomy database root is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-EdzLgc/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/centrifuge/database_root",
+      "observed_error": "local-ready fastq.screen_taxonomy taxonomy database root is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-59qtxq/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/centrifuge/database_root",
       "passed": true
     },
     {
@@ -107,7 +107,7 @@
       "missing_input_role": "input_r1",
       "missing_input_class": "fastq",
       "expected_error_fragment": "input FASTQ is missing",
-      "observed_error": "local-ready fastq.screen_taxonomy input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-6IY32T/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/kaiju/input_r1",
+      "observed_error": "local-ready fastq.screen_taxonomy input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-RG1Xxg/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/kaiju/input_r1",
       "passed": true
     },
     {
@@ -118,7 +118,7 @@
       "missing_input_role": "database_root",
       "missing_input_class": "database",
       "expected_error_fragment": "taxonomy database root is missing",
-      "observed_error": "local-ready fastq.screen_taxonomy taxonomy database root is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-0oou2B/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/kaiju/database_root",
+      "observed_error": "local-ready fastq.screen_taxonomy taxonomy database root is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-HUzpdM/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/kaiju/database_root",
       "passed": true
     },
     {
@@ -129,7 +129,7 @@
       "missing_input_role": "input_r1",
       "missing_input_class": "fastq",
       "expected_error_fragment": "input FASTQ is missing",
-      "observed_error": "local-ready fastq.screen_taxonomy input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-46bRsC/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/kraken2/input_r1",
+      "observed_error": "local-ready fastq.screen_taxonomy input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-hCqzO2/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/kraken2/input_r1",
       "passed": true
     },
     {
@@ -140,7 +140,7 @@
       "missing_input_role": "database_root",
       "missing_input_class": "database",
       "expected_error_fragment": "taxonomy database root is missing",
-      "observed_error": "local-ready fastq.screen_taxonomy taxonomy database root is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-IbdNtJ/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/kraken2/database_root",
+      "observed_error": "local-ready fastq.screen_taxonomy taxonomy database root is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-6onA1f/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/kraken2/database_root",
       "passed": true
     },
     {
@@ -151,7 +151,7 @@
       "missing_input_role": "input_r1",
       "missing_input_class": "fastq",
       "expected_error_fragment": "input FASTQ is missing",
-      "observed_error": "local-ready fastq.screen_taxonomy input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-HyS1Cp/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/krakenuniq/input_r1",
+      "observed_error": "local-ready fastq.screen_taxonomy input FASTQ is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-MKaVhJ/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/krakenuniq/input_r1",
       "passed": true
     },
     {
@@ -162,7 +162,7 @@
       "missing_input_role": "database_root",
       "missing_input_class": "database",
       "expected_error_fragment": "taxonomy database root is missing",
-      "observed_error": "local-ready fastq.screen_taxonomy taxonomy database root is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-y1J1Ub/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/krakenuniq/database_root",
+      "observed_error": "local-ready fastq.screen_taxonomy taxonomy database root is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-dL7qbt/artifacts/bench-readiness/missing-inputs/fastq/screen_taxonomy/krakenuniq/database_root",
       "passed": true
     },
     {
@@ -173,7 +173,7 @@
       "missing_input_role": "bam",
       "missing_input_class": "bam",
       "expected_error_fragment": "bam is missing",
-      "observed_error": "local-ready bam.contamination bam is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-bO0ZsH/artifacts/bench-readiness/missing-inputs/bam/contamination/contammix/bam",
+      "observed_error": "local-ready bam.contamination bam is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-CFk4Ik/artifacts/bench-readiness/missing-inputs/bam/contamination/contammix/bam",
       "passed": true
     },
     {
@@ -184,7 +184,7 @@
       "missing_input_role": "reference_fasta",
       "missing_input_class": "reference",
       "expected_error_fragment": "reference FASTA is missing",
-      "observed_error": "local-ready bam.contamination reference FASTA is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-IQlYfr/artifacts/bench-readiness/missing-inputs/bam/contamination/contammix/reference_fasta",
+      "observed_error": "local-ready bam.contamination reference FASTA is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-I8SvYT/artifacts/bench-readiness/missing-inputs/bam/contamination/contammix/reference_fasta",
       "passed": true
     },
     {
@@ -195,7 +195,7 @@
       "missing_input_role": "reference_panel",
       "missing_input_class": "reference",
       "expected_error_fragment": "reference panel is missing",
-      "observed_error": "local-ready bam.contamination reference panel is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-RW9vMe/artifacts/bench-readiness/missing-inputs/bam/contamination/contammix/reference_panel",
+      "observed_error": "local-ready bam.contamination reference panel is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-zuPVMe/artifacts/bench-readiness/missing-inputs/bam/contamination/contammix/reference_panel",
       "passed": true
     },
     {
@@ -206,7 +206,7 @@
       "missing_input_role": "bam",
       "missing_input_class": "bam",
       "expected_error_fragment": "bam is missing",
-      "observed_error": "local-ready bam.contamination bam is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-F21s7K/artifacts/bench-readiness/missing-inputs/bam/contamination/schmutzi/bam",
+      "observed_error": "local-ready bam.contamination bam is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-za58t2/artifacts/bench-readiness/missing-inputs/bam/contamination/schmutzi/bam",
       "passed": true
     },
     {
@@ -217,7 +217,7 @@
       "missing_input_role": "reference_fasta",
       "missing_input_class": "reference",
       "expected_error_fragment": "reference FASTA is missing",
-      "observed_error": "local-ready bam.contamination reference FASTA is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-0Lrn3o/artifacts/bench-readiness/missing-inputs/bam/contamination/schmutzi/reference_fasta",
+      "observed_error": "local-ready bam.contamination reference FASTA is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-raOB75/artifacts/bench-readiness/missing-inputs/bam/contamination/schmutzi/reference_fasta",
       "passed": true
     },
     {
@@ -228,7 +228,7 @@
       "missing_input_role": "reference_panel",
       "missing_input_class": "reference",
       "expected_error_fragment": "reference panel is missing",
-      "observed_error": "local-ready bam.contamination reference panel is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-3iWIzk/artifacts/bench-readiness/missing-inputs/bam/contamination/schmutzi/reference_panel",
+      "observed_error": "local-ready bam.contamination reference panel is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-EwUzhF/artifacts/bench-readiness/missing-inputs/bam/contamination/schmutzi/reference_panel",
       "passed": true
     },
     {
@@ -239,7 +239,7 @@
       "missing_input_role": "bam",
       "missing_input_class": "bam",
       "expected_error_fragment": "bam is missing",
-      "observed_error": "local-ready bam.contamination bam is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-cNGrNa/artifacts/bench-readiness/missing-inputs/bam/contamination/verifybamid2/bam",
+      "observed_error": "local-ready bam.contamination bam is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-hgUmEb/artifacts/bench-readiness/missing-inputs/bam/contamination/verifybamid2/bam",
       "passed": true
     },
     {
@@ -250,7 +250,7 @@
       "missing_input_role": "reference_fasta",
       "missing_input_class": "reference",
       "expected_error_fragment": "reference FASTA is missing",
-      "observed_error": "local-ready bam.contamination reference FASTA is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-fZfTjd/artifacts/bench-readiness/missing-inputs/bam/contamination/verifybamid2/reference_fasta",
+      "observed_error": "local-ready bam.contamination reference FASTA is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-kml9a7/artifacts/bench-readiness/missing-inputs/bam/contamination/verifybamid2/reference_fasta",
       "passed": true
     },
     {
@@ -261,7 +261,7 @@
       "missing_input_role": "reference_panel",
       "missing_input_class": "reference",
       "expected_error_fragment": "reference panel is missing",
-      "observed_error": "local-ready bam.contamination reference panel is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-stijim/artifacts/bench-readiness/missing-inputs/bam/contamination/verifybamid2/reference_panel",
+      "observed_error": "local-ready bam.contamination reference panel is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-utqeHc/artifacts/bench-readiness/missing-inputs/bam/contamination/verifybamid2/reference_panel",
       "passed": true
     },
     {
@@ -272,7 +272,7 @@
       "missing_input_role": "bam",
       "missing_input_class": "bam",
       "expected_error_fragment": "BAM fixture is missing",
-      "observed_error": "local-smoke bam.recalibration BAM fixture is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-lTMmbl/artifacts/bench-readiness/missing-inputs/bam/recalibration/gatk/bam",
+      "observed_error": "local-smoke bam.recalibration BAM fixture is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-to1t2H/artifacts/bench-readiness/missing-inputs/bam/recalibration/gatk/bam",
       "passed": true
     },
     {
@@ -283,7 +283,7 @@
       "missing_input_role": "reference",
       "missing_input_class": "reference",
       "expected_error_fragment": "reference fixture is missing",
-      "observed_error": "local-smoke bam.recalibration reference fixture is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-dRMOIi/artifacts/bench-readiness/missing-inputs/bam/recalibration/gatk/reference",
+      "observed_error": "local-smoke bam.recalibration reference fixture is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-UUrubw/artifacts/bench-readiness/missing-inputs/bam/recalibration/gatk/reference",
       "passed": true
     },
     {
@@ -294,7 +294,7 @@
       "missing_input_role": "known_sites",
       "missing_input_class": "reference",
       "expected_error_fragment": "known-sites fixture is missing",
-      "observed_error": "local-smoke bam.recalibration known-sites fixture is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-uPPmGB/artifacts/bench-readiness/missing-inputs/bam/recalibration/gatk/known_sites",
+      "observed_error": "local-smoke bam.recalibration known-sites fixture is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-mNPuVy/artifacts/bench-readiness/missing-inputs/bam/recalibration/gatk/known_sites",
       "passed": true
     },
     {
@@ -305,7 +305,7 @@
       "missing_input_role": "bam",
       "missing_input_class": "bam",
       "expected_error_fragment": "bam is missing",
-      "observed_error": "local-ready bam.genotyping bam is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-ctUa6L/artifacts/bench-readiness/missing-inputs/bam/genotyping/angsd/bam",
+      "observed_error": "local-ready bam.genotyping bam is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-0ihFNt/artifacts/bench-readiness/missing-inputs/bam/genotyping/angsd/bam",
       "passed": true
     },
     {
@@ -316,7 +316,7 @@
       "missing_input_role": "reference_fasta",
       "missing_input_class": "reference",
       "expected_error_fragment": "reference FASTA is missing",
-      "observed_error": "local-ready bam.genotyping reference FASTA is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-srmcvx/artifacts/bench-readiness/missing-inputs/bam/genotyping/angsd/reference_fasta",
+      "observed_error": "local-ready bam.genotyping reference FASTA is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-k76h0h/artifacts/bench-readiness/missing-inputs/bam/genotyping/angsd/reference_fasta",
       "passed": true
     },
     {
@@ -327,7 +327,7 @@
       "missing_input_role": "sites_vcf",
       "missing_input_class": "reference",
       "expected_error_fragment": "sites VCF is missing",
-      "observed_error": "local-ready bam.genotyping sites VCF is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-P8O27J/artifacts/bench-readiness/missing-inputs/bam/genotyping/angsd/sites_vcf",
+      "observed_error": "local-ready bam.genotyping sites VCF is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-2DHYd8/artifacts/bench-readiness/missing-inputs/bam/genotyping/angsd/sites_vcf",
       "passed": true
     },
     {
@@ -338,7 +338,7 @@
       "missing_input_role": "regions",
       "missing_input_class": "reference",
       "expected_error_fragment": "regions list is missing",
-      "observed_error": "local-ready bam.genotyping regions list is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-mqbeKS/artifacts/bench-readiness/missing-inputs/bam/genotyping/angsd/regions",
+      "observed_error": "local-ready bam.genotyping regions list is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-pe8t7S/artifacts/bench-readiness/missing-inputs/bam/genotyping/angsd/regions",
       "passed": true
     },
     {
@@ -349,7 +349,7 @@
       "missing_input_role": "bam",
       "missing_input_class": "bam",
       "expected_error_fragment": "bam is missing",
-      "observed_error": "local-ready bam.haplogroups bam is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-50v7iC/artifacts/bench-readiness/missing-inputs/bam/haplogroups/yleaf/bam",
+      "observed_error": "local-ready bam.haplogroups bam is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-DtXBNQ/artifacts/bench-readiness/missing-inputs/bam/haplogroups/yleaf/bam",
       "passed": true
     },
     {
@@ -360,7 +360,7 @@
       "missing_input_role": "reference_fasta",
       "missing_input_class": "reference",
       "expected_error_fragment": "reference FASTA is missing",
-      "observed_error": "local-ready bam.haplogroups reference FASTA is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-se7BxC/artifacts/bench-readiness/missing-inputs/bam/haplogroups/yleaf/reference_fasta",
+      "observed_error": "local-ready bam.haplogroups reference FASTA is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-twWaOz/artifacts/bench-readiness/missing-inputs/bam/haplogroups/yleaf/reference_fasta",
       "passed": true
     },
     {
@@ -371,7 +371,7 @@
       "missing_input_role": "reference_panel",
       "missing_input_class": "reference",
       "expected_error_fragment": "reference panel is missing",
-      "observed_error": "local-ready bam.haplogroups reference panel is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-nK50QU/artifacts/bench-readiness/missing-inputs/bam/haplogroups/yleaf/reference_panel",
+      "observed_error": "local-ready bam.haplogroups reference panel is missing: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/adapter-missing-input-EDhtTg/artifacts/bench-readiness/missing-inputs/bam/haplogroups/yleaf/reference_panel",
       "passed": true
     }
   ]

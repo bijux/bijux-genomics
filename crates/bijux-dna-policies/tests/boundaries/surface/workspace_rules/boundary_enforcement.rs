@@ -96,6 +96,7 @@ fn policy__boundaries__workspace__crate_root_contents_allowlist() {
         "tests",
         "docs",
         "bench",
+        "benchmarks",
         "examples",
         "artifacts",
     ]);

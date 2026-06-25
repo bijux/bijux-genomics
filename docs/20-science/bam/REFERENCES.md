@@ -32,12 +32,12 @@ The BAM domain is not reviewable if tool admission, stage claims, and citation c
 | bedtools | `bam.validate`, `bam.filter`, `bam.coverage` | governed paper locator present; runtime closure remains separate | https://github.com/arq5x/bedtools2 |
 | bamtools | `bam.validate`, `bam.filter`, `bam.mapq_filter` | governed paper locator present; runtime closure remains separate | https://github.com/pezmaster31/bamtools |
 | mosdepth | `bam.coverage` | governed paper locator present; runtime closure remains separate | https://github.com/brentp/mosdepth |
-| picard | `bam.markdup`, `bam.length_filter`, `bam.duplication_metrics`, `bam.insert_size`, `bam.gc_bias` | governed software citation present; no standalone Picard paper is claimed | https://github.com/broadinstitute/picard |
+| picard | `bam.markdup`, `bam.length_filter`, `bam.duplication_metrics`, `bam.insert_size`, `bam.gc_bias`, `bam.mapping_summary` | governed software citation present; no standalone Picard paper is claimed | https://github.com/broadinstitute/picard |
 
 ## Damage, Authenticity, Contamination, and Inference
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
-| mapdamage2 | `bam.damage` | governed paper locator present; runtime closure remains separate | https://github.com/ginolhac/mapDamage |
+| mapdamage2 | `bam.damage`, `bam.bias_mitigation` | governed paper locator present; runtime closure remains separate | https://github.com/ginolhac/mapDamage |
 | pydamage | `bam.damage` | governed paper locator present; runtime closure remains separate | https://github.com/maxibor/pydamage |
 | damageprofiler | `bam.damage`, `bam.authenticity` | governed paper locator present; runtime closure remains separate | https://github.com/Integrative-Transcriptomics/DamageProfiler |
 | pmdtools | `bam.damage`, `bam.authenticity` | governed method-paper citation present; runtime closure remains separate | https://github.com/pontussk/PMDtools |
@@ -48,16 +48,16 @@ The BAM domain is not reviewable if tool admission, stage claims, and citation c
 | contammix | `bam.contamination` | package/software locator captured; paper mapping still pending | https://bioconductor.org/packages/contamMix |
 | rxy | `bam.sex` | governed tool contract still points to a local interim locator; external citation locator still needed | https://github.com/bijux/bijux-genomics |
 | yleaf | `bam.sex`, `bam.haplogroups` | governed paper locator present; runtime closure remains separate | https://github.com/genid/Yleaf |
-| angsd | `bam.sex`, `bam.kinship` | governed paper locator present; runtime closure remains separate | https://github.com/ANGSD/angsd |
+| angsd | `bam.sex`, `bam.kinship`, `bam.genotyping` | governed paper locator present; runtime closure remains separate | https://github.com/ANGSD/angsd |
 | king | `bam.kinship` | governed paper locator present; runtime closure remains separate | https://www.kingrelatedness.com/ |
 
-## Planned Expansion and Open Citation Backlog
+## QC Expansion, Cleanup, and Open Citation Backlog
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
 | preseq | `bam.complexity` | governed paper locator present; runtime closure remains separate | https://github.com/smithlabcode/preseq |
 | bamutil | `bam.overlap_correction` | upstream software locator captured; paper mapping still pending | https://github.com/statgen/bamUtil |
 | gatk | `bam.recalibration` | governed paper locator present; runtime and promotion evidence are now documented in the supported recalibration surface | https://github.com/broadinstitute/gatk |
-| ngsbriggs | `bam.damage` | governed paper locator and upstream repository are now present; promotion and runtime evidence still pending | https://github.com/RAHenriksen/ngsBriggs |
+| ngsbriggs | `bam.damage` | governed paper locator and upstream repository are present; runtime closure remains separate | https://github.com/RAHenriksen/ngsBriggs |
 
 ## Failure modes
 - A tool listed against the wrong stage creates fake scientific support for a runtime boundary we do not actually govern.

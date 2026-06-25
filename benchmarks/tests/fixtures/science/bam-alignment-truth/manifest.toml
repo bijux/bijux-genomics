@@ -1,0 +1,18 @@
+schema_version = "bijux.bench.bam_alignment_truth.v1"
+fixture_id = "bam-alignment-truth"
+description = "Governed BAM alignment truth bundle for exact mapped and unmapped read counts, contig and position placement, MAPQ classes, and observed CIGAR classes across representative tiny BAM corpus samples."
+corpus_manifest_path = "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml"
+expected_path = "expected.json"
+source_paths = [
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_flagged_multicontig.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mapq_threshold_ladder.sam",
+  "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_mixed_filter_constraints.sam",
+]
+sample_ids = [
+  "human_like_validation",
+  "human_like_duplicate_flagged_multicontig",
+  "human_like_mapq_threshold_ladder",
+  "human_like_mixed_filter_constraints",
+]

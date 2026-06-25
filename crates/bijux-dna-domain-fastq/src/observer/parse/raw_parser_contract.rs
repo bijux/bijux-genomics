@@ -111,6 +111,12 @@ const FASTQ_RAW_PARSER_FIXTURE_CASES: &[FastqRawParserFixtureCase] = &[
     },
     FastqRawParserFixtureCase {
         stage_id: "fastq.filter_low_complexity",
+        tool_id: "fastp",
+        parser_id: "parse_low_complexity_report",
+        raw_file: "raw.low-complexity.txt",
+    },
+    FastqRawParserFixtureCase {
+        stage_id: "fastq.filter_low_complexity",
         tool_id: "prinseq",
         parser_id: "parse_low_complexity_report",
         raw_file: "raw.low-complexity.txt",
@@ -243,7 +249,7 @@ fn classify_observed_failure(
         Err(error) => {
             let failure_class = if !raw_path.exists() {
                 FastqRawParserFailureClass::MissingRawOutput
-            } else if raw_path.metadata().map(|metadata| metadata.len()).unwrap_or(1) == 0 {
+            } else if raw_path.metadata().map_or(1, |metadata| metadata.len()) == 0 {
                 FastqRawParserFailureClass::EmptyRawOutput
             } else {
                 FastqRawParserFailureClass::MalformedRawOutput
@@ -331,7 +337,7 @@ mod tests {
         let scratch_root = root.join("artifacts/contract-probes");
         let rows = evaluate_fastq_raw_parser_failure_contracts(&root, &scratch_root)?;
 
-        assert_eq!(rows.len(), 45);
+        assert_eq!(rows.len(), 48);
         assert!(rows.iter().all(|row| row.passed));
         assert_eq!(
             rows.iter()
@@ -339,7 +345,7 @@ mod tests {
                     row.expected_failure_class == FastqRawParserFailureClass::MissingRawOutput
                 })
                 .count(),
-            15
+            16
         );
         assert_eq!(
             rows.iter()
@@ -347,7 +353,7 @@ mod tests {
                     row.expected_failure_class == FastqRawParserFailureClass::EmptyRawOutput
                 })
                 .count(),
-            15
+            16
         );
         assert_eq!(
             rows.iter()
@@ -355,7 +361,7 @@ mod tests {
                     row.expected_failure_class == FastqRawParserFailureClass::MalformedRawOutput
                 })
                 .count(),
-            15
+            16
         );
         assert!(rows.iter().all(|row| !row.observed_error.trim().is_empty()));
         assert!(rows.iter().any(|row| {

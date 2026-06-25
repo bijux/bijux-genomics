@@ -1,0 +1,183 @@
+{
+  "schema_version": "bijux.bench.local_vcf_micro_smoke_subset.v1",
+  "output_path": "runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json",
+  "family_count": 8,
+  "local_smoke_count": 8,
+  "container_needed_count": 0,
+  "unavailable_count": 0,
+  "passes_behavior_test": true,
+  "rows": [
+    {
+      "family_id": "vcf.reference_panel_preparation",
+      "surface_label": "vcf reference panel preparation",
+      "stage_ids": [
+        "vcf.prepare_reference_panel"
+      ],
+      "representative_stage_id": "vcf.prepare_reference_panel",
+      "representative_tool_id": "bcftools",
+      "registered_binary": "bcftools",
+      "smoke_tool_id": "bcftools",
+      "smoke_path_kind": "host_stage_smoke",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local run-vcf-prepare-reference-panel-smoke --tool-id bcftools",
+      "smoke_support_path": "crates/bijux-dna/src/commands/benchmark/local_vcf_prepare_reference_panel_smoke.rs",
+      "execution_status": "local_smoke",
+      "reason": "binding `vcf.prepare_reference_panel` / `bcftools` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host",
+      "evidence_path": "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/stage-result.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.bench.stage_result.v2"
+    },
+    {
+      "family_id": "vcf.calling",
+      "surface_label": "vcf calling",
+      "stage_ids": [
+        "vcf.call",
+        "vcf.call_diploid",
+        "vcf.call_gl",
+        "vcf.call_pseudohaploid"
+      ],
+      "representative_stage_id": "vcf.call",
+      "representative_tool_id": "bcftools",
+      "registered_binary": "bcftools",
+      "smoke_tool_id": "bcftools",
+      "smoke_path_kind": "host_stage_smoke",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local run-vcf-call-smoke --tool-id bcftools",
+      "smoke_support_path": "crates/bijux-dna/src/commands/benchmark/local_vcf_call_smoke.rs",
+      "execution_status": "local_smoke",
+      "reason": "binding `vcf.call` / `bcftools` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host",
+      "evidence_path": "runs/bench/local-smoke/vcf.call/bcftools/stage-result.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.bench.stage_result.v2"
+    },
+    {
+      "family_id": "vcf.variant_curation",
+      "surface_label": "vcf variant curation",
+      "stage_ids": [
+        "vcf.damage_filter",
+        "vcf.filter",
+        "vcf.gl_propagation",
+        "vcf.postprocess"
+      ],
+      "representative_stage_id": "vcf.damage_filter",
+      "representative_tool_id": "bcftools",
+      "registered_binary": "bcftools",
+      "smoke_tool_id": "bcftools",
+      "smoke_path_kind": "host_stage_smoke",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local run-vcf-damage-filter-smoke --tool-id bcftools",
+      "smoke_support_path": "crates/bijux-dna/src/commands/benchmark/local_vcf_damage_filter_smoke.rs",
+      "execution_status": "local_smoke",
+      "reason": "binding `vcf.damage_filter` / `bcftools` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host",
+      "evidence_path": "runs/bench/local-smoke/vcf.damage_filter/bcftools/stage-result.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.bench.stage_result.v2"
+    },
+    {
+      "family_id": "vcf.quality_control",
+      "surface_label": "vcf quality control",
+      "stage_ids": [
+        "vcf.qc",
+        "vcf.stats"
+      ],
+      "representative_stage_id": "vcf.stats",
+      "representative_tool_id": "bcftools",
+      "registered_binary": "bcftools",
+      "smoke_tool_id": "bcftools",
+      "smoke_path_kind": "host_stage_smoke",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local run-vcf-stats-smoke --tool-id bcftools",
+      "smoke_support_path": "crates/bijux-dna/src/commands/benchmark/local_vcf_stats_smoke.rs",
+      "execution_status": "local_smoke",
+      "reason": "binding `vcf.stats` / `bcftools` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host",
+      "evidence_path": "runs/bench/local-smoke/vcf.stats/bcftools/stage-result.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.bench.stage_result.v2"
+    },
+    {
+      "family_id": "vcf.phasing",
+      "surface_label": "vcf phasing",
+      "stage_ids": [
+        "vcf.phasing"
+      ],
+      "representative_stage_id": "vcf.phasing",
+      "representative_tool_id": "shapeit5",
+      "registered_binary": "shapeit5",
+      "smoke_tool_id": "shapeit5",
+      "smoke_path_kind": "host_stage_smoke",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local run-vcf-phasing-smoke --tool-id shapeit5",
+      "smoke_support_path": "crates/bijux-dna/src/commands/benchmark/local_vcf_phasing_smoke.rs",
+      "execution_status": "local_smoke",
+      "reason": "binding `vcf.phasing` / `shapeit5` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host",
+      "evidence_path": "runs/bench/local-smoke/vcf.phasing/shapeit5/stage-result.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.bench.stage_result.v2"
+    },
+    {
+      "family_id": "vcf.imputation",
+      "surface_label": "vcf imputation",
+      "stage_ids": [
+        "vcf.impute",
+        "vcf.imputation_metrics"
+      ],
+      "representative_stage_id": "vcf.impute",
+      "representative_tool_id": "beagle",
+      "registered_binary": "beagle",
+      "smoke_tool_id": "beagle",
+      "smoke_path_kind": "host_stage_smoke",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local run-vcf-impute-smoke --tool-id beagle",
+      "smoke_support_path": "crates/bijux-dna/src/commands/benchmark/local_vcf_impute_smoke.rs",
+      "execution_status": "local_smoke",
+      "reason": "binding `vcf.impute` / `beagle` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host",
+      "evidence_path": "runs/bench/local-smoke/vcf.impute/beagle/stage-result.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.bench.stage_result.v2"
+    },
+    {
+      "family_id": "vcf.population_structure",
+      "surface_label": "vcf population structure",
+      "stage_ids": [
+        "vcf.population_structure",
+        "vcf.pca",
+        "vcf.admixture"
+      ],
+      "representative_stage_id": "vcf.population_structure",
+      "representative_tool_id": "plink2",
+      "registered_binary": "plink2",
+      "smoke_tool_id": "plink2",
+      "smoke_path_kind": "host_stage_smoke",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local run-vcf-population-structure-smoke --tool-id plink2",
+      "smoke_support_path": "crates/bijux-dna/src/commands/benchmark/local_vcf_population_structure_smoke.rs",
+      "execution_status": "local_smoke",
+      "reason": "binding `vcf.population_structure` / `plink2` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host",
+      "evidence_path": "runs/bench/local-smoke/vcf.population_structure/plink2/stage-result.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.bench.stage_result.v2"
+    },
+    {
+      "family_id": "vcf.descent_and_demography",
+      "surface_label": "vcf descent and demography",
+      "stage_ids": [
+        "vcf.ibd",
+        "vcf.roh",
+        "vcf.demography"
+      ],
+      "representative_stage_id": "vcf.ibd",
+      "representative_tool_id": "germline",
+      "registered_binary": "germline",
+      "smoke_tool_id": "germline",
+      "smoke_path_kind": "host_stage_smoke",
+      "smoke_runtime": "host",
+      "smoke_command": "bijux-dna bench local run-vcf-ibd-smoke --tool-id germline",
+      "smoke_support_path": "crates/bijux-dna/src/commands/benchmark/local_vcf_ibd_smoke.rs",
+      "execution_status": "local_smoke",
+      "reason": "binding `vcf.ibd` / `germline` matches the governed VCF stage-matrix default tool, so the exact tiny-fixture stage smoke wrapper is available on host",
+      "evidence_path": "runs/bench/local-smoke/vcf.ibd/germline/stage-result.json",
+      "evidence_format": "json",
+      "parsed_schema_version": "bijux.bench.stage_result.v2"
+    }
+  ]
+}

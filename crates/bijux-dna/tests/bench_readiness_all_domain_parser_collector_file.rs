@@ -8,6 +8,8 @@ mod support;
 
 fn run_cli_json_with_repo_root(args: &[&str]) -> (PathBuf, serde_json::Value) {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _repo_lock =
+        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
@@ -53,7 +55,7 @@ fn bench_readiness_all_domain_parser_collector_writes_governed_report_and_fixtur
         persisted.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/parser-collector-all-domains.json")
     );
-    assert_eq!(persisted.get("row_count").and_then(serde_json::Value::as_u64), Some(140));
+    assert_eq!(persisted.get("row_count").and_then(serde_json::Value::as_u64), Some(145));
 
     let fixture_root = repo_root.join("runs/bench/readiness-probes/all-domains/parser-collector");
     assert!(fixture_root.is_dir(), "collector fixture root must exist");

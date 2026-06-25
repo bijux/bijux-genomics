@@ -36,8 +36,33 @@ ehthumbs.db
 Thumbs.db
 
 # Logs and runtime output
-/runs/
+/runs/*
+!/runs/bench/
+/runs/bench/*
+!/runs/bench/micro/
+/runs/bench/micro/*
+!/runs/bench/micro/MICRO_BENCHMARK_REPORT.json
+!/runs/bench/micro/MICRO_BENCHMARK_REPORT.md
+!/runs/bench/micro/MICRO_BENCHMARK_RUN.json
+!/runs/bench/micro/bam/
+!/runs/bench/micro/bam/MICRO_BAM_SUMMARY.json
+!/runs/bench/micro/core/
+!/runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json
+!/runs/bench/micro/fastq/
+!/runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json
+!/runs/bench/micro/logs/
+!/runs/bench/micro/logs/MICRO_LOG_ROWS.json
+!/runs/bench/micro/logs/MICRO_RUN.log
+!/runs/bench/micro/normalized-metrics/
+!/runs/bench/micro/normalized-metrics/MICRO_NORMALIZED_METRICS.json
+!/runs/bench/micro/outputs/
+!/runs/bench/micro/outputs/MICRO_OUTPUT_ROWS.json
+!/runs/bench/micro/results/
+!/runs/bench/micro/results/MICRO_RESULT_ROWS.json
+!/runs/bench/micro/vcf/
+!/runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json
 *.log
+!/runs/bench/micro/logs/MICRO_RUN.log
 
 # Temp files
 /tmp/

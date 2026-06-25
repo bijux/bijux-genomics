@@ -6,8 +6,9 @@ NEXTEST_PROFILE_ALL ?= full
 ARTIFACTS_DIR ?= $(ARTIFACT_ROOT)/make/$(or $(MAKECMDGOALS),manual)
 NEXTEST_TOML := configs/rust/nextest.toml
 NEXTEST_CONFIG ?= --config-file $(NEXTEST_TOML)
-NEXTEST_FAST_EXPR ?= not test(/::slow__/)
-NEXTEST_SLOW_EXPR ?= test(/::slow__/)
+NEXTEST_EXPR_BIN ?= makes/bin/nextest_expr.sh
+NEXTEST_FAST_EXPR ?= $(shell "$(NEXTEST_EXPR_BIN)" fast)
+NEXTEST_SLOW_EXPR ?= $(shell "$(NEXTEST_EXPR_BIN)" slow)
 NEXTEST_NO_TESTS ?= pass
 RUN_IGNORED = --run-ignored all
 TEST_FEATURES = --all-features
@@ -21,6 +22,7 @@ COVERAGE_OUT = coverage.json
 DEV_DNA_BIN ?= $(CARGO_TARGET_DIR)/debug/bijux-dna-dev
 DEV_DNA_BOOTSTRAP ?= makes/bin/dev_dna_bootstrap.sh
 RUST_GATE_BIN ?= makes/bin/rust_gate.sh
+PINNED_REF_GATE_BIN ?= makes/bin/run_pinned_ref_gate.sh
 RS_ARTIFACT_ROOT ?= $(ARTIFACT_ROOT)/rust
 RS_RUN_ID ?= local
 RS_TARGET_DIR ?= $(abspath $(RS_ARTIFACT_ROOT)/target)
@@ -169,7 +171,7 @@ test:
 	@$(ensure_artifact_env)
 	@$(MAKE) test-rs
 
-test-rs: ## Run Rust fast suite, exclude slow-labeled tests, and enforce a 10s per-test budget.
+test-rs: ## Run Rust fast suite and exclude named plus rostered slow tests above the 1s threshold.
 	@$(ensure_artifact_env)
 	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_TARGET_DIR="$(RS_TARGET_DIR)" RS_NEXTEST_CACHE_DIR="$(RS_NEXTEST_CACHE_DIR)" RS_NEXTEST_CONFIG_HOME="$(RS_NEXTEST_CONFIG_HOME)" RS_PROFRAW_DIR="$(RS_PROFRAW_DIR)" RS_LLVM_PROFILE_FILE="$(RS_LLVM_PROFILE_FILE)" RS_TEST_REPORT="$(RS_TEST_REPORT)" NEXTEST_CONFIG_FILE="$(NEXTEST_TOML)" NEXTEST_PROFILE_FAST="$(NEXTEST_PROFILE_FAST)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" NEXTEST_STATUS_LEVEL="$(NEXTEST_STATUS_LEVEL)" NEXTEST_FINAL_STATUS_LEVEL="$(NEXTEST_FINAL_STATUS_LEVEL)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" test
 
@@ -181,7 +183,7 @@ test-slow: ## Run Rust tests labeled as slow.
 	@$(ensure_artifact_env)
 	@$(MAKE) test-slow-rs
 
-test-slow-rs: ## Run Rust slow suite (tests labeled with slow__ or promoted from the 10s fast lane budget).
+test-slow-rs: ## Run Rust slow suite (tests labeled with slow__ or promoted from the 1s fast lane budget).
 	@$(ensure_artifact_env)
 	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_TARGET_DIR="$(RS_TARGET_DIR)" RS_NEXTEST_CACHE_DIR="$(RS_NEXTEST_CACHE_DIR)" RS_NEXTEST_CONFIG_HOME="$(RS_NEXTEST_CONFIG_HOME)" RS_PROFRAW_DIR="$(RS_PROFRAW_DIR)" RS_LLVM_PROFILE_FILE="$(RS_LLVM_PROFILE_FILE)" RS_TEST_SLOW_REPORT="$(RS_TEST_SLOW_REPORT)" NEXTEST_CONFIG_FILE="$(NEXTEST_TOML)" NEXTEST_PROFILE_SLOW="$(NEXTEST_PROFILE_SLOW)" NEXTEST_SLOW_EXPR="$(NEXTEST_SLOW_EXPR)" NEXTEST_STATUS_LEVEL="$(NEXTEST_STATUS_LEVEL)" NEXTEST_FINAL_STATUS_LEVEL="$(NEXTEST_FINAL_STATUS_LEVEL)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" test-slow
 
@@ -193,17 +195,29 @@ test-all-rs: ## Run the full Rust suite, including ignored and long-running test
 	@$(ensure_artifact_env)
 	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_TARGET_DIR="$(RS_TARGET_DIR)" RS_NEXTEST_CACHE_DIR="$(RS_NEXTEST_CACHE_DIR)" RS_NEXTEST_CONFIG_HOME="$(RS_NEXTEST_CONFIG_HOME)" RS_PROFRAW_DIR="$(RS_PROFRAW_DIR)" RS_LLVM_PROFILE_FILE="$(RS_LLVM_PROFILE_FILE)" RS_TEST_ALL_REPORT="$(RS_TEST_ALL_REPORT)" NEXTEST_CONFIG_FILE="$(NEXTEST_TOML)" NEXTEST_PROFILE_ALL="$(NEXTEST_PROFILE_ALL)" NEXTEST_STATUS_LEVEL="$(NEXTEST_STATUS_LEVEL)" NEXTEST_FINAL_STATUS_LEVEL="$(NEXTEST_FINAL_STATUS_LEVEL)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" test-all
 
+test-all-frozen: ## Start a detached background full-suite run for a frozen commit and write artifacts plus frozen source under artifacts/<sha>/.
+	@$(ensure_artifact_env)
+	@PINNED_REF_GATE_TARGET="test-all" "$(PINNED_REF_GATE_BIN)"
+
+lint-frozen: ## Start a detached background lint run for a pinned commit and write artifacts plus pinned source under artifacts/<sha>/.
+	@$(ensure_artifact_env)
+	@PINNED_REF_GATE_TARGET="lint" "$(PINNED_REF_GATE_BIN)"
+
+audit-frozen: ## Start a detached background audit run for a pinned commit and write artifacts plus pinned source under artifacts/<sha>/.
+	@$(ensure_artifact_env)
+	@PINNED_REF_GATE_TARGET="audit" "$(PINNED_REF_GATE_BIN)"
+
 _test:
 	@$(ensure_artifact_env)
 	@$(MAKE) _dev-dna-bin >/dev/null
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" $(DEV_DNA_BIN) tooling run ci-test
 
-_test-fast: ## Run fast test suite excluding only slow-labeled tests.
+_test-fast: ## Run fast test suite excluding named and rostered slow tests.
 	@$(ensure_artifact_env)
 	@$(MAKE) _dev-dna-bin >/dev/null
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE_FAST)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" $(DEV_DNA_BIN) tooling run ci-test
 
-_test-slow: ## Run only slow-labeled tests (functions containing slow__).
+_test-slow: ## Run only named and rostered slow tests.
 	@$(ensure_artifact_env)
 	@$(MAKE) _dev-dna-bin >/dev/null
 	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE_SLOW)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" $(DEV_DNA_BIN) tooling run ci-test-slow
@@ -305,6 +319,191 @@ _unit-contract-fast: ## Fast unit/contract checks for critical crates.
 _release-readiness: ## Block merges on experimental tools, unknown metrics schemas, or floating pins.
 	$(MAKE) _registry-lint
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets release-readiness
+
+bench-active-fast: ## Validate active benchmark matrices, adapters, parsers, outputs, expected results, and report maps.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-active-fast
+
+bench-parser-fast: ## Run FASTQ/BAM/VCF parser fixture and malformed-fixture fast proofs.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-parser-fast
+
+bench-adapter-fast: ## Render governed adapter command surfaces and missing-input/no-placeholder proofs.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-adapter-fast
+
+bench-stage-scoring-render: ## Render the governed stage-scoring config under configs/bench/local/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-stage-scoring-render
+
+bench-stage-scoring-validate: ## Validate the governed stage-scoring config against current benchmark contracts.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-stage-scoring-validate
+
+bench-stage-scoring-dry-run: ## Render then validate the governed stage-scoring config.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-stage-scoring-render
+	@$(MAKE) bench-stage-scoring-validate
+
+bench-fastq-tool-scores-render: ## Render the governed FASTQ tool score table under runs/bench/micro/fastq/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-fastq-tool-scores-render
+
+bench-fastq-tool-scores-validate: ## Validate the governed FASTQ tool score table against current evidence contracts.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-fastq-tool-scores-validate
+
+bench-fastq-tool-scores-dry-run: ## Render then validate the governed FASTQ tool score table.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-fastq-tool-scores-render
+	@$(MAKE) bench-fastq-tool-scores-validate
+
+bench-bam-tool-scores-render: ## Render the governed BAM tool score table under runs/bench/micro/bam/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-bam-tool-scores-render
+
+bench-bam-tool-scores-validate: ## Validate the governed BAM tool score table against current evidence contracts.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-bam-tool-scores-validate
+
+bench-bam-tool-scores-dry-run: ## Render then validate the governed BAM tool score table.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-bam-tool-scores-render
+	@$(MAKE) bench-bam-tool-scores-validate
+
+bench-hpc-asset-staging-render: ## Render the governed HPC asset staging manifest under runs/bench/hpc-dry-run/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-asset-staging-render
+
+bench-hpc-asset-staging-validate: ## Validate the governed HPC asset staging manifest against current dry-run inputs.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-asset-staging-validate
+
+bench-hpc-asset-staging-dry-run: ## Render then validate the governed HPC asset staging manifest.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-hpc-asset-staging-render
+	@$(MAKE) bench-hpc-asset-staging-validate
+
+bench-hpc-candidate-run-manifest-render: ## Render the governed first-run HPC candidate manifest under benchmarks/readiness/hpc/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-candidate-run-manifest-render
+
+bench-hpc-candidate-run-manifest-validate: ## Validate the governed first-run HPC candidate manifest against current dry-run inputs.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-candidate-run-manifest-validate
+
+bench-hpc-candidate-run-manifest-dry-run: ## Render then validate the governed first-run HPC candidate manifest.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-hpc-candidate-run-manifest-render
+	@$(MAKE) bench-hpc-candidate-run-manifest-validate
+
+bench-hpc-dry-run-ready-render: ## Render the governed final HPC dry-run readiness gate under benchmarks/readiness/hpc/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-dry-run-ready-render
+
+bench-hpc-dry-run-ready-validate: ## Validate the governed final HPC dry-run readiness gate against current dry-run inputs.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-dry-run-ready-validate
+
+bench-hpc-dry-run-ready-dry-run: ## Render then validate the governed final HPC dry-run readiness gate.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-hpc-dry-run-ready-render
+	@$(MAKE) bench-hpc-dry-run-ready-validate
+
+bench-hpc-scratch-layout-render: ## Render the governed HPC scratch layout under runs/bench/hpc-dry-run/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-scratch-layout-render
+
+bench-hpc-scratch-layout-validate: ## Validate the governed HPC scratch layout against current dry-run inputs.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-scratch-layout-validate
+
+bench-hpc-scratch-layout-dry-run: ## Render then validate the governed HPC scratch layout.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-hpc-scratch-layout-render
+	@$(MAKE) bench-hpc-scratch-layout-validate
+
+bench-hpc-execution-resolver-render: ## Render the governed HPC execution resolver under runs/bench/hpc-dry-run/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-execution-resolver-render
+
+bench-hpc-execution-resolver-validate: ## Validate the governed HPC execution resolver against current dry-run inputs.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-execution-resolver-validate
+
+bench-hpc-execution-resolver-dry-run: ## Render then validate the governed HPC execution resolver.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-hpc-execution-resolver-render
+	@$(MAKE) bench-hpc-execution-resolver-validate
+
+bench-hpc-dependency-simulation-render: ## Render the governed HPC dependency simulation under runs/bench/hpc-dry-run/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-dependency-simulation-render
+
+bench-hpc-dependency-simulation-validate: ## Validate the governed HPC dependency simulation against current dry-run inputs.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-dependency-simulation-validate
+
+bench-hpc-dependency-simulation-dry-run: ## Render then validate the governed HPC dependency simulation.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-hpc-dependency-simulation-render
+	@$(MAKE) bench-hpc-dependency-simulation-validate
+
+bench-hpc-resume-simulation-render: ## Render the governed HPC resume simulation under runs/bench/hpc-dry-run/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-resume-simulation-render
+
+bench-hpc-resume-simulation-validate: ## Validate the governed HPC resume simulation against current dry-run inputs.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-resume-simulation-validate
+
+bench-hpc-resume-simulation-dry-run: ## Render then validate the governed HPC resume simulation.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-hpc-resume-simulation-render
+	@$(MAKE) bench-hpc-resume-simulation-validate
+
+bench-hpc-result-collection-simulation-render: ## Render the governed HPC result-collection simulation under runs/bench/hpc-dry-run/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-result-collection-simulation-render
+
+bench-hpc-result-collection-simulation-validate: ## Validate the governed HPC result-collection simulation against current dry-run inputs.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-result-collection-simulation-validate
+
+bench-hpc-result-collection-simulation-dry-run: ## Render then validate the governed HPC result-collection simulation.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-hpc-result-collection-simulation-render
+	@$(MAKE) bench-hpc-result-collection-simulation-validate
+
+bench-hpc-stage-benchmark-array-render: ## Render the governed HPC stage benchmark SLURM array under runs/bench/hpc-dry-run/slurm/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-stage-benchmark-array-render
+
+bench-hpc-stage-benchmark-array-validate: ## Validate the governed HPC stage benchmark SLURM array against current dry-run inputs.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-stage-benchmark-array-validate
+
+bench-hpc-stage-benchmark-array-dry-run: ## Render then validate the governed HPC stage benchmark SLURM array.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-hpc-stage-benchmark-array-render
+	@$(MAKE) bench-hpc-stage-benchmark-array-validate
+
+bench-hpc-pipeline-node-array-render: ## Render the governed HPC pipeline node SLURM array under runs/bench/hpc-dry-run/slurm/.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-pipeline-node-array-render
+
+bench-hpc-pipeline-node-array-validate: ## Validate the governed HPC pipeline node SLURM array against current dry-run inputs.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-pipeline-node-array-validate
+
+bench-hpc-pipeline-node-array-dry-run: ## Render then validate the governed HPC pipeline node SLURM array.
+	@$(ensure_artifact_env)
+	@$(MAKE) bench-hpc-pipeline-node-array-render
+	@$(MAKE) bench-hpc-pipeline-node-array-validate
+
+science-fixtures-fast: ## Validate FASTQ/BAM/VCF plus aDNA/eDNA/amplicon/population mini truth fixtures.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets science-fixtures-fast
 
 _ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
 	$(MAKE) _ssot-policy-fast
@@ -471,7 +670,7 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@cargo run -q -p bijux-dna-dev -- assets run refresh-golden
 
-.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs audit audit-rs coverage coverage-rs coverage-workspace ci doctor _check _verify-artifact-env \
+.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs test-all-frozen lint-frozen audit-frozen audit audit-rs coverage coverage-rs coverage-workspace ci doctor _check _verify-artifact-env \
 		_clean-artifact-scratch \
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \
@@ -479,7 +678,7 @@ refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/gol
 		_test-fast \
 		_clippy _clippy-executors _lint _lint-rustfmt _lint-configs _lint-docs _lint-automation _lint-clippy _lint-clippy-executors \
 		realness-gate \
-		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness _ci-fast _ci-slow _ci-profile-fast _ci-profile-slow _quick _install-ci-tools release-gate \
+		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness bench-active-fast bench-parser-fast bench-adapter-fast bench-stage-scoring-render bench-stage-scoring-validate bench-stage-scoring-dry-run bench-fastq-tool-scores-render bench-fastq-tool-scores-validate bench-fastq-tool-scores-dry-run bench-bam-tool-scores-render bench-bam-tool-scores-validate bench-bam-tool-scores-dry-run bench-hpc-asset-staging-render bench-hpc-asset-staging-validate bench-hpc-asset-staging-dry-run bench-hpc-candidate-run-manifest-render bench-hpc-candidate-run-manifest-validate bench-hpc-candidate-run-manifest-dry-run bench-hpc-scratch-layout-render bench-hpc-scratch-layout-validate bench-hpc-scratch-layout-dry-run bench-hpc-execution-resolver-render bench-hpc-execution-resolver-validate bench-hpc-execution-resolver-dry-run bench-hpc-dependency-simulation-render bench-hpc-dependency-simulation-validate bench-hpc-dependency-simulation-dry-run bench-hpc-resume-simulation-render bench-hpc-resume-simulation-validate bench-hpc-resume-simulation-dry-run bench-hpc-result-collection-simulation-render bench-hpc-result-collection-simulation-validate bench-hpc-result-collection-simulation-dry-run bench-hpc-stage-benchmark-array-render bench-hpc-stage-benchmark-array-validate bench-hpc-stage-benchmark-array-dry-run bench-hpc-pipeline-node-array-render bench-hpc-pipeline-node-array-validate bench-hpc-pipeline-node-array-dry-run science-fixtures-fast _ci-fast _ci-slow _ci-profile-fast _ci-profile-slow _quick _install-ci-tools release-gate \
 		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _control-plane-inventory _config-inventory _smoke-fastq _smoke-bam local-certification-gate _test-slow _policy-index _policy-only-fast-gate gate-essential gate-execute gate-evidence gate-compatibility gate-release-essential \
 		certify-fastq certify-bam certify-vcf certify-all \
 		refresh-assets-toy refresh-assets-golden flake-hunt

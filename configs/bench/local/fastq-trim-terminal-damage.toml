@@ -1,0 +1,23 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local benchmark fixture plan for fastq.trim_terminal_damage.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-06-22
+
+schema_version = "bijux.bench.fastq.local_trim_terminal_damage.v1"
+tool_id = "cutadapt"
+threads = 1
+damage_mode = "ancient"
+trim_5p_bases = 2
+trim_3p_bases = 1
+output_dir = "runs/bench/local-smoke/fastq.trim_terminal_damage"
+
+[[cases]]
+sample_id = "adna-like-se"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz"
+
+[[cases]]
+sample_id = "adna-like-pe"
+r1 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_pe_trim_signals_R1.fastq.gz"
+r2 = "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_pe_trim_signals_R2.fastq.gz"

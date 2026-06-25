@@ -1,9 +1,9 @@
 {
-  "schema_version": "bijux.bench.readiness.all_domain_missing_result_test.v1",
+  "schema_version": "bijux.bench.readiness.all_domain_missing_result_audit.v1",
   "output_path": "benchmarks/readiness/missing-result-test-all-domains.json",
   "fake_result_root": "runs/bench/readiness-probes/all-domains/missing-result-test",
-  "expected_row_count": 138,
-  "present_result_row_count": 135,
+  "expected_row_count": 141,
+  "present_result_row_count": 138,
   "missing_result_row_count": 3,
   "passes_behavior_test": true,
   "removed_result_ids": [
@@ -18,8 +18,8 @@
   ],
   "domain_counts": {
     "bam": 49,
-    "fastq": 69,
-    "vcf": 20
+    "fastq": 71,
+    "vcf": 21
   },
   "rows": [
     {
@@ -117,10 +117,9 @@
       "expected_metrics": [
         "authenticity_report",
         "confidence",
-        "consumed_metric_ids",
-        "missing_metric_ids",
         "pmd_like_signal_present",
-        "score"
+        "score",
+        "status"
       ],
       "report_section": "ancient_signal",
       "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:authenticct` remains present with a validated fake-run manifest"
@@ -152,10 +151,9 @@
       "expected_metrics": [
         "authenticity_report",
         "confidence",
-        "consumed_metric_ids",
-        "missing_metric_ids",
         "pmd_like_signal_present",
-        "score"
+        "score",
+        "status"
       ],
       "report_section": "ancient_signal",
       "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:damageprofiler` remains present with a validated fake-run manifest"
@@ -187,10 +185,9 @@
       "expected_metrics": [
         "authenticity_report",
         "confidence",
-        "consumed_metric_ids",
-        "missing_metric_ids",
         "pmd_like_signal_present",
-        "score"
+        "score",
+        "status"
       ],
       "report_section": "ancient_signal",
       "reason": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.authenticity:adna_damage_non_udg:pmdtools` remains present with a validated fake-run manifest"
@@ -281,9 +278,7 @@
         "ci_high",
         "ci_low",
         "contamination_report",
-        "estimate",
-        "prerequisites_passed",
-        "scope"
+        "estimate"
       ],
       "report_section": "ancient_signal",
       "reason": "expected all-domain benchmark result `bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:contammix` remains present with a validated fake-run manifest"
@@ -316,9 +311,7 @@
         "ci_high",
         "ci_low",
         "contamination_report",
-        "estimate",
-        "prerequisites_passed",
-        "scope"
+        "estimate"
       ],
       "report_section": "ancient_signal",
       "reason": "expected all-domain benchmark result `bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:schmutzi` remains present with a validated fake-run manifest"
@@ -349,9 +342,7 @@
         "ci_high",
         "ci_low",
         "contamination_report",
-        "estimate",
-        "prerequisites_passed",
-        "scope"
+        "estimate"
       ],
       "report_section": "ancient_signal",
       "reason": "expected all-domain benchmark result `bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:verifybamid2` remains present with a validated fake-run manifest"
@@ -380,9 +371,7 @@
         "breadth_1x",
         "coverage_summary",
         "covered_bases",
-        "mean_depth",
-        "observed_region_count",
-        "region_ids"
+        "mean_depth"
       ],
       "report_section": "coverage_quality",
       "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.coverage:sample-set:bedtools` remains present with a validated fake-run manifest"
@@ -411,9 +400,7 @@
         "breadth_1x",
         "coverage_summary",
         "covered_bases",
-        "mean_depth",
-        "observed_region_count",
-        "region_ids"
+        "mean_depth"
       ],
       "report_section": "coverage_quality",
       "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.coverage:sample-set:mosdepth` remains present with a validated fake-run manifest"
@@ -438,9 +425,7 @@
         "breadth_1x",
         "coverage_summary",
         "covered_bases",
-        "mean_depth",
-        "observed_region_count",
-        "region_ids"
+        "mean_depth"
       ],
       "report_section": "coverage_quality",
       "reason": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.coverage:sample-set:samtools` remains visible even though its fake-run manifest is missing"
@@ -474,8 +459,6 @@
       "expected_metrics": [
         "damage_report",
         "damage_signal",
-        "memory_mb",
-        "runtime_s",
         "terminal_c_to_t_5p",
         "terminal_g_to_a_3p"
       ],
@@ -511,8 +494,6 @@
       "expected_metrics": [
         "damage_report",
         "damage_signal",
-        "memory_mb",
-        "runtime_s",
         "terminal_c_to_t_5p",
         "terminal_g_to_a_3p"
       ],
@@ -548,8 +529,6 @@
       "expected_metrics": [
         "damage_report",
         "damage_signal",
-        "memory_mb",
-        "runtime_s",
         "terminal_c_to_t_5p",
         "terminal_g_to_a_3p"
       ],
@@ -585,8 +564,6 @@
       "expected_metrics": [
         "damage_report",
         "damage_signal",
-        "memory_mb",
-        "runtime_s",
         "terminal_c_to_t_5p",
         "terminal_g_to_a_3p"
       ],
@@ -622,8 +599,6 @@
       "expected_metrics": [
         "damage_report",
         "damage_signal",
-        "memory_mb",
-        "runtime_s",
         "terminal_c_to_t_5p",
         "terminal_g_to_a_3p"
       ],
@@ -657,8 +632,6 @@
       "expected_metrics": [
         "damage_report",
         "damage_signal",
-        "memory_mb",
-        "runtime_s",
         "terminal_c_to_t_5p",
         "terminal_g_to_a_3p"
       ],
@@ -784,7 +757,6 @@
         "summary"
       ],
       "expected_metrics": [
-        "active_filters",
         "input_reads",
         "kept_reads",
         "removed_reads",
@@ -824,7 +796,6 @@
         "summary"
       ],
       "expected_metrics": [
-        "active_filters",
         "input_reads",
         "kept_reads",
         "removed_reads",
@@ -864,7 +835,6 @@
         "summary"
       ],
       "expected_metrics": [
-        "active_filters",
         "input_reads",
         "kept_reads",
         "removed_reads",
@@ -1078,7 +1048,6 @@
         "summary"
       ],
       "expected_metrics": [
-        "filtered_bam",
         "kept_reads",
         "min_length_threshold",
         "removed_reads",
@@ -1118,7 +1087,6 @@
         "summary"
       ],
       "expected_metrics": [
-        "filtered_bam",
         "kept_reads",
         "min_length_threshold",
         "removed_reads",
@@ -1228,7 +1196,6 @@
         "summary"
       ],
       "expected_metrics": [
-        "filtered_bam",
         "kept_reads",
         "mapq_threshold",
         "removed_reads",
@@ -1268,7 +1235,6 @@
         "summary"
       ],
       "expected_metrics": [
-        "filtered_bam",
         "kept_reads",
         "mapq_threshold",
         "removed_reads",
@@ -1310,8 +1276,6 @@
       "expected_metrics": [
         "duplicate_count",
         "duplicate_fraction",
-        "duplicate_metrics",
-        "marked_bam",
         "summary"
       ],
       "report_section": "library_complexity",
@@ -1350,8 +1314,6 @@
       "expected_metrics": [
         "duplicate_count",
         "duplicate_fraction",
-        "duplicate_metrics",
-        "marked_bam",
         "summary"
       ],
       "report_section": "library_complexity",
@@ -1418,7 +1380,6 @@
         "stage_metrics"
       ],
       "expected_metrics": [
-        "contig_summary",
         "duplicate_flagged_reads",
         "mapped_reads",
         "stage_metrics",
@@ -1451,7 +1412,6 @@
         "stage_metrics"
       ],
       "expected_metrics": [
-        "contig_summary",
         "duplicate_flagged_reads",
         "mapped_reads",
         "stage_metrics",
@@ -1614,7 +1574,6 @@
         "validation_report"
       ],
       "expected_metrics": [
-        "input_bam_identity",
         "validation_errors",
         "validation_report",
         "validation_status",
@@ -1644,7 +1603,6 @@
         "validation_report"
       ],
       "expected_metrics": [
-        "input_bam_identity",
         "validation_errors",
         "validation_report",
         "validation_status",
@@ -1674,7 +1632,6 @@
         "validation_report"
       ],
       "expected_metrics": [
-        "input_bam_identity",
         "validation_errors",
         "validation_report",
         "validation_status",
@@ -1867,11 +1824,15 @@
       "expected_output_artifact_ids": [
         "contaminant_screened_reads_r1",
         "contaminant_screened_reads_r2",
+        "removed_contaminant_reads_r1",
+        "removed_contaminant_reads_r2",
         "contaminant_screen_report_json"
       ],
       "observed_output_artifact_ids": [
         "contaminant_screened_reads_r1",
         "contaminant_screened_reads_r2",
+        "removed_contaminant_reads_r1",
+        "removed_contaminant_reads_r2",
         "contaminant_screen_report_json"
       ],
       "expected_metrics": [
@@ -2042,6 +2003,33 @@
       ],
       "report_section": "read_cleanup",
       "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:bbduk` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:fastp",
+      "domain": "fastq",
+      "stage_id": "fastq.filter_low_complexity",
+      "tool_id": "fastp",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/fastp/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.filter_low_complexity/corpus_only/fastp/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "filtered_fastq_r1",
+        "filtered_fastq_r2",
+        "filter_report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "filtered_fastq_r1",
+        "filtered_fastq_r2",
+        "filter_report_json"
+      ],
+      "expected_metrics": [
+        "filter_report_json",
+        "reads_removed_low_complexity"
+      ],
+      "report_section": "read_cleanup",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:fastp` remains present with a validated fake-run manifest"
     },
     {
       "result_id": "fastq:corpus-01-mini:fastq.filter_low_complexity:sample-set:prinseq",
@@ -2874,6 +2862,36 @@
       "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq` remains present with a validated fake-run manifest"
     },
     {
+      "result_id": "fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc",
+      "domain": "fastq",
+      "stage_id": "fastq.report_qc",
+      "tool_id": "multiqc",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.report_qc/corpus_only/multiqc/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.report_qc/corpus_only/multiqc/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "multiqc_report",
+        "multiqc_data",
+        "governed_qc_inputs_manifest",
+        "report_json"
+      ],
+      "observed_output_artifact_ids": [
+        "multiqc_report",
+        "multiqc_data",
+        "governed_qc_inputs_manifest",
+        "report_json"
+      ],
+      "expected_metrics": [
+        "qc_fail_count",
+        "qc_warn_count",
+        "report_json"
+      ],
+      "report_section": "quality_profiling",
+      "reason": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc` remains present with a validated fake-run manifest"
+    },
+    {
       "result_id": "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:centrifuge",
       "domain": "fastq",
       "stage_id": "fastq.screen_taxonomy",
@@ -3433,13 +3451,11 @@
       "expected_output_artifact_ids": [
         "trimmed_reads_r1",
         "trimmed_reads_r2",
-        "raw_backend_report_json",
         "report_json"
       ],
       "observed_output_artifact_ids": [
         "trimmed_reads_r1",
         "trimmed_reads_r2",
-        "raw_backend_report_json",
         "report_json"
       ],
       "expected_metrics": [
@@ -3659,7 +3675,15 @@
         "selected_k",
         "sample_count",
         "population_count",
-        "status"
+        "status",
+        "cluster_headers",
+        "maf_summary",
+        "rows",
+        "variant_count",
+        "sample_missingness",
+        "variant_missingness",
+        "execution_mode",
+        "tool_ok"
       ],
       "report_section": "population_structure",
       "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2` remains present with a validated fake-run manifest"
@@ -3909,7 +3933,10 @@
         "dosage_r2",
         "low_confidence_sites",
         "masked_truth_sites",
-        "missing_quality_fields"
+        "missing_quality_fields",
+        "sample_count",
+        "sample_ids",
+        "variant_count"
       ],
       "report_section": "imputation",
       "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle` remains present with a validated fake-run manifest"
@@ -4005,7 +4032,11 @@
         "variant_count",
         "excluded_samples",
         "unexpected_samples",
-        "eigenvalues"
+        "eigenvalues",
+        "status",
+        "rows",
+        "execution_mode",
+        "tool_ok"
       ],
       "report_section": "population_structure",
       "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.pca:vcf_cohort:eigensoft` remains present with a validated fake-run manifest"
@@ -4037,7 +4068,11 @@
         "variant_count",
         "excluded_samples",
         "unexpected_samples",
-        "eigenvalues"
+        "eigenvalues",
+        "status",
+        "rows",
+        "execution_mode",
+        "tool_ok"
       ],
       "report_section": "population_structure",
       "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.pca:vcf_cohort:plink2` remains present with a validated fake-run manifest"
@@ -4067,8 +4102,14 @@
         "phased_vcf_tbi"
       ],
       "expected_metrics": [
-        "switch_error_proxy",
-        "phase_block_n50"
+        "input_genotypes",
+        "phased_genotypes",
+        "unphased_genotypes",
+        "phase_set_count",
+        "sample_count",
+        "sample_ids",
+        "output_variant_count",
+        "status"
       ],
       "report_section": "phasing",
       "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.phasing:vcf_cohort_with_panel:shapeit5` remains present with a validated fake-run manifest"
@@ -4102,10 +4143,16 @@
         "population_structure_report"
       ],
       "expected_metrics": [
+        "consumed_admixture",
+        "consumed_pca",
+        "distance_summary",
         "sample_count",
         "pair_count",
         "within_population_pair_count",
-        "cross_population_pair_count"
+        "cross_population_pair_count",
+        "sample_groups",
+        "status",
+        "variant_count"
       ],
       "report_section": "population_structure",
       "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2` remains present with a validated fake-run manifest"
@@ -4303,6 +4350,37 @@
       ],
       "report_section": "quality_control",
       "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.qc:vcf_cohort:plink2` remains present with a validated fake-run manifest"
+    },
+    {
+      "result_id": "vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2",
+      "domain": "vcf",
+      "stage_id": "vcf.roh",
+      "tool_id": "plink2",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "expected_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stage-result.json",
+      "audit_manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.roh/vcf_cohort/plink2/stage-result.json",
+      "result_status": "present",
+      "expected_output_artifact_ids": [
+        "roh_hom",
+        "logs_txt",
+        "roh_report"
+      ],
+      "observed_output_artifact_ids": [
+        "roh_hom",
+        "logs_txt",
+        "roh_report"
+      ],
+      "expected_metrics": [
+        "sample_count",
+        "segment_count",
+        "total_length",
+        "segments",
+        "per_sample_summary",
+        "status"
+      ],
+      "report_section": "runs_of_homozygosity",
+      "reason": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2` remains present with a validated fake-run manifest"
     },
     {
       "result_id": "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools",

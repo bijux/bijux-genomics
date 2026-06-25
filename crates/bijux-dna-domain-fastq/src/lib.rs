@@ -42,7 +42,7 @@ mod bench;
 pub mod bench_repository;
 mod chunking;
 mod comparison_contract;
-pub mod contracts;
+mod contracts;
 mod domain_adapter;
 pub mod execution_support;
 mod filter_policy_matrix;

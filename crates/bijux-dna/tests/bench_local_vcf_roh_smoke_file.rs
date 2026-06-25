@@ -1,6 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
+use std::{collections::BTreeSet, process::Command};
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
@@ -127,7 +127,27 @@ fn bench_local_vcf_roh_smoke_writes_governed_files() {
         Some("plink2")
     );
     let outputs = manifest.get("outputs").and_then(serde_json::Value::as_array).expect("outputs");
-    assert_eq!(outputs.len(), 9);
+    let observed_output_ids = outputs
+        .iter()
+        .filter_map(|row| row.get("artifact_id").and_then(serde_json::Value::as_str))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        observed_output_ids,
+        BTreeSet::from([
+            "logs_txt",
+            "roh_hom",
+            "roh_json",
+            "roh_report",
+            "roh_tsv",
+            "source_logs_txt",
+            "source_metrics_json",
+            "source_roh_metrics_json",
+            "source_roh_per_sample_tsv",
+            "source_roh_report_json",
+            "source_roh_segments_tsv",
+            "source_roh_summary_json",
+        ])
+    );
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("roh_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)

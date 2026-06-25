@@ -1,0 +1,494 @@
+{
+  "schema_version": "bijux.bench.local_hpc_candidate_run_manifest.v1",
+  "output_path": "benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json",
+  "selection_profile_id": "small_runtime_surface_representatives",
+  "evaluated_job_count": 234,
+  "benchmark_job_count": 141,
+  "root_benchmark_job_count": 141,
+  "eligible_small_job_count": 63,
+  "representative_group_count": 6,
+  "selected_job_count": 6,
+  "selected_staged_input_count": 9,
+  "selected_staged_input_bytes": 1408,
+  "selected_domain_counts": {
+    "bam": 3,
+    "fastq": 3
+  },
+  "selected_execution_mode_counts": {
+    "containerized": 2,
+    "internal": 1,
+    "java": 1,
+    "python": 2
+  },
+  "selected_resolution_kind_counts": {
+    "apptainer_image": 5,
+    "host_binary": 1
+  },
+  "exclusion_reason_counts": {
+    "non_benchmark_result": 93,
+    "resource_envelope_exceeded": 57,
+    "superseded_by_smaller_representative": 57,
+    "unknown_execution_mode": 21
+  },
+  "resource_ceiling": {
+    "cpus_per_task_max": 4,
+    "memory_mb_max": 4096,
+    "walltime_minutes_max": 15,
+    "scratch_gb_max": 2,
+    "staged_input_bytes_max": 10485760
+  },
+  "behavior": {
+    "only_benchmark_result_jobs": true,
+    "only_dependency_free_jobs": true,
+    "only_known_assets": true,
+    "only_known_execution_modes": true,
+    "only_available_execution_resolution": true,
+    "only_small_resource_envelopes": true,
+    "only_small_input_footprints": true,
+    "selected_rows_keep_expected_outputs": true,
+    "selected_rows_keep_stop_conditions": true,
+    "vcf_rows_excluded_for_unknown_execution_modes": true,
+    "proven": true
+  },
+  "rows": [
+    {
+      "representative_group_id": "bam:containerized",
+      "selection_reason": "smallest eligible dependency-free benchmark row for bam / containerized",
+      "job_id_local": "benchmark:bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:samtools",
+      "result_id": "bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:samtools",
+      "domain": "bam",
+      "stage_id": "bam.mapping_summary",
+      "tool_id": "samtools",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "execution_mode": "containerized",
+      "execution_mode_summary": "Benchmarked tools whose governed operator runtime is a direct CLI inside a managed container image.",
+      "resolution_kind": "apptainer_image",
+      "resolution_target": "${BIJUX_HPC_ROOT}/.cache/bijux-dna-container/samtools/afee6e0ed0cca3beb95e28515eecf56857013d96acc6ed7947660d7197777b1a.sif",
+      "command_entrypoint": "samtools",
+      "expected_stage_result_manifest_path": "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/samtools/corpus-01-bam-mini/sample-set/stage-result.json",
+      "expected_outputs": [
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/samtools/corpus-01-bam-mini/sample-set/declared-outputs/flagstat.txt",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/samtools/corpus-01-bam-mini/sample-set/declared-outputs/idxstats.txt",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/samtools/corpus-01-bam-mini/sample-set/declared-outputs/stats.txt",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/samtools/corpus-01-bam-mini/sample-set/declared-outputs/stage_metrics.json",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/samtools/corpus-01-bam-mini/sample-set/declared-outputs/summary.json",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/samtools/corpus-01-bam-mini/sample-set/stage-result.json"
+      ],
+      "resource_hint": {
+        "cpus_per_task": 3,
+        "memory_mb": 2048,
+        "time_limit": "00:07:00",
+        "walltime_minutes": 7,
+        "scratch_gb": 2
+      },
+      "staged_input_count": 1,
+      "staged_input_total_bytes": 332,
+      "staged_inputs": [
+        {
+          "artifact_id": null,
+          "artifact_role": null,
+          "source_kind": "file",
+          "source_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam",
+          "staged_path": "runs/bench/hpc-dry-run/staged/benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam",
+          "checksum_sha256": "a2bdd0c0202237211627713138c9f34e20664f085ac17d4af2b06eabff08a466",
+          "size_bytes": 332,
+          "member_count": 1,
+          "consumer_result_id": "bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:samtools"
+        }
+      ],
+      "stop_conditions": [
+        {
+          "condition_id": "missing_stage_result_manifest",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/samtools/corpus-01-bam-mini/sample-set/stage-result.json` is missing after `benchmark:bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:samtools` finishes under `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/samtools/corpus-01-bam-mini/sample-set`"
+        },
+        {
+          "condition_id": "failed_stage_result_manifest",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/samtools/corpus-01-bam-mini/sample-set/stage-result.json` records runtime status `failed` for `benchmark:bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:samtools`"
+        },
+        {
+          "condition_id": "stale_partial_outputs",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `benchmark:bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:samtools` reports success but any declared output under `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/samtools/corpus-01-bam-mini/sample-set` is missing or mismatched"
+        },
+        {
+          "condition_id": "unexpected_collection_status",
+          "source_surface": "local_hpc_result_collection_simulation",
+          "detail": "stop the candidate run if result collection would classify `benchmark:bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:samtools` as anything other than `complete` once its declared outputs land"
+        }
+      ]
+    },
+    {
+      "representative_group_id": "bam:java",
+      "selection_reason": "smallest eligible dependency-free benchmark row for bam / java",
+      "job_id_local": "benchmark:bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:picard",
+      "result_id": "bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:picard",
+      "domain": "bam",
+      "stage_id": "bam.mapping_summary",
+      "tool_id": "picard",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "execution_mode": "java",
+      "execution_mode_summary": "Benchmarked tools whose governed operator surface is a Java application or Java-backed launcher inside a managed container.",
+      "resolution_kind": "apptainer_image",
+      "resolution_target": "${BIJUX_HPC_ROOT}/.cache/bijux-dna-container/picard/4b1d76d421283677c9ea150c1beb673ba5636c5bddf3bb015bb536f0766cef98.sif",
+      "command_entrypoint": "picard",
+      "expected_stage_result_manifest_path": "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/picard/corpus-01-bam-mini/sample-set/stage-result.json",
+      "expected_outputs": [
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/picard/corpus-01-bam-mini/sample-set/declared-outputs/flagstat.txt",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/picard/corpus-01-bam-mini/sample-set/declared-outputs/idxstats.txt",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/picard/corpus-01-bam-mini/sample-set/declared-outputs/stats.txt",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/picard/corpus-01-bam-mini/sample-set/declared-outputs/stage_metrics.json",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/picard/corpus-01-bam-mini/sample-set/declared-outputs/summary.json",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/picard/corpus-01-bam-mini/sample-set/stage-result.json"
+      ],
+      "resource_hint": {
+        "cpus_per_task": 3,
+        "memory_mb": 2048,
+        "time_limit": "00:07:00",
+        "walltime_minutes": 7,
+        "scratch_gb": 2
+      },
+      "staged_input_count": 1,
+      "staged_input_total_bytes": 332,
+      "staged_inputs": [
+        {
+          "artifact_id": null,
+          "artifact_role": null,
+          "source_kind": "file",
+          "source_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam",
+          "staged_path": "runs/bench/hpc-dry-run/staged/benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam",
+          "checksum_sha256": "a2bdd0c0202237211627713138c9f34e20664f085ac17d4af2b06eabff08a466",
+          "size_bytes": 332,
+          "member_count": 1,
+          "consumer_result_id": "bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:picard"
+        }
+      ],
+      "stop_conditions": [
+        {
+          "condition_id": "missing_stage_result_manifest",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/picard/corpus-01-bam-mini/sample-set/stage-result.json` is missing after `benchmark:bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:picard` finishes under `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/picard/corpus-01-bam-mini/sample-set`"
+        },
+        {
+          "condition_id": "failed_stage_result_manifest",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/picard/corpus-01-bam-mini/sample-set/stage-result.json` records runtime status `failed` for `benchmark:bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:picard`"
+        },
+        {
+          "condition_id": "stale_partial_outputs",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `benchmark:bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:picard` reports success but any declared output under `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.mapping_summary/picard/corpus-01-bam-mini/sample-set` is missing or mismatched"
+        },
+        {
+          "condition_id": "unexpected_collection_status",
+          "source_surface": "local_hpc_result_collection_simulation",
+          "detail": "stop the candidate run if result collection would classify `benchmark:bam:corpus-01-bam-mini:bam.mapping_summary:sample-set:picard` as anything other than `complete` once its declared outputs land"
+        }
+      ]
+    },
+    {
+      "representative_group_id": "bam:python",
+      "selection_reason": "smallest eligible dependency-free benchmark row for bam / python",
+      "job_id_local": "benchmark:bam:corpus-01-bam-mini:bam.qc_pre:sample-set:multiqc",
+      "result_id": "bam:corpus-01-bam-mini:bam.qc_pre:sample-set:multiqc",
+      "domain": "bam",
+      "stage_id": "bam.qc_pre",
+      "tool_id": "multiqc",
+      "corpus_id": "corpus-01-bam-mini",
+      "asset_profile_id": "corpus_only",
+      "execution_mode": "python",
+      "execution_mode_summary": "Benchmarked tools whose governed operator surface is a Python CLI inside a managed container.",
+      "resolution_kind": "apptainer_image",
+      "resolution_target": "${BIJUX_HPC_ROOT}/.cache/bijux-dna-container/multiqc/40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec.sif",
+      "command_entrypoint": "multiqc",
+      "expected_stage_result_manifest_path": "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.qc_pre/multiqc/corpus-01-bam-mini/sample-set/stage-result.json",
+      "expected_outputs": [
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.qc_pre/multiqc/corpus-01-bam-mini/sample-set/declared-outputs/report.json",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.qc_pre/multiqc/corpus-01-bam-mini/sample-set/declared-outputs/multiqc_report.json",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.qc_pre/multiqc/corpus-01-bam-mini/sample-set/declared-outputs/multiqc_data.txt",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.qc_pre/multiqc/corpus-01-bam-mini/sample-set/declared-outputs/governed_qc_inputs_manifest.json",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.qc_pre/multiqc/corpus-01-bam-mini/sample-set/declared-outputs/stage_metrics.json",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.qc_pre/multiqc/corpus-01-bam-mini/sample-set/stage-result.json"
+      ],
+      "resource_hint": {
+        "cpus_per_task": 3,
+        "memory_mb": 2048,
+        "time_limit": "00:07:00",
+        "walltime_minutes": 7,
+        "scratch_gb": 2
+      },
+      "staged_input_count": 1,
+      "staged_input_total_bytes": 349,
+      "staged_inputs": [
+        {
+          "artifact_id": "bam",
+          "artifact_role": "bam",
+          "source_kind": "file",
+          "source_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_flagged_multicontig.sam",
+          "staged_path": "runs/bench/hpc-dry-run/staged/benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_duplicate_flagged_multicontig.sam",
+          "checksum_sha256": "c49415bf1275d46aaefb66c598fadd3b4357e336989fec75f3e1f45131232456",
+          "size_bytes": 349,
+          "member_count": 1,
+          "consumer_result_id": "bam:corpus-01-bam-mini:bam.qc_pre:sample-set:multiqc"
+        }
+      ],
+      "stop_conditions": [
+        {
+          "condition_id": "missing_stage_result_manifest",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.qc_pre/multiqc/corpus-01-bam-mini/sample-set/stage-result.json` is missing after `benchmark:bam:corpus-01-bam-mini:bam.qc_pre:sample-set:multiqc` finishes under `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.qc_pre/multiqc/corpus-01-bam-mini/sample-set`"
+        },
+        {
+          "condition_id": "failed_stage_result_manifest",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.qc_pre/multiqc/corpus-01-bam-mini/sample-set/stage-result.json` records runtime status `failed` for `benchmark:bam:corpus-01-bam-mini:bam.qc_pre:sample-set:multiqc`"
+        },
+        {
+          "condition_id": "stale_partial_outputs",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `benchmark:bam:corpus-01-bam-mini:bam.qc_pre:sample-set:multiqc` reports success but any declared output under `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/bam/bam.qc_pre/multiqc/corpus-01-bam-mini/sample-set` is missing or mismatched"
+        },
+        {
+          "condition_id": "unexpected_collection_status",
+          "source_surface": "local_hpc_result_collection_simulation",
+          "detail": "stop the candidate run if result collection would classify `benchmark:bam:corpus-01-bam-mini:bam.qc_pre:sample-set:multiqc` as anything other than `complete` once its declared outputs land"
+        }
+      ]
+    },
+    {
+      "representative_group_id": "fastq:containerized",
+      "selection_reason": "smallest eligible dependency-free benchmark row for fastq / containerized",
+      "job_id_local": "benchmark:fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit",
+      "result_id": "fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_terminal_damage",
+      "tool_id": "seqkit",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "execution_mode": "containerized",
+      "execution_mode_summary": "Benchmarked tools whose governed operator runtime is a direct CLI inside a managed container image.",
+      "resolution_kind": "apptainer_image",
+      "resolution_target": "${BIJUX_HPC_ROOT}/.cache/bijux-dna-container/seqkit/ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991.sif",
+      "command_entrypoint": "seqkit",
+      "expected_stage_result_manifest_path": "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_terminal_damage/seqkit/corpus-01-mini/sample-set/stage-result.json",
+      "expected_outputs": [
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_terminal_damage/seqkit/corpus-01-mini/sample-set/declared-outputs/trimmed_reads_r1.fastq",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_terminal_damage/seqkit/corpus-01-mini/sample-set/declared-outputs/trimmed_reads_r2.fastq",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_terminal_damage/seqkit/corpus-01-mini/sample-set/declared-outputs/report.json",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_terminal_damage/seqkit/corpus-01-mini/sample-set/stage-result.json"
+      ],
+      "resource_hint": {
+        "cpus_per_task": 2,
+        "memory_mb": 4096,
+        "time_limit": "00:15:00",
+        "walltime_minutes": 15,
+        "scratch_gb": 2
+      },
+      "staged_input_count": 1,
+      "staged_input_total_bytes": 57,
+      "staged_inputs": [
+        {
+          "artifact_id": null,
+          "artifact_role": null,
+          "source_kind": "file",
+          "source_path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz",
+          "staged_path": "runs/bench/hpc-dry-run/staged/benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/adna_like_se_compact_R1.fastq.gz",
+          "checksum_sha256": "4302070f4c732a3767d4c4898bc4e75ed1a00a8f65a81364312ee73d6c73b7b3",
+          "size_bytes": 57,
+          "member_count": 1,
+          "consumer_result_id": "fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit"
+        }
+      ],
+      "stop_conditions": [
+        {
+          "condition_id": "missing_stage_result_manifest",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_terminal_damage/seqkit/corpus-01-mini/sample-set/stage-result.json` is missing after `benchmark:fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit` finishes under `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_terminal_damage/seqkit/corpus-01-mini/sample-set`"
+        },
+        {
+          "condition_id": "failed_stage_result_manifest",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_terminal_damage/seqkit/corpus-01-mini/sample-set/stage-result.json` records runtime status `failed` for `benchmark:fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit`"
+        },
+        {
+          "condition_id": "stale_partial_outputs",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `benchmark:fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit` reports success but any declared output under `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_terminal_damage/seqkit/corpus-01-mini/sample-set` is missing or mismatched"
+        },
+        {
+          "condition_id": "unexpected_collection_status",
+          "source_surface": "local_hpc_result_collection_simulation",
+          "detail": "stop the candidate run if result collection would classify `benchmark:fastq:corpus-01-mini:fastq.trim_terminal_damage:sample-set:seqkit` as anything other than `complete` once its declared outputs land"
+        }
+      ]
+    },
+    {
+      "representative_group_id": "fastq:internal",
+      "selection_reason": "smallest eligible dependency-free benchmark row for fastq / internal",
+      "job_id_local": "benchmark:fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna",
+      "result_id": "fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna",
+      "domain": "fastq",
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "tool_id": "bijux_dna",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "execution_mode": "internal",
+      "execution_mode_summary": "Repository-owned workspace binaries executed directly from the governed checkout.",
+      "resolution_kind": "host_binary",
+      "resolution_target": "bijux-dna",
+      "command_entrypoint": "bijux-dna",
+      "expected_stage_result_manifest_path": "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.detect_duplicates_premerge/bijux_dna/corpus-01-mini/sample-set/stage-result.json",
+      "expected_outputs": [
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.detect_duplicates_premerge/bijux_dna/corpus-01-mini/sample-set/declared-outputs/duplicate_signal_report.json",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.detect_duplicates_premerge/bijux_dna/corpus-01-mini/sample-set/stage-result.json"
+      ],
+      "resource_hint": {
+        "cpus_per_task": 1,
+        "memory_mb": 1024,
+        "time_limit": "00:15:00",
+        "walltime_minutes": 15,
+        "scratch_gb": 1
+      },
+      "staged_input_count": 4,
+      "staged_input_total_bytes": 238,
+      "staged_inputs": [
+        {
+          "artifact_id": "reads_r1",
+          "artifact_role": "reads",
+          "source_kind": "file",
+          "source_path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz",
+          "staged_path": "runs/bench/hpc-dry-run/staged/benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R1.fastq.gz",
+          "checksum_sha256": "4302070f4c732a3767d4c4898bc4e75ed1a00a8f65a81364312ee73d6c73b7b3",
+          "size_bytes": 57,
+          "member_count": 1,
+          "consumer_result_id": "fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna"
+        },
+        {
+          "artifact_id": "reads_r2",
+          "artifact_role": "reads",
+          "source_kind": "file",
+          "source_path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz",
+          "staged_path": "runs/bench/hpc-dry-run/staged/benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_distinct_pairs_R2.fastq.gz",
+          "checksum_sha256": "f612d3debda9d0cb18fde911da0ad72d99d2060be6f5796620aed88142fedd07",
+          "size_bytes": 57,
+          "member_count": 1,
+          "consumer_result_id": "fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna"
+        },
+        {
+          "artifact_id": "reads_r1",
+          "artifact_role": "reads",
+          "source_kind": "file",
+          "source_path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz",
+          "staged_path": "runs/bench/hpc-dry-run/staged/benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R1.fastq.gz",
+          "checksum_sha256": "55f79566313a604ef994e57988d439e7d19de0902d5341ebd7da9f4fa2c0c327",
+          "size_bytes": 60,
+          "member_count": 1,
+          "consumer_result_id": "fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna"
+        },
+        {
+          "artifact_id": "reads_r2",
+          "artifact_role": "reads",
+          "source_kind": "file",
+          "source_path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz",
+          "staged_path": "runs/bench/hpc-dry-run/staged/benchmarks/tests/fixtures/corpora/corpus-01-mini/normalized/human_like_pe_duplicate_signals_R2.fastq.gz",
+          "checksum_sha256": "af9597d01bbef57e9646873f769cd33a607cf7637e03b3b7a1761568ceb15dd1",
+          "size_bytes": 64,
+          "member_count": 1,
+          "consumer_result_id": "fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna"
+        }
+      ],
+      "stop_conditions": [
+        {
+          "condition_id": "missing_stage_result_manifest",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.detect_duplicates_premerge/bijux_dna/corpus-01-mini/sample-set/stage-result.json` is missing after `benchmark:fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna` finishes under `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.detect_duplicates_premerge/bijux_dna/corpus-01-mini/sample-set`"
+        },
+        {
+          "condition_id": "failed_stage_result_manifest",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.detect_duplicates_premerge/bijux_dna/corpus-01-mini/sample-set/stage-result.json` records runtime status `failed` for `benchmark:fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna`"
+        },
+        {
+          "condition_id": "stale_partial_outputs",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `benchmark:fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna` reports success but any declared output under `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.detect_duplicates_premerge/bijux_dna/corpus-01-mini/sample-set` is missing or mismatched"
+        },
+        {
+          "condition_id": "unexpected_collection_status",
+          "source_surface": "local_hpc_result_collection_simulation",
+          "detail": "stop the candidate run if result collection would classify `benchmark:fastq:corpus-01-mini:fastq.detect_duplicates_premerge:sample-set:bijux_dna` as anything other than `complete` once its declared outputs land"
+        }
+      ]
+    },
+    {
+      "representative_group_id": "fastq:python",
+      "selection_reason": "smallest eligible dependency-free benchmark row for fastq / python",
+      "job_id_local": "benchmark:fastq:corpus-01-mini:fastq.trim_reads:sample-set:atropos",
+      "result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:atropos",
+      "domain": "fastq",
+      "stage_id": "fastq.trim_reads",
+      "tool_id": "atropos",
+      "corpus_id": "corpus-01-mini",
+      "asset_profile_id": "corpus_only",
+      "execution_mode": "python",
+      "execution_mode_summary": "Benchmarked tools whose governed operator surface is a Python CLI inside a managed container.",
+      "resolution_kind": "apptainer_image",
+      "resolution_target": "${BIJUX_HPC_ROOT}/.cache/bijux-dna-container/atropos/5a2fab22811303ced83475111a2427eaa894fcb39436618bb26be1da391f300d.sif",
+      "command_entrypoint": "atropos",
+      "expected_stage_result_manifest_path": "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_reads/atropos/corpus-01-mini/sample-set/stage-result.json",
+      "expected_outputs": [
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_reads/atropos/corpus-01-mini/sample-set/declared-outputs/trimmed_reads_r1.fastq",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_reads/atropos/corpus-01-mini/sample-set/declared-outputs/trimmed_reads_r2.fastq",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_reads/atropos/corpus-01-mini/sample-set/declared-outputs/report.json",
+        "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_reads/atropos/corpus-01-mini/sample-set/stage-result.json"
+      ],
+      "resource_hint": {
+        "cpus_per_task": 2,
+        "memory_mb": 4096,
+        "time_limit": "00:15:00",
+        "walltime_minutes": 15,
+        "scratch_gb": 2
+      },
+      "staged_input_count": 1,
+      "staged_input_total_bytes": 100,
+      "staged_inputs": [
+        {
+          "artifact_id": null,
+          "artifact_role": null,
+          "source_kind": "file",
+          "source_path": "assets/toy/core-v1/fastq/reads_with_trim_signals.fastq",
+          "staged_path": "runs/bench/hpc-dry-run/staged/assets/toy/core-v1/fastq/reads_with_trim_signals.fastq",
+          "checksum_sha256": "c54b84a725f8ded36070c39535fe5bc3ff44356532267188ea75ad578fcb8d3a",
+          "size_bytes": 100,
+          "member_count": 1,
+          "consumer_result_id": "fastq:corpus-01-mini:fastq.trim_reads:sample-set:atropos"
+        }
+      ],
+      "stop_conditions": [
+        {
+          "condition_id": "missing_stage_result_manifest",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_reads/atropos/corpus-01-mini/sample-set/stage-result.json` is missing after `benchmark:fastq:corpus-01-mini:fastq.trim_reads:sample-set:atropos` finishes under `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_reads/atropos/corpus-01-mini/sample-set`"
+        },
+        {
+          "condition_id": "failed_stage_result_manifest",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_reads/atropos/corpus-01-mini/sample-set/stage-result.json` records runtime status `failed` for `benchmark:fastq:corpus-01-mini:fastq.trim_reads:sample-set:atropos`"
+        },
+        {
+          "condition_id": "stale_partial_outputs",
+          "source_surface": "local_hpc_job_completion",
+          "detail": "stop the candidate run if `benchmark:fastq:corpus-01-mini:fastq.trim_reads:sample-set:atropos` reports success but any declared output under `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/fastq/fastq.trim_reads/atropos/corpus-01-mini/sample-set` is missing or mismatched"
+        },
+        {
+          "condition_id": "unexpected_collection_status",
+          "source_surface": "local_hpc_result_collection_simulation",
+          "detail": "stop the candidate run if result collection would classify `benchmark:fastq:corpus-01-mini:fastq.trim_reads:sample-set:atropos` as anything other than `complete` once its declared outputs land"
+        }
+      ]
+    }
+  ]
+}

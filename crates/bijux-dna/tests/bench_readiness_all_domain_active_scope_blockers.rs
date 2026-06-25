@@ -50,9 +50,9 @@ fn bench_readiness_all_domain_active_scope_blockers_reports_exact_removed_bindin
         payload.get("removed_from_scope_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/removed-from-scope.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(10));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(8));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(10));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
@@ -61,16 +61,12 @@ fn bench_readiness_all_domain_active_scope_blockers_reports_exact_removed_bindin
         .and_then(serde_json::Value::as_object)
         .expect("blocker type counts");
     assert_eq!(
-        blocker_type_counts.get("benchmark_not_ready").and_then(serde_json::Value::as_u64),
-        Some(3)
-    );
-    assert_eq!(
         blocker_type_counts.get("lifecycle_not_active").and_then(serde_json::Value::as_u64),
-        Some(7)
+        Some(2)
     );
     assert!(
-        blocker_type_counts.get("non_executable_adapter").is_none(),
-        "current active-scope blockers should be fully explained by lifecycle and benchmark readiness exits"
+        blocker_type_counts.len() == 1,
+        "current active-scope blockers should be fully explained by lifecycle exits"
     );
 
     let blocker_path_counts = payload
@@ -79,35 +75,36 @@ fn bench_readiness_all_domain_active_scope_blockers_reports_exact_removed_bindin
         .expect("blocker path counts");
     assert_eq!(
         blocker_path_counts
-            .get("benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json")
-            .and_then(serde_json::Value::as_u64),
-        Some(3)
-    );
-    assert_eq!(
-        blocker_path_counts
             .get("benchmarks/readiness/all-domains/no-planned-rows.json")
             .and_then(serde_json::Value::as_u64),
-        Some(7)
+        Some(2)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 10);
+    assert_eq!(rows.len(), 2);
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
     assert!(violations.is_empty(), "active-scope blocker table must fail closed on drift");
 
     assert!(rows.iter().any(|row| {
-        row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
-            && row.get("stage_id").and_then(serde_json::Value::as_str)
-                == Some("fastq.index_reference")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bowtie2_build")
-            && row.get("corpus_id").and_then(serde_json::Value::as_str) == Some("not_assigned")
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.demography")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ibdne")
+            && row.get("corpus_id").and_then(serde_json::Value::as_str)
+                == Some("vcf_production_regression")
             && row.get("asset_profile_id").and_then(serde_json::Value::as_str)
-                == Some("reference_fasta+reference_index_output")
+                == Some("json_ibd_segments")
             && row.get("blocker_type").and_then(serde_json::Value::as_str)
-                == Some("benchmark_not_ready")
+                == Some("lifecycle_not_active")
             && row.get("blocker_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json")
+                == Some("benchmarks/readiness/all-domains/no-planned-rows.json")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.ibd")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("germline")
+            && row.get("blocker_type").and_then(serde_json::Value::as_str)
+                == Some("lifecycle_not_active")
     }));
     assert!(
         rows.iter().all(|row| {

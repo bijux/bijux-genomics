@@ -46,34 +46,34 @@ fn bench_readiness_bam_report_map_reports_governed_stage_sections() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("bam"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam-report-map.tsv")
+        Some("benchmarks/readiness/bam/bam-report-map.tsv")
     );
+    assert_eq!(
+        payload.get("expected_result_row_count").and_then(serde_json::Value::as_u64),
+        Some(49)
+    );
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(49));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(24));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(25));
     assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(7));
     assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(7));
-    assert_eq!(
-        payload
-            .get("section_counts")
-            .and_then(|value| value.get("alignment_intake"))
-            .and_then(serde_json::Value::as_u64),
-        Some(4)
-    );
-    assert_eq!(
-        payload
-            .get("section_counts")
-            .and_then(|value| value.get("alignment_refinement"))
-            .and_then(serde_json::Value::as_u64),
-        Some(4)
-    );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 24);
+    assert_eq!(rows.len(), 49);
 
     let align = rows
         .iter()
-        .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align"))
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bwa")
+        })
         .expect("align row");
+    assert_eq!(
+        align.get("result_row_id").and_then(serde_json::Value::as_str),
+        Some("bam:corpus-01-mini:bam.align:sample-set:bwa")
+    );
     assert_eq!(align.get("anchor_tool_id").and_then(serde_json::Value::as_str), Some("bwa"));
+    assert_eq!(align.get("support_status").and_then(serde_json::Value::as_str), Some("supported"));
     assert_eq!(
         align.get("report_section_id").and_then(serde_json::Value::as_str),
         Some("alignment_intake")
@@ -87,6 +87,7 @@ fn bench_readiness_bam_report_map_reports_governed_stage_sections() {
         .iter()
         .find(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.contamination")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("schmutzi")
         })
         .expect("contamination row");
     assert_eq!(
@@ -104,9 +105,13 @@ fn bench_readiness_bam_report_map_reports_governed_stage_sections() {
 
     let sex = rows
         .iter()
-        .find(|row| row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.sex"))
+        .find(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.sex")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("rxy")
+        })
         .expect("sex row");
     assert_eq!(sex.get("anchor_tool_id").and_then(serde_json::Value::as_str), Some("rxy"));
+    assert_eq!(sex.get("support_status").and_then(serde_json::Value::as_str), Some("supported"));
     assert_eq!(
         sex.get("scientific_context_required")
             .and_then(serde_json::Value::as_array)
@@ -118,6 +123,7 @@ fn bench_readiness_bam_report_map_reports_governed_stage_sections() {
         .iter()
         .find(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.recalibration")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("gatk")
         })
         .expect("recalibration row");
     assert_eq!(

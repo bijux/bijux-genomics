@@ -1,5 +1,4 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -95,9 +94,11 @@ pub(crate) fn render_all_domain_adapter_coverage(
     let report = build_all_domain_adapter_coverage_report(repo_root, &output_path)?;
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&output_path, render_all_domain_adapter_coverage_tsv(&report.rows))
+    let rendered = render_all_domain_adapter_coverage_tsv(&report.rows);
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", output_path.display()))?;
     if !report.ok {
         return Err(anyhow!(
@@ -466,21 +467,22 @@ mod tests {
         assert_eq!(report.schema_version, ALL_DOMAIN_ADAPTER_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_ADAPTER_COVERAGE_PATH);
         assert_eq!(report.result_id_count, report.row_count);
-        assert_eq!(report.stage_count, 67);
+        assert_eq!(report.stage_count, 69);
         assert_eq!(report.tool_count, 71);
         assert_eq!(report.rendered_command_binding_count, report.row_count);
         assert_eq!(report.covered_row_count, report.row_count);
         assert_eq!(report.missing_row_count, 0);
         assert_eq!(report.coverage_percent, 100.0);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&69));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&71));
         assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&20));
-        assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&118));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&21));
+        assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&120));
         assert_eq!(report.command_source_counts.get("vcf_bcftools_adapter"), Some(&11));
         assert_eq!(report.command_source_counts.get("vcf_eigensoft_adapter"), Some(&1));
         assert_eq!(report.command_source_counts.get("vcf_imputation_family_adapter"), Some(&2));
         assert_eq!(report.command_source_counts.get("vcf_phasing_family_adapter"), Some(&1));
         assert_eq!(report.command_source_counts.get("vcf_plink_family_adapter"), Some(&5));
+        assert_eq!(report.command_source_counts.get("vcf_descent_family_adapter"), Some(&1));
         assert_eq!(report.coverage_status_counts.get("covered"), Some(&report.row_count));
         assert_eq!(report.violation_count, 0);
         assert!(report.ok);

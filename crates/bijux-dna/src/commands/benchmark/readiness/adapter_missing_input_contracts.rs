@@ -1,23 +1,23 @@
 #[cfg(feature = "bam_downstream")]
 #[test]
-fn render_adapter_missing_input_tests_reports_governed_probe_rows() {
+fn render_adapter_missing_input_audit_reports_governed_probe_rows() {
     use std::path::PathBuf;
 
-    use super::adapter_missing_input_tests::{
-        render_adapter_missing_input_tests, DEFAULT_ADAPTER_MISSING_INPUT_TESTS_PATH,
+    use super::adapter_missing_input_audit::{
+        render_adapter_missing_input_audit, DEFAULT_ADAPTER_MISSING_INPUT_TESTS_PATH,
     };
 
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .canonicalize()
         .expect("canonicalize repo root");
-    let report = render_adapter_missing_input_tests(
+    let report = render_adapter_missing_input_audit(
         &root,
         PathBuf::from(DEFAULT_ADAPTER_MISSING_INPUT_TESTS_PATH),
     )
     .expect("render adapter missing-input tests");
 
-    assert_eq!(report.schema_version, "bijux.bench.readiness.adapter_missing_input_tests.v1");
+    assert_eq!(report.schema_version, "bijux.bench.readiness.adapter_missing_input_audit.v1");
     assert_eq!(report.output_path, "benchmarks/readiness/adapter-missing-input-tests.json");
     assert_eq!(report.row_count, 33);
     assert_eq!(report.passed_row_count, 33);

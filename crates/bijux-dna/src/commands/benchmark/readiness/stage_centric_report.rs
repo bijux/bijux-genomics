@@ -1,5 +1,4 @@
 use std::collections::BTreeMap;
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -126,9 +125,11 @@ pub(crate) fn render_stage_centric_report(
     }
 
     if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(&output_path, render_stage_centric_markdown(&stages))
+    let rendered = render_stage_centric_markdown(&stages);
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
         .with_context(|| format!("write {}", output_path.display()))?;
 
     Ok(StageCentricReport {
@@ -284,7 +285,7 @@ fn load_shared_metric_fields_by_stage(
             .unwrap_or_default()
             .as_nanos()
     ));
-    fs::create_dir_all(&scratch_root)
+    bijux_dna_infra::ensure_dir(&scratch_root)
         .with_context(|| format!("create {}", scratch_root.display()))?;
     let fastq_report = render_fastq_comparable_metrics(
         repo_root,
@@ -298,7 +299,7 @@ fn load_shared_metric_fields_by_stage(
     for row in bam_report.rows {
         by_stage.insert(("bam".to_string(), row.stage_id), row.shared_metric_fields);
     }
-    let _ = fs::remove_dir_all(&scratch_root);
+    let _ = bijux_dna_infra::remove_dir_all(&scratch_root);
     Ok(by_stage)
 }
 
@@ -310,9 +311,9 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         ));
     }
     let row_count = stages.iter().map(|stage| stage.tool_count).sum::<usize>();
-    if row_count != 122 {
+    if row_count != 120 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 122 stage-tool rows, found {row_count}"
+            "stage-centric report must retain exactly 120 stage-tool rows, found {row_count}"
         ));
     }
     let multi_tool_stage_count = stages.iter().filter(|stage| stage.tool_count > 1).count();
@@ -322,9 +323,9 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         ));
     }
     let blocked_stage_count = stages.iter().filter(|stage| stage.blocked_tool_count > 0).count();
-    if blocked_stage_count != 3 {
+    if blocked_stage_count != 0 {
         return Err(anyhow!(
-            "stage-centric report must retain exactly 3 blocked stages, found {blocked_stage_count}"
+            "stage-centric report must retain exactly 0 blocked stages, found {blocked_stage_count}"
         ));
     }
     let declared_shared_metric_stage_count =
@@ -342,7 +343,7 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         ));
     }
 
-    ensure_stage(stages, "fastq", "fastq.trim_reads", 14, 1, "not_declared", &[])?;
+    ensure_stage(stages, "fastq", "fastq.trim_reads", 13, 0, "not_declared", &[])?;
     ensure_stage(
         stages,
         "fastq",
@@ -368,7 +369,7 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         6,
         0,
         "declared",
-        &["terminal_c_to_t_5p", "terminal_g_to_a_3p", "damage_signal", "runtime_s", "memory_mb"],
+        &["terminal_c_to_t_5p", "terminal_g_to_a_3p", "damage_signal"],
     )?;
     ensure_stage(
         stages,
@@ -377,7 +378,7 @@ fn ensure_stage_centric_report_contract(stages: &[StageCentricStageReport]) -> R
         3,
         0,
         "declared",
-        &["scope", "prerequisites_passed", "estimate", "ci_low", "ci_high"],
+        &["estimate", "ci_low", "ci_high"],
     )?;
     Ok(())
 }
@@ -560,20 +561,20 @@ mod tests {
 
         assert_eq!(report.stage_count, 51);
         assert_eq!(report.multi_tool_stage_count, 29);
-        assert_eq!(report.blocked_stage_count, 3);
+        assert_eq!(report.blocked_stage_count, 0);
         assert_eq!(report.declared_shared_metric_stage_count, 18);
         assert_eq!(report.not_declared_shared_metric_stage_count, 11);
-        assert_eq!(report.row_count, 122);
-        assert_eq!(report.benchmark_ready_row_count, 118);
-        assert_eq!(report.blocked_row_count, 4);
+        assert_eq!(report.row_count, 120);
+        assert_eq!(report.benchmark_ready_row_count, 120);
+        assert_eq!(report.blocked_row_count, 0);
 
         let trim_reads = report
             .stages
             .iter()
             .find(|stage| stage.domain == "fastq" && stage.stage_id == "fastq.trim_reads")
             .expect("trim reads stage");
-        assert_eq!(trim_reads.tool_count, 14);
-        assert_eq!(trim_reads.blocked_tool_count, 1);
+        assert_eq!(trim_reads.tool_count, 13);
+        assert_eq!(trim_reads.blocked_tool_count, 0);
         assert_eq!(trim_reads.comparison_contract_status, "not_declared");
 
         let damage = report
@@ -593,7 +594,7 @@ mod tests {
         assert_eq!(profile_overrepresented.blocked_tool_count, 0);
         assert_eq!(profile_overrepresented.shared_metric_field_count, 3);
         assert_eq!(damage.tool_count, 6);
-        assert_eq!(damage.shared_metric_field_count, 5);
+        assert_eq!(damage.shared_metric_field_count, 3);
     }
 
     #[test]
@@ -608,7 +609,7 @@ mod tests {
         let markdown = std::fs::read_to_string(output_path).expect("read markdown");
         assert!(markdown.contains("# Stage-Centric Benchmark Report"));
         assert!(markdown.contains("## fastq.trim_reads"));
-        assert!(markdown.contains("| seqpurge | not_benchmark_ready | support | planned_contract | declared_only | not_normalized | fixture:corpus-01-mini | not_required |"));
+        assert!(markdown.contains("| fastp | benchmark_ready | none | governed_benchmark_cohort | runnable | benchmark_normalized | fixture:corpus-01-mini | not_required |"));
         assert!(markdown.contains("## bam.damage"));
         assert!(markdown.contains("| damageprofiler | benchmark_ready | none | supported | runnable | parser_fixture_validated | fixture:corpus-01-adna-damage-mini | not_required |"));
     }

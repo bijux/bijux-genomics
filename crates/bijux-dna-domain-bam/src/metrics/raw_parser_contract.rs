@@ -242,7 +242,7 @@ fn classify_observed_failure(
         Err(error) => {
             let failure_class = if !raw_path.exists() {
                 BamRawParserFailureClass::MissingRawOutput
-            } else if raw_path.metadata().map(|metadata| metadata.len()).unwrap_or(1) == 0 {
+            } else if raw_path.metadata().map_or(1, |metadata| metadata.len()) == 0 {
                 BamRawParserFailureClass::EmptyRawOutput
             } else {
                 BamRawParserFailureClass::MalformedRawOutput

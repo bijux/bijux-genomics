@@ -112,9 +112,8 @@ fn unsupported_manifest_versions_are_refused_with_exact_reason() {
         "domain": "fastq",
         "profile_id": "essential_qc"
     });
-    let err = match migrate_workflow_manifest_value(&unsupported) {
-        Ok(_) => panic!("unsupported manifest version should fail"),
-        Err(err) => err,
+    let Err(err) = migrate_workflow_manifest_value(&unsupported) else {
+        panic!("unsupported manifest version should fail");
     };
     assert_eq!(
         err.to_string(),

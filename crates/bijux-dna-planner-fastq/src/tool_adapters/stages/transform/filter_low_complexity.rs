@@ -45,6 +45,7 @@ fn low_complexity_output_name(tool: &str) -> Option<&'static str> {
     match tool {
         "prinseq" => Some("prinseq_good.fastq"),
         "bbduk" => Some("bbduk.fastq.gz"),
+        "fastp" => Some("fastp.fastq.gz"),
         _ => None,
     }
 }
@@ -211,6 +212,37 @@ fn low_complexity_command_template(
         }
         return Ok(command);
     }
+    if tool.tool_id.as_str() == "fastp" {
+        let mut command = vec![
+            "fastp".to_string(),
+            "--in1".to_string(),
+            r1.display().to_string(),
+            "--out1".to_string(),
+            output_r1.display().to_string(),
+            "--thread".to_string(),
+            tool.resources.threads.max(1).to_string(),
+            "--disable_adapter_trimming".to_string(),
+            "--disable_quality_filtering".to_string(),
+            "--low_complexity_filter".to_string(),
+            "--complexity_threshold".to_string(),
+            options.resolved_entropy_threshold().to_string(),
+        ];
+        if let Some(raw_backend_report) = raw_backend_report {
+            command.extend(["--json".to_string(), raw_backend_report.display().to_string()]);
+        }
+        if let Some(polyx_threshold) = options.polyx_threshold {
+            command.extend(["--poly_x_min_len".to_string(), polyx_threshold.to_string()]);
+        }
+        if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+            command.extend([
+                "--in2".to_string(),
+                r2.display().to_string(),
+                "--out2".to_string(),
+                output_r2.display().to_string(),
+            ]);
+        }
+        return Ok(command);
+    }
     crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
         &[
@@ -235,6 +267,7 @@ fn raw_backend_report_contract(
 ) -> (Option<PathBuf>, Option<&'static str>) {
     match tool {
         "bbduk" => (Some(out_dir.join("bbduk.low_complexity.stats")), Some("bbduk_stats")),
+        "fastp" => (Some(out_dir.join("fastp.low_complexity.json")), Some("fastp_json")),
         _ => (None, None),
     }
 }
@@ -278,7 +311,7 @@ mod tests {
     #[test]
     fn low_complexity_output_names_reject_planned_only_tools() {
         assert_eq!(low_complexity_output_name("dustmasker"), None);
-        assert_eq!(low_complexity_output_name("fastp"), None);
+        assert_eq!(low_complexity_output_name("fastp"), Some("fastp.fastq.gz"));
     }
 
     #[test]
@@ -319,5 +352,25 @@ mod tests {
         )
         .expect("plan");
         assert!(plan.command.template.windows(2).any(|window| window == ["-lc_entropy", "0.5"]));
+    }
+
+    #[test]
+    fn fastp_low_complexity_plan_maps_entropy_and_polyx_thresholds() {
+        let plan = plan_low_complexity(
+            &tool("fastp"),
+            Path::new("reads.fastq.gz"),
+            Some(Path::new("reads_2.fastq.gz")),
+            Path::new("out"),
+            &LowComplexityPlanOptions { entropy_threshold: Some(0.6), polyx_threshold: Some(8) },
+        )
+        .expect("plan");
+        assert!(plan
+            .command
+            .template
+            .windows(2)
+            .any(|window| window == ["--complexity_threshold", "0.6"]));
+        assert!(plan.command.template.windows(2).any(|window| window == ["--poly_x_min_len", "8"]));
+        assert!(plan.command.template.iter().any(|token| token == "--disable_adapter_trimming"));
+        assert!(plan.command.template.iter().any(|token| token == "--disable_quality_filtering"));
     }
 }

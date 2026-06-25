@@ -70,4 +70,5 @@ RUN printf '%s\n' \
   > /usr/local/bin/fqtools && chmod +x /usr/local/bin/fqtools
 
 WORKDIR /data
-CMD ["fqtools", "--help"]
+ENTRYPOINT ["fqtools"]
+CMD ["--help"]

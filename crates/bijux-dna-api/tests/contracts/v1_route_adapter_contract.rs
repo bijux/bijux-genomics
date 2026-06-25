@@ -219,7 +219,7 @@ fn dry_run_adapter_declares_runtime_and_evidence_outputs() {
 }
 
 #[test]
-fn iteration16_inspection_surfaces_export_typed_contracts() {
+fn inspection_surfaces_export_typed_contracts() {
     use bijux_dna_api::v1::api::{
         CacheExplainResponseV1, EvidenceGapResponseV1, OperatorDiagnosisResponseV1,
         ReplayExplainResponseV1, RunBrowserResponseV1, RunLineageQueryResponseV1,

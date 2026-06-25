@@ -1,0 +1,195 @@
+{
+  "schema_version": "bijux.ci.default_feature_audit.v1",
+  "profile": "default-fast",
+  "ok": true,
+  "forbidden_feature_prefixes": [
+    "bam_",
+    "docker",
+    "apptainer",
+    "slurm",
+    "hpc",
+    "bench"
+  ],
+  "crates": [
+    {
+      "crate_name": "bijux-dna",
+      "manifest_path": "crates/bijux-dna/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-analyze",
+      "manifest_path": "crates/bijux-dna-analyze/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-api",
+      "manifest_path": "crates/bijux-dna-api/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-bench",
+      "manifest_path": "crates/bijux-dna-bench/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-bench-model",
+      "manifest_path": "crates/bijux-dna-bench-model/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-core",
+      "manifest_path": "crates/bijux-dna-core/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-db-ena",
+      "manifest_path": "crates/bijux-dna-db-ena/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-db-ref",
+      "manifest_path": "crates/bijux-dna-db-ref/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-dev",
+      "manifest_path": "crates/bijux-dna-dev/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-domain-bam",
+      "manifest_path": "crates/bijux-dna-domain-bam/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-domain-compiler",
+      "manifest_path": "crates/bijux-dna-domain-compiler/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-domain-fastq",
+      "manifest_path": "crates/bijux-dna-domain-fastq/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-domain-vcf",
+      "manifest_path": "crates/bijux-dna-domain-vcf/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-engine",
+      "manifest_path": "crates/bijux-dna-engine/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-environment",
+      "manifest_path": "crates/bijux-dna-environment/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-environment-qa",
+      "manifest_path": "crates/bijux-dna-environment-qa/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-infra",
+      "manifest_path": "crates/bijux-dna-infra/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-pipelines",
+      "manifest_path": "crates/bijux-dna-pipelines/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-planner-bam",
+      "manifest_path": "crates/bijux-dna-planner-bam/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-planner-fastq",
+      "manifest_path": "crates/bijux-dna-planner-fastq/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-planner-vcf",
+      "manifest_path": "crates/bijux-dna-planner-vcf/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-policies",
+      "manifest_path": "crates/bijux-dna-policies/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-runner",
+      "manifest_path": "crates/bijux-dna-runner/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-runtime",
+      "manifest_path": "crates/bijux-dna-runtime/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-science",
+      "manifest_path": "crates/bijux-dna-science/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-stage-contract",
+      "manifest_path": "crates/bijux-dna-stage-contract/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-stages-bam",
+      "manifest_path": "crates/bijux-dna-stages-bam/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-stages-fastq",
+      "manifest_path": "crates/bijux-dna-stages-fastq/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-stages-vcf",
+      "manifest_path": "crates/bijux-dna-stages-vcf/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    },
+    {
+      "crate_name": "bijux-dna-testkit",
+      "manifest_path": "crates/bijux-dna-testkit/Cargo.toml",
+      "default_features": [],
+      "forbidden_default_features": []
+    }
+  ]
+}

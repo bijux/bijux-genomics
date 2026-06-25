@@ -1,0 +1,42 @@
+schema_version = "bijux.bench.vcf_filter_truth.v1"
+fixture_id = "vcf-filter-truth"
+description = "Governed VCF filter truth bundle covering retained filter labels for low quality, low depth, mapping-quality failure, missingness failure, and damage-aware variant removal across retained parser fixtures."
+expected_path = "expected.json"
+source_paths = [
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter/raw.filtered.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter/raw.filter_explain.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter/expected.normalized.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter/raw.damage_filtered.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter/raw.damage_filter_summary.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter/raw.damage_filter_counts.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter/expected.normalized.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.damage_filter/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.damage_filter/raw.damage_report.txt",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.damage_filter/raw.damage_bias_audit_report.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.damage_filter/expected.normalized.json",
+  "domain/vcf/stages/filter.yaml",
+  "domain/vcf/stages/damage_filter.yaml",
+]
+
+[[cases]]
+case_id = "bcftools_filter_labels"
+stage_id = "vcf.filter"
+tool_id = "bcftools"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter"
+output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.filter/raw.filtered.vcf"
+truth_kind = "filter_labels"
+
+[[cases]]
+case_id = "bcftools_damage_filter_removal"
+stage_id = "vcf.damage_filter"
+tool_id = "bcftools"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter"
+output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter/raw.damage_filtered.vcf"
+truth_kind = "damage_removal"
+
+[[cases]]
+case_id = "angsd_damage_filter_removal"
+stage_id = "vcf.damage_filter"
+tool_id = "angsd"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.damage_filter"
+truth_kind = "damage_removal"

@@ -1,0 +1,290 @@
+{
+  "schema_version": "bijux.bench.vcf_genotype_truth.expected.v1",
+  "fixture_id": "vcf-genotype-truth",
+  "cases": [
+    {
+      "case_id": "bcftools_diploid_calls",
+      "summary": {
+        "schema_version": "bijux.vcf.genotype_truth.v1",
+        "stage_id": "vcf.call_diploid",
+        "tool_id": "bcftools",
+        "input_vcf": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_diploid/raw.diploid.vcf",
+        "sample_count": 1,
+        "variant_count": 3,
+        "observed_ploidy_widths": [
+          2
+        ],
+        "called_calls": 3,
+        "missing_calls": 0,
+        "reference_only_calls": 1,
+        "mixed_allele_calls": 1,
+        "alternate_only_calls": 1,
+        "phased_calls": 0,
+        "unphased_calls": 3,
+        "per_sample_missingness": {
+          "sample_a": 0.0
+        },
+        "likelihood_fields_present": [],
+        "sites_with_likelihood_values": {},
+        "sites_missing_likelihood_values": {}
+      },
+      "diploid_boundary": {
+        "schema_version": "bijux.vcf.calling_boundary.diploid.v1",
+        "stage_id": "vcf.call_diploid",
+        "mode": "diploid",
+        "prerequisites_passed": true,
+        "confidence": 1.0,
+        "refusal_codes": [],
+        "assumptions": [
+          "diploid genotype fields and reference context are required",
+          "coverage threshold must be met for stable diploid inference"
+        ],
+        "caveats": [
+          "diploid calling boundaries do not certify downstream population compatibility"
+        ]
+      }
+    },
+    {
+      "case_id": "bcftools_pseudohaploid_projection",
+      "summary": {
+        "schema_version": "bijux.vcf.genotype_truth.v1",
+        "stage_id": "vcf.call_pseudohaploid",
+        "tool_id": "bcftools",
+        "input_vcf": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_pseudohaploid/raw.pseudohaploid.vcf",
+        "sample_count": 1,
+        "variant_count": 3,
+        "observed_ploidy_widths": [
+          1
+        ],
+        "called_calls": 3,
+        "missing_calls": 0,
+        "reference_only_calls": 1,
+        "mixed_allele_calls": 0,
+        "alternate_only_calls": 2,
+        "phased_calls": 0,
+        "unphased_calls": 3,
+        "per_sample_missingness": {
+          "sample_a": 0.0
+        },
+        "likelihood_fields_present": [],
+        "sites_with_likelihood_values": {},
+        "sites_missing_likelihood_values": {}
+      },
+      "command": {
+        "command_path": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_pseudohaploid/raw.command.json",
+        "stage_id": null,
+        "tool_id": null,
+        "sampling_policy": "deterministic_first_allele_projection",
+        "likelihood_model": null,
+        "random_seed": 73,
+        "seed_argument": null,
+        "seed_argument_matches_random_seed": null
+      },
+      "pseudohaploid_boundary": {
+        "schema_version": "bijux.vcf.calling_boundary.pseudohaploid.v1",
+        "stage_id": "vcf.call_pseudohaploid",
+        "mode": "pseudohaploid",
+        "prerequisites_passed": true,
+        "confidence": 0.75,
+        "refusal_codes": [],
+        "assumptions": [
+          "pseudohaploid mode is intended for low-coverage contexts",
+          "sampling strategy and uncertainty disclosure are required"
+        ],
+        "caveats": [
+          "pseudo-haploid outputs are not diploid genotype replacements"
+        ]
+      }
+    },
+    {
+      "case_id": "angsd_pseudohaploid_missingness",
+      "summary": {
+        "schema_version": "bijux.vcf.genotype_truth.v1",
+        "stage_id": "vcf.call_pseudohaploid",
+        "tool_id": "angsd",
+        "input_vcf": "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_pseudohaploid/raw.pseudohaploid.vcf",
+        "sample_count": 1,
+        "variant_count": 3,
+        "observed_ploidy_widths": [
+          1
+        ],
+        "called_calls": 2,
+        "missing_calls": 1,
+        "reference_only_calls": 1,
+        "mixed_allele_calls": 0,
+        "alternate_only_calls": 1,
+        "phased_calls": 0,
+        "unphased_calls": 2,
+        "per_sample_missingness": {
+          "sample_lowcov": 0.3333333333333333
+        },
+        "likelihood_fields_present": [],
+        "sites_with_likelihood_values": {},
+        "sites_missing_likelihood_values": {}
+      },
+      "command": {
+        "command_path": "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_pseudohaploid/raw.command.json",
+        "stage_id": "vcf.call_pseudohaploid",
+        "tool_id": "angsd",
+        "sampling_policy": "seeded_haploid_projection",
+        "likelihood_model": null,
+        "random_seed": 42,
+        "seed_argument": 42,
+        "seed_argument_matches_random_seed": true
+      },
+      "pseudohaploid_boundary": {
+        "schema_version": "bijux.vcf.calling_boundary.pseudohaploid.v1",
+        "stage_id": "vcf.call_pseudohaploid",
+        "mode": "pseudohaploid",
+        "prerequisites_passed": true,
+        "confidence": 0.75,
+        "refusal_codes": [],
+        "assumptions": [
+          "pseudohaploid mode is intended for low-coverage contexts",
+          "sampling strategy and uncertainty disclosure are required"
+        ],
+        "caveats": [
+          "pseudo-haploid outputs are not diploid genotype replacements"
+        ]
+      }
+    },
+    {
+      "case_id": "bcftools_pl_likelihood_calls",
+      "summary": {
+        "schema_version": "bijux.vcf.genotype_truth.v1",
+        "stage_id": "vcf.call_gl",
+        "tool_id": "bcftools",
+        "input_vcf": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.call_gl/raw.gl.vcf",
+        "sample_count": 1,
+        "variant_count": 3,
+        "observed_ploidy_widths": [
+          2
+        ],
+        "called_calls": 3,
+        "missing_calls": 0,
+        "reference_only_calls": 1,
+        "mixed_allele_calls": 1,
+        "alternate_only_calls": 1,
+        "phased_calls": 0,
+        "unphased_calls": 3,
+        "per_sample_missingness": {
+          "sample_a": 0.0
+        },
+        "likelihood_fields_present": [
+          "PL"
+        ],
+        "sites_with_likelihood_values": {
+          "PL": 3
+        },
+        "sites_missing_likelihood_values": {}
+      },
+      "likelihood_boundary": {
+        "schema_version": "bijux.vcf.calling_boundary.gl_workflow.v1",
+        "stage_id": "vcf.call_gl",
+        "prerequisites_passed": false,
+        "refusal_codes": [
+          "gl_fields_required",
+          "low_coverage_model_required"
+        ],
+        "assumptions": [
+          "GL workflows require explicit uncertainty-aware data fields",
+          "downstream tools must accept likelihood-bearing semantics"
+        ],
+        "caveats": [
+          "GL-bearing outputs should not be silently coerced into hard diploid genotypes"
+        ]
+      }
+    },
+    {
+      "case_id": "angsd_gl_likelihood_calls",
+      "summary": {
+        "schema_version": "bijux.vcf.genotype_truth.v1",
+        "stage_id": "vcf.call_gl",
+        "tool_id": "angsd",
+        "input_vcf": "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_gl/raw.gl_sites.vcf",
+        "sample_count": 1,
+        "variant_count": 3,
+        "observed_ploidy_widths": [
+          2
+        ],
+        "called_calls": 3,
+        "missing_calls": 0,
+        "reference_only_calls": 1,
+        "mixed_allele_calls": 1,
+        "alternate_only_calls": 1,
+        "phased_calls": 0,
+        "unphased_calls": 3,
+        "per_sample_missingness": {
+          "sample_lowcov": 0.0
+        },
+        "likelihood_fields_present": [
+          "GL"
+        ],
+        "sites_with_likelihood_values": {
+          "GL": 3
+        },
+        "sites_missing_likelihood_values": {}
+      },
+      "command": {
+        "command_path": "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_gl/raw.command.json",
+        "stage_id": "vcf.call_gl",
+        "tool_id": "angsd",
+        "sampling_policy": null,
+        "likelihood_model": "GL2_doGlf2_doMajorMinor1_doMaf1",
+        "random_seed": null,
+        "seed_argument": null,
+        "seed_argument_matches_random_seed": null
+      },
+      "likelihood_boundary": {
+        "schema_version": "bijux.vcf.calling_boundary.gl_workflow.v1",
+        "stage_id": "vcf.call_gl",
+        "prerequisites_passed": false,
+        "refusal_codes": [
+          "gp_or_pl_fields_required"
+        ],
+        "assumptions": [
+          "GL workflows require explicit uncertainty-aware data fields",
+          "downstream tools must accept likelihood-bearing semantics"
+        ],
+        "caveats": [
+          "GL-bearing outputs should not be silently coerced into hard diploid genotypes"
+        ]
+      }
+    },
+    {
+      "case_id": "bcftools_gl_gp_pl_propagation",
+      "summary": {
+        "schema_version": "bijux.vcf.genotype_truth.v1",
+        "stage_id": "vcf.gl_propagation",
+        "tool_id": "bcftools",
+        "input_vcf": "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.gl_propagation/raw.propagated.vcf",
+        "sample_count": 1,
+        "variant_count": 3,
+        "observed_ploidy_widths": [
+          2
+        ],
+        "called_calls": 3,
+        "missing_calls": 0,
+        "reference_only_calls": 1,
+        "mixed_allele_calls": 1,
+        "alternate_only_calls": 1,
+        "phased_calls": 0,
+        "unphased_calls": 3,
+        "per_sample_missingness": {
+          "sample1": 0.0
+        },
+        "likelihood_fields_present": [
+          "GL",
+          "GP",
+          "PL"
+        ],
+        "sites_with_likelihood_values": {
+          "GL": 3,
+          "GP": 3,
+          "PL": 3
+        },
+        "sites_missing_likelihood_values": {}
+      }
+    }
+  ]
+}

@@ -389,10 +389,10 @@ mod tests {
             report.argv_output_path,
             "benchmarks/readiness/fastq/fastq-rendered-commands.argv.jsonl"
         );
-        assert_eq!(report.row_count, 69);
-        assert_eq!(report.stage_count, 26);
-        assert_eq!(report.tool_count, 41);
-        assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&69));
+        assert_eq!(report.row_count, 71);
+        assert_eq!(report.stage_count, 27);
+        assert_eq!(report.tool_count, 42);
+        assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&71));
         assert!(report.rows.iter().all(|row| {
             row.benchmark_status == "benchmark_ready"
                 && row.command_source == "fastq_bam_command_adapter"

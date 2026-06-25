@@ -8,6 +8,8 @@ mod support;
 
 fn run_cli_json_with_repo_root(args: &[&str]) -> (PathBuf, serde_json::Value) {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _repo_lock =
+        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
@@ -51,7 +53,7 @@ fn bench_readiness_full_benchmark_result_collector_writes_report_and_keeps_statu
         &std::fs::read(&report_path).expect("read full benchmark result collector report"),
     )
     .expect("parse full benchmark result collector report");
-    assert_eq!(persisted.get("row_count").and_then(serde_json::Value::as_u64), Some(607));
+    assert_eq!(persisted.get("row_count").and_then(serde_json::Value::as_u64), Some(663));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
 

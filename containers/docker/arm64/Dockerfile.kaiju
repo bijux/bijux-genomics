@@ -52,5 +52,5 @@ RUN echo '#!/bin/sh' > /usr/local/bin/kaiju && \
     chmod +x /usr/local/bin/kaiju
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "kaiju \"$@\""]
+ENTRYPOINT ["kaiju"]
 CMD ["--help"]

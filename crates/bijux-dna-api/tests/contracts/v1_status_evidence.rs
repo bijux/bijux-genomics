@@ -200,13 +200,13 @@ fn status_reads_governed_run_state_and_failure_paths() -> Result<()> {
 #[test]
 fn run_browser_lists_run_rows_with_runtime_state() -> Result<()> {
     let temp = tempfile::tempdir()?;
-    let run_dir = temp.path().join("run-iteration16");
+    let run_dir = temp.path().join("run-browser-fastq");
     std::fs::create_dir_all(&run_dir)?;
     bijux_dna_infra::atomic_write_json(
         &run_dir.join("run_manifest.json"),
         &serde_json::json!({
             "schema_version": "bijux.run_manifest.v3",
-            "run_id": "run-iteration16",
+            "run_id": "run-browser-fastq",
             "profile_id": "fastq.default",
             "pipeline_id": "fastq-to-fastq__default__v1",
             "correlation_id": "corr-16",
@@ -218,7 +218,7 @@ fn run_browser_lists_run_rows_with_runtime_state() -> Result<()> {
         &run_dir.join("run_state.json"),
         &serde_json::json!({
             "schema_version": "bijux.run_state.v1",
-            "run_id": "run-iteration16",
+            "run_id": "run-browser-fastq",
             "mode": "enforced",
             "state": "succeeded",
             "transitions": []
@@ -228,7 +228,7 @@ fn run_browser_lists_run_rows_with_runtime_state() -> Result<()> {
         &run_dir.join("artifact_inventory.json"),
         &serde_json::json!({
             "schema_version": "bijux.artifact_inventory.v1",
-            "run_id": "run-iteration16",
+            "run_id": "run-browser-fastq",
             "artifacts": [{"artifact_id": "report", "name": "report", "role": "report", "path": "reports/report.json", "input_lineage": []}]
         }),
     )?;
@@ -248,7 +248,7 @@ fn run_browser_lists_run_rows_with_runtime_state() -> Result<()> {
     assert_eq!(response.schema_version, "bijux.run_browser.v1");
     assert_eq!(response.total_rows, 1);
     let row = response.rows.first().unwrap_or_else(|| panic!("missing row"));
-    assert_eq!(row.run_id, "run-iteration16");
+    assert_eq!(row.run_id, "run-browser-fastq");
     assert_eq!(row.profile_id.as_deref(), Some("fastq.default"));
     assert_eq!(row.pipeline_id.as_deref(), Some("fastq-to-fastq__default__v1"));
     assert_eq!(row.state, Some(bijux_dna_runtime::run_layout::RunLifecycleStateV1::Succeeded));
@@ -264,7 +264,7 @@ fn run_lineage_query_extracts_artifact_lineage_edges() -> Result<()> {
         &temp.path().join("artifact_inventory.json"),
         &serde_json::json!({
             "schema_version": "bijux.artifact_inventory.v1",
-            "run_id": "run-lineage-16",
+            "run_id": "run-lineage-fastq",
             "artifacts": [
                 {
                     "artifact_id": "filtered_fastq",
@@ -287,7 +287,7 @@ fn run_lineage_query_extracts_artifact_lineage_edges() -> Result<()> {
     })?;
 
     assert_eq!(response.schema_version, "bijux.run_lineage_query.v1");
-    assert_eq!(response.run_id, "run-lineage-16");
+    assert_eq!(response.run_id, "run-lineage-fastq");
     assert_eq!(response.total_artifacts, 1);
     assert_eq!(response.edges.len(), 2);
     assert!(response.edges.iter().any(|edge| edge.lineage_key == "raw:R1=abc"));

@@ -333,7 +333,7 @@ pub(crate) fn run_local_vcf_prepare_reference_panel_smoke(
         &format!("{LOCAL_VCF_PREPARE_PANEL_SMOKE_COMMAND} --tool-id {}", contract.tool_id),
         &[
             (
-                "prepared_panel_vcf",
+                "prepared_panel",
                 DEFAULT_OUTPUT_PANEL_NAME.to_string(),
                 panel_vcf_path.as_path(),
                 "vcf_output",

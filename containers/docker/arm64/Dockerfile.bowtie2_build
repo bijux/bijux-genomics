@@ -26,6 +26,7 @@ ENV VERSION_BOWTIE2=${VERSION_BOWTIE2}
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         perl \
+        python3 \
         curl \
         wget \
         unzip \
@@ -43,5 +44,5 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "bowtie2-build \"$@\""]
+ENTRYPOINT ["bowtie2-build"]
 CMD []

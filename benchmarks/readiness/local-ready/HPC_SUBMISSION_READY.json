@@ -14,7 +14,7 @@
       "goal_id": 1,
       "category": "stage_matrices",
       "surface": "FASTQ stage matrix covers the governed local inventory",
-      "output_path": "benchmarks/configs/local/fastq-stage-matrix.toml",
+      "output_path": "configs/bench/local/fastq-stage-matrix.toml",
       "ok": true,
       "detail": "FASTQ inventory contains 27 stages"
     },
@@ -22,7 +22,7 @@
       "goal_id": 28,
       "category": "stage_matrices",
       "surface": "BAM stage matrix covers the governed local inventory",
-      "output_path": "benchmarks/configs/local/bam-stage-matrix.toml",
+      "output_path": "configs/bench/local/bam-stage-matrix.toml",
       "ok": true,
       "detail": "BAM inventory contains 24 stages"
     },
@@ -30,9 +30,9 @@
       "goal_id": 2,
       "category": "local_smokes",
       "surface": "fastq.index_reference local artifact materializes under governed target",
-      "output_path": "benchmarks/readiness/local-ready/fastq.index_reference/plan.json",
+      "output_path": "benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference",
       "ok": true,
-      "detail": "materialized `benchmarks/readiness/local-ready/fastq.index_reference/plan.json` under `benchmarks/readiness/local-ready/fastq.index_reference`"
+      "detail": "materialized `benchmarks/readiness/local-ready/fastq.index_reference/reference_index/bowtie2/reference` under `benchmarks/readiness/local-ready/fastq.index_reference`"
     },
     {
       "goal_id": 3,
@@ -126,9 +126,9 @@
       "goal_id": 14,
       "category": "local_smokes",
       "surface": "fastq.deplete_rrna local artifact materializes under governed target",
-      "output_path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/plan.json",
+      "output_path": "benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered_R1.fastq.gz",
       "ok": true,
-      "detail": "materialized `benchmarks/readiness/local-ready/fastq.deplete_rrna/plan.json` under `benchmarks/readiness/local-ready/fastq.deplete_rrna`"
+      "detail": "materialized `benchmarks/readiness/local-ready/fastq.deplete_rrna/rrna_filtered_R1.fastq.gz` under `benchmarks/readiness/local-ready/fastq.deplete_rrna`"
     },
     {
       "goal_id": 15,
@@ -158,25 +158,25 @@
       "goal_id": 18,
       "category": "local_smokes",
       "surface": "fastq.deplete_host local artifact materializes under governed target",
-      "output_path": "benchmarks/readiness/local-ready/fastq.deplete_host/plan.json",
+      "output_path": "benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R1.fastq.gz",
       "ok": true,
-      "detail": "materialized `benchmarks/readiness/local-ready/fastq.deplete_host/plan.json` under `benchmarks/readiness/local-ready/fastq.deplete_host`"
+      "detail": "materialized `benchmarks/readiness/local-ready/fastq.deplete_host/host_depleted_R1.fastq.gz` under `benchmarks/readiness/local-ready/fastq.deplete_host`"
     },
     {
       "goal_id": 19,
       "category": "local_smokes",
       "surface": "fastq.deplete_reference_contaminants local artifact materializes under governed target",
-      "output_path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/plan.json",
+      "output_path": "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R1.fastq.gz",
       "ok": true,
-      "detail": "materialized `benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/plan.json` under `benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants`"
+      "detail": "materialized `benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R1.fastq.gz` under `benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants`"
     },
     {
       "goal_id": 20,
       "category": "local_smokes",
       "surface": "fastq.correct_errors local artifact materializes under governed target",
-      "output_path": "runs/bench/local-smoke/fastq.correct_errors/plan.json",
+      "output_path": "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz",
       "ok": true,
-      "detail": "materialized `runs/bench/local-smoke/fastq.correct_errors/plan.json` under `runs/bench/local-smoke/fastq.correct_errors`"
+      "detail": "materialized `runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz` under `runs/bench/local-smoke/fastq.correct_errors`"
     },
     {
       "goal_id": 21,
@@ -230,17 +230,17 @@
       "goal_id": 27,
       "category": "local_smokes",
       "surface": "fastq.screen_taxonomy local artifact materializes under governed target",
-      "output_path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/plan.json",
+      "output_path": "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv",
       "ok": true,
-      "detail": "materialized `benchmarks/readiness/local-ready/fastq.screen_taxonomy/plan.json` under `benchmarks/readiness/local-ready/fastq.screen_taxonomy`"
+      "detail": "materialized `benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv` under `benchmarks/readiness/local-ready/fastq.screen_taxonomy`"
     },
     {
       "goal_id": 29,
       "category": "local_smokes",
       "surface": "bam.align local artifact materializes under governed target",
-      "output_path": "benchmarks/readiness/local-ready/bam.align/plan.json",
+      "output_path": "benchmarks/readiness/local-ready/bam.align/align.bam",
       "ok": true,
-      "detail": "materialized `benchmarks/readiness/local-ready/bam.align/plan.json` under `benchmarks/readiness/local-ready/bam.align`"
+      "detail": "materialized `benchmarks/readiness/local-ready/bam.align/align.bam` under `benchmarks/readiness/local-ready/bam.align`"
     },
     {
       "goal_id": 30,
@@ -374,9 +374,9 @@
       "goal_id": 46,
       "category": "local_smokes",
       "surface": "bam.contamination local artifact materializes under governed target",
-      "output_path": "benchmarks/readiness/local-ready/bam.contamination/plan.json",
+      "output_path": "benchmarks/readiness/local-ready/bam.contamination/contamination.json",
       "ok": true,
-      "detail": "materialized `benchmarks/readiness/local-ready/bam.contamination/plan.json` under `benchmarks/readiness/local-ready/bam.contamination`"
+      "detail": "materialized `benchmarks/readiness/local-ready/bam.contamination/contamination.json` under `benchmarks/readiness/local-ready/bam.contamination`"
     },
     {
       "goal_id": 47,
@@ -528,7 +528,7 @@
       "surface": "corpus-01 mini FASTQ fixture validates sample identity and read counts",
       "output_path": "benchmarks/tests/fixtures/corpora/corpus-01-mini/manifest.toml",
       "ok": false,
-      "detail": "expected 4 FASTQ samples and valid fixture but found sample_count=10 valid=true"
+      "detail": "expected 4 FASTQ samples and valid fixture but found sample_count=11 valid=true"
     },
     {
       "goal_id": 66,
@@ -536,7 +536,7 @@
       "surface": "corpus-01 mini BAM fixture validates aligned sample contracts",
       "output_path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/manifest.toml",
       "ok": false,
-      "detail": "expected 2 BAM samples and valid fixture but found sample_count=21 valid=true"
+      "detail": "expected 2 BAM samples and valid fixture but found sample_count=23 valid=true"
     },
     {
       "goal_id": 67,
@@ -606,7 +606,7 @@
       "goal_id": 75,
       "category": "corpora",
       "surface": "corpus-stage compatibility matrix validates all 51 governed stages",
-      "output_path": "benchmarks/configs/local/corpus-stage-compatibility.toml",
+      "output_path": "configs/bench/local/corpus-stage-compatibility.toml",
       "ok": true,
       "detail": "compatibility matrix validates 51 stages across 8 fixtures"
     },
@@ -616,7 +616,7 @@
       "surface": "corpus skip report keeps incompatible fixtures and planner-only stages explicit",
       "output_path": "benchmarks/readiness/local-ready/corpus-skip-report.json",
       "ok": true,
-      "detail": "skip report records 336 fixture skips and 3 planner-only stages"
+      "detail": "skip report records 350 fixture skips and 0 planner-only stages"
     },
     {
       "goal_id": 77,
@@ -768,7 +768,7 @@
       "surface": "generated SLURM script bodies call real repo commands and contain no placeholders",
       "output_path": "runs/bench/slurm-dry-run/no-placeholder-report.json",
       "ok": true,
-      "detail": "SLURM script body validation passed across 269 scripts"
+      "detail": "SLURM script body validation passed across 285 scripts"
     },
     {
       "goal_id": 95,
@@ -776,7 +776,7 @@
       "surface": "generated SLURM scripts pass bash syntax validation",
       "output_path": "runs/bench/slurm-dry-run/bash-n-report.json",
       "ok": true,
-      "detail": "SLURM shell syntax validation passed across 269 scripts"
+      "detail": "SLURM shell syntax validation passed across 285 scripts"
     },
     {
       "goal_id": 96,

@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::run::run_command_with_context;
 use serde::Serialize;
 
 use crate::commands::benchmark::path_resolution::{
@@ -99,7 +99,8 @@ pub(crate) fn validate_slurm_shell_syntax(
     };
 
     if let Some(parent) = absolute_report.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
     bijux_dna_infra::atomic_write_json(&absolute_report, &report)?;
 
@@ -114,15 +115,17 @@ fn inspect_slurm_script(
     repo_root: &Path,
     script_path: &Path,
 ) -> Result<BenchLocalSlurmShellSyntaxEntry> {
-    let syntax = Command::new("bash")
-        .arg("-n")
-        .arg(script_path)
-        .output()
-        .with_context(|| format!("run bash -n on {}", script_path.display()))?;
+    let syntax = run_command_with_context(
+        "bash",
+        &["-n".to_string(), script_path.display().to_string()],
+        Some(repo_root),
+        None,
+    )
+    .with_context(|| format!("run bash -n on {}", script_path.display()))?;
 
     let mut findings = Vec::new();
-    if !syntax.status.success() {
-        let stderr = String::from_utf8_lossy(&syntax.stderr).trim().to_string();
+    if syntax.exit_code != 0 {
+        let stderr = syntax.stderr.trim().to_string();
         if stderr.is_empty() {
             findings.push("bash -n failed without stderr output".to_string());
         } else {

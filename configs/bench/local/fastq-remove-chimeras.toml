@@ -1,0 +1,15 @@
+# schema_version = 1
+# owner = bijux-dna-planner-fastq
+# purpose = Governed local benchmark fixture plan for fastq.remove_chimeras.
+# authority = bijux-dna-planner-fastq
+# stability = evolving
+# last_updated = 2026-06-22
+
+schema_version = "bijux.bench.fastq.local_remove_chimeras.v1"
+tool_id = "vsearch"
+threads = 1
+output_dir = "runs/bench/local-smoke/fastq.remove_chimeras"
+
+[[cases]]
+sample_id = "chimera-control-se"
+reads = "assets/toy/corpus-03-amplicon-mini/fastq/merged_amplicon_reads.fastq"

@@ -1,0 +1,175 @@
+schema_version = "bijux.bench.phasing_imputation_truth.v1"
+fixture_id = "phasing-imputation-truth"
+description = "Governed phasing and imputation truth bundle covering phased genotype counts, phase-set evidence, masked-truth concordance, INFO or R2 summary retention, and low-confidence imputation calls across retained VCF backends."
+expected_path = "expected.json"
+source_paths = [
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/shapeit5/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/shapeit5/raw.phased.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/shapeit5/raw.phasing_qc.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/shapeit5/raw.phasing_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/shapeit5/raw.phase_block_stats.tsv",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/shapeit5/raw.switch_error_proxy.tsv",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/eagle/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/eagle/raw.phased.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/eagle/raw.phasing_qc.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/eagle/raw.phasing_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/eagle/raw.phase_block_stats.tsv",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/eagle/raw.switch_error_proxy.tsv",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/beagle/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/beagle/raw.phased.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/beagle/raw.phasing_qc.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/beagle/raw.phasing_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/beagle/raw.phase_block_stats.tsv",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/beagle/raw.switch_error_proxy.tsv",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute/raw.imputation_qc.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute/raw.imputation_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute/raw.imputation_accept.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute/raw.imputed.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute/raw.truth.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.impute/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.impute/raw.imputation_qc.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.impute/raw.imputation_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.impute/raw.imputation_accept.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.impute/raw.imputed.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.impute/raw.truth.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.impute/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.impute/raw.imputation_qc.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.impute/raw.imputation_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.impute/raw.imputation_accept.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.impute/raw.imputed.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.impute/raw.truth.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.impute/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.impute/raw.imputation_qc.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.impute/raw.imputation_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.impute/raw.imputation_accept.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.impute/raw.imputed.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.impute/raw.truth.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics/raw.imputation_qc.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics/raw.imputation_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics/raw.imputation_accept.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics/raw.orchestration_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics/raw.imputed.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics/raw.truth.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.imputation_metrics/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.imputation_metrics/raw.imputation_qc.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.imputation_metrics/raw.imputation_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.imputation_metrics/raw.imputation_accept.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.imputation_metrics/raw.orchestration_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.imputation_metrics/raw.imputed.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.imputation_metrics/raw.truth.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.imputation_metrics/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.imputation_metrics/raw.imputation_qc.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.imputation_metrics/raw.imputation_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.imputation_metrics/raw.imputation_accept.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.imputation_metrics/raw.orchestration_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.imputation_metrics/raw.imputed.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.imputation_metrics/raw.truth.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.imputation_metrics/raw.command.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.imputation_metrics/raw.imputation_qc.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.imputation_metrics/raw.imputation_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.imputation_metrics/raw.imputation_accept.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.imputation_metrics/raw.orchestration_manifest.json",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.imputation_metrics/raw.imputed.vcf",
+  "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.imputation_metrics/raw.truth.vcf",
+  "domain/vcf/stages/phasing.yaml",
+  "domain/vcf/stages/impute.yaml",
+  "domain/vcf/stages/imputation_metrics.yaml",
+]
+
+[[cases]]
+case_id = "shapeit5_phasing_output"
+stage_id = "vcf.phasing"
+tool_id = "shapeit5"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/shapeit5"
+output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/shapeit5/raw.phased.vcf"
+truth_kind = "phasing_output"
+
+[[cases]]
+case_id = "eagle_phasing_output"
+stage_id = "vcf.phasing"
+tool_id = "eagle"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/eagle"
+output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/eagle/raw.phased.vcf"
+truth_kind = "phasing_output"
+
+[[cases]]
+case_id = "beagle_phasing_output"
+stage_id = "vcf.phasing"
+tool_id = "beagle"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/beagle"
+output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/beagle/raw.phased.vcf"
+truth_kind = "phasing_output"
+
+[[cases]]
+case_id = "beagle_impute_output"
+stage_id = "vcf.impute"
+tool_id = "beagle"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute"
+output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute/raw.imputed.vcf"
+truth_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.impute/raw.truth.vcf"
+truth_kind = "imputation_output"
+
+[[cases]]
+case_id = "glimpse_impute_output"
+stage_id = "vcf.impute"
+tool_id = "glimpse"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.impute"
+output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.impute/raw.imputed.vcf"
+truth_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.impute/raw.truth.vcf"
+truth_kind = "imputation_output"
+
+[[cases]]
+case_id = "impute5_impute_output"
+stage_id = "vcf.impute"
+tool_id = "impute5"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.impute"
+output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.impute/raw.imputed.vcf"
+truth_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.impute/raw.truth.vcf"
+truth_kind = "imputation_output"
+
+[[cases]]
+case_id = "minimac4_impute_output"
+stage_id = "vcf.impute"
+tool_id = "minimac4"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.impute"
+output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.impute/raw.imputed.vcf"
+truth_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.impute/raw.truth.vcf"
+truth_kind = "imputation_output"
+
+[[cases]]
+case_id = "beagle_imputation_metrics_output"
+stage_id = "vcf.imputation_metrics"
+tool_id = "beagle"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics"
+output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics/raw.imputed.vcf"
+truth_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/beagle/vcf.imputation_metrics/raw.truth.vcf"
+truth_kind = "imputation_output"
+
+[[cases]]
+case_id = "glimpse_imputation_metrics_output"
+stage_id = "vcf.imputation_metrics"
+tool_id = "glimpse"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.imputation_metrics"
+output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.imputation_metrics/raw.imputed.vcf"
+truth_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/glimpse/vcf.imputation_metrics/raw.truth.vcf"
+truth_kind = "imputation_output"
+
+[[cases]]
+case_id = "impute5_imputation_metrics_output"
+stage_id = "vcf.imputation_metrics"
+tool_id = "impute5"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.imputation_metrics"
+output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.imputation_metrics/raw.imputed.vcf"
+truth_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/impute5/vcf.imputation_metrics/raw.truth.vcf"
+truth_kind = "imputation_output"
+
+[[cases]]
+case_id = "minimac4_imputation_metrics_output"
+stage_id = "vcf.imputation_metrics"
+tool_id = "minimac4"
+artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.imputation_metrics"
+output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.imputation_metrics/raw.imputed.vcf"
+truth_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/imputation/minimac4/vcf.imputation_metrics/raw.truth.vcf"
+truth_kind = "imputation_output"

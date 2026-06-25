@@ -124,7 +124,7 @@ fn collect_unregistered_rows(
             registry_status: registry_status.to_string(),
             registered_stage_ids: registered_stage_ids.clone(),
             reason: format!(
-                "benchmark matrix references `{}` / `{}` but configs/ci/registry/tool_registry.toml does not register that pair; registry status: {}; registered stages for `{}`: {}",
+                "benchmark matrix references `{}` / `{}` but the governed registry surfaces do not register that pair; registry status: {}; registered stages for `{}`: {}",
                 row.stage_id,
                 row.tool_id,
                 registry_status,
@@ -192,7 +192,7 @@ mod tests {
     }
 
     #[test]
-    fn unregistered_benchmark_pairs_report_retains_registry_drift() {
+    fn unregistered_benchmark_pairs_report_tracks_empty_registry_drift_slice() {
         let root = repo_root();
         let report = render_unregistered_benchmark_pairs(
             &root,
@@ -201,9 +201,9 @@ mod tests {
         .expect("render unregistered benchmark pairs");
 
         assert_eq!(report.schema_version, UNREGISTERED_BENCHMARK_PAIRS_SCHEMA_VERSION);
-        assert_eq!(report.unregistered_pair_count, 3);
-        assert!(!report.ok, "report must fail while registry drift remains");
-        assert_eq!(report.domain_counts.get("fastq"), Some(&3));
+        assert_eq!(report.unregistered_pair_count, 0);
+        assert!(report.ok, "report must pass once the governed registry-drift slice is empty");
+        assert_eq!(report.domain_counts.get("fastq"), None);
         assert_eq!(report.domain_counts.get("bam"), None);
         assert!(
             !report.rows.iter().any(|row| {
@@ -229,30 +229,13 @@ mod tests {
             }),
             "bam.haplogroups / yleaf must leave the registry-drift slice once yleaf is registered in production"
         );
-        assert!(report.rows.iter().any(|row| {
-            row.domain == "fastq"
-                && row.stage_id == "fastq.normalize_abundance"
-                && row.tool_id == "seqfu"
-                && row.registry_status == "tool_missing"
-                && row.registered_stage_ids.is_empty()
-        }));
-        assert!(report.rows.iter().any(|row| {
-            row.domain == "fastq"
-                && row.stage_id == "fastq.profile_read_lengths"
-                && row.tool_id == "seqfu"
-                && row.registry_status == "tool_missing"
-                && row.registered_stage_ids.is_empty()
-        }));
-        assert!(report.rows.iter().any(|row| {
-            row.domain == "fastq"
-                && row.stage_id == "fastq.profile_reads"
-                && row.tool_id == "seqfu"
-                && row.registry_status == "tool_missing"
-                && row.registered_stage_ids.is_empty()
-        }));
         assert!(
             !report.rows.iter().any(|row| row.tool_id == "seqfu"),
             "seqfu must leave the unregistered-pair report once only admitted profile bindings remain"
+        );
+        assert!(
+            report.rows.is_empty(),
+            "governed benchmark pairs must remain fully registered once placeholder bindings are retired"
         );
     }
 }

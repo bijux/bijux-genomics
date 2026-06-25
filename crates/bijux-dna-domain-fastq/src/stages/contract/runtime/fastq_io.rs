@@ -39,10 +39,7 @@ pub fn read_fastq_records(path: &Path) -> Result<Vec<FastqRecord>> {
     let mut records = Vec::new();
     let mut line_no = 0_usize;
 
-    loop {
-        let Some(header) = lines.next() else {
-            break;
-        };
+    while let Some(header) = lines.next() {
         line_no += 1;
         let header = header?;
         let Some(sequence) = lines.next() else {

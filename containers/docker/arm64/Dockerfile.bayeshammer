@@ -34,7 +34,6 @@ RUN set -eux; \
         ca-certificates \
         grep && \
     apt-get install -y --no-install-recommends libgomp1 && \
-    test -e /usr/lib/x86_64-linux-gnu/libgomp.so.1 && \
     wget -qO /tmp/spades.tar.gz \
         "https://github.com/ablab/spades/releases/download/v${VERSION_SPADES}/SPAdes-${VERSION_SPADES}-Linux.tar.gz" && \
     tar -xzf /tmp/spades.tar.gz -C /opt && \
@@ -63,4 +62,5 @@ RUN printf '%s\n' \
 # 3. Default behaviour
 # ------------------------------------------------------------------
 WORKDIR /data
-CMD ["bayeshammer", "--help"]
+ENTRYPOINT ["bayeshammer"]
+CMD ["--help"]

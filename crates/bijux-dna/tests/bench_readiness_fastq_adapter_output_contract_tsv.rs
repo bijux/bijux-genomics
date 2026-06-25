@@ -43,7 +43,7 @@ fn bench_readiness_fastq_adapter_output_contract_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 73, "TSV must retain the governed FASTQ 73-row slice");
+    assert_eq!(rows.len(), 71, "TSV must retain the governed FASTQ 71-row slice");
     assert!(
         rows.iter().any(|row| {
             row.starts_with(

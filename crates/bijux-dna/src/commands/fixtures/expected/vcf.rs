@@ -1511,8 +1511,11 @@ mod tests {
 
     #[test]
     fn vcf_expected_truth_matches_governed_fixture_assets() {
-        let repo_root =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..").join("..");
+        let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .expect("repo root");
         let manifest_path = benchmark_corpus_manifest_path(
             &benchmark_fixture_root_path(&repo_root, None),
             "vcf-mini",

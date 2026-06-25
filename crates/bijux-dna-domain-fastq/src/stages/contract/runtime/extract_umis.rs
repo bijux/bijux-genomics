@@ -124,8 +124,7 @@ pub fn extract_umis(
             _ => &l,
         };
 
-        let umi = extract_umi(left_source, &params.extraction_location, umi_len);
-        if umi.is_none() {
+        let Some(umi) = extract_umi(left_source, &params.extraction_location, umi_len) else {
             failed_extractions += if paired { 2 } else { 1 };
             match params.failed_extraction_policy {
                 UmiFailedExtractionPolicy::RefuseStage => {
@@ -144,9 +143,7 @@ pub fn extract_umis(
                     continue;
                 }
             }
-        }
-
-        let umi = umi.expect("checked above");
+        };
         umi_groups.insert(umi.clone());
         apply_header_transform(&mut l, &params.read_name_transform, Some(&umi));
         if let Some(ref mut record_r2) = r {
@@ -161,8 +158,7 @@ pub fn extract_umis(
     }
 
     write_fastq_records(output_r1, &out_left)?;
-    if paired {
-        let out_r2 = output_r2.expect("validated above");
+    if let Some(out_r2) = output_r2 {
         write_fastq_records(out_r2, &out_right)?;
     }
 

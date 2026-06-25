@@ -3,7 +3,7 @@ use super::debug::handle_debug_command;
 use super::environment::handle_environment_command;
 use super::pipelines::handle_pipelines_command;
 use crate::cli::BenchConfigCommand;
-use crate::commands::fastq::api_bridge::{
+use crate::commands::fastq::api_translation::{
     bench_bam_pipeline_args_to_api, bench_bam_stage_args_to_api,
 };
 #[allow(unused_imports)]
@@ -75,6 +75,11 @@ pub(crate) fn handle_meta_commands(
                         args.hpc,
                     )?;
                     println!("suite_run_dir={}", run_dir.display());
+                }
+                BenchCommand::RunMicro(args) => {
+                    crate::commands::benchmark::local_micro_benchmark_run::run_micro_benchmark(
+                        args,
+                    )?;
                 }
                 BenchCommand::Status => {
                     let cwd = std::env::current_dir()?;
@@ -176,7 +181,7 @@ pub(crate) fn handle_meta_commands(
                 }
                 BenchCommand::Readiness { command } => match command {
                     cli::BenchReadinessCommand::RenderAdapterMissingInputTests(args) => {
-                        crate::commands::benchmark::readiness::adapter_missing_input_tests::run_render_adapter_missing_input_tests(
+                        crate::commands::benchmark::readiness::adapter_missing_input_audit::run_render_adapter_missing_input_audit(
                             args,
                         )?;
                     }
@@ -217,12 +222,107 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchReadinessCommand::RenderBamCommandAdapterCoverage(args) => {
                         crate::commands::benchmark::readiness::bam_command_adapter_coverage::run_render_bam_command_adapter_coverage(
-                        args,
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamCommands(args) => {
+                        crate::commands::benchmark::readiness::bam_rendered_commands::run_render_bam_commands(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamLocalContainerSmoke(args) => {
+                        crate::commands::benchmark::readiness::bam_local_container_probe::run_render_bam_local_container_smoke(
+                            args,
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderBamCorpusAssignment(args) => {
                         crate::commands::benchmark::readiness::bam_corpus_assignment::run_render_bam_corpus_assignment(
-                        args,
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamContaminationSexHaplogroupsReady(args) => {
+                        crate::commands::benchmark::readiness::bam_contamination_sex_haplogroups_ready::run_render_bam_contamination_sex_haplogroups_ready(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamKinshipReady(args) => {
+                        crate::commands::benchmark::readiness::bam_kinship_ready::run_render_bam_kinship_ready(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamRecalibrationGenotypingReady(args) => {
+                        crate::commands::benchmark::readiness::bam_recalibration_genotyping_ready::run_render_bam_recalibration_genotyping_ready(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamActiveRowConsistency(args) => {
+                        crate::commands::benchmark::readiness::bam_active_row_consistency::run_render_bam_active_row_consistency(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamKinshipComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_kinship_complete::run_render_bam_kinship_complete(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamAuthenticityComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_authenticity_complete::run_render_bam_authenticity_complete(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamContaminationComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_contamination_complete::run_render_bam_contamination_complete(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamHaplogroupsComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_haplogroups_complete::run_render_bam_haplogroups_complete(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamGenotypingComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_genotyping_complete::run_render_bam_genotyping_complete(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamRecalibrationComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_recalibration_complete::run_render_bam_recalibration_complete(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamSexComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_sex_complete::run_render_bam_sex_complete(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamDamageComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_damage_complete::run_render_bam_damage_complete(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamDamageAuthenticityReady(args) => {
+                        crate::commands::benchmark::readiness::bam_damage_authenticity_ready::run_render_bam_damage_authenticity_ready(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamInsertSizeGcBiasReady(args) => {
+                        crate::commands::benchmark::readiness::bam_insert_size_gc_bias_ready::run_render_bam_insert_size_gc_bias_ready(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamEndogenousContentComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_endogenous_content_complete::run_render_bam_endogenous_content_complete(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamOverlapCorrectionComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_overlap_correction_complete::run_render_bam_overlap_correction_complete(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamOverlapEndogenousReady(args) => {
+                        crate::commands::benchmark::readiness::bam_overlap_endogenous_ready::run_render_bam_overlap_endogenous_ready(
+                            args,
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderCorpusIncompatibility(args) => {
@@ -250,18 +350,48 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderStageScoring(args) => {
+                        crate::commands::benchmark::readiness::stage_scoring::run_render_stage_scoring(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderScientificAcceptanceThresholds(args) => {
+                        crate::commands::benchmark::readiness::scientific_acceptance_thresholds::run_render_scientific_acceptance_thresholds(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderScienceTruthSetsComplete(args) => {
+                        crate::commands::benchmark::readiness::science_truth_sets_complete::run_render_science_truth_sets_complete(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamScienceThresholdsReady(args) => {
+                        crate::commands::benchmark::readiness::bam_science_thresholds_ready::run_render_bam_science_thresholds_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderBamNormalizedMetricsSchema(args) => {
                         crate::commands::benchmark::readiness::bam_normalized_metrics_schema::run_render_bam_normalized_metrics_schema(
                         args,
                         )?;
                     }
-                    cli::BenchReadinessCommand::RenderBamParserCoverage(args) => {
-                        crate::commands::benchmark::readiness::bam_parser_coverage::run_render_bam_parser_coverage(
+                    cli::BenchReadinessCommand::RenderBamParserFixtureCoverage(args) => {
+                        crate::commands::benchmark::readiness::bam_parser_fixture_coverage::run_render_bam_parser_fixture_coverage(
                         args,
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderBamReportMap(args) => {
                         crate::commands::benchmark::readiness::bam_report_map::run_render_bam_report_map(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamToolScores(args) => {
+                        crate::commands::benchmark::readiness::bam_tool_scores::run_render_bam_tool_scores(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderBamAllRetainedToolsComplete(args) => {
+                        crate::commands::benchmark::readiness::bam_all_retained_tools_complete::run_render_bam_all_retained_tools_complete(
                             args,
                         )?;
                     }
@@ -315,6 +445,11 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderEssentialPipelinesLocalComplete(args) => {
+                        crate::commands::benchmark::readiness::essential_pipelines_local_complete::run_render_essential_pipelines_local_complete(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderEssentialPipelineReportMap(args) => {
                         crate::commands::benchmark::readiness::essential_pipeline_report_map::run_render_essential_pipeline_report_map(
                             args,
@@ -331,7 +466,7 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderParserFailureTests(args) => {
-                        crate::commands::benchmark::readiness::parser_failure_tests::run_render_parser_failure_tests(
+                        crate::commands::benchmark::readiness::parser_failure_audit::run_render_parser_failure_audit(
                             args,
                         )?;
                     }
@@ -380,13 +515,23 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderFastqToolScores(args) => {
+                        crate::commands::benchmark::readiness::fastq_tool_scores::run_render_fastq_tool_scores(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderVcfToolScores(args) => {
+                        crate::commands::benchmark::readiness::vcf_tool_scores::run_render_vcf_tool_scores(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderFastqActiveStageToolMatrix(args) => {
                         crate::commands::benchmark::readiness::fastq_active_stage_tool_matrix::run_render_fastq_active_stage_tool_matrix(
                             args,
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderFastqLocalContainerSmoke(args) => {
-                        crate::commands::benchmark::readiness::fastq_local_container_smoke::run_render_fastq_local_container_smoke(
+                        crate::commands::benchmark::readiness::fastq_local_container_probe::run_render_fastq_local_container_smoke(
                             args,
                         )?;
                     }
@@ -435,8 +580,8 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
-                    cli::BenchReadinessCommand::RenderAllDomainHarnessReady(args) => {
-                        crate::commands::benchmark::readiness::all_domain_harness_ready::run_render_all_domain_harness_ready(
+                    cli::BenchReadinessCommand::RenderAllDomainLocalHarnessComplete(args) => {
+                        crate::commands::benchmark::readiness::all_domain_local_harness_complete::run_render_all_domain_local_harness_complete(
                             args,
                         )?;
                     }
@@ -461,7 +606,7 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderAllDomainMissingResultTest(args) => {
-                        crate::commands::benchmark::readiness::all_domain_missing_result_test::run_render_all_domain_missing_result_test(
+                        crate::commands::benchmark::readiness::all_domain_missing_result_audit::run_render_all_domain_missing_result_audit(
                             args,
                         )?;
                     }
@@ -485,8 +630,18 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderMicroBenchmarkExecutionReady(args) => {
+                        crate::commands::benchmark::readiness::micro_benchmark_execution_ready::run_render_micro_benchmark_execution_ready(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderOperationalBenchmarkReady(args) => {
                         crate::commands::benchmark::readiness::operational_benchmark_ready::run_render_operational_benchmark_ready(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderAllDomainLocalOperationalBenchmarkComplete(args) => {
+                        crate::commands::benchmark::readiness::all_domain_local_operational_benchmark_complete::run_render_all_domain_local_operational_benchmark_complete(
                             args,
                         )?;
                     }
@@ -560,6 +715,51 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::RenderExecutableResolution(args) => {
+                        crate::commands::benchmark::readiness::executable_resolution::run_render_executable_resolution(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderApptainerMap(args) => {
+                        crate::commands::benchmark::readiness::apptainer_map::run_render_apptainer_map(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderInputPreflightTests(args) => {
+                        crate::commands::benchmark::readiness::input_preflight_audit::run_render_input_preflight_audit(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderOutputContractTests(args) => {
+                        crate::commands::benchmark::readiness::output_contract_audit::run_render_output_contract_audit(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderRealOutputParserSmoke(args) => {
+                        crate::commands::benchmark::readiness::real_output_parser_probe::run_render_real_output_parser_smoke(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderRetainedToolsetExecutableLocal(args) => {
+                        crate::commands::benchmark::readiness::retained_toolset_executable_local::run_render_retained_toolset_executable_local(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RenderVersionProbes(args) => {
+                        crate::commands::benchmark::readiness::version_probes::run_render_version_probes(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RunContainerToolSmoke(args) => {
+                        crate::commands::benchmark::readiness::container_tool_probe::run_container_tool_smoke(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::RunHostToolSmoke(args) => {
+                        crate::commands::benchmark::readiness::host_tool_probe::run_host_tool_smoke(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderStageToolAliasCheck(args) => {
                         crate::commands::benchmark::readiness::stage_tool_alias_check::run_render_stage_tool_alias_check(
                             args,
@@ -611,12 +811,12 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderVcfParserFailureTests(args) => {
-                        crate::commands::benchmark::readiness::vcf_parser_failure_tests::run_render_vcf_parser_failure_tests(
+                        crate::commands::benchmark::readiness::vcf_parser_failure_audit::run_render_vcf_parser_failure_audit(
                             args,
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderVcfAdapterMissingInputTests(args) => {
-                        crate::commands::benchmark::readiness::vcf_adapter_missing_input_tests::run_render_vcf_adapter_missing_input_tests(
+                        crate::commands::benchmark::readiness::vcf_adapter_missing_input_audit::run_render_vcf_adapter_missing_input_audit(
                             args,
                         )?;
                     }
@@ -631,7 +831,7 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     cli::BenchReadinessCommand::RenderVcfLocalContainerSmoke(args) => {
-                        crate::commands::benchmark::readiness::vcf_local_container_smoke::run_render_vcf_local_container_smoke(
+                        crate::commands::benchmark::readiness::vcf_local_container_probe::run_render_vcf_local_container_smoke(
                             args,
                         )?;
                     }
@@ -785,6 +985,26 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchReadinessCommand::ValidateStageScoring(args) => {
+                        crate::commands::benchmark::readiness::stage_scoring::run_validate_stage_scoring(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::ValidateBamToolScores(args) => {
+                        crate::commands::benchmark::readiness::bam_tool_scores::run_validate_bam_tool_scores(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::ValidateFastqToolScores(args) => {
+                        crate::commands::benchmark::readiness::fastq_tool_scores::run_validate_fastq_tool_scores(
+                            args,
+                        )?;
+                    }
+                    cli::BenchReadinessCommand::ValidateVcfToolScores(args) => {
+                        crate::commands::benchmark::readiness::vcf_tool_scores::run_validate_vcf_tool_scores(
+                            args,
+                        )?;
+                    }
                     cli::BenchReadinessCommand::RenderToolIdNormalization(args) => {
                         crate::commands::benchmark::readiness::tool_id_normalization::run_render_tool_id_normalization(
                             args,
@@ -899,6 +1119,46 @@ pub(crate) fn handle_meta_commands(
                             args,
                         )?;
                     }
+                    cli::BenchLocalCommand::RunFastqMicroSmokeSubset(args) => {
+                        crate::commands::benchmark::local_fastq_micro_smoke_subset::run_fastq_micro_smoke_subset(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RunBamMicroSmokeSubset(args) => {
+                        crate::commands::benchmark::local_bam_micro_smoke_subset::run_bam_micro_smoke_subset(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RunVcfMicroSmokeSubset(args) => {
+                        crate::commands::benchmark::local_vcf_micro_smoke_subset::run_vcf_micro_smoke_subset(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RunAmpliconMicroPipeline(args) => {
+                        crate::commands::benchmark::local_amplicon_micro_pipeline::run_amplicon_micro_pipeline(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RunAdnaMicroPipeline(args) => {
+                        crate::commands::benchmark::local_adna_micro_pipeline::run_adna_micro_pipeline(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RunEdnaMicroPipeline(args) => {
+                        crate::commands::benchmark::local_edna_micro_pipeline::run_edna_micro_pipeline(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RunCoreGermlineMicroPipeline(args) => {
+                        crate::commands::benchmark::local_core_germline_micro_pipeline::run_core_germline_micro_pipeline(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RunBamStageSmoke(args) => {
+                        crate::commands::benchmark::local_stage_commands::run_bam_stage_smoke(
+                            args,
+                        )?;
+                    }
                     cli::BenchLocalCommand::RunVcfCallSmoke(args) => {
                         crate::commands::benchmark::local_vcf_call_smoke::run_vcf_call_smoke(args)?;
                     }
@@ -946,6 +1206,11 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchLocalCommand::RunVcfPcaSmoke(args) => {
                         crate::commands::benchmark::local_vcf_pca_smoke::run_vcf_pca_smoke(args)?;
+                    }
+                    cli::BenchLocalCommand::RunVcfPostprocessSmoke(args) => {
+                        crate::commands::benchmark::local_vcf_postprocess_smoke::run_vcf_postprocess_smoke(
+                            args,
+                        )?;
                     }
                     cli::BenchLocalCommand::RunVcfStatsSmoke(args) => {
                         crate::commands::benchmark::local_vcf_stats_smoke::run_vcf_stats_smoke(
@@ -1004,6 +1269,11 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchLocalCommand::ValidateVcfSampleCompatibility(args) => {
                         crate::commands::benchmark::local_vcf_sample_compatibility::run_validate_vcf_sample_compatibility(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::ValidateCrossDomainSampleConsistency(args) => {
+                        crate::commands::benchmark::local_cross_domain_sample_consistency::run_validate_cross_domain_sample_consistency(
                             args,
                         )?;
                     }
@@ -1075,6 +1345,106 @@ pub(crate) fn handle_meta_commands(
                     }
                     cli::BenchLocalCommand::ValidateAllDomainSlurmResultPaths(args) => {
                         crate::commands::benchmark::local_all_domain_slurm_path_convention::run_validate_all_domain_slurm_result_paths(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::ValidateHpcAssetStagingManifest(args) => {
+                        crate::commands::benchmark::local_hpc_asset_staging_manifest::run_validate_hpc_asset_staging_manifest(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcAssetStagingManifest(args) => {
+                        crate::commands::benchmark::local_hpc_asset_staging_manifest::run_render_hpc_asset_staging_manifest(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::ValidateHpcCandidateRunManifest(args) => {
+                        crate::commands::benchmark::local_hpc_candidate_run_manifest::run_validate_hpc_candidate_run_manifest(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcCandidateRunManifest(args) => {
+                        crate::commands::benchmark::local_hpc_candidate_run_manifest::run_render_hpc_candidate_run_manifest(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::ValidateHpcDryRunReady(args) => {
+                        crate::commands::benchmark::local_hpc_dry_run_ready::run_validate_hpc_dry_run_ready(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcDryRunReady(args) => {
+                        crate::commands::benchmark::local_hpc_dry_run_ready::run_render_hpc_dry_run_ready(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::ValidateHpcScratchLayout(args) => {
+                        crate::commands::benchmark::local_hpc_scratch_layout::run_validate_hpc_scratch_layout(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcScratchLayout(args) => {
+                        crate::commands::benchmark::local_hpc_scratch_layout::run_render_hpc_scratch_layout(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::ValidateHpcExecutionResolver(args) => {
+                        crate::commands::benchmark::local_hpc_execution_resolver::run_validate_hpc_execution_resolver(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcExecutionResolver(args) => {
+                        crate::commands::benchmark::local_hpc_execution_resolver::run_render_hpc_execution_resolver(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::ValidateHpcDependencySimulation(args) => {
+                        crate::commands::benchmark::local_hpc_dependency_simulation::run_validate_hpc_dependency_simulation(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcDependencySimulation(args) => {
+                        crate::commands::benchmark::local_hpc_dependency_simulation::run_render_hpc_dependency_simulation(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::ValidateHpcResumeSimulation(args) => {
+                        crate::commands::benchmark::local_hpc_resume_simulation::run_validate_hpc_resume_simulation(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcResumeSimulation(args) => {
+                        crate::commands::benchmark::local_hpc_resume_simulation::run_render_hpc_resume_simulation(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::ValidateHpcResultCollectionSimulation(args) => {
+                        crate::commands::benchmark::local_hpc_result_collection_simulation::run_validate_hpc_result_collection_simulation(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcResultCollectionSimulation(args) => {
+                        crate::commands::benchmark::local_hpc_result_collection_simulation::run_render_hpc_result_collection_simulation(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::ValidateHpcStageBenchmarkArray(args) => {
+                        crate::commands::benchmark::local_hpc_stage_benchmark_array::run_validate_hpc_stage_benchmark_array(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcStageBenchmarkArray(args) => {
+                        crate::commands::benchmark::local_hpc_stage_benchmark_array::run_render_hpc_stage_benchmark_array(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::ValidateHpcPipelineNodeArray(args) => {
+                        crate::commands::benchmark::local_hpc_pipeline_node_array::run_validate_hpc_pipeline_node_array(
+                            args,
+                        )?;
+                    }
+                    cli::BenchLocalCommand::RenderHpcPipelineNodeArray(args) => {
+                        crate::commands::benchmark::local_hpc_pipeline_node_array::run_render_hpc_pipeline_node_array(
                             args,
                         )?;
                     }

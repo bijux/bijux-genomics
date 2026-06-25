@@ -1,0 +1,89 @@
+{
+  "schema_version": "bijux.bench.fastq_duplicates_truth.expected.v1",
+  "fixture_id": "fastq-duplicates-truth",
+  "stage_truths": [
+    {
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "cases": [
+        {
+          "sample_id": "human_like_pe_distinct_pairs",
+          "tool_id": "bijux",
+          "planned_tool_id": null,
+          "layout": "paired_end",
+          "reads_in": 4,
+          "duplicate_reads": 0,
+          "duplicate_fraction": 0.0,
+          "unique_reads": null,
+          "retained_reads": null,
+          "inspected_pair_count": 2,
+          "duplicate_status": "no_duplicate_signal",
+          "outputs": []
+        },
+        {
+          "sample_id": "human_like_pe_duplicate_signals",
+          "tool_id": "bijux",
+          "planned_tool_id": null,
+          "layout": "paired_end",
+          "reads_in": 6,
+          "duplicate_reads": 2,
+          "duplicate_fraction": 0.3333333333333333,
+          "unique_reads": null,
+          "retained_reads": null,
+          "inspected_pair_count": 3,
+          "duplicate_status": "duplicate_signal_detected",
+          "outputs": []
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "cases": [
+        {
+          "sample_id": "human_like_pe_duplicate_signals",
+          "tool_id": "bijux",
+          "planned_tool_id": "clumpify",
+          "layout": "paired_end",
+          "reads_in": 6,
+          "duplicate_reads": 2,
+          "duplicate_fraction": 0.3333333333333333,
+          "unique_reads": 4,
+          "retained_reads": 4,
+          "inspected_pair_count": null,
+          "duplicate_status": null,
+          "outputs": [
+            {
+              "read_end": "r1",
+              "records": [
+                {
+                  "read_id": "@pair1/1",
+                  "sequence": "ACGTTGCAACGT",
+                  "quality": "FFFFFFFFFFFF"
+                },
+                {
+                  "read_id": "@pair2/1",
+                  "sequence": "TGCATGCATGCA",
+                  "quality": "FFFFFFFFFFFF"
+                }
+              ]
+            },
+            {
+              "read_end": "r2",
+              "records": [
+                {
+                  "read_id": "@pair1/2",
+                  "sequence": "TTGGAACCTTGG",
+                  "quality": "FFFFFFFFFFFF"
+                },
+                {
+                  "read_id": "@pair2/2",
+                  "sequence": "CCAATTGGCCAA",
+                  "quality": "FFFFFFFFFFFF"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

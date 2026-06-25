@@ -7,6 +7,7 @@ const NORMAL_DEPS: &[&str] = &[
     "bijux-dna-db-ref",
     "bijux-dna-domain-vcf",
     "bijux-dna-infra",
+    "bijux-dna-runner",
     "regex",
     "serde",
     "serde_json",
@@ -23,7 +24,6 @@ const FORBIDDEN_BIJUX_EDGES: &[&str] = &[
     "bijux-dna-planner-bam",
     "bijux-dna-planner-fastq",
     "bijux-dna-planner-vcf",
-    "bijux-dna-runner",
     "bijux-dna-runtime",
 ];
 
@@ -50,7 +50,7 @@ fn dev_dependency_graph_stays_test_facing() {
 }
 
 #[test]
-fn stages_vcf_rejects_api_planner_runtime_runner_and_environment_edges() {
+fn stages_vcf_rejects_api_planner_runtime_and_environment_edges() {
     let manifest = manifest();
 
     for forbidden in FORBIDDEN_BIJUX_EDGES {
