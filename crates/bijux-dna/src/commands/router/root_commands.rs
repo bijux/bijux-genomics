@@ -471,6 +471,19 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 println!("commands={}", report.commands.len());
             }
         }
+        cli::ConfigCommand::MaterializePipelineAssets(args) => {
+            let report = hpc::pipeline_asset_materialization(cwd, args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("schema_version={}", report.schema_version);
+                println!("pipeline_id={}", report.pipeline_id);
+                println!("pipeline_config_path={}", report.pipeline_config_path);
+                println!("operations_root={}", report.operations_root);
+                println!("requested_surface={}", report.requested_surface);
+                println!("completed_surfaces={}", report.completed_surfaces.join(","));
+            }
+        }
         cli::ConfigCommand::BenchmarkMatrix(args) => {
             let report = hpc::benchmark_matrix(args)?;
             if let Some(out_path) = &args.out {

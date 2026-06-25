@@ -109,6 +109,8 @@ pub(crate) fn render_pipeline_operations_report(
         .as_ref()
         .map(|assets| build_variant_materialization(&operations_root, assets));
     let commands = build_commands(
+        config_path,
+        &operations_root,
         &project_downloads,
         reference_materialization.as_ref(),
         variant_materialization.as_ref(),
@@ -232,6 +234,8 @@ fn build_variant_materialization(
 }
 
 fn build_commands(
+    config_path: &Path,
+    operations_root: &Path,
     project_downloads: &[ProjectDownloadPlan],
     reference_materialization: Option<&AssetMaterializationPlan>,
     variant_materialization: Option<&AssetMaterializationPlan>,
@@ -252,8 +256,8 @@ fn build_commands(
             command: project.fetch_command.clone(),
         });
     }
-    extend_asset_commands(&mut commands, reference_materialization);
-    extend_asset_commands(&mut commands, variant_materialization);
+    extend_asset_commands(&mut commands, config_path, operations_root, reference_materialization);
+    extend_asset_commands(&mut commands, config_path, operations_root, variant_materialization);
     let campaign_config = shell_quote_path(campaign_config_path);
     commands.push(PipelineOperationCommand {
         operation_id: "campaign:preparation-graph".to_string(),
@@ -288,21 +292,24 @@ fn build_commands(
 
 fn extend_asset_commands(
     commands: &mut Vec<PipelineOperationCommand>,
+    config_path: &Path,
+    operations_root: &Path,
     plan: Option<&AssetMaterializationPlan>,
 ) {
     let Some(plan) = plan else {
         return;
     };
-    for file in &plan.files {
-        if let Some(command) = &file.command {
-            commands.push(PipelineOperationCommand {
-                operation_id: format!("{}:{}", plan.surface, file.role),
-                surface: plan.surface.clone(),
-                description: format!("materialize {}", file.role),
-                command: command.clone(),
-            });
-        }
-    }
+    commands.push(PipelineOperationCommand {
+        operation_id: format!("{}:materialize", plan.surface),
+        surface: plan.surface.clone(),
+        description: format!("materialize {} assets", plan.surface),
+        command: format!(
+            "bijux-dna config materialize-pipeline-assets --config {} --operations-root {} --surface {} --json",
+            shell_quote_path(config_path),
+            shell_quote_path(operations_root),
+            shell_quote(&plan.surface),
+        ),
+    });
 }
 
 fn remote_asset_file(role: &str, target_path: &Path, source_url: &str) -> AssetFilePlan {
@@ -432,6 +439,11 @@ mod tests {
                     == Some(
                         "https://snpeff-public.s3.amazonaws.com/databases/v5_0/snpEff_v5_0_EquCab3.0.99.zip"
                     )
+        }));
+        assert!(report.commands.iter().any(|command| {
+            command.operation_id == "ref-prep:materialize"
+                && command.command.contains("bijux-dna config materialize-pipeline-assets --config")
+                && command.command.contains("--surface 'ref-prep' --json")
         }));
         assert!(report.commands.iter().any(|command| {
             command.operation_id == "campaign:submit"
