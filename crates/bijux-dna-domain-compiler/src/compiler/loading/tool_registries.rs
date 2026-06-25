@@ -46,6 +46,7 @@ pub(super) fn build_tool_registries_toml(
     let _ = writeln!(required_tools_toml, "required_tools = {}", toml_array(&required_tools));
     required_tools_toml.push('\n');
     let mut production_tool_ids = BTreeSet::new();
+    let mut experimental_tool_count = 0usize;
     let workspace_root = domain_dir.parent().unwrap_or(domain_dir);
     for tool in tools.values() {
         let dockerfile_rel = format!("containers/docker/arm64/Dockerfile.{}", tool.id);
@@ -112,6 +113,7 @@ pub(super) fn build_tool_registries_toml(
         };
 
         let out = if is_planned || is_experimental {
+            experimental_tool_count += 1;
             &mut experimental_toml
         } else {
             production_tool_ids.insert(tool.id.clone());
@@ -156,6 +158,10 @@ pub(super) fn build_tool_registries_toml(
         let _ = writeln!(out, "dockerfile = \"{dockerfile_rel}\"");
         let _ = writeln!(out, "apptainer_def = \"{apptainer_def_rel}\"");
         out.push_str("require_labels = true\n\n");
+    }
+
+    if experimental_tool_count == 0 {
+        experimental_toml.push_str("tools = []\n\n");
     }
 
     for (stage_id, tools_set) in stage_to_tools {
