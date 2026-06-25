@@ -58,6 +58,14 @@ struct LocalDamageOutputPaths {
     stage_metrics: PathBuf,
 }
 
+struct LocalDamageExtraArtifactPaths<'a> {
+    damage_profile: &'a Path,
+    damage_plot: Option<&'a Path>,
+    damage_clusters: Option<&'a Path>,
+    damage_parameters: Option<&'a Path>,
+    pmd_scores: Option<&'a Path>,
+}
+
 struct DamageExpectationDeltas {
     expectation_matched: bool,
     terminal_c_to_t_5p_delta: f64,
@@ -241,11 +249,13 @@ fn materialize_local_damage_smoke_case(
         &case.plan,
         &summary,
         &tools_seen,
-        &output_paths.damage_profile,
-        output_paths.damage_plot.as_deref(),
-        output_paths.damage_clusters.as_deref(),
-        output_paths.damage_parameters.as_deref(),
-        output_paths.pmd_scores.as_deref(),
+        &LocalDamageExtraArtifactPaths {
+            damage_profile: &output_paths.damage_profile,
+            damage_plot: output_paths.damage_plot.as_deref(),
+            damage_clusters: output_paths.damage_clusters.as_deref(),
+            damage_parameters: output_paths.damage_parameters.as_deref(),
+            pmd_scores: output_paths.pmd_scores.as_deref(),
+        },
     )?;
     write_local_damage_stage_metrics(
         &output_paths.stage_metrics,
@@ -535,24 +545,20 @@ fn write_local_damage_extra_artifacts(
     plan: &bijux_dna_stage_contract::StagePlanV1,
     summary: &bijux_dna_domain_bam::BamDamageEvidenceV1,
     tools_seen: &[String],
-    damage_profile_path: &Path,
-    damage_plot_path: Option<&Path>,
-    damage_clusters_path: Option<&Path>,
-    damage_parameters_path: Option<&Path>,
-    pmd_scores_path: Option<&Path>,
+    output_paths: &LocalDamageExtraArtifactPaths<'_>,
 ) -> Result<()> {
     let tool_id = plan.tool_id.as_str();
-    write_damage_profile_artifact(damage_profile_path, tool_id, summary)?;
-    if let Some(damage_plot_path) = damage_plot_path {
+    write_damage_profile_artifact(output_paths.damage_profile, tool_id, summary)?;
+    if let Some(damage_plot_path) = output_paths.damage_plot {
         write_damage_plot_artifact(damage_plot_path, tool_id, tools_seen)?;
     }
-    if let Some(damage_clusters_path) = damage_clusters_path {
+    if let Some(damage_clusters_path) = output_paths.damage_clusters {
         write_damage_clusters_artifact(damage_clusters_path, tool_id, summary)?;
     }
-    if let Some(damage_parameters_path) = damage_parameters_path {
+    if let Some(damage_parameters_path) = output_paths.damage_parameters {
         write_damage_parameters_artifact(damage_parameters_path, plan, tool_id)?;
     }
-    if let Some(pmd_scores_path) = pmd_scores_path {
+    if let Some(pmd_scores_path) = output_paths.pmd_scores {
         write_damage_pmd_scores_artifact(pmd_scores_path, tool_id)?;
     }
     Ok(())

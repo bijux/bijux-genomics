@@ -30,7 +30,7 @@ fn command_inventory_points_to_stage_authority() {
         "COMMANDS.md must state that the planner exposes no runtime commands",
     );
     for authority in ["bijux_dna_domain_fastq::STAGES", "src/tool_adapters/"] {
-        assert!(doc.contains(authority), "COMMANDS.md must point to command authority {authority}",);
+        assert!(doc.contains(authority), "COMMANDS.md must point to command authority {authority}");
     }
 }
 

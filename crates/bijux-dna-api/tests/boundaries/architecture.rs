@@ -238,6 +238,10 @@ fn assert_test_tree(root: &std::path::Path) {
         &["workspace_paths.rs"],
         "api test support must keep shared helpers out of suite roots",
     );
+    assert_contracts_tree(root);
+}
+
+fn assert_contracts_tree(root: &std::path::Path) {
     assert_dir_entries(
         &root.join("tests/boundaries"),
         &[
@@ -251,10 +255,27 @@ fn assert_test_tree(root: &std::path::Path) {
         ],
         "api boundary tests must cover architecture, docs, dependencies, and v1 guardrails",
     );
+    assert_bam_contracts_tree(root);
+    assert_fastq_contracts_tree(root);
+    assert_cross_contracts_tree(root);
+    assert_dir_entries(
+        &root.join("tests/schemas"),
+        &[
+            "v1_cross_api_stability.rs",
+            "v1_cross_contract_handshake.rs",
+            "v1_cross_docs_schema_snapshots.rs",
+            "v1_cross_public_surface.rs",
+            "v1_operator_failure_contract.rs",
+            "v1_route_version_inventory.rs",
+        ],
+        "api schema tests must stay split by stable schema surface",
+    );
+}
+
+fn assert_bam_contracts_tree(root: &std::path::Path) {
     assert_dir_entries(
         &root.join("tests/contracts"),
         &[
-            "fastq_amplicon_governance_contract.rs",
             "v1_bam_local_align_plan.rs",
             "v1_bam_local_authenticity_smoke.rs",
             "v1_bam_local_bias_mitigation_smoke.rs",
@@ -282,11 +303,16 @@ fn assert_test_tree(root: &std::path::Path) {
             "v1_bam_local_sex_smoke.rs",
             "v1_bam_local_sex_tool_smoke.rs",
             "v1_bam_local_validate_smoke.rs",
-            "v1_cross_contract_spine.rs",
-            "v1_cross_explain_roundtrip.rs",
-            "v1_cross_profile_contracts.rs",
-            "v1_cross_public_contract.rs",
-            "v1_dry_run_manifest.rs",
+        ],
+        "api BAM contract tests must stay split by public v1 behavior",
+    );
+}
+
+fn assert_fastq_contracts_tree(root: &std::path::Path) {
+    assert_dir_entries(
+        &root.join("tests/contracts"),
+        &[
+            "fastq_amplicon_governance_contract.rs",
             "v1_fastq_local_cluster_otus_smoke.rs",
             "v1_fastq_local_correct_errors_smoke.rs",
             "v1_fastq_local_deplete_host_plan.rs",
@@ -314,6 +340,20 @@ fn assert_test_tree(root: &std::path::Path) {
             "v1_fastq_local_trim_terminal_damage_smoke.rs",
             "v1_fastq_local_validate_reads_smoke.rs",
             "v1_fastq_small_integration.rs",
+        ],
+        "api FASTQ contract tests must stay split by public v1 behavior",
+    );
+}
+
+fn assert_cross_contracts_tree(root: &std::path::Path) {
+    assert_dir_entries(
+        &root.join("tests/contracts"),
+        &[
+            "v1_cross_contract_spine.rs",
+            "v1_cross_explain_roundtrip.rs",
+            "v1_cross_profile_contracts.rs",
+            "v1_cross_public_contract.rs",
+            "v1_dry_run_manifest.rs",
             "v1_plan_manifest_contract.rs",
             "v1_report_evidence.rs",
             "v1_route_adapter_contract.rs",
@@ -325,19 +365,7 @@ fn assert_test_tree(root: &std::path::Path) {
             "v1_run_workflows.rs",
             "v1_status_evidence.rs",
         ],
-        "api contract tests must stay split by public v1 behavior",
-    );
-    assert_dir_entries(
-        &root.join("tests/schemas"),
-        &[
-            "v1_cross_api_stability.rs",
-            "v1_cross_contract_handshake.rs",
-            "v1_cross_docs_schema_snapshots.rs",
-            "v1_cross_public_surface.rs",
-            "v1_operator_failure_contract.rs",
-            "v1_route_version_inventory.rs",
-        ],
-        "api schema tests must stay split by stable schema surface",
+        "api cross-cutting contract tests must stay split by public v1 behavior",
     );
 }
 

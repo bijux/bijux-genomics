@@ -886,9 +886,8 @@ mod tests {
                 params: None,
             }],
         );
-        let error = match result {
-            Ok(_) => panic!("node/tool mismatch must fail"),
-            Err(error) => error,
+        let Err(error) = result else {
+            panic!("node/tool mismatch must fail");
         };
 
         assert!(error.to_string().contains("pipeline nodes/toolset length mismatch"));
@@ -963,9 +962,8 @@ mod tests {
                 params: None,
             },
         ]);
-        let error = match result {
-            Ok(_) => panic!("repeated stage ids must require an explicit graph"),
-            Err(error) => error,
+        let Err(error) = result else {
+            panic!("repeated stage ids must require an explicit graph");
         };
 
         assert!(error.to_string().contains("requires an explicit pipeline_spec"));

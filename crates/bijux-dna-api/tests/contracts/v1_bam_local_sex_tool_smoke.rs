@@ -30,7 +30,9 @@ fn repo_root() -> Result<PathBuf> {
 #[test]
 fn write_local_sex_tool_smoke_report_materializes_retained_tool_cases() -> Result<()> {
     let repo_root = repo_root()?;
-    let _lock = crate::support::bench_output_lock().lock().unwrap();
+    let _lock = crate::support::bench_output_lock()
+        .lock()
+        .unwrap_or_else(|err| panic!("lock BAM sex tool benchmark output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
     let output_root = repo_root.join("runs/bench/local-smoke/bam.sex");
     if output_root.exists() {
@@ -47,13 +49,13 @@ fn write_local_sex_tool_smoke_report_materializes_retained_tool_cases() -> Resul
     assert_eq!(payload["insufficient_sample_id"], serde_json::json!("adna_y_haplogroup_panel"));
     assert_eq!(payload["case_count"], serde_json::json!(6));
 
-    let tool_ids = payload["tool_ids"].as_array().expect("tool_ids");
+    let tool_ids = required_array(&payload, "tool_ids")?;
     assert_eq!(tool_ids.len(), 3);
     assert!(tool_ids.iter().any(|tool| tool.as_str() == Some("angsd")));
     assert!(tool_ids.iter().any(|tool| tool.as_str() == Some("rxy")));
     assert!(tool_ids.iter().any(|tool| tool.as_str() == Some("yleaf")));
 
-    let rows = payload["rows"].as_array().expect("rows");
+    let rows = required_array(&payload, "rows")?;
     assert_eq!(rows.len(), 6);
 
     let ready_angsd = rows
@@ -63,7 +65,7 @@ fn write_local_sex_tool_smoke_report_materializes_retained_tool_cases() -> Resul
                 && row["proof_case"] == "ready"
                 && row["sample_id"] == "adna_xy_autosome_coverage"
         })
-        .expect("ready angsd row");
+        .ok_or_else(|| anyhow::anyhow!("ready angsd row missing"))?;
     assert_eq!(ready_angsd["method"], serde_json::json!("angsd"));
     assert_eq!(ready_angsd["call"], serde_json::json!("male"));
     assert_eq!(ready_angsd["status"], serde_json::json!("ok"));
@@ -81,7 +83,7 @@ fn write_local_sex_tool_smoke_report_materializes_retained_tool_cases() -> Resul
                 && row["proof_case"] == "insufficient"
                 && row["sample_id"] == "adna_y_haplogroup_panel"
         })
-        .expect("insufficient yleaf row");
+        .ok_or_else(|| anyhow::anyhow!("insufficient yleaf row missing"))?;
     assert_eq!(insufficient_yleaf["method"], serde_json::json!("yleaf"));
     assert_eq!(insufficient_yleaf["call"], serde_json::json!("insufficient"));
     assert_eq!(insufficient_yleaf["confidence"], serde_json::json!(0.0));
@@ -104,7 +106,9 @@ fn write_local_sex_tool_smoke_report_materializes_retained_tool_cases() -> Resul
             "stage_metrics",
         ] {
             let path = repo_root.join(
-                row[key].as_str().unwrap_or_else(|| panic!("missing governed path for {key}")),
+                row[key]
+                    .as_str()
+                    .ok_or_else(|| anyhow::anyhow!("missing governed path for {key}"))?,
             );
             assert!(
                 path.is_file(),
@@ -115,4 +119,11 @@ fn write_local_sex_tool_smoke_report_materializes_retained_tool_cases() -> Resul
     }
 
     Ok(())
+}
+
+fn required_array<'a>(
+    payload: &'a serde_json::Value,
+    key: &str,
+) -> Result<&'a [serde_json::Value]> {
+    payload[key].as_array().map(Vec::as_slice).ok_or_else(|| anyhow::anyhow!("{key} array missing"))
 }

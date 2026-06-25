@@ -86,10 +86,7 @@ type FastqRecord = (String, String, String, String);
 fn parse_fastq_text(text: &str) -> Vec<FastqRecord> {
     let mut records = Vec::new();
     let mut lines = text.lines();
-    loop {
-        let Some(header) = lines.next() else {
-            break;
-        };
+    while let Some(header) = lines.next() {
         let Some(sequence) = lines.next() else {
             panic!("FASTQ sequence line");
         };

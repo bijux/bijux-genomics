@@ -84,6 +84,28 @@ struct LocalHaplogroupsOutputPaths {
     stage_metrics: PathBuf,
 }
 
+struct LocalHaplogroupsCaseArtifacts {
+    reference_panel: PathBuf,
+    reference_panel_id: String,
+    reference_build: String,
+    population_scope: String,
+    minimum_coverage: f64,
+    observed_mean_coverage: f64,
+    haplogroup_call: Option<String>,
+    confidence: f64,
+    status: String,
+    ready: bool,
+    markers_total: usize,
+    markers_supported: usize,
+    supported_marker_ids: Vec<String>,
+    lineage_scope: Option<String>,
+    summary: bijux_dna_domain_bam::BamHaplogroupReadinessV1,
+    output_paths: LocalHaplogroupsOutputPaths,
+    expectation_matched: bool,
+    declared_output_ids: Vec<String>,
+    artifact_paths: Vec<String>,
+}
+
 /// Materialize governed local-smoke `bam.haplogroups` artifacts and report bundle.
 ///
 /// The written report lives at `runs/bench/local-smoke/bam.haplogroups/haplogroups.json`
@@ -149,8 +171,6 @@ fn materialize_local_haplogroups_case(
     let observed_mean_coverage = observed_mean_coverage(&input_bam)?;
     let markers = load_haplogroup_panel(&reference_panel)?;
     let supported_markers = covered_markers_from_sam(&input_bam, &markers)?;
-    let supported_marker_ids =
-        supported_markers.iter().map(|marker| marker.marker_id.clone()).collect::<Vec<_>>();
     let markers_total = markers.len();
     let markers_supported = supported_markers.len();
     let ready = proof_case == READY_CASE;
@@ -196,76 +216,46 @@ fn materialize_local_haplogroups_case(
         observed_mean_coverage,
         &reference_build,
     );
-    write_local_haplogroups_outputs(
-        repo_root,
-        proof_case,
-        &reference_panel,
-        &reference_panel_id,
-        &reference_build,
-        &population_scope,
-        minimum_coverage,
-        observed_mean_coverage,
-        haplogroup_call.as_ref(),
-        confidence,
-        status,
-        ready,
-        markers_total,
-        markers_supported,
-        &supported_marker_ids,
-        supported_markers.last().map(|marker| marker.lineage_scope.as_str()),
-        &summary,
-        &output_paths,
-        expectation_matched,
-    )?;
-
-    let declared_output_ids = plan
-        .io
-        .outputs
-        .iter()
-        .map(|artifact| artifact.name.as_str().to_string())
-        .collect::<Vec<_>>();
+    let declared_output_ids =
+        plan.io.outputs.iter().map(|artifact| artifact.name.to_string()).collect();
     let artifact_paths = vec![
         path_relative_to_repo(repo_root, &output_paths.haplogroups_report),
         path_relative_to_repo(repo_root, &output_paths.haplogroups_summary),
         path_relative_to_repo(repo_root, &output_paths.haplogroup_report),
         path_relative_to_repo(repo_root, &output_paths.stage_metrics),
     ];
-
-    Ok(LocalHaplogroupsSmokeCaseReport {
-        schema_version: LOCAL_HAPLOGROUPS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
-        stage_id: EXPECTED_STAGE_ID.to_string(),
-        tool_id: EXPECTED_TOOL_ID.to_string(),
-        proof_case: proof_case.to_string(),
-        sample_id: EXPECTED_SAMPLE_ID.to_string(),
-        expectation_matched,
-        input_bam: path_relative_to_repo(repo_root, &input_bam),
-        reference_fasta: path_relative_to_repo(repo_root, &reference_fasta),
-        reference_panel: path_relative_to_repo(repo_root, &reference_panel),
+    let artifacts = LocalHaplogroupsCaseArtifacts {
+        reference_panel,
         reference_panel_id,
         reference_build,
         population_scope,
         minimum_coverage,
         observed_mean_coverage,
-        contamination_estimate: CONTAMINATION_ESTIMATE,
-        ready: summary.ready,
         haplogroup_call,
         confidence,
         status: status.to_string(),
+        ready: summary.ready,
         markers_total,
         markers_supported,
         supported_marker_ids: supported_markers
             .iter()
             .map(|marker| marker.marker_id.clone())
             .collect(),
-        refusal_codes: summary.refusal_codes.clone(),
-        caveats: summary.caveats.clone(),
-        haplogroups_report: path_relative_to_repo(repo_root, &output_paths.haplogroups_report),
-        haplogroups_summary: path_relative_to_repo(repo_root, &output_paths.haplogroups_summary),
-        haplogroup_report: path_relative_to_repo(repo_root, &output_paths.haplogroup_report),
-        stage_metrics: path_relative_to_repo(repo_root, &output_paths.stage_metrics),
+        lineage_scope: supported_markers.last().map(|marker| marker.lineage_scope.clone()),
+        summary,
+        output_paths,
+        expectation_matched,
         declared_output_ids,
         artifact_paths,
-    })
+    };
+
+    write_local_haplogroups_case_report(
+        repo_root,
+        proof_case,
+        &input_bam,
+        &reference_fasta,
+        artifacts,
+    )
 }
 
 #[cfg(feature = "bam_downstream")]
@@ -377,6 +367,79 @@ fn write_local_haplogroups_outputs(
         }),
     )?;
     Ok(())
+}
+
+#[cfg(feature = "bam_downstream")]
+fn write_local_haplogroups_case_report(
+    repo_root: &Path,
+    proof_case: &str,
+    input_bam: &Path,
+    reference_fasta: &Path,
+    artifacts: LocalHaplogroupsCaseArtifacts,
+) -> Result<LocalHaplogroupsSmokeCaseReport> {
+    write_local_haplogroups_outputs(
+        repo_root,
+        proof_case,
+        &artifacts.reference_panel,
+        &artifacts.reference_panel_id,
+        &artifacts.reference_build,
+        &artifacts.population_scope,
+        artifacts.minimum_coverage,
+        artifacts.observed_mean_coverage,
+        artifacts.haplogroup_call.as_ref(),
+        artifacts.confidence,
+        &artifacts.status,
+        artifacts.ready,
+        artifacts.markers_total,
+        artifacts.markers_supported,
+        &artifacts.supported_marker_ids,
+        artifacts.lineage_scope.as_deref(),
+        &artifacts.summary,
+        &artifacts.output_paths,
+        artifacts.expectation_matched,
+    )?;
+
+    Ok(LocalHaplogroupsSmokeCaseReport {
+        schema_version: LOCAL_HAPLOGROUPS_SMOKE_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: EXPECTED_STAGE_ID.to_string(),
+        tool_id: EXPECTED_TOOL_ID.to_string(),
+        proof_case: proof_case.to_string(),
+        sample_id: EXPECTED_SAMPLE_ID.to_string(),
+        expectation_matched: artifacts.expectation_matched,
+        input_bam: path_relative_to_repo(repo_root, input_bam),
+        reference_fasta: path_relative_to_repo(repo_root, reference_fasta),
+        reference_panel: path_relative_to_repo(repo_root, &artifacts.reference_panel),
+        reference_panel_id: artifacts.reference_panel_id,
+        reference_build: artifacts.reference_build,
+        population_scope: artifacts.population_scope,
+        minimum_coverage: artifacts.minimum_coverage,
+        observed_mean_coverage: artifacts.observed_mean_coverage,
+        contamination_estimate: CONTAMINATION_ESTIMATE,
+        ready: artifacts.summary.ready,
+        haplogroup_call: artifacts.haplogroup_call,
+        confidence: artifacts.confidence,
+        status: artifacts.status,
+        markers_total: artifacts.markers_total,
+        markers_supported: artifacts.markers_supported,
+        supported_marker_ids: artifacts.supported_marker_ids,
+        refusal_codes: artifacts.summary.refusal_codes.clone(),
+        caveats: artifacts.summary.caveats.clone(),
+        haplogroups_report: path_relative_to_repo(
+            repo_root,
+            &artifacts.output_paths.haplogroups_report,
+        ),
+        haplogroups_summary: path_relative_to_repo(
+            repo_root,
+            &artifacts.output_paths.haplogroups_summary,
+        ),
+        haplogroup_report: path_relative_to_repo(
+            repo_root,
+            &artifacts.output_paths.haplogroup_report,
+        ),
+        stage_metrics: path_relative_to_repo(repo_root, &artifacts.output_paths.stage_metrics),
+        declared_output_ids: artifacts.declared_output_ids,
+        artifact_paths: artifacts.artifact_paths,
+    })
 }
 
 #[cfg(feature = "bam_downstream")]
