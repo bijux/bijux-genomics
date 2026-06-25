@@ -1,0 +1,9 @@
+schema_version: bijux.bench.local_pipeline_dag.v1
+pipeline_id: adna-equus-caballus-fastq-bam-vcf
+domain: cross
+summary: >-
+  Ancient-DNA Equus caballus FASTQ-to-BAM-to-VCF DAG for read-length-aware
+  short-read alignment on EquCab3, aggressive adapter-aware preprocessing,
+  duplicate-aware pair handling, BAM damage evidence, and downstream variant
+  calling.
+default_corpus_id: corpus-01-mini

@@ -21,6 +21,8 @@ use crate::commands::cli::render;
 pub(crate) const BENCHMARK_LOCAL_PIPELINE_CONFIG_ROOT: &str = "benchmarks/configs/pipelines/local";
 pub(crate) const DEFAULT_FASTQ_CORE_PREPROCESS_PIPELINE_CONFIG_PATH: &str =
     "benchmarks/configs/pipelines/local/fastq-core-preprocess.toml";
+const LOCAL_PIPELINE_YAML_CONFIG_FILE: &str = "config.yaml";
+const LOCAL_PIPELINE_YAML_STAGES_FILE: &str = "stages.yaml";
 const LOCAL_PIPELINE_DAG_SCHEMA_VERSION: &str = "bijux.bench.local_pipeline_dag.v1";
 const LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.local_pipeline_dag_validation.v1";
@@ -53,6 +55,22 @@ struct LocalPipelineDagConfig {
     domain: LocalPipelineDagDomain,
     summary: String,
     default_corpus_id: String,
+    nodes: Vec<LocalPipelineDagNode>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LocalPipelineDagMetadataConfig {
+    schema_version: String,
+    pipeline_id: String,
+    domain: LocalPipelineDagDomain,
+    summary: String,
+    default_corpus_id: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LocalPipelineDagStagesConfig {
     nodes: Vec<LocalPipelineDagNode>,
 }
 
@@ -158,13 +176,55 @@ pub(crate) fn benchmark_local_pipeline_config_dir(repo_root: &Path) -> PathBuf {
 }
 
 pub(crate) fn benchmark_local_pipeline_config_path(repo_root: &Path, pipeline_id: &str) -> PathBuf {
-    benchmark_local_pipeline_config_dir(repo_root).join(format!("{pipeline_id}.toml"))
+    let config_root = benchmark_local_pipeline_config_dir(repo_root);
+    let bundle_dir = config_root.join(pipeline_id);
+    if bundle_dir.is_dir() {
+        bundle_dir
+    } else {
+        config_root.join(format!("{pipeline_id}.toml"))
+    }
 }
 
 fn load_local_pipeline_dag_config(config_path: &Path) -> Result<LocalPipelineDagConfig> {
+    if config_path.is_dir() {
+        return load_local_pipeline_dag_yaml_bundle(config_path);
+    }
+    if matches!(
+        config_path.file_name().and_then(|value| value.to_str()),
+        Some(LOCAL_PIPELINE_YAML_CONFIG_FILE)
+    ) {
+        let Some(bundle_dir) = config_path.parent() else {
+            return Err(anyhow!(
+                "yaml local pipeline config `{}` must have a parent directory",
+                config_path.display()
+            ));
+        };
+        return load_local_pipeline_dag_yaml_bundle(bundle_dir);
+    }
     let raw = fs::read_to_string(config_path)
         .with_context(|| format!("read {}", config_path.display()))?;
     toml::from_str(&raw).with_context(|| format!("parse {}", config_path.display()))
+}
+
+fn load_local_pipeline_dag_yaml_bundle(bundle_dir: &Path) -> Result<LocalPipelineDagConfig> {
+    let metadata_path = bundle_dir.join(LOCAL_PIPELINE_YAML_CONFIG_FILE);
+    let stages_path = bundle_dir.join(LOCAL_PIPELINE_YAML_STAGES_FILE);
+    let metadata_raw = fs::read_to_string(&metadata_path)
+        .with_context(|| format!("read {}", metadata_path.display()))?;
+    let stages_raw = fs::read_to_string(&stages_path)
+        .with_context(|| format!("read {}", stages_path.display()))?;
+    let metadata: LocalPipelineDagMetadataConfig = serde_yaml::from_str(&metadata_raw)
+        .with_context(|| format!("parse {}", metadata_path.display()))?;
+    let stages: LocalPipelineDagStagesConfig = serde_yaml::from_str(&stages_raw)
+        .with_context(|| format!("parse {}", stages_path.display()))?;
+    Ok(LocalPipelineDagConfig {
+        schema_version: metadata.schema_version,
+        pipeline_id: metadata.pipeline_id,
+        domain: metadata.domain,
+        summary: metadata.summary,
+        default_corpus_id: metadata.default_corpus_id,
+        nodes: stages.nodes,
+    })
 }
 
 fn validate_pipeline_dag(
@@ -2779,7 +2839,7 @@ fn validate_pipeline_contract(config: &LocalPipelineDagConfig) -> Result<()> {
         "local pipeline DAG must declare a non-empty `default_corpus_id`",
     )?;
     if config.nodes.is_empty() {
-        return Err(anyhow!("local pipeline DAG must declare at least one `[[nodes]]` entry"));
+        return Err(anyhow!("local pipeline DAG must declare at least one `nodes` entry"));
     }
     Ok(())
 }
@@ -2884,6 +2944,70 @@ outputs = ["align_bam", "align_bai", "align_metrics"]
             }),
             "cross DAG validation must admit BAM alignment consumers of governed FASTQ path outputs"
         );
+    }
+
+    #[test]
+    fn yaml_pipeline_bundle_can_mix_fastq_and_bam_inventory_nodes() {
+        let repo_root = repo_root();
+        let tempdir = tempfile::tempdir().expect("tempdir");
+        let config_dir = tempdir.path().join("fastq-to-bam-cross");
+        fs::create_dir_all(&config_dir).expect("create config dir");
+        fs::write(
+            config_dir.join("config.yaml"),
+            r#"
+schema_version: bijux.bench.local_pipeline_dag.v1
+pipeline_id: fastq-to-bam-cross
+domain: cross
+summary: Cross-domain proof that YAML local pipeline validation can mix governed FASTQ and BAM stages.
+default_corpus_id: corpus-01-mini
+"#,
+        )
+        .expect("write yaml metadata");
+        fs::write(
+            config_dir.join("stages.yaml"),
+            r#"
+nodes:
+  - node_id: fastq.validate_reads
+    stage_id: fastq.validate_reads
+    readiness_kind: smoke
+    summary: Validate governed FASTQ inputs before alignment.
+    depends_on: []
+    external_inputs:
+      - corpus.raw_fastq_reads
+    upstream_inputs: []
+    outputs:
+      - validated_reads_r1_path
+      - validated_reads_r2_path
+      - validation_report
+  - node_id: bam.align
+    stage_id: bam.align
+    readiness_kind: dry_or_smoke
+    summary: Align validated FASTQ paths against the governed BAM alignment contracts.
+    depends_on:
+      - fastq.validate_reads
+    external_inputs:
+      - alignment_reference_fasta_contract
+      - alignment_reference_index_contract
+      - alignment_read_group_contract
+    upstream_inputs:
+      - validated_reads_r1_path
+      - validated_reads_r2_path
+    outputs:
+      - align_bam
+      - align_bai
+      - align_metrics
+"#,
+        )
+        .expect("write yaml stages");
+
+        let output_path = tempdir.path().join("fastq-to-bam-cross.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_dir, &output_path)
+            .expect("validate yaml local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "fastq-to-bam-cross");
+        assert_eq!(report.domain, "cross");
+        assert_eq!(report.node_count, 2);
+        assert_eq!(report.config_path, config_dir.display().to_string());
     }
 
     #[test]
@@ -3673,6 +3797,64 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
                         == vec!["align_bam", "qc_pre_flagstat", "qc_pre_idxstats", "qc_pre_stats"]
             }),
             "bam.mapping_summary must consume both alignment output and BAM pre-QC context"
+        );
+    }
+
+    #[test]
+    fn adna_equus_caballus_pipeline_bundle_tracks_short_read_and_equcab3_handoffs() {
+        let repo_root = repo_root();
+        let config_path =
+            repo_root.join("benchmarks/configs/pipelines/local/adna-equus-caballus-fastq-bam-vcf");
+        let output_path = repo_root.join(
+            "benchmarks/readiness/local-ready/pipeline-dag/adna-equus-caballus-fastq-bam-vcf.json",
+        );
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate horse aDNA local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "adna-equus-caballus-fastq-bam-vcf");
+        assert_eq!(report.domain, "cross");
+        assert_eq!(report.default_corpus_id, "corpus-01-mini");
+        assert!(report.acyclic);
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.align"
+                    && node.depends_on == vec!["fastq.profile_read_lengths", "fastq.filter_reads"]
+                    && node.upstream_inputs
+                        == vec![
+                            "filtered_merged_reads",
+                            "filtered_unmerged_r1_reads",
+                            "filtered_unmerged_r2_reads",
+                            "read_length_metrics",
+                        ]
+                    && node.external_inputs
+                        == vec![
+                            "equcab3_reference_fasta_contract",
+                            "equcab3_reference_index_contract",
+                            "adna_short_read_alignment_policy_contract",
+                            "alignment_read_group_contract",
+                        ]
+            }),
+            "bam.align must consume filtered merge-path reads plus the pre-trim read-length profile"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "vcf.call"
+                    && node.depends_on == vec!["bam.align", "bam.coverage", "bam.damage"]
+                    && node.external_inputs
+                        == vec![
+                            "equcab3_reference_fasta_contract",
+                            "equcab3_reference_fai_contract",
+                            "equcab3_candidate_sites_contract",
+                        ]
+                    && node.upstream_inputs
+                        == vec![
+                            "aligned_bam",
+                            "aligned_bai",
+                            "coverage_report_json",
+                            "damage_report_json",
+                        ]
+            }),
+            "vcf.call must stay tied to the EquCab3 reference contracts and BAM damage evidence"
         );
     }
 }
