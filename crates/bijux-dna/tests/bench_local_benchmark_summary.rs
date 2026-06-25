@@ -12,13 +12,12 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new("cargo")
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["run", "-q", "-p", "bijux-dna", "--features", "bam_downstream", "--"])
         .args(args)
         .output()
         .expect("run cli");

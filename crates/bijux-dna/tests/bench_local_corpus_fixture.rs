@@ -13,13 +13,12 @@ fn bench_local_validate_corpus_fixture_json_reports_governed_corpus_01_mini_cont
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new("cargo")
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["run", "-q", "-p", "bijux-dna", "--"])
         .args([
             "bench",
             "local",
