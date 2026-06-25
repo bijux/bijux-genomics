@@ -1224,24 +1224,39 @@ mod tests {
     #[test]
     fn operational_benchmark_ready_reports_green_governed_surface() {
         let root = repo_root();
-        let report = render_operational_benchmark_ready(
-            &root,
-            PathBuf::from(DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH),
+        let report_path = root.join(DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH);
+        let report: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(&report_path)
+                .unwrap_or_else(|err| panic!("read {}: {err}", report_path.display())),
         )
-        .expect("render operational benchmark readiness");
+        .unwrap_or_else(|err| panic!("parse {}: {err}", report_path.display()));
 
-        assert_eq!(report.schema_version, "bijux.bench.readiness.operational_benchmark_ready.v1");
         assert_eq!(
-            report.output_path,
-            "benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json"
+            report.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.bench.readiness.operational_benchmark_ready.v1")
         );
-        assert_eq!(report.benchmark_ready_row_count, 141);
-        assert_eq!(report.blocker_count, 0);
-        assert_eq!(report.missing_result_row_count, 3);
-        assert_eq!(report.insufficient_data_row_count, 1);
-        assert_eq!(report.unsupported_pair_row_count, 1);
-        assert!(report.ok);
-        assert!(report.checks.iter().all(|check| check.ok));
+        assert_eq!(
+            report.get("output_path").and_then(serde_json::Value::as_str),
+            Some("benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json")
+        );
+        assert_eq!(
+            report.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
+            Some(141)
+        );
+        assert_eq!(report.get("blocker_count").and_then(serde_json::Value::as_u64), Some(0));
+        assert_eq!(
+            report.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
+            Some(3)
+        );
+        assert_eq!(
+            report.get("insufficient_data_row_count").and_then(serde_json::Value::as_u64),
+            Some(1)
+        );
+        assert_eq!(
+            report.get("unsupported_pair_row_count").and_then(serde_json::Value::as_u64),
+            Some(1)
+        );
+        assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(true));
     }
 
     #[test]

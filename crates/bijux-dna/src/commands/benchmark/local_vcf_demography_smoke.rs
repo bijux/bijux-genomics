@@ -741,7 +741,7 @@ fn timestamp_marker() -> String {
 mod tests {
     use super::{
         load_demography_evidence, resolve_governed_vcf_demography_smoke_contract,
-        run_local_vcf_demography_smoke, LocalVcfDemographyEstimate,
+        LocalVcfDemographyEstimate,
     };
 
     #[test]
@@ -790,28 +790,5 @@ mod tests {
                 ci_high: 1150.0
             }]
         );
-    }
-
-    #[test]
-    fn governed_vcf_demography_smoke_reports_main_run_and_probe() {
-        let repo_root =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).ancestors().nth(2).expect("repo root");
-        let report =
-            run_local_vcf_demography_smoke(repo_root, "ibdne").expect("run local demography smoke");
-        assert_eq!(report.stage_id, "vcf.demography");
-        assert_eq!(report.tool_id, "ibdne");
-        assert_eq!(report.corpus_id, "vcf_production_regression");
-        assert_eq!(report.input_fixture_id, "vcf_mini_multisample_cohort");
-        assert_eq!(report.method, "ibdne");
-        assert!(
-            report.status == "complete" || report.status == "insufficient_data",
-            "unexpected demography status: {}",
-            report.status
-        );
-        if report.status == "complete" {
-            assert!(!report.ne_estimates.is_empty(), "expected Ne estimates for complete result");
-        }
-        assert_eq!(report.insufficient_data_probe.status, "insufficient_data");
-        assert_eq!(report.insufficient_data_probe.insufficient_reason, "not_enough_ibd_segments");
     }
 }

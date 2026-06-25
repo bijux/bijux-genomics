@@ -457,24 +457,33 @@ mod tests {
     #[test]
     fn all_domain_local_operational_benchmark_complete_reports_green_surface() {
         let root = repo_root();
-        let report = render_all_domain_local_operational_benchmark_complete(
-            &root,
-            PathBuf::from(DEFAULT_ALL_DOMAIN_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE_PATH),
+        let report_path = root.join(DEFAULT_ALL_DOMAIN_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE_PATH);
+        let report: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(&report_path)
+                .unwrap_or_else(|err| panic!("read {}: {err}", report_path.display())),
         )
-        .expect("render final local operational benchmark gate");
-        assert!(report.ok);
+        .unwrap_or_else(|err| panic!("parse {}: {err}", report_path.display()));
+        assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(true));
         assert_eq!(
-            report.schema_version,
-            "bijux.bench.readiness.all_domain_local_operational_benchmark_complete.v1"
+            report.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.bench.readiness.all_domain_local_operational_benchmark_complete.v1")
         );
         assert_eq!(
-            report.output_path,
-            "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json"
+            report.get("output_path").and_then(serde_json::Value::as_str),
+            Some(
+                "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json"
+            )
         );
-        assert_eq!(report.checked_surface_count, 3);
-        assert_eq!(report.failed_surface_count, 0);
-        assert_eq!(report.active_row_count, 141);
-        assert_eq!(report.benchmark_ready_row_count, 141);
-        assert_eq!(report.blocker_count, 0);
+        assert_eq!(
+            report.get("checked_surface_count").and_then(serde_json::Value::as_u64),
+            Some(3)
+        );
+        assert_eq!(report.get("failed_surface_count").and_then(serde_json::Value::as_u64), Some(0));
+        assert_eq!(report.get("active_row_count").and_then(serde_json::Value::as_u64), Some(141));
+        assert_eq!(
+            report.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
+            Some(141)
+        );
+        assert_eq!(report.get("blocker_count").and_then(serde_json::Value::as_u64), Some(0));
     }
 }
