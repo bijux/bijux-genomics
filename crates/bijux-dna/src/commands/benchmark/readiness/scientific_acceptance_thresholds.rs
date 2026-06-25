@@ -317,13 +317,11 @@ pub(crate) fn scientific_acceptance_pass_rule_label(
     pass_rule: ScientificAcceptancePassRule,
 ) -> &'static str {
     match pass_rule {
-        ScientificAcceptancePassRule::MatchReference => "must_match_reference",
-        ScientificAcceptancePassRule::MeetOrExceedReference => "must_meet_or_exceed_reference",
-        ScientificAcceptancePassRule::NotExceedReference => "must_not_exceed_reference",
-        ScientificAcceptancePassRule::RemainWithinReferenceRange => {
-            "must_remain_within_reference_range"
-        }
-        ScientificAcceptancePassRule::MatchReferenceStructure => "must_match_reference_structure",
+        ScientificAcceptancePassRule::MatchReference => "match_reference",
+        ScientificAcceptancePassRule::MeetOrExceedReference => "meet_or_exceed_reference",
+        ScientificAcceptancePassRule::NotExceedReference => "not_exceed_reference",
+        ScientificAcceptancePassRule::RemainWithinReferenceRange => "remain_within_reference_range",
+        ScientificAcceptancePassRule::MatchReferenceStructure => "match_reference_structure",
     }
 }
 
@@ -694,7 +692,7 @@ mod tests {
         );
         assert_eq!(
             scientific_acceptance_pass_rule_label(validate_errors.pass_rule),
-            "must_match_reference_structure"
+            "match_reference_structure"
         );
         assert_eq!(
             scientific_acceptance_insufficiency_behavior_label(

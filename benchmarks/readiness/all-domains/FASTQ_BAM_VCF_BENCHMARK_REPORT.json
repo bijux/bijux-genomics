@@ -11888,7 +11888,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -11907,7 +11907,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -11926,7 +11926,7 @@
       "direction": "range",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.1,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -11946,7 +11946,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -11966,7 +11966,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.1,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -11986,7 +11986,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12006,7 +12006,7 @@
       "direction": "maximum",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.02,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12026,7 +12026,7 @@
       "direction": "maximum",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.02,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12046,7 +12046,7 @@
       "direction": "maximum",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.01,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12066,7 +12066,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12086,7 +12086,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12106,7 +12106,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.1,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12126,7 +12126,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12149,7 +12149,7 @@
       "direction": "range",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12172,7 +12172,7 @@
       "direction": "range",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12195,7 +12195,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12214,7 +12214,7 @@
       "direction": "maximum",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.02,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12233,7 +12233,7 @@
       "direction": "minimum",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.2,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12252,7 +12252,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12272,7 +12272,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12292,7 +12292,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12312,7 +12312,7 @@
       "direction": "minimum",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 100.0,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12331,7 +12331,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12350,7 +12350,7 @@
       "direction": "structured_match",
       "tolerance_kind": "normalized_record_overlap",
       "tolerance_value": 1.0,
-      "pass_rule": "must_match_reference_structure",
+      "pass_rule": "match_reference_structure",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12369,7 +12369,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12388,7 +12388,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12407,7 +12407,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12426,7 +12426,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12445,7 +12445,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12464,7 +12464,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12483,7 +12483,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12502,7 +12502,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12521,7 +12521,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12540,7 +12540,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12559,7 +12559,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12578,7 +12578,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12597,7 +12597,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12616,7 +12616,7 @@
       "direction": "maximum",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.02,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12635,7 +12635,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12654,7 +12654,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12673,7 +12673,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12692,7 +12692,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.02,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12711,7 +12711,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.1,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12731,7 +12731,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12751,7 +12751,7 @@
       "direction": "minimum",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.1,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12771,7 +12771,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12791,7 +12791,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.15,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12811,7 +12811,7 @@
       "direction": "range",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.15,
-      "pass_rule": "must_remain_within_reference_range",
+      "pass_rule": "remain_within_reference_range",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12831,7 +12831,7 @@
       "direction": "structured_match",
       "tolerance_kind": "normalized_set_overlap",
       "tolerance_value": 1.0,
-      "pass_rule": "must_match_reference_structure",
+      "pass_rule": "match_reference_structure",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12851,7 +12851,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12871,7 +12871,7 @@
       "direction": "structured_match",
       "tolerance_kind": "normalized_set_overlap",
       "tolerance_value": 1.0,
-      "pass_rule": "must_match_reference_structure",
+      "pass_rule": "match_reference_structure",
       "insufficiency_behavior": "drop_metric_from_stage",
       "required": true,
       "tool_ids": [
@@ -12891,7 +12891,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12910,7 +12910,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 1.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12930,7 +12930,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12950,7 +12950,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.05,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "warn_and_exclude_stage",
       "required": true,
       "tool_ids": [
@@ -12970,7 +12970,7 @@
       "direction": "higher_is_better",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.01,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -12992,7 +12992,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13011,7 +13011,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13030,7 +13030,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13049,7 +13049,7 @@
       "direction": "lower_is_better",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13068,7 +13068,7 @@
       "direction": "higher_is_better",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13087,7 +13087,7 @@
       "direction": "higher_is_better",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13106,7 +13106,7 @@
       "direction": "lower_is_better",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13125,7 +13125,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13144,7 +13144,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13163,7 +13163,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13182,7 +13182,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13201,7 +13201,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13220,7 +13220,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13239,7 +13239,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13259,7 +13259,7 @@
       "direction": "higher_is_better",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.02,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13280,7 +13280,7 @@
       "direction": "higher_is_better",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.05,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "drop_metric_from_stage",
       "required": false,
       "tool_ids": [
@@ -13301,7 +13301,7 @@
       "direction": "lower_is_better",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13322,7 +13322,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13343,7 +13343,7 @@
       "direction": "higher_is_better",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.05,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13364,7 +13364,7 @@
       "direction": "higher_is_better",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13385,7 +13385,7 @@
       "direction": "lower_is_better",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13406,7 +13406,7 @@
       "direction": "higher_is_better",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13427,7 +13427,7 @@
       "direction": "lower_is_better",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13448,7 +13448,7 @@
       "direction": "lower_is_better",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13469,7 +13469,7 @@
       "direction": "lower_is_better",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.05,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13490,7 +13490,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13509,7 +13509,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13528,7 +13528,7 @@
       "direction": "higher_is_better",
       "tolerance_kind": "relative_fraction",
       "tolerance_value": 0.15,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13548,7 +13548,7 @@
       "direction": "lower_is_better",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.02,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13568,7 +13568,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13587,7 +13587,7 @@
       "direction": "exact_match_preferred",
       "tolerance_kind": "exact_match",
       "tolerance_value": 0.0,
-      "pass_rule": "must_match_reference",
+      "pass_rule": "match_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13606,7 +13606,7 @@
       "direction": "higher_is_better",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.02,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13626,7 +13626,7 @@
       "direction": "higher_is_better",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.05,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13646,7 +13646,7 @@
       "direction": "lower_is_better",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.02,
-      "pass_rule": "must_not_exceed_reference",
+      "pass_rule": "not_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [
@@ -13666,7 +13666,7 @@
       "direction": "higher_is_better",
       "tolerance_kind": "absolute_delta",
       "tolerance_value": 0.05,
-      "pass_rule": "must_meet_or_exceed_reference",
+      "pass_rule": "meet_or_exceed_reference",
       "insufficiency_behavior": "refuse_stage_comparison",
       "required": true,
       "tool_ids": [

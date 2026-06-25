@@ -1624,7 +1624,7 @@ mod tests {
         assert!(markdown.contains("## Unsupported Pairs"));
         assert!(markdown.contains("Tolerance Kind"));
         assert!(markdown.contains("Insufficiency Behavior"));
-        assert!(markdown.contains("must_match_reference_structure"));
+        assert!(markdown.contains("match_reference_structure"));
         assert!(
             markdown.contains("fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2")
         );

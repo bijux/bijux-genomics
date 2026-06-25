@@ -280,75 +280,75 @@
 
 | Domain | Stage | Metric ID | Metric Name | Unit | Direction | Tolerance Kind | Tolerance | Pass Rule | Insufficiency Behavior | Required | Covered Tools |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| bam | bam.align | alignment_rate | alignment_rate |  | range | relative_fraction | 0.020000 | must_remain_within_reference_range | refuse_stage_comparison | true | bowtie2, bwa |
-| bam | bam.align | mapped_reads | mapped_reads |  | range | relative_fraction | 0.020000 | must_remain_within_reference_range | refuse_stage_comparison | true | bowtie2, bwa |
-| bam | bam.authenticity | confidence | confidence |  | range | absolute_delta | 0.100000 | must_remain_within_reference_range | warn_and_exclude_stage | true | authenticct, pmdtools |
-| bam | bam.authenticity | pmd_like_signal_present | pmd_like_signal_present |  | exact_match_preferred | exact_match | 0.000000 | must_match_reference | warn_and_exclude_stage | true | authenticct, pmdtools |
-| bam | bam.authenticity | score | score |  | range | relative_fraction | 0.100000 | must_remain_within_reference_range | warn_and_exclude_stage | true | authenticct, pmdtools |
-| bam | bam.authenticity | status | status |  | exact_match_preferred | exact_match | 0.000000 | must_match_reference | warn_and_exclude_stage | true | authenticct, pmdtools |
-| bam | bam.contamination | ci_high | ci_high |  | maximum | absolute_delta | 0.020000 | must_not_exceed_reference | warn_and_exclude_stage | true | verifybamid2 |
-| bam | bam.contamination | ci_low | ci_low |  | maximum | absolute_delta | 0.020000 | must_not_exceed_reference | warn_and_exclude_stage | true | verifybamid2 |
-| bam | bam.contamination | estimate | estimate |  | maximum | absolute_delta | 0.010000 | must_not_exceed_reference | warn_and_exclude_stage | true | verifybamid2 |
-| bam | bam.coverage | breadth_1x | breadth_1x |  | range | relative_fraction | 0.020000 | must_remain_within_reference_range | warn_and_exclude_stage | true | mosdepth, samtools |
-| bam | bam.coverage | covered_bases | covered_bases |  | range | relative_fraction | 0.020000 | must_remain_within_reference_range | warn_and_exclude_stage | true | mosdepth, samtools |
-| bam | bam.coverage | mean_depth | mean_depth |  | range | relative_fraction | 0.100000 | must_remain_within_reference_range | warn_and_exclude_stage | true | mosdepth, samtools |
-| bam | bam.damage | damage_signal | damage_signal |  | exact_match_preferred | exact_match | 0.000000 | must_match_reference | warn_and_exclude_stage | true | mapdamage2 |
-| bam | bam.damage | terminal_c_to_t_5p | terminal_c_to_t_5p |  | range | absolute_delta | 0.020000 | must_remain_within_reference_range | warn_and_exclude_stage | true | mapdamage2 |
-| bam | bam.damage | terminal_g_to_a_3p | terminal_g_to_a_3p |  | range | absolute_delta | 0.020000 | must_remain_within_reference_range | warn_and_exclude_stage | true | mapdamage2 |
-| bam | bam.filter | input_reads | input_reads |  | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | samtools |
-| bam | bam.filter | kept_reads | kept_reads |  | range | relative_fraction | 0.020000 | must_remain_within_reference_range | refuse_stage_comparison | true | samtools |
-| bam | bam.filter | removed_reads | removed_reads |  | range | relative_fraction | 0.020000 | must_remain_within_reference_range | refuse_stage_comparison | true | samtools |
-| bam | bam.kinship | observed_max_overlap_snps | observed_max_overlap_snps |  | minimum | absolute_delta | 100.000000 | must_meet_or_exceed_reference | warn_and_exclude_stage | true | king |
-| bam | bam.kinship | pair_count | pair_count |  | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | king |
-| bam | bam.kinship | pairwise_results | pairwise_results |  | structured_match | normalized_record_overlap | 1.000000 | must_match_reference_structure | warn_and_exclude_stage | true | king |
-| bam | bam.kinship | status | status |  | exact_match_preferred | exact_match | 0.000000 | must_match_reference | warn_and_exclude_stage | true | king |
-| bam | bam.mapping_summary | mapped_reads | mapped_reads |  | range | relative_fraction | 0.020000 | must_remain_within_reference_range | refuse_stage_comparison | true | samtools |
-| bam | bam.mapping_summary | mapping_fraction | mapping_fraction |  | range | relative_fraction | 0.020000 | must_remain_within_reference_range | refuse_stage_comparison | true | samtools |
-| bam | bam.mapping_summary | secondary_reads | secondary_reads |  | range | relative_fraction | 0.050000 | must_remain_within_reference_range | refuse_stage_comparison | true | samtools |
-| bam | bam.mapping_summary | supplementary_reads | supplementary_reads |  | range | relative_fraction | 0.050000 | must_remain_within_reference_range | refuse_stage_comparison | true | samtools |
-| bam | bam.mapping_summary | unmapped_reads | unmapped_reads |  | range | relative_fraction | 0.020000 | must_remain_within_reference_range | refuse_stage_comparison | true | samtools |
-| bam | bam.markdup | duplicate_count | duplicate_count |  | range | relative_fraction | 0.050000 | must_remain_within_reference_range | refuse_stage_comparison | true | samtools |
-| bam | bam.markdup | duplicate_fraction | duplicate_fraction |  | maximum | absolute_delta | 0.020000 | must_not_exceed_reference | refuse_stage_comparison | true | samtools |
-| bam | bam.qc_pre | duplicate_flagged_reads | duplicate_flagged_reads |  | range | relative_fraction | 0.050000 | must_remain_within_reference_range | refuse_stage_comparison | true | samtools |
-| bam | bam.qc_pre | mapped_reads | mapped_reads |  | range | relative_fraction | 0.020000 | must_remain_within_reference_range | refuse_stage_comparison | true | samtools |
-| bam | bam.qc_pre | total_reads | total_reads |  | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | samtools |
-| bam | bam.qc_pre | unmapped_reads | unmapped_reads |  | range | relative_fraction | 0.020000 | must_remain_within_reference_range | refuse_stage_comparison | true | samtools |
-| bam | bam.sex | autosomal_coverage | autosomal_coverage |  | range | relative_fraction | 0.100000 | must_remain_within_reference_range | warn_and_exclude_stage | true | rxy |
-| bam | bam.sex | call | call |  | exact_match_preferred | exact_match | 0.000000 | must_match_reference | warn_and_exclude_stage | true | rxy |
-| bam | bam.sex | confidence | confidence |  | minimum | absolute_delta | 0.100000 | must_meet_or_exceed_reference | warn_and_exclude_stage | true | rxy |
-| bam | bam.sex | status | status |  | exact_match_preferred | exact_match | 0.000000 | must_match_reference | warn_and_exclude_stage | true | rxy |
-| bam | bam.sex | x_coverage | x_coverage |  | range | relative_fraction | 0.150000 | must_remain_within_reference_range | warn_and_exclude_stage | true | rxy |
-| bam | bam.sex | y_coverage | y_coverage |  | range | relative_fraction | 0.150000 | must_remain_within_reference_range | warn_and_exclude_stage | true | rxy |
-| bam | bam.validate | validation_errors | validation_errors |  | structured_match | normalized_set_overlap | 1.000000 | must_match_reference_structure | refuse_stage_comparison | true | samtools |
-| bam | bam.validate | validation_status | validation_status |  | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | samtools |
-| bam | bam.validate | validation_warnings | validation_warnings |  | structured_match | normalized_set_overlap | 1.000000 | must_match_reference_structure | drop_metric_from_stage | true | samtools |
-| fastq | fastq.index_reference | index_build_exit_code | index_build_exit_code | exit_code | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | bowtie2_build |
-| fastq | fastq.profile_overrepresented_sequences | flagged_sequences | flagged_sequences | sequences | exact_match_preferred | absolute_delta | 1.000000 | must_match_reference | warn_and_exclude_stage | true | fastqc |
-| fastq | fastq.profile_overrepresented_sequences | sequence_count | sequence_count | reads | exact_match_preferred | exact_match | 0.000000 | must_match_reference | warn_and_exclude_stage | true | fastqc |
-| fastq | fastq.profile_overrepresented_sequences | top_fraction | top_fraction | fraction | exact_match_preferred | absolute_delta | 0.050000 | must_match_reference | warn_and_exclude_stage | true | fastqc |
-| fastq | fastq.validate_reads | format_validation_pass_rate | format_validation_pass_rate | fraction | higher_is_better | absolute_delta | 0.010000 | must_meet_or_exceed_reference | refuse_stage_comparison | true | fastqc, fastqvalidator |
-| vcf | vcf.call_gl | missing_likelihoods | missing likelihoods | sites | lower_is_better | relative_fraction | 0.050000 | must_not_exceed_reference | refuse_stage_comparison | true | angsd |
-| vcf | vcf.call_gl | sites_with_likelihoods | sites with likelihoods | sites | higher_is_better | relative_fraction | 0.050000 | must_meet_or_exceed_reference | refuse_stage_comparison | true | angsd |
-| vcf | vcf.call_pseudohaploid | called_sites | called sites | sites | higher_is_better | relative_fraction | 0.050000 | must_meet_or_exceed_reference | refuse_stage_comparison | true | bcftools |
-| vcf | vcf.call_pseudohaploid | missing_sites | missing sites | sites | lower_is_better | relative_fraction | 0.050000 | must_not_exceed_reference | refuse_stage_comparison | true | bcftools |
-| vcf | vcf.damage_filter | removed_variants | removed variants | variants | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | bcftools |
-| vcf | vcf.damage_filter | retained_variants | retained variants | variants | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | bcftools |
-| vcf | vcf.damage_filter | terminal_damage_filtered_variants | terminal damage filtered variants | variants | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | bcftools |
-| vcf | vcf.gl_propagation | sample_count | sample count | samples | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | angsd |
-| vcf | vcf.gl_propagation | site_count_after | site count after propagation | sites | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | angsd |
-| vcf | vcf.gl_propagation | site_count_before | site count before propagation | sites | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | angsd |
-| vcf | vcf.ibd | pair_count | pair count | pairs | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | germline |
-| vcf | vcf.impute | imputed_genotypes | imputed genotypes | genotypes | higher_is_better | relative_fraction | 0.050000 | must_meet_or_exceed_reference | refuse_stage_comparison | true | beagle |
-| vcf | vcf.impute | low_confidence_count | low-confidence sites | sites | lower_is_better | relative_fraction | 0.050000 | must_not_exceed_reference | refuse_stage_comparison | true | beagle |
-| vcf | vcf.impute | masked_truth_match_count | masked-truth matches | sites | higher_is_better | relative_fraction | 0.050000 | must_meet_or_exceed_reference | refuse_stage_comparison | true | beagle |
-| vcf | vcf.impute | missing_after | missing genotypes after imputation | genotypes | lower_is_better | relative_fraction | 0.050000 | must_not_exceed_reference | refuse_stage_comparison | true | beagle |
-| vcf | vcf.impute | missing_before | missing genotypes before imputation | genotypes | lower_is_better | relative_fraction | 0.050000 | must_not_exceed_reference | refuse_stage_comparison | true | beagle |
-| vcf | vcf.impute | unresolved_count | unresolved sites | sites | lower_is_better | relative_fraction | 0.050000 | must_not_exceed_reference | refuse_stage_comparison | true | beagle |
-| vcf | vcf.phasing | phase_block_n50 | phase block n50 | bases | higher_is_better | relative_fraction | 0.150000 | must_meet_or_exceed_reference | refuse_stage_comparison | true | shapeit5 |
-| vcf | vcf.phasing | switch_error_proxy | switch error proxy | fraction | lower_is_better | absolute_delta | 0.020000 | must_not_exceed_reference | refuse_stage_comparison | true | shapeit5 |
-| vcf | vcf.population_structure | pair_count | pair count | pairs | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | plink2 |
-| vcf | vcf.population_structure | sample_count | sample count | samples | exact_match_preferred | exact_match | 0.000000 | must_match_reference | refuse_stage_comparison | true | plink2 |
-| vcf | vcf.qc | concordance | concordance | fraction | higher_is_better | absolute_delta | 0.020000 | must_meet_or_exceed_reference | refuse_stage_comparison | true | plink2 |
-| vcf | vcf.qc | imputation_info_mean | mean imputation info | score | higher_is_better | absolute_delta | 0.050000 | must_meet_or_exceed_reference | refuse_stage_comparison | true | plink2 |
-| vcf | vcf.qc | missingness_post | post-qc missingness | fraction | lower_is_better | absolute_delta | 0.020000 | must_not_exceed_reference | refuse_stage_comparison | true | plink2 |
-| vcf | vcf.qc | rsq_mean | mean r-squared | score | higher_is_better | absolute_delta | 0.050000 | must_meet_or_exceed_reference | refuse_stage_comparison | true | plink2 |
+| bam | bam.align | alignment_rate | alignment_rate |  | range | relative_fraction | 0.020000 | remain_within_reference_range | refuse_stage_comparison | true | bowtie2, bwa |
+| bam | bam.align | mapped_reads | mapped_reads |  | range | relative_fraction | 0.020000 | remain_within_reference_range | refuse_stage_comparison | true | bowtie2, bwa |
+| bam | bam.authenticity | confidence | confidence |  | range | absolute_delta | 0.100000 | remain_within_reference_range | warn_and_exclude_stage | true | authenticct, pmdtools |
+| bam | bam.authenticity | pmd_like_signal_present | pmd_like_signal_present |  | exact_match_preferred | exact_match | 0.000000 | match_reference | warn_and_exclude_stage | true | authenticct, pmdtools |
+| bam | bam.authenticity | score | score |  | range | relative_fraction | 0.100000 | remain_within_reference_range | warn_and_exclude_stage | true | authenticct, pmdtools |
+| bam | bam.authenticity | status | status |  | exact_match_preferred | exact_match | 0.000000 | match_reference | warn_and_exclude_stage | true | authenticct, pmdtools |
+| bam | bam.contamination | ci_high | ci_high |  | maximum | absolute_delta | 0.020000 | not_exceed_reference | warn_and_exclude_stage | true | verifybamid2 |
+| bam | bam.contamination | ci_low | ci_low |  | maximum | absolute_delta | 0.020000 | not_exceed_reference | warn_and_exclude_stage | true | verifybamid2 |
+| bam | bam.contamination | estimate | estimate |  | maximum | absolute_delta | 0.010000 | not_exceed_reference | warn_and_exclude_stage | true | verifybamid2 |
+| bam | bam.coverage | breadth_1x | breadth_1x |  | range | relative_fraction | 0.020000 | remain_within_reference_range | warn_and_exclude_stage | true | mosdepth, samtools |
+| bam | bam.coverage | covered_bases | covered_bases |  | range | relative_fraction | 0.020000 | remain_within_reference_range | warn_and_exclude_stage | true | mosdepth, samtools |
+| bam | bam.coverage | mean_depth | mean_depth |  | range | relative_fraction | 0.100000 | remain_within_reference_range | warn_and_exclude_stage | true | mosdepth, samtools |
+| bam | bam.damage | damage_signal | damage_signal |  | exact_match_preferred | exact_match | 0.000000 | match_reference | warn_and_exclude_stage | true | mapdamage2 |
+| bam | bam.damage | terminal_c_to_t_5p | terminal_c_to_t_5p |  | range | absolute_delta | 0.020000 | remain_within_reference_range | warn_and_exclude_stage | true | mapdamage2 |
+| bam | bam.damage | terminal_g_to_a_3p | terminal_g_to_a_3p |  | range | absolute_delta | 0.020000 | remain_within_reference_range | warn_and_exclude_stage | true | mapdamage2 |
+| bam | bam.filter | input_reads | input_reads |  | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | samtools |
+| bam | bam.filter | kept_reads | kept_reads |  | range | relative_fraction | 0.020000 | remain_within_reference_range | refuse_stage_comparison | true | samtools |
+| bam | bam.filter | removed_reads | removed_reads |  | range | relative_fraction | 0.020000 | remain_within_reference_range | refuse_stage_comparison | true | samtools |
+| bam | bam.kinship | observed_max_overlap_snps | observed_max_overlap_snps |  | minimum | absolute_delta | 100.000000 | meet_or_exceed_reference | warn_and_exclude_stage | true | king |
+| bam | bam.kinship | pair_count | pair_count |  | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | king |
+| bam | bam.kinship | pairwise_results | pairwise_results |  | structured_match | normalized_record_overlap | 1.000000 | match_reference_structure | warn_and_exclude_stage | true | king |
+| bam | bam.kinship | status | status |  | exact_match_preferred | exact_match | 0.000000 | match_reference | warn_and_exclude_stage | true | king |
+| bam | bam.mapping_summary | mapped_reads | mapped_reads |  | range | relative_fraction | 0.020000 | remain_within_reference_range | refuse_stage_comparison | true | samtools |
+| bam | bam.mapping_summary | mapping_fraction | mapping_fraction |  | range | relative_fraction | 0.020000 | remain_within_reference_range | refuse_stage_comparison | true | samtools |
+| bam | bam.mapping_summary | secondary_reads | secondary_reads |  | range | relative_fraction | 0.050000 | remain_within_reference_range | refuse_stage_comparison | true | samtools |
+| bam | bam.mapping_summary | supplementary_reads | supplementary_reads |  | range | relative_fraction | 0.050000 | remain_within_reference_range | refuse_stage_comparison | true | samtools |
+| bam | bam.mapping_summary | unmapped_reads | unmapped_reads |  | range | relative_fraction | 0.020000 | remain_within_reference_range | refuse_stage_comparison | true | samtools |
+| bam | bam.markdup | duplicate_count | duplicate_count |  | range | relative_fraction | 0.050000 | remain_within_reference_range | refuse_stage_comparison | true | samtools |
+| bam | bam.markdup | duplicate_fraction | duplicate_fraction |  | maximum | absolute_delta | 0.020000 | not_exceed_reference | refuse_stage_comparison | true | samtools |
+| bam | bam.qc_pre | duplicate_flagged_reads | duplicate_flagged_reads |  | range | relative_fraction | 0.050000 | remain_within_reference_range | refuse_stage_comparison | true | samtools |
+| bam | bam.qc_pre | mapped_reads | mapped_reads |  | range | relative_fraction | 0.020000 | remain_within_reference_range | refuse_stage_comparison | true | samtools |
+| bam | bam.qc_pre | total_reads | total_reads |  | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | samtools |
+| bam | bam.qc_pre | unmapped_reads | unmapped_reads |  | range | relative_fraction | 0.020000 | remain_within_reference_range | refuse_stage_comparison | true | samtools |
+| bam | bam.sex | autosomal_coverage | autosomal_coverage |  | range | relative_fraction | 0.100000 | remain_within_reference_range | warn_and_exclude_stage | true | rxy |
+| bam | bam.sex | call | call |  | exact_match_preferred | exact_match | 0.000000 | match_reference | warn_and_exclude_stage | true | rxy |
+| bam | bam.sex | confidence | confidence |  | minimum | absolute_delta | 0.100000 | meet_or_exceed_reference | warn_and_exclude_stage | true | rxy |
+| bam | bam.sex | status | status |  | exact_match_preferred | exact_match | 0.000000 | match_reference | warn_and_exclude_stage | true | rxy |
+| bam | bam.sex | x_coverage | x_coverage |  | range | relative_fraction | 0.150000 | remain_within_reference_range | warn_and_exclude_stage | true | rxy |
+| bam | bam.sex | y_coverage | y_coverage |  | range | relative_fraction | 0.150000 | remain_within_reference_range | warn_and_exclude_stage | true | rxy |
+| bam | bam.validate | validation_errors | validation_errors |  | structured_match | normalized_set_overlap | 1.000000 | match_reference_structure | refuse_stage_comparison | true | samtools |
+| bam | bam.validate | validation_status | validation_status |  | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | samtools |
+| bam | bam.validate | validation_warnings | validation_warnings |  | structured_match | normalized_set_overlap | 1.000000 | match_reference_structure | drop_metric_from_stage | true | samtools |
+| fastq | fastq.index_reference | index_build_exit_code | index_build_exit_code | exit_code | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | bowtie2_build |
+| fastq | fastq.profile_overrepresented_sequences | flagged_sequences | flagged_sequences | sequences | exact_match_preferred | absolute_delta | 1.000000 | match_reference | warn_and_exclude_stage | true | fastqc |
+| fastq | fastq.profile_overrepresented_sequences | sequence_count | sequence_count | reads | exact_match_preferred | exact_match | 0.000000 | match_reference | warn_and_exclude_stage | true | fastqc |
+| fastq | fastq.profile_overrepresented_sequences | top_fraction | top_fraction | fraction | exact_match_preferred | absolute_delta | 0.050000 | match_reference | warn_and_exclude_stage | true | fastqc |
+| fastq | fastq.validate_reads | format_validation_pass_rate | format_validation_pass_rate | fraction | higher_is_better | absolute_delta | 0.010000 | meet_or_exceed_reference | refuse_stage_comparison | true | fastqc, fastqvalidator |
+| vcf | vcf.call_gl | missing_likelihoods | missing likelihoods | sites | lower_is_better | relative_fraction | 0.050000 | not_exceed_reference | refuse_stage_comparison | true | angsd |
+| vcf | vcf.call_gl | sites_with_likelihoods | sites with likelihoods | sites | higher_is_better | relative_fraction | 0.050000 | meet_or_exceed_reference | refuse_stage_comparison | true | angsd |
+| vcf | vcf.call_pseudohaploid | called_sites | called sites | sites | higher_is_better | relative_fraction | 0.050000 | meet_or_exceed_reference | refuse_stage_comparison | true | bcftools |
+| vcf | vcf.call_pseudohaploid | missing_sites | missing sites | sites | lower_is_better | relative_fraction | 0.050000 | not_exceed_reference | refuse_stage_comparison | true | bcftools |
+| vcf | vcf.damage_filter | removed_variants | removed variants | variants | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | bcftools |
+| vcf | vcf.damage_filter | retained_variants | retained variants | variants | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | bcftools |
+| vcf | vcf.damage_filter | terminal_damage_filtered_variants | terminal damage filtered variants | variants | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | bcftools |
+| vcf | vcf.gl_propagation | sample_count | sample count | samples | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | angsd |
+| vcf | vcf.gl_propagation | site_count_after | site count after propagation | sites | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | angsd |
+| vcf | vcf.gl_propagation | site_count_before | site count before propagation | sites | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | angsd |
+| vcf | vcf.ibd | pair_count | pair count | pairs | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | germline |
+| vcf | vcf.impute | imputed_genotypes | imputed genotypes | genotypes | higher_is_better | relative_fraction | 0.050000 | meet_or_exceed_reference | refuse_stage_comparison | true | beagle |
+| vcf | vcf.impute | low_confidence_count | low-confidence sites | sites | lower_is_better | relative_fraction | 0.050000 | not_exceed_reference | refuse_stage_comparison | true | beagle |
+| vcf | vcf.impute | masked_truth_match_count | masked-truth matches | sites | higher_is_better | relative_fraction | 0.050000 | meet_or_exceed_reference | refuse_stage_comparison | true | beagle |
+| vcf | vcf.impute | missing_after | missing genotypes after imputation | genotypes | lower_is_better | relative_fraction | 0.050000 | not_exceed_reference | refuse_stage_comparison | true | beagle |
+| vcf | vcf.impute | missing_before | missing genotypes before imputation | genotypes | lower_is_better | relative_fraction | 0.050000 | not_exceed_reference | refuse_stage_comparison | true | beagle |
+| vcf | vcf.impute | unresolved_count | unresolved sites | sites | lower_is_better | relative_fraction | 0.050000 | not_exceed_reference | refuse_stage_comparison | true | beagle |
+| vcf | vcf.phasing | phase_block_n50 | phase block n50 | bases | higher_is_better | relative_fraction | 0.150000 | meet_or_exceed_reference | refuse_stage_comparison | true | shapeit5 |
+| vcf | vcf.phasing | switch_error_proxy | switch error proxy | fraction | lower_is_better | absolute_delta | 0.020000 | not_exceed_reference | refuse_stage_comparison | true | shapeit5 |
+| vcf | vcf.population_structure | pair_count | pair count | pairs | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | plink2 |
+| vcf | vcf.population_structure | sample_count | sample count | samples | exact_match_preferred | exact_match | 0.000000 | match_reference | refuse_stage_comparison | true | plink2 |
+| vcf | vcf.qc | concordance | concordance | fraction | higher_is_better | absolute_delta | 0.020000 | meet_or_exceed_reference | refuse_stage_comparison | true | plink2 |
+| vcf | vcf.qc | imputation_info_mean | mean imputation info | score | higher_is_better | absolute_delta | 0.050000 | meet_or_exceed_reference | refuse_stage_comparison | true | plink2 |
+| vcf | vcf.qc | missingness_post | post-qc missingness | fraction | lower_is_better | absolute_delta | 0.020000 | not_exceed_reference | refuse_stage_comparison | true | plink2 |
+| vcf | vcf.qc | rsq_mean | mean r-squared | score | higher_is_better | absolute_delta | 0.050000 | meet_or_exceed_reference | refuse_stage_comparison | true | plink2 |
