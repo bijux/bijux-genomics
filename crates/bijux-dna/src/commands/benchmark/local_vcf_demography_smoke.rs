@@ -12,7 +12,7 @@ use super::local_stage_result_manifest::{
     BenchStageResultResourceMetricsV1, BenchStageResultRuntimeV1, BenchStageResultStatus,
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
-use super::local_vcf_ibd_smoke::run_local_vcf_ibd_smoke;
+use super::local_vcf_ibd_smoke::{benchmark_output_lock, run_local_vcf_ibd_smoke_unlocked};
 use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -134,9 +134,17 @@ pub(crate) fn run_local_vcf_demography_smoke(
     repo_root: &Path,
     tool_id: &str,
 ) -> Result<LocalVcfDemographySmokeReport> {
+    let _lock = benchmark_output_lock(repo_root)?;
+    run_local_vcf_demography_smoke_unlocked(repo_root, tool_id)
+}
+
+fn run_local_vcf_demography_smoke_unlocked(
+    repo_root: &Path,
+    tool_id: &str,
+) -> Result<LocalVcfDemographySmokeReport> {
     let contract = resolve_governed_vcf_demography_smoke_contract(tool_id)?;
     let upstream_ibd_report =
-        run_local_vcf_ibd_smoke(repo_root, GOVERNED_VCF_DEMOGRAPHY_UPSTREAM_TOOL_ID)?;
+        run_local_vcf_ibd_smoke_unlocked(repo_root, GOVERNED_VCF_DEMOGRAPHY_UPSTREAM_TOOL_ID)?;
     let upstream_ibd_report_source = repo_root.join(&upstream_ibd_report.ibd_json_path);
     let upstream_filtered_segments_source =
         repo_root.join(&upstream_ibd_report.source_ibd_filtered_segments_path);
