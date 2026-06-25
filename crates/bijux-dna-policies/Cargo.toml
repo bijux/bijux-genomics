@@ -15,6 +15,7 @@ toml = { workspace = true }
 
 [dev-dependencies]
 cargo_metadata.workspace = true
+bijux-dna = { path = "../bijux-dna" }
 insta = { workspace = true, features = ["glob"] }
 serde_json = { workspace = true }
 sha2.workspace = true

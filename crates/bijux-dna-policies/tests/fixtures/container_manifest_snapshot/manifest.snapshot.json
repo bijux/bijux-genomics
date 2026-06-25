@@ -625,6 +625,18 @@
       "version": "1.5.4"
     },
     {
+      "apptainer_def": "containers/apptainer/shared/seqfu.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.seqfu",
+      "pinned_commit": "release:2.4.0",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "seqfu",
+      "upstream": "https://github.com/telatin/seqfu2",
+      "version": "2.4.0"
+    },
+    {
       "apptainer_def": "containers/apptainer/shared/seqkit.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.seqkit",
       "pinned_commit": "sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991",
