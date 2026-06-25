@@ -41,11 +41,17 @@ pub(crate) struct SlowTierManualOnlyReport {
     pub(crate) workflow_path: String,
     pub(crate) audit_kind: String,
     pub(crate) ok: bool,
+    #[serde(flatten)]
+    pub(crate) workflow: SlowTierManualOnlyWorkflowSignals,
+    pub(crate) slow_tier_if: Option<String>,
+    pub(crate) slow_tier_target_jobs: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct SlowTierManualOnlyWorkflowSignals {
     pub(crate) workflow_dispatch_enabled: bool,
     pub(crate) run_slow_tier_input_present: bool,
     pub(crate) run_slow_tier_default: bool,
-    pub(crate) slow_tier_if: Option<String>,
-    pub(crate) slow_tier_target_jobs: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -68,6 +74,14 @@ pub(crate) struct ChangedPathCommandReport {
     pub(crate) commands: Vec<String>,
     pub(crate) selections: Vec<ChangedPathSelection>,
     pub(crate) rule_count: usize,
+}
+
+fn repo_root_from_manifest_dir() -> Result<PathBuf> {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .map(Path::to_path_buf)
+        .ok_or_else(|| anyhow!("repo root"))
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -407,9 +421,11 @@ pub(crate) fn audit_workflow_slow_tier_manual_only(
         workflow_path: display_relative(repo_root, &absolute_workflow),
         audit_kind: "slow_tier_manual_only".to_string(),
         ok,
-        workflow_dispatch_enabled,
-        run_slow_tier_input_present: run_slow_tier_input.is_some(),
-        run_slow_tier_default,
+        workflow: SlowTierManualOnlyWorkflowSignals {
+            workflow_dispatch_enabled,
+            run_slow_tier_input_present: run_slow_tier_input.is_some(),
+            run_slow_tier_default,
+        },
         slow_tier_if,
         slow_tier_target_jobs,
     };
@@ -834,11 +850,11 @@ mod tests {
     use super::{
         audit_default_features, audit_workflow_no_repeated_target,
         audit_workflow_slow_tier_manual_only, changed_path_commands, path_matches_rule,
-        render_changed_path_rule_tsv, write_utf8_report, CHANGED_PATH_RULES,
+        render_changed_path_rule_tsv, repo_root_from_manifest_dir, write_utf8_report,
+        CHANGED_PATH_RULES,
     };
     use crate::commands::ci::{budget_check, normalize_workflow_target_spec};
     use anyhow::Result;
-    use std::path::PathBuf;
 
     #[test]
     fn path_rule_matching_supports_literal_prefix_and_contains() {
@@ -869,12 +885,7 @@ mod tests {
 
     #[test]
     fn default_feature_audit_rejects_no_current_crates() -> Result<()> {
-        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("crate parent")
-            .parent()
-            .expect("repo root")
-            .to_path_buf();
+        let root = repo_root_from_manifest_dir()?;
         let temp = tempfile::tempdir()?;
         let report = audit_default_features(
             &root,
@@ -888,12 +899,7 @@ mod tests {
 
     #[test]
     fn workflow_audits_pass_on_current_ci_contract() -> Result<()> {
-        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("crate parent")
-            .parent()
-            .expect("repo root")
-            .to_path_buf();
+        let root = repo_root_from_manifest_dir()?;
         let workflow = root.join(".github/workflows/ci.yml");
         let temp = tempfile::tempdir()?;
         let repeated = audit_workflow_no_repeated_target(
@@ -908,7 +914,7 @@ mod tests {
             &workflow,
             Some(&temp.path().join("slow-tier-manual-only.json")),
         )?;
-        assert!(slow_tier.workflow_dispatch_enabled);
+        assert!(slow_tier.workflow.workflow_dispatch_enabled);
         Ok(())
     }
 

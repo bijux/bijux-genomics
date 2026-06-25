@@ -155,7 +155,7 @@ fn hex_encode(bytes: &[u8]) -> String {
 }
 
 fn hex_decode(value: &str) -> Result<Vec<u8>> {
-    if value.len() % 2 != 0 {
+    if !value.len().is_multiple_of(2) {
         return Err(anyhow!("hex payload has odd length"));
     }
     let mut out = Vec::with_capacity(value.len() / 2);

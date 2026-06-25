@@ -1,7 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
-use anyhow::{bail, Context, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_api::v1::api::run::run_command_with_context;
 use bijux_dna_domain_vcf::{contracts::stage_metrics_contract, VcfDomainStage};
 use serde::{Deserialize, Serialize};
@@ -574,6 +575,15 @@ pub struct SourcePatternHit {
     pub pattern: String,
 }
 
+type ParserSurfaceHits = (
+    Vec<SourcePatternHit>,
+    Vec<SourcePatternHit>,
+    Vec<SourcePatternHit>,
+    Vec<SourcePatternHit>,
+    Vec<SourcePatternHit>,
+    Vec<SourcePatternHit>,
+);
+
 #[derive(Debug, Serialize)]
 pub struct ExcludedAuditPath {
     pub path: String,
@@ -597,7 +607,7 @@ fn relative_display(path: &Path, root: &Path) -> String {
 }
 
 fn sanitize_tsv(value: &str) -> String {
-    value.replace('\t', " ").replace('\n', " ").replace('\r', " ")
+    value.replace(['\t', '\n', '\r'], " ")
 }
 
 fn crate_cycle_category(crate_name: &str) -> Option<&'static str> {
@@ -635,24 +645,28 @@ fn strongly_connected_components(
         for neighbor in neighbors {
             if !state.indices.contains_key(&neighbor) {
                 visit(&neighbor, adjacency, state);
-                let neighbor_lowlink = *state
-                    .lowlinks
-                    .get(&neighbor)
-                    .expect("neighbor lowlink must exist after visit");
+                let Some(neighbor_lowlink) = state.lowlinks.get(&neighbor).copied() else {
+                    panic!("neighbor lowlink must exist after visit");
+                };
                 if let Some(node_lowlink) = state.lowlinks.get_mut(node) {
                     *node_lowlink = (*node_lowlink).min(neighbor_lowlink);
                 }
             } else if state.on_stack.contains(&neighbor) {
-                let neighbor_index =
-                    *state.indices.get(&neighbor).expect("stacked neighbor index must exist");
+                let Some(neighbor_index) = state.indices.get(&neighbor).copied() else {
+                    panic!("stacked neighbor index must exist");
+                };
                 if let Some(node_lowlink) = state.lowlinks.get_mut(node) {
                     *node_lowlink = (*node_lowlink).min(neighbor_index);
                 }
             }
         }
 
-        let node_lowlink = *state.lowlinks.get(node).expect("node lowlink must exist");
-        let node_index = *state.indices.get(node).expect("node index must exist");
+        let Some(node_lowlink) = state.lowlinks.get(node).copied() else {
+            panic!("node lowlink must exist");
+        };
+        let Some(node_index) = state.indices.get(node).copied() else {
+            panic!("node index must exist");
+        };
         if node_lowlink == node_index {
             let mut component = Vec::new();
             while let Some(entry) = state.stack.pop() {
@@ -725,9 +739,9 @@ fn topological_dependency_order(adjacency: &BTreeMap<String, BTreeSet<String>>) 
         order.push(node.clone());
         let next_dependents = dependents.get(&node).cloned().unwrap_or_default();
         for dependent in next_dependents {
-            let entry = indegree
-                .get_mut(&dependent)
-                .expect("dependent must remain present in indegree map");
+            let Some(entry) = indegree.get_mut(&dependent) else {
+                panic!("dependent must remain present in indegree map");
+            };
             *entry -= 1;
             if *entry == 0 {
                 ready.push(dependent);
@@ -744,9 +758,7 @@ fn topological_dependency_order(adjacency: &BTreeMap<String, BTreeSet<String>>) 
 }
 
 fn gate_cargo_target_dir_with_explicit_path(cwd: &Path, explicit_path: Option<&Path>) -> PathBuf {
-    explicit_path
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| cwd.join(DEFAULT_CRATE_SHAPE_GATE_TARGET_DIR))
+    explicit_path.map_or_else(|| cwd.join(DEFAULT_CRATE_SHAPE_GATE_TARGET_DIR), Path::to_path_buf)
 }
 
 fn gate_cargo_target_dir(cwd: &Path) -> PathBuf {
@@ -801,6 +813,169 @@ fn build_benchmarking_ready_crate_shape_gate_report(
         checks,
         passed_goal_ids,
         failed_goal_ids,
+    }
+}
+
+fn crate_shape_gate_check_from_result<R>(
+    goal_id: &'static str,
+    command: String,
+    result: Result<R>,
+    ok_detail: impl FnOnce(R) -> String,
+) -> CrateShapeGateCheckReport {
+    match result {
+        Ok(report) => CrateShapeGateCheckReport {
+            goal_id: goal_id.to_string(),
+            ok: true,
+            command,
+            detail: ok_detail(report),
+        },
+        Err(err) => CrateShapeGateCheckReport {
+            goal_id: goal_id.to_string(),
+            ok: false,
+            command,
+            detail: err.to_string(),
+        },
+    }
+}
+
+fn collect_benchmarking_ready_crate_shape_gate_checks(
+    cwd: &Path,
+    cargo_target_dir: &Path,
+) -> Vec<CrateShapeGateCheckReport> {
+    let graph_path = cwd.join(DEFAULT_CRATE_DEPENDENCY_MAP_PATH);
+    let goal_411 = crate_shape_gate_check_from_result(
+        "411",
+        format!("bijux-dna dev crates graph --output {DEFAULT_CRATE_DEPENDENCY_MAP_PATH}"),
+        write_dependency_map(cwd, &graph_path),
+        |report| report.output_path,
+    );
+
+    let domain_no_execution_path = cwd.join(DEFAULT_DOMAIN_NO_EXECUTION_PATH);
+    let goal_412 = crate_shape_gate_check_from_result(
+        "412",
+        format!(
+            "bijux-dna dev crates domain-no-execution --output {DEFAULT_DOMAIN_NO_EXECUTION_PATH}"
+        ),
+        write_domain_no_execution_report(cwd, &domain_no_execution_path),
+        |report| report.output_path,
+    );
+
+    let parser_no_execution_path = cwd.join(DEFAULT_PARSER_NO_EXECUTION_PATH);
+    let goal_413 = crate_shape_gate_check_from_result(
+        "413",
+        format!(
+            "bijux-dna dev crates parser-no-execution --output {DEFAULT_PARSER_NO_EXECUTION_PATH}"
+        ),
+        write_parser_no_execution_report(cwd, &parser_no_execution_path),
+        |report| report.output_path,
+    );
+
+    let planner_no_parser_path = cwd.join(DEFAULT_PLANNER_NO_PARSER_PATH);
+    let goal_414 = crate_shape_gate_check_from_result(
+        "414",
+        format!("bijux-dna dev crates planner-no-parser --output {DEFAULT_PLANNER_NO_PARSER_PATH}"),
+        write_planner_no_parser_report(cwd, &planner_no_parser_path),
+        |report| report.output_path,
+    );
+
+    let runner_process_execution_path = cwd.join(DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH);
+    let goal_415 = crate_shape_gate_check_from_result(
+        "415",
+        format!(
+            "bijux-dna dev crates runner-owns-process-execution --output {DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH}"
+        ),
+        write_runner_owned_process_execution_report(cwd, &runner_process_execution_path),
+        |report| report.output_path,
+    );
+
+    let goal_416 = crate_shape_gate_check_from_result(
+        "416",
+        TYPED_ARTIFACT_HANDOFF_TEST_COMMAND.to_string(),
+        run_gate_cargo_test(
+            cwd,
+            cargo_target_dir,
+            "bijux-dna-api",
+            &["typed_artifact_handoff_rejects_wrong_stage_inputs", "--", "--nocapture"],
+            TYPED_ARTIFACT_HANDOFF_TEST_COMMAND,
+        ),
+        |()| "typed artifact handoff proof passed".to_string(),
+    );
+
+    let goal_417 = collect_metric_registry_gate_check(cwd, cargo_target_dir);
+
+    let result_id_stability_path = cwd.join(DEFAULT_RESULT_ID_STABILITY_PATH);
+    let goal_418 = crate_shape_gate_check_from_result(
+        "418",
+        format!(
+            "bijux-dna dev crates result-id-stability --output {DEFAULT_RESULT_ID_STABILITY_PATH}"
+        ),
+        write_result_id_stability_report(cwd, &result_id_stability_path),
+        |report| report.output_path,
+    );
+
+    let no_crate_cycles_path = cwd.join(DEFAULT_NO_CRATE_CYCLES_PATH);
+    let goal_419 = crate_shape_gate_check_from_result(
+        "419",
+        format!("bijux-dna dev crates check-cycles --output {DEFAULT_NO_CRATE_CYCLES_PATH}"),
+        write_no_crate_cycles_report(cwd, &no_crate_cycles_path),
+        |report| report.output_path,
+    );
+
+    vec![goal_411, goal_412, goal_413, goal_414, goal_415, goal_416, goal_417, goal_418, goal_419]
+}
+
+fn collect_metric_registry_gate_check(
+    cwd: &Path,
+    cargo_target_dir: &Path,
+) -> CrateShapeGateCheckReport {
+    let metric_registry_path = cwd.join(DEFAULT_METRIC_REGISTRY_PATH);
+    let metric_registry_report = write_metric_registry_report(cwd, &metric_registry_path);
+    let metric_registry_contract = run_gate_cargo_test(
+        cwd,
+        cargo_target_dir,
+        "bijux-dna-domain-vcf",
+        &[
+            "--test",
+            "contracts",
+            "vcf_metric_registry_rejects_unregistered_stage_metrics",
+            "--",
+            "--nocapture",
+        ],
+        METRIC_REGISTRY_PROOF_TEST_COMMAND,
+    );
+    match (metric_registry_report, metric_registry_contract) {
+        (Ok(report), Ok(())) => CrateShapeGateCheckReport {
+            goal_id: "417".to_string(),
+            ok: true,
+            command: format!(
+                "bijux-dna dev crates metric-registry --output {DEFAULT_METRIC_REGISTRY_PATH} && {METRIC_REGISTRY_PROOF_TEST_COMMAND}"
+            ),
+            detail: report.output_path,
+        },
+        (Err(err), Ok(())) => CrateShapeGateCheckReport {
+            goal_id: "417".to_string(),
+            ok: false,
+            command: format!(
+                "bijux-dna dev crates metric-registry --output {DEFAULT_METRIC_REGISTRY_PATH} && {METRIC_REGISTRY_PROOF_TEST_COMMAND}"
+            ),
+            detail: err.to_string(),
+        },
+        (Ok(_report), Err(err)) => CrateShapeGateCheckReport {
+            goal_id: "417".to_string(),
+            ok: false,
+            command: format!(
+                "bijux-dna dev crates metric-registry --output {DEFAULT_METRIC_REGISTRY_PATH} && {METRIC_REGISTRY_PROOF_TEST_COMMAND}"
+            ),
+            detail: err.to_string(),
+        },
+        (Err(report_err), Err(test_err)) => CrateShapeGateCheckReport {
+            goal_id: "417".to_string(),
+            ok: false,
+            command: format!(
+                "bijux-dna dev crates metric-registry --output {DEFAULT_METRIC_REGISTRY_PATH} && {METRIC_REGISTRY_PROOF_TEST_COMMAND}"
+            ),
+            detail: format!("{report_err}; {test_err}"),
+        },
     }
 }
 
@@ -971,8 +1146,9 @@ fn render_metric_registry_tsv(rows: &[MetricRegistryRow]) -> String {
         "domain\tstage_id\tmetric_id\tmeaning\tcontract_kind\tstage_contract_surface\tdomain_registry_surface\n",
     );
     for row in rows {
-        rendered.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+        let _ = writeln!(
+            rendered,
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}",
             sanitize_tsv(&row.domain),
             sanitize_tsv(&row.stage_id),
             sanitize_tsv(&row.metric_id),
@@ -980,7 +1156,7 @@ fn render_metric_registry_tsv(rows: &[MetricRegistryRow]) -> String {
             sanitize_tsv(&row.contract_kind),
             sanitize_tsv(&row.stage_contract_surface),
             sanitize_tsv(&row.domain_registry_surface),
-        ));
+        );
     }
     rendered
 }
@@ -1032,8 +1208,27 @@ fn collect_canonical_result_id_rows(
     cwd: &Path,
 ) -> Result<(Vec<CanonicalResultIdRow>, Vec<ResultIdStabilityViolation>)> {
     let mut violations = Vec::new();
-    let mut rows = Vec::new();
+    let mut rows = collect_sample_scoped_canonical_result_id_rows(cwd, &mut violations)?;
+    rows.extend(collect_asset_profile_canonical_result_id_rows(cwd)?);
+    rows.sort_by(|left, right| {
+        left.domain
+            .cmp(&right.domain)
+            .then_with(|| left.stage_id.cmp(&right.stage_id))
+            .then_with(|| left.tool_id.cmp(&right.tool_id))
+            .then_with(|| left.corpus_id.cmp(&right.corpus_id))
+            .then_with(|| left.result_id.cmp(&right.result_id))
+    });
 
+    validate_canonical_result_id_rows(cwd, &rows, &mut violations)?;
+
+    Ok((rows, violations))
+}
+
+fn collect_sample_scoped_canonical_result_id_rows(
+    cwd: &Path,
+    violations: &mut Vec<ResultIdStabilityViolation>,
+) -> Result<Vec<CanonicalResultIdRow>> {
+    let mut rows = Vec::new();
     for row in crate::commands::benchmark::readiness::expected_benchmark_results::collect_expected_benchmark_result_rows(cwd)?
     {
         let canonical_result_id = crate::commands::benchmark::benchmark_result_ids::build_sample_scoped_benchmark_result_id(
@@ -1045,12 +1240,11 @@ fn collect_canonical_result_id_rows(
         );
         if canonical_result_id != row.result_row_id {
             push_result_id_violation(
-                &mut violations,
+                violations,
                 &row.result_row_id,
                 "expected_benchmark_results",
                 format!(
-                    "FASTQ/BAM expected row drifted from the canonical sample-scoped builder: `{}`",
-                    canonical_result_id
+                    "FASTQ/BAM expected row drifted from the canonical sample-scoped builder: `{canonical_result_id}`"
                 ),
             );
         }
@@ -1064,7 +1258,11 @@ fn collect_canonical_result_id_rows(
             scope_id: row.sample_scope,
         });
     }
+    Ok(rows)
+}
 
+fn collect_asset_profile_canonical_result_id_rows(cwd: &Path) -> Result<Vec<CanonicalResultIdRow>> {
+    let mut rows = Vec::new();
     for row in crate::commands::benchmark::readiness::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result_rows(cwd)?
     {
         let canonical_result_id = crate::commands::benchmark::benchmark_result_ids::build_asset_profile_benchmark_result_id(
@@ -1084,21 +1282,19 @@ fn collect_canonical_result_id_rows(
             scope_id: row.asset_profile_id,
         });
     }
+    Ok(rows)
+}
 
-    rows.sort_by(|left, right| {
-        left.domain
-            .cmp(&right.domain)
-            .then_with(|| left.stage_id.cmp(&right.stage_id))
-            .then_with(|| left.tool_id.cmp(&right.tool_id))
-            .then_with(|| left.corpus_id.cmp(&right.corpus_id))
-            .then_with(|| left.result_id.cmp(&right.result_id))
-    });
-
+fn validate_canonical_result_id_rows(
+    cwd: &Path,
+    rows: &[CanonicalResultIdRow],
+    violations: &mut Vec<ResultIdStabilityViolation>,
+) -> Result<()> {
     let mut canonical_by_result = BTreeMap::new();
-    for row in &rows {
+    for row in rows {
         if canonical_by_result.insert(row.result_id.clone(), row.clone()).is_some() {
             push_result_id_violation(
-                &mut violations,
+                violations,
                 &row.result_id,
                 "canonical_result_builder",
                 "canonical result-id builder produced a duplicate binding",
@@ -1109,7 +1305,7 @@ fn collect_canonical_result_id_rows(
     let all_domain_rows = crate::commands::benchmark::readiness::all_domain_expected_benchmark_results::collect_all_domain_expected_benchmark_result_rows(cwd)?;
     if all_domain_rows.len() != rows.len() {
         push_result_id_violation(
-            &mut violations,
+            violations,
             "all-domain-expected-row-count",
             "all_domain_expected_benchmark_results",
             format!(
@@ -1122,7 +1318,7 @@ fn collect_canonical_result_id_rows(
     for row in &all_domain_rows {
         let Some(canonical) = canonical_by_result.get(&row.result_id) else {
             push_result_id_violation(
-                &mut violations,
+                violations,
                 &row.result_id,
                 "all_domain_expected_benchmark_results",
                 "all-domain expected row is missing from the canonical result-id builder",
@@ -1140,15 +1336,229 @@ fn collect_canonical_result_id_rows(
             || canonical.scope_id != parsed.scope_id
         {
             push_result_id_violation(
-                &mut violations,
+                violations,
                 &row.result_id,
                 "all_domain_expected_benchmark_results",
                 "all-domain expected row drifted from the canonical result-id identity",
             );
         }
     }
+    Ok(())
+}
 
-    Ok((rows, violations))
+fn validate_optional_result_id_surface<T>(
+    violations: &mut Vec<ResultIdStabilityViolation>,
+    canonical_result_id: &str,
+    surface: &'static str,
+    row: Option<&T>,
+    missing_detail: &'static str,
+    validate: impl FnOnce(&T) -> Option<String>,
+) {
+    match row {
+        Some(row) => {
+            if let Some(detail) = validate(row) {
+                push_result_id_violation(violations, canonical_result_id, surface, detail);
+            }
+        }
+        None => {
+            push_result_id_violation(violations, canonical_result_id, surface, missing_detail);
+        }
+    }
+}
+
+macro_rules! collect_result_id_stability_rows {
+    (
+        $violations:expr,
+        $canonical_rows:expr,
+        $canonical_by_result:expr,
+        $local_rows:expr,
+        $local_by_result:expr,
+        $fake_report:expr,
+        $fake_by_result:expr,
+        $full_report:expr,
+        $report_by_result:expr,
+        $slurm_report:expr,
+        $slurm_by_result:expr,
+        $micro_result_ids:expr
+    ) => {{
+        for result_id in $local_by_result.keys() {
+            if !$canonical_by_result.contains_key(result_id) {
+                push_result_id_violation(
+                    $violations,
+                    result_id,
+                    "local_all_domain_rendered_commands",
+                    "local execution surface produced a non-canonical result id",
+                );
+            }
+        }
+        for result_id in $fake_by_result.keys() {
+            if !$canonical_by_result.contains_key(result_id) {
+                push_result_id_violation(
+                    $violations,
+                    result_id,
+                    "local_all_domain_fake_runs",
+                    "fake-run surface produced a non-canonical result id",
+                );
+            }
+        }
+        for result_id in $report_by_result.keys() {
+            if !$canonical_by_result.contains_key(result_id) {
+                push_result_id_violation(
+                    $violations,
+                    result_id,
+                    "full_benchmark_report",
+                    "full benchmark report produced a non-canonical result id",
+                );
+            }
+        }
+        for result_id in $slurm_by_result.keys() {
+            if !$canonical_by_result.contains_key(result_id) {
+                push_result_id_violation(
+                    $violations,
+                    result_id,
+                    "local_all_domain_slurm_submit_manifest",
+                    "SLURM dry-run surface produced a non-canonical result id",
+                );
+            }
+        }
+        for result_id in $micro_result_ids {
+            if !$canonical_by_result.contains_key(result_id) {
+                push_result_id_violation(
+                    $violations,
+                    result_id,
+                    "governed_micro_subset",
+                    "micro result-id subset references a non-canonical benchmark row",
+                );
+            }
+        }
+
+        let mut rows = Vec::with_capacity($canonical_rows.len());
+        for canonical in $canonical_rows {
+            let local_row = $local_by_result.get(&canonical.result_id).copied();
+            let fake_row = $fake_by_result.get(&canonical.result_id).copied();
+            let report_row = $report_by_result.get(&canonical.result_id).copied();
+            let slurm_job = $slurm_by_result.get(&canonical.result_id).copied();
+
+            validate_optional_result_id_surface(
+                $violations,
+                &canonical.result_id,
+                "local_all_domain_rendered_commands",
+                local_row,
+                "local execution surface is missing the canonical result id",
+                |row| match crate::commands::benchmark::local_all_domain_result_paths::benchmark_result_matches_identity(
+                    &row.result_id,
+                    &canonical.domain,
+                    &canonical.corpus_id,
+                    &canonical.stage_id,
+                    &canonical.tool_id,
+                ) {
+                    Ok(true) => None,
+                    Ok(false) => Some(
+                        "local execution row drifted from the canonical benchmark identity"
+                            .to_string(),
+                    ),
+                    Err(err) => Some(err.to_string()),
+                },
+            );
+            validate_optional_result_id_surface(
+                $violations,
+                &canonical.result_id,
+                "local_all_domain_fake_runs",
+                fake_row,
+                "fake-run surface is missing the canonical result id",
+                |row| match crate::commands::benchmark::local_all_domain_result_paths::benchmark_result_matches_identity(
+                    &row.result_id,
+                    &canonical.domain,
+                    &canonical.corpus_id,
+                    &canonical.stage_id,
+                    &canonical.tool_id,
+                ) {
+                    Ok(true) => None,
+                    Ok(false) => Some(
+                        "fake-run row drifted from the canonical benchmark identity".to_string(),
+                    ),
+                    Err(err) => Some(err.to_string()),
+                },
+            );
+            validate_optional_result_id_surface(
+                $violations,
+                &canonical.result_id,
+                "full_benchmark_report",
+                report_row,
+                "full benchmark report is missing the canonical result id",
+                |row| {
+                    if row.report_row_id != canonical.result_id {
+                        return Some(format!(
+                            "full benchmark report row id `{}` drifted from canonical result id",
+                            row.report_row_id
+                        ));
+                    }
+                    if row.domain != canonical.domain
+                        || row.stage_id != canonical.stage_id
+                        || row.tool_id != canonical.tool_id
+                        || row.corpus_id != canonical.corpus_id
+                    {
+                        return Some(
+                            "full benchmark report row drifted from the canonical benchmark identity"
+                                .to_string(),
+                        );
+                    }
+                    None
+                },
+            );
+            validate_optional_result_id_surface(
+                $violations,
+                &canonical.result_id,
+                "local_all_domain_slurm_submit_manifest",
+                slurm_job,
+                "SLURM dry-run surface is missing the canonical result id",
+                |job| {
+                    if job.job_id_local != format!("benchmark:{}", canonical.result_id) {
+                        return Some(format!(
+                            "SLURM dry-run job id `{}` drifted from the canonical benchmark job prefix",
+                            job.job_id_local
+                        ));
+                    }
+                    if job.domain != canonical.domain
+                        || job.stage_id != canonical.stage_id
+                        || job.tool_id != canonical.tool_id
+                        || job.corpus_id != canonical.corpus_id
+                    {
+                        return Some(
+                            "SLURM dry-run job drifted from the canonical benchmark identity"
+                                .to_string(),
+                        );
+                    }
+                    None
+                },
+            );
+
+            let local_execution_argv = crate::commands::benchmark::local_all_domain_job_execution::rendered_benchmark_result_execution_argv(&canonical.result_id);
+            let selected_for_micro = $micro_result_ids.contains(&canonical.result_id);
+
+            rows.push(ResultIdStabilityRow {
+                result_id: canonical.result_id.clone(),
+                domain: canonical.domain.clone(),
+                stage_id: canonical.stage_id.clone(),
+                tool_id: canonical.tool_id.clone(),
+                corpus_id: canonical.corpus_id.clone(),
+                scope_kind: result_scope_kind_label(canonical.scope_kind).to_string(),
+                scope_id: canonical.scope_id.clone(),
+                local_result_id: local_row.map(|row| row.result_id.clone()),
+                fake_result_id: fake_row.map(|row| row.result_id.clone()),
+                micro_result_id: selected_for_micro.then(|| canonical.result_id.clone()),
+                report_result_id: report_row.and_then(|row| row.result_id.clone()),
+                slurm_result_id: slurm_job.and_then(|job| job.result_id.clone()),
+                local_execution_argv: Some(local_execution_argv.clone()),
+                micro_execution_argv: selected_for_micro.then_some(local_execution_argv),
+                fake_metrics_path: fake_row.map(|row| row.metrics_path.clone()),
+                report_row_id: report_row.map(|row| row.report_row_id.clone()),
+                report_evidence_path: report_row.map(|row| row.evidence_path.clone()),
+                slurm_job_id_local: slurm_job.map(|job| job.job_id_local.clone()),
+            });
+        }
+        rows
+    }};
 }
 
 fn workspace_members(cwd: &Path) -> Result<Vec<WorkspaceMember>> {
@@ -1272,7 +1682,7 @@ fn collect_manifest_dependency_hits(
         })
         .map(|dependency| ForbiddenDependencyHit {
             section: section_name.to_string(),
-            dependency: dependency.to_string(),
+            dependency: dependency.clone(),
             category: category.to_string(),
         })
         .collect::<Vec<_>>();
@@ -1439,13 +1849,55 @@ fn audit_parser_surface(
         })
         .collect::<Vec<_>>();
 
+    let (
+        parser_entrypoints,
+        raw_input_read_refs,
+        input_mutation_refs,
+        process_execution_refs,
+        container_execution_refs,
+        slurm_execution_refs,
+    ) = collect_parser_surface_hits(cwd, crate_root, &rust_files)?;
+    let forbidden_direct_dependencies = collect_forbidden_direct_dependencies(&manifest_value);
+    let scanned_rust_files = rust_files
+        .iter()
+        .map(|path| relative_display(&crate_root.join(path), cwd))
+        .collect::<Vec<_>>();
+    let ok = !parser_entrypoints.is_empty()
+        && forbidden_direct_dependencies.is_empty()
+        && input_mutation_refs.is_empty()
+        && process_execution_refs.is_empty()
+        && container_execution_refs.is_empty()
+        && slurm_execution_refs.is_empty();
+
+    Ok(ParserSurfaceAuditReport {
+        crate_name: member.crate_name.clone(),
+        manifest_path: relative_display(&member.manifest_path, cwd),
+        parser_root: relative_display(&parser_root, cwd),
+        scanned_rust_files,
+        excluded_governance_paths,
+        parser_entrypoints,
+        raw_input_read_refs,
+        input_mutation_refs,
+        forbidden_direct_dependencies,
+        process_execution_refs,
+        container_execution_refs,
+        slurm_execution_refs,
+        ok,
+    })
+}
+
+fn collect_parser_surface_hits(
+    cwd: &Path,
+    crate_root: &Path,
+    rust_files: &[PathBuf],
+) -> Result<ParserSurfaceHits> {
     let mut parser_entrypoints = Vec::new();
     let mut raw_input_read_refs = Vec::new();
     let mut input_mutation_refs = Vec::new();
     let mut process_execution_refs = Vec::new();
     let mut container_execution_refs = Vec::new();
     let mut slurm_execution_refs = Vec::new();
-    for rust_file in &rust_files {
+    for rust_file in rust_files {
         let absolute = crate_root.join(rust_file);
         let content = std::fs::read_to_string(&absolute)
             .with_context(|| format!("read {}", absolute.display()))?;
@@ -1492,7 +1944,17 @@ fn audit_parser_surface(
             SLURM_EXECUTION_PATTERNS,
         );
     }
+    Ok((
+        parser_entrypoints,
+        raw_input_read_refs,
+        input_mutation_refs,
+        process_execution_refs,
+        container_execution_refs,
+        slurm_execution_refs,
+    ))
+}
 
+fn collect_forbidden_direct_dependencies(manifest_value: &Value) -> Vec<ForbiddenDependencyHit> {
     let mut forbidden_direct_dependencies = Vec::new();
     for (patterns, category) in [
         (RUNNER_DEPENDENCY_PATTERNS, "runner"),
@@ -1501,7 +1963,7 @@ fn audit_parser_surface(
     ] {
         for section_name in ["dependencies", "dev-dependencies", "build-dependencies"] {
             forbidden_direct_dependencies.extend(collect_manifest_dependency_hits(
-                &manifest_value,
+                manifest_value,
                 section_name,
                 patterns,
                 category,
@@ -1514,33 +1976,7 @@ fn audit_parser_surface(
             .then_with(|| left.section.cmp(&right.section))
             .then_with(|| left.dependency.cmp(&right.dependency))
     });
-
-    let scanned_rust_files = rust_files
-        .iter()
-        .map(|path| relative_display(&crate_root.join(path), cwd))
-        .collect::<Vec<_>>();
-    let ok = !parser_entrypoints.is_empty()
-        && forbidden_direct_dependencies.is_empty()
-        && input_mutation_refs.is_empty()
-        && process_execution_refs.is_empty()
-        && container_execution_refs.is_empty()
-        && slurm_execution_refs.is_empty();
-
-    Ok(ParserSurfaceAuditReport {
-        crate_name: member.crate_name.clone(),
-        manifest_path: relative_display(&member.manifest_path, cwd),
-        parser_root: relative_display(&parser_root, cwd),
-        scanned_rust_files,
-        excluded_governance_paths,
-        parser_entrypoints,
-        raw_input_read_refs,
-        input_mutation_refs,
-        forbidden_direct_dependencies,
-        process_execution_refs,
-        container_execution_refs,
-        slurm_execution_refs,
-        ok,
-    })
+    forbidden_direct_dependencies
 }
 
 fn audit_planner_crate(
@@ -1622,7 +2058,7 @@ fn collect_execution_owner_dependency_hits(
         })
         .map(|dependency| ExecutionOwnerDependencyHit {
             section: section_name.to_string(),
-            dependency: dependency.to_string(),
+            dependency: dependency.clone(),
         })
         .collect::<Vec<_>>();
     hits.sort_by(|left, right| {
@@ -1815,45 +2251,16 @@ pub fn write_no_crate_cycles_report(cwd: &Path, output_path: &Path) -> Result<No
     edge_rows
         .sort_by(|left, right| left.from.cmp(&right.from).then_with(|| left.to.cmp(&right.to)));
 
-    let categories = CRATE_CYCLE_CATEGORIES
-        .iter()
-        .map(|spec| NoCrateCyclesCategoryReport {
-            category: spec.category.to_string(),
-            crate_count: spec.crates.len(),
-            crates: spec.crates.iter().map(|crate_name| (*crate_name).to_string()).collect(),
-        })
-        .collect::<Vec<_>>();
-
-    let crates = configured_names
-        .iter()
-        .map(|crate_name| NoCrateCyclesCrateReport {
-            crate_name: crate_name.clone(),
-            category: crate_cycle_category(crate_name).unwrap_or("unclassified").to_string(),
-            manifest_path: relative_display(
-                member_lookup.get(crate_name).expect("audited crate manifest path must exist"),
-                cwd,
-            ),
-            direct_workspace_dependencies: direct_deps
-                .get(crate_name)
-                .cloned()
-                .unwrap_or_default()
-                .into_iter()
-                .collect(),
-            direct_workspace_dependents: direct_dependents
-                .get(crate_name)
-                .cloned()
-                .unwrap_or_default()
-                .into_iter()
-                .collect(),
-        })
-        .collect::<Vec<_>>();
-
-    let cycles = cycle_components(&direct_deps)
-        .into_iter()
-        .map(|crates| NoCrateCyclesComponent { crates })
-        .collect::<Vec<_>>();
-    let topological_order =
-        if cycles.is_empty() { topological_dependency_order(&direct_deps) } else { Vec::new() };
+    let categories = collect_no_crate_cycle_categories();
+    let crates = collect_no_crate_cycle_crates(
+        cwd,
+        &configured_names,
+        &member_lookup,
+        &direct_deps,
+        &direct_dependents,
+    )?;
+    let cycles = collect_no_crate_cycle_components(&direct_deps);
+    let topological_order = collect_no_crate_cycle_topological_order(&direct_deps, &cycles);
     let skipped_workspace_crates =
         member_names.difference(&configured_names).cloned().collect::<Vec<_>>();
     let report = NoCrateCyclesReport {
@@ -1884,6 +2291,71 @@ pub fn write_no_crate_cycles_report(cwd: &Path, output_path: &Path) -> Result<No
     Ok(report)
 }
 
+fn collect_no_crate_cycle_categories() -> Vec<NoCrateCyclesCategoryReport> {
+    CRATE_CYCLE_CATEGORIES
+        .iter()
+        .map(|spec| NoCrateCyclesCategoryReport {
+            category: spec.category.to_string(),
+            crate_count: spec.crates.len(),
+            crates: spec.crates.iter().map(|crate_name| (*crate_name).to_string()).collect(),
+        })
+        .collect()
+}
+
+fn collect_no_crate_cycle_crates(
+    cwd: &Path,
+    configured_names: &BTreeSet<String>,
+    member_lookup: &BTreeMap<String, PathBuf>,
+    direct_deps: &BTreeMap<String, BTreeSet<String>>,
+    direct_dependents: &BTreeMap<String, BTreeSet<String>>,
+) -> Result<Vec<NoCrateCyclesCrateReport>> {
+    configured_names
+        .iter()
+        .map(|crate_name| {
+            let Some(manifest_path) = member_lookup.get(crate_name) else {
+                return Err(anyhow!("audited crate manifest path must exist for `{crate_name}`"));
+            };
+            Ok(NoCrateCyclesCrateReport {
+                crate_name: crate_name.clone(),
+                category: crate_cycle_category(crate_name).unwrap_or("unclassified").to_string(),
+                manifest_path: relative_display(manifest_path, cwd),
+                direct_workspace_dependencies: direct_deps
+                    .get(crate_name)
+                    .cloned()
+                    .unwrap_or_default()
+                    .into_iter()
+                    .collect(),
+                direct_workspace_dependents: direct_dependents
+                    .get(crate_name)
+                    .cloned()
+                    .unwrap_or_default()
+                    .into_iter()
+                    .collect(),
+            })
+        })
+        .collect()
+}
+
+fn collect_no_crate_cycle_components(
+    direct_deps: &BTreeMap<String, BTreeSet<String>>,
+) -> Vec<NoCrateCyclesComponent> {
+    cycle_components(direct_deps)
+        .into_iter()
+        .map(|crates| NoCrateCyclesComponent { crates })
+        .collect()
+}
+
+fn collect_no_crate_cycle_topological_order(
+    direct_deps: &BTreeMap<String, BTreeSet<String>>,
+    cycles: &[NoCrateCyclesComponent],
+) -> Vec<String> {
+    if cycles.is_empty() {
+        topological_dependency_order(direct_deps)
+    } else {
+        Vec::new()
+    }
+}
+
 /// # Errors
 /// Returns an error if any crate-shape proof for Goals 411-419 fails.
 pub fn write_benchmarking_ready_crate_shape_gate_report(
@@ -1891,240 +2363,7 @@ pub fn write_benchmarking_ready_crate_shape_gate_report(
     output_path: &Path,
 ) -> Result<BenchmarkingReadyCrateShapeGateReport> {
     let cargo_target_dir = gate_cargo_target_dir(cwd);
-
-    let graph_path = cwd.join(DEFAULT_CRATE_DEPENDENCY_MAP_PATH);
-    let goal_411 = match write_dependency_map(cwd, &graph_path) {
-        Ok(report) => CrateShapeGateCheckReport {
-            goal_id: "411".to_string(),
-            ok: true,
-            command: format!(
-                "bijux-dna dev crates graph --output {}",
-                DEFAULT_CRATE_DEPENDENCY_MAP_PATH
-            ),
-            detail: report.output_path,
-        },
-        Err(err) => CrateShapeGateCheckReport {
-            goal_id: "411".to_string(),
-            ok: false,
-            command: format!(
-                "bijux-dna dev crates graph --output {}",
-                DEFAULT_CRATE_DEPENDENCY_MAP_PATH
-            ),
-            detail: err.to_string(),
-        },
-    };
-
-    let domain_no_execution_path = cwd.join(DEFAULT_DOMAIN_NO_EXECUTION_PATH);
-    let goal_412 = match write_domain_no_execution_report(cwd, &domain_no_execution_path) {
-        Ok(report) => CrateShapeGateCheckReport {
-            goal_id: "412".to_string(),
-            ok: true,
-            command: format!(
-                "bijux-dna dev crates domain-no-execution --output {}",
-                DEFAULT_DOMAIN_NO_EXECUTION_PATH
-            ),
-            detail: report.output_path,
-        },
-        Err(err) => CrateShapeGateCheckReport {
-            goal_id: "412".to_string(),
-            ok: false,
-            command: format!(
-                "bijux-dna dev crates domain-no-execution --output {}",
-                DEFAULT_DOMAIN_NO_EXECUTION_PATH
-            ),
-            detail: err.to_string(),
-        },
-    };
-
-    let parser_no_execution_path = cwd.join(DEFAULT_PARSER_NO_EXECUTION_PATH);
-    let goal_413 = match write_parser_no_execution_report(cwd, &parser_no_execution_path) {
-        Ok(report) => CrateShapeGateCheckReport {
-            goal_id: "413".to_string(),
-            ok: true,
-            command: format!(
-                "bijux-dna dev crates parser-no-execution --output {}",
-                DEFAULT_PARSER_NO_EXECUTION_PATH
-            ),
-            detail: report.output_path,
-        },
-        Err(err) => CrateShapeGateCheckReport {
-            goal_id: "413".to_string(),
-            ok: false,
-            command: format!(
-                "bijux-dna dev crates parser-no-execution --output {}",
-                DEFAULT_PARSER_NO_EXECUTION_PATH
-            ),
-            detail: err.to_string(),
-        },
-    };
-
-    let planner_no_parser_path = cwd.join(DEFAULT_PLANNER_NO_PARSER_PATH);
-    let goal_414 = match write_planner_no_parser_report(cwd, &planner_no_parser_path) {
-        Ok(report) => CrateShapeGateCheckReport {
-            goal_id: "414".to_string(),
-            ok: true,
-            command: format!(
-                "bijux-dna dev crates planner-no-parser --output {}",
-                DEFAULT_PLANNER_NO_PARSER_PATH
-            ),
-            detail: report.output_path,
-        },
-        Err(err) => CrateShapeGateCheckReport {
-            goal_id: "414".to_string(),
-            ok: false,
-            command: format!(
-                "bijux-dna dev crates planner-no-parser --output {}",
-                DEFAULT_PLANNER_NO_PARSER_PATH
-            ),
-            detail: err.to_string(),
-        },
-    };
-
-    let runner_process_execution_path = cwd.join(DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH);
-    let goal_415 =
-        match write_runner_owned_process_execution_report(cwd, &runner_process_execution_path) {
-            Ok(report) => CrateShapeGateCheckReport {
-                goal_id: "415".to_string(),
-                ok: true,
-                command: format!(
-                    "bijux-dna dev crates runner-owns-process-execution --output {}",
-                    DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH
-                ),
-                detail: report.output_path,
-            },
-            Err(err) => CrateShapeGateCheckReport {
-                goal_id: "415".to_string(),
-                ok: false,
-                command: format!(
-                    "bijux-dna dev crates runner-owns-process-execution --output {}",
-                    DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH
-                ),
-                detail: err.to_string(),
-            },
-        };
-
-    let goal_416 = match run_gate_cargo_test(
-        cwd,
-        &cargo_target_dir,
-        "bijux-dna-api",
-        &["typed_artifact_handoff_rejects_wrong_stage_inputs", "--", "--nocapture"],
-        TYPED_ARTIFACT_HANDOFF_TEST_COMMAND,
-    ) {
-        Ok(()) => CrateShapeGateCheckReport {
-            goal_id: "416".to_string(),
-            ok: true,
-            command: TYPED_ARTIFACT_HANDOFF_TEST_COMMAND.to_string(),
-            detail: "typed artifact handoff proof passed".to_string(),
-        },
-        Err(err) => CrateShapeGateCheckReport {
-            goal_id: "416".to_string(),
-            ok: false,
-            command: TYPED_ARTIFACT_HANDOFF_TEST_COMMAND.to_string(),
-            detail: err.to_string(),
-        },
-    };
-
-    let metric_registry_path = cwd.join(DEFAULT_METRIC_REGISTRY_PATH);
-    let metric_registry_report = write_metric_registry_report(cwd, &metric_registry_path);
-    let metric_registry_contract = run_gate_cargo_test(
-        cwd,
-        &cargo_target_dir,
-        "bijux-dna-domain-vcf",
-        &[
-            "--test",
-            "contracts",
-            "vcf_metric_registry_rejects_unregistered_stage_metrics",
-            "--",
-            "--nocapture",
-        ],
-        METRIC_REGISTRY_PROOF_TEST_COMMAND,
-    );
-    let goal_417 = match (metric_registry_report, metric_registry_contract) {
-        (Ok(report), Ok(())) => CrateShapeGateCheckReport {
-            goal_id: "417".to_string(),
-            ok: true,
-            command: format!(
-                "bijux-dna dev crates metric-registry --output {} && {}",
-                DEFAULT_METRIC_REGISTRY_PATH, METRIC_REGISTRY_PROOF_TEST_COMMAND
-            ),
-            detail: report.output_path,
-        },
-        (Err(err), Ok(())) => CrateShapeGateCheckReport {
-            goal_id: "417".to_string(),
-            ok: false,
-            command: format!(
-                "bijux-dna dev crates metric-registry --output {} && {}",
-                DEFAULT_METRIC_REGISTRY_PATH, METRIC_REGISTRY_PROOF_TEST_COMMAND
-            ),
-            detail: err.to_string(),
-        },
-        (Ok(_report), Err(err)) => CrateShapeGateCheckReport {
-            goal_id: "417".to_string(),
-            ok: false,
-            command: format!(
-                "bijux-dna dev crates metric-registry --output {} && {}",
-                DEFAULT_METRIC_REGISTRY_PATH, METRIC_REGISTRY_PROOF_TEST_COMMAND
-            ),
-            detail: err.to_string(),
-        },
-        (Err(report_err), Err(test_err)) => CrateShapeGateCheckReport {
-            goal_id: "417".to_string(),
-            ok: false,
-            command: format!(
-                "bijux-dna dev crates metric-registry --output {} && {}",
-                DEFAULT_METRIC_REGISTRY_PATH, METRIC_REGISTRY_PROOF_TEST_COMMAND
-            ),
-            detail: format!("{report_err}; {test_err}"),
-        },
-    };
-
-    let result_id_stability_path = cwd.join(DEFAULT_RESULT_ID_STABILITY_PATH);
-    let goal_418 = match write_result_id_stability_report(cwd, &result_id_stability_path) {
-        Ok(report) => CrateShapeGateCheckReport {
-            goal_id: "418".to_string(),
-            ok: true,
-            command: format!(
-                "bijux-dna dev crates result-id-stability --output {}",
-                DEFAULT_RESULT_ID_STABILITY_PATH
-            ),
-            detail: report.output_path,
-        },
-        Err(err) => CrateShapeGateCheckReport {
-            goal_id: "418".to_string(),
-            ok: false,
-            command: format!(
-                "bijux-dna dev crates result-id-stability --output {}",
-                DEFAULT_RESULT_ID_STABILITY_PATH
-            ),
-            detail: err.to_string(),
-        },
-    };
-
-    let no_crate_cycles_path = cwd.join(DEFAULT_NO_CRATE_CYCLES_PATH);
-    let goal_419 = match write_no_crate_cycles_report(cwd, &no_crate_cycles_path) {
-        Ok(report) => CrateShapeGateCheckReport {
-            goal_id: "419".to_string(),
-            ok: true,
-            command: format!(
-                "bijux-dna dev crates check-cycles --output {}",
-                DEFAULT_NO_CRATE_CYCLES_PATH
-            ),
-            detail: report.output_path,
-        },
-        Err(err) => CrateShapeGateCheckReport {
-            goal_id: "419".to_string(),
-            ok: false,
-            command: format!(
-                "bijux-dna dev crates check-cycles --output {}",
-                DEFAULT_NO_CRATE_CYCLES_PATH
-            ),
-            detail: err.to_string(),
-        },
-    };
-
-    let checks = vec![
-        goal_411, goal_412, goal_413, goal_414, goal_415, goal_416, goal_417, goal_418, goal_419,
-    ];
+    let checks = collect_benchmarking_ready_crate_shape_gate_checks(cwd, &cargo_target_dir);
     let report = build_benchmarking_ready_crate_shape_gate_report(
         cwd,
         output_path,
@@ -2175,11 +2414,9 @@ pub fn write_result_id_stability_report(
     let (canonical_rows, mut violations) = collect_canonical_result_id_rows(cwd)?;
     let canonical_by_result =
         canonical_rows.iter().map(|row| (row.result_id.clone(), row)).collect::<BTreeMap<_, _>>();
-
     let local_rows = crate::commands::benchmark::readiness::all_domain_rendered_commands::collect_all_domain_rendered_command_rows(cwd)?;
     let local_by_result =
         local_rows.iter().map(|row| (row.result_id.clone(), row)).collect::<BTreeMap<_, _>>();
-
     let fake_report = crate::commands::benchmark::local_all_domain_fake_runs::fake_run_all_domain_benchmark_results(
         cwd,
         PathBuf::from(crate::commands::benchmark::local_all_domain_fake_runs::DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT),
@@ -2210,209 +2447,24 @@ pub fn write_result_id_stability_report(
         .iter()
         .filter_map(|job| job.result_id.as_ref().map(|result_id| (result_id.clone(), job)))
         .collect::<BTreeMap<_, _>>();
-
-    for result_id in local_by_result.keys() {
-        if !canonical_by_result.contains_key(result_id) {
-            push_result_id_violation(
-                &mut violations,
-                result_id,
-                "local_all_domain_rendered_commands",
-                "local execution surface produced a non-canonical result id",
-            );
-        }
-    }
-    for result_id in fake_by_result.keys() {
-        if !canonical_by_result.contains_key(result_id) {
-            push_result_id_violation(
-                &mut violations,
-                result_id,
-                "local_all_domain_fake_runs",
-                "fake-run surface produced a non-canonical result id",
-            );
-        }
-    }
-    for result_id in report_by_result.keys() {
-        if !canonical_by_result.contains_key(result_id) {
-            push_result_id_violation(
-                &mut violations,
-                result_id,
-                "full_benchmark_report",
-                "full benchmark report produced a non-canonical result id",
-            );
-        }
-    }
-    for result_id in slurm_by_result.keys() {
-        if !canonical_by_result.contains_key(result_id) {
-            push_result_id_violation(
-                &mut violations,
-                result_id,
-                "local_all_domain_slurm_submit_manifest",
-                "SLURM dry-run surface produced a non-canonical result id",
-            );
-        }
-    }
-
     let micro_result_ids = MICRO_RESULT_ID_SUBSET
         .iter()
         .map(|result_id| (*result_id).to_string())
         .collect::<BTreeSet<_>>();
-    for result_id in &micro_result_ids {
-        if !canonical_by_result.contains_key(result_id) {
-            push_result_id_violation(
-                &mut violations,
-                result_id,
-                "governed_micro_subset",
-                "micro result-id subset references a non-canonical benchmark row",
-            );
-        }
-    }
-
-    let mut rows = Vec::with_capacity(canonical_rows.len());
-    for canonical in canonical_rows {
-        let local_row = local_by_result.get(&canonical.result_id).copied();
-        let fake_row = fake_by_result.get(&canonical.result_id).copied();
-        let report_row = report_by_result.get(&canonical.result_id).copied();
-        let slurm_job = slurm_by_result.get(&canonical.result_id).copied();
-
-        if let Some(row) = local_row {
-            if !crate::commands::benchmark::local_all_domain_result_paths::benchmark_result_matches_identity(
-                &row.result_id,
-                &canonical.domain,
-                &canonical.corpus_id,
-                &canonical.stage_id,
-                &canonical.tool_id,
-            )? {
-                push_result_id_violation(
-                    &mut violations,
-                    &canonical.result_id,
-                    "local_all_domain_rendered_commands",
-                    "local execution row drifted from the canonical benchmark identity",
-                );
-            }
-        } else {
-            push_result_id_violation(
-                &mut violations,
-                &canonical.result_id,
-                "local_all_domain_rendered_commands",
-                "local execution surface is missing the canonical result id",
-            );
-        }
-
-        if let Some(row) = fake_row {
-            if !crate::commands::benchmark::local_all_domain_result_paths::benchmark_result_matches_identity(
-                &row.result_id,
-                &canonical.domain,
-                &canonical.corpus_id,
-                &canonical.stage_id,
-                &canonical.tool_id,
-            )? {
-                push_result_id_violation(
-                    &mut violations,
-                    &canonical.result_id,
-                    "local_all_domain_fake_runs",
-                    "fake-run row drifted from the canonical benchmark identity",
-                );
-            }
-        } else {
-            push_result_id_violation(
-                &mut violations,
-                &canonical.result_id,
-                "local_all_domain_fake_runs",
-                "fake-run surface is missing the canonical result id",
-            );
-        }
-
-        if let Some(row) = report_row {
-            if row.report_row_id != canonical.result_id {
-                push_result_id_violation(
-                    &mut violations,
-                    &canonical.result_id,
-                    "full_benchmark_report",
-                    format!(
-                        "full benchmark report row id `{}` drifted from canonical result id",
-                        row.report_row_id
-                    ),
-                );
-            }
-            if row.domain != canonical.domain
-                || row.stage_id != canonical.stage_id
-                || row.tool_id != canonical.tool_id
-                || row.corpus_id != canonical.corpus_id
-            {
-                push_result_id_violation(
-                    &mut violations,
-                    &canonical.result_id,
-                    "full_benchmark_report",
-                    "full benchmark report row drifted from the canonical benchmark identity",
-                );
-            }
-        } else {
-            push_result_id_violation(
-                &mut violations,
-                &canonical.result_id,
-                "full_benchmark_report",
-                "full benchmark report is missing the canonical result id",
-            );
-        }
-
-        if let Some(job) = slurm_job {
-            if job.job_id_local != format!("benchmark:{}", canonical.result_id) {
-                push_result_id_violation(
-                    &mut violations,
-                    &canonical.result_id,
-                    "local_all_domain_slurm_submit_manifest",
-                    format!(
-                        "SLURM dry-run job id `{}` drifted from the canonical benchmark job prefix",
-                        job.job_id_local
-                    ),
-                );
-            }
-            if job.domain != canonical.domain
-                || job.stage_id != canonical.stage_id
-                || job.tool_id != canonical.tool_id
-                || job.corpus_id != canonical.corpus_id
-            {
-                push_result_id_violation(
-                    &mut violations,
-                    &canonical.result_id,
-                    "local_all_domain_slurm_submit_manifest",
-                    "SLURM dry-run job drifted from the canonical benchmark identity",
-                );
-            }
-        } else {
-            push_result_id_violation(
-                &mut violations,
-                &canonical.result_id,
-                "local_all_domain_slurm_submit_manifest",
-                "SLURM dry-run surface is missing the canonical result id",
-            );
-        }
-
-        let local_execution_argv =
-            crate::commands::benchmark::local_all_domain_job_execution::rendered_benchmark_result_execution_argv(&canonical.result_id);
-        let selected_for_micro = micro_result_ids.contains(&canonical.result_id);
-
-        rows.push(ResultIdStabilityRow {
-            result_id: canonical.result_id.clone(),
-            domain: canonical.domain.clone(),
-            stage_id: canonical.stage_id.clone(),
-            tool_id: canonical.tool_id.clone(),
-            corpus_id: canonical.corpus_id.clone(),
-            scope_kind: result_scope_kind_label(canonical.scope_kind).to_string(),
-            scope_id: canonical.scope_id.clone(),
-            local_result_id: local_row.map(|row| row.result_id.clone()),
-            fake_result_id: fake_row.map(|row| row.result_id.clone()),
-            micro_result_id: selected_for_micro.then(|| canonical.result_id.clone()),
-            report_result_id: report_row.and_then(|row| row.result_id.clone()),
-            slurm_result_id: slurm_job.and_then(|job| job.result_id.clone()),
-            local_execution_argv: Some(local_execution_argv.clone()),
-            micro_execution_argv: selected_for_micro.then_some(local_execution_argv),
-            fake_metrics_path: fake_row.map(|row| row.metrics_path.clone()),
-            report_row_id: report_row.map(|row| row.report_row_id.clone()),
-            report_evidence_path: report_row.map(|row| row.evidence_path.clone()),
-            slurm_job_id_local: slurm_job.map(|job| job.job_id_local.clone()),
-        });
-    }
+    let rows = collect_result_id_stability_rows!(
+        &mut violations,
+        &canonical_rows,
+        &canonical_by_result,
+        &local_rows,
+        &local_by_result,
+        &fake_report,
+        &fake_by_result,
+        &full_report,
+        &report_by_result,
+        &slurm_report,
+        &slurm_by_result,
+        &micro_result_ids
+    );
 
     let report = ResultIdStabilityReport {
         schema_version: "bijux.crates.result_id_stability.v1",

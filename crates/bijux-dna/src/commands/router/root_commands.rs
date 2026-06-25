@@ -912,8 +912,7 @@ pub(crate) fn handle_ci_root(command: &cli::CiCommand, cwd: &Path) -> Result<()>
             let registry_path =
                 bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
             let policy_ok = crate::commands::cli::env::policy_clean_report(&registry_path, "fastq")
-                .map(|report| report.ok)
-                .unwrap_or(false);
+                .is_ok_and(|report| report.ok);
             checks.push(Check {
                 name: "registry_policy_clean_fastq",
                 ok: policy_ok,

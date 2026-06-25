@@ -352,7 +352,7 @@ fn ensure_local_docker_image<S: ::std::hash::BuildHasher>(
             container_dir.display().to_string(),
         ],
     )
-    .with_context(|| format!("docker build {}", local_image_name))?;
+    .with_context(|| format!("docker build {local_image_name}"))?;
     if output.exit_code == 0 {
         if let Some(parent) = build_state_path.parent() {
             bijux_dna_infra::ensure_dir(parent)
@@ -452,23 +452,22 @@ fn resolved_probe_command(primary: Option<&str>, fallback: Option<&str>, default
     primary
         .or(fallback)
         .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .map(ToOwned::to_owned)
-        .unwrap_or_else(|| default.to_string())
+        .filter(|value| !value.is_empty()).map_or_else(|| default.to_string(), ToOwned::to_owned)
 }
 
 fn run_docker_probe(image_name: &str, probe: &str, expected_bin: Option<&str>) -> Result<String> {
     let output = match docker_probe_invocation(probe, expected_bin) {
         DockerProbeInvocation::EntrypointArgs(args) => {
-            let mut argv = vec![
+            let mut docker_args = vec![
                 "run".to_string(),
                 "--rm".to_string(),
                 "--network".to_string(),
                 "none".to_string(),
                 image_name.to_string(),
             ];
-            argv.extend(args);
-            run_command("docker", &argv).with_context(|| format!("docker run {}", image_name))?
+            docker_args.extend(args);
+            run_command("docker", &docker_args)
+                .with_context(|| format!("docker run {image_name}"))?
         }
         DockerProbeInvocation::Shell(command) => run_command(
             "docker",
@@ -484,7 +483,7 @@ fn run_docker_probe(image_name: &str, probe: &str, expected_bin: Option<&str>) -
                 command,
             ],
         )
-        .with_context(|| format!("docker run {}", image_name))?,
+        .with_context(|| format!("docker run {image_name}"))?,
     };
     let merged = merge_command_output(&output.stdout, &output.stderr);
     if output.exit_code == 0 {

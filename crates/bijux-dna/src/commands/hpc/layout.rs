@@ -446,8 +446,7 @@ pub fn enforce_hpc_results_layout(path: &Path) -> Result<()> {
         ));
     }
     let timestamp = &comps[results_idx + 5];
-    let ts_ok =
-        regex::Regex::new(r"^\d{8}T\d{6}Z$").map(|re| re.is_match(timestamp)).unwrap_or(false);
+    let ts_ok = regex::Regex::new(r"^\d{8}T\d{6}Z$").is_ok_and(|re| re.is_match(timestamp));
     if !ts_ok {
         return Err(anyhow!("HPC results path timestamp must match YYYYMMDDTHHMMSSZ"));
     }

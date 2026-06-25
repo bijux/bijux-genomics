@@ -10,6 +10,7 @@ pub(crate) mod ena;
 pub(crate) mod fastq;
 pub(crate) mod fixtures;
 pub mod hpc;
+pub(crate) mod numeric;
 pub(crate) mod planning;
 mod router;
 mod status;

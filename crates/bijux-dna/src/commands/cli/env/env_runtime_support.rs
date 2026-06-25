@@ -271,7 +271,7 @@ fn should_run_weekly_quick_smoke(manifest_path: &Path) -> bool {
     let Ok(age) = SystemTime::now().duration_since(modified) else {
         return true;
     };
-    age >= Duration::from_secs(7 * 24 * 3600)
+    age >= Duration::from_hours(168)
 }
 
 fn now_unix_s() -> u64 {
