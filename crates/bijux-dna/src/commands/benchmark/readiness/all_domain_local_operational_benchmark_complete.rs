@@ -441,10 +441,7 @@ mod tests {
     use std::path::PathBuf;
 
     #[cfg(feature = "bam_downstream")]
-    use super::{
-        render_all_domain_local_operational_benchmark_complete,
-        DEFAULT_ALL_DOMAIN_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE_PATH,
-    };
+    use super::DEFAULT_ALL_DOMAIN_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE_PATH;
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))

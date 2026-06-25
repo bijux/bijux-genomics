@@ -1210,7 +1210,7 @@ mod tests {
 
     use super::{benchmark_asset_profile_id_for_resource_row, binding_blocker, BindingKey};
     #[cfg(feature = "bam_downstream")]
-    use super::{render_operational_benchmark_ready, DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH};
+    use super::DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH;
     use crate::commands::benchmark::readiness::stage_tool_resources::StageToolResourceRow;
 
     fn repo_root() -> PathBuf {
