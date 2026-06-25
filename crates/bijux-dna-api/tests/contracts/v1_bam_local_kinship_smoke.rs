@@ -42,6 +42,9 @@ fn case_by_sample_id<'a>(payload: &'a serde_json::Value, sample_id: &str) -> &'a
 #[test]
 fn write_local_kinship_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
+    let _lock = crate::support::bench_output_lock()
+        .lock()
+        .unwrap_or_else(|err| panic!("lock BAM kinship benchmark output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
     let output_dir = repo_root.join("runs/bench/local-smoke/bam.kinship");
     if output_dir.exists() {
@@ -176,6 +179,9 @@ fn write_local_kinship_smoke_report_materializes_governed_outputs() -> Result<()
 #[test]
 fn write_local_kinship_smoke_report_writes_governed_tool_reports() -> Result<()> {
     let repo_root = repo_root()?;
+    let _lock = crate::support::bench_output_lock()
+        .lock()
+        .unwrap_or_else(|err| panic!("lock BAM kinship benchmark output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
     let output_dir = repo_root.join("runs/bench/local-smoke/bam.kinship");
     if output_dir.exists() {
@@ -226,6 +232,9 @@ fn write_local_kinship_smoke_report_writes_governed_tool_reports() -> Result<()>
 #[test]
 fn write_local_kinship_smoke_report_writes_governed_stage_metrics() -> Result<()> {
     let repo_root = repo_root()?;
+    let _lock = crate::support::bench_output_lock()
+        .lock()
+        .unwrap_or_else(|err| panic!("lock BAM kinship benchmark output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
     let output_dir = repo_root.join("runs/bench/local-smoke/bam.kinship");
     if output_dir.exists() {

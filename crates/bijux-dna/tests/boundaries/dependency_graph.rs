@@ -40,6 +40,7 @@ const DEV_DEPS: &[&str] = &[
     "filetime",
     "insta",
     "predicates",
+    "sysinfo",
     "tempfile",
     "walkdir",
 ];

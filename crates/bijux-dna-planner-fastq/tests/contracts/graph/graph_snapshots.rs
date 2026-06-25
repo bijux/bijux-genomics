@@ -34,10 +34,13 @@ fn tool_for_stage(stage: &str) -> ToolExecutionSpecV1 {
     }
 }
 
-fn normalize_graph_snapshot_paths(value: serde_json::Value) -> serde_json::Value {
+fn normalize_graph_snapshot_paths(value: serde_json::Value, temp_root: &str) -> serde_json::Value {
     match value {
         serde_json::Value::Array(items) => serde_json::Value::Array(
-            items.into_iter().map(normalize_graph_snapshot_paths).collect(),
+            items
+                .into_iter()
+                .map(|item| normalize_graph_snapshot_paths(item, temp_root))
+                .collect(),
         ),
         serde_json::Value::Object(map) => {
             let normalized = map
@@ -47,12 +50,18 @@ fn normalize_graph_snapshot_paths(value: serde_json::Value) -> serde_json::Value
                         ("path" | "out_dir", serde_json::Value::String(path)) => {
                             serde_json::Value::String(snapshot_leaf(&path))
                         }
-                        (_, nested) => normalize_graph_snapshot_paths(nested),
+                        (_, serde_json::Value::String(text)) => {
+                            serde_json::Value::String(normalize_snapshot_string(&text, temp_root))
+                        }
+                        (_, nested) => normalize_graph_snapshot_paths(nested, temp_root),
                     };
                     (key, value)
                 })
                 .collect();
             serde_json::Value::Object(normalized)
+        }
+        serde_json::Value::String(text) => {
+            serde_json::Value::String(normalize_snapshot_string(&text, temp_root))
         }
         other => other,
     }
@@ -64,6 +73,13 @@ fn snapshot_leaf(path: &str) -> String {
         .file_name()
         .and_then(|leaf| leaf.to_str())
         .map_or_else(|| trimmed.to_string(), str::to_string)
+}
+
+fn normalize_snapshot_string(text: &str, temp_root: &str) -> String {
+    if text.starts_with(temp_root) && !text.contains(' ') {
+        return snapshot_leaf(text);
+    }
+    text.replace(temp_root, "<TMPDIR>/<TMP>")
 }
 
 /// Snapshot locks graph structure for the default FASTQ pipeline.
@@ -101,7 +117,7 @@ fn fastq_default_pipeline_graph_is_pure() -> Result<()> {
 
     let graph = plan_fastq_to_fastq__default__v1(&inputs, DefaultPipelineOptions::default())?;
     let json = serde_json::to_value(&graph)?;
-    let json = normalize_graph_snapshot_paths(json);
+    let json = normalize_graph_snapshot_paths(json, temp.path().to_str().unwrap_or_default());
     let json = bijux_dna_core::contract::canonical::canonicalize_truth_json(&json);
     let mut settings = insta::Settings::clone_current();
     settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));

@@ -89,6 +89,8 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         "serde_json.workspace",
         "sha2",
         "sha2.workspace",
+        "sysinfo",
+        "sysinfo.workspace",
         "tempfile",
         "tempfile.workspace",
         "toml",
