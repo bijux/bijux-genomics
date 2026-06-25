@@ -7,6 +7,7 @@ registry-rendering helpers; callers decide if and where generated TOML is writte
 
 ```text
 src/
+  artifacts/             # schema fragments and typed output-truth rows
   contracts/
     invariants.rs         # VCF, species, and panel-map invariant checks
     panel_governance.rs   # reference panel governance and selection policy
@@ -26,6 +27,8 @@ src/
 ## Ownership Rules
 
 - `contracts/` owns validation and stage contract truth.
+- `artifacts.rs` and `artifacts/` own output-truth assembly plus the supporting typed rows and
+  schema fragments for VCF downstream reports.
 - `params/` and `metrics.rs` own schema-versioned public payloads.
 - `parsers/` owns normalization of governed raw artifact banks into shared stage metrics payloads,
   including retained `bcftools`, `angsd`, `plink`, `plink2`, and descent-family VCF surfaces.
