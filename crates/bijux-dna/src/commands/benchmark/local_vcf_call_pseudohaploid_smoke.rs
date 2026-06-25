@@ -140,10 +140,8 @@ pub(crate) fn run_local_vcf_call_pseudohaploid_smoke(
     )?;
     let output_root =
         repo_root.join(DEFAULT_VCF_CALL_PSEUDOHAPLOID_SMOKE_ROOT).join(&contract.tool_id);
-    if output_root.exists() {
-        fs::remove_dir_all(&output_root)
-            .with_context(|| format!("remove {}", output_root.display()))?;
-    }
+    bijux_dna_infra::ensure_dir(&output_root)
+        .with_context(|| format!("create {}", output_root.display()))?;
     let artifacts_root = output_root.join("artifacts");
     let replay_root = artifacts_root.join("replay");
     fs::create_dir_all(&artifacts_root)

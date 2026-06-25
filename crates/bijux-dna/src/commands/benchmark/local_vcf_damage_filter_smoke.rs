@@ -129,10 +129,8 @@ pub(crate) fn run_local_vcf_damage_filter_smoke(
 ) -> Result<LocalVcfDamageFilterSmokeReport> {
     let contract = resolve_governed_vcf_damage_filter_smoke_contract(tool_id)?;
     let output_root = repo_root.join(DEFAULT_VCF_DAMAGE_FILTER_SMOKE_ROOT).join(&contract.tool_id);
-    if output_root.exists() {
-        fs::remove_dir_all(&output_root)
-            .with_context(|| format!("remove {}", output_root.display()))?;
-    }
+    bijux_dna_infra::ensure_dir(&output_root)
+        .with_context(|| format!("create {}", output_root.display()))?;
     let artifacts_root = output_root.join("artifacts");
     let input_root = artifacts_root.join("input");
     let stage_root = artifacts_root.join("stage");

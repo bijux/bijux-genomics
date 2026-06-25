@@ -105,6 +105,8 @@ pub(crate) fn write_stage_kinship_artifacts(
     stage_dir: &Path,
     plan: &bijux_dna_stage_contract::StagePlanV1,
 ) -> Result<bijux_dna_domain_bam::BamKinshipSummaryV1> {
+    bijux_dna_infra::ensure_dir(stage_dir)
+        .with_context(|| format!("create {}", stage_dir.display()))?;
     let input_bam = resolve_bam_input_path(stage_dir, plan);
     let reference_panel = required_string_param(plan, "reference_panel")?;
     let reference_build = required_string_param(plan, "reference_build")?;
@@ -129,6 +131,19 @@ pub(crate) fn write_stage_kinship_artifacts(
     let summary_path = stage_dir.join("kinship.summary.json");
     let segments_path = stage_dir.join("kinship.segments.tsv");
     let stage_metrics_path = stage_dir.join("stage.metrics.json");
+
+    for parent in [
+        report_path.parent(),
+        summary_path.parent(),
+        segments_path.parent(),
+        stage_metrics_path.parent(),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
+    }
 
     bijux_dna_infra::atomic_write_json(&report_path, &kinship_tool_report(&summary))
         .with_context(|| format!("write {}", report_path.display()))?;
