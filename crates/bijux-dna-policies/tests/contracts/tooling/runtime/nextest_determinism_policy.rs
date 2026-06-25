@@ -49,6 +49,11 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         .nth(1)
         .and_then(|tail| tail.split("\n[profile.").next())
         .expect("profile.full section");
+    let full_parallel_profile = config
+        .split("[profile.full-parallel]\n")
+        .nth(1)
+        .and_then(|tail| tail.split("\n[profile.").next())
+        .expect("profile.full-parallel section");
     bijux_dna_policies::policy_assert!(
         full_profile.contains("retries = { count = 0, backoff = \"fixed\", delay = \"1s\" }"),
         "profile.full must disable retries for deterministic full-suite surfaces"
@@ -70,8 +75,8 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         "profile.full must not terminate long-running tests during the complete suite"
     );
     bijux_dna_policies::policy_assert!(
-        cargo_mk.contains("NEXTEST_PROFILE_ALL ?= full"),
-        "test-all must default to the full nextest profile"
+        cargo_mk.contains("NEXTEST_PROFILE_ALL ?= full-parallel"),
+        "test-all must default to the governed parallel full-suite nextest profile"
     );
     bijux_dna_policies::policy_assert!(
         cargo_mk.contains("NEXTEST_EXPR_BIN ?= makes/bin/nextest_expr.sh"),
@@ -82,16 +87,16 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         "test-all must default the frozen/full-suite cargo job fan-out to 8"
     );
     bijux_dna_policies::policy_assert!(
-        cargo_mk.contains("NEXTEST_TEST_THREADS_ALL ?= 8"),
-        "test-all must default the frozen/full-suite nextest test-thread fan-out to 8"
+        config.contains("[profile.full-parallel]"),
+        "configs/rust/nextest.toml must define [profile.full-parallel] for test-all"
     );
     bijux_dna_policies::policy_assert!(
-        rust_gate.contains("nextest_test_threads_all=\"${NEXTEST_TEST_THREADS_ALL:-8}\""),
-        "rust gate must honor the governed full-suite test-thread override"
+        full_parallel_profile.contains("test-threads = 8"),
+        "profile.full-parallel must keep the governed parallel full-suite test thread fan-out at 8"
     );
     bijux_dna_policies::policy_assert!(
-        rust_gate.contains("--test-threads \"${nextest_test_threads_all}\""),
-        "rust gate test-all lane must pass the governed full-suite test-thread override to nextest"
+        !rust_gate.contains("--test-threads \"${nextest_test_threads_all}\""),
+        "rust gate test-all lane must not pass duplicate nextest test-thread overrides"
     );
     bijux_dna_policies::policy_assert!(
         slow_roster.lines().map(str::trim).any(|line| !line.is_empty() && !line.starts_with('#')),
