@@ -120,7 +120,7 @@ fn bench_readiness_apptainer_map_reports_governed_docker_to_sif_mappings() {
                 |paths| {
                     paths.len() == 1
                         && paths.first().and_then(serde_json::Value::as_str)
-                            == Some("configs/ci/registry/tool_registry_experimental.toml")
+                            == Some("configs/ci/registry/tool_registry.toml")
                 },
             )
     }));
