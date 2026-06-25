@@ -15,7 +15,17 @@ fn run_cli(args: &[&str]) -> std::process::Output {
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    #[cfg(feature = "bam_downstream")]
+    let mut command = {
+        let mut command = Command::new("cargo");
+        command.args(["run", "-q", "-p", "bijux-dna", "--features", "bam_downstream", "--"]);
+        command
+    };
+
+    #[cfg(not(feature = "bam_downstream"))]
+    let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
+
+    command
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")

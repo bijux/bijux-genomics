@@ -15,6 +15,22 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
+    #[cfg(feature = "bam_downstream")]
+    let output = {
+        let mut command = Command::new("cargo");
+        command.args(["run", "-q", "-p", "bijux-dna", "--features", "bam_downstream", "--"]);
+        command
+            .current_dir(&repo_root)
+            .env("HOME", home.path())
+            .env("BIJUX_SKIP_QA", "1")
+            .env("BIJUX_ALLOW_SILVER", "1")
+            .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+            .args(args)
+            .output()
+            .expect("run cli")
+    };
+
+    #[cfg(not(feature = "bam_downstream"))]
     let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
         .current_dir(&repo_root)
         .env("HOME", home.path())
