@@ -29,15 +29,6 @@ failure-output = "immediate"
 success-output = "never"
 status-level = "pass"
 
-[profile.full-parallel]
-retries = { count = 0, backoff = "fixed", delay = "1s" }
-fail-fast = false
-test-threads = 8
-slow-timeout = "1s"
-failure-output = "immediate"
-success-output = "never"
-status-level = "pass"
-
 [profile.slow]
 retries = { count = 1, backoff = "fixed", delay = "1s" }
 

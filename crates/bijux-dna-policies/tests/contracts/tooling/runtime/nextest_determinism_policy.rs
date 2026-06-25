@@ -49,11 +49,6 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         .nth(1)
         .and_then(|tail| tail.split("\n[profile.").next())
         .expect("profile.full section");
-    let full_parallel_profile = config
-        .split("[profile.full-parallel]\n")
-        .nth(1)
-        .and_then(|tail| tail.split("\n[profile.").next())
-        .expect("profile.full-parallel section");
     bijux_dna_policies::policy_assert!(
         full_profile.contains("retries = { count = 0, backoff = \"fixed\", delay = \"1s\" }"),
         "profile.full must disable retries for deterministic full-suite surfaces"
@@ -75,8 +70,8 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         "profile.full must not terminate long-running tests during the complete suite"
     );
     bijux_dna_policies::policy_assert!(
-        cargo_mk.contains("NEXTEST_PROFILE_ALL ?= full-parallel"),
-        "test-all must default to the governed parallel full-suite nextest profile"
+        cargo_mk.contains("NEXTEST_PROFILE_ALL ?= full"),
+        "test-all must default to the deterministic full nextest profile"
     );
     bijux_dna_policies::policy_assert!(
         cargo_mk.contains("NEXTEST_EXPR_BIN ?= makes/bin/nextest_expr.sh"),
@@ -87,12 +82,12 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         "test-all must default the frozen/full-suite cargo job fan-out to 8"
     );
     bijux_dna_policies::policy_assert!(
-        config.contains("[profile.full-parallel]"),
-        "configs/rust/nextest.toml must define [profile.full-parallel] for test-all"
+        !config.contains("[profile.full-parallel]"),
+        "full-suite test-all should not declare an unsafe parallel nextest profile while governed outputs share repo paths"
     );
     bijux_dna_policies::policy_assert!(
-        full_parallel_profile.contains("test-threads = 8"),
-        "profile.full-parallel must keep the governed parallel full-suite test thread fan-out at 8"
+        !cargo_mk.contains("NEXTEST_TEST_THREADS_ALL ?= 8"),
+        "test-all must not advertise a governed nextest test-thread override while shared benchmark outputs remain non-isolated"
     );
     bijux_dna_policies::policy_assert!(
         !rust_gate.contains("--test-threads \"${nextest_test_threads_all}\""),
