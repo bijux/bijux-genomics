@@ -211,13 +211,8 @@
       "command_readiness_kind": "smoke",
       "expected_outputs": [
         "trimmed_reads_r1",
-        "trimmed_reads_r2",
-        "merged_reads",
-        "unmerged_reads_r1",
-        "unmerged_reads_r2",
         "report_json",
-        "raw_backend_report_json",
-        "raw_backend_report_txt"
+        "trimmed_reads_r2"
       ],
       "raw_output_artifact_ids": [
         "trimmed_reads_r1",
@@ -1055,18 +1050,12 @@
       "command_readiness_kind": "smoke",
       "expected_outputs": [
         "trimmed_reads_r1",
-        "trimmed_reads_r2",
-        "merged_reads",
-        "unmerged_reads_r1",
-        "unmerged_reads_r2",
         "report_json",
-        "raw_backend_report_json",
-        "raw_backend_report_txt"
+        "trimmed_reads_r2"
       ],
       "raw_output_artifact_ids": [
         "trimmed_reads_r1",
-        "trimmed_reads_r2",
-        "raw_backend_report_json"
+        "trimmed_reads_r2"
       ],
       "normalized_metrics_output_id": "report_json",
       "schema_extension_id": "fastq_trim_terminal_damage_v2",

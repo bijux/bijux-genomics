@@ -30,38 +30,6 @@
       "exists": true
     },
     {
-      "artifact_id": "trimmed_reads_r2",
-      "declared_path": "outputs/trimmed_reads_r2.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.trim_reads/sample-set/adapterremoval/outputs/trimmed_reads_r2.json",
-      "role": "benchmark_output",
-      "optional": false,
-      "exists": true
-    },
-    {
-      "artifact_id": "merged_reads",
-      "declared_path": "outputs/merged_reads.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.trim_reads/sample-set/adapterremoval/outputs/merged_reads.json",
-      "role": "benchmark_output",
-      "optional": false,
-      "exists": true
-    },
-    {
-      "artifact_id": "unmerged_reads_r1",
-      "declared_path": "outputs/unmerged_reads_r1.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.trim_reads/sample-set/adapterremoval/outputs/unmerged_reads_r1.json",
-      "role": "benchmark_output",
-      "optional": false,
-      "exists": true
-    },
-    {
-      "artifact_id": "unmerged_reads_r2",
-      "declared_path": "outputs/unmerged_reads_r2.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.trim_reads/sample-set/adapterremoval/outputs/unmerged_reads_r2.json",
-      "role": "benchmark_output",
-      "optional": false,
-      "exists": true
-    },
-    {
       "artifact_id": "report_json",
       "declared_path": "outputs/report_json.json",
       "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.trim_reads/sample-set/adapterremoval/outputs/report_json.json",
@@ -70,17 +38,9 @@
       "exists": true
     },
     {
-      "artifact_id": "raw_backend_report_json",
-      "declared_path": "outputs/raw_backend_report_json.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.trim_reads/sample-set/adapterremoval/outputs/raw_backend_report_json.json",
-      "role": "benchmark_output",
-      "optional": false,
-      "exists": true
-    },
-    {
-      "artifact_id": "raw_backend_report_txt",
-      "declared_path": "outputs/raw_backend_report_txt.json",
-      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.trim_reads/sample-set/adapterremoval/outputs/raw_backend_report_txt.json",
+      "artifact_id": "trimmed_reads_r2",
+      "declared_path": "outputs/trimmed_reads_r2.json",
+      "realized_path": "benchmarks/readiness/missing-result-report-fixture/corpus-01-mini/fastq.trim_reads/sample-set/adapterremoval/outputs/trimmed_reads_r2.json",
       "role": "benchmark_output",
       "optional": false,
       "exists": true

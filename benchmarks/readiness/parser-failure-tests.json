@@ -376,7 +376,7 @@
       "parser_id": "parse_samtools_idxstats",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read samtools idxstats: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/bam-parser-failure-hJ3XwS/raw.idxstats.txt",
+      "observed_error": "read samtools idxstats: /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/bam-parser-failure-8mwQyp/raw.idxstats.txt",
       "passed": true
     },
     {
@@ -556,7 +556,7 @@
       "parser_id": "parse_fastqc_summary_metrics",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-RbSxBN/raw.fastqc-summary.txt",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-EHii4e/raw.fastqc-summary.txt",
       "passed": true
     },
     {
@@ -586,7 +586,7 @@
       "parser_id": "parse_bbduk_reads_removed",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-xTRTwq/raw.bbduk-summary.txt",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-rEpqZQ/raw.bbduk-summary.txt",
       "passed": true
     },
     {
@@ -616,7 +616,7 @@
       "parser_id": "parse_low_complexity_report",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-WtvuNn/raw.low-complexity.txt",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-PEzyJk/raw.low-complexity.txt",
       "passed": true
     },
     {
@@ -646,7 +646,7 @@
       "parser_id": "parse_low_complexity_report",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-N2M7jT/raw.low-complexity.txt",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-mLbb0O/raw.low-complexity.txt",
       "passed": true
     },
     {
@@ -676,7 +676,7 @@
       "parser_id": "parse_low_complexity_report",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-0qmGry/raw.low-complexity.txt",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-UfPbGK/raw.low-complexity.txt",
       "passed": true
     },
     {
@@ -706,7 +706,7 @@
       "parser_id": "parse_low_complexity_report",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-RfPGrD/raw.low-complexity.txt",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-i186tQ/raw.low-complexity.txt",
       "passed": true
     },
     {
@@ -736,7 +736,7 @@
       "parser_id": "parse_length_histogram",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-vKFEYr/raw.seqkit-fx2tab.tsv",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-CXiPO5/raw.seqkit-fx2tab.tsv",
       "passed": true
     },
     {
@@ -766,7 +766,7 @@
       "parser_id": "parse_seqkit_tool_metrics",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-jLbhXN/raw.seqkit.tsv",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-C0EKFN/raw.seqkit.tsv",
       "passed": true
     },
     {
@@ -796,7 +796,7 @@
       "parser_id": "parse_deduplicate_report",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-hWt9d4/raw.deduplicate.txt",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-CQXlbx/raw.deduplicate.txt",
       "passed": true
     },
     {
@@ -826,7 +826,7 @@
       "parser_id": "parse_deduplicate_report",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-sPQZfB/raw.deduplicate.txt",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-S5Kfz8/raw.deduplicate.txt",
       "passed": true
     },
     {
@@ -856,7 +856,7 @@
       "parser_id": "parse_multiqc_general_stats_metrics",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-DJb5z8/raw.multiqc-general-stats.json",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-Y1U1gP/raw.multiqc-general-stats.json",
       "passed": true
     },
     {
@@ -886,7 +886,7 @@
       "parser_id": "parse_screen_summary_tsv",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-6oUhjX/raw.screen-summary.tsv",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-CSg06U/raw.screen-summary.tsv",
       "passed": true
     },
     {
@@ -916,7 +916,7 @@
       "parser_id": "parse_fastp_metrics",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-XrZbfW/raw.fastp.json",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-2VW43W/raw.fastp.json",
       "passed": true
     },
     {
@@ -946,7 +946,7 @@
       "parser_id": "parse_adapterremoval_metrics",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-BjaxtP/raw.adapterremoval.txt",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-xTWwqW/raw.adapterremoval.txt",
       "passed": true
     },
     {
@@ -976,7 +976,7 @@
       "parser_id": "parse_fastqvalidator_count",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-BLZaY4/raw.fastqvalidator.txt",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-P5DlnJ/raw.fastqvalidator.txt",
       "passed": true
     },
     {
@@ -1006,7 +1006,7 @@
       "parser_id": "parse_seqkit_stats",
       "expected_failure_class": "missing_raw_output",
       "observed_failure_class": "missing_raw_output",
-      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-FWK0JV/raw.seqkit.tsv",
+      "observed_error": "read /Users/bijan/bijux/bijux-genomics/artifacts/bench-readiness/fastq-parser-failure-UM5Lc4/raw.seqkit.tsv",
       "passed": true
     }
   ]
