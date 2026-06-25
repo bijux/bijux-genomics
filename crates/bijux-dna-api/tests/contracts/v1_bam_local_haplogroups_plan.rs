@@ -34,8 +34,7 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<()> {
     let repo_root = repo_root()?;
     let _lock = crate::support::bench_output_lock()
-        .lock()
-        .unwrap_or_else(|err| panic!("lock BAM haplogroups plan output: {err}"));
+        .unwrap_or_else(|err| panic!("repo lock BAM haplogroups plan output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
     let output_dir = repo_root.join("benchmarks/readiness/local-ready/bam.haplogroups");
     if output_dir.exists() {
@@ -185,8 +184,7 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
 fn write_local_haplogroups_plan_preserves_governed_command_metadata() -> Result<()> {
     let repo_root = repo_root()?;
     let _lock = crate::support::bench_output_lock()
-        .lock()
-        .unwrap_or_else(|err| panic!("lock BAM haplogroups plan output: {err}"));
+        .unwrap_or_else(|err| panic!("repo lock BAM haplogroups plan output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
     let output_dir = repo_root.join("benchmarks/readiness/local-ready/bam.haplogroups");
     if output_dir.exists() {
