@@ -63,6 +63,10 @@ struct LocalPipelineDagConfig {
     project_sources: Vec<LocalPipelineProjectSource>,
     #[serde(default)]
     ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
+    #[serde(default)]
+    reference_assets: Option<LocalPipelineReferenceAssets>,
+    #[serde(default)]
+    variant_assets: Option<LocalPipelineVariantAssets>,
     nodes: Vec<LocalPipelineDagNode>,
 }
 
@@ -82,6 +86,10 @@ struct LocalPipelineDagMetadataConfig {
     project_sources: Vec<LocalPipelineProjectSource>,
     #[serde(default)]
     ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
+    #[serde(default)]
+    reference_assets: Option<LocalPipelineReferenceAssets>,
+    #[serde(default)]
+    variant_assets: Option<LocalPipelineVariantAssets>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -93,40 +101,73 @@ struct LocalPipelineDagStagesConfig {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct LocalPipelineReferenceContext {
-    species_id: String,
-    build_id: String,
-    reference_bundle_id: String,
+    pub(crate) species_id: String,
+    pub(crate) build_id: String,
+    pub(crate) reference_bundle_id: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct LocalPipelineExecutionContext {
-    site_profile_id: String,
+    pub(crate) site_profile_id: String,
     #[serde(default)]
-    frontend_surfaces: Vec<String>,
+    pub(crate) default_campaign_config: Option<String>,
     #[serde(default)]
-    compute_surfaces: Vec<String>,
+    pub(crate) frontend_surfaces: Vec<String>,
+    #[serde(default)]
+    pub(crate) compute_surfaces: Vec<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct LocalPipelineProjectSource {
-    project_id: String,
-    metadata_url: String,
+    pub(crate) project_id: String,
+    pub(crate) metadata_url: String,
     #[serde(default = "default_local_pipeline_project_retries")]
-    retries: u32,
+    pub(crate) retries: u32,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct LocalPipelineAncientDnaPolicy {
-    aligner_mode: String,
-    auto_bwa_aln_p75_threshold_bp: u32,
-    adapter_cleanup_tool: String,
-    merge_pairs_in_preprocess: bool,
-    duplicate_stage_id: String,
-    duplicate_tool: String,
-    caller_tool: String,
+    pub(crate) aligner_mode: String,
+    pub(crate) auto_bwa_aln_p75_threshold_bp: u32,
+    pub(crate) adapter_cleanup_tool: String,
+    pub(crate) merge_pairs_in_preprocess: bool,
+    pub(crate) duplicate_stage_id: String,
+    pub(crate) duplicate_tool: String,
+    pub(crate) caller_tool: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineReferenceAssets {
+    pub(crate) directory_name: String,
+    pub(crate) genome_url: String,
+    pub(crate) genome_filename: String,
+    pub(crate) assembly_report_url: String,
+    pub(crate) assembly_report_filename: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineVariantAssets {
+    pub(crate) directory_name: String,
+    pub(crate) source_vcf_url: String,
+    pub(crate) source_vcf_filename: String,
+    pub(crate) refseq_vcf_filename: String,
+    pub(crate) annotated_vcf_filename: String,
+    pub(crate) snpeff: LocalPipelineSnpEffAssets,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineSnpEffAssets {
+    pub(crate) genome_id: String,
+    pub(crate) database_url: String,
+    pub(crate) database_filename: String,
+    pub(crate) core_url: String,
+    pub(crate) core_filename: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -182,6 +223,8 @@ pub(crate) struct LocalPipelineDagValidationReport {
     pub(crate) project_source_count: usize,
     pub(crate) project_sources: Vec<LocalPipelineProjectSource>,
     pub(crate) ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
+    pub(crate) reference_assets: Option<LocalPipelineReferenceAssets>,
+    pub(crate) variant_assets: Option<LocalPipelineVariantAssets>,
     pub(crate) node_count: usize,
     pub(crate) edge_count: usize,
     pub(crate) acyclic: bool,
@@ -221,14 +264,22 @@ pub(crate) fn validate_pipeline_dag_path(
     config_path: &Path,
     output_path: &Path,
 ) -> Result<LocalPipelineDagValidationReport> {
-    let config = load_local_pipeline_dag_config(config_path)?;
-    let report = validate_pipeline_dag(repo_root, config_path, output_path, &config)?;
+    let report = load_validated_local_pipeline_dag_report(repo_root, config_path)?;
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
     bijux_dna_infra::atomic_write_json(output_path, &report)
         .with_context(|| format!("write {}", output_path.display()))?;
     Ok(report)
+}
+
+pub(crate) fn load_validated_local_pipeline_dag_report(
+    repo_root: &Path,
+    config_path: &Path,
+) -> Result<LocalPipelineDagValidationReport> {
+    let config = load_local_pipeline_dag_config(config_path)?;
+    let output_path = repo_root.join(default_pipeline_report_relative_path(&config.pipeline_id));
+    validate_pipeline_dag(repo_root, config_path, &output_path, &config)
 }
 
 pub(crate) fn benchmark_local_pipeline_config_dir(repo_root: &Path) -> PathBuf {
@@ -287,6 +338,8 @@ fn load_local_pipeline_dag_yaml_bundle(bundle_dir: &Path) -> Result<LocalPipelin
         execution_context: metadata.execution_context,
         project_sources: metadata.project_sources,
         ancient_dna_policy: metadata.ancient_dna_policy,
+        reference_assets: metadata.reference_assets,
+        variant_assets: metadata.variant_assets,
         nodes: stages.nodes,
     })
 }
@@ -473,6 +526,8 @@ fn validate_pipeline_dag(
         project_source_count: config.project_sources.len(),
         project_sources: config.project_sources.clone(),
         ancient_dna_policy: config.ancient_dna_policy.clone(),
+        reference_assets: config.reference_assets.clone(),
+        variant_assets: config.variant_assets.clone(),
         node_count: nodes.len(),
         edge_count: config.nodes.iter().map(|node| node.depends_on.len()).sum(),
         acyclic: true,
@@ -2933,6 +2988,13 @@ fn validate_pipeline_metadata(
     if let Some(policy) = &config.ancient_dna_policy {
         validate_ancient_dna_policy(config_path, config, policy)?;
     }
+    if let Some(reference_assets) = &config.reference_assets {
+        validate_reference_assets(reference_assets)?;
+    }
+    if let Some(variant_assets) = &config.variant_assets {
+        validate_variant_assets(variant_assets)?;
+    }
+    validate_operational_asset_requirements(config)?;
     Ok(())
 }
 
@@ -3026,6 +3088,12 @@ fn validate_execution_context(
         &execution_context.compute_surfaces,
         "local pipeline execution_context.compute_surfaces",
     )?;
+    if let Some(default_campaign_config) = &execution_context.default_campaign_config {
+        require_non_empty(
+            default_campaign_config,
+            "local pipeline execution_context.default_campaign_config must not be empty when present",
+        )?;
+    }
 
     let allowed_frontend =
         BTreeSet::from(["downloads".to_string(), "ref-prep".to_string(), "snp-prep".to_string()]);
@@ -3066,6 +3134,92 @@ fn validate_execution_context(
     Ok(())
 }
 
+fn validate_reference_assets(reference_assets: &LocalPipelineReferenceAssets) -> Result<()> {
+    require_non_empty(
+        &reference_assets.directory_name,
+        "local pipeline reference_assets must declare a non-empty `directory_name`",
+    )?;
+    require_http_url(&reference_assets.genome_url, "local pipeline reference_assets genome_url")?;
+    require_non_empty(
+        &reference_assets.genome_filename,
+        "local pipeline reference_assets must declare a non-empty `genome_filename`",
+    )?;
+    require_http_url(
+        &reference_assets.assembly_report_url,
+        "local pipeline reference_assets assembly_report_url",
+    )?;
+    require_non_empty(
+        &reference_assets.assembly_report_filename,
+        "local pipeline reference_assets must declare a non-empty `assembly_report_filename`",
+    )?;
+    Ok(())
+}
+
+fn validate_variant_assets(variant_assets: &LocalPipelineVariantAssets) -> Result<()> {
+    require_non_empty(
+        &variant_assets.directory_name,
+        "local pipeline variant_assets must declare a non-empty `directory_name`",
+    )?;
+    require_http_url(
+        &variant_assets.source_vcf_url,
+        "local pipeline variant_assets source_vcf_url",
+    )?;
+    require_non_empty(
+        &variant_assets.source_vcf_filename,
+        "local pipeline variant_assets must declare a non-empty `source_vcf_filename`",
+    )?;
+    require_non_empty(
+        &variant_assets.refseq_vcf_filename,
+        "local pipeline variant_assets must declare a non-empty `refseq_vcf_filename`",
+    )?;
+    require_non_empty(
+        &variant_assets.annotated_vcf_filename,
+        "local pipeline variant_assets must declare a non-empty `annotated_vcf_filename`",
+    )?;
+    require_non_empty(
+        &variant_assets.snpeff.genome_id,
+        "local pipeline variant_assets snpeff.genome_id must declare a non-empty value",
+    )?;
+    require_http_url(
+        &variant_assets.snpeff.database_url,
+        "local pipeline variant_assets snpeff.database_url",
+    )?;
+    require_non_empty(
+        &variant_assets.snpeff.database_filename,
+        "local pipeline variant_assets snpeff.database_filename must declare a non-empty value",
+    )?;
+    require_http_url(
+        &variant_assets.snpeff.core_url,
+        "local pipeline variant_assets snpeff.core_url",
+    )?;
+    require_non_empty(
+        &variant_assets.snpeff.core_filename,
+        "local pipeline variant_assets snpeff.core_filename must declare a non-empty value",
+    )?;
+    Ok(())
+}
+
+fn validate_operational_asset_requirements(config: &LocalPipelineDagConfig) -> Result<()> {
+    let Some(execution_context) = &config.execution_context else {
+        return Ok(());
+    };
+    if execution_context.frontend_surfaces.iter().any(|surface| surface == "ref-prep")
+        && config.reference_assets.is_none()
+    {
+        return Err(anyhow!(
+            "local pipeline execution_context.frontend_surfaces includes `ref-prep` but reference_assets is missing"
+        ));
+    }
+    if execution_context.frontend_surfaces.iter().any(|surface| surface == "snp-prep")
+        && config.variant_assets.is_none()
+    {
+        return Err(anyhow!(
+            "local pipeline execution_context.frontend_surfaces includes `snp-prep` but variant_assets is missing"
+        ));
+    }
+    Ok(())
+}
+
 fn validate_project_sources(project_sources: &[LocalPipelineProjectSource]) -> Result<()> {
     let mut seen_project_ids = BTreeSet::new();
     for source in project_sources {
@@ -3077,14 +3231,7 @@ fn validate_project_sources(project_sources: &[LocalPipelineProjectSource]) -> R
             &source.metadata_url,
             "local pipeline project_sources entries must declare a non-empty `metadata_url`",
         )?;
-        if !source.metadata_url.starts_with("http://")
-            && !source.metadata_url.starts_with("https://")
-        {
-            return Err(anyhow!(
-                "local pipeline project_sources metadata_url `{}` must start with http:// or https://",
-                source.metadata_url
-            ));
-        }
+        require_http_url(&source.metadata_url, "local pipeline project_sources metadata_url")?;
         if source.retries == 0 {
             return Err(anyhow!(
                 "local pipeline project_sources entry `{}` must declare retries >= 1",
@@ -3099,6 +3246,14 @@ fn validate_project_sources(project_sources: &[LocalPipelineProjectSource]) -> R
         }
     }
     Ok(())
+}
+
+fn require_http_url(value: &str, label: &str) -> Result<()> {
+    if value.starts_with("http://") || value.starts_with("https://") {
+        Ok(())
+    } else {
+        Err(anyhow!("{label} `{value}` must start with http:// or https://"))
+    }
 }
 
 fn validate_ancient_dna_policy(
@@ -4174,12 +4329,14 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
             report.execution_context.as_ref().map(|context| {
                 (
                     context.site_profile_id.as_str(),
+                    context.default_campaign_config.as_deref(),
                     context.frontend_surfaces.clone(),
                     context.compute_surfaces.clone(),
                 )
             }),
             Some((
                 "lunarc",
+                Some("benchmarks/configs/hpc/campaign/lunarc-fastq-bam-vcf-local-ready.toml"),
                 vec!["downloads".to_string(), "ref-prep".to_string(), "snp-prep".to_string(),],
                 vec![
                     "fastq-qc".to_string(),
@@ -4200,6 +4357,38 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
                 )
             }),
             Some(("auto", 35, "bam.markdup", "samtools"))
+        );
+        assert_eq!(
+            report.reference_assets.as_ref().map(|assets| {
+                (
+                    assets.directory_name.as_str(),
+                    assets.genome_filename.as_str(),
+                    assets.assembly_report_filename.as_str(),
+                )
+            }),
+            Some((
+                "ref_EquCab3",
+                "GCF_002863925.1_EquCab3.0_genomic.fna.gz",
+                "GCF_002863925.1_EquCab3.0_assembly_report.txt",
+            ))
+        );
+        assert_eq!(
+            report.variant_assets.as_ref().map(|assets| {
+                (
+                    assets.directory_name.as_str(),
+                    assets.source_vcf_filename.as_str(),
+                    assets.refseq_vcf_filename.as_str(),
+                    assets.annotated_vcf_filename.as_str(),
+                    assets.snpeff.genome_id.as_str(),
+                )
+            }),
+            Some((
+                "snp_EquCab3",
+                "equus_caballus.vcf.gz",
+                "equus_caballus_EquCab3_refseq.vcf.gz",
+                "equus_caballus_EquCab3_annotated.vcf.gz",
+                "EquCab3.0.99",
+            ))
         );
         assert!(
             report.nodes.iter().any(|node| {

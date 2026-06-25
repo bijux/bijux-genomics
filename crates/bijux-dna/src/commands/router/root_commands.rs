@@ -449,6 +449,28 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 );
             }
         }
+        cli::ConfigCommand::PipelineOperationsReport(args) => {
+            let report = hpc::pipeline_operations_report(cwd, args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("schema_version={}", report.schema_version);
+                println!("pipeline_id={}", report.pipeline_id);
+                println!("pipeline_config_path={}", report.pipeline_config_path);
+                println!("campaign_config_path={}", report.campaign_config_path);
+                println!("operations_root={}", report.operations_root);
+                println!("project_downloads={}", report.project_downloads.len());
+                println!(
+                    "reference_asset_files={}",
+                    report.reference_materialization.as_ref().map_or(0, |plan| plan.files.len())
+                );
+                println!(
+                    "variant_asset_files={}",
+                    report.variant_materialization.as_ref().map_or(0, |plan| plan.files.len())
+                );
+                println!("commands={}", report.commands.len());
+            }
+        }
         cli::ConfigCommand::BenchmarkMatrix(args) => {
             let report = hpc::benchmark_matrix(args)?;
             if let Some(out_path) = &args.out {

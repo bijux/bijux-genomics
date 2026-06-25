@@ -13,6 +13,7 @@ reference_context:
   reference_bundle_id: ecaballus_equcab3_primary
 execution_context:
   site_profile_id: lunarc
+  default_campaign_config: benchmarks/configs/hpc/campaign/lunarc-fastq-bam-vcf-local-ready.toml
   frontend_surfaces:
     - downloads
     - ref-prep
@@ -46,3 +47,21 @@ ancient_dna_policy:
   duplicate_stage_id: bam.markdup
   duplicate_tool: samtools
   caller_tool: bcftools
+reference_assets:
+  directory_name: ref_EquCab3
+  genome_url: https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/863/925/GCF_002863925.1_EquCab3.0/GCF_002863925.1_EquCab3.0_genomic.fna.gz
+  genome_filename: GCF_002863925.1_EquCab3.0_genomic.fna.gz
+  assembly_report_url: https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/863/925/GCF_002863925.1_EquCab3.0/GCF_002863925.1_EquCab3.0_assembly_report.txt
+  assembly_report_filename: GCF_002863925.1_EquCab3.0_assembly_report.txt
+variant_assets:
+  directory_name: snp_EquCab3
+  source_vcf_url: https://ftp.ensembl.org/pub/release-113/variation/vcf/equus_caballus/equus_caballus.vcf.gz
+  source_vcf_filename: equus_caballus.vcf.gz
+  refseq_vcf_filename: equus_caballus_EquCab3_refseq.vcf.gz
+  annotated_vcf_filename: equus_caballus_EquCab3_annotated.vcf.gz
+  snpeff:
+    genome_id: EquCab3.0.99
+    database_url: https://snpeff-public.s3.amazonaws.com/databases/v5_0/snpEff_v5_0_EquCab3.0.99.zip
+    database_filename: snpEff_v5_0_EquCab3.0.99.zip
+    core_url: https://snpeff-public.s3.amazonaws.com/versions/snpEff_latest_core.zip
+    core_filename: snpEff_latest_core.zip
