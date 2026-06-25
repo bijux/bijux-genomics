@@ -45,10 +45,29 @@ struct AdnaContaminationTruthCase {
     raw_estimate: f64,
     raw_ci_low: f64,
     raw_ci_high: f64,
+    #[serde(default, flatten)]
+    context: AdnaContaminationTruthCaseContextSignals,
+    #[serde(default, flatten)]
+    compatibility: AdnaContaminationTruthCaseCompatibilitySignals,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct AdnaContaminationTruthCaseContextSignals {
+    #[serde(default)]
     has_mito_reference: bool,
+    #[serde(default)]
     has_damage_context: bool,
+    #[serde(default)]
     has_reference_panel: bool,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct AdnaContaminationTruthCaseCompatibilitySignals {
+    #[serde(default)]
     panel_build_compatible: bool,
+    #[serde(default)]
     sex_context_available: bool,
 }
 
@@ -228,74 +247,85 @@ fn validate_manifest_contract(
 
     let mut case_ids = BTreeSet::new();
     for case in &manifest.cases {
-        if case.case_id.trim().is_empty() {
-            return Err(anyhow!(
-                "aDNA contamination truth manifest `{}` contains an empty case_id",
-                manifest_path.display()
-            ));
-        }
-        if !case_ids.insert(case.case_id.clone()) {
-            return Err(anyhow!(
-                "aDNA contamination truth manifest repeats case_id `{}`",
-                case.case_id
-            ));
-        }
-        if case.sample_id.trim().is_empty() {
-            return Err(anyhow!(
-                "aDNA contamination truth case `{}` must declare a non-empty sample_id",
-                case.case_id
-            ));
-        }
-        if case.cohort.trim().is_empty() {
-            return Err(anyhow!(
-                "aDNA contamination truth case `{}` must declare a non-empty cohort",
-                case.case_id
-            ));
-        }
-        if case.tool != "schmutzi" && case.tool != "verifybamid2" && case.tool != "contammix" {
-            return Err(anyhow!(
-                "aDNA contamination truth case `{}` must use schmutzi, verifybamid2, or contammix",
-                case.case_id
-            ));
-        }
-        if case.minimum_mean_coverage < 0.0 || case.observed_mean_coverage < 0.0 {
-            return Err(anyhow!(
-                "aDNA contamination truth case `{}` must keep coverage non-negative",
-                case.case_id
-            ));
-        }
-        if !(0.0..=1.0).contains(&case.raw_estimate)
-            || !(0.0..=1.0).contains(&case.raw_ci_low)
-            || !(0.0..=1.0).contains(&case.raw_ci_high)
-        {
-            return Err(anyhow!(
-                "aDNA contamination truth case `{}` must keep contamination values within [0, 1]",
-                case.case_id
-            ));
-        }
-        if case.raw_ci_low > case.raw_estimate || case.raw_estimate > case.raw_ci_high {
-            return Err(anyhow!(
-                "aDNA contamination truth case `{}` must keep ci_low <= estimate <= ci_high",
-                case.case_id
-            ));
-        }
+        validate_adna_contamination_case_contract(repo_root, manifest_path, &mut case_ids, case)?;
+    }
 
-        let alignment_path = resolve_repo_relative_path(repo_root, &case.alignment_path);
-        if !alignment_path.is_file() {
-            return Err(anyhow!(
-                "aDNA contamination truth alignment path is missing for case `{}`: {}",
-                case.case_id,
-                alignment_path.display()
-            ));
-        }
-        let reference_path = resolve_repo_relative_path(repo_root, &case.reference_path);
-        if !reference_path.is_file() {
-            return Err(anyhow!(
-                "aDNA contamination truth reference path is missing for case `{}`: {}",
-                case.case_id,
-                reference_path.display()
-            ));
-        }
+    Ok(())
+}
+
+fn validate_adna_contamination_case_contract(
+    repo_root: &Path,
+    manifest_path: &Path,
+    case_ids: &mut BTreeSet<String>,
+    case: &AdnaContaminationTruthCase,
+) -> Result<()> {
+    if case.case_id.trim().is_empty() {
+        return Err(anyhow!(
+            "aDNA contamination truth manifest `{}` contains an empty case_id",
+            manifest_path.display()
+        ));
+    }
+    if !case_ids.insert(case.case_id.clone()) {
+        return Err(anyhow!(
+            "aDNA contamination truth manifest repeats case_id `{}`",
+            case.case_id
+        ));
+    }
+    if case.sample_id.trim().is_empty() {
+        return Err(anyhow!(
+            "aDNA contamination truth case `{}` must declare a non-empty sample_id",
+            case.case_id
+        ));
+    }
+    if case.cohort.trim().is_empty() {
+        return Err(anyhow!(
+            "aDNA contamination truth case `{}` must declare a non-empty cohort",
+            case.case_id
+        ));
+    }
+    if case.tool != "schmutzi" && case.tool != "verifybamid2" && case.tool != "contammix" {
+        return Err(anyhow!(
+            "aDNA contamination truth case `{}` must use schmutzi, verifybamid2, or contammix",
+            case.case_id
+        ));
+    }
+    if case.minimum_mean_coverage < 0.0 || case.observed_mean_coverage < 0.0 {
+        return Err(anyhow!(
+            "aDNA contamination truth case `{}` must keep coverage non-negative",
+            case.case_id
+        ));
+    }
+    if !(0.0..=1.0).contains(&case.raw_estimate)
+        || !(0.0..=1.0).contains(&case.raw_ci_low)
+        || !(0.0..=1.0).contains(&case.raw_ci_high)
+    {
+        return Err(anyhow!(
+            "aDNA contamination truth case `{}` must keep contamination values within [0, 1]",
+            case.case_id
+        ));
+    }
+    if case.raw_ci_low > case.raw_estimate || case.raw_estimate > case.raw_ci_high {
+        return Err(anyhow!(
+            "aDNA contamination truth case `{}` must keep ci_low <= estimate <= ci_high",
+            case.case_id
+        ));
+    }
+
+    let alignment_path = resolve_repo_relative_path(repo_root, &case.alignment_path);
+    if !alignment_path.is_file() {
+        return Err(anyhow!(
+            "aDNA contamination truth alignment path is missing for case `{}`: {}",
+            case.case_id,
+            alignment_path.display()
+        ));
+    }
+    let reference_path = resolve_repo_relative_path(repo_root, &case.reference_path);
+    if !reference_path.is_file() {
+        return Err(anyhow!(
+            "aDNA contamination truth reference path is missing for case `{}`: {}",
+            case.case_id,
+            reference_path.display()
+        ));
     }
 
     Ok(())
@@ -418,11 +448,11 @@ fn build_actual_case_truth(
         &case.tool,
         &metrics,
         case.minimum_mean_coverage,
-        case.has_mito_reference,
-        case.has_damage_context,
-        case.has_reference_panel,
-        case.panel_build_compatible,
-        case.sex_context_available,
+        case.context.has_mito_reference,
+        case.context.has_damage_context,
+        case.context.has_reference_panel,
+        case.compatibility.panel_build_compatible,
+        case.compatibility.sex_context_available,
     )?;
 
     Ok(AdnaContaminationSampleTruth {

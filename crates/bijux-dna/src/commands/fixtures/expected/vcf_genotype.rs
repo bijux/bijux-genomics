@@ -42,16 +42,30 @@ struct VcfGenotypeTruthCase {
     evaluation_kind: VcfGenotypeEvaluationKind,
     #[serde(default)]
     declared_ploidy: Option<String>,
+    #[serde(default, flatten)]
+    coverage: VcfGenotypeTruthCaseCoverageSignals,
+    #[serde(default, flatten)]
+    likelihood: VcfGenotypeTruthCaseLikelihoodSignals,
+    #[serde(default)]
+    mean_coverage: Option<f64>,
+    #[serde(default)]
+    minimum_mean_coverage: Option<f64>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct VcfGenotypeTruthCaseCoverageSignals {
     #[serde(default)]
     has_input_bam: bool,
     #[serde(default)]
     has_reference_context: bool,
     #[serde(default)]
-    mean_coverage: Option<f64>,
-    #[serde(default)]
-    minimum_mean_coverage: Option<f64>,
-    #[serde(default)]
     low_coverage_expected: bool,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct VcfGenotypeTruthCaseLikelihoodSignals {
     #[serde(default)]
     downstream_gl_compatible: bool,
     #[serde(default)]
@@ -297,7 +311,7 @@ fn validate_case_contract(
         }
     }
     match case.evaluation_kind {
-        VcfGenotypeEvaluationKind::None => {}
+        VcfGenotypeEvaluationKind::None | VcfGenotypeEvaluationKind::Likelihood => {}
         VcfGenotypeEvaluationKind::Diploid => {
             if case.declared_ploidy.as_deref() != Some("diploid") {
                 return Err(anyhow!(
@@ -320,7 +334,6 @@ fn validate_case_contract(
                 ));
             }
         }
-        VcfGenotypeEvaluationKind::Likelihood => {}
     }
     Ok(())
 }
@@ -381,8 +394,8 @@ fn build_actual_truth_bundle(
             .transpose()?;
         let diploid_boundary = if case.evaluation_kind == VcfGenotypeEvaluationKind::Diploid {
             Some(evaluate_diploid_calling_boundary(
-                case.has_input_bam,
-                case.has_reference_context,
+                case.coverage.has_input_bam,
+                case.coverage.has_reference_context,
                 case.declared_ploidy.as_deref(),
                 case.mean_coverage.unwrap_or(0.0),
                 case.minimum_mean_coverage.unwrap_or(0.0),
@@ -393,11 +406,11 @@ fn build_actual_truth_bundle(
         let pseudohaploid_boundary =
             if case.evaluation_kind == VcfGenotypeEvaluationKind::Pseudohaploid {
                 Some(evaluate_pseudohaploid_calling_boundary(
-                    case.has_input_bam,
-                    case.low_coverage_expected,
+                    case.coverage.has_input_bam,
+                    case.coverage.low_coverage_expected,
                     command.as_ref().and_then(|value| value.sampling_policy.as_deref()),
                     case.declared_ploidy.as_deref(),
-                    case.uncertainty_reported,
+                    case.likelihood.uncertainty_reported,
                 ))
             } else {
                 None
@@ -410,8 +423,8 @@ fn build_actual_truth_bundle(
                     .iter()
                     .any(|field| matches!(field.as_str(), "GP" | "PL")),
                 command.as_ref().and_then(|value| value.likelihood_model.as_deref()).is_some(),
-                case.downstream_gl_compatible,
-                case.uncertainty_reported,
+                case.likelihood.downstream_gl_compatible,
+                case.likelihood.uncertainty_reported,
             ))
         } else {
             None

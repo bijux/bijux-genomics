@@ -345,6 +345,16 @@ fn validate_case_truth_contract(
     case_truth: &BamHaplogroupCaseTruth,
     expected_path: &Path,
 ) -> Result<()> {
+    validate_case_truth_identity(case_truth, expected_path)?;
+    validate_case_truth_summary(case_truth)?;
+    validate_case_truth_status(case_truth)?;
+    Ok(())
+}
+
+fn validate_case_truth_identity(
+    case_truth: &BamHaplogroupCaseTruth,
+    expected_path: &Path,
+) -> Result<()> {
     if case_truth.case_id.trim().is_empty() || case_truth.sample_id.trim().is_empty() {
         return Err(anyhow!(
             "BAM haplogroup truth bundle `{}` contains a case with an empty case_id or sample_id",
@@ -379,6 +389,10 @@ fn validate_case_truth_contract(
             case_truth.case_id
         ));
     }
+    Ok(())
+}
+
+fn validate_case_truth_summary(case_truth: &BamHaplogroupCaseTruth) -> Result<()> {
     if case_truth.summary.method.trim().is_empty()
         || case_truth.summary.reference_panel_id.trim().is_empty()
         || case_truth.summary.reference_build.trim().is_empty()
@@ -408,7 +422,10 @@ fn validate_case_truth_contract(
             case_truth.case_id
         ));
     }
+    Ok(())
+}
 
+fn validate_case_truth_status(case_truth: &BamHaplogroupCaseTruth) -> Result<()> {
     match case_truth.summary.status.as_str() {
         "ready" => {
             if !case_truth.summary.ready
@@ -459,7 +476,6 @@ fn validate_case_truth_contract(
             ));
         }
     }
-
     Ok(())
 }
 

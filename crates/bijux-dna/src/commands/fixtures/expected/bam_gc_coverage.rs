@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 use crate::commands::benchmark::local_corpus_fixture::bam::{
     validate_bam_corpus_fixture_manifest_path, BamCorpusFixtureManifest, BamCorpusFixtureSample,
 };
+use crate::commands::numeric::checked_f64_from_u64;
 
 pub(crate) const BAM_GC_COVERAGE_TRUTH_FIXTURE_ID: &str = "bam-gc-coverage-truth";
 pub(crate) const BAM_GC_COVERAGE_TRUTH_MANIFEST_SCHEMA_VERSION: &str =
@@ -121,81 +122,8 @@ pub(crate) fn validate_bam_gc_coverage_truth_manifest_path(
     validate_bundle_contract(&manifest, &expected, &expected_path)?;
 
     let actual = build_actual_truth_bundle(repo_root, &manifest)?;
-    let expected_coverage = expected
-        .coverage_truths
-        .iter()
-        .map(|sample| (sample.sample_id.as_str(), sample))
-        .collect::<BTreeMap<_, _>>();
-    let actual_coverage = actual
-        .coverage_truths
-        .iter()
-        .map(|sample| (sample.sample_id.as_str(), sample))
-        .collect::<BTreeMap<_, _>>();
-    if expected_coverage.len() != actual_coverage.len() {
-        return Err(anyhow!(
-            "BAM GC-bias/coverage truth coverage sample count drifted: expected {}, observed {}",
-            expected_coverage.len(),
-            actual_coverage.len()
-        ));
-    }
-    for case in &manifest.coverage_cases {
-        let expected_sample = expected_coverage.get(case.sample_id.as_str()).ok_or_else(|| {
-            anyhow!(
-                "expected BAM GC-bias/coverage truth is missing coverage sample `{}`",
-                case.sample_id
-            )
-        })?;
-        let actual_sample = actual_coverage.get(case.sample_id.as_str()).ok_or_else(|| {
-            anyhow!(
-                "observed BAM GC-bias/coverage truth is missing coverage sample `{}`",
-                case.sample_id
-            )
-        })?;
-        if expected_sample != actual_sample {
-            return Err(anyhow!(
-                "BAM GC-bias/coverage truth coverage sample drifted for `{}`",
-                case.sample_id
-            ));
-        }
-    }
-
-    let expected_gc_bias = expected
-        .gc_bias_truths
-        .iter()
-        .map(|sample| (sample.sample_id.as_str(), sample))
-        .collect::<BTreeMap<_, _>>();
-    let actual_gc_bias = actual
-        .gc_bias_truths
-        .iter()
-        .map(|sample| (sample.sample_id.as_str(), sample))
-        .collect::<BTreeMap<_, _>>();
-    if expected_gc_bias.len() != actual_gc_bias.len() {
-        return Err(anyhow!(
-            "BAM GC-bias/coverage truth GC-bias sample count drifted: expected {}, observed {}",
-            expected_gc_bias.len(),
-            actual_gc_bias.len()
-        ));
-    }
-    for case in &manifest.gc_bias_cases {
-        let expected_sample = expected_gc_bias.get(case.sample_id.as_str()).ok_or_else(|| {
-            anyhow!(
-                "expected BAM GC-bias/coverage truth is missing GC-bias sample `{}`",
-                case.sample_id
-            )
-        })?;
-        let actual_sample = actual_gc_bias.get(case.sample_id.as_str()).ok_or_else(|| {
-            anyhow!(
-                "observed BAM GC-bias/coverage truth is missing GC-bias sample `{}`",
-                case.sample_id
-            )
-        })?;
-        if expected_sample != actual_sample {
-            return Err(anyhow!(
-                "BAM GC-bias/coverage truth GC-bias sample drifted for `{}`",
-                case.sample_id
-            ));
-        }
-    }
+    validate_coverage_sample_truths(&expected.coverage_truths, &actual.coverage_truths)?;
+    validate_gc_bias_sample_truths(&expected.gc_bias_truths, &actual.gc_bias_truths)?;
 
     let checked_samples = manifest
         .coverage_cases
@@ -298,62 +226,82 @@ fn validate_manifest_contract(
 
     let mut coverage_sample_ids = BTreeSet::new();
     for case in &manifest.coverage_cases {
-        if case.sample_id.trim().is_empty() {
-            return Err(anyhow!(
-                "BAM GC-bias/coverage truth manifest `{}` contains an empty coverage sample_id",
-                manifest_path.display()
-            ));
-        }
-        if !coverage_sample_ids.insert(case.sample_id.clone()) {
-            return Err(anyhow!(
-                "BAM GC-bias/coverage truth manifest repeats coverage sample_id `{}`",
-                case.sample_id
-            ));
-        }
-        if case.depth_thresholds.is_empty() {
-            return Err(anyhow!(
-                "BAM GC-bias/coverage truth coverage sample `{}` must declare depth thresholds",
-                case.sample_id
-            ));
-        }
-        let regions_path = resolve_repo_relative_path(repo_root, &case.regions_path);
-        if !regions_path.is_file() {
-            return Err(anyhow!(
-                "BAM GC-bias/coverage truth coverage regions path is missing: {}",
-                regions_path.display()
-            ));
-        }
+        validate_coverage_case_contract(repo_root, manifest_path, &mut coverage_sample_ids, case)?;
     }
 
     let mut gc_bias_sample_ids = BTreeSet::new();
     for case in &manifest.gc_bias_cases {
-        if case.sample_id.trim().is_empty() {
-            return Err(anyhow!(
-                "BAM GC-bias/coverage truth manifest `{}` contains an empty GC-bias sample_id",
-                manifest_path.display()
-            ));
-        }
-        if !gc_bias_sample_ids.insert(case.sample_id.clone()) {
-            return Err(anyhow!(
-                "BAM GC-bias/coverage truth manifest repeats GC-bias sample_id `{}`",
-                case.sample_id
-            ));
-        }
-        if case.window_size == 0 {
-            return Err(anyhow!(
-                "BAM GC-bias/coverage truth GC-bias sample `{}` must declare window_size greater than zero",
-                case.sample_id
-            ));
-        }
-        let reference_path = resolve_repo_relative_path(repo_root, &case.reference_path);
-        if !reference_path.is_file() {
-            return Err(anyhow!(
-                "BAM GC-bias/coverage truth reference path is missing: {}",
-                reference_path.display()
-            ));
-        }
+        validate_gc_bias_case_contract(repo_root, manifest_path, &mut gc_bias_sample_ids, case)?;
     }
 
+    Ok(())
+}
+
+fn validate_coverage_case_contract(
+    repo_root: &Path,
+    manifest_path: &Path,
+    coverage_sample_ids: &mut BTreeSet<String>,
+    case: &BamCoverageTruthCase,
+) -> Result<()> {
+    if case.sample_id.trim().is_empty() {
+        return Err(anyhow!(
+            "BAM GC-bias/coverage truth manifest `{}` contains an empty coverage sample_id",
+            manifest_path.display()
+        ));
+    }
+    if !coverage_sample_ids.insert(case.sample_id.clone()) {
+        return Err(anyhow!(
+            "BAM GC-bias/coverage truth manifest repeats coverage sample_id `{}`",
+            case.sample_id
+        ));
+    }
+    if case.depth_thresholds.is_empty() {
+        return Err(anyhow!(
+            "BAM GC-bias/coverage truth coverage sample `{}` must declare depth thresholds",
+            case.sample_id
+        ));
+    }
+    let regions_path = resolve_repo_relative_path(repo_root, &case.regions_path);
+    if !regions_path.is_file() {
+        return Err(anyhow!(
+            "BAM GC-bias/coverage truth coverage regions path is missing: {}",
+            regions_path.display()
+        ));
+    }
+    Ok(())
+}
+
+fn validate_gc_bias_case_contract(
+    repo_root: &Path,
+    manifest_path: &Path,
+    gc_bias_sample_ids: &mut BTreeSet<String>,
+    case: &BamGcBiasTruthCase,
+) -> Result<()> {
+    if case.sample_id.trim().is_empty() {
+        return Err(anyhow!(
+            "BAM GC-bias/coverage truth manifest `{}` contains an empty GC-bias sample_id",
+            manifest_path.display()
+        ));
+    }
+    if !gc_bias_sample_ids.insert(case.sample_id.clone()) {
+        return Err(anyhow!(
+            "BAM GC-bias/coverage truth manifest repeats GC-bias sample_id `{}`",
+            case.sample_id
+        ));
+    }
+    if case.window_size == 0 {
+        return Err(anyhow!(
+            "BAM GC-bias/coverage truth GC-bias sample `{}` must declare window_size greater than zero",
+            case.sample_id
+        ));
+    }
+    let reference_path = resolve_repo_relative_path(repo_root, &case.reference_path);
+    if !reference_path.is_file() {
+        return Err(anyhow!(
+            "BAM GC-bias/coverage truth reference path is missing: {}",
+            reference_path.display()
+        ));
+    }
     Ok(())
 }
 
@@ -415,6 +363,68 @@ fn validate_bundle_contract(
         validate_gc_bias_sample_truth_contract(sample, expected_path)?;
     }
     Ok(())
+}
+
+fn validate_coverage_sample_truths(
+    expected: &[BamCoverageSampleTruth],
+    actual: &[BamCoverageSampleTruth],
+) -> Result<()> {
+    validate_sample_truths_by_id(expected, actual, "coverage")
+}
+
+fn validate_gc_bias_sample_truths(
+    expected: &[BamGcBiasSampleTruth],
+    actual: &[BamGcBiasSampleTruth],
+) -> Result<()> {
+    validate_sample_truths_by_id(expected, actual, "GC-bias")
+}
+
+fn validate_sample_truths_by_id<T>(expected: &[T], actual: &[T], label: &str) -> Result<()>
+where
+    T: PartialEq + SampleTruthIdentity,
+{
+    let expected_by_id = expected
+        .iter()
+        .map(|sample| (sample.sample_id().to_string(), sample))
+        .collect::<BTreeMap<_, _>>();
+    let actual_by_id = actual
+        .iter()
+        .map(|sample| (sample.sample_id().to_string(), sample))
+        .collect::<BTreeMap<_, _>>();
+    if expected_by_id.len() != actual_by_id.len() {
+        return Err(anyhow!(
+            "BAM GC-bias/coverage truth {label} sample count drifted: expected {}, observed {}",
+            expected_by_id.len(),
+            actual_by_id.len()
+        ));
+    }
+    for (sample_id, expected_sample) in &expected_by_id {
+        let actual_sample = actual_by_id.get(sample_id).ok_or_else(|| {
+            anyhow!("observed BAM GC-bias/coverage truth is missing {label} sample `{sample_id}`")
+        })?;
+        if expected_sample != actual_sample {
+            return Err(anyhow!(
+                "BAM GC-bias/coverage truth {label} sample drifted for `{sample_id}`"
+            ));
+        }
+    }
+    Ok(())
+}
+
+trait SampleTruthIdentity {
+    fn sample_id(&self) -> &str;
+}
+
+impl SampleTruthIdentity for BamCoverageSampleTruth {
+    fn sample_id(&self) -> &str {
+        &self.sample_id
+    }
+}
+
+impl SampleTruthIdentity for BamGcBiasSampleTruth {
+    fn sample_id(&self) -> &str {
+        &self.sample_id
+    }
 }
 
 fn validate_coverage_sample_truth_contract(
@@ -488,8 +498,12 @@ fn validate_coverage_sample_truth_contract(
         ));
     }
 
-    let expected_breadth =
-        if total_bases == 0 { 0.0 } else { covered_bases as f64 / total_bases as f64 };
+    let expected_breadth = if total_bases == 0 {
+        0.0
+    } else {
+        checked_f64_from_u64(covered_bases, "covered bases")?
+            / checked_f64_from_u64(total_bases, "total bases")?
+    };
     if !approx_eq(sample.summary.breadth_1x, expected_breadth) {
         return Err(anyhow!(
             "BAM GC-bias/coverage truth coverage sample `{}` breadth_1x {} does not match region breadth {}",
@@ -499,14 +513,16 @@ fn validate_coverage_sample_truth_contract(
         ));
     }
 
-    let weighted_depth_sum = sample
-        .summary
-        .region_summaries
-        .iter()
-        .map(|row| row.mean_depth * row.length as f64)
-        .sum::<f64>();
-    let expected_mean_depth =
-        if total_bases == 0 { 0.0 } else { weighted_depth_sum / total_bases as f64 };
+    let weighted_depth_sum = sample.summary.region_summaries.iter().try_fold(0.0, |sum, row| {
+        Ok::<f64, anyhow::Error>(
+            sum + row.mean_depth * checked_f64_from_u64(row.length, "region length")?,
+        )
+    })?;
+    let expected_mean_depth = if total_bases == 0 {
+        0.0
+    } else {
+        weighted_depth_sum / checked_f64_from_u64(total_bases, "total bases")?
+    };
     if !approx_eq(sample.summary.mean_depth, expected_mean_depth) {
         return Err(anyhow!(
             "BAM GC-bias/coverage truth coverage sample `{}` mean_depth {} does not match weighted region mean {}",

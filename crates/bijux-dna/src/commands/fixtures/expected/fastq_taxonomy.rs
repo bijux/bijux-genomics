@@ -239,7 +239,9 @@ fn validate_sample_expectations(
                 sample.sample_id
             ));
         }
-        if judgment.observed_unclassified_percent != sample.expected_unclassified_percent {
+        if (judgment.observed_unclassified_percent - sample.expected_unclassified_percent).abs()
+            > 1e-9
+        {
             return Err(anyhow!(
                 "FASTQ taxonomy truth sample `{}` observed unclassified percent {} but expected {}",
                 sample.sample_id,

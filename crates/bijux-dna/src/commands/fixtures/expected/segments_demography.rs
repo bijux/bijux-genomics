@@ -232,9 +232,9 @@ fn validate_case_contract(
     }
     let stage = parse_supported_stage(&case.stage_id)?;
     match (case.tool_id.as_str(), stage) {
-        ("plink2", VcfDomainStage::Roh) => Ok(()),
-        ("germline" | "ibdseq" | "ibdhap", VcfDomainStage::Ibd) => Ok(()),
-        ("ibdne", VcfDomainStage::Demography) => Ok(()),
+        ("plink2", VcfDomainStage::Roh)
+        | ("germline" | "ibdseq" | "ibdhap", VcfDomainStage::Ibd)
+        | ("ibdne", VcfDomainStage::Demography) => Ok(()),
         _ => Err(anyhow!(
             "segments-demography truth case `{}` does not support tool `{}` on stage `{}`",
             case.case_id,
@@ -349,7 +349,8 @@ fn collect_stage_ids(cases: &[SegmentsDemographyTruthCaseTruth]) -> Vec<String> 
     let mut values = cases
         .iter()
         .map(|case| {
-            case.roh_metrics
+            let Some(stage_id) = case
+                .roh_metrics
                 .as_ref()
                 .and_then(|metrics| metrics.get("stage_id").and_then(serde_json::Value::as_str))
                 .or_else(|| {
@@ -362,8 +363,10 @@ fn collect_stage_ids(cases: &[SegmentsDemographyTruthCaseTruth]) -> Vec<String> 
                         metrics.get("stage_id").and_then(serde_json::Value::as_str)
                     })
                 })
-                .expect("case truth must carry stage id")
-                .to_string()
+            else {
+                panic!("segments/demography truth case `{}` must carry stage id", case.case_id);
+            };
+            stage_id.to_string()
         })
         .collect::<Vec<_>>();
     values.sort();
@@ -375,7 +378,8 @@ fn collect_tool_ids(cases: &[SegmentsDemographyTruthCaseTruth]) -> Vec<String> {
     let mut values = cases
         .iter()
         .map(|case| {
-            case.roh_metrics
+            let Some(tool_id) = case
+                .roh_metrics
                 .as_ref()
                 .and_then(|metrics| metrics.get("tool_id").and_then(serde_json::Value::as_str))
                 .or_else(|| {
@@ -388,8 +392,10 @@ fn collect_tool_ids(cases: &[SegmentsDemographyTruthCaseTruth]) -> Vec<String> {
                         metrics.get("tool_id").and_then(serde_json::Value::as_str)
                     })
                 })
-                .expect("case truth must carry tool id")
-                .to_string()
+            else {
+                panic!("segments/demography truth case `{}` must carry tool id", case.case_id);
+            };
+            tool_id.to_string()
         })
         .collect::<Vec<_>>();
     values.sort();

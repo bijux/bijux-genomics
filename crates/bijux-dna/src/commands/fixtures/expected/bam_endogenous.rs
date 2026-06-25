@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use crate::commands::benchmark::local_corpus_fixture::bam::{
     validate_bam_corpus_fixture_manifest_path, BamCorpusFixtureManifest, BamCorpusFixtureSample,
 };
+use crate::commands::numeric::checked_f64_from_u64;
 
 pub(crate) const BAM_ENDOGENOUS_TRUTH_FIXTURE_ID: &str = "endogenous-truth";
 pub(crate) const BAM_ENDOGENOUS_TRUTH_MANIFEST_SCHEMA_VERSION: &str =
@@ -349,14 +350,14 @@ fn validate_sample_truth_contract(
             sample.summary.retained_reads
         ));
     }
-    let total_reads = sample.summary.total_reads as f64;
+    let total_reads = checked_f64_from_u64(sample.summary.total_reads, "total reads")?;
     let expected_contaminant_fraction = if sample.summary.total_reads > 0 {
-        sample.summary.contaminant_reads as f64 / total_reads
+        checked_f64_from_u64(sample.summary.contaminant_reads, "contaminant reads")? / total_reads
     } else {
         0.0
     };
     let expected_retained_fraction = if sample.summary.total_reads > 0 {
-        sample.summary.retained_reads as f64 / total_reads
+        checked_f64_from_u64(sample.summary.retained_reads, "retained reads")? / total_reads
     } else {
         0.0
     };

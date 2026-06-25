@@ -66,6 +66,324 @@ use crate::commands::fixtures::root_validation::{
     validate_benchmark_fixture_root, DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH,
 };
 
+fn validate_and_render_fixture_report<R, F>(
+    cwd: &Path,
+    json: bool,
+    manifest_path: &Path,
+    validator: impl FnOnce(&Path, &Path) -> Result<R>,
+    output_path: F,
+) -> Result<()>
+where
+    R: serde::Serialize,
+    F: FnOnce(&R) -> &str,
+{
+    let report = validator(cwd, manifest_path)?;
+    if json {
+        cli::render::json::print_pretty(&report)?;
+    } else {
+        println!("{}", output_path(&report));
+    }
+    Ok(())
+}
+
+macro_rules! validate_named_fixture_cases {
+    ($cwd:expr, $fixture_root:expr, $json:expr, $corpus:expr) => {{
+        match $corpus {
+            "vcf-mini" => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_corpus_manifest_path($fixture_root, "vcf-mini"),
+                validate_vcf_corpus_fixture_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            FASTQ_TRIMMING_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, FASTQ_TRIMMING_TRUTH_FIXTURE_ID),
+                validate_fastq_trimming_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            FASTQ_DUPLICATES_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, FASTQ_DUPLICATES_TRUTH_FIXTURE_ID),
+                validate_fastq_duplicates_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            FASTQ_TAXONOMY_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, FASTQ_TAXONOMY_TRUTH_FIXTURE_ID),
+                validate_fastq_taxonomy_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            AMPLICON_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, AMPLICON_TRUTH_FIXTURE_ID),
+                validate_amplicon_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            ADNA_DAMAGE_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, ADNA_DAMAGE_TRUTH_FIXTURE_ID),
+                validate_adna_damage_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            ADNA_CONTAMINATION_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path(
+                    $fixture_root,
+                    ADNA_CONTAMINATION_TRUTH_FIXTURE_ID,
+                ),
+                validate_adna_contamination_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            BAM_ALIGNMENT_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, BAM_ALIGNMENT_TRUTH_FIXTURE_ID),
+                validate_bam_alignment_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path(
+                    $fixture_root,
+                    BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID,
+                ),
+                validate_bam_duplicate_insert_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            BAM_ENDOGENOUS_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, BAM_ENDOGENOUS_TRUTH_FIXTURE_ID),
+                validate_bam_endogenous_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            BAM_GC_COVERAGE_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, BAM_GC_COVERAGE_TRUTH_FIXTURE_ID),
+                validate_bam_gc_coverage_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            BAM_HAPLOGROUP_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, BAM_HAPLOGROUP_TRUTH_FIXTURE_ID),
+                validate_bam_haplogroup_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            BAM_SEX_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, BAM_SEX_TRUTH_FIXTURE_ID),
+                validate_bam_sex_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            VCF_GENOTYPE_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, VCF_GENOTYPE_TRUTH_FIXTURE_ID),
+                validate_vcf_genotype_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            VCF_FILTER_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, VCF_FILTER_TRUTH_FIXTURE_ID),
+                validate_vcf_filter_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            PHASING_IMPUTATION_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path(
+                    $fixture_root,
+                    PHASING_IMPUTATION_TRUTH_FIXTURE_ID,
+                ),
+                validate_phasing_imputation_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            POPULATION_STRUCTURE_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path(
+                    $fixture_root,
+                    POPULATION_STRUCTURE_TRUTH_FIXTURE_ID,
+                ),
+                validate_population_structure_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path(
+                    $fixture_root,
+                    SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID,
+                ),
+                validate_segments_demography_truth_manifest_path,
+                |report| report.manifest_path.as_str(),
+            ),
+            _ => Err(anyhow!("unsupported governed fixture corpus `{}`", $corpus)),
+        }
+    }};
+}
+
+macro_rules! validate_named_expected_fixture_cases {
+    ($cwd:expr, $fixture_root:expr, $json:expr, $corpus:expr) => {{
+        match $corpus {
+            "vcf-mini" => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_corpus_manifest_path($fixture_root, "vcf-mini"),
+                validate_vcf_expected_truth,
+                |report| report.expected_dir.as_str(),
+            ),
+            FASTQ_TRIMMING_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, FASTQ_TRIMMING_TRUTH_FIXTURE_ID),
+                validate_fastq_trimming_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            FASTQ_DUPLICATES_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, FASTQ_DUPLICATES_TRUTH_FIXTURE_ID),
+                validate_fastq_duplicates_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            FASTQ_TAXONOMY_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, FASTQ_TAXONOMY_TRUTH_FIXTURE_ID),
+                validate_fastq_taxonomy_truth_manifest_path,
+                |report| report.expected_taxa_path.as_str(),
+            ),
+            AMPLICON_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, AMPLICON_TRUTH_FIXTURE_ID),
+                validate_amplicon_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            ADNA_DAMAGE_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, ADNA_DAMAGE_TRUTH_FIXTURE_ID),
+                validate_adna_damage_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            ADNA_CONTAMINATION_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path(
+                    $fixture_root,
+                    ADNA_CONTAMINATION_TRUTH_FIXTURE_ID,
+                ),
+                validate_adna_contamination_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            BAM_ALIGNMENT_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, BAM_ALIGNMENT_TRUTH_FIXTURE_ID),
+                validate_bam_alignment_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path(
+                    $fixture_root,
+                    BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID,
+                ),
+                validate_bam_duplicate_insert_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            BAM_ENDOGENOUS_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, BAM_ENDOGENOUS_TRUTH_FIXTURE_ID),
+                validate_bam_endogenous_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            BAM_GC_COVERAGE_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, BAM_GC_COVERAGE_TRUTH_FIXTURE_ID),
+                validate_bam_gc_coverage_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            BAM_HAPLOGROUP_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, BAM_HAPLOGROUP_TRUTH_FIXTURE_ID),
+                validate_bam_haplogroup_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            BAM_SEX_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, BAM_SEX_TRUTH_FIXTURE_ID),
+                validate_bam_sex_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            VCF_GENOTYPE_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, VCF_GENOTYPE_TRUTH_FIXTURE_ID),
+                validate_vcf_genotype_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            VCF_FILTER_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path($fixture_root, VCF_FILTER_TRUTH_FIXTURE_ID),
+                validate_vcf_filter_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            PHASING_IMPUTATION_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path(
+                    $fixture_root,
+                    PHASING_IMPUTATION_TRUTH_FIXTURE_ID,
+                ),
+                validate_phasing_imputation_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            POPULATION_STRUCTURE_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path(
+                    $fixture_root,
+                    POPULATION_STRUCTURE_TRUTH_FIXTURE_ID,
+                ),
+                validate_population_structure_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID => validate_and_render_fixture_report(
+                $cwd,
+                $json,
+                &benchmark_science_manifest_path(
+                    $fixture_root,
+                    SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID,
+                ),
+                validate_segments_demography_truth_manifest_path,
+                |report| report.expected_path.as_str(),
+            ),
+            _ => Err(anyhow!("unsupported governed expected-truth corpus `{}`", $corpus)),
+        }
+    }};
+}
+
 /// Build a governed local fixture corpus by corpus id.
 ///
 /// # Errors
@@ -105,21 +423,7 @@ pub(crate) fn build_fixture(cwd: &Path, args: &cli::FixturesBuildArgs) -> Result
 /// fixture contract fails validation.
 pub(crate) fn validate_fixture(cwd: &Path, args: &cli::FixturesValidateArgs) -> Result<()> {
     if args.all {
-        if args.corpus.is_some() {
-            return Err(anyhow!("fixtures validate accepts either --corpus or --all, not both"));
-        }
-        let fixture_root = benchmark_fixture_root_path(cwd, args.root.as_deref());
-        let report = validate_benchmark_fixture_root(
-            cwd,
-            &fixture_root,
-            &cwd.join(DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH),
-        )?;
-        if args.json {
-            cli::render::json::print_pretty(&report)?;
-        } else {
-            println!("{}", report.output_path);
-        }
-        return Ok(());
+        return validate_all_fixtures(cwd, args);
     }
 
     let corpus = args
@@ -127,212 +431,7 @@ pub(crate) fn validate_fixture(cwd: &Path, args: &cli::FixturesValidateArgs) -> 
         .as_deref()
         .ok_or_else(|| anyhow!("fixtures validate requires either --corpus or --all"))?;
     let fixture_root = benchmark_fixture_root_path(cwd, args.root.as_deref());
-    match corpus {
-        "vcf-mini" => {
-            let manifest_path = benchmark_corpus_manifest_path(&fixture_root, "vcf-mini");
-            let report = validate_vcf_corpus_fixture_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        FASTQ_TRIMMING_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, FASTQ_TRIMMING_TRUTH_FIXTURE_ID);
-            let report = validate_fastq_trimming_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        FASTQ_DUPLICATES_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, FASTQ_DUPLICATES_TRUTH_FIXTURE_ID);
-            let report = validate_fastq_duplicates_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        FASTQ_TAXONOMY_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, FASTQ_TAXONOMY_TRUTH_FIXTURE_ID);
-            let report = validate_fastq_taxonomy_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        AMPLICON_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, AMPLICON_TRUTH_FIXTURE_ID);
-            let report = validate_amplicon_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        ADNA_DAMAGE_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, ADNA_DAMAGE_TRUTH_FIXTURE_ID);
-            let report = validate_adna_damage_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        ADNA_CONTAMINATION_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, ADNA_CONTAMINATION_TRUTH_FIXTURE_ID);
-            let report = validate_adna_contamination_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        BAM_ALIGNMENT_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, BAM_ALIGNMENT_TRUTH_FIXTURE_ID);
-            let report = validate_bam_alignment_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID => {
-            let manifest_path = benchmark_science_manifest_path(
-                &fixture_root,
-                BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID,
-            );
-            let report = validate_bam_duplicate_insert_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        BAM_ENDOGENOUS_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, BAM_ENDOGENOUS_TRUTH_FIXTURE_ID);
-            let report = validate_bam_endogenous_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        BAM_GC_COVERAGE_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, BAM_GC_COVERAGE_TRUTH_FIXTURE_ID);
-            let report = validate_bam_gc_coverage_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        BAM_HAPLOGROUP_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, BAM_HAPLOGROUP_TRUTH_FIXTURE_ID);
-            let report = validate_bam_haplogroup_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        BAM_SEX_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, BAM_SEX_TRUTH_FIXTURE_ID);
-            let report = validate_bam_sex_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        VCF_GENOTYPE_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, VCF_GENOTYPE_TRUTH_FIXTURE_ID);
-            let report = validate_vcf_genotype_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        VCF_FILTER_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, VCF_FILTER_TRUTH_FIXTURE_ID);
-            let report = validate_vcf_filter_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        PHASING_IMPUTATION_TRUTH_FIXTURE_ID => {
-            let manifest_path =
-                benchmark_science_manifest_path(&fixture_root, PHASING_IMPUTATION_TRUTH_FIXTURE_ID);
-            let report = validate_phasing_imputation_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        POPULATION_STRUCTURE_TRUTH_FIXTURE_ID => {
-            let manifest_path = benchmark_science_manifest_path(
-                &fixture_root,
-                POPULATION_STRUCTURE_TRUTH_FIXTURE_ID,
-            );
-            let report = validate_population_structure_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID => {
-            let manifest_path = benchmark_science_manifest_path(
-                &fixture_root,
-                SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID,
-            );
-            let report = validate_segments_demography_truth_manifest_path(cwd, &manifest_path)?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.manifest_path);
-            }
-            Ok(())
-        }
-        _ => Err(anyhow!("unsupported governed fixture corpus `{corpus}`")),
-    }
+    validate_named_fixture(cwd, &fixture_root, args.json, corpus)
 }
 
 /// Validate a governed expected-truth bundle by corpus id.
@@ -345,238 +444,36 @@ pub(crate) fn validate_expected_fixture(
     args: &cli::FixturesValidateExpectedArgs,
 ) -> Result<()> {
     let fixture_root = benchmark_fixture_root_path(cwd, args.root.as_deref());
-    match args.corpus.as_str() {
-        "vcf-mini" => {
-            let report = validate_vcf_expected_truth(
-                cwd,
-                &benchmark_corpus_manifest_path(&fixture_root, "vcf-mini"),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_dir);
-            }
-            Ok(())
-        }
-        FASTQ_TRIMMING_TRUTH_FIXTURE_ID => {
-            let report = validate_fastq_trimming_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(&fixture_root, FASTQ_TRIMMING_TRUTH_FIXTURE_ID),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        FASTQ_DUPLICATES_TRUTH_FIXTURE_ID => {
-            let report = validate_fastq_duplicates_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(&fixture_root, FASTQ_DUPLICATES_TRUTH_FIXTURE_ID),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        FASTQ_TAXONOMY_TRUTH_FIXTURE_ID => {
-            let report = validate_fastq_taxonomy_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(&fixture_root, FASTQ_TAXONOMY_TRUTH_FIXTURE_ID),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_taxa_path);
-            }
-            Ok(())
-        }
-        AMPLICON_TRUTH_FIXTURE_ID => {
-            let report = validate_amplicon_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(&fixture_root, AMPLICON_TRUTH_FIXTURE_ID),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        ADNA_DAMAGE_TRUTH_FIXTURE_ID => {
-            let report = validate_adna_damage_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(&fixture_root, ADNA_DAMAGE_TRUTH_FIXTURE_ID),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        ADNA_CONTAMINATION_TRUTH_FIXTURE_ID => {
-            let report = validate_adna_contamination_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(
-                    &fixture_root,
-                    ADNA_CONTAMINATION_TRUTH_FIXTURE_ID,
-                ),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        BAM_ALIGNMENT_TRUTH_FIXTURE_ID => {
-            let report = validate_bam_alignment_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(&fixture_root, BAM_ALIGNMENT_TRUTH_FIXTURE_ID),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID => {
-            let report = validate_bam_duplicate_insert_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(
-                    &fixture_root,
-                    BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID,
-                ),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        BAM_ENDOGENOUS_TRUTH_FIXTURE_ID => {
-            let report = validate_bam_endogenous_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(&fixture_root, BAM_ENDOGENOUS_TRUTH_FIXTURE_ID),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        BAM_GC_COVERAGE_TRUTH_FIXTURE_ID => {
-            let report = validate_bam_gc_coverage_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(&fixture_root, BAM_GC_COVERAGE_TRUTH_FIXTURE_ID),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        BAM_HAPLOGROUP_TRUTH_FIXTURE_ID => {
-            let report = validate_bam_haplogroup_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(&fixture_root, BAM_HAPLOGROUP_TRUTH_FIXTURE_ID),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        BAM_SEX_TRUTH_FIXTURE_ID => {
-            let report = validate_bam_sex_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(&fixture_root, BAM_SEX_TRUTH_FIXTURE_ID),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        VCF_GENOTYPE_TRUTH_FIXTURE_ID => {
-            let report = validate_vcf_genotype_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(&fixture_root, VCF_GENOTYPE_TRUTH_FIXTURE_ID),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        VCF_FILTER_TRUTH_FIXTURE_ID => {
-            let report = validate_vcf_filter_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(&fixture_root, VCF_FILTER_TRUTH_FIXTURE_ID),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        PHASING_IMPUTATION_TRUTH_FIXTURE_ID => {
-            let report = validate_phasing_imputation_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(
-                    &fixture_root,
-                    PHASING_IMPUTATION_TRUTH_FIXTURE_ID,
-                ),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        POPULATION_STRUCTURE_TRUTH_FIXTURE_ID => {
-            let report = validate_population_structure_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(
-                    &fixture_root,
-                    POPULATION_STRUCTURE_TRUTH_FIXTURE_ID,
-                ),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID => {
-            let report = validate_segments_demography_truth_manifest_path(
-                cwd,
-                &benchmark_science_manifest_path(
-                    &fixture_root,
-                    SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID,
-                ),
-            )?;
-            if args.json {
-                cli::render::json::print_pretty(&report)?;
-            } else {
-                println!("{}", report.expected_path);
-            }
-            Ok(())
-        }
-        _ => Err(anyhow!("unsupported governed expected-truth corpus `{}`", args.corpus)),
+    validate_named_expected_fixture(cwd, &fixture_root, args.json, args.corpus.as_str())
+}
+
+fn validate_all_fixtures(cwd: &Path, args: &cli::FixturesValidateArgs) -> Result<()> {
+    if args.corpus.is_some() {
+        return Err(anyhow!("fixtures validate accepts either --corpus or --all, not both"));
     }
+    let fixture_root = benchmark_fixture_root_path(cwd, args.root.as_deref());
+    let report = validate_benchmark_fixture_root(
+        cwd,
+        &fixture_root,
+        &cwd.join(DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH),
+    )?;
+    if args.json {
+        cli::render::json::print_pretty(&report)?;
+    } else {
+        println!("{}", report.output_path);
+    }
+    Ok(())
+}
+
+fn validate_named_fixture(cwd: &Path, fixture_root: &Path, json: bool, corpus: &str) -> Result<()> {
+    validate_named_fixture_cases!(cwd, fixture_root, json, corpus)
+}
+
+fn validate_named_expected_fixture(
+    cwd: &Path,
+    fixture_root: &Path,
+    json: bool,
+    corpus: &str,
+) -> Result<()> {
+    validate_named_expected_fixture_cases!(cwd, fixture_root, json, corpus)
 }

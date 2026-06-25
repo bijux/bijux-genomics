@@ -498,14 +498,18 @@ fn collect_stage_ids(cases: &[PhasingImputationTruthCaseTruth]) -> Vec<String> {
     let mut values = cases
         .iter()
         .map(|case| {
-            case.phasing_metrics
+            let Some(stage_id) = case
+                .phasing_metrics
                 .as_ref()
                 .map(|metrics| metrics.stage_id.clone())
                 .or_else(|| case.impute_metrics.as_ref().map(|metrics| metrics.stage_id.clone()))
                 .or_else(|| {
                     case.imputation_metrics.as_ref().map(|metrics| metrics.stage_id.clone())
                 })
-                .expect("case truth must carry metrics")
+            else {
+                panic!("phasing/imputation truth case `{}` must carry metrics", case.case_id);
+            };
+            stage_id
         })
         .collect::<Vec<_>>();
     values.sort();
@@ -517,12 +521,18 @@ fn collect_tool_ids(cases: &[PhasingImputationTruthCaseTruth]) -> Vec<String> {
     let mut values = cases
         .iter()
         .map(|case| {
-            case.phasing_metrics
+            let Some(tool_id) = case
+                .phasing_metrics
                 .as_ref()
                 .map(|metrics| metrics.tool_id.clone())
                 .or_else(|| case.impute_metrics.as_ref().map(|metrics| metrics.tool_id.clone()))
-                .or_else(|| case.imputation_metrics.as_ref().map(|metrics| metrics.tool_id.clone()))
-                .expect("case truth must carry metrics")
+                .or_else(|| {
+                    case.imputation_metrics.as_ref().map(|metrics| metrics.tool_id.clone())
+                })
+            else {
+                panic!("phasing/imputation truth case `{}` must carry metrics", case.case_id);
+            };
+            tool_id
         })
         .collect::<Vec<_>>();
     values.sort();

@@ -423,10 +423,11 @@ fn build_remove_duplicates_stage_truth(
             records: read_fastq_records(&dedup_r2)?,
         },
     ];
-    let observed_retained_reads = outputs
-        .iter()
-        .map(|output| u64::try_from(output.records.len()).expect("record count fits in u64"))
-        .sum::<u64>();
+    let observed_retained_reads = outputs.iter().try_fold(0_u64, |sum, output| {
+        u64::try_from(output.records.len())
+            .context("record count fits in u64")
+            .map(|count| sum + count)
+    })?;
 
     let sample_id = report.sample_id.clone();
     let case = FastqDuplicateCaseTruth {

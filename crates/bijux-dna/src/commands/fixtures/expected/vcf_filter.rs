@@ -264,9 +264,9 @@ fn validate_case_contract(
     }
     let stage = parse_supported_stage(&case.stage_id)?;
     match (case.tool_id.as_str(), stage, case.truth_kind) {
-        ("bcftools", VcfDomainStage::Filter, VcfFilterTruthKind::FilterLabels) => {}
-        ("bcftools", VcfDomainStage::DamageFilter, VcfFilterTruthKind::DamageRemoval) => {}
-        ("angsd", VcfDomainStage::DamageFilter, VcfFilterTruthKind::DamageRemoval) => {}
+        ("bcftools", VcfDomainStage::Filter, VcfFilterTruthKind::FilterLabels)
+        | ("bcftools" | "angsd", VcfDomainStage::DamageFilter, VcfFilterTruthKind::DamageRemoval) =>
+            {}
         _ => {
             return Err(anyhow!(
                 "VCF filter truth case `{}` uses unsupported tool/stage/truth combination `{}` / `{}` / {:?}",
@@ -415,13 +415,14 @@ fn collect_stage_ids(cases: &[VcfFilterTruthCaseTruth]) -> Vec<String> {
     let mut values = cases
         .iter()
         .map(|case| {
-            case.filter_metrics
-                .as_ref()
-                .map(|metrics| metrics.stage_id.clone())
-                .or_else(|| {
-                    case.damage_filter_metrics.as_ref().map(|metrics| metrics.stage_id.clone())
-                })
-                .expect("case truth must carry metrics")
+            let Some(stage_id) =
+                case.filter_metrics.as_ref().map(|metrics| metrics.stage_id.clone()).or_else(
+                    || case.damage_filter_metrics.as_ref().map(|metrics| metrics.stage_id.clone()),
+                )
+            else {
+                panic!("vcf-filter truth case `{}` must carry metrics", case.case_id);
+            };
+            stage_id
         })
         .collect::<Vec<_>>();
     values.sort();
@@ -433,13 +434,14 @@ fn collect_tool_ids(cases: &[VcfFilterTruthCaseTruth]) -> Vec<String> {
     let mut values = cases
         .iter()
         .map(|case| {
-            case.filter_metrics
-                .as_ref()
-                .map(|metrics| metrics.tool_id.clone())
-                .or_else(|| {
+            let Some(tool_id) =
+                case.filter_metrics.as_ref().map(|metrics| metrics.tool_id.clone()).or_else(|| {
                     case.damage_filter_metrics.as_ref().map(|metrics| metrics.tool_id.clone())
                 })
-                .expect("case truth must carry metrics")
+            else {
+                panic!("vcf-filter truth case `{}` must carry metrics", case.case_id);
+            };
+            tool_id
         })
         .collect::<Vec<_>>();
     values.sort();

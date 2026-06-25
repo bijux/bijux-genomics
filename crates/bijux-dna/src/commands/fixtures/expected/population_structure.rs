@@ -244,8 +244,8 @@ fn validate_case_contract(
         (
             "plink2",
             VcfDomainStage::Pca | VcfDomainStage::Admixture | VcfDomainStage::PopulationStructure,
-        ) => Ok(()),
-        ("eigensoft", VcfDomainStage::Pca | VcfDomainStage::PopulationStructure) => Ok(()),
+        )
+        | ("eigensoft", VcfDomainStage::Pca | VcfDomainStage::PopulationStructure) => Ok(()),
         _ => Err(anyhow!(
             "population-structure truth case `{}` does not support tool `{}` on stage `{}`",
             case.case_id,
@@ -388,7 +388,8 @@ fn collect_stage_ids(cases: &[PopulationStructureTruthCaseTruth]) -> Vec<String>
     let mut values = cases
         .iter()
         .map(|case| {
-            case.pca_metrics
+            let Some(stage_id) = case
+                .pca_metrics
                 .as_ref()
                 .and_then(|metrics| metrics.get("stage_id").and_then(serde_json::Value::as_str))
                 .or_else(|| {
@@ -401,8 +402,10 @@ fn collect_stage_ids(cases: &[PopulationStructureTruthCaseTruth]) -> Vec<String>
                         metrics.get("stage_id").and_then(serde_json::Value::as_str)
                     })
                 })
-                .expect("case truth must carry stage id")
-                .to_string()
+            else {
+                panic!("population-structure truth case `{}` must carry stage id", case.case_id);
+            };
+            stage_id.to_string()
         })
         .collect::<Vec<_>>();
     values.sort();
@@ -414,7 +417,8 @@ fn collect_tool_ids(cases: &[PopulationStructureTruthCaseTruth]) -> Vec<String> 
     let mut values = cases
         .iter()
         .map(|case| {
-            case.pca_metrics
+            let Some(tool_id) = case
+                .pca_metrics
                 .as_ref()
                 .and_then(|metrics| metrics.get("tool_id").and_then(serde_json::Value::as_str))
                 .or_else(|| {
@@ -427,8 +431,10 @@ fn collect_tool_ids(cases: &[PopulationStructureTruthCaseTruth]) -> Vec<String> 
                         metrics.get("tool_id").and_then(serde_json::Value::as_str)
                     })
                 })
-                .expect("case truth must carry tool id")
-                .to_string()
+            else {
+                panic!("population-structure truth case `{}` must carry tool id", case.case_id);
+            };
+            tool_id.to_string()
         })
         .collect::<Vec<_>>();
     values.sort();

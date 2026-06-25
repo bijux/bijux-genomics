@@ -16,7 +16,7 @@ pub static CWD_LOCK: Mutex<()> = Mutex::new(());
 #[allow(dead_code)]
 const TEST_LOCK_ROOT: &str = "artifacts/test-locks";
 #[allow(dead_code)]
-const TEST_LOCK_WAIT_TIMEOUT: Duration = Duration::from_secs(300);
+const TEST_LOCK_WAIT_TIMEOUT: Duration = Duration::from_mins(5);
 #[allow(dead_code)]
 const TEST_LOCK_POLL_INTERVAL: Duration = Duration::from_millis(50);
 #[allow(dead_code)]

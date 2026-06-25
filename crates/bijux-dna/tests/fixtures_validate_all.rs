@@ -5,6 +5,94 @@ use std::process::Command;
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
+const EXPECTED_ROWS: &[&[(&str, &str)]] = &[
+    &[
+        ("fixture_kind", "expected_truth"),
+        ("fixture_id", "vcf-mini"),
+        ("detail_path", "benchmarks/tests/fixtures/corpora/vcf-mini/expected"),
+    ],
+    &[
+        ("fixture_kind", "database"),
+        ("fixture_id", "taxonomy-mini"),
+        ("manifest_path", "benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml"),
+    ],
+    &[
+        ("fixture_kind", "science_fixture"),
+        ("fixture_id", "fastq-trimming-truth"),
+        ("manifest_path", "benchmarks/tests/fixtures/science/fastq-trimming-truth/manifest.toml"),
+    ],
+    &[
+        ("fixture_kind", "expected_truth"),
+        ("fixture_id", "fastq-trimming-truth"),
+        ("detail_path", "benchmarks/tests/fixtures/science/fastq-trimming-truth/expected.json"),
+    ],
+    &[
+        ("fixture_kind", "science_fixture"),
+        ("fixture_id", "adna-contamination-truth"),
+        (
+            "manifest_path",
+            "benchmarks/tests/fixtures/science/adna-contamination-truth/manifest.toml",
+        ),
+    ],
+    &[
+        ("fixture_kind", "expected_truth"),
+        ("fixture_id", "adna-contamination-truth"),
+        ("detail_path", "benchmarks/tests/fixtures/science/adna-contamination-truth/expected.json"),
+    ],
+    &[
+        ("fixture_kind", "science_fixture"),
+        ("fixture_id", "bam-gc-coverage-truth"),
+        ("manifest_path", "benchmarks/tests/fixtures/science/bam-gc-coverage-truth/manifest.toml"),
+    ],
+    &[
+        ("fixture_kind", "expected_truth"),
+        ("fixture_id", "bam-gc-coverage-truth"),
+        ("detail_path", "benchmarks/tests/fixtures/science/bam-gc-coverage-truth/expected.json"),
+    ],
+    &[
+        ("fixture_kind", "science_fixture"),
+        ("fixture_id", "vcf-genotype-truth"),
+        ("manifest_path", "benchmarks/tests/fixtures/science/vcf-genotype-truth/manifest.toml"),
+    ],
+    &[
+        ("fixture_kind", "expected_truth"),
+        ("fixture_id", "vcf-genotype-truth"),
+        ("detail_path", "benchmarks/tests/fixtures/science/vcf-genotype-truth/expected.json"),
+    ],
+    &[
+        ("fixture_kind", "science_fixture"),
+        ("fixture_id", "population-structure-truth"),
+        (
+            "manifest_path",
+            "benchmarks/tests/fixtures/science/population-structure-truth/manifest.toml",
+        ),
+    ],
+    &[
+        ("fixture_kind", "expected_truth"),
+        ("fixture_id", "population-structure-truth"),
+        (
+            "detail_path",
+            "benchmarks/tests/fixtures/science/population-structure-truth/expected.json",
+        ),
+    ],
+    &[
+        ("fixture_kind", "science_fixture"),
+        ("fixture_id", "segments-demography-truth"),
+        (
+            "manifest_path",
+            "benchmarks/tests/fixtures/science/segments-demography-truth/manifest.toml",
+        ),
+    ],
+    &[
+        ("fixture_kind", "expected_truth"),
+        ("fixture_id", "segments-demography-truth"),
+        (
+            "detail_path",
+            "benchmarks/tests/fixtures/science/segments-demography-truth/expected.json",
+        ),
+    ],
+];
+
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
@@ -44,6 +132,11 @@ fn fixtures_validate_all_reports_benchmark_root_pass_state() {
         "--json",
     ]);
 
+    assert_metadata(&payload);
+    assert_expected_rows(&payload, EXPECTED_ROWS);
+}
+
+fn assert_metadata(payload: &serde_json::Value) {
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.fixture_root_validation.v1")
@@ -61,256 +154,21 @@ fn fixtures_validate_all_reports_benchmark_root_pass_state() {
     assert_eq!(payload.get("checked_fixture_count").and_then(serde_json::Value::as_u64), Some(54));
     assert_eq!(payload.get("invalid_fixture_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+}
 
+fn assert_expected_rows(payload: &serde_json::Value, expected_rows: &[&[(&str, &str)]]) {
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str) == Some("vcf-mini")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/corpora/vcf-mini/expected")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("database")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str) == Some("taxonomy-mini")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/databases/taxonomy-mini/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("fastq-trimming-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/fastq-trimming-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("fastq-duplicates-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/fastq-duplicates-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("fastq-taxonomy-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/fastq-taxonomy-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str) == Some("amplicon-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/amplicon-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("adna-damage-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/adna-damage-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("adna-contamination-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/adna-contamination-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("bam-alignment-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/bam-alignment-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("bam-duplicate-insert-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some(
-                    "benchmarks/tests/fixtures/science/bam-duplicate-insert-truth/manifest.toml",
-                )
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str) == Some("endogenous-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/endogenous-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("bam-gc-coverage-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/bam-gc-coverage-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str) == Some("haplogroup-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/haplogroup-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("sex-inference-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/sex-inference-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("vcf-genotype-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/vcf-genotype-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str) == Some("vcf-filter-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/vcf-filter-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("phasing-imputation-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/phasing-imputation-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("population-structure-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some(
-                    "benchmarks/tests/fixtures/science/population-structure-truth/manifest.toml",
-                )
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("science_fixture")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("segments-demography-truth")
-            && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/segments-demography-truth/manifest.toml")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("fastq-trimming-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/fastq-trimming-truth/expected.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("fastq-duplicates-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/fastq-duplicates-truth/expected.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("fastq-taxonomy-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/fastq-taxonomy-truth/expected_taxa.tsv")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str) == Some("amplicon-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/amplicon-truth/expected.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("adna-damage-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/adna-damage-truth/expected.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("adna-contamination-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/adna-contamination-truth/expected.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("bam-alignment-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/bam-alignment-truth/expected.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("bam-duplicate-insert-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some(
-                    "benchmarks/tests/fixtures/science/bam-duplicate-insert-truth/expected.json",
-                )
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str) == Some("endogenous-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/endogenous-truth/expected.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("bam-gc-coverage-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/bam-gc-coverage-truth/expected.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str) == Some("haplogroup-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/haplogroup-truth/expected.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("sex-inference-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/sex-inference-truth/expected.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("vcf-genotype-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/vcf-genotype-truth/expected.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str) == Some("vcf-filter-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/vcf-filter-truth/expected.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("phasing-imputation-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/phasing-imputation-truth/expected.json")
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("population-structure-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some(
-                    "benchmarks/tests/fixtures/science/population-structure-truth/expected.json",
-                )
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("fixture_kind").and_then(serde_json::Value::as_str) == Some("expected_truth")
-            && row.get("fixture_id").and_then(serde_json::Value::as_str)
-                == Some("segments-demography-truth")
-            && row.get("detail_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/tests/fixtures/science/segments-demography-truth/expected.json")
-    }));
+    for expected in expected_rows {
+        assert_row_exists(rows, expected);
+    }
+}
+
+fn assert_row_exists(rows: &[serde_json::Value], expected: &[(&str, &str)]) {
+    assert!(rows.iter().any(|row| row_matches(row, expected)), "missing row matching {expected:?}");
+}
+
+fn row_matches(row: &serde_json::Value, expected: &[(&str, &str)]) -> bool {
+    expected
+        .iter()
+        .all(|(key, value)| row.get(*key).and_then(serde_json::Value::as_str) == Some(*value))
 }

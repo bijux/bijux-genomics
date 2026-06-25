@@ -107,29 +107,66 @@ pub(crate) fn validate_benchmark_fixture_root(
 ) -> Result<BenchmarkFixtureRootValidationReport> {
     let absolute_root = absolutize(repo_root, fixture_root);
     let absolute_output_path = absolutize(repo_root, output_path);
+    let mut rows = collect_benchmark_fixture_root_rows(repo_root, &absolute_root)?;
+
+    rows.sort_by(|left, right| {
+        left.fixture_kind
+            .cmp(&right.fixture_kind)
+            .then(left.fixture_id.cmp(&right.fixture_id))
+            .then(left.manifest_path.cmp(&right.manifest_path))
+    });
+
+    let checked_fixture_count = rows.len();
+    let valid_fixture_count = rows.iter().filter(|row| row.valid).count();
+    let invalid_fixture_count = checked_fixture_count.saturating_sub(valid_fixture_count);
+    let report = BenchmarkFixtureRootValidationReport {
+        schema_version: BENCHMARK_FIXTURE_ROOT_VALIDATION_SCHEMA_VERSION,
+        output_path: path_relative_to_repo(repo_root, &absolute_output_path),
+        root_path: path_relative_to_repo(repo_root, &absolute_root),
+        required_subroot_count: 4,
+        parser_domain_count: PARSER_FIXTURE_DOMAINS.len(),
+        checked_fixture_count,
+        valid_fixture_count,
+        invalid_fixture_count,
+        ok: invalid_fixture_count == 0,
+        rows,
+    };
+
+    if let Some(parent) = absolute_output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)
+        .with_context(|| format!("write {}", absolute_output_path.display()))?;
+
+    if !report.ok {
+        return Err(anyhow!("benchmark fixture root validation failed for `{}`", report.root_path));
+    }
+    Ok(report)
+}
+
+fn collect_benchmark_fixture_root_rows(
+    repo_root: &Path,
+    absolute_root: &Path,
+) -> Result<Vec<BenchmarkFixtureRootValidationRow>> {
     let parser_root = absolute_root.join("bench").join("parsers");
     let corpora_root = absolute_root.join("corpora");
     let databases_root = absolute_root.join("databases");
     let science_root = absolute_root.join("science");
 
     let mut rows = Vec::new();
-    rows.extend(validate_required_subroots(repo_root, &absolute_root));
+    rows.extend(validate_required_subroots(repo_root, absolute_root));
     rows.extend(validate_parser_fixture_domains(repo_root, &parser_root));
 
-    let corpus_manifests = discover_fixture_manifests(&corpora_root)?;
-    let database_manifests = discover_fixture_manifests(&databases_root)?;
-    let science_manifests = discover_fixture_manifests(&science_root)?;
-
-    for manifest_path in corpus_manifests {
+    for manifest_path in discover_fixture_manifests(&corpora_root)? {
         rows.push(validate_manifest_row(repo_root, &manifest_path));
         if manifest_path.ends_with("vcf-mini/manifest.toml") {
             rows.push(validate_vcf_expected_truth_row(repo_root, &manifest_path));
         }
     }
-    for manifest_path in database_manifests {
+    for manifest_path in discover_fixture_manifests(&databases_root)? {
         rows.push(validate_manifest_row(repo_root, &manifest_path));
     }
-    for manifest_path in science_manifests {
+    for manifest_path in discover_fixture_manifests(&science_root)? {
         rows.push(validate_manifest_row(repo_root, &manifest_path));
         if manifest_path.ends_with("fastq-trimming-truth/manifest.toml") {
             rows.push(validate_fastq_trimming_truth_row(repo_root, &manifest_path));
@@ -184,39 +221,7 @@ pub(crate) fn validate_benchmark_fixture_root(
         }
     }
 
-    rows.sort_by(|left, right| {
-        left.fixture_kind
-            .cmp(&right.fixture_kind)
-            .then(left.fixture_id.cmp(&right.fixture_id))
-            .then(left.manifest_path.cmp(&right.manifest_path))
-    });
-
-    let checked_fixture_count = rows.len();
-    let valid_fixture_count = rows.iter().filter(|row| row.valid).count();
-    let invalid_fixture_count = checked_fixture_count.saturating_sub(valid_fixture_count);
-    let report = BenchmarkFixtureRootValidationReport {
-        schema_version: BENCHMARK_FIXTURE_ROOT_VALIDATION_SCHEMA_VERSION,
-        output_path: path_relative_to_repo(repo_root, &absolute_output_path),
-        root_path: path_relative_to_repo(repo_root, &absolute_root),
-        required_subroot_count: 4,
-        parser_domain_count: PARSER_FIXTURE_DOMAINS.len(),
-        checked_fixture_count,
-        valid_fixture_count,
-        invalid_fixture_count,
-        ok: invalid_fixture_count == 0,
-        rows,
-    };
-
-    if let Some(parent) = absolute_output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)
-        .with_context(|| format!("write {}", absolute_output_path.display()))?;
-
-    if !report.ok {
-        return Err(anyhow!("benchmark fixture root validation failed for `{}`", report.root_path));
-    }
-    Ok(report)
+    Ok(rows)
 }
 
 fn validate_required_subroots(
@@ -291,119 +296,7 @@ fn validate_manifest_row(
         }
     };
 
-    let result = match schema_version.as_str() {
-        fastq::FASTQ_CORPUS_FIXTURE_SCHEMA_VERSION => {
-            fastq::validate_fastq_corpus_fixture_manifest_path(repo_root, manifest_path)
-                .map(|_| ("corpus".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        bam::BAM_CORPUS_FIXTURE_SCHEMA_VERSION => {
-            bam::validate_bam_corpus_fixture_manifest_path(repo_root, manifest_path)
-                .map(|_| ("corpus".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        damage::BAM_DAMAGE_FIXTURE_SCHEMA_VERSION => {
-            damage::validate_bam_damage_fixture_manifest_path(repo_root, manifest_path)
-                .map(|_| ("corpus".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        edna::EDNA_CORPUS_FIXTURE_SCHEMA_VERSION => {
-            edna::validate_edna_corpus_fixture_manifest_path(repo_root, manifest_path)
-                .map(|_| ("corpus".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        amplicon::AMPLICON_CORPUS_FIXTURE_SCHEMA_VERSION => {
-            amplicon::validate_amplicon_corpus_fixture_manifest_path(repo_root, manifest_path)
-                .map(|_| ("corpus".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        vcf::VCF_CORPUS_FIXTURE_SCHEMA_VERSION => {
-            vcf::validate_vcf_corpus_fixture_manifest_path(repo_root, manifest_path)
-                .map(|_| ("corpus".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        TAXONOMY_DATABASE_FIXTURE_SCHEMA_VERSION => {
-            crate::commands::benchmark::local_taxonomy_database_fixture::validate_taxonomy_database_fixture_manifest_path(
-                repo_root,
-                manifest_path,
-            )
-            .map(|_| ("database".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        FASTQ_TRIMMING_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_fastq_trimming_truth_manifest_path(repo_root, manifest_path)
-                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        FASTQ_DUPLICATES_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_fastq_duplicates_truth_manifest_path(repo_root, manifest_path)
-                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        FASTQ_TAXONOMY_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_fastq_taxonomy_truth_manifest_path(repo_root, manifest_path)
-                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        AMPLICON_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_amplicon_truth_manifest_path(repo_root, manifest_path)
-                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        ADNA_DAMAGE_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_adna_damage_truth_manifest_path(repo_root, manifest_path)
-                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        ADNA_CONTAMINATION_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_adna_contamination_truth_manifest_path(repo_root, manifest_path)
-                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        BAM_ALIGNMENT_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_bam_alignment_truth_manifest_path(repo_root, manifest_path)
-                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        BAM_DUPLICATE_INSERT_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_bam_duplicate_insert_truth_manifest_path(repo_root, manifest_path).map(|_| {
-                ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
-            })
-        }
-        BAM_ENDOGENOUS_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_bam_endogenous_truth_manifest_path(repo_root, manifest_path)
-                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        BAM_GC_COVERAGE_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_bam_gc_coverage_truth_manifest_path(repo_root, manifest_path).map(|_| {
-                ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
-            })
-        }
-        BAM_HAPLOGROUP_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_bam_haplogroup_truth_manifest_path(repo_root, manifest_path).map(|_| {
-                ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
-            })
-        }
-        BAM_SEX_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_bam_sex_truth_manifest_path(repo_root, manifest_path)
-                .map(|_| ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path)))
-        }
-        VCF_GENOTYPE_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_vcf_genotype_truth_manifest_path(repo_root, manifest_path).map(|_| {
-                ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
-            })
-        }
-        VCF_FILTER_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_vcf_filter_truth_manifest_path(repo_root, manifest_path).map(|_| {
-                ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
-            })
-        }
-        PHASING_IMPUTATION_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_phasing_imputation_truth_manifest_path(repo_root, manifest_path).map(|_| {
-                ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
-            })
-        }
-        POPULATION_STRUCTURE_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_population_structure_truth_manifest_path(repo_root, manifest_path).map(|_| {
-                ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
-            })
-        }
-        SEGMENTS_DEMOGRAPHY_TRUTH_MANIFEST_SCHEMA_VERSION => {
-            validate_segments_demography_truth_manifest_path(repo_root, manifest_path).map(|_| {
-                ("science_fixture".to_string(), fixture_id_from_manifest_path(manifest_path))
-            })
-        }
-        other => Err(anyhow!(
-            "unsupported benchmark fixture schema `{other}` in {}",
-            manifest_path.display()
-        )),
-    };
+    let result = validate_manifest_row_by_schema(repo_root, manifest_path, &schema_version);
 
     match result {
         Ok((fixture_kind, fixture_id)) => BenchmarkFixtureRootValidationRow {
@@ -425,6 +318,179 @@ fn validate_manifest_row(
             detail: error.to_string(),
         },
     }
+}
+
+macro_rules! validate_manifest_row_by_schema_cases {
+    ($repo_root:expr, $manifest_path:expr, $schema_version:expr) => {{
+        match $schema_version {
+            fastq::FASTQ_CORPUS_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "corpus",
+                fastq::validate_fastq_corpus_fixture_manifest_path,
+            ),
+            bam::BAM_CORPUS_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "corpus",
+                bam::validate_bam_corpus_fixture_manifest_path,
+            ),
+            damage::BAM_DAMAGE_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "corpus",
+                damage::validate_bam_damage_fixture_manifest_path,
+            ),
+            edna::EDNA_CORPUS_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "corpus",
+                edna::validate_edna_corpus_fixture_manifest_path,
+            ),
+            amplicon::AMPLICON_CORPUS_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "corpus",
+                amplicon::validate_amplicon_corpus_fixture_manifest_path,
+            ),
+            vcf::VCF_CORPUS_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "corpus",
+                vcf::validate_vcf_corpus_fixture_manifest_path,
+            ),
+            TAXONOMY_DATABASE_FIXTURE_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "database",
+                crate::commands::benchmark::local_taxonomy_database_fixture::validate_taxonomy_database_fixture_manifest_path,
+            ),
+            FASTQ_TRIMMING_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_fastq_trimming_truth_manifest_path,
+            ),
+            FASTQ_DUPLICATES_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_fastq_duplicates_truth_manifest_path,
+            ),
+            FASTQ_TAXONOMY_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_fastq_taxonomy_truth_manifest_path,
+            ),
+            AMPLICON_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_amplicon_truth_manifest_path,
+            ),
+            ADNA_DAMAGE_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_adna_damage_truth_manifest_path,
+            ),
+            ADNA_CONTAMINATION_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_adna_contamination_truth_manifest_path,
+            ),
+            BAM_ALIGNMENT_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_bam_alignment_truth_manifest_path,
+            ),
+            BAM_DUPLICATE_INSERT_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_bam_duplicate_insert_truth_manifest_path,
+            ),
+            BAM_ENDOGENOUS_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_bam_endogenous_truth_manifest_path,
+            ),
+            BAM_GC_COVERAGE_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_bam_gc_coverage_truth_manifest_path,
+            ),
+            BAM_HAPLOGROUP_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_bam_haplogroup_truth_manifest_path,
+            ),
+            BAM_SEX_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_bam_sex_truth_manifest_path,
+            ),
+            VCF_GENOTYPE_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_vcf_genotype_truth_manifest_path,
+            ),
+            VCF_FILTER_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_vcf_filter_truth_manifest_path,
+            ),
+            PHASING_IMPUTATION_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_phasing_imputation_truth_manifest_path,
+            ),
+            POPULATION_STRUCTURE_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_population_structure_truth_manifest_path,
+            ),
+            SEGMENTS_DEMOGRAPHY_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
+                $repo_root,
+                $manifest_path,
+                "science_fixture",
+                validate_segments_demography_truth_manifest_path,
+            ),
+            other => Err(anyhow!(
+                "unsupported benchmark fixture schema `{other}` in {}",
+                $manifest_path.display()
+            )),
+        }
+    }};
+}
+
+fn validate_manifest_row_by_schema(
+    repo_root: &Path,
+    manifest_path: &Path,
+    schema_version: &str,
+) -> Result<(String, String)> {
+    validate_manifest_row_by_schema_cases!(repo_root, manifest_path, schema_version)
+}
+
+fn validate_known_manifest_schema_row<R>(
+    repo_root: &Path,
+    manifest_path: &Path,
+    fixture_kind: &'static str,
+    validator: impl FnOnce(&Path, &Path) -> Result<R>,
+) -> Result<(String, String)> {
+    validator(repo_root, manifest_path)?;
+    Ok((fixture_kind.to_string(), fixture_id_from_manifest_path(manifest_path)))
 }
 
 fn validate_fastq_trimming_truth_row(

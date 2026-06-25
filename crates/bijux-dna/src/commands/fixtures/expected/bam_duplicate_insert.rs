@@ -232,8 +232,7 @@ fn validate_manifest_contract(
         }
         if !sample_ids.insert(sample_id.clone()) {
             return Err(anyhow!(
-                "BAM duplicate/insert truth manifest repeats sample_id `{}`",
-                sample_id
+                "BAM duplicate/insert truth manifest repeats sample_id `{sample_id}`"
             ));
         }
     }
