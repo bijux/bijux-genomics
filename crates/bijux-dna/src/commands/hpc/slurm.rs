@@ -2218,7 +2218,7 @@ array_task = 7
             json: false,
         })
         .expect("submit campaign");
-        assert_eq!(report.jobs.len(), 4);
+        assert_eq!(report.jobs.len(), 9);
 
         let corpora_root = root.path().join("corpora").display().to_string();
         let databases_root = root.path().join("databases").display().to_string();

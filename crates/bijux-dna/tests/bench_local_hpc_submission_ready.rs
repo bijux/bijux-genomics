@@ -125,7 +125,7 @@ fn bench_local_validate_hpc_submission_ready_reports_governed_blockers() {
                 && check
                     .get("detail")
                     .and_then(serde_json::Value::as_str)
-                    .is_some_and(|detail| detail.contains("planned 4 jobs"))
+                    .is_some_and(|detail| detail.contains("planned 9 jobs"))
         }),
         "goal 99 must report the benchmark-owned LUNARC local-ready profile"
     );

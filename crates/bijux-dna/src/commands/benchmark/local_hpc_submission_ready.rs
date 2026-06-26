@@ -1652,9 +1652,9 @@ fn evaluate_hpc_campaign_goals(
             match (dry_run, preparation, submission) {
                 (Ok(dry_run), Ok(preparation), Ok(submission))
                     if dry_run.campaign_id == "adna-equus-caballus-local-ready"
-                        && dry_run.planned_jobs.len() == 4
+                        && dry_run.planned_jobs.len() == 9
                         && preparation.actions.len() == 3
-                        && submission.jobs.len() == 4
+                        && submission.jobs.len() == 9
                         && submission.jobs.iter().all(|job| {
                             repo_root.join(&job.script_path).is_file()
                                 && repo_root.join(&job.code_path).is_file()
