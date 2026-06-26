@@ -24,6 +24,7 @@ const NORMAL_DEPS: &[&str] = &[
     "noodles-bam",
     "noodles-sam",
     "regex",
+    "reqwest",
     "schemars",
     "serde",
     "serde_json",
@@ -32,6 +33,7 @@ const NORMAL_DEPS: &[&str] = &[
     "tar",
     "toml",
     "tracing",
+    "zip",
 ];
 
 const DEV_DEPS: &[&str] = &[
