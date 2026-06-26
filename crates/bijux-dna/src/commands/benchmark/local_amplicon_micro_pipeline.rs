@@ -2175,7 +2175,20 @@ fn write_fastq_records(path: &Path, records: &[(&str, &str)]) -> Result<()> {
         rendered.push_str(&"I".repeat(sequence.len()));
         rendered.push('\n');
     }
-    write_text_file(path, &rendered)
+    if path.extension().and_then(|ext| ext.to_str()) == Some("gz") {
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        }
+        let file = bijux_dna_infra::create_file(path)
+            .with_context(|| format!("create {}", path.display()))?;
+        let mut writer = flate2::write::GzEncoder::new(file, flate2::Compression::default());
+        std::io::Write::write_all(&mut writer, rendered.as_bytes())?;
+        std::io::Write::flush(&mut writer)?;
+        let _ = writer.finish()?;
+        Ok(())
+    } else {
+        write_text_file(path, &rendered)
+    }
 }
 
 fn build_three_column_table(header: &str, rows: impl IntoIterator<Item = String>) -> String {

@@ -57,10 +57,13 @@ fn run_bcftools_mpileup_call(
     let mpileup_out =
         mpileup_bcf.to_str().ok_or_else(|| anyhow!("non-utf8 mpileup output path"))?;
     let input_bam_s = input_bam.to_str().ok_or_else(|| anyhow!("non-utf8 input bam path"))?;
-    let out_vcf_s = out_vcf.to_str().ok_or_else(|| anyhow!("non-utf8 output vcf path"))?;
     if include_gl_fields {
         run_bcftools_mpileup_likelihood_vcf(input_bam, out_vcf, params)?;
     } else {
+        let raw_vcf = out_vcf
+            .parent()
+            .ok_or_else(|| anyhow!("output path has no parent"))?
+            .join("bcftools_call.raw.vcf");
         let mpileup_args = [
             "mpileup",
             "-Ob",
@@ -75,11 +78,15 @@ fn run_bcftools_mpileup_call(
             input_bam_s,
         ];
         crate::engine::execution::run_checked_command("bcftools", mpileup_args, None)?;
-        let call_args = ["call", "-mv", "-Oz", "-o", out_vcf_s, mpileup_out];
+        let raw_vcf_s =
+            raw_vcf.to_str().ok_or_else(|| anyhow!("non-utf8 temporary output vcf path"))?;
+        let call_args = ["call", "-mv", "-Ov", "-o", raw_vcf_s, mpileup_out];
         crate::engine::execution::run_checked_command("bcftools", call_args, None)?;
+        let _ =
+            write_vcf_with_best_effort_index(out_vcf, &std::fs::read_to_string(&raw_vcf)?, "call")?;
+        let _ = std::fs::remove_file(&raw_vcf);
+        return Ok(());
     }
-    let tabix_args = ["-f", "-p", "vcf", out_vcf_s];
-    crate::engine::execution::run_checked_command("tabix", tabix_args, None)?;
     Ok(())
 }
 
