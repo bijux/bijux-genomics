@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Context, Result};
+#[cfg(feature = "bam_downstream")]
+use anyhow::Context;
+use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "bam_downstream")]

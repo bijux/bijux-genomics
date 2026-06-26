@@ -1190,7 +1190,7 @@ mod tests {
     }
 
     fn read_gzip(path: &Path) -> String {
-        let file = File::open(path).expect("open gzip");
+        let file = std::fs::File::open(path).expect("open gzip");
         let mut decoder = flate2::read::GzDecoder::new(file);
         let mut text = String::new();
         decoder.read_to_string(&mut text).expect("read gzip text");
