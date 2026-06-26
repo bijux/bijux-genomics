@@ -5,6 +5,8 @@ use std::fs;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
+#[cfg(unix)]
+use sysinfo::{Pid, System};
 
 fn looks_like_repo_root(path: &Path) -> bool {
     path.join("Cargo.lock").is_file()
@@ -154,11 +156,8 @@ fn lock_is_older_than(path: &Path, threshold: Duration) -> Result<bool> {
 
 #[cfg(unix)]
 fn process_is_alive(pid: u32) -> bool {
-    std::process::Command::new("kill")
-        .arg("-0")
-        .arg(pid.to_string())
-        .status()
-        .is_ok_and(|status| status.success())
+    let system = System::new_all();
+    system.process(Pid::from_u32(pid)).is_some()
 }
 
 #[cfg(not(unix))]

@@ -81,7 +81,7 @@ pub(crate) fn render_pipeline_operations_report(
     repo_root: &Path,
     config_path: &Path,
     operations_root: Option<&Path>,
-    campaign_config_override: Option<&Path>,
+    campaign_config_path_hint: Option<&Path>,
 ) -> Result<PipelineOperationsReport> {
     let pipeline = load_validated_local_pipeline_dag_report(repo_root, config_path)?;
     let operations_root =
@@ -92,7 +92,7 @@ pub(crate) fn render_pipeline_operations_report(
     let campaign_config_path = resolve_campaign_config_path(
         repo_root,
         pipeline.execution_context.as_ref(),
-        campaign_config_override,
+        campaign_config_path_hint,
     )?;
 
     let project_downloads = build_project_downloads(
@@ -344,9 +344,9 @@ fn derived_asset_file(role: &str, target_path: &Path, note: &str) -> AssetFilePl
 fn resolve_campaign_config_path(
     repo_root: &Path,
     execution_context: Option<&LocalPipelineExecutionContext>,
-    campaign_config_override: Option<&Path>,
+    campaign_config_path_hint: Option<&Path>,
 ) -> Result<PathBuf> {
-    let candidate = if let Some(path) = campaign_config_override {
+    let candidate = if let Some(path) = campaign_config_path_hint {
         resolve_candidate(repo_root, path)
     } else {
         let default_campaign_config = execution_context

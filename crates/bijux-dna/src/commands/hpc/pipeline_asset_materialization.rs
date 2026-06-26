@@ -1055,7 +1055,6 @@ fn built_artifact(role: &str, path: &Path) -> MaterializedArtifact {
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
-    use std::fs::File;
     use std::io::{Read, Write};
     use std::path::Path;
 
@@ -1075,7 +1074,7 @@ mod tests {
         let dir = tempdir().expect("tempdir");
         let fasta_path = dir.path().join("reference.fa");
         let fai_path = dir.path().join("reference.fa.fai");
-        std::fs::write(&fasta_path, b">chr1\nACGT\nAC\n>chr2\nTTAA\n").expect("write fasta");
+        write_bytes(&fasta_path, b">chr1\nACGT\nAC\n>chr2\nTTAA\n");
 
         build_fai(&fasta_path, &fai_path).expect("build fai");
 
@@ -1107,15 +1106,15 @@ mod tests {
                 "2\t20\t.\tC\tT\t.\tPASS\t.\n"
             ),
         );
-        std::fs::write(
+        write_bytes(
             &assembly_report,
             concat!(
                 "# comment\n",
                 "1\tassembled-molecule\t1\tChromosome\tCM000001.1\t=\tNC_009144.3\tPrimary Assembly\t.\tchr1\n",
                 "2\tassembled-molecule\t2\tChromosome\tCM000002.1\t=\tNC_009145.3\tPrimary Assembly\t.\tchr2\n"
-            ),
-        )
-        .expect("write assembly report");
+            )
+            .as_bytes(),
+        );
 
         extract_vcf_header(&source_vcf, &old_header).expect("extract header");
         prepare_namespace_assets(
@@ -1181,10 +1180,13 @@ mod tests {
     }
 
     fn write_gzip(path: &Path, payload: &str) {
-        let file = File::create(path).expect("create gzip");
-        let mut encoder = GzEncoder::new(file, Compression::default());
-        encoder.write_all(payload.as_bytes()).expect("write gzip");
-        encoder.finish().expect("finish gzip");
+        bijux_dna_infra::atomic_write_with(path, |file| {
+            let mut encoder = GzEncoder::new(file, Compression::default());
+            encoder.write_all(payload.as_bytes())?;
+            let _ = encoder.finish()?;
+            Ok(())
+        })
+        .expect("create gzip");
     }
 
     fn read_gzip(path: &Path) -> String {
@@ -1196,13 +1198,21 @@ mod tests {
     }
 
     fn write_zip(path: &Path, entries: &[(&str, &[u8])]) {
-        let file = File::create(path).expect("create zip");
-        let mut writer = zip::ZipWriter::new(file);
-        let options = SimpleFileOptions::default();
-        for (name, payload) in entries {
-            writer.start_file(name, options).expect("start zip member");
-            writer.write_all(payload).expect("write zip member");
-        }
-        writer.finish().expect("finish zip");
+        bijux_dna_infra::atomic_write_with(path, |file| {
+            let mut writer = zip::ZipWriter::new(file);
+            let options = SimpleFileOptions::default();
+            for (name, payload) in entries {
+                writer.start_file(name, options).expect("start zip member");
+                writer.write_all(payload)?;
+            }
+            let _ = writer.finish().expect("finish zip");
+            Ok(())
+        })
+        .expect("create zip");
+    }
+
+    fn write_bytes(path: &Path, payload: &[u8]) {
+        bijux_dna_infra::atomic_write_with(path, |file| file.write_all(payload))
+            .expect("write test payload");
     }
 }
