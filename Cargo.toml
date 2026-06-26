@@ -73,6 +73,7 @@ insta = "1"
 noodles-bam = "0.88"
 noodles-sam = "0.84"
 bijux-dna-analyze = { path = "crates/bijux-dna-analyze" }
+bijux-dna = { path = "crates/bijux-dna" }
 bijux-dna-api = { path = "crates/bijux-dna-api" }
 bijux-dna-core = { path = "crates/bijux-dna-core" }
 bijux-dna-db-ena = { path = "crates/bijux-dna-db-ena" }

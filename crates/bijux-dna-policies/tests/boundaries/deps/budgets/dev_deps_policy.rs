@@ -54,6 +54,8 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         "anyhow.workspace",
         "assert_cmd",
         "assert_cmd.workspace",
+        "bijux-dna",
+        "bijux-dna.workspace",
         "bijux-dna-bench",
         "bijux-dna-analyze",
         "bijux-dna-core",
