@@ -1025,6 +1025,7 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
+    use std::time::Duration;
 
     use super::{build_output_contract_audit_report, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH};
 
@@ -1035,9 +1036,18 @@ mod tests {
             .expect("canonicalize repo root")
     }
 
+    fn benchmark_readiness_test_lock(root: &PathBuf) -> bijux_dna_infra::FileLock {
+        bijux_dna_infra::FileLock::acquire(
+            &root.join("artifacts/test-locks/benchmark-readiness-mutators.lock"),
+            Duration::from_secs(300),
+        )
+        .expect("acquire benchmark readiness test lock")
+    }
+
     #[test]
     fn build_output_contract_audit_report_records_governed_proof_surfaces() {
         let root = repo_root();
+        let _lock = benchmark_readiness_test_lock(&root);
         let report = build_output_contract_audit_report(
             &root,
             &root.join(DEFAULT_OUTPUT_CONTRACT_TESTS_PATH),
