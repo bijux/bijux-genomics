@@ -8,6 +8,8 @@ mod support;
 #[test]
 fn bench_local_fake_run_all_domain_failures_writes_governed_failure_tree() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _repo_lock =
+        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
