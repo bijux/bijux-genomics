@@ -1407,7 +1407,7 @@
               },
               "steps": [
                 {
-                  "uses": "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd"
+                  "uses": "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0"
                 },
                 {
                   "uses": "dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9",
@@ -1444,7 +1444,7 @@
               },
               "steps": [
                 {
-                  "uses": "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd"
+                  "uses": "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0"
                 },
                 {
                   "uses": "dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9",
@@ -1476,7 +1476,7 @@
               "needs": "fast-tier",
               "steps": [
                 {
-                  "uses": "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd"
+                  "uses": "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0"
                 },
                 {
                   "uses": "dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9",
@@ -1501,7 +1501,7 @@
               "needs": "fast-tier",
               "steps": [
                 {
-                  "uses": "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd"
+                  "uses": "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0"
                 },
                 {
                   "uses": "dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9",
@@ -1526,7 +1526,7 @@
               "needs": "fast-tier",
               "steps": [
                 {
-                  "uses": "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd"
+                  "uses": "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0"
                 },
                 {
                   "uses": "dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9",
@@ -1551,7 +1551,7 @@
               "needs": "fast-tier",
               "steps": [
                 {
-                  "uses": "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd"
+                  "uses": "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0"
                 },
                 {
                   "uses": "dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9",
@@ -1579,7 +1579,7 @@
         "github-policy",
         "pr-approval-policy"
       ],
-      "pinned_std_sha": "05d63cd12b4d96afe4b74dbda1cd1e27bee344e5"
+      "pinned_std_sha": "75681583ab4d970d27797be07b97f9b9d8a8b517"
     },
     {
       "name": "bijux-iac",
