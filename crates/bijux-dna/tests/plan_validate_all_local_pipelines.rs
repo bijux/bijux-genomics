@@ -61,13 +61,26 @@ fn plan_validate_all_local_pipelines_reports_benchmark_root_contract() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/local-ready/pipeline-dag/all-benchmark-pipelines.json")
     );
-    assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("valid_pipeline_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(21));
+    assert_eq!(payload.get("valid_pipeline_count").and_then(serde_json::Value::as_u64), Some(21));
     assert_eq!(payload.get("all_valid").and_then(serde_json::Value::as_bool), Some(true));
 
     let pipelines =
         payload.get("pipelines").and_then(serde_json::Value::as_array).expect("pipelines array");
-    assert_eq!(pipelines.len(), 20);
+    assert_eq!(pipelines.len(), 21);
+    assert!(
+        pipelines.iter().any(|report| {
+            report.get("pipeline_id").and_then(serde_json::Value::as_str)
+                == Some("adna-equus-caballus-fastq-bam-vcf")
+                && report.get("config_path").and_then(serde_json::Value::as_str)
+                    == Some("benchmarks/configs/pipelines/local/adna-equus-caballus-fastq-bam-vcf")
+                && report.get("output_path").and_then(serde_json::Value::as_str)
+                    == Some(
+                        "benchmarks/readiness/local-ready/pipeline-dag/adna-equus-caballus-fastq-bam-vcf.json"
+                    )
+        }),
+        "all-pipeline validation must include the governed horse aDNA bundle output"
+    );
     assert!(
         pipelines.iter().any(|report| {
             report.get("pipeline_id").and_then(serde_json::Value::as_str)

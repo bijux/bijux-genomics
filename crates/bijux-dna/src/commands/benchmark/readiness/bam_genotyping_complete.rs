@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Context, Result};
+#[cfg(feature = "bam_downstream")]
+use anyhow::Context;
+use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "bam_downstream")]
@@ -237,7 +239,7 @@ pub(crate) struct BamGenotypingCompleteReport {
 pub(crate) fn run_render_bam_genotyping_complete(
     args: &parse::BenchReadinessRenderBamGenotypingCompleteArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_bam_genotyping_complete(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_BAM_GENOTYPING_COMPLETE_PATH)),

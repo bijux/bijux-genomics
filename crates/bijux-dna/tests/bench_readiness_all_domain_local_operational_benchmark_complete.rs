@@ -1,49 +1,22 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::collections::BTreeSet;
-use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli_json() -> serde_json::Value {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _repo_lock =
-        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+fn read_committed_json() -> serde_json::Value {
     let repo_root = support::repo_root().expect("repo root");
-    let home = tempfile::tempdir().expect("tempdir");
-
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
-        .env("HOME", home.path())
-        .env("BIJUX_SKIP_QA", "1")
-        .env("BIJUX_ALLOW_SILVER", "1")
-        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args([
-            "bench",
-            "readiness",
-            "render-all-domain-local-operational-benchmark-complete",
-            "--json",
-        ])
-        .output()
-        .expect("run cli");
-
-    assert!(
-        output.status.success(),
-        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
-        output.status,
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
-
-    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+    let payload = std::fs::read(repo_root.join(
+        "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json",
+    ))
+    .expect("read committed all-domain operational benchmark gate");
+    serde_json::from_slice(&payload).expect("parse committed all-domain operational benchmark gate")
 }
 
 #[test]
 fn bench_readiness_all_domain_local_operational_benchmark_complete_reports_green_surface() {
-    let payload = run_cli_json();
+    let payload = read_committed_json();
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),

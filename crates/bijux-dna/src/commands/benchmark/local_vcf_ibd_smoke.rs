@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
-use std::time::{Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_stages_vcf::pipeline::{
@@ -50,6 +50,8 @@ const DEFAULT_PROBE_SOURCE_ROH_SEGMENTS_NAME: &str = "probe_source_roh_segments.
 const DEFAULT_STAGE_RESULT_NAME: &str = "stage-result.json";
 const GOVERNED_IBD_SEGMENT_MARKER_MINIMUM: usize = 1;
 const PROBE_IBD_SEGMENT_MARKER_MINIMUM: usize = 50;
+const VCF_BENCHMARK_MUTATOR_LOCK_PATH: &str = "artifacts/test-locks/vcf-benchmark-mutators.lock";
+const VCF_BENCHMARK_MUTATOR_LOCK_TIMEOUT: Duration = Duration::from_mins(5);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct GovernedVcfIbdSmokeContract {
@@ -146,6 +148,14 @@ pub(crate) fn run_local_vcf_ibd_smoke(
     repo_root: &Path,
     tool_id: &str,
 ) -> Result<LocalVcfIbdSmokeReport> {
+    let _lock = benchmark_output_lock(repo_root)?;
+    run_local_vcf_ibd_smoke_unlocked(repo_root, tool_id)
+}
+
+pub(super) fn run_local_vcf_ibd_smoke_unlocked(
+    repo_root: &Path,
+    tool_id: &str,
+) -> Result<LocalVcfIbdSmokeReport> {
     let contract = resolve_governed_vcf_ibd_smoke_contract(tool_id)?;
     let fixture_manifest_path = repo_root.join(DEFAULT_VCF_MINI_MANIFEST_PATH);
     let fixture_manifest = load_vcf_corpus_fixture_manifest_path(&fixture_manifest_path)?;
@@ -164,10 +174,8 @@ pub(crate) fn run_local_vcf_ibd_smoke(
     validate_expected_cohort_samples(&sample_metadata, &expected_samples)?;
 
     let output_root = repo_root.join(DEFAULT_VCF_IBD_SMOKE_ROOT).join(&contract.tool_id);
-    if output_root.exists() {
-        fs::remove_dir_all(&output_root)
-            .with_context(|| format!("remove {}", output_root.display()))?;
-    }
+    bijux_dna_infra::ensure_dir(&output_root)
+        .with_context(|| format!("create {}", output_root.display()))?;
     let artifacts_root = output_root.join("artifacts");
     let input_root = artifacts_root.join("input");
     let stage_root = artifacts_root.join("stage");
@@ -464,6 +472,14 @@ pub(crate) fn run_local_vcf_ibd_smoke(
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;
 
     Ok(report)
+}
+
+pub(super) fn benchmark_output_lock(repo_root: &Path) -> Result<bijux_dna_infra::FileLock> {
+    bijux_dna_infra::FileLock::acquire(
+        &repo_root.join(VCF_BENCHMARK_MUTATOR_LOCK_PATH),
+        VCF_BENCHMARK_MUTATOR_LOCK_TIMEOUT,
+    )
+    .map_err(|err| anyhow!("acquire VCF benchmark output lock: {err}"))
 }
 
 fn resolve_governed_vcf_ibd_smoke_contract(tool_id: &str) -> Result<GovernedVcfIbdSmokeContract> {

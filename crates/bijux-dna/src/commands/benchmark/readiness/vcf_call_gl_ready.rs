@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use serde::Serialize;
 
 use super::vcf_adapter_output_coverage::{
@@ -122,7 +122,7 @@ pub(crate) struct VcfCallGlReadyReport {
 pub(crate) fn run_render_vcf_call_gl_ready(
     args: &parse::BenchReadinessRenderVcfCallGlReadyArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_vcf_call_gl_ready(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_CALL_GL_READY_PATH)),

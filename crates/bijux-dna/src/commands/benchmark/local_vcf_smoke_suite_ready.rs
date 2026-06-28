@@ -62,7 +62,7 @@ pub(crate) struct LocalVcfSmokeSuiteReadyReport {
 pub(crate) fn run_validate_vcf_smoke_suite_ready(
     args: &parse::BenchLocalValidateVcfSmokeSuiteReadyArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = validate_vcf_smoke_suite_ready(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_SMOKE_SUITE_READY_PATH)),

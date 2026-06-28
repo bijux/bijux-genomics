@@ -138,9 +138,15 @@ fn stale_repo_test_lock(path: &Path) -> Result<bool> {
 }
 
 fn lock_is_older_than(path: &Path, threshold: Duration) -> Result<bool> {
-    let modified = fs::metadata(path)
-        .and_then(|metadata| metadata.modified())
-        .map_err(|error| anyhow!("read repo test lock metadata `{}`: {error}", path.display()))?;
+    let modified = match fs::metadata(path) {
+        Ok(metadata) => metadata.modified().map_err(|error| {
+            anyhow!("read repo test lock metadata `{}`: {error}", path.display())
+        })?,
+        Err(error) if error.kind() == ErrorKind::NotFound => return Ok(true),
+        Err(error) => {
+            return Err(anyhow!("read repo test lock metadata `{}`: {error}", path.display()));
+        }
+    };
     let age = modified
         .elapsed()
         .map_err(|error| anyhow!("measure repo test lock age `{}`: {error}", path.display()))?;
@@ -149,8 +155,14 @@ fn lock_is_older_than(path: &Path, threshold: Duration) -> Result<bool> {
 
 #[cfg(unix)]
 fn process_is_alive(pid: u32) -> bool {
-    let system = sysinfo::System::new_all();
-    system.process(sysinfo::Pid::from_u32(pid)).is_some()
+    let Ok(pid) = i32::try_from(pid) else {
+        return false;
+    };
+    match nix::sys::signal::kill(nix::unistd::Pid::from_raw(pid), None) {
+        Ok(()) | Err(nix::errno::Errno::EPERM) => true,
+        Err(nix::errno::Errno::ESRCH) => false,
+        Err(_) => false,
+    }
 }
 
 #[cfg(not(unix))]

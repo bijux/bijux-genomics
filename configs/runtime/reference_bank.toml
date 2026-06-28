@@ -22,3 +22,12 @@ fasta_sha256 = "7e7de52c4354606d6edd2890321f8604899feb1003f91c90f05afa5a985a9623
 license_id = "CanFam4"
 license_url = "https://www.ncbi.nlm.nih.gov/assembly/GCF_011100685.1"
 required_indexes = ["samtools_faidx", "bwa_index", "bowtie2_index"]
+
+[[reference]]
+species_id = "Equus caballus"
+build_id = "EquCab3"
+fasta_url = "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/863/925/GCF_002863925.1_EquCab3.0/GCF_002863925.1_EquCab3.0_genomic.fna.gz"
+fasta_sha256 = "a14ab19db2ff738873ac1f3ba8149091aa7e8ab71790289a8bb96a66eb8b8d0c"
+license_id = "EquCab3"
+license_url = "https://www.ncbi.nlm.nih.gov/assembly/GCF_002863925.1"
+required_indexes = ["samtools_faidx", "bwa_index", "bowtie2_index"]

@@ -1,5 +1,7 @@
 #[cfg(feature = "bam_downstream")]
 use std::path::{Path, PathBuf};
+#[cfg(feature = "bam_downstream")]
+use std::time::Duration;
 
 #[cfg(feature = "bam_downstream")]
 use anyhow::{anyhow, Context, Result};
@@ -14,6 +16,10 @@ const LOCAL_KINSHIP_SMOKE_METRICS_SCHEMA_VERSION: &str = "bijux.bam.kinship.loca
 const KINSHIP_TOOL_REPORT_SCHEMA_VERSION: &str = "bijux.bam.kinship.v1";
 #[cfg(feature = "bam_downstream")]
 const KINSHIP_STAGE_METRICS_SCHEMA_VERSION: &str = "bijux.bam.kinship.stage_metrics.v1";
+#[cfg(feature = "bam_downstream")]
+const LOCAL_KINSHIP_SMOKE_LOCK_PATH: &str = "artifacts/test-locks/bam-kinship-local-smoke.lock";
+#[cfg(feature = "bam_downstream")]
+const LOCAL_KINSHIP_SMOKE_LOCK_TIMEOUT: Duration = Duration::from_mins(5);
 
 #[cfg(feature = "bam_downstream")]
 #[derive(Debug, Clone, Serialize)]
@@ -59,6 +65,7 @@ struct LocalKinshipSmokeReport {
 #[cfg(feature = "bam_downstream")]
 pub fn write_local_kinship_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
+    let _lock = local_kinship_smoke_lock(&repo_root)?;
     let cases = bijux_dna_planner_bam::stage_api::local_kinship_smoke_plans(&repo_root)?;
     let output_root = repo_root.join("runs/bench/local-smoke/bam.kinship");
     bijux_dna_infra::ensure_dir(&output_root)?;
@@ -79,6 +86,15 @@ pub fn write_local_kinship_smoke_report() -> Result<PathBuf> {
     Ok(report_path)
 }
 
+#[cfg(feature = "bam_downstream")]
+fn local_kinship_smoke_lock(repo_root: &Path) -> Result<bijux_dna_infra::FileLock> {
+    bijux_dna_infra::FileLock::acquire(
+        &repo_root.join(LOCAL_KINSHIP_SMOKE_LOCK_PATH),
+        LOCAL_KINSHIP_SMOKE_LOCK_TIMEOUT,
+    )
+    .map_err(|err| anyhow!("acquire BAM kinship local-smoke lock: {err}"))
+}
+
 /// Write durable `bam.kinship` report, summary, and pairwise-segment artifacts beside stage outputs.
 ///
 /// # Errors
@@ -89,6 +105,8 @@ pub(crate) fn write_stage_kinship_artifacts(
     stage_dir: &Path,
     plan: &bijux_dna_stage_contract::StagePlanV1,
 ) -> Result<bijux_dna_domain_bam::BamKinshipSummaryV1> {
+    bijux_dna_infra::ensure_dir(stage_dir)
+        .with_context(|| format!("create {}", stage_dir.display()))?;
     let input_bam = resolve_bam_input_path(stage_dir, plan);
     let reference_panel = required_string_param(plan, "reference_panel")?;
     let reference_build = required_string_param(plan, "reference_build")?;
@@ -113,6 +131,19 @@ pub(crate) fn write_stage_kinship_artifacts(
     let summary_path = stage_dir.join("kinship.summary.json");
     let segments_path = stage_dir.join("kinship.segments.tsv");
     let stage_metrics_path = stage_dir.join("stage.metrics.json");
+
+    for parent in [
+        report_path.parent(),
+        summary_path.parent(),
+        segments_path.parent(),
+        stage_metrics_path.parent(),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
+    }
 
     bijux_dna_infra::atomic_write_json(&report_path, &kinship_tool_report(&summary))
         .with_context(|| format!("write {}", report_path.display()))?;

@@ -63,9 +63,11 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_documented_ada
         "sha2",
         "tar",
         "flate2",
+        "reqwest",
         "schemars",
         "noodles-bam",
         "noodles-sam",
+        "zip",
     ];
     let offenders: Vec<String> = deps
         .iter()

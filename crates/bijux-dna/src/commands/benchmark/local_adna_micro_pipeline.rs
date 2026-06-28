@@ -1752,7 +1752,16 @@ fn write_fastq_records(path: &Path, records: &[FastqRecord]) -> Result<()> {
         payload.push_str(&record.quality);
         payload.push('\n');
     }
-    bijux_dna_infra::write_bytes(path, payload)?;
+    if path.extension().and_then(|ext| ext.to_str()) == Some("gz") {
+        let file = bijux_dna_infra::create_file(path)
+            .with_context(|| format!("create {}", path.display()))?;
+        let mut writer = flate2::write::GzEncoder::new(file, flate2::Compression::default());
+        std::io::Write::write_all(&mut writer, payload.as_bytes())?;
+        std::io::Write::flush(&mut writer)?;
+        let _ = writer.finish()?;
+    } else {
+        bijux_dna_infra::write_bytes(path, payload)?;
+    }
     Ok(())
 }
 

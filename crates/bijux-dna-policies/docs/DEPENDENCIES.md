@@ -14,6 +14,7 @@
 - `insta` for policy snapshots.
 - `serde_json` and `serde_yaml` for governed fixture and configuration policy tests.
 - `sha2` for snapshot and fixture stability checks.
+- `bijux-dna` for CLI-surface contract tests that inspect exported registry material.
 - Workspace model crates used only to validate repository contracts: `bijux-dna-core`, `bijux-dna-pipelines`, `bijux-dna-runtime`, `bijux-dna-stage-contract`, and `bijux-dna-testkit`.
 
 ## Forbidden Runtime Dependencies

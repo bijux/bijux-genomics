@@ -54,24 +54,26 @@ reqwest = { version = "0.12", default-features = false, features = ["blocking", 
 rayon = "1"
 flate2 = "1"
 tar = "0.4"
+zip = { version = "2", default-features = false, features = ["deflate"] }
 sha2 = "0.11"
-sysinfo = "0.36"
 tempfile = "3"
-rand = "0.9"
+rand = "0.10"
 schemars = { version = "0.8", features = ["derive"] }
 toml = "0.8"
 cargo_metadata = "0.18"
 assert_cmd = "2"
 predicates = "3"
+nix = { version = "0.30", features = ["signal", "process"] }
 filetime = "0.2"
 fs4 = "0.13.1"
 serde_yaml = "0.9"
 opentelemetry = "0.32"
 opentelemetry_sdk = "0.32"
 insta = "1"
-noodles-bam = "0.88"
-noodles-sam = "0.84"
+noodles-bam = "0.90"
+noodles-sam = "0.85"
 bijux-dna-analyze = { path = "crates/bijux-dna-analyze" }
+bijux-dna = { path = "crates/bijux-dna" }
 bijux-dna-api = { path = "crates/bijux-dna-api" }
 bijux-dna-core = { path = "crates/bijux-dna-core" }
 bijux-dna-db-ena = { path = "crates/bijux-dna-db-ena" }

@@ -11,6 +11,15 @@ retries = { count = 1, backoff = "fixed", delay = "1s" }
 [store]
 dir = "artifacts/rust/test/nextest-store"
 
+[test-groups.benchmark-readiness-mutators]
+max-threads = 1
+
+[test-groups.micro-benchmark-mutators]
+max-threads = 1
+
+[test-groups.vcf-benchmark-mutators]
+max-threads = 1
+
 [profile.ci]
 retries = { count = 0, backoff = "fixed", delay = "1s" }
 fail-fast = false
@@ -28,6 +37,22 @@ slow-timeout = "1s"
 failure-output = "immediate"
 success-output = "never"
 status-level = "pass"
+
+[[profile.full.overrides]]
+filter = 'package(bijux-dna) and test(/^(?:bench_readiness_|bench_active_scope_validate_fast|bench_paths_validate)/)'
+test-group = 'benchmark-readiness-mutators'
+
+[[profile.full.overrides]]
+filter = 'package(bijux-dna) and test(/^(?:bench_local_amplicon_micro_pipeline|bench_local_bam_micro_smoke_subset|bench_run_micro)/)'
+test-group = 'micro-benchmark-mutators'
+
+[[profile.full.overrides]]
+filter = 'package(bijux-dna) and test(/^(?:bench_local_vcf_|bench_local_validate_vcf_smoke_suite_ready)/)'
+test-group = 'vcf-benchmark-mutators'
+
+[[profile.full.overrides]]
+filter = 'package(bijux-dna) and test(/commands::benchmark::local_vcf_(?:demography|ibd)_smoke::tests::/)'
+test-group = 'vcf-benchmark-mutators'
 
 [profile.slow]
 retries = { count = 1, backoff = "fixed", delay = "1s" }

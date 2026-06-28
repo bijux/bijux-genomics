@@ -145,6 +145,10 @@ pub enum ConfigCommand {
         #[arg(long, default_value_t = false)]
         json: bool,
     },
+    #[command(name = "pipeline-operations-report")]
+    PipelineOperationsReport(PipelineOperationsReportArgs),
+    #[command(name = "materialize-pipeline-assets")]
+    MaterializePipelineAssets(PipelineAssetMaterializationArgs),
     #[command(name = "benchmark-matrix")]
     BenchmarkMatrix(BenchmarkMatrixArgs),
     #[command(name = "appraise-matrix")]
@@ -162,6 +166,30 @@ pub enum ConfigCommand {
     #[command(name = "hardening-benchmark-campaign")]
     HardeningBenchmarkCampaign(HardeningBenchmarkCampaignArgs),
     Doctor,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct PipelineOperationsReportArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub operations_root: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub campaign_config: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct PipelineAssetMaterializationArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub operations_root: Option<PathBuf>,
+    #[arg(long, default_value = "all", help = "all|ref-prep|snp-prep")]
+    pub surface: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
 }
 
 #[derive(Debug, Args, Clone)]

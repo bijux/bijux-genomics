@@ -105,11 +105,7 @@ pub(crate) fn run_local_vcf_imputation_metrics_smoke(
     let source_report = run_local_vcf_impute_smoke(repo_root, tool_id)?;
     let output_root =
         repo_root.join(DEFAULT_VCF_IMPUTATION_METRICS_SMOKE_ROOT).join(&source_report.tool_id);
-    if output_root.exists() {
-        fs::remove_dir_all(&output_root)
-            .with_context(|| format!("remove {}", output_root.display()))?;
-    }
-    fs::create_dir_all(&output_root)
+    bijux_dna_infra::ensure_dir(&output_root)
         .with_context(|| format!("create {}", output_root.display()))?;
 
     let source_imputation_qc_source = repo_root.join(&source_report.imputation_qc_path);

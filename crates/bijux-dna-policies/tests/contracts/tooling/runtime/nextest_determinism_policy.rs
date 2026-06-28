@@ -36,6 +36,8 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         .expect("read configs/rust/nextest.toml");
     let cargo_mk =
         std::fs::read_to_string(root.join("makes/cargo.mk")).expect("read makes/cargo.mk");
+    let rust_gate =
+        std::fs::read_to_string(root.join("makes/bin/rust_gate.sh")).expect("read rust gate");
     let slow_roster = std::fs::read_to_string(root.join("configs/rust/nextest-slow-roster.txt"))
         .expect("read nextest slow roster");
     bijux_dna_policies::policy_assert!(
@@ -69,11 +71,27 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
     );
     bijux_dna_policies::policy_assert!(
         cargo_mk.contains("NEXTEST_PROFILE_ALL ?= full"),
-        "test-all must default to the full nextest profile"
+        "test-all must default to the deterministic full nextest profile"
     );
     bijux_dna_policies::policy_assert!(
         cargo_mk.contains("NEXTEST_EXPR_BIN ?= makes/bin/nextest_expr.sh"),
         "make test lanes must derive slow-test filters from the governed expression builder"
+    );
+    bijux_dna_policies::policy_assert!(
+        cargo_mk.contains("NEXTEST_THREADS_ALL ?= $(if $(CARGO_BUILD_JOBS),$(CARGO_BUILD_JOBS),8)"),
+        "test-all must default the frozen/full-suite cargo job fan-out to 8"
+    );
+    bijux_dna_policies::policy_assert!(
+        !config.contains("[profile.full-parallel]"),
+        "full-suite test-all should not declare an unsafe parallel nextest profile while governed outputs share repo paths"
+    );
+    bijux_dna_policies::policy_assert!(
+        !cargo_mk.contains("NEXTEST_TEST_THREADS_ALL ?= 8"),
+        "test-all must not advertise a governed nextest test-thread override while shared benchmark outputs remain non-isolated"
+    );
+    bijux_dna_policies::policy_assert!(
+        !rust_gate.contains("--test-threads \"${nextest_test_threads_all}\""),
+        "rust gate test-all lane must not pass duplicate nextest test-thread overrides"
     );
     bijux_dna_policies::policy_assert!(
         slow_roster.lines().map(str::trim).any(|line| !line.is_empty() && !line.starts_with('#')),

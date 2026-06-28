@@ -31,8 +31,7 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_sex_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _lock = crate::support::bench_output_lock()
-        .lock()
-        .unwrap_or_else(|err| panic!("lock BAM sex benchmark output: {err}"));
+        .unwrap_or_else(|err| panic!("repo lock BAM sex benchmark output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
     let output_dir = repo_root.join("runs/bench/local-smoke/bam.sex");
     if output_dir.exists() {

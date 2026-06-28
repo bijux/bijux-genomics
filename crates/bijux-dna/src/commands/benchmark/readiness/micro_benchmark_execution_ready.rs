@@ -138,7 +138,7 @@ struct MicroBenchmarkReportSummary {
 pub(crate) fn run_render_micro_benchmark_execution_ready(
     args: &parse::BenchReadinessRenderMicroBenchmarkExecutionReadyArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_micro_benchmark_execution_ready(
         &repo_root,
         args.output

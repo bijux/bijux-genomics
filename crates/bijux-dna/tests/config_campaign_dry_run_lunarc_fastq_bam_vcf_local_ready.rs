@@ -105,7 +105,7 @@ fn config_campaign_dry_run_lunarc_fastq_bam_vcf_local_ready_reports_prepared_cro
 
     let jobs =
         payload.get("planned_jobs").and_then(serde_json::Value::as_array).expect("planned jobs");
-    assert_eq!(jobs.len(), 9);
+    assert_eq!(jobs.len(), 16);
 
     let stages: Vec<_> = jobs
         .iter()
@@ -115,10 +115,17 @@ fn config_campaign_dry_run_lunarc_fastq_bam_vcf_local_ready_reports_prepared_cro
         stages,
         vec![
             "fastq.validate_reads",
+            "fastq.profile_read_lengths",
+            "fastq.detect_adapters",
             "fastq.trim_reads",
+            "fastq.merge_pairs",
+            "fastq.filter_reads",
             "bam.align",
+            "bam.markdup",
             "bam.qc_pre",
-            "bam.recalibration",
+            "bam.damage",
+            "bam.coverage",
+            "bam.duplication_metrics",
             "vcf.call",
             "vcf.filter",
             "vcf.stats",
@@ -137,6 +144,13 @@ fn config_campaign_dry_run_lunarc_fastq_bam_vcf_local_ready_reports_prepared_cro
     assert_eq!(
         vcf_call.get("resource_template").and_then(serde_json::Value::as_str),
         Some("vcf_call")
+    );
+    assert_eq!(
+        jobs.iter()
+            .find(|job| job.get("stage").and_then(serde_json::Value::as_str) == Some("bam.markdup"))
+            .and_then(|job| job.get("resource_template"))
+            .and_then(serde_json::Value::as_str),
+        Some("bam_markdup")
     );
 
     let vcf_qc = jobs

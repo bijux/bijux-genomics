@@ -155,7 +155,7 @@ struct FastqBamDeclaredOutputBundle {
 pub(crate) fn run_render_output_contract_audit(
     args: &parse::BenchReadinessRenderOutputContractTestsArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_output_contract_audit(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_OUTPUT_CONTRACT_TESTS_PATH)),
@@ -1024,7 +1024,8 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
+    use std::time::Duration;
 
     use super::{build_output_contract_audit_report, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH};
 
@@ -1035,9 +1036,18 @@ mod tests {
             .expect("canonicalize repo root")
     }
 
+    fn benchmark_readiness_test_lock(root: &Path) -> bijux_dna_infra::FileLock {
+        bijux_dna_infra::FileLock::acquire(
+            &root.join("artifacts/test-locks/benchmark-readiness-mutators.lock"),
+            Duration::from_mins(5),
+        )
+        .expect("acquire benchmark readiness test lock")
+    }
+
     #[test]
     fn build_output_contract_audit_report_records_governed_proof_surfaces() {
         let root = repo_root();
+        let _lock = benchmark_readiness_test_lock(&root);
         let report = build_output_contract_audit_report(
             &root,
             &root.join(DEFAULT_OUTPUT_CONTRACT_TESTS_PATH),

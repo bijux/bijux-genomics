@@ -8,11 +8,27 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pull-requests: write
 
 jobs:
+  policy-gate:
+    name: policy-prerequisites
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository policy scripts
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Wait for policy and standards prerequisites
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          BIJUX_REQUIRED_WORKFLOWS: policy / pr approval
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/check_workflow_prerequisites.py
+
   enable:
-    if: ${{ !contains(fromJson('["pull_request","pull_request_review"]'), github.event_name) || (github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}
+    needs: policy-gate
     runs-on: ubuntu-latest
     steps:
       - name: Enable auto-merge when CODEOWNERS approval is present

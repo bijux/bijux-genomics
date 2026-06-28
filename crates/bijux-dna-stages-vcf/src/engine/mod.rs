@@ -31,3 +31,28 @@ pub mod wrappers;
 
 pub use entrypoints::run_vcf_pipeline;
 pub use request::*;
+
+/// Run a checked host command through the governed execution boundary.
+///
+/// # Errors
+/// Returns an error when the command exits unsuccessfully or cannot be started.
+pub fn run_boundary_checked_command<I, S>(
+    command: &str,
+    args: I,
+    current_dir: Option<&Path>,
+) -> Result<()>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    execution::run_checked_command(command, args, current_dir).map(|_| ())
+}
+
+#[must_use]
+pub fn boundary_command_succeeds<I, S>(command: &str, args: I, current_dir: Option<&Path>) -> bool
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    execution::command_succeeds(command, args, current_dir)
+}

@@ -1061,7 +1061,8 @@ impl Drop for CurrentDirGuard {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
+    use std::time::Duration;
 
     use super::{
         render_bam_all_retained_tools_complete, BamAllRetainedToolsCompleteReport,
@@ -1076,10 +1077,20 @@ mod tests {
             .expect("canonicalize repo root")
     }
 
+    fn benchmark_readiness_test_lock(root: &Path) -> bijux_dna_infra::FileLock {
+        bijux_dna_infra::FileLock::acquire(
+            &root.join("artifacts/test-locks/benchmark-readiness-mutators.lock"),
+            Duration::from_mins(5),
+        )
+        .expect("acquire benchmark readiness test lock")
+    }
+
     #[test]
     fn render_bam_all_retained_tools_complete_reports_governed_pass_state() {
+        let root = repo_root();
+        let _lock = benchmark_readiness_test_lock(&root);
         let report = render_bam_all_retained_tools_complete(
-            &repo_root(),
+            &root,
             PathBuf::from(DEFAULT_BAM_ALL_RETAINED_TOOLS_COMPLETE_PATH),
         )
         .expect("render BAM retained-tools completion report");

@@ -1,0 +1,544 @@
+{
+  "schema_version": "bijux.bench.local_pipeline_dag_validation.v1",
+  "config_path": "benchmarks/configs/pipelines/local/adna-equus-caballus-fastq-bam-vcf",
+  "output_path": "benchmarks/readiness/local-ready/pipeline-dag/adna-equus-caballus-fastq-bam-vcf.json",
+  "pipeline_id": "adna-equus-caballus-fastq-bam-vcf",
+  "domain": "cross",
+  "default_corpus_id": "corpus-01-mini",
+  "summary": "Ancient-DNA Equus caballus FASTQ-to-BAM-to-VCF DAG for read-length-aware short-read alignment on EquCab3, aggressive adapter-aware preprocessing, post-alignment duplicate marking, BAM damage evidence, and downstream variant calling.",
+  "reference_context": {
+    "species_id": "Equus caballus",
+    "build_id": "EquCab3",
+    "reference_bundle_id": "ecaballus_equcab3_primary"
+  },
+  "execution_context": {
+    "site_profile_id": "lunarc",
+    "default_campaign_config": "benchmarks/configs/hpc/campaign/lunarc-fastq-bam-vcf-local-ready.toml",
+    "frontend_surfaces": [
+      "downloads",
+      "ref-prep",
+      "snp-prep"
+    ],
+    "compute_surfaces": [
+      "fastq-qc",
+      "fastq-to-bam",
+      "bam-qc",
+      "bam-to-vcf"
+    ]
+  },
+  "project_source_count": 5,
+  "project_sources": [
+    {
+      "project_id": "PRJEB10854",
+      "metadata_url": "https://www.ebi.ac.uk/ena/portal/api/filereport?accession=PRJEB10854&result=read_run&fields=study_accession,sample_accession,experiment_accession,run_accession,tax_id,scientific_name,fastq_ftp,submitted_ftp,sra_ftp,bam_ftp&format=tsv&download=true&limit=0",
+      "retries": 3
+    },
+    {
+      "project_id": "PRJEB22390",
+      "metadata_url": "https://www.ebi.ac.uk/ena/portal/api/filereport?accession=PRJEB22390&result=read_run&fields=study_accession,sample_accession,experiment_accession,run_accession,tax_id,scientific_name,fastq_ftp,submitted_ftp,sra_ftp,bam_ftp&format=tsv&download=true&limit=0",
+      "retries": 3
+    },
+    {
+      "project_id": "PRJEB31613",
+      "metadata_url": "https://www.ebi.ac.uk/ena/portal/api/filereport?accession=PRJEB31613&result=read_run&fields=study_accession,sample_accession,experiment_accession,run_accession,tax_id,scientific_name,fastq_ftp,submitted_ftp,sra_ftp,bam_ftp&format=tsv&download=true&limit=0",
+      "retries": 3
+    },
+    {
+      "project_id": "PRJEB44430",
+      "metadata_url": "https://www.ebi.ac.uk/ena/portal/api/filereport?accession=PRJEB44430&result=read_run&fields=study_accession,sample_accession,experiment_accession,run_accession,tax_id,scientific_name,fastq_ftp,submitted_ftp,sra_ftp,bam_ftp&format=tsv&download=true&limit=0",
+      "retries": 3
+    },
+    {
+      "project_id": "PRJEB7537",
+      "metadata_url": "https://www.ebi.ac.uk/ena/portal/api/filereport?accession=PRJEB7537&result=read_run&fields=study_accession,sample_accession,experiment_accession,run_accession,tax_id,scientific_name,fastq_ftp,submitted_ftp,sra_ftp,bam_ftp&format=tsv&download=true&limit=0",
+      "retries": 3
+    }
+  ],
+  "ancient_dna_policy": {
+    "aligner_mode": "auto",
+    "auto_bwa_aln_p75_threshold_bp": 35,
+    "adapter_cleanup_tool": "adapterremoval",
+    "merge_pairs_in_preprocess": true,
+    "duplicate_stage_id": "bam.markdup",
+    "duplicate_tool": "samtools",
+    "caller_tool": "bcftools"
+  },
+  "reference_assets": {
+    "directory_name": "ref_EquCab3",
+    "genome_url": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/863/925/GCF_002863925.1_EquCab3.0/GCF_002863925.1_EquCab3.0_genomic.fna.gz",
+    "genome_filename": "GCF_002863925.1_EquCab3.0_genomic.fna.gz",
+    "assembly_report_url": "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/002/863/925/GCF_002863925.1_EquCab3.0/GCF_002863925.1_EquCab3.0_assembly_report.txt",
+    "assembly_report_filename": "GCF_002863925.1_EquCab3.0_assembly_report.txt"
+  },
+  "variant_assets": {
+    "directory_name": "snp_EquCab3",
+    "source_vcf_url": "https://ftp.ensembl.org/pub/release-113/variation/vcf/equus_caballus/equus_caballus.vcf.gz",
+    "source_vcf_filename": "equus_caballus.vcf.gz",
+    "refseq_vcf_filename": "equus_caballus_EquCab3_refseq.vcf.gz",
+    "annotated_vcf_filename": "equus_caballus_EquCab3_annotated.vcf.gz",
+    "snpeff": {
+      "genome_id": "EquCab3.0.99",
+      "database_url": "https://snpeff-public.s3.amazonaws.com/databases/v5_0/snpEff_v5_0_EquCab3.0.99.zip",
+      "database_filename": "snpEff_v5_0_EquCab3.0.99.zip",
+      "core_url": "https://snpeff-public.s3.amazonaws.com/versions/snpEff_latest_core.zip",
+      "core_filename": "snpEff_latest_core.zip"
+    }
+  },
+  "node_count": 18,
+  "edge_count": 27,
+  "acyclic": true,
+  "valid": true,
+  "topological_order": [
+    "fastq.validate_reads",
+    "fastq.profile_read_lengths",
+    "fastq.detect_adapters",
+    "fastq.trim_reads",
+    "fastq.merge_pairs",
+    "fastq.filter_reads",
+    "bam.align",
+    "bam.markdup",
+    "bam.validate",
+    "bam.damage",
+    "bam.duplication_metrics",
+    "bam.qc_pre",
+    "bam.mapping_summary",
+    "bam.coverage",
+    "vcf.call",
+    "vcf.filter",
+    "vcf.stats",
+    "vcf.qc"
+  ],
+  "validation_profiles": [],
+  "nodes": [
+    {
+      "node_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 0,
+      "external_input_count": 1,
+      "upstream_input_count": 0,
+      "output_count": 3,
+      "depends_on": [],
+      "external_inputs": [
+        "corpus.raw_fastq_reads"
+      ],
+      "upstream_inputs": [],
+      "outputs": [
+        "validated_reads_r1_path",
+        "validated_reads_r2_path",
+        "validation_report"
+      ]
+    },
+    {
+      "node_id": "fastq.profile_read_lengths",
+      "stage_id": "fastq.profile_read_lengths",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validated_reads_r1_path",
+        "validated_reads_r2_path"
+      ],
+      "outputs": [
+        "read_length_metrics"
+      ]
+    },
+    {
+      "node_id": "fastq.detect_adapters",
+      "stage_id": "fastq.detect_adapters",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 1,
+      "depends_on": [
+        "fastq.validate_reads"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "validated_reads_r1_path",
+        "validated_reads_r2_path"
+      ],
+      "outputs": [
+        "adapter_report"
+      ]
+    },
+    {
+      "node_id": "fastq.trim_reads",
+      "stage_id": "fastq.trim_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 1,
+      "upstream_input_count": 3,
+      "output_count": 3,
+      "depends_on": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters"
+      ],
+      "external_inputs": [
+        "adna_adapter_trimming_policy_contract"
+      ],
+      "upstream_inputs": [
+        "validated_reads_r1_path",
+        "validated_reads_r2_path",
+        "adapter_report"
+      ],
+      "outputs": [
+        "trimmed_reads_r1_path",
+        "trimmed_reads_r2_path",
+        "trim_metrics"
+      ]
+    },
+    {
+      "node_id": "fastq.merge_pairs",
+      "stage_id": "fastq.merge_pairs",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 1,
+      "upstream_input_count": 2,
+      "output_count": 4,
+      "depends_on": [
+        "fastq.trim_reads"
+      ],
+      "external_inputs": [
+        "paired_end_merge_policy_contract"
+      ],
+      "upstream_inputs": [
+        "trimmed_reads_r1_path",
+        "trimmed_reads_r2_path"
+      ],
+      "outputs": [
+        "merged_reads",
+        "unmerged_r1_reads",
+        "unmerged_r2_reads",
+        "merge_metrics"
+      ]
+    },
+    {
+      "node_id": "fastq.filter_reads",
+      "stage_id": "fastq.filter_reads",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 1,
+      "upstream_input_count": 3,
+      "output_count": 4,
+      "depends_on": [
+        "fastq.merge_pairs"
+      ],
+      "external_inputs": [
+        "adna_short_fragment_filter_policy_contract"
+      ],
+      "upstream_inputs": [
+        "merged_reads",
+        "unmerged_r1_reads",
+        "unmerged_r2_reads"
+      ],
+      "outputs": [
+        "filtered_merged_reads",
+        "filtered_unmerged_r1_reads",
+        "filtered_unmerged_r2_reads",
+        "filter_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.align",
+      "stage_id": "bam.align",
+      "readiness_kind": "dry_or_smoke",
+      "dependency_count": 2,
+      "external_input_count": 4,
+      "upstream_input_count": 4,
+      "output_count": 3,
+      "depends_on": [
+        "fastq.profile_read_lengths",
+        "fastq.filter_reads"
+      ],
+      "external_inputs": [
+        "equcab3_reference_fasta_contract",
+        "equcab3_reference_index_contract",
+        "adna_short_read_alignment_policy_contract",
+        "alignment_read_group_contract"
+      ],
+      "upstream_inputs": [
+        "filtered_merged_reads",
+        "filtered_unmerged_r1_reads",
+        "filtered_unmerged_r2_reads",
+        "read_length_metrics"
+      ],
+      "outputs": [
+        "aligned_bam",
+        "aligned_bai",
+        "align_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.markdup",
+      "stage_id": "bam.markdup",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 4,
+      "depends_on": [
+        "bam.align"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "aligned_bam",
+        "aligned_bai",
+        "align_metrics"
+      ],
+      "outputs": [
+        "markdup_bam",
+        "markdup_bai",
+        "markdup_report_json",
+        "markdup_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.validate",
+      "stage_id": "bam.validate",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 1,
+      "upstream_input_count": 3,
+      "output_count": 1,
+      "depends_on": [
+        "bam.markdup"
+      ],
+      "external_inputs": [
+        "equcab3_reference_fasta_contract"
+      ],
+      "upstream_inputs": [
+        "markdup_bam",
+        "markdup_bai",
+        "markdup_report_json"
+      ],
+      "outputs": [
+        "bam_validation_report"
+      ]
+    },
+    {
+      "node_id": "bam.qc_pre",
+      "stage_id": "bam.qc_pre",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 2,
+      "depends_on": [
+        "bam.markdup",
+        "bam.validate"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "markdup_bam",
+        "bam_validation_report"
+      ],
+      "outputs": [
+        "qc_pre_report_json",
+        "qc_pre_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.mapping_summary",
+      "stage_id": "bam.mapping_summary",
+      "readiness_kind": "smoke",
+      "dependency_count": 3,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 2,
+      "depends_on": [
+        "bam.markdup",
+        "bam.validate",
+        "bam.qc_pre"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "markdup_bam",
+        "bam_validation_report",
+        "qc_pre_report_json"
+      ],
+      "outputs": [
+        "mapping_summary_report_json",
+        "mapping_summary_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.coverage",
+      "stage_id": "bam.coverage",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 1,
+      "upstream_input_count": 3,
+      "output_count": 2,
+      "depends_on": [
+        "bam.markdup",
+        "bam.mapping_summary"
+      ],
+      "external_inputs": [
+        "equcab3_coverage_region_contract"
+      ],
+      "upstream_inputs": [
+        "markdup_bam",
+        "markdup_bai",
+        "mapping_summary_report_json"
+      ],
+      "outputs": [
+        "coverage_report_json",
+        "coverage_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.damage",
+      "stage_id": "bam.damage",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 2,
+      "upstream_input_count": 2,
+      "output_count": 2,
+      "depends_on": [
+        "bam.markdup"
+      ],
+      "external_inputs": [
+        "equcab3_reference_fasta_contract",
+        "expected_damage_contract"
+      ],
+      "upstream_inputs": [
+        "markdup_bam",
+        "markdup_bai"
+      ],
+      "outputs": [
+        "damage_report_json",
+        "damage_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "bam.duplication_metrics",
+      "stage_id": "bam.duplication_metrics",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 2,
+      "output_count": 2,
+      "depends_on": [
+        "bam.markdup"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "markdup_bam",
+        "markdup_report_json"
+      ],
+      "outputs": [
+        "duplication_report_json",
+        "duplication_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "vcf.call",
+      "stage_id": "vcf.call",
+      "readiness_kind": "smoke",
+      "dependency_count": 4,
+      "external_input_count": 3,
+      "upstream_input_count": 5,
+      "output_count": 3,
+      "depends_on": [
+        "bam.markdup",
+        "bam.coverage",
+        "bam.damage",
+        "bam.duplication_metrics"
+      ],
+      "external_inputs": [
+        "equcab3_reference_fasta_contract",
+        "equcab3_reference_fai_contract",
+        "equcab3_candidate_sites_contract"
+      ],
+      "upstream_inputs": [
+        "markdup_bam",
+        "markdup_bai",
+        "coverage_report_json",
+        "damage_report_json",
+        "duplication_report_json"
+      ],
+      "outputs": [
+        "called_vcf",
+        "called_vcf_tbi",
+        "call_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "vcf.filter",
+      "stage_id": "vcf.filter",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 4,
+      "depends_on": [
+        "vcf.call"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "called_vcf",
+        "called_vcf_tbi",
+        "call_stage_metrics"
+      ],
+      "outputs": [
+        "filtered_vcf",
+        "filtered_vcf_tbi",
+        "filter_report_json",
+        "filter_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "vcf.stats",
+      "stage_id": "vcf.stats",
+      "readiness_kind": "smoke",
+      "dependency_count": 1,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 2,
+      "depends_on": [
+        "vcf.filter"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "filtered_vcf",
+        "filtered_vcf_tbi",
+        "filter_report_json"
+      ],
+      "outputs": [
+        "stats_json",
+        "stats_stage_metrics"
+      ]
+    },
+    {
+      "node_id": "vcf.qc",
+      "stage_id": "vcf.qc",
+      "readiness_kind": "smoke",
+      "dependency_count": 2,
+      "external_input_count": 0,
+      "upstream_input_count": 3,
+      "output_count": 2,
+      "depends_on": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "external_inputs": [],
+      "upstream_inputs": [
+        "filtered_vcf",
+        "filtered_vcf_tbi",
+        "stats_json"
+      ],
+      "outputs": [
+        "qc_report",
+        "qc_stage_metrics"
+      ]
+    }
+  ]
+}

@@ -191,7 +191,7 @@ struct BaseScoreRow {
 pub(crate) fn run_render_vcf_tool_scores(
     args: &parse::BenchReadinessRenderVcfToolScoresArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_vcf_tool_scores(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_TOOL_SCORES_PATH)),
@@ -207,7 +207,7 @@ pub(crate) fn run_render_vcf_tool_scores(
 pub(crate) fn run_validate_vcf_tool_scores(
     args: &parse::BenchReadinessValidateVcfToolScoresArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = validate_vcf_tool_scores(
         &repo_root,
         args.input.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_TOOL_SCORES_PATH)),

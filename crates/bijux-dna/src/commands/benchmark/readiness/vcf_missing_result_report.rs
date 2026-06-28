@@ -75,7 +75,7 @@ struct VcfMissingResultFixture {
 pub(crate) fn run_render_vcf_missing_result_report(
     args: &parse::BenchReadinessRenderVcfMissingResultReportArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_vcf_missing_result_report(
         &repo_root,
         args.output

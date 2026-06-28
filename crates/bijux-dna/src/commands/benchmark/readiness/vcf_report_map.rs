@@ -45,7 +45,7 @@ struct VcfReportPlacement {
 pub(crate) fn run_render_vcf_report_map(
     args: &parse::BenchReadinessRenderVcfReportMapArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_vcf_report_map(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_REPORT_MAP_PATH)),

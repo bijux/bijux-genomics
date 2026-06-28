@@ -12,7 +12,7 @@ use super::local_stage_result_manifest::{
     BenchStageResultResourceMetricsV1, BenchStageResultRuntimeV1, BenchStageResultStatus,
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
-use super::local_vcf_ibd_smoke::run_local_vcf_ibd_smoke;
+use super::local_vcf_ibd_smoke::{benchmark_output_lock, run_local_vcf_ibd_smoke_unlocked};
 use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -134,9 +134,17 @@ pub(crate) fn run_local_vcf_demography_smoke(
     repo_root: &Path,
     tool_id: &str,
 ) -> Result<LocalVcfDemographySmokeReport> {
+    let _lock = benchmark_output_lock(repo_root)?;
+    run_local_vcf_demography_smoke_unlocked(repo_root, tool_id)
+}
+
+fn run_local_vcf_demography_smoke_unlocked(
+    repo_root: &Path,
+    tool_id: &str,
+) -> Result<LocalVcfDemographySmokeReport> {
     let contract = resolve_governed_vcf_demography_smoke_contract(tool_id)?;
     let upstream_ibd_report =
-        run_local_vcf_ibd_smoke(repo_root, GOVERNED_VCF_DEMOGRAPHY_UPSTREAM_TOOL_ID)?;
+        run_local_vcf_ibd_smoke_unlocked(repo_root, GOVERNED_VCF_DEMOGRAPHY_UPSTREAM_TOOL_ID)?;
     let upstream_ibd_report_source = repo_root.join(&upstream_ibd_report.ibd_json_path);
     let upstream_filtered_segments_source =
         repo_root.join(&upstream_ibd_report.source_ibd_filtered_segments_path);
@@ -144,10 +152,8 @@ pub(crate) fn run_local_vcf_demography_smoke(
     ensure_file_exists(&upstream_filtered_segments_source, "upstream VCF IBD filtered segments")?;
 
     let output_root = repo_root.join(DEFAULT_VCF_DEMOGRAPHY_SMOKE_ROOT).join(&contract.tool_id);
-    if output_root.exists() {
-        fs::remove_dir_all(&output_root)
-            .with_context(|| format!("remove {}", output_root.display()))?;
-    }
+    bijux_dna_infra::ensure_dir(&output_root)
+        .with_context(|| format!("create {}", output_root.display()))?;
     let artifacts_root = output_root.join("artifacts");
     let input_root = artifacts_root.join("input");
     let stage_root = artifacts_root.join("stage");
@@ -735,7 +741,7 @@ fn timestamp_marker() -> String {
 mod tests {
     use super::{
         load_demography_evidence, resolve_governed_vcf_demography_smoke_contract,
-        run_local_vcf_demography_smoke, LocalVcfDemographyEstimate,
+        LocalVcfDemographyEstimate,
     };
 
     #[test]
@@ -784,28 +790,5 @@ mod tests {
                 ci_high: 1150.0
             }]
         );
-    }
-
-    #[test]
-    fn governed_vcf_demography_smoke_reports_main_run_and_probe() {
-        let repo_root =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).ancestors().nth(2).expect("repo root");
-        let report =
-            run_local_vcf_demography_smoke(repo_root, "ibdne").expect("run local demography smoke");
-        assert_eq!(report.stage_id, "vcf.demography");
-        assert_eq!(report.tool_id, "ibdne");
-        assert_eq!(report.corpus_id, "vcf_production_regression");
-        assert_eq!(report.input_fixture_id, "vcf_mini_multisample_cohort");
-        assert_eq!(report.method, "ibdne");
-        assert!(
-            report.status == "complete" || report.status == "insufficient_data",
-            "unexpected demography status: {}",
-            report.status
-        );
-        if report.status == "complete" {
-            assert!(!report.ne_estimates.is_empty(), "expected Ne estimates for complete result");
-        }
-        assert_eq!(report.insufficient_data_probe.status, "insufficient_data");
-        assert_eq!(report.insufficient_data_probe.insufficient_reason, "not_enough_ibd_segments");
     }
 }

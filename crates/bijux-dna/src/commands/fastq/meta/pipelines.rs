@@ -9,6 +9,8 @@ use std::path::{Path, PathBuf};
 
 const LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_VERSION: &str =
     "bijux.bench.local_pipeline_dag_validation_set.v1";
+const LOCAL_PIPELINE_YAML_CONFIG_FILE: &str = "config.yaml";
+const LOCAL_PIPELINE_YAML_STAGES_FILE: &str = "stages.yaml";
 
 #[derive(Debug, Clone, Serialize)]
 struct LocalPipelineDagValidationSetReport {
@@ -279,7 +281,12 @@ fn local_pipeline_config_path(pipeline_config_root: &Path, pipeline_id: &str) ->
             "pipeline id `{pipeline_id}` must be a governed local pipeline id, not a path"
         ));
     }
-    Ok(pipeline_config_root.join(format!("{pipeline_id}.toml")))
+    let bundle_dir = pipeline_config_root.join(pipeline_id);
+    if bundle_dir.is_dir() {
+        Ok(bundle_dir)
+    } else {
+        Ok(pipeline_config_root.join(format!("{pipeline_id}.toml")))
+    }
 }
 
 fn validate_all_local_pipelines(
@@ -305,10 +312,7 @@ fn validate_all_local_pipelines(
     );
     let mut pipelines = Vec::with_capacity(config_paths.len());
     for config_path in config_paths {
-        let pipeline_id =
-            config_path.file_stem().and_then(|value| value.to_str()).ok_or_else(|| {
-                anyhow!("pipeline config `{}` must have a utf-8 file stem", config_path.display())
-            })?;
+        let pipeline_id = local_pipeline_id_for_path(&config_path)?;
         let pipeline_output_path = repo_root
             .join("benchmarks/readiness/local-ready/pipeline-dag")
             .join(format!("{pipeline_id}.json"));
@@ -318,7 +322,7 @@ fn validate_all_local_pipelines(
             &pipeline_output_path,
         )?;
         if strict {
-            validate_local_pipeline_identity(repo_root, &report, &config_path, pipeline_id)?;
+            validate_local_pipeline_identity(repo_root, &report, &config_path, &pipeline_id)?;
         }
         pipelines.push(report);
     }
@@ -345,12 +349,35 @@ fn discover_local_pipeline_config_paths(config_root: &Path) -> Result<Vec<PathBu
     let mut config_paths = fs::read_dir(config_root)
         .map_err(|error| anyhow!("read {}: {error}", config_root.display()))?
         .filter_map(|entry| entry.ok().map(|entry| entry.path()))
-        .filter(|path| {
-            path.is_file() && path.extension().and_then(|value| value.to_str()) == Some("toml")
-        })
+        .filter(|path| is_governed_local_pipeline_path(path))
         .collect::<Vec<_>>();
-    config_paths.sort();
+    config_paths.sort_by(|left, right| {
+        local_pipeline_id_for_path(left)
+            .unwrap_or_else(|_| left.display().to_string())
+            .cmp(&local_pipeline_id_for_path(right).unwrap_or_else(|_| right.display().to_string()))
+    });
     Ok(config_paths)
+}
+
+fn is_governed_local_pipeline_path(path: &Path) -> bool {
+    if path.is_file() {
+        return path.extension().and_then(|value| value.to_str()) == Some("toml");
+    }
+    path.is_dir()
+        && path.join(LOCAL_PIPELINE_YAML_CONFIG_FILE).is_file()
+        && path.join(LOCAL_PIPELINE_YAML_STAGES_FILE).is_file()
+}
+
+fn local_pipeline_id_for_path(config_path: &Path) -> Result<String> {
+    let value = if config_path.is_dir() {
+        config_path.file_name().and_then(|value| value.to_str())
+    } else {
+        config_path.file_stem().and_then(|value| value.to_str())
+    }
+    .ok_or_else(|| {
+        anyhow!("pipeline config `{}` must end in a utf-8 name", config_path.display())
+    })?;
+    Ok(value.to_string())
 }
 
 fn validate_local_pipeline_identity(
@@ -378,4 +405,57 @@ fn validate_local_pipeline_identity(
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        discover_local_pipeline_config_paths, local_pipeline_config_path,
+        local_pipeline_id_for_path,
+    };
+    use std::fs;
+
+    #[test]
+    fn local_pipeline_config_path_prefers_yaml_bundle_directory() {
+        let tempdir = tempfile::tempdir().expect("tempdir");
+        let config_root = tempdir.path();
+        let bundle_dir = config_root.join("horse-cross");
+        fs::create_dir_all(&bundle_dir).expect("create bundle dir");
+        fs::write(bundle_dir.join("config.yaml"), "pipeline_id: horse-cross\n")
+            .expect("write config yaml");
+        fs::write(bundle_dir.join("stages.yaml"), "nodes: []\n").expect("write stages yaml");
+
+        let resolved = local_pipeline_config_path(config_root, "horse-cross")
+            .expect("resolve local pipeline config path");
+
+        assert_eq!(resolved, bundle_dir);
+    }
+
+    #[test]
+    fn discover_local_pipeline_config_paths_includes_yaml_bundle_directories() {
+        let tempdir = tempfile::tempdir().expect("tempdir");
+        let config_root = tempdir.path();
+        fs::write(config_root.join("alpha.toml"), "pipeline_id = 'alpha'\n")
+            .expect("write alpha config");
+
+        let bundle_dir = config_root.join("horse-cross");
+        fs::create_dir_all(&bundle_dir).expect("create bundle dir");
+        fs::write(bundle_dir.join("config.yaml"), "pipeline_id: horse-cross\n")
+            .expect("write config yaml");
+        fs::write(bundle_dir.join("stages.yaml"), "nodes: []\n").expect("write stages yaml");
+
+        let incomplete_dir = config_root.join("ignore-me");
+        fs::create_dir_all(&incomplete_dir).expect("create incomplete dir");
+        fs::write(incomplete_dir.join("config.yaml"), "pipeline_id: ignore-me\n")
+            .expect("write incomplete config");
+
+        let discovered =
+            discover_local_pipeline_config_paths(config_root).expect("discover config paths");
+        let discovered_ids = discovered
+            .iter()
+            .map(|path| local_pipeline_id_for_path(path).expect("extract pipeline id"))
+            .collect::<Vec<_>>();
+
+        assert_eq!(discovered_ids, vec!["alpha".to_string(), "horse-cross".to_string()]);
+    }
 }

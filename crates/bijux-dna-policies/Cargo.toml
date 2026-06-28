@@ -19,6 +19,7 @@ insta = { workspace = true, features = ["glob"] }
 serde_json = { workspace = true }
 sha2.workspace = true
 serde_yaml.workspace = true
+bijux-dna.workspace = true
 bijux-dna-testkit.workspace = true
 bijux-dna-pipelines.workspace = true
 bijux-dna-core.workspace = true

@@ -228,7 +228,7 @@ struct SyntheticReadPlacement {
 pub(crate) fn run_core_germline_micro_pipeline(
     args: &parse::BenchLocalRunCoreGermlineMicroPipelineArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_core_germline_micro_pipeline(
         &repo_root,
         args.output
@@ -1933,14 +1933,27 @@ fn write_fastq_records(path: &Path, records: &[FastqRecord]) -> Result<()> {
     }
     let file =
         bijux_dna_infra::create_file(path).with_context(|| format!("create {}", path.display()))?;
-    let mut writer = std::io::BufWriter::new(file);
-    for record in records {
-        writeln!(writer, "{}", record.header)?;
-        writeln!(writer, "{}", record.sequence)?;
-        writeln!(writer, "{}", record.plus)?;
-        writeln!(writer, "{}", record.quality)?;
+    let gzip_output = path.extension().and_then(|ext| ext.to_str()) == Some("gz");
+    if gzip_output {
+        let mut writer = flate2::write::GzEncoder::new(file, flate2::Compression::default());
+        for record in records {
+            writeln!(writer, "{}", record.header)?;
+            writeln!(writer, "{}", record.sequence)?;
+            writeln!(writer, "{}", record.plus)?;
+            writeln!(writer, "{}", record.quality)?;
+        }
+        writer.flush()?;
+        let _ = writer.finish()?;
+    } else {
+        let mut writer = std::io::BufWriter::new(file);
+        for record in records {
+            writeln!(writer, "{}", record.header)?;
+            writeln!(writer, "{}", record.sequence)?;
+            writeln!(writer, "{}", record.plus)?;
+            writeln!(writer, "{}", record.quality)?;
+        }
+        writer.flush()?;
     }
-    writer.flush()?;
     Ok(())
 }
 

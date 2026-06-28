@@ -62,7 +62,7 @@ pub(crate) struct RetainedToolsetExecutableLocalReport {
 pub(crate) fn run_render_retained_toolset_executable_local(
     args: &parse::BenchReadinessRenderRetainedToolsetExecutableLocalArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_retained_toolset_executable_local(
         &repo_root,
         args.output

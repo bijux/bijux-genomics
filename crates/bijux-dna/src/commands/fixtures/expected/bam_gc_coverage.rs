@@ -369,17 +369,17 @@ fn validate_coverage_sample_truths(
     expected: &[BamCoverageSampleTruth],
     actual: &[BamCoverageSampleTruth],
 ) -> Result<()> {
-    validate_sample_truths_by_id(expected, actual, "coverage")
+    validate_sample_truths_by_key(expected, actual, "coverage")
 }
 
 fn validate_gc_bias_sample_truths(
     expected: &[BamGcBiasSampleTruth],
     actual: &[BamGcBiasSampleTruth],
 ) -> Result<()> {
-    validate_sample_truths_by_id(expected, actual, "GC-bias")
+    validate_sample_truths_by_key(expected, actual, "GC-bias")
 }
 
-fn validate_sample_truths_by_id<T>(expected: &[T], actual: &[T], label: &str) -> Result<()>
+fn validate_sample_truths_by_key<T>(expected: &[T], actual: &[T], label: &str) -> Result<()>
 where
     T: PartialEq + SampleTruthIdentity,
 {

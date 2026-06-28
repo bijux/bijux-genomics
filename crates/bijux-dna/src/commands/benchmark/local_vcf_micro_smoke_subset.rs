@@ -82,7 +82,7 @@ pub(crate) struct VcfMicroSmokeSubsetReport {
 pub(crate) fn run_vcf_micro_smoke_subset(
     args: &parse::BenchLocalRunVcfMicroSmokeSubsetArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_vcf_micro_smoke_subset(
         &repo_root,
         args.output.clone().unwrap_or_else(|| PathBuf::from(DEFAULT_VCF_MICRO_SMOKE_SUMMARY_PATH)),

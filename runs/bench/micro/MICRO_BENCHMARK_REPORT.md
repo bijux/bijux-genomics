@@ -1,10 +1,10 @@
 # Micro Benchmark Report
 
 - Result rows: 77
-- Complete rows: 68
+- Complete rows: 69
 - Failed rows: 0
 - Missing rows: 0
-- Unavailable rows: 9
+- Unavailable rows: 8
 - Insufficient-data rows: 0
 - Runtime rows: 77
 - Memory-source rows: 77
@@ -40,6 +40,7 @@
 | bam.duplicate_handling | bam_micro_smoke_subset | bam | bam.markdup | samtools | 0 | 1 | 0 | binding `bam.markdup` / `samtools` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
 | bam.filtering | bam_micro_smoke_subset | bam | bam.filter | samtools | 0 | 1 | 0 | binding `bam.filter` / `samtools` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
 | bam.insert_size_gc_bias | bam_micro_smoke_subset | bam | bam.insert_size | picard | 0 | 1 | 0 | binding `bam.insert_size` / `picard` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
+| bam.kinship | bam_micro_smoke_subset | bam | bam.kinship | king | 0 | 1 | 0 | binding `bam.kinship` / `king` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
 | bam.overlap_endogenous_content | bam_micro_smoke_subset | bam | bam.overlap_correction | bamutil | 0 | 1 | 0 | binding `bam.overlap_correction` / `bamutil` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
 | bam.recalibration_genotyping | bam_micro_smoke_subset | bam | bam.recalibration | gatk | 0 | 1 | 0 | binding `bam.recalibration` / `gatk` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
 | bam.validation_core_qc | bam_micro_smoke_subset | bam | bam.validate | samtools | 0 | 1 | 0 | binding `bam.validate` / `samtools` matches the governed BAM local-smoke contract tool, so the exact tiny-fixture stage smoke wrapper is available on host |
@@ -102,7 +103,6 @@
 | vcf.gl_propagation | adna_micro_pipeline | vcf | vcf.gl_propagation | angsd | unavailable | aDNA micro execution does not produce a GL-bearing VCF because the pseudohaploid branch is the active governed path for this summary |
 | bam.align | bam_micro_smoke_subset | bam | bam.align | bwa | container_needed | stage `bam.align` keeps governed local-ready plan coverage but no BAM tiny-fixture smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `bam.align` / `bwa` |
 | bam.coverage | bam_micro_smoke_subset | bam | bam.coverage | mosdepth | container_needed | binding `bam.coverage` / `mosdepth` does not match the governed BAM local-smoke contract tool `samtools`, so the governed container smoke wrapper is the available local exercise path for `bam.coverage` / `mosdepth` |
-| bam.kinship | bam_micro_smoke_subset | bam | bam.kinship | king | container_needed | retained tool `king` has no exact BAM tiny-fixture smoke wrapper, so the governed container smoke wrapper is the available local exercise path for `bam.kinship` / `king` |
 | fastq.depletion | fastq_micro_smoke_subset | fastq | fastq.deplete_host | bowtie2 | container_needed | binding `fastq.deplete_host` / `bowtie2` is the governed FASTQ default tool, but the current local path is still planner-backed rather than a real smoke artifact, so the governed container smoke wrapper remains the honest micro-benchmark path |
 | fastq.index_reference | fastq_micro_smoke_subset | fastq | fastq.index_reference | bowtie2_build | container_needed | binding `fastq.index_reference` / `bowtie2_build` is the governed FASTQ default tool, but the current local path is still planner-backed rather than a real smoke artifact, so the governed container smoke wrapper remains the honest micro-benchmark path |
 | fastq.taxonomy | fastq_micro_smoke_subset | fastq | fastq.screen_taxonomy | kraken2 | container_needed | binding `fastq.screen_taxonomy` / `kraken2` is the governed FASTQ default tool, but the current local path is still planner-backed rather than a real smoke artifact, so the governed container smoke wrapper remains the honest micro-benchmark path |
@@ -147,7 +147,7 @@
 | bam.duplicate_handling | bam_micro_smoke_subset | bam | bam.markdup | samtools | succeeded |  | not_available |
 | bam.filtering | bam_micro_smoke_subset | bam | bam.filter | samtools | succeeded |  | not_available |
 | bam.insert_size_gc_bias | bam_micro_smoke_subset | bam | bam.insert_size | picard | succeeded |  | not_available |
-| bam.kinship | bam_micro_smoke_subset | bam | bam.kinship | king | container_needed |  | not_applicable |
+| bam.kinship | bam_micro_smoke_subset | bam | bam.kinship | king | succeeded |  | not_available |
 | bam.overlap_endogenous_content | bam_micro_smoke_subset | bam | bam.overlap_correction | bamutil | succeeded |  | not_available |
 | bam.recalibration_genotyping | bam_micro_smoke_subset | bam | bam.recalibration | gatk | succeeded |  | not_available |
 | bam.validation_core_qc | bam_micro_smoke_subset | bam | bam.validate | samtools | succeeded |  | not_available |
@@ -229,7 +229,7 @@
 | bam.duplicate_handling | bam_micro_smoke_subset | bam | bam.markdup | samtools | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |
 | bam.filtering | bam_micro_smoke_subset | bam | bam.filter | samtools | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |
 | bam.insert_size_gc_bias | bam_micro_smoke_subset | bam | bam.insert_size | picard | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |
-| bam.kinship | bam_micro_smoke_subset | bam | bam.kinship | king | container_needed |  |  |  |  | not_applicable |
+| bam.kinship | bam_micro_smoke_subset | bam | bam.kinship | king | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |
 | bam.overlap_endogenous_content | bam_micro_smoke_subset | bam | bam.overlap_correction | bamutil | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |
 | bam.recalibration_genotyping | bam_micro_smoke_subset | bam | bam.recalibration | gatk | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |
 | bam.validation_core_qc | bam_micro_smoke_subset | bam | bam.validate | samtools | succeeded | 2048.000 | 3 |  |  | declared_stage_tool_resource |

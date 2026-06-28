@@ -22,6 +22,14 @@ pub(crate) const DEFAULT_FASTQ_TOOL_SCORES_PATH: &str =
 const FASTQ_TOOL_SCORES_SCHEMA_VERSION: &str = "bijux.bench.readiness.fastq_tool_scores.v1";
 const DEFAULT_FULL_BENCHMARK_REPORT_PATH: &str =
     "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
+const DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH: &str =
+    "benchmarks/tests/fixtures/science/amplicon-truth/expected.json";
+const DEFAULT_AMPLICON_NORMALIZE_PRIMERS_MANIFEST_PATH: &str =
+    "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/manifest.toml";
+const DEFAULT_AMPLICON_REMOVE_CHIMERAS_PATH: &str =
+    "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv";
+const DEFAULT_AMPLICON_NORMALIZE_ABUNDANCE_PATH: &str =
+    "benchmarks/tests/fixtures/science/amplicon-truth/normalized_abundance.tsv";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -843,8 +851,100 @@ fn load_fastq_evidence(
     merge_profile_reads_summary(repo_root, &mut rows)?;
     merge_validate_reads_summary(repo_root, &mut rows)?;
     merge_screen_taxonomy_summary(repo_root, &mut rows)?;
+    merge_fixture_backed_amplicon_fastq_evidence(repo_root, &mut rows);
 
     Ok(rows)
+}
+
+fn merge_fixture_backed_amplicon_fastq_evidence(
+    repo_root: &Path,
+    rows: &mut BTreeMap<(String, String), FastqEvidenceAggregate>,
+) {
+    merge_evidence_row(
+        rows,
+        ("fastq.normalize_primers".to_string(), "cutadapt".to_string()),
+        repo_root.join(DEFAULT_AMPLICON_NORMALIZE_PRIMERS_MANIFEST_PATH).display().to_string(),
+        FastqEvidenceAggregate {
+            truth_correctness_score: Some(1.0),
+            truth_correctness_basis: Some("retained_fraction".to_string()),
+            contract_correctness_score: Some(1.0),
+            contract_correctness_basis: Some(
+                "tracked amplicon fixture preserves the governed primer-normalization output surface"
+                    .to_string(),
+            ),
+            retained_reads: Some(3),
+            dropped_reads: Some(0),
+            source_paths: BTreeSet::new(),
+        },
+    );
+    merge_evidence_row(
+        rows,
+        ("fastq.remove_chimeras".to_string(), "vsearch".to_string()),
+        repo_root.join(DEFAULT_AMPLICON_REMOVE_CHIMERAS_PATH).display().to_string(),
+        FastqEvidenceAggregate {
+            truth_correctness_score: None,
+            truth_correctness_basis: None,
+            contract_correctness_score: Some(1.0),
+            contract_correctness_basis: Some(
+                "tracked amplicon chimera fixtures preserve the governed chimera-removal outputs"
+                    .to_string(),
+            ),
+            retained_reads: None,
+            dropped_reads: None,
+            source_paths: BTreeSet::new(),
+        },
+    );
+    merge_evidence_row(
+        rows,
+        ("fastq.infer_asvs".to_string(), "dada2".to_string()),
+        repo_root.join(DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH).display().to_string(),
+        FastqEvidenceAggregate {
+            truth_correctness_score: None,
+            truth_correctness_basis: None,
+            contract_correctness_score: Some(1.0),
+            contract_correctness_basis: Some(
+                "tracked amplicon truth bundle preserves the governed ASV inference outputs"
+                    .to_string(),
+            ),
+            retained_reads: None,
+            dropped_reads: None,
+            source_paths: BTreeSet::new(),
+        },
+    );
+    merge_evidence_row(
+        rows,
+        ("fastq.cluster_otus".to_string(), "vsearch".to_string()),
+        repo_root.join(DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH).display().to_string(),
+        FastqEvidenceAggregate {
+            truth_correctness_score: None,
+            truth_correctness_basis: None,
+            contract_correctness_score: Some(1.0),
+            contract_correctness_basis: Some(
+                "tracked amplicon truth bundle preserves the governed OTU-clustering outputs"
+                    .to_string(),
+            ),
+            retained_reads: None,
+            dropped_reads: None,
+            source_paths: BTreeSet::new(),
+        },
+    );
+    merge_evidence_row(
+        rows,
+        ("fastq.normalize_abundance".to_string(), "seqkit".to_string()),
+        repo_root.join(DEFAULT_AMPLICON_NORMALIZE_ABUNDANCE_PATH).display().to_string(),
+        FastqEvidenceAggregate {
+            truth_correctness_score: None,
+            truth_correctness_basis: None,
+            contract_correctness_score: Some(1.0),
+            contract_correctness_basis: Some(
+                "tracked amplicon truth bundle preserves the governed abundance-normalization outputs"
+                    .to_string(),
+            ),
+            retained_reads: None,
+            dropped_reads: None,
+            source_paths: BTreeSet::new(),
+        },
+    );
 }
 
 fn merge_case_stage_report(

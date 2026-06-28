@@ -289,7 +289,7 @@ struct RealSmokeRuntimeEvidence {
 pub(crate) fn run_render_full_benchmark_report(
     args: &parse::BenchReadinessRenderFullBenchmarkReportArgs,
 ) -> Result<()> {
-    let repo_root = std::env::current_dir().context("resolve current directory")?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let report = render_full_benchmark_report(
         &repo_root,
         args.output

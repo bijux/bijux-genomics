@@ -1157,11 +1157,23 @@ mem_gb = 24
 walltime = "01:00:00"
 scratch_gb = 32
 
+[resources.templates.fastq_cleanup]
+cpus = 12
+mem_gb = 32
+walltime = "02:00:00"
+scratch_gb = 48
+
 [resources.templates.bam_align]
 cpus = 16
 mem_gb = 64
 walltime = "04:00:00"
 scratch_gb = 128
+
+[resources.templates.bam_markdup]
+cpus = 12
+mem_gb = 48
+walltime = "02:00:00"
+scratch_gb = 96
 
 [resources.templates.bam_qc]
 cpus = 8
@@ -1186,26 +1198,70 @@ tool = "seqkit_v2"
 sample = "adna_equus_caballus_0001"
 
 [[jobs]]
-name = "fastq_trim_adna_equus_caballus_0001"
-stage = "fastq.trim_reads"
-tool = "fastp"
+name = "fastq_profile_lengths_adna_equus_caballus_0001"
+stage = "fastq.profile_read_lengths"
+tool = "seqkit"
 sample = "adna_equus_caballus_0001"
 depends_on = ["fastq_validate_adna_equus_caballus_0001"]
+
+[[jobs]]
+name = "fastq_detect_adapters_adna_equus_caballus_0001"
+stage = "fastq.detect_adapters"
+tool = "fastqc"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_validate_adna_equus_caballus_0001"]
+
+[[jobs]]
+name = "fastq_trim_adna_equus_caballus_0001"
+stage = "fastq.trim_reads"
+tool = "adapterremoval"
+sample = "adna_equus_caballus_0001"
+depends_on = [
+  "fastq_validate_adna_equus_caballus_0001",
+  "fastq_detect_adapters_adna_equus_caballus_0001",
+]
+resource_template = "fastq_cleanup"
+
+[[jobs]]
+name = "fastq_merge_pairs_adna_equus_caballus_0001"
+stage = "fastq.merge_pairs"
+tool = "adapterremoval"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_trim_adna_equus_caballus_0001"]
+resource_template = "fastq_cleanup"
+
+[[jobs]]
+name = "fastq_filter_adna_equus_caballus_0001"
+stage = "fastq.filter_reads"
+tool = "seqkit"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_merge_pairs_adna_equus_caballus_0001"]
 
 [[jobs]]
 name = "bam_align_adna_equus_caballus_0001"
 stage = "bam.align"
 tool = "bwa"
 sample = "adna_equus_caballus_0001"
-depends_on = ["fastq_trim_adna_equus_caballus_0001"]
+depends_on = [
+  "fastq_profile_lengths_adna_equus_caballus_0001",
+  "fastq_filter_adna_equus_caballus_0001",
+]
 resource_template = "bam_align"
+
+[[jobs]]
+name = "bam_markdup_adna_equus_caballus_0001"
+stage = "bam.markdup"
+tool = "samtools"
+sample = "adna_equus_caballus_0001"
+depends_on = ["bam_align_adna_equus_caballus_0001"]
+resource_template = "bam_markdup"
 
 [[jobs]]
 name = "bam_qc_pre_adna_equus_caballus_0001"
 stage = "bam.qc_pre"
 tool = "samtools"
 sample = "adna_equus_caballus_0001"
-depends_on = ["bam_align_adna_equus_caballus_0001"]
+depends_on = ["bam_markdup_adna_equus_caballus_0001"]
 resource_template = "bam_qc"
 "#;
 
@@ -1243,16 +1299,40 @@ mem_gb = 24
 walltime = "01:00:00"
 scratch_gb = 32
 
+[resources.templates.fastq_cleanup]
+cpus = 12
+mem_gb = 32
+walltime = "02:00:00"
+scratch_gb = 48
+
 [resources.templates.bam_align]
 cpus = 16
 mem_gb = 64
 walltime = "04:00:00"
 scratch_gb = 128
 
+[resources.templates.bam_markdup]
+cpus = 12
+mem_gb = 48
+walltime = "02:00:00"
+scratch_gb = 96
+
 [resources.templates.bam_qc]
 cpus = 8
 mem_gb = 24
 walltime = "01:00:00"
+scratch_gb = 48
+
+[resources.templates.bam_damage]
+cpus = 8
+mem_gb = 24
+walltime = "02:00:00"
+scratch_gb = 48
+
+[resources.templates.bam_coverage]
+cpus = 8
+mem_gb = 24
+walltime = "01:30:00"
 scratch_gb = 48
 
 [resources.templates.vcf_call]
@@ -1285,34 +1365,97 @@ tool = "seqkit_v2"
 sample = "adna_equus_caballus_0001"
 
 [[jobs]]
-name = "fastq_trim_adna_equus_caballus_0001"
-stage = "fastq.trim_reads"
-tool = "fastp"
+name = "fastq_profile_lengths_adna_equus_caballus_0001"
+stage = "fastq.profile_read_lengths"
+tool = "seqkit"
 sample = "adna_equus_caballus_0001"
 depends_on = ["fastq_validate_adna_equus_caballus_0001"]
+
+[[jobs]]
+name = "fastq_detect_adapters_adna_equus_caballus_0001"
+stage = "fastq.detect_adapters"
+tool = "fastqc"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_validate_adna_equus_caballus_0001"]
+
+[[jobs]]
+name = "fastq_trim_adna_equus_caballus_0001"
+stage = "fastq.trim_reads"
+tool = "adapterremoval"
+sample = "adna_equus_caballus_0001"
+depends_on = [
+  "fastq_validate_adna_equus_caballus_0001",
+  "fastq_detect_adapters_adna_equus_caballus_0001",
+]
+resource_template = "fastq_cleanup"
+
+[[jobs]]
+name = "fastq_merge_pairs_adna_equus_caballus_0001"
+stage = "fastq.merge_pairs"
+tool = "adapterremoval"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_trim_adna_equus_caballus_0001"]
+resource_template = "fastq_cleanup"
+
+[[jobs]]
+name = "fastq_filter_adna_equus_caballus_0001"
+stage = "fastq.filter_reads"
+tool = "seqkit"
+sample = "adna_equus_caballus_0001"
+depends_on = ["fastq_merge_pairs_adna_equus_caballus_0001"]
 
 [[jobs]]
 name = "bam_align_adna_equus_caballus_0001"
 stage = "bam.align"
 tool = "bwa"
 sample = "adna_equus_caballus_0001"
-depends_on = ["fastq_trim_adna_equus_caballus_0001"]
+depends_on = [
+  "fastq_profile_lengths_adna_equus_caballus_0001",
+  "fastq_filter_adna_equus_caballus_0001",
+]
 resource_template = "bam_align"
+
+[[jobs]]
+name = "bam_markdup_adna_equus_caballus_0001"
+stage = "bam.markdup"
+tool = "samtools"
+sample = "adna_equus_caballus_0001"
+depends_on = ["bam_align_adna_equus_caballus_0001"]
+resource_template = "bam_markdup"
 
 [[jobs]]
 name = "bam_qc_pre_adna_equus_caballus_0001"
 stage = "bam.qc_pre"
 tool = "samtools"
 sample = "adna_equus_caballus_0001"
-depends_on = ["bam_align_adna_equus_caballus_0001"]
+depends_on = ["bam_markdup_adna_equus_caballus_0001"]
 resource_template = "bam_qc"
 
 [[jobs]]
-name = "bam_recalibration_adna_equus_caballus_0001"
-stage = "bam.recalibration"
-tool = "gatk"
+name = "bam_damage_adna_equus_caballus_0001"
+stage = "bam.damage"
+tool = "damageprofiler"
 sample = "adna_equus_caballus_0001"
-depends_on = ["bam_qc_pre_adna_equus_caballus_0001"]
+depends_on = ["bam_markdup_adna_equus_caballus_0001"]
+resource_template = "bam_damage"
+
+[[jobs]]
+name = "bam_coverage_adna_equus_caballus_0001"
+stage = "bam.coverage"
+tool = "mosdepth"
+sample = "adna_equus_caballus_0001"
+depends_on = [
+  "bam_markdup_adna_equus_caballus_0001",
+  "bam_qc_pre_adna_equus_caballus_0001",
+]
+resource_template = "bam_coverage"
+
+[[jobs]]
+name = "bam_duplication_metrics_adna_equus_caballus_0001"
+stage = "bam.duplication_metrics"
+tool = "samtools"
+sample = "adna_equus_caballus_0001"
+depends_on = ["bam_markdup_adna_equus_caballus_0001"]
 resource_template = "bam_qc"
 
 [[jobs]]
@@ -1320,7 +1463,12 @@ name = "vcf_call_adna_equus_caballus_0001"
 stage = "vcf.call"
 tool = "bcftools"
 sample = "adna_equus_caballus_0001"
-depends_on = ["bam_recalibration_adna_equus_caballus_0001"]
+depends_on = [
+  "bam_markdup_adna_equus_caballus_0001",
+  "bam_coverage_adna_equus_caballus_0001",
+  "bam_damage_adna_equus_caballus_0001",
+  "bam_duplication_metrics_adna_equus_caballus_0001",
+]
 resource_template = "vcf_call"
 
 [[jobs]]
@@ -2678,13 +2826,19 @@ sample = "sample-1"
         assert_eq!(report.resolved_slurm.site_profile, "lunarc");
         assert_eq!(report.resolved_slurm.partition, "main");
         assert_eq!(report.resolved_slurm.qos, "normal");
-        assert_eq!(report.planned_jobs.len(), 4);
+        assert_eq!(report.planned_jobs.len(), 9);
         assert_eq!(report.planned_jobs[0].stage, "fastq.validate_reads");
-        assert_eq!(report.planned_jobs[1].stage, "fastq.trim_reads");
-        assert_eq!(report.planned_jobs[2].stage, "bam.align");
-        assert_eq!(report.planned_jobs[3].stage, "bam.qc_pre");
-        assert_eq!(report.planned_jobs[2].resource_template, "bam_align");
-        assert_eq!(report.planned_jobs[3].resource_template, "bam_qc");
+        assert_eq!(report.planned_jobs[1].stage, "fastq.profile_read_lengths");
+        assert_eq!(report.planned_jobs[2].stage, "fastq.detect_adapters");
+        assert_eq!(report.planned_jobs[3].stage, "fastq.trim_reads");
+        assert_eq!(report.planned_jobs[4].stage, "fastq.merge_pairs");
+        assert_eq!(report.planned_jobs[5].stage, "fastq.filter_reads");
+        assert_eq!(report.planned_jobs[6].stage, "bam.align");
+        assert_eq!(report.planned_jobs[7].stage, "bam.markdup");
+        assert_eq!(report.planned_jobs[8].stage, "bam.qc_pre");
+        assert_eq!(report.planned_jobs[6].resource_template, "bam_align");
+        assert_eq!(report.planned_jobs[7].resource_template, "bam_markdup");
+        assert_eq!(report.planned_jobs[8].resource_template, "bam_qc");
     }
 
     #[test]
@@ -2712,26 +2866,34 @@ sample = "sample-1"
         assert_eq!(report.resolved_slurm.site_profile, "lunarc");
         assert_eq!(report.resolved_slurm.partition, "main");
         assert_eq!(report.resolved_slurm.qos, "normal");
-        assert_eq!(report.planned_jobs.len(), 9);
+        assert_eq!(report.planned_jobs.len(), 16);
         assert_eq!(
             stage_ids,
             vec![
                 "fastq.validate_reads",
+                "fastq.profile_read_lengths",
+                "fastq.detect_adapters",
                 "fastq.trim_reads",
+                "fastq.merge_pairs",
+                "fastq.filter_reads",
                 "bam.align",
+                "bam.markdup",
                 "bam.qc_pre",
-                "bam.recalibration",
+                "bam.damage",
+                "bam.coverage",
+                "bam.duplication_metrics",
                 "vcf.call",
                 "vcf.filter",
                 "vcf.stats",
                 "vcf.qc",
             ]
         );
-        assert_eq!(report.planned_jobs[2].resource_template, "bam_align");
-        assert_eq!(report.planned_jobs[5].resource_template, "vcf_call");
-        assert_eq!(report.planned_jobs[6].resource_template, "vcf_qc");
-        assert_eq!(report.planned_jobs[7].resource_template, "vcf_qc");
-        assert_eq!(report.planned_jobs[8].resource_template, "vcf_qc");
+        assert_eq!(report.planned_jobs[6].resource_template, "bam_align");
+        assert_eq!(report.planned_jobs[7].resource_template, "bam_markdup");
+        assert_eq!(report.planned_jobs[12].resource_template, "vcf_call");
+        assert_eq!(report.planned_jobs[13].resource_template, "vcf_qc");
+        assert_eq!(report.planned_jobs[14].resource_template, "vcf_qc");
+        assert_eq!(report.planned_jobs[15].resource_template, "vcf_qc");
         assert!(report.planned_jobs.iter().all(|job| {
             !matches!(
                 job.stage.as_str(),

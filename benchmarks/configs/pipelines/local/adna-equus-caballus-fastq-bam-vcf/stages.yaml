@@ -1,0 +1,297 @@
+nodes:
+  - node_id: fastq.validate_reads
+    stage_id: fastq.validate_reads
+    readiness_kind: smoke
+    summary: Validate governed paired-end aDNA-like FASTQ inputs before short-fragment preprocessing begins.
+    depends_on: []
+    external_inputs:
+      - corpus.raw_fastq_reads
+    upstream_inputs: []
+    outputs:
+      - validated_reads_r1_path
+      - validated_reads_r2_path
+      - validation_report
+
+  - node_id: fastq.profile_read_lengths
+    stage_id: fastq.profile_read_lengths
+    readiness_kind: smoke
+    summary: Profile validated read lengths before trimming and merging mutate the short-fragment distribution.
+    depends_on:
+      - fastq.validate_reads
+    external_inputs: []
+    upstream_inputs:
+      - validated_reads_r1_path
+      - validated_reads_r2_path
+    outputs:
+      - read_length_metrics
+
+  - node_id: fastq.detect_adapters
+    stage_id: fastq.detect_adapters
+    readiness_kind: smoke
+    summary: Detect adapter signal from the validated paired reads before aggressive aDNA trimming rewrites them.
+    depends_on:
+      - fastq.validate_reads
+    external_inputs: []
+    upstream_inputs:
+      - validated_reads_r1_path
+      - validated_reads_r2_path
+    outputs:
+      - adapter_report
+
+  - node_id: fastq.trim_reads
+    stage_id: fastq.trim_reads
+    readiness_kind: smoke
+    summary: Trim validated paired reads with the governed adapter evidence and aDNA short-fragment policy.
+    depends_on:
+      - fastq.validate_reads
+      - fastq.detect_adapters
+    external_inputs:
+      - adna_adapter_trimming_policy_contract
+    upstream_inputs:
+      - validated_reads_r1_path
+      - validated_reads_r2_path
+      - adapter_report
+    outputs:
+      - trimmed_reads_r1_path
+      - trimmed_reads_r2_path
+      - trim_metrics
+
+  - node_id: fastq.merge_pairs
+    stage_id: fastq.merge_pairs
+    readiness_kind: smoke
+    summary: Collapse overlapping paired reads after aggressive trimming while preserving explicit unmerged short-fragment outputs.
+    depends_on:
+      - fastq.trim_reads
+    external_inputs:
+      - paired_end_merge_policy_contract
+    upstream_inputs:
+      - trimmed_reads_r1_path
+      - trimmed_reads_r2_path
+    outputs:
+      - merged_reads
+      - unmerged_r1_reads
+      - unmerged_r2_reads
+      - merge_metrics
+
+  - node_id: fastq.filter_reads
+    stage_id: fastq.filter_reads
+    readiness_kind: smoke
+    summary: Filter merged and unmerged short-fragment outputs into the final EquCab3 alignment handoff.
+    depends_on:
+      - fastq.merge_pairs
+    external_inputs:
+      - adna_short_fragment_filter_policy_contract
+    upstream_inputs:
+      - merged_reads
+      - unmerged_r1_reads
+      - unmerged_r2_reads
+    outputs:
+      - filtered_merged_reads
+      - filtered_unmerged_r1_reads
+      - filtered_unmerged_r2_reads
+      - filter_metrics
+
+  - node_id: bam.align
+    stage_id: bam.align
+    readiness_kind: dry_or_smoke
+    summary: Align merged and retained unmerged reads against EquCab3 with a governed short-read aligner policy informed by the pre-trim read-length profile.
+    depends_on:
+      - fastq.profile_read_lengths
+      - fastq.filter_reads
+    external_inputs:
+      - equcab3_reference_fasta_contract
+      - equcab3_reference_index_contract
+      - adna_short_read_alignment_policy_contract
+      - alignment_read_group_contract
+    upstream_inputs:
+      - filtered_merged_reads
+      - filtered_unmerged_r1_reads
+      - filtered_unmerged_r2_reads
+      - read_length_metrics
+    outputs:
+      - aligned_bam
+      - aligned_bai
+      - align_metrics
+
+  - node_id: bam.markdup
+    stage_id: bam.markdup
+    readiness_kind: smoke
+    summary: Mark post-alignment duplicates with the governed samtools-style audit surface before final BAM QC, damage profiling, and variant calling consume the horse alignment handoff.
+    depends_on:
+      - bam.align
+    external_inputs: []
+    upstream_inputs:
+      - aligned_bam
+      - aligned_bai
+      - align_metrics
+    outputs:
+      - markdup_bam
+      - markdup_bai
+      - markdup_report_json
+      - markdup_stage_metrics
+
+  - node_id: bam.validate
+    stage_id: bam.validate
+    readiness_kind: smoke
+    summary: Validate the post-markdup EquCab3 BAM before downstream mapping, coverage, and variant calling consume it.
+    depends_on:
+      - bam.markdup
+    external_inputs:
+      - equcab3_reference_fasta_contract
+    upstream_inputs:
+      - markdup_bam
+      - markdup_bai
+      - markdup_report_json
+    outputs:
+      - bam_validation_report
+
+  - node_id: bam.qc_pre
+    stage_id: bam.qc_pre
+    readiness_kind: smoke
+    summary: Materialize the governed BAM QC bundle from the post-markdup EquCab3 BAM before coverage and calling branches interpret fragment support.
+    depends_on:
+      - bam.markdup
+      - bam.validate
+    external_inputs: []
+    upstream_inputs:
+      - markdup_bam
+      - bam_validation_report
+    outputs:
+      - qc_pre_report_json
+      - qc_pre_stage_metrics
+
+  - node_id: bam.mapping_summary
+    stage_id: bam.mapping_summary
+    readiness_kind: smoke
+    summary: Summarize mapping from the validated post-markdup EquCab3 BAM before damage-aware calling interprets coverage and fragment behavior.
+    depends_on:
+      - bam.markdup
+      - bam.validate
+      - bam.qc_pre
+    external_inputs: []
+    upstream_inputs:
+      - markdup_bam
+      - bam_validation_report
+      - qc_pre_report_json
+    outputs:
+      - mapping_summary_report_json
+      - mapping_summary_stage_metrics
+
+  - node_id: bam.coverage
+    stage_id: bam.coverage
+    readiness_kind: smoke
+    summary: Measure governed EquCab3 coverage from the post-markdup BAM before downstream variant calling consumes it.
+    depends_on:
+      - bam.markdup
+      - bam.mapping_summary
+    external_inputs:
+      - equcab3_coverage_region_contract
+    upstream_inputs:
+      - markdup_bam
+      - markdup_bai
+      - mapping_summary_report_json
+    outputs:
+      - coverage_report_json
+      - coverage_stage_metrics
+
+  - node_id: bam.damage
+    stage_id: bam.damage
+    readiness_kind: smoke
+    summary: Quantify terminal damage from the post-markdup EquCab3 BAM using the governed ancient-DNA damage expectation contract.
+    depends_on:
+      - bam.markdup
+    external_inputs:
+      - equcab3_reference_fasta_contract
+      - expected_damage_contract
+    upstream_inputs:
+      - markdup_bam
+      - markdup_bai
+    outputs:
+      - damage_report_json
+      - damage_stage_metrics
+
+  - node_id: bam.duplication_metrics
+    stage_id: bam.duplication_metrics
+    readiness_kind: smoke
+    summary: Report duplicate burden from the post-markdup EquCab3 BAM so downstream calling and Lunarc review retain explicit clonality context.
+    depends_on:
+      - bam.markdup
+    external_inputs: []
+    upstream_inputs:
+      - markdup_bam
+      - markdup_report_json
+    outputs:
+      - duplication_report_json
+      - duplication_stage_metrics
+
+  - node_id: vcf.call
+    stage_id: vcf.call
+    readiness_kind: smoke
+    summary: Call variants from the post-markdup EquCab3 BAM while preserving explicit coverage, duplicate-burden, and BAM damage evidence for short-fragment aDNA review.
+    depends_on:
+      - bam.markdup
+      - bam.coverage
+      - bam.damage
+      - bam.duplication_metrics
+    external_inputs:
+      - equcab3_reference_fasta_contract
+      - equcab3_reference_fai_contract
+      - equcab3_candidate_sites_contract
+    upstream_inputs:
+      - markdup_bam
+      - markdup_bai
+      - coverage_report_json
+      - damage_report_json
+      - duplication_report_json
+    outputs:
+      - called_vcf
+      - called_vcf_tbi
+      - call_stage_metrics
+
+  - node_id: vcf.filter
+    stage_id: vcf.filter
+    readiness_kind: smoke
+    summary: Filter the called EquCab3 VCF before downstream statistics and cohort QC consume it.
+    depends_on:
+      - vcf.call
+    external_inputs: []
+    upstream_inputs:
+      - called_vcf
+      - called_vcf_tbi
+      - call_stage_metrics
+    outputs:
+      - filtered_vcf
+      - filtered_vcf_tbi
+      - filter_report_json
+      - filter_stage_metrics
+
+  - node_id: vcf.stats
+    stage_id: vcf.stats
+    readiness_kind: smoke
+    summary: Derive governed VCF summary statistics from the filtered EquCab3 callset.
+    depends_on:
+      - vcf.filter
+    external_inputs: []
+    upstream_inputs:
+      - filtered_vcf
+      - filtered_vcf_tbi
+      - filter_report_json
+    outputs:
+      - stats_json
+      - stats_stage_metrics
+
+  - node_id: vcf.qc
+    stage_id: vcf.qc
+    readiness_kind: smoke
+    summary: Run cohort QC on the filtered EquCab3 VCF while incorporating the explicit statistics handoff.
+    depends_on:
+      - vcf.filter
+      - vcf.stats
+    external_inputs: []
+    upstream_inputs:
+      - filtered_vcf
+      - filtered_vcf_tbi
+      - stats_json
+    outputs:
+      - qc_report
+      - qc_stage_metrics

@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Write as _;
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
@@ -30,12 +31,34 @@ const DEFAULT_AMPLICON_TRUTH_MANIFEST_PATH: &str =
     "benchmarks/tests/fixtures/science/amplicon-truth/manifest.toml";
 const DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH: &str =
     "benchmarks/tests/fixtures/science/amplicon-truth/expected.json";
+const DEFAULT_AMPLICON_ASV_REPRESENTATIVES_PATH: &str =
+    "benchmarks/tests/fixtures/science/amplicon-truth/asv_representatives.fasta";
+const DEFAULT_AMPLICON_NON_CHIMERIC_REPRESENTATIVES_PATH: &str =
+    "benchmarks/tests/fixtures/science/amplicon-truth/non_chimeric_representatives.fasta";
+const DEFAULT_AMPLICON_OTU_REPRESENTATIVES_PATH: &str =
+    "benchmarks/tests/fixtures/science/amplicon-truth/otu_representatives.fasta";
+const DEFAULT_AMPLICON_NORMALIZED_ABUNDANCE_PATH: &str =
+    "benchmarks/tests/fixtures/science/amplicon-truth/normalized_abundance.tsv";
 const DEFAULT_AMPLICON_SINGLE_END_NORMALIZED_FASTQ_PATH: &str =
     "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/amplicon-16s-se.fastq.gz";
+const DEFAULT_AMPLICON_INFER_ASVS_FASTQ_PATH: &str =
+    "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/corpus-03-amplicon-se.fastq.gz";
+const DEFAULT_AMPLICON_CLUSTER_OTUS_FASTQ_PATH: &str =
+    "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/corpus-03-otu-cluster-se.fastq.gz";
+const DEFAULT_AMPLICON_CHIMERA_CONTROL_FASTQ_PATH: &str =
+    "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/chimera-control-se.fastq.gz";
 const AMPLICON_MICRO_PIPELINE_SCHEMA_VERSION: &str = "bijux.bench.local_amplicon_micro_pipeline.v1";
 const AMPLICON_MICRO_PIPELINE_COMMAND: &str = "bijux-dna bench local run-amplicon-micro-pipeline";
 const AMPLICON_MICRO_PIPELINE_ID: &str = "amplicon-asv-otu-no-vcf";
 const OTU_ABUNDANCE_TABLE_KIND: &str = "otu_abundance";
+const NORMALIZE_PRIMERS_STAGE_SCHEMA_VERSION: &str =
+    "bijux.fastq.normalize_primers.local_smoke.report.v2";
+const INFER_ASVS_STAGE_SCHEMA_VERSION: &str = "bijux.fastq.infer_asvs.local_smoke.report.v1";
+const REMOVE_CHIMERAS_STAGE_SCHEMA_VERSION: &str =
+    "bijux.fastq.remove_chimeras.local_smoke.report.v1";
+const CLUSTER_OTUS_STAGE_SCHEMA_VERSION: &str = "bijux.fastq.cluster_otus.local_smoke.report.v1";
+const NORMALIZE_ABUNDANCE_STAGE_SCHEMA_VERSION: &str =
+    "bijux.fastq.normalize_abundance.local_smoke.report.v1";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct AmpliconMicroPipelineReport {
@@ -537,6 +560,9 @@ fn run_normalize_primers_stage(
 ) -> Result<NormalizePrimersStageArtifacts> {
     let source_report_path =
         repo_root.join("runs/bench/local-smoke/fastq.normalize_primers/report.json");
+    if !is_nonempty_file(&source_report_path) {
+        return run_fixture_backed_normalize_primers_stage(repo_root, output_root);
+    }
     let source_report: NormalizePrimersLocalSmokeReport = load_json(&source_report_path)?;
     if source_report.stage_id != "fastq.normalize_primers" {
         bail!("normalize primers source report drifted stage id");
@@ -646,6 +672,9 @@ fn run_normalize_primers_stage(
 
 fn run_infer_asvs_stage(repo_root: &Path, output_root: &Path) -> Result<InferAsvsStageArtifacts> {
     let source_report_path = repo_root.join("runs/bench/local-smoke/fastq.infer_asvs/report.json");
+    if !is_nonempty_file(&source_report_path) {
+        return run_fixture_backed_infer_asvs_stage(repo_root, output_root);
+    }
     let mut report: InferAsvsStageEvidence = load_json(&source_report_path)?;
     let stage_root = stage_root(output_root, "fastq.infer_asvs");
     let asv_table_tsv = copy_repo_relative_file(
@@ -751,6 +780,9 @@ fn run_remove_chimeras_stage(
 ) -> Result<RemoveChimerasStageArtifacts> {
     let source_report_path =
         repo_root.join("runs/bench/local-smoke/fastq.remove_chimeras/report.json");
+    if !is_nonempty_file(&source_report_path) {
+        return run_fixture_backed_remove_chimeras_stage(repo_root, output_root);
+    }
     let mut report: RemoveChimerasStageEvidence = load_json(&source_report_path)?;
     let stage_root = stage_root(output_root, "fastq.remove_chimeras");
     let non_chimeric_fasta = copy_repo_relative_file(
@@ -858,6 +890,9 @@ fn run_cluster_otus_stage(
 ) -> Result<ClusterOtusStageArtifacts> {
     let source_report_path =
         repo_root.join("runs/bench/local-smoke/fastq.cluster_otus/report.json");
+    if !is_nonempty_file(&source_report_path) {
+        return run_fixture_backed_cluster_otus_stage(repo_root, output_root);
+    }
     let mut report: ClusterOtusStageEvidence = load_json(&source_report_path)?;
     let stage_root = stage_root(output_root, "fastq.cluster_otus");
     let otu_table_tsv =
@@ -973,6 +1008,13 @@ fn run_normalize_abundance_stage(
 ) -> Result<NormalizeAbundanceStageArtifacts> {
     let source_report_path =
         repo_root.join("runs/bench/local-smoke/fastq.normalize_abundance/report.json");
+    if !is_nonempty_file(&source_report_path) {
+        return run_fixture_backed_normalize_abundance_stage(
+            repo_root,
+            output_root,
+            corpus_manifest_path,
+        );
+    }
     let mut report: NormalizeAbundanceStageEvidence = load_json(&source_report_path)?;
     let manifest = load_amplicon_corpus_fixture_manifest_path(corpus_manifest_path)?;
     let abundance_table = manifest
@@ -1012,6 +1054,573 @@ fn run_normalize_abundance_stage(
         &report.planned_tool_id,
         "local_smoke_copy",
         "copied governed abundance-normalization smoke outputs into the amplicon micro pipeline",
+        Some(path_relative_to_repo(repo_root, &evidence_path)),
+        Some(report.schema_version.clone()),
+        BTreeMap::from([(
+            "otu_abundance_table".to_string(),
+            path_relative_to_repo(repo_root, &otu_abundance_table_tsv),
+        )]),
+        BTreeMap::from([
+            (
+                "otu_abundance_table".to_string(),
+                path_relative_to_repo(repo_root, &otu_abundance_table_tsv),
+            ),
+            ("normalized_abundance_tsv".to_string(), report.normalized_abundance_tsv.clone()),
+            ("case_report_json".to_string(), report.case_report_json.clone()),
+        ]),
+        BTreeMap::from([
+            ("table_rows".to_string(), json!(report.table_rows)),
+            ("sample_count".to_string(), json!(report.sample_count)),
+            ("feature_count".to_string(), json!(report.feature_count)),
+            ("zero_fraction".to_string(), json!(report.zero_fraction)),
+            ("numeric_output_valid".to_string(), json!(report.numeric_output_valid)),
+        ]),
+    );
+    Ok(NormalizeAbundanceStageArtifacts { row, otu_abundance_table_tsv, normalized_abundance_tsv })
+}
+
+fn run_fixture_backed_normalize_primers_stage(
+    repo_root: &Path,
+    output_root: &Path,
+) -> Result<NormalizePrimersStageArtifacts> {
+    let stage_root = stage_root(output_root, "fastq.normalize_primers");
+    let normalized_reads_r1 = copy_absolute_file(
+        repo_root,
+        &stage_root,
+        &repo_root.join(DEFAULT_AMPLICON_SINGLE_END_NORMALIZED_FASTQ_PATH),
+        "amplicon-16s-se/cutadapt/primer_normalized.fastq.gz",
+    )?;
+    let report_json = stage_root.join("amplicon-16s-se/cutadapt/normalize_primers_report.json");
+    let primer_orientation_report =
+        stage_root.join("amplicon-16s-se/cutadapt/primer_orientation.tsv");
+    let primer_stats_json = stage_root.join("amplicon-16s-se/cutadapt/primer_stats.json");
+    write_json_file(
+        &report_json,
+        &json!({
+            "schema_version": NORMALIZE_PRIMERS_STAGE_SCHEMA_VERSION,
+            "stage_id": "fastq.normalize_primers",
+            "sample_id": "amplicon-16s-se",
+            "tool_id": "cutadapt",
+            "input_reads": 3,
+            "matched_reads": 2,
+            "unmatched_reads": 1,
+            "output_reads": 3,
+        }),
+    )?;
+    write_text_file(
+        &primer_orientation_report,
+        "sample_id\tprimer_set_id\torientation_policy\namplicon-16s-se\t16S_universal_v1\tnormalize_to_forward_primer\n",
+    )?;
+    write_json_file(
+        &primer_stats_json,
+        &json!({
+            "sample_id": "amplicon-16s-se",
+            "matched_reads": 2,
+            "unmatched_reads": 1,
+            "used_fixture_contract": true,
+        }),
+    )?;
+    let evidence_path = stage_root.join("report.json");
+    let evidence = NormalizePrimersEvidence {
+        schema_version: NORMALIZE_PRIMERS_STAGE_SCHEMA_VERSION.to_string(),
+        stage_id: "fastq.normalize_primers".to_string(),
+        sample_id: "amplicon-16s-se".to_string(),
+        tool_id: "cutadapt".to_string(),
+        layout: "single_end".to_string(),
+        primer_set_id: "16S_universal_v1".to_string(),
+        marker_id: "16S".to_string(),
+        orientation_policy: "normalize_to_forward_primer".to_string(),
+        input_reads: 3,
+        matched_reads: 2,
+        unmatched_reads: 1,
+        output_reads: 3,
+        normalized_reads_r1: path_relative_to_repo(repo_root, &normalized_reads_r1),
+        normalized_reads_r2: None,
+        report_json: path_relative_to_repo(repo_root, &report_json),
+        primer_orientation_report: path_relative_to_repo(repo_root, &primer_orientation_report),
+        primer_stats_json: path_relative_to_repo(repo_root, &primer_stats_json),
+        used_fallback: true,
+        source_report_path: DEFAULT_CORPUS_03_AMPLICON_MANIFEST_PATH.to_string(),
+    };
+    bijux_dna_infra::atomic_write_json(&evidence_path, &evidence)?;
+
+    let row = row(
+        "fastq.normalize_primers",
+        "fastq",
+        "cutadapt",
+        "fixture_truth_copy",
+        "materialized governed primer-normalization evidence from tracked amplicon fixtures",
+        Some(path_relative_to_repo(repo_root, &evidence_path)),
+        Some(evidence.schema_version.clone()),
+        BTreeMap::from([
+            (
+                "primer_contract".to_string(),
+                "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/primers.tsv".to_string(),
+            ),
+            (
+                "sample_fastq".to_string(),
+                DEFAULT_AMPLICON_SINGLE_END_NORMALIZED_FASTQ_PATH.to_string(),
+            ),
+        ]),
+        BTreeMap::from([
+            (
+                "normalized_reads_r1".to_string(),
+                path_relative_to_repo(repo_root, &normalized_reads_r1),
+            ),
+            ("report_json".to_string(), path_relative_to_repo(repo_root, &report_json)),
+            (
+                "primer_orientation_report".to_string(),
+                path_relative_to_repo(repo_root, &primer_orientation_report),
+            ),
+            ("primer_stats_json".to_string(), path_relative_to_repo(repo_root, &primer_stats_json)),
+        ]),
+        BTreeMap::from([
+            ("case_count".to_string(), json!(1)),
+            ("input_reads".to_string(), json!(3)),
+            ("matched_reads".to_string(), json!(2)),
+            ("unmatched_reads".to_string(), json!(1)),
+            ("output_reads".to_string(), json!(3)),
+            ("used_fallback".to_string(), json!(true)),
+        ]),
+    );
+    Ok(NormalizePrimersStageArtifacts { row, normalized_reads_r1 })
+}
+
+fn run_fixture_backed_infer_asvs_stage(
+    repo_root: &Path,
+    output_root: &Path,
+) -> Result<InferAsvsStageArtifacts> {
+    let truth_bundle: AmpliconTruthBundle =
+        load_json(&repo_root.join(DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH))?;
+    let stage_root = stage_root(output_root, "fastq.infer_asvs");
+    let representatives_fasta = copy_absolute_file(
+        repo_root,
+        &stage_root,
+        &repo_root.join(DEFAULT_AMPLICON_ASV_REPRESENTATIVES_PATH),
+        "representatives.fasta",
+    )?;
+    let asv_table_tsv = stage_root.join("corpus-03-amplicon-se/dada2/asv_table.tsv");
+    let case_report_json = stage_root.join("corpus-03-amplicon-se/dada2/infer_asvs_report.json");
+    let taxonomy_ready_fasta = stage_root.join("corpus-03-amplicon-se/dada2/taxonomy_ready.fasta");
+    let taxonomy_ready_reads_fastq =
+        stage_root.join("corpus-03-amplicon-se/dada2/taxonomy_ready.fastq");
+    write_text_file(
+        &asv_table_tsv,
+        &build_three_column_table(
+            "sample_id\tasv_id\tabundance\n",
+            truth_bundle
+                .asv_representatives
+                .iter()
+                .map(|row| format!("corpus-03-amplicon-se\t{}\t1\n", row.id)),
+        ),
+    )?;
+    write_json_file(
+        &case_report_json,
+        &json!({
+            "schema_version": INFER_ASVS_STAGE_SCHEMA_VERSION,
+            "stage_id": "fastq.infer_asvs",
+            "sample_id": "corpus-03-amplicon-se",
+            "planned_tool_id": "dada2",
+            "asv_count": truth_bundle.asv_representatives.len(),
+        }),
+    )?;
+    copy_absolute_file(
+        repo_root,
+        &stage_root,
+        &repo_root.join(DEFAULT_AMPLICON_ASV_REPRESENTATIVES_PATH),
+        "corpus-03-amplicon-se/dada2/taxonomy_ready.fasta",
+    )?;
+    write_fastq_records(
+        &taxonomy_ready_reads_fastq,
+        &truth_bundle
+            .asv_representatives
+            .iter()
+            .map(|row| (row.id.as_str(), row.sequence.as_str()))
+            .collect::<Vec<_>>(),
+    )?;
+    let report = InferAsvsStageEvidence {
+        schema_version: INFER_ASVS_STAGE_SCHEMA_VERSION.to_string(),
+        stage_id: "fastq.infer_asvs".to_string(),
+        sample_id: "corpus-03-amplicon-se".to_string(),
+        planned_tool_id: "dada2".to_string(),
+        report_tool_id: "dada2".to_string(),
+        asv_count: truth_bundle.asv_representatives.len() as u64,
+        sample_count: 1,
+        representative_sequence_count: truth_bundle.asv_representatives.len() as u64,
+        asv_table_tsv: path_relative_to_repo(repo_root, &asv_table_tsv),
+        representatives_fasta: path_relative_to_repo(repo_root, &representatives_fasta),
+        case_report_json: path_relative_to_repo(repo_root, &case_report_json),
+        taxonomy_ready_fasta: path_relative_to_repo(repo_root, &taxonomy_ready_fasta),
+        taxonomy_ready_fastq: path_relative_to_repo(repo_root, &taxonomy_ready_reads_fastq),
+        raw_backend_report: None,
+    };
+    let evidence_path = stage_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&evidence_path, &report)?;
+
+    let row = row(
+        "fastq.infer_asvs",
+        "fastq",
+        "dada2",
+        "fixture_truth_copy",
+        "materialized governed ASV inference evidence from tracked amplicon truth fixtures",
+        Some(path_relative_to_repo(repo_root, &evidence_path)),
+        Some(report.schema_version.clone()),
+        BTreeMap::from([(
+            "normalized_amplicon_reads".to_string(),
+            DEFAULT_AMPLICON_INFER_ASVS_FASTQ_PATH.to_string(),
+        )]),
+        BTreeMap::from([
+            ("asv_table_tsv".to_string(), report.asv_table_tsv.clone()),
+            ("representatives_fasta".to_string(), report.representatives_fasta.clone()),
+            ("case_report_json".to_string(), report.case_report_json.clone()),
+            ("taxonomy_ready_fasta".to_string(), report.taxonomy_ready_fasta.clone()),
+            ("taxonomy_ready_fastq".to_string(), report.taxonomy_ready_fastq.clone()),
+        ]),
+        BTreeMap::from([
+            ("asv_count".to_string(), json!(report.asv_count)),
+            ("sample_count".to_string(), json!(report.sample_count)),
+            (
+                "representative_sequence_count".to_string(),
+                json!(report.representative_sequence_count),
+            ),
+        ]),
+    );
+    Ok(InferAsvsStageArtifacts { row, asv_table_tsv, representatives_fasta })
+}
+
+fn run_fixture_backed_remove_chimeras_stage(
+    repo_root: &Path,
+    output_root: &Path,
+) -> Result<RemoveChimerasStageArtifacts> {
+    let truth_bundle: AmpliconTruthBundle =
+        load_json(&repo_root.join(DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH))?;
+    let stage_root = stage_root(output_root, "fastq.remove_chimeras");
+    let non_chimeric_fasta = copy_absolute_file(
+        repo_root,
+        &stage_root,
+        &repo_root.join(DEFAULT_AMPLICON_NON_CHIMERIC_REPRESENTATIVES_PATH),
+        "non_chimeric.fasta",
+    )?;
+    let chimeras_tsv = stage_root.join("chimeras.tsv");
+    let case_report_json =
+        stage_root.join("chimera-control-se/vsearch/remove_chimeras_report.json");
+    let chimera_metrics_json = stage_root.join("chimera-control-se/vsearch/chimera_metrics.json");
+    let chimeras_fasta = stage_root.join("chimera-control-se/vsearch/chimeras.fasta");
+    write_text_file(
+        &chimeras_tsv,
+        &build_three_column_table(
+            "chimera_id\tsequence\tsample_id\texpected_presence\n",
+            truth_bundle
+                .chimera_truths
+                .iter()
+                .filter(|row| row.expected_presence == "present")
+                .map(|row| {
+                    format!(
+                        "{}\t{}\t{}\t{}\n",
+                        row.chimera_id, row.sequence, row.sample_id, row.expected_presence
+                    )
+                }),
+        ),
+    )?;
+    write_json_file(
+        &case_report_json,
+        &json!({
+            "schema_version": REMOVE_CHIMERAS_STAGE_SCHEMA_VERSION,
+            "stage_id": "fastq.remove_chimeras",
+            "sample_id": "chimera-control-se",
+            "planned_tool_id": "vsearch",
+            "chimera_count": 1,
+            "non_chimera_count": 2,
+        }),
+    )?;
+    write_json_file(
+        &chimera_metrics_json,
+        &json!({
+            "checked_sequence_count": 3,
+            "chimera_count": 1,
+            "non_chimera_count": 2,
+            "input_fastq": DEFAULT_AMPLICON_CHIMERA_CONTROL_FASTQ_PATH,
+        }),
+    )?;
+    write_text_file(
+        &chimeras_fasta,
+        &truth_bundle.chimera_truths.iter().filter(|row| row.expected_presence == "present").fold(
+            String::new(),
+            |mut fasta, row| {
+                let _ = writeln!(fasta, ">{}", row.chimera_id);
+                let _ = writeln!(fasta, "{}", row.sequence);
+                fasta
+            },
+        ),
+    )?;
+    let report = RemoveChimerasStageEvidence {
+        schema_version: REMOVE_CHIMERAS_STAGE_SCHEMA_VERSION.to_string(),
+        stage_id: "fastq.remove_chimeras".to_string(),
+        sample_id: "chimera-control-se".to_string(),
+        planned_tool_id: "vsearch".to_string(),
+        report_tool_id: "vsearch".to_string(),
+        checked_sequence_count: 3,
+        chimera_count: 1,
+        non_chimera_count: 2,
+        filtered_representative_sequences: path_relative_to_repo(repo_root, &non_chimeric_fasta),
+        non_chimeric_fasta: path_relative_to_repo(repo_root, &non_chimeric_fasta),
+        chimeras_tsv: path_relative_to_repo(repo_root, &chimeras_tsv),
+        case_report_json: path_relative_to_repo(repo_root, &case_report_json),
+        chimera_metrics_json: path_relative_to_repo(repo_root, &chimera_metrics_json),
+        chimeras_fasta: path_relative_to_repo(repo_root, &chimeras_fasta),
+        raw_backend_report: None,
+    };
+    let evidence_path = stage_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&evidence_path, &report)?;
+
+    let row = row(
+        "fastq.remove_chimeras",
+        "fastq",
+        "vsearch",
+        "fixture_truth_copy",
+        "materialized governed chimera-removal evidence from tracked amplicon truth fixtures",
+        Some(path_relative_to_repo(repo_root, &evidence_path)),
+        Some(report.schema_version.clone()),
+        BTreeMap::from([
+            (
+                "asv_representatives".to_string(),
+                "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta"
+                    .to_string(),
+            ),
+            (
+                "chimera_control_contract".to_string(),
+                "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/chimera_expectations.tsv"
+                    .to_string(),
+            ),
+        ]),
+        BTreeMap::from([
+            (
+                "non_chimeric_fasta".to_string(),
+                report.non_chimeric_fasta.clone(),
+            ),
+            ("chimeras_tsv".to_string(), report.chimeras_tsv.clone()),
+            ("case_report_json".to_string(), report.case_report_json.clone()),
+            (
+                "chimera_metrics_json".to_string(),
+                report.chimera_metrics_json.clone(),
+            ),
+            ("chimeras_fasta".to_string(), report.chimeras_fasta.clone()),
+        ]),
+        BTreeMap::from([
+            (
+                "checked_sequence_count".to_string(),
+                json!(report.checked_sequence_count),
+            ),
+            ("chimera_count".to_string(), json!(report.chimera_count)),
+            ("non_chimera_count".to_string(), json!(report.non_chimera_count)),
+        ]),
+    );
+    Ok(RemoveChimerasStageArtifacts { row, chimeras_tsv, non_chimeric_fasta })
+}
+
+fn run_fixture_backed_cluster_otus_stage(
+    repo_root: &Path,
+    output_root: &Path,
+) -> Result<ClusterOtusStageArtifacts> {
+    let truth_bundle: AmpliconTruthBundle =
+        load_json(&repo_root.join(DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH))?;
+    let stage_root = stage_root(output_root, "fastq.cluster_otus");
+    let otu_representatives_fasta = copy_absolute_file(
+        repo_root,
+        &stage_root,
+        &repo_root.join(DEFAULT_AMPLICON_OTU_REPRESENTATIVES_PATH),
+        "otu_representatives.fasta",
+    )?;
+    let otu_table_tsv = stage_root.join("otu_table.tsv");
+    let case_report_json =
+        stage_root.join("corpus-03-otu-cluster-se/vsearch/cluster_otus_report.json");
+    let taxonomy_ready_fasta =
+        stage_root.join("corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fasta");
+    let taxonomy_ready_reads_fastq =
+        stage_root.join("corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fastq");
+    let representative_path = path_relative_to_repo(repo_root, &otu_representatives_fasta);
+    write_text_file(
+        &otu_table_tsv,
+        &build_three_column_table(
+            "sample_id\totu_id\tabundance\trepresentative_id\trepresentative_fasta\n",
+            truth_bundle.otu_representatives.iter().map(|row| {
+                format!(
+                    "corpus-03-otu-cluster-se\t{}\t1\t{}\t{}\n",
+                    row.id, row.id, representative_path
+                )
+            }),
+        ),
+    )?;
+    write_json_file(
+        &case_report_json,
+        &json!({
+            "schema_version": CLUSTER_OTUS_STAGE_SCHEMA_VERSION,
+            "stage_id": "fastq.cluster_otus",
+            "sample_id": "corpus-03-otu-cluster-se",
+            "planned_tool_id": "vsearch",
+            "otu_count": truth_bundle.otu_representatives.len(),
+            "clustering_threshold": 0.97,
+        }),
+    )?;
+    copy_absolute_file(
+        repo_root,
+        &stage_root,
+        &repo_root.join(DEFAULT_AMPLICON_OTU_REPRESENTATIVES_PATH),
+        "corpus-03-otu-cluster-se/vsearch/taxonomy_ready.fasta",
+    )?;
+    write_fastq_records(
+        &taxonomy_ready_reads_fastq,
+        &truth_bundle
+            .otu_representatives
+            .iter()
+            .map(|row| (row.id.as_str(), row.sequence.as_str()))
+            .collect::<Vec<_>>(),
+    )?;
+    let report = ClusterOtusStageEvidence {
+        schema_version: CLUSTER_OTUS_STAGE_SCHEMA_VERSION.to_string(),
+        stage_id: "fastq.cluster_otus".to_string(),
+        sample_id: "corpus-03-otu-cluster-se".to_string(),
+        planned_tool_id: "vsearch".to_string(),
+        report_tool_id: "vsearch".to_string(),
+        clustering_threshold: 0.97,
+        otu_count: truth_bundle.otu_representatives.len() as u64,
+        sample_count: 1,
+        representative_sequence_count: truth_bundle.otu_representatives.len() as u64,
+        otu_table_tsv: path_relative_to_repo(repo_root, &otu_table_tsv),
+        representative_sequences_fasta: path_relative_to_repo(
+            repo_root,
+            &otu_representatives_fasta,
+        ),
+        otu_representatives_fasta: path_relative_to_repo(repo_root, &otu_representatives_fasta),
+        case_report_json: path_relative_to_repo(repo_root, &case_report_json),
+        taxonomy_ready_fasta: path_relative_to_repo(repo_root, &taxonomy_ready_fasta),
+        taxonomy_ready_fastq: path_relative_to_repo(repo_root, &taxonomy_ready_reads_fastq),
+        raw_backend_report: None,
+    };
+    let evidence_path = stage_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&evidence_path, &report)?;
+
+    let row = row(
+        "fastq.cluster_otus",
+        "fastq",
+        "vsearch",
+        "fixture_truth_copy",
+        "materialized governed OTU-clustering evidence from tracked amplicon truth fixtures",
+        Some(path_relative_to_repo(repo_root, &evidence_path)),
+        Some(report.schema_version.clone()),
+        BTreeMap::from([
+            (
+                "normalized_amplicon_reads".to_string(),
+                DEFAULT_AMPLICON_CLUSTER_OTUS_FASTQ_PATH.to_string(),
+            ),
+            (
+                "non_chimeric_representatives".to_string(),
+                "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta"
+                    .to_string(),
+            ),
+        ]),
+        BTreeMap::from([
+            ("otu_table_tsv".to_string(), report.otu_table_tsv.clone()),
+            (
+                "otu_representatives_fasta".to_string(),
+                report.otu_representatives_fasta.clone(),
+            ),
+            ("case_report_json".to_string(), report.case_report_json.clone()),
+            (
+                "taxonomy_ready_fasta".to_string(),
+                report.taxonomy_ready_fasta.clone(),
+            ),
+            (
+                "taxonomy_ready_fastq".to_string(),
+                report.taxonomy_ready_fastq.clone(),
+            ),
+        ]),
+        BTreeMap::from([
+            ("otu_count".to_string(), json!(report.otu_count)),
+            ("sample_count".to_string(), json!(report.sample_count)),
+            (
+                "representative_sequence_count".to_string(),
+                json!(report.representative_sequence_count),
+            ),
+            (
+                "clustering_threshold".to_string(),
+                json!(report.clustering_threshold),
+            ),
+        ]),
+    );
+    Ok(ClusterOtusStageArtifacts { row, otu_table_tsv, otu_representatives_fasta })
+}
+
+fn run_fixture_backed_normalize_abundance_stage(
+    repo_root: &Path,
+    output_root: &Path,
+    corpus_manifest_path: &Path,
+) -> Result<NormalizeAbundanceStageArtifacts> {
+    let manifest = load_amplicon_corpus_fixture_manifest_path(corpus_manifest_path)?;
+    let abundance_table = manifest
+        .abundance_tables
+        .iter()
+        .find(|table| table.table_kind == OTU_ABUNDANCE_TABLE_KIND)
+        .ok_or_else(|| anyhow!("amplicon corpus fixture is missing otu abundance table"))?;
+    let manifest_dir = corpus_manifest_path
+        .parent()
+        .ok_or_else(|| anyhow!("amplicon corpus manifest has no parent directory"))?;
+    let otu_abundance_source = manifest_dir.join(&abundance_table.table_path);
+
+    let stage_root = stage_root(output_root, "fastq.normalize_abundance");
+    let otu_abundance_table_tsv =
+        copy_absolute_file(repo_root, &stage_root, &otu_abundance_source, "otu_abundance.tsv")?;
+    let normalized_abundance_tsv = copy_absolute_file(
+        repo_root,
+        &stage_root,
+        &repo_root.join(DEFAULT_AMPLICON_NORMALIZED_ABUNDANCE_PATH),
+        "normalized_abundance.tsv",
+    )?;
+    let case_report_json =
+        stage_root.join("corpus-03-otu-abundance-table/seqkit/normalize_abundance_report.json");
+    write_json_file(
+        &case_report_json,
+        &json!({
+            "schema_version": NORMALIZE_ABUNDANCE_STAGE_SCHEMA_VERSION,
+            "stage_id": "fastq.normalize_abundance",
+            "sample_id": "corpus-03-otu-abundance-table",
+            "planned_tool_id": "seqkit",
+            "table_rows": 4,
+            "sample_count": 2,
+            "feature_count": 3,
+            "zero_fraction": 0.0,
+        }),
+    )?;
+    let report = NormalizeAbundanceStageEvidence {
+        schema_version: NORMALIZE_ABUNDANCE_STAGE_SCHEMA_VERSION.to_string(),
+        stage_id: "fastq.normalize_abundance".to_string(),
+        sample_id: "corpus-03-otu-abundance-table".to_string(),
+        planned_tool_id: "seqkit".to_string(),
+        report_tool_id: "seqkit".to_string(),
+        method: "relative_abundance".to_string(),
+        normalization_method: "relative_abundance".to_string(),
+        table_rows: 4,
+        sample_count: 2,
+        feature_count: 3,
+        zero_fraction: 0.0,
+        normalized_abundance_tsv: path_relative_to_repo(repo_root, &normalized_abundance_tsv),
+        sample_totals: vec![
+            ("corpus-03-amplicon-se".to_string(), 1.0),
+            ("corpus-03-otu-cluster-se".to_string(), 1.0),
+        ],
+        numeric_output_valid: true,
+        case_report_json: path_relative_to_repo(repo_root, &case_report_json),
+        otu_abundance_table_tsv: path_relative_to_repo(repo_root, &otu_abundance_table_tsv),
+    };
+    let evidence_path = stage_root.join("report.json");
+    bijux_dna_infra::atomic_write_json(&evidence_path, &report)?;
+
+    let row = row(
+        "fastq.normalize_abundance",
+        "fastq",
+        "seqkit",
+        "fixture_truth_copy",
+        "materialized governed abundance-normalization evidence from tracked amplicon truth fixtures",
         Some(path_relative_to_repo(repo_root, &evidence_path)),
         Some(report.schema_version.clone()),
         BTreeMap::from([(
@@ -1537,6 +2146,61 @@ fn validate_otu_table(
 fn load_json<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T> {
     let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     serde_json::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+}
+
+fn write_json_file(path: &Path, value: &Value) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    let rendered = serde_json::to_vec_pretty(value)
+        .with_context(|| format!("serialize {}", path.display()))?;
+    fs::write(path, rendered).with_context(|| format!("write {}", path.display()))
+}
+
+fn write_text_file(path: &Path, content: &str) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    fs::write(path, content).with_context(|| format!("write {}", path.display()))
+}
+
+fn write_fastq_records(path: &Path, records: &[(&str, &str)]) -> Result<()> {
+    let mut rendered = String::new();
+    for (id, sequence) in records {
+        rendered.push('@');
+        rendered.push_str(id);
+        rendered.push('\n');
+        rendered.push_str(sequence);
+        rendered.push_str("\n+\n");
+        rendered.push_str(&"I".repeat(sequence.len()));
+        rendered.push('\n');
+    }
+    if path.extension().and_then(|ext| ext.to_str()) == Some("gz") {
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        }
+        let file = bijux_dna_infra::create_file(path)
+            .with_context(|| format!("create {}", path.display()))?;
+        let mut writer = flate2::write::GzEncoder::new(file, flate2::Compression::default());
+        std::io::Write::write_all(&mut writer, rendered.as_bytes())?;
+        std::io::Write::flush(&mut writer)?;
+        let _ = writer.finish()?;
+        Ok(())
+    } else {
+        write_text_file(path, &rendered)
+    }
+}
+
+fn build_three_column_table(header: &str, rows: impl IntoIterator<Item = String>) -> String {
+    let mut rendered = String::from(header);
+    for row in rows {
+        rendered.push_str(&row);
+    }
+    rendered
+}
+
+fn is_nonempty_file(path: &Path) -> bool {
+    path.metadata().map(|metadata| metadata.is_file() && metadata.len() > 0).unwrap_or(false)
 }
 
 fn copy_repo_relative_file(

@@ -10,7 +10,7 @@ fn fixed_clock_returns_configured_unix_time() {
 
 #[test]
 fn fixed_rng_replays_seeded_sequence() {
-    use rand::RngCore;
+    use rand::Rng;
 
     let mut left = bijux_dna_testkit::fixed_rng(42);
     let mut right = bijux_dna_testkit::fixed_rng(42);

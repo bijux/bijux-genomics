@@ -33,6 +33,8 @@ fn repo_root() -> Result<PathBuf> {
 #[test]
 fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<()> {
     let repo_root = repo_root()?;
+    let _lock = crate::support::bench_output_lock()
+        .unwrap_or_else(|err| panic!("repo lock BAM genotyping benchmark output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
     let output_dir = repo_root.join("benchmarks/readiness/local-ready/bam.genotyping");
     if output_dir.exists() {
@@ -227,6 +229,8 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
 #[test]
 fn write_local_genotyping_plan_preserves_governed_command_metadata() -> Result<()> {
     let repo_root = repo_root()?;
+    let _lock = crate::support::bench_output_lock()
+        .unwrap_or_else(|err| panic!("repo lock BAM genotyping benchmark output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
     let output_dir = repo_root.join("benchmarks/readiness/local-ready/bam.genotyping");
     if output_dir.exists() {

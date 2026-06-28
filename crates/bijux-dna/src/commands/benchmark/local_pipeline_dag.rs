@@ -21,6 +21,8 @@ use crate::commands::cli::render;
 pub(crate) const BENCHMARK_LOCAL_PIPELINE_CONFIG_ROOT: &str = "benchmarks/configs/pipelines/local";
 pub(crate) const DEFAULT_FASTQ_CORE_PREPROCESS_PIPELINE_CONFIG_PATH: &str =
     "benchmarks/configs/pipelines/local/fastq-core-preprocess.toml";
+const LOCAL_PIPELINE_YAML_CONFIG_FILE: &str = "config.yaml";
+const LOCAL_PIPELINE_YAML_STAGES_FILE: &str = "stages.yaml";
 const LOCAL_PIPELINE_DAG_SCHEMA_VERSION: &str = "bijux.bench.local_pipeline_dag.v1";
 const LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.local_pipeline_dag_validation.v1";
@@ -53,7 +55,119 @@ struct LocalPipelineDagConfig {
     domain: LocalPipelineDagDomain,
     summary: String,
     default_corpus_id: String,
+    #[serde(default)]
+    reference_context: Option<LocalPipelineReferenceContext>,
+    #[serde(default)]
+    execution_context: Option<LocalPipelineExecutionContext>,
+    #[serde(default)]
+    project_sources: Vec<LocalPipelineProjectSource>,
+    #[serde(default)]
+    ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
+    #[serde(default)]
+    reference_assets: Option<LocalPipelineReferenceAssets>,
+    #[serde(default)]
+    variant_assets: Option<LocalPipelineVariantAssets>,
     nodes: Vec<LocalPipelineDagNode>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LocalPipelineDagMetadataConfig {
+    schema_version: String,
+    pipeline_id: String,
+    domain: LocalPipelineDagDomain,
+    summary: String,
+    default_corpus_id: String,
+    #[serde(default)]
+    reference_context: Option<LocalPipelineReferenceContext>,
+    #[serde(default)]
+    execution_context: Option<LocalPipelineExecutionContext>,
+    #[serde(default)]
+    project_sources: Vec<LocalPipelineProjectSource>,
+    #[serde(default)]
+    ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
+    #[serde(default)]
+    reference_assets: Option<LocalPipelineReferenceAssets>,
+    #[serde(default)]
+    variant_assets: Option<LocalPipelineVariantAssets>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LocalPipelineDagStagesConfig {
+    nodes: Vec<LocalPipelineDagNode>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineReferenceContext {
+    pub(crate) species_id: String,
+    pub(crate) build_id: String,
+    pub(crate) reference_bundle_id: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineExecutionContext {
+    pub(crate) site_profile_id: String,
+    #[serde(default)]
+    pub(crate) default_campaign_config: Option<String>,
+    #[serde(default)]
+    pub(crate) frontend_surfaces: Vec<String>,
+    #[serde(default)]
+    pub(crate) compute_surfaces: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineProjectSource {
+    pub(crate) project_id: String,
+    pub(crate) metadata_url: String,
+    #[serde(default = "default_local_pipeline_project_retries")]
+    pub(crate) retries: u32,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineAncientDnaPolicy {
+    pub(crate) aligner_mode: String,
+    pub(crate) auto_bwa_aln_p75_threshold_bp: u32,
+    pub(crate) adapter_cleanup_tool: String,
+    pub(crate) merge_pairs_in_preprocess: bool,
+    pub(crate) duplicate_stage_id: String,
+    pub(crate) duplicate_tool: String,
+    pub(crate) caller_tool: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineReferenceAssets {
+    pub(crate) directory_name: String,
+    pub(crate) genome_url: String,
+    pub(crate) genome_filename: String,
+    pub(crate) assembly_report_url: String,
+    pub(crate) assembly_report_filename: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineVariantAssets {
+    pub(crate) directory_name: String,
+    pub(crate) source_vcf_url: String,
+    pub(crate) source_vcf_filename: String,
+    pub(crate) refseq_vcf_filename: String,
+    pub(crate) annotated_vcf_filename: String,
+    pub(crate) snpeff: LocalPipelineSnpEffAssets,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct LocalPipelineSnpEffAssets {
+    pub(crate) genome_id: String,
+    pub(crate) database_url: String,
+    pub(crate) database_filename: String,
+    pub(crate) core_url: String,
+    pub(crate) core_filename: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -104,6 +218,13 @@ pub(crate) struct LocalPipelineDagValidationReport {
     pub(crate) domain: String,
     pub(crate) default_corpus_id: String,
     pub(crate) summary: String,
+    pub(crate) reference_context: Option<LocalPipelineReferenceContext>,
+    pub(crate) execution_context: Option<LocalPipelineExecutionContext>,
+    pub(crate) project_source_count: usize,
+    pub(crate) project_sources: Vec<LocalPipelineProjectSource>,
+    pub(crate) ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
+    pub(crate) reference_assets: Option<LocalPipelineReferenceAssets>,
+    pub(crate) variant_assets: Option<LocalPipelineVariantAssets>,
     pub(crate) node_count: usize,
     pub(crate) edge_count: usize,
     pub(crate) acyclic: bool,
@@ -143,8 +264,7 @@ pub(crate) fn validate_pipeline_dag_path(
     config_path: &Path,
     output_path: &Path,
 ) -> Result<LocalPipelineDagValidationReport> {
-    let config = load_local_pipeline_dag_config(config_path)?;
-    let report = validate_pipeline_dag(repo_root, config_path, output_path, &config)?;
+    let report = load_validated_local_pipeline_dag_report(repo_root, config_path)?;
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
@@ -153,18 +273,75 @@ pub(crate) fn validate_pipeline_dag_path(
     Ok(report)
 }
 
+pub(crate) fn load_validated_local_pipeline_dag_report(
+    repo_root: &Path,
+    config_path: &Path,
+) -> Result<LocalPipelineDagValidationReport> {
+    let config = load_local_pipeline_dag_config(config_path)?;
+    let output_path = repo_root.join(default_pipeline_report_relative_path(&config.pipeline_id));
+    validate_pipeline_dag(repo_root, config_path, &output_path, &config)
+}
+
 pub(crate) fn benchmark_local_pipeline_config_dir(repo_root: &Path) -> PathBuf {
     repo_root.join(BENCHMARK_LOCAL_PIPELINE_CONFIG_ROOT)
 }
 
 pub(crate) fn benchmark_local_pipeline_config_path(repo_root: &Path, pipeline_id: &str) -> PathBuf {
-    benchmark_local_pipeline_config_dir(repo_root).join(format!("{pipeline_id}.toml"))
+    let config_root = benchmark_local_pipeline_config_dir(repo_root);
+    let bundle_dir = config_root.join(pipeline_id);
+    if bundle_dir.is_dir() {
+        bundle_dir
+    } else {
+        config_root.join(format!("{pipeline_id}.toml"))
+    }
 }
 
 fn load_local_pipeline_dag_config(config_path: &Path) -> Result<LocalPipelineDagConfig> {
+    if config_path.is_dir() {
+        return load_local_pipeline_dag_yaml_bundle(config_path);
+    }
+    if matches!(
+        config_path.file_name().and_then(|value| value.to_str()),
+        Some(LOCAL_PIPELINE_YAML_CONFIG_FILE)
+    ) {
+        let Some(bundle_dir) = config_path.parent() else {
+            return Err(anyhow!(
+                "yaml local pipeline config `{}` must have a parent directory",
+                config_path.display()
+            ));
+        };
+        return load_local_pipeline_dag_yaml_bundle(bundle_dir);
+    }
     let raw = fs::read_to_string(config_path)
         .with_context(|| format!("read {}", config_path.display()))?;
     toml::from_str(&raw).with_context(|| format!("parse {}", config_path.display()))
+}
+
+fn load_local_pipeline_dag_yaml_bundle(bundle_dir: &Path) -> Result<LocalPipelineDagConfig> {
+    let metadata_path = bundle_dir.join(LOCAL_PIPELINE_YAML_CONFIG_FILE);
+    let stages_path = bundle_dir.join(LOCAL_PIPELINE_YAML_STAGES_FILE);
+    let metadata_raw = fs::read_to_string(&metadata_path)
+        .with_context(|| format!("read {}", metadata_path.display()))?;
+    let stages_raw = fs::read_to_string(&stages_path)
+        .with_context(|| format!("read {}", stages_path.display()))?;
+    let metadata: LocalPipelineDagMetadataConfig = serde_yaml::from_str(&metadata_raw)
+        .with_context(|| format!("parse {}", metadata_path.display()))?;
+    let stages: LocalPipelineDagStagesConfig = serde_yaml::from_str(&stages_raw)
+        .with_context(|| format!("parse {}", stages_path.display()))?;
+    Ok(LocalPipelineDagConfig {
+        schema_version: metadata.schema_version,
+        pipeline_id: metadata.pipeline_id,
+        domain: metadata.domain,
+        summary: metadata.summary,
+        default_corpus_id: metadata.default_corpus_id,
+        reference_context: metadata.reference_context,
+        execution_context: metadata.execution_context,
+        project_sources: metadata.project_sources,
+        ancient_dna_policy: metadata.ancient_dna_policy,
+        reference_assets: metadata.reference_assets,
+        variant_assets: metadata.variant_assets,
+        nodes: stages.nodes,
+    })
 }
 
 fn validate_pipeline_dag(
@@ -174,6 +351,7 @@ fn validate_pipeline_dag(
     config: &LocalPipelineDagConfig,
 ) -> Result<LocalPipelineDagValidationReport> {
     validate_pipeline_contract(config)?;
+    validate_pipeline_metadata(repo_root, config_path, config)?;
 
     let inventory_index = load_pipeline_inventory_index(repo_root, config.domain)?;
 
@@ -343,6 +521,13 @@ fn validate_pipeline_dag(
         domain: config.domain.as_str().to_string(),
         default_corpus_id: config.default_corpus_id.clone(),
         summary: config.summary.clone(),
+        reference_context: config.reference_context.clone(),
+        execution_context: config.execution_context.clone(),
+        project_source_count: config.project_sources.len(),
+        project_sources: config.project_sources.clone(),
+        ancient_dna_policy: config.ancient_dna_policy.clone(),
+        reference_assets: config.reference_assets.clone(),
+        variant_assets: config.variant_assets.clone(),
         node_count: nodes.len(),
         edge_count: config.nodes.iter().map(|node| node.depends_on.len()).sum(),
         acyclic: true,
@@ -2779,9 +2964,367 @@ fn validate_pipeline_contract(config: &LocalPipelineDagConfig) -> Result<()> {
         "local pipeline DAG must declare a non-empty `default_corpus_id`",
     )?;
     if config.nodes.is_empty() {
-        return Err(anyhow!("local pipeline DAG must declare at least one `[[nodes]]` entry"));
+        return Err(anyhow!("local pipeline DAG must declare at least one `nodes` entry"));
     }
     Ok(())
+}
+
+fn default_local_pipeline_project_retries() -> u32 {
+    3
+}
+
+fn validate_pipeline_metadata(
+    repo_root: &Path,
+    config_path: &Path,
+    config: &LocalPipelineDagConfig,
+) -> Result<()> {
+    if let Some(reference_context) = &config.reference_context {
+        validate_reference_context(repo_root, reference_context)?;
+    }
+    if let Some(execution_context) = &config.execution_context {
+        validate_execution_context(repo_root, execution_context)?;
+    }
+    validate_project_sources(&config.project_sources)?;
+    if let Some(policy) = &config.ancient_dna_policy {
+        validate_ancient_dna_policy(config_path, config, policy)?;
+    }
+    if let Some(reference_assets) = &config.reference_assets {
+        validate_reference_assets(reference_assets)?;
+    }
+    if let Some(variant_assets) = &config.variant_assets {
+        validate_variant_assets(variant_assets)?;
+    }
+    validate_operational_asset_requirements(config)?;
+    Ok(())
+}
+
+fn validate_reference_context(
+    repo_root: &Path,
+    reference_context: &LocalPipelineReferenceContext,
+) -> Result<()> {
+    require_non_empty(
+        &reference_context.species_id,
+        "local pipeline reference_context must declare a non-empty `species_id`",
+    )?;
+    require_non_empty(
+        &reference_context.build_id,
+        "local pipeline reference_context must declare a non-empty `build_id`",
+    )?;
+    require_non_empty(
+        &reference_context.reference_bundle_id,
+        "local pipeline reference_context must declare a non-empty `reference_bundle_id`",
+    )?;
+
+    let species_catalog_path = repo_root.join("configs/runtime/species.toml");
+    let species_catalog_raw = fs::read_to_string(&species_catalog_path)
+        .with_context(|| format!("read {}", species_catalog_path.display()))?;
+    let species_catalog: RuntimeSpeciesCatalog = toml::from_str(&species_catalog_raw)
+        .with_context(|| format!("parse {}", species_catalog_path.display()))?;
+    let species_row = species_catalog
+        .species
+        .iter()
+        .find(|row| row.species_id == reference_context.species_id)
+        .ok_or_else(|| {
+            anyhow!(
+                "local pipeline reference_context species_id `{}` is not present in {}",
+                reference_context.species_id,
+                species_catalog_path.display()
+            )
+        })?;
+    if species_row.default_build_id != reference_context.build_id {
+        return Err(anyhow!(
+            "local pipeline reference_context build_id `{}` does not match the runtime default build `{}` for species `{}`",
+            reference_context.build_id,
+            species_row.default_build_id,
+            reference_context.species_id
+        ));
+    }
+
+    let bundles_path = repo_root.join("configs/runtime/reference_bundles.toml");
+    let bundles_raw = fs::read_to_string(&bundles_path)
+        .with_context(|| format!("read {}", bundles_path.display()))?;
+    let bundles_catalog: RuntimeReferenceBundleCatalog = toml::from_str(&bundles_raw)
+        .with_context(|| format!("parse {}", bundles_path.display()))?;
+    let bundle_row = bundles_catalog
+        .bundle
+        .iter()
+        .find(|row| row.bundle_id == reference_context.reference_bundle_id)
+        .ok_or_else(|| {
+            anyhow!(
+                "local pipeline reference_context reference_bundle_id `{}` is not present in {}",
+                reference_context.reference_bundle_id,
+                bundles_path.display()
+            )
+        })?;
+    if bundle_row.species_id != reference_context.species_id
+        || bundle_row.build_id != reference_context.build_id
+    {
+        return Err(anyhow!(
+            "local pipeline reference_context bundle `{}` resolves to `{}` / `{}`, expected `{}` / `{}`",
+            reference_context.reference_bundle_id,
+            bundle_row.species_id,
+            bundle_row.build_id,
+            reference_context.species_id,
+            reference_context.build_id
+        ));
+    }
+
+    Ok(())
+}
+
+fn validate_execution_context(
+    repo_root: &Path,
+    execution_context: &LocalPipelineExecutionContext,
+) -> Result<()> {
+    require_non_empty(
+        &execution_context.site_profile_id,
+        "local pipeline execution_context must declare a non-empty `site_profile_id`",
+    )?;
+    validate_symbol_list(
+        &execution_context.frontend_surfaces,
+        "local pipeline execution_context.frontend_surfaces",
+    )?;
+    validate_symbol_list(
+        &execution_context.compute_surfaces,
+        "local pipeline execution_context.compute_surfaces",
+    )?;
+    if let Some(default_campaign_config) = &execution_context.default_campaign_config {
+        require_non_empty(
+            default_campaign_config,
+            "local pipeline execution_context.default_campaign_config must not be empty when present",
+        )?;
+    }
+
+    let allowed_frontend =
+        BTreeSet::from(["downloads".to_string(), "ref-prep".to_string(), "snp-prep".to_string()]);
+    for surface in &execution_context.frontend_surfaces {
+        if !allowed_frontend.contains(surface) {
+            return Err(anyhow!(
+                "local pipeline execution_context.frontend_surfaces contains unsupported surface `{surface}`"
+            ));
+        }
+    }
+
+    let allowed_compute = BTreeSet::from([
+        "fastq-qc".to_string(),
+        "fastq-to-bam".to_string(),
+        "bam-qc".to_string(),
+        "bam-to-vcf".to_string(),
+    ]);
+    for surface in &execution_context.compute_surfaces {
+        if !allowed_compute.contains(surface) {
+            return Err(anyhow!(
+                "local pipeline execution_context.compute_surfaces contains unsupported surface `{surface}`"
+            ));
+        }
+    }
+
+    let site_profile_id = execution_context.site_profile_id.as_str();
+    let built_in = matches!(site_profile_id, "lunarc" | "generic");
+    let profile_path = repo_root
+        .join("benchmarks/configs/hpc/campaign/site-profiles")
+        .join(format!("{site_profile_id}.toml"));
+    if !built_in && !profile_path.is_file() {
+        return Err(anyhow!(
+            "local pipeline execution_context site_profile_id `{site_profile_id}` is not a built-in profile and {} is missing",
+            profile_path.display()
+        ));
+    }
+
+    Ok(())
+}
+
+fn validate_reference_assets(reference_assets: &LocalPipelineReferenceAssets) -> Result<()> {
+    require_non_empty(
+        &reference_assets.directory_name,
+        "local pipeline reference_assets must declare a non-empty `directory_name`",
+    )?;
+    require_http_url(&reference_assets.genome_url, "local pipeline reference_assets genome_url")?;
+    require_non_empty(
+        &reference_assets.genome_filename,
+        "local pipeline reference_assets must declare a non-empty `genome_filename`",
+    )?;
+    require_http_url(
+        &reference_assets.assembly_report_url,
+        "local pipeline reference_assets assembly_report_url",
+    )?;
+    require_non_empty(
+        &reference_assets.assembly_report_filename,
+        "local pipeline reference_assets must declare a non-empty `assembly_report_filename`",
+    )?;
+    Ok(())
+}
+
+fn validate_variant_assets(variant_assets: &LocalPipelineVariantAssets) -> Result<()> {
+    require_non_empty(
+        &variant_assets.directory_name,
+        "local pipeline variant_assets must declare a non-empty `directory_name`",
+    )?;
+    require_http_url(
+        &variant_assets.source_vcf_url,
+        "local pipeline variant_assets source_vcf_url",
+    )?;
+    require_non_empty(
+        &variant_assets.source_vcf_filename,
+        "local pipeline variant_assets must declare a non-empty `source_vcf_filename`",
+    )?;
+    require_non_empty(
+        &variant_assets.refseq_vcf_filename,
+        "local pipeline variant_assets must declare a non-empty `refseq_vcf_filename`",
+    )?;
+    require_non_empty(
+        &variant_assets.annotated_vcf_filename,
+        "local pipeline variant_assets must declare a non-empty `annotated_vcf_filename`",
+    )?;
+    require_non_empty(
+        &variant_assets.snpeff.genome_id,
+        "local pipeline variant_assets snpeff.genome_id must declare a non-empty value",
+    )?;
+    require_http_url(
+        &variant_assets.snpeff.database_url,
+        "local pipeline variant_assets snpeff.database_url",
+    )?;
+    require_non_empty(
+        &variant_assets.snpeff.database_filename,
+        "local pipeline variant_assets snpeff.database_filename must declare a non-empty value",
+    )?;
+    require_http_url(
+        &variant_assets.snpeff.core_url,
+        "local pipeline variant_assets snpeff.core_url",
+    )?;
+    require_non_empty(
+        &variant_assets.snpeff.core_filename,
+        "local pipeline variant_assets snpeff.core_filename must declare a non-empty value",
+    )?;
+    Ok(())
+}
+
+fn validate_operational_asset_requirements(config: &LocalPipelineDagConfig) -> Result<()> {
+    let Some(execution_context) = &config.execution_context else {
+        return Ok(());
+    };
+    if execution_context.frontend_surfaces.iter().any(|surface| surface == "ref-prep")
+        && config.reference_assets.is_none()
+    {
+        return Err(anyhow!(
+            "local pipeline execution_context.frontend_surfaces includes `ref-prep` but reference_assets is missing"
+        ));
+    }
+    if execution_context.frontend_surfaces.iter().any(|surface| surface == "snp-prep")
+        && config.variant_assets.is_none()
+    {
+        return Err(anyhow!(
+            "local pipeline execution_context.frontend_surfaces includes `snp-prep` but variant_assets is missing"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_project_sources(project_sources: &[LocalPipelineProjectSource]) -> Result<()> {
+    let mut seen_project_ids = BTreeSet::new();
+    for source in project_sources {
+        require_non_empty(
+            &source.project_id,
+            "local pipeline project_sources entries must declare a non-empty `project_id`",
+        )?;
+        require_non_empty(
+            &source.metadata_url,
+            "local pipeline project_sources entries must declare a non-empty `metadata_url`",
+        )?;
+        require_http_url(&source.metadata_url, "local pipeline project_sources metadata_url")?;
+        if source.retries == 0 {
+            return Err(anyhow!(
+                "local pipeline project_sources entry `{}` must declare retries >= 1",
+                source.project_id
+            ));
+        }
+        if !seen_project_ids.insert(source.project_id.clone()) {
+            return Err(anyhow!(
+                "local pipeline project_sources repeats project_id `{}`",
+                source.project_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn require_http_url(value: &str, label: &str) -> Result<()> {
+    if value.starts_with("http://") || value.starts_with("https://") {
+        Ok(())
+    } else {
+        Err(anyhow!("{label} `{value}` must start with http:// or https://"))
+    }
+}
+
+fn validate_ancient_dna_policy(
+    config_path: &Path,
+    config: &LocalPipelineDagConfig,
+    policy: &LocalPipelineAncientDnaPolicy,
+) -> Result<()> {
+    require_non_empty(
+        &policy.aligner_mode,
+        "local pipeline ancient_dna_policy must declare a non-empty `aligner_mode`",
+    )?;
+    if !matches!(policy.aligner_mode.as_str(), "auto" | "bwa_aln" | "bwa_mem") {
+        return Err(anyhow!(
+            "local pipeline ancient_dna_policy aligner_mode `{}` is unsupported",
+            policy.aligner_mode
+        ));
+    }
+    if policy.auto_bwa_aln_p75_threshold_bp == 0 {
+        return Err(anyhow!(
+            "local pipeline ancient_dna_policy auto_bwa_aln_p75_threshold_bp must be greater than zero"
+        ));
+    }
+    require_non_empty(
+        &policy.adapter_cleanup_tool,
+        "local pipeline ancient_dna_policy must declare a non-empty `adapter_cleanup_tool`",
+    )?;
+    require_non_empty(
+        &policy.duplicate_stage_id,
+        "local pipeline ancient_dna_policy must declare a non-empty `duplicate_stage_id`",
+    )?;
+    require_non_empty(
+        &policy.duplicate_tool,
+        "local pipeline ancient_dna_policy must declare a non-empty `duplicate_tool`",
+    )?;
+    require_non_empty(
+        &policy.caller_tool,
+        "local pipeline ancient_dna_policy must declare a non-empty `caller_tool`",
+    )?;
+    if !config.nodes.iter().any(|node| {
+        node.node_id == policy.duplicate_stage_id || node.stage_id == policy.duplicate_stage_id
+    }) {
+        return Err(anyhow!(
+            "{} declares ancient_dna_policy duplicate_stage_id `{}` but that stage is not present in the pipeline DAG",
+            config_path.display(),
+            policy.duplicate_stage_id
+        ));
+    }
+    Ok(())
+}
+
+#[derive(Debug, Deserialize)]
+struct RuntimeSpeciesCatalog {
+    species: Vec<RuntimeSpeciesRow>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RuntimeSpeciesRow {
+    species_id: String,
+    default_build_id: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct RuntimeReferenceBundleCatalog {
+    bundle: Vec<RuntimeReferenceBundleRow>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RuntimeReferenceBundleRow {
+    bundle_id: String,
+    species_id: String,
+    build_id: String,
 }
 
 fn require_non_empty(value: &str, message: &str) -> Result<()> {
@@ -2883,6 +3426,87 @@ outputs = ["align_bam", "align_bai", "align_metrics"]
                         == vec!["validated_reads_r1_path", "validated_reads_r2_path"]
             }),
             "cross DAG validation must admit BAM alignment consumers of governed FASTQ path outputs"
+        );
+    }
+
+    #[test]
+    fn yaml_pipeline_bundle_can_mix_fastq_and_bam_inventory_nodes() {
+        let repo_root = repo_root();
+        let tempdir = tempfile::tempdir().expect("tempdir");
+        let config_dir = tempdir.path().join("fastq-to-bam-cross");
+        fs::create_dir_all(&config_dir).expect("create config dir");
+        fs::write(
+            config_dir.join("config.yaml"),
+            r"
+schema_version: bijux.bench.local_pipeline_dag.v1
+pipeline_id: fastq-to-bam-cross
+domain: cross
+summary: Cross-domain proof that YAML local pipeline validation can mix governed FASTQ and BAM stages.
+default_corpus_id: corpus-01-mini
+reference_context:
+  species_id: Homo sapiens
+  build_id: GRCh38
+  reference_bundle_id: hsapiens_grch38_primary
+execution_context:
+  site_profile_id: lunarc
+  compute_surfaces:
+    - fastq-to-bam
+",
+        )
+        .expect("write yaml metadata");
+        fs::write(
+            config_dir.join("stages.yaml"),
+            r"
+nodes:
+  - node_id: fastq.validate_reads
+    stage_id: fastq.validate_reads
+    readiness_kind: smoke
+    summary: Validate governed FASTQ inputs before alignment.
+    depends_on: []
+    external_inputs:
+      - corpus.raw_fastq_reads
+    upstream_inputs: []
+    outputs:
+      - validated_reads_r1_path
+      - validated_reads_r2_path
+      - validation_report
+  - node_id: bam.align
+    stage_id: bam.align
+    readiness_kind: dry_or_smoke
+    summary: Align validated FASTQ paths against the governed BAM alignment contracts.
+    depends_on:
+      - fastq.validate_reads
+    external_inputs:
+      - alignment_reference_fasta_contract
+      - alignment_reference_index_contract
+      - alignment_read_group_contract
+    upstream_inputs:
+      - validated_reads_r1_path
+      - validated_reads_r2_path
+    outputs:
+      - align_bam
+      - align_bai
+      - align_metrics
+",
+        )
+        .expect("write yaml stages");
+
+        let output_path = tempdir.path().join("fastq-to-bam-cross.json");
+        let report = validate_pipeline_dag_path(&repo_root, &config_dir, &output_path)
+            .expect("validate yaml local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "fastq-to-bam-cross");
+        assert_eq!(report.domain, "cross");
+        assert_eq!(report.node_count, 2);
+        assert_eq!(report.config_path, config_dir.display().to_string());
+        assert_eq!(report.project_source_count, 0);
+        assert_eq!(
+            report.reference_context.as_ref().map(|context| context.reference_bundle_id.as_str()),
+            Some("hsapiens_grch38_primary")
+        );
+        assert_eq!(
+            report.execution_context.as_ref().map(|context| context.site_profile_id.as_str()),
+            Some("lunarc")
         );
     }
 
@@ -3673,6 +4297,149 @@ outputs = ["called_vcf", "called_vcf_tbi", "call_stage_metrics"]
                         == vec!["align_bam", "qc_pre_flagstat", "qc_pre_idxstats", "qc_pre_stats"]
             }),
             "bam.mapping_summary must consume both alignment output and BAM pre-QC context"
+        );
+    }
+
+    #[test]
+    fn adna_equus_caballus_pipeline_bundle_tracks_short_read_and_equcab3_handoffs() {
+        let repo_root = repo_root();
+        let config_path =
+            repo_root.join("benchmarks/configs/pipelines/local/adna-equus-caballus-fastq-bam-vcf");
+        let output_path = repo_root.join(
+            "benchmarks/readiness/local-ready/pipeline-dag/adna-equus-caballus-fastq-bam-vcf.json",
+        );
+        let report = validate_pipeline_dag_path(&repo_root, &config_path, &output_path)
+            .expect("validate horse aDNA local pipeline dag");
+
+        assert_eq!(report.pipeline_id, "adna-equus-caballus-fastq-bam-vcf");
+        assert_eq!(report.domain, "cross");
+        assert_eq!(report.default_corpus_id, "corpus-01-mini");
+        assert!(report.acyclic);
+        assert_eq!(
+            report.reference_context.as_ref().map(|context| {
+                (
+                    context.species_id.as_str(),
+                    context.build_id.as_str(),
+                    context.reference_bundle_id.as_str(),
+                )
+            }),
+            Some(("Equus caballus", "EquCab3", "ecaballus_equcab3_primary"))
+        );
+        assert_eq!(
+            report.execution_context.as_ref().map(|context| {
+                (
+                    context.site_profile_id.as_str(),
+                    context.default_campaign_config.as_deref(),
+                    context.frontend_surfaces.clone(),
+                    context.compute_surfaces.clone(),
+                )
+            }),
+            Some((
+                "lunarc",
+                Some("benchmarks/configs/hpc/campaign/lunarc-fastq-bam-vcf-local-ready.toml"),
+                vec!["downloads".to_string(), "ref-prep".to_string(), "snp-prep".to_string(),],
+                vec![
+                    "fastq-qc".to_string(),
+                    "fastq-to-bam".to_string(),
+                    "bam-qc".to_string(),
+                    "bam-to-vcf".to_string(),
+                ],
+            ))
+        );
+        assert_eq!(report.project_source_count, 5);
+        assert_eq!(
+            report.ancient_dna_policy.as_ref().map(|policy| {
+                (
+                    policy.aligner_mode.as_str(),
+                    policy.auto_bwa_aln_p75_threshold_bp,
+                    policy.duplicate_stage_id.as_str(),
+                    policy.duplicate_tool.as_str(),
+                )
+            }),
+            Some(("auto", 35, "bam.markdup", "samtools"))
+        );
+        assert_eq!(
+            report.reference_assets.as_ref().map(|assets| {
+                (
+                    assets.directory_name.as_str(),
+                    assets.genome_filename.as_str(),
+                    assets.assembly_report_filename.as_str(),
+                )
+            }),
+            Some((
+                "ref_EquCab3",
+                "GCF_002863925.1_EquCab3.0_genomic.fna.gz",
+                "GCF_002863925.1_EquCab3.0_assembly_report.txt",
+            ))
+        );
+        assert_eq!(
+            report.variant_assets.as_ref().map(|assets| {
+                (
+                    assets.directory_name.as_str(),
+                    assets.source_vcf_filename.as_str(),
+                    assets.refseq_vcf_filename.as_str(),
+                    assets.annotated_vcf_filename.as_str(),
+                    assets.snpeff.genome_id.as_str(),
+                )
+            }),
+            Some((
+                "snp_EquCab3",
+                "equus_caballus.vcf.gz",
+                "equus_caballus_EquCab3_refseq.vcf.gz",
+                "equus_caballus_EquCab3_annotated.vcf.gz",
+                "EquCab3.0.99",
+            ))
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.align"
+                    && node.depends_on == vec!["fastq.profile_read_lengths", "fastq.filter_reads"]
+                    && node.upstream_inputs
+                        == vec![
+                            "filtered_merged_reads",
+                            "filtered_unmerged_r1_reads",
+                            "filtered_unmerged_r2_reads",
+                            "read_length_metrics",
+                        ]
+                    && node.external_inputs
+                        == vec![
+                            "equcab3_reference_fasta_contract",
+                            "equcab3_reference_index_contract",
+                            "adna_short_read_alignment_policy_contract",
+                            "alignment_read_group_contract",
+                        ]
+            }),
+            "bam.align must consume filtered merge-path reads plus the pre-trim read-length profile"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "bam.markdup"
+                    && node.depends_on == vec!["bam.align"]
+                    && node.upstream_inputs == vec!["aligned_bam", "aligned_bai", "align_metrics"]
+            }),
+            "bam.markdup must stay downstream of alignment so duplicate handling remains post-alignment"
+        );
+        assert!(
+            report.nodes.iter().any(|node| {
+                node.stage_id == "vcf.call"
+                    && node.depends_on
+                        == vec!["bam.markdup", "bam.coverage", "bam.damage", "bam.duplication_metrics"]
+                    && node.external_inputs
+                        == vec![
+                            "equcab3_reference_fasta_contract",
+                            "equcab3_reference_fai_contract",
+                            "equcab3_candidate_sites_contract",
+                        ]
+                    && node.upstream_inputs
+                        == vec![
+                            "markdup_bam",
+                            "markdup_bai",
+                            "coverage_report_json",
+                            "damage_report_json",
+                            "duplication_report_json",
+                        ]
+            }),
+            "vcf.call must stay tied to the EquCab3 reference contracts, post-alignment deduplication, and BAM damage evidence"
         );
     }
 }
