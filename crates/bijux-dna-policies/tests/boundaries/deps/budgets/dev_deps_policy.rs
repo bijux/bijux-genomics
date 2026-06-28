@@ -81,6 +81,8 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         "gag",
         "insta",
         "insta.workspace",
+        "nix",
+        "nix.workspace",
         "predicates",
         "predicates.workspace",
         "regex",

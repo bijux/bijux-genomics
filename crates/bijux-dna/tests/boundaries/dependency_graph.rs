@@ -41,6 +41,7 @@ const DEV_DEPS: &[&str] = &[
     "bijux-dna-testkit",
     "filetime",
     "insta",
+    "nix",
     "predicates",
     "tempfile",
     "walkdir",
