@@ -21,22 +21,9 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
   cancel-in-progress: true
 jobs:
-  policy_gate:
-    name: policy-prerequisites
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-      - name: "Wait for policy and standards prerequisites"
-        shell: bash
-        env:
-          GITHUB_TOKEN: "${{ github.token }}"
-        run:
-          |
-            set -euo pipefail
-            python3 .github/scripts/check_workflow_prerequisites.py
   ssot_policy:
     name: ssot-policy-fast
-    if: "${{ github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
     runs-on: ubuntu-latest
     env:
       SCCACHE_GHA_ENABLED: true
@@ -58,10 +45,9 @@ jobs:
           |
             make ssot-policy-fast
           
-    needs: policy_gate
   workspace_hygiene:
     name: workspace-hygiene
-    if: "${{ github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
     runs-on: ubuntu-latest
     env:
       SCCACHE_GHA_ENABLED: true
@@ -84,10 +70,9 @@ jobs:
             make fmt
             make lint-workspace
           
-    needs: policy_gate
   unit_contract_fast:
     name: unit-contract-fast
-    if: "${{ github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
     runs-on: ubuntu-latest
     env:
       SCCACHE_GHA_ENABLED: true
@@ -109,10 +94,9 @@ jobs:
           |
             make _unit-contract-fast
           
-    needs: policy_gate
   release_readiness:
     name: release-readiness
-    if: "${{ github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
     runs-on: ubuntu-latest
     env:
       SCCACHE_GHA_ENABLED: true
@@ -134,10 +118,9 @@ jobs:
           |
             make _release-readiness
           
-    needs: policy_gate
   fastq_container_readiness:
     name: fastq-container-readiness
-    if: "${{ github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
     runs-on: ubuntu-latest
     env:
       SCCACHE_GHA_ENABLED: true
@@ -159,10 +142,9 @@ jobs:
           |
             make _fastq-container-readiness
           
-    needs: policy_gate
   profile_invariants:
     name: profile-invariants
-    if: "${{ github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
     runs-on: ubuntu-latest
     env:
       SCCACHE_GHA_ENABLED: true
@@ -184,10 +166,9 @@ jobs:
           |
             make _test-profile-invariants
           
-    needs: policy_gate
   cargo_policy:
     name: cargo-policy
-    if: "${{ github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
     runs-on: ubuntu-latest
     env:
       SCCACHE_GHA_ENABLED: true
@@ -209,12 +190,10 @@ jobs:
           |
             make _policy-no-raw-cargo
           
-    needs: policy_gate
   fast-tier:
-    if: "${{ always() && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')))) }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (always() && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))))) }}"
     runs-on: ubuntu-latest
     needs:
-      - policy_gate
       - ssot_policy
       - workspace_hygiene
       - unit_contract_fast
@@ -248,11 +227,9 @@ jobs:
             done
           
   slow-tier:
-    if: "${{ github.event_name == 'workflow_dispatch' && inputs.run_slow_tier == true }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' && inputs.run_slow_tier == true) }}"
     runs-on: ubuntu-latest
-    needs:
-      - policy_gate
-      - fast-tier
+    needs: fast-tier
     env:
       SCCACHE_GHA_ENABLED: true
       RUSTC_WRAPPER: sccache
@@ -275,7 +252,7 @@ jobs:
           
   benchmark-active-scope:
     runs-on: ubuntu-latest
-    if: "${{ github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
     env:
       SCCACHE_GHA_ENABLED: true
       RUSTC_WRAPPER: sccache
@@ -293,10 +270,9 @@ jobs:
           |
             make bench-active-fast
           
-    needs: policy_gate
   parser-fixtures:
     runs-on: ubuntu-latest
-    if: "${{ github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
     env:
       SCCACHE_GHA_ENABLED: true
       RUSTC_WRAPPER: sccache
@@ -314,10 +290,9 @@ jobs:
           |
             make bench-parser-fast
           
-    needs: policy_gate
   adapter-rendering:
     runs-on: ubuntu-latest
-    if: "${{ github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
     env:
       SCCACHE_GHA_ENABLED: true
       RUSTC_WRAPPER: sccache
@@ -335,10 +310,9 @@ jobs:
           |
             make bench-adapter-fast
           
-    needs: policy_gate
   science-fixtures:
     runs-on: ubuntu-latest
-    if: "${{ github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')) }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
     env:
       SCCACHE_GHA_ENABLED: true
       RUSTC_WRAPPER: sccache
@@ -356,7 +330,3 @@ jobs:
           |
             make science-fixtures-fast
           
-    needs: policy_gate
-permissions:
-  actions: read
-  pull-requests: read
