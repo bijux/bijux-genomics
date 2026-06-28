@@ -160,10 +160,14 @@ fn lock_is_older_than(path: &Path, threshold: Duration) -> Result<bool> {
 
 #[cfg(unix)]
 fn process_is_alive(pid: u32) -> bool {
-    std::process::Command::new("kill")
-        .args(["-0", &pid.to_string()])
-        .status()
-        .is_ok_and(|status| status.success())
+    let Ok(pid) = i32::try_from(pid) else {
+        return false;
+    };
+    match nix::sys::signal::kill(nix::unistd::Pid::from_raw(pid), None) {
+        Ok(()) | Err(nix::errno::Errno::EPERM) => true,
+        Err(nix::errno::Errno::ESRCH) => false,
+        Err(_) => false,
+    }
 }
 
 #[cfg(not(unix))]

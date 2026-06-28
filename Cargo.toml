@@ -63,6 +63,7 @@ toml = "0.8"
 cargo_metadata = "0.18"
 assert_cmd = "2"
 predicates = "3"
+nix = { version = "0.30", features = ["signal", "process"] }
 filetime = "0.2"
 fs4 = "0.13.1"
 serde_yaml = "0.9"
