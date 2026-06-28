@@ -361,19 +361,11 @@ pub(crate) fn audit_workflow_slow_tier_manual_only(
 ) -> Result<SlowTierManualOnlyReport> {
     let absolute_workflow = resolve_path(repo_root, workflow_path);
     let yaml = read_workflow_yaml(&absolute_workflow)?;
-    let workflow_dispatch_enabled = yaml
-        .get("on")
-        .and_then(|value| match value {
-            YamlValue::Mapping(map) => map.get(YamlValue::String("workflow_dispatch".to_string())),
-            _ => None,
-        })
-        .is_some();
-    let run_slow_tier_input = yaml
-        .get("on")
-        .and_then(|value| match value {
-            YamlValue::Mapping(map) => map.get(YamlValue::String("workflow_dispatch".to_string())),
-            _ => None,
-        })
+    let workflow_dispatch_block = workflow_on_block(&yaml)
+        .and_then(YamlValue::as_mapping)
+        .and_then(|map| map.get(YamlValue::String("workflow_dispatch".to_string())));
+    let workflow_dispatch_enabled = workflow_dispatch_block.is_some();
+    let run_slow_tier_input = workflow_dispatch_block
         .and_then(|value| value.get("inputs"))
         .and_then(|value| value.get("run_slow_tier"));
     let run_slow_tier_default = run_slow_tier_input
@@ -409,12 +401,13 @@ pub(crate) fn audit_workflow_slow_tier_manual_only(
             uses_slow_target.then_some(job_id)
         })
         .collect::<Vec<_>>();
-    let expected_if =
-        "${{ github.event_name == 'workflow_dispatch' && inputs.run_slow_tier == true }}";
+    let expected_if = "github.event_name == 'workflow_dispatch' && inputs.run_slow_tier == true";
     let ok = workflow_dispatch_enabled
         && run_slow_tier_input.is_some()
         && !run_slow_tier_default
-        && slow_tier_if.as_deref() == Some(expected_if)
+        && slow_tier_if
+            .as_deref()
+            .is_some_and(|guard| guard.contains(expected_if))
         && slow_tier_target_jobs == vec!["slow-tier".to_string()];
     let report = SlowTierManualOnlyReport {
         schema_version: "bijux.ci.slow_tier_manual_only.v1".to_string(),
@@ -732,6 +725,12 @@ fn read_workflow_yaml(path: &Path) -> Result<YamlValue> {
     .with_context(|| format!("parse {}", path.display()))
 }
 
+fn workflow_on_block<'a>(yaml: &'a YamlValue) -> Option<&'a YamlValue> {
+    let root = yaml.as_mapping()?;
+    root.get(YamlValue::String("on".to_string()))
+        .or_else(|| root.get(YamlValue::Bool(true)))
+}
+
 fn collect_workflow_target_usages(path: &Path, target: &str) -> Result<Vec<WorkflowTargetUsage>> {
     let yaml = read_workflow_yaml(path)?;
     let jobs = yaml
@@ -907,8 +906,9 @@ mod tests {
             &workflow,
             "make ci-fast",
             Some(&temp.path().join("no-repeated-fast-gate.json")),
-        );
-        assert!(repeated.is_err() || repeated.as_ref().is_ok_and(|report| report.usage_count >= 1));
+        )?;
+        assert_eq!(repeated.usage_count, 0);
+        assert!(repeated.usages.is_empty());
         let slow_tier = audit_workflow_slow_tier_manual_only(
             &root,
             &workflow,
