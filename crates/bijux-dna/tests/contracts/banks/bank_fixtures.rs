@@ -160,7 +160,6 @@ fn process_is_alive(pid: u32) -> bool {
     };
     match nix::sys::signal::kill(nix::unistd::Pid::from_raw(pid), None) {
         Ok(()) | Err(nix::errno::Errno::EPERM) => true,
-        Err(nix::errno::Errno::ESRCH) => false,
         Err(_) => false,
     }
 }

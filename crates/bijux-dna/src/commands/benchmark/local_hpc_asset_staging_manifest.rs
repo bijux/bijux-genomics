@@ -557,7 +557,7 @@ mod tests {
         render_hpc_asset_staging_manifest, validate_hpc_asset_staging_manifest_path,
         LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION,
     };
-    use crate::commands::benchmark::test_support::{acquire_cwd_lock, RepoProcessLock};
+    use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))

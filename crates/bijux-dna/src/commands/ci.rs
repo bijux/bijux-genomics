@@ -723,7 +723,7 @@ fn read_workflow_yaml(path: &Path) -> Result<YamlValue> {
     .with_context(|| format!("parse {}", path.display()))
 }
 
-fn workflow_on_block<'a>(yaml: &'a YamlValue) -> Option<&'a YamlValue> {
+fn workflow_on_block(yaml: &YamlValue) -> Option<&YamlValue> {
     let root = yaml.as_mapping()?;
     root.get(YamlValue::String("on".to_string())).or_else(|| root.get(YamlValue::Bool(true)))
 }

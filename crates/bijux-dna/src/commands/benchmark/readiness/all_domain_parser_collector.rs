@@ -621,7 +621,7 @@ mod tests {
     use std::env;
     use std::path::{Path, PathBuf};
 
-    use crate::commands::benchmark::test_support::{acquire_cwd_lock, RepoProcessLock};
+    use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
     use serde_json::Value;
 
     use super::{

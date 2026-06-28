@@ -786,7 +786,7 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::path::PathBuf;
 
-    use crate::commands::benchmark::test_support::{acquire_cwd_lock, RepoProcessLock};
+    use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
 
     use super::{
         render_stage_tool_benchmark_ready, DEFAULT_STAGE_TOOL_BENCHMARK_READY_PATH,

@@ -132,7 +132,7 @@ mod tests {
     #[test]
     fn rendered_commands_report_governed_benchmark_ready_row_slice() {
         use super::{render_commands, DEFAULT_RENDERED_COMMANDS_PATH};
-        use crate::commands::benchmark::test_support::{acquire_cwd_lock, RepoProcessLock};
+        use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
 
         let root = repo_root();
         let _cwd_lock = acquire_cwd_lock();

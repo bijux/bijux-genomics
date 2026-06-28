@@ -754,7 +754,7 @@ mod tests {
         render_fastq_trim_stages_ready, DEFAULT_FASTQ_TRIM_STAGES_READY_PATH,
         FASTQ_TRIM_STAGES_READY_SCHEMA_VERSION,
     };
-    use crate::commands::benchmark::test_support::RepoProcessLock;
+    use crate::commands::benchmark::repo_locking::RepoProcessLock;
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))

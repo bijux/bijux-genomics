@@ -449,7 +449,7 @@ mod tests {
         DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH, FASTQ_REMOVED_RESULT_ID,
         VCF_REMOVED_RESULT_ID,
     };
-    use crate::commands::benchmark::test_support::{acquire_cwd_lock, RepoProcessLock};
+    use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))

@@ -535,7 +535,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{render_all_domain_commands, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH};
-    use crate::commands::benchmark::test_support::{acquire_cwd_lock, RepoProcessLock};
+    use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
