@@ -6,6 +6,18 @@
 - List key files or surfaces changed.
 - Call out non-goals and intentionally untouched areas.
 
+## Genomics Surfaces
+- Affected domains:
+- Affected stages or workflow profiles:
+- Affected planner, runtime, API, analyze, or evidence surfaces:
+- Advisory vs enforced scope:
+
+## Fixtures and Evidence
+- Canonical examples or refusal bundles touched:
+- Golden, schema, snapshot, or generated registry outputs touched:
+- Runtime, artifact, evidence, or replay contracts touched:
+- Domain/stage/planner/runtime/evidence ownership stayed in the correct crate.
+
 ## Validation
 - [ ] Fast local checks passed.
 - [ ] Relevant targeted tests passed.
