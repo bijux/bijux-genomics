@@ -11,6 +11,8 @@
   "project_source_count": 0,
   "project_sources": [],
   "ancient_dna_policy": null,
+  "reference_assets": null,
+  "variant_assets": null,
   "node_count": 9,
   "edge_count": 11,
   "acyclic": true,
