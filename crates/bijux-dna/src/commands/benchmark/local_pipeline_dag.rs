@@ -3437,7 +3437,7 @@ outputs = ["align_bam", "align_bai", "align_metrics"]
         fs::create_dir_all(&config_dir).expect("create config dir");
         fs::write(
             config_dir.join("config.yaml"),
-            r#"
+            r"
 schema_version: bijux.bench.local_pipeline_dag.v1
 pipeline_id: fastq-to-bam-cross
 domain: cross
@@ -3451,12 +3451,12 @@ execution_context:
   site_profile_id: lunarc
   compute_surfaces:
     - fastq-to-bam
-"#,
+",
         )
         .expect("write yaml metadata");
         fs::write(
             config_dir.join("stages.yaml"),
-            r#"
+            r"
 nodes:
   - node_id: fastq.validate_reads
     stage_id: fastq.validate_reads
@@ -3487,7 +3487,7 @@ nodes:
       - align_bam
       - align_bai
       - align_metrics
-"#,
+",
         )
         .expect("write yaml stages");
 

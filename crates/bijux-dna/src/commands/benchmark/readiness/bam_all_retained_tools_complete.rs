@@ -1061,7 +1061,7 @@ impl Drop for CurrentDirGuard {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
     use std::time::Duration;
 
     use super::{
@@ -1077,10 +1077,10 @@ mod tests {
             .expect("canonicalize repo root")
     }
 
-    fn benchmark_readiness_test_lock(root: &PathBuf) -> bijux_dna_infra::FileLock {
+    fn benchmark_readiness_test_lock(root: &Path) -> bijux_dna_infra::FileLock {
         bijux_dna_infra::FileLock::acquire(
             &root.join("artifacts/test-locks/benchmark-readiness-mutators.lock"),
-            Duration::from_secs(300),
+            Duration::from_mins(5),
         )
         .expect("acquire benchmark readiness test lock")
     }

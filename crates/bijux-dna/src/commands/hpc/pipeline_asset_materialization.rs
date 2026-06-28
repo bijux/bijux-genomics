@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read, Seek, Write};
@@ -196,25 +196,12 @@ fn materialize_reference_assets(
     let assembly_report_path = root.join(&assets.assembly_report_filename);
     let bwa_index_paths = bwa_index_paths(&genome_fasta_path);
 
-    let mut artifacts = Vec::new();
-    artifacts.push(download_file(
-        http,
-        &assets.genome_url,
-        &genome_archive_path,
-        "reference_fasta_gz",
-    )?);
-    artifacts.push(download_file(
-        http,
-        &assets.assembly_report_url,
-        &assembly_report_path,
-        "assembly_report",
-    )?);
-    artifacts.push(decompress_gzip_file(
-        &genome_archive_path,
-        &genome_fasta_path,
-        "reference_fasta",
-    )?);
-    artifacts.push(build_fai_file(&genome_fasta_path, &fai_path)?);
+    let mut artifacts = vec![
+        download_file(http, &assets.genome_url, &genome_archive_path, "reference_fasta_gz")?,
+        download_file(http, &assets.assembly_report_url, &assembly_report_path, "assembly_report")?,
+        decompress_gzip_file(&genome_archive_path, &genome_fasta_path, "reference_fasta")?,
+        build_fai_file(&genome_fasta_path, &fai_path)?,
+    ];
     let bwa_action = ensure_bwa_index(&genome_fasta_path, &bwa_index_paths)?;
     for path in &bwa_index_paths {
         artifacts.push(MaterializedArtifact {
@@ -267,27 +254,23 @@ fn materialize_variant_assets(
     let snpeff_db_ready_path =
         snpeff_runtime_root.join(format!("{}.db.ready", assets.snpeff.genome_id));
 
-    let mut artifacts = Vec::new();
-    artifacts.push(download_file(
-        http,
-        &reference_assets.assembly_report_url,
-        &assembly_report_path,
-        "assembly_report",
-    )?);
-    artifacts.push(download_file(http, &assets.source_vcf_url, &source_vcf_path, "source_vcf_gz")?);
-    artifacts.push(download_file(
-        http,
-        &assets.snpeff.database_url,
-        &snpeff_database_zip_path,
-        "snpeff_database_zip",
-    )?);
-    artifacts.push(download_file(
-        http,
-        &assets.snpeff.core_url,
-        &snpeff_core_zip_path,
-        "snpeff_core_zip",
-    )?);
-    artifacts.push(extract_vcf_header(&source_vcf_path, &old_header_path)?);
+    let mut artifacts = vec![
+        download_file(
+            http,
+            &reference_assets.assembly_report_url,
+            &assembly_report_path,
+            "assembly_report",
+        )?,
+        download_file(http, &assets.source_vcf_url, &source_vcf_path, "source_vcf_gz")?,
+        download_file(
+            http,
+            &assets.snpeff.database_url,
+            &snpeff_database_zip_path,
+            "snpeff_database_zip",
+        )?,
+        download_file(http, &assets.snpeff.core_url, &snpeff_core_zip_path, "snpeff_core_zip")?,
+        extract_vcf_header(&source_vcf_path, &old_header_path)?,
+    ];
     artifacts.extend(prepare_namespace_assets(
         &source_vcf_path,
         &assembly_report_path,
@@ -673,7 +656,7 @@ fn prepare_namespace_assets(
 }
 
 fn collect_body_contigs(vcf_path: &Path) -> Result<Vec<String>> {
-    let mut seen = BTreeMap::<String, ()>::new();
+    let mut seen = BTreeSet::<String>::new();
     let mut ordered = Vec::new();
     for line in iter_gzip_lines(vcf_path)? {
         let line = line?;
@@ -684,7 +667,7 @@ fn collect_body_contigs(vcf_path: &Path) -> Result<Vec<String>> {
             .split('\t')
             .next()
             .ok_or_else(|| anyhow!("vcf record is missing CHROM in {}", vcf_path.display()))?;
-        if seen.insert(contig.to_string(), ()).is_none() {
+        if seen.insert(contig.to_string()) {
             ordered.push(contig.to_string());
         }
     }
@@ -727,10 +710,10 @@ fn parse_assembly_report(report_path: &Path) -> Result<BTreeMap<String, Assembly
         let genbank_accession = parts[4].to_string();
         let refseq_accession = parts[6].to_string();
         let ucsc_style_name = parts[9].to_string();
-        let target = if refseq_accession != "=" {
-            refseq_accession.clone()
-        } else {
+        let target = if refseq_accession == "=" {
             genbank_accession.clone()
+        } else {
+            refseq_accession.clone()
         };
         let row = AssemblyReportRow {
             target,

@@ -51,7 +51,7 @@ const DEFAULT_STAGE_RESULT_NAME: &str = "stage-result.json";
 const GOVERNED_IBD_SEGMENT_MARKER_MINIMUM: usize = 1;
 const PROBE_IBD_SEGMENT_MARKER_MINIMUM: usize = 50;
 const VCF_BENCHMARK_MUTATOR_LOCK_PATH: &str = "artifacts/test-locks/vcf-benchmark-mutators.lock";
-const VCF_BENCHMARK_MUTATOR_LOCK_TIMEOUT: Duration = Duration::from_secs(300);
+const VCF_BENCHMARK_MUTATOR_LOCK_TIMEOUT: Duration = Duration::from_mins(5);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct GovernedVcfIbdSmokeContract {

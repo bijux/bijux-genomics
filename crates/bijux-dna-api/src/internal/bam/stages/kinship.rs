@@ -19,7 +19,7 @@ const KINSHIP_STAGE_METRICS_SCHEMA_VERSION: &str = "bijux.bam.kinship.stage_metr
 #[cfg(feature = "bam_downstream")]
 const LOCAL_KINSHIP_SMOKE_LOCK_PATH: &str = "artifacts/test-locks/bam-kinship-local-smoke.lock";
 #[cfg(feature = "bam_downstream")]
-const LOCAL_KINSHIP_SMOKE_LOCK_TIMEOUT: Duration = Duration::from_secs(300);
+const LOCAL_KINSHIP_SMOKE_LOCK_TIMEOUT: Duration = Duration::from_mins(5);
 
 #[cfg(feature = "bam_downstream")]
 #[derive(Debug, Clone, Serialize)]

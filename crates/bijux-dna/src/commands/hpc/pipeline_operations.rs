@@ -313,17 +313,14 @@ fn extend_asset_commands(
 }
 
 fn remote_asset_file(role: &str, target_path: &Path, source_url: &str) -> AssetFilePlan {
+    let target_parent = target_path.parent().unwrap_or_else(|| Path::new("."));
     AssetFilePlan {
         role: role.to_string(),
         target_path: target_path.display().to_string(),
         source_url: Some(source_url.to_string()),
         command: Some(format!(
             "mkdir -p {} && curl -L --fail -o {} {}",
-            shell_quote_path(
-                target_path
-                    .parent()
-                    .expect("remote asset target path must have a parent directory")
-            ),
+            shell_quote_path(target_parent),
             shell_quote_path(target_path),
             shell_quote(source_url),
         )),
