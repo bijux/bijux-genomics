@@ -270,6 +270,15 @@
     "source": "bam_micro_smoke_subset"
   },
   {
+    "execution_id": "bam.kinship",
+    "component_id": "bam_micro_smoke_subset",
+    "artifact_id": "evidence",
+    "role": "family_evidence",
+    "path": "runs/bench/local-smoke/bam.kinship/kinship.json",
+    "exists": true,
+    "source": "bam_micro_smoke_subset"
+  },
+  {
     "execution_id": "bam.mapping_summary",
     "component_id": "adna_micro_pipeline",
     "artifact_id": "evidence",
