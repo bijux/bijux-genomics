@@ -786,6 +786,8 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::path::PathBuf;
 
+    use crate::commands::benchmark::test_support::{acquire_cwd_lock, RepoProcessLock};
+
     use super::{
         render_stage_tool_benchmark_ready, DEFAULT_STAGE_TOOL_BENCHMARK_READY_PATH,
         STAGE_TOOL_BENCHMARK_READY_SCHEMA_VERSION,
@@ -817,6 +819,9 @@ mod tests {
     #[test]
     fn stage_tool_benchmark_ready_gate_tracks_ready_slice_and_excluded_pairs() {
         let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
+        let _repo_lock =
+            RepoProcessLock::acquire(&root, "benchmark-readiness-mutators").expect("repo lock");
         let _cwd = CurrentDirGuard::enter(&root);
         let report = render_stage_tool_benchmark_ready(
             &root,

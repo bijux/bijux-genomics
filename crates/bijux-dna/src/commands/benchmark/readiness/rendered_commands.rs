@@ -105,6 +105,8 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::path::PathBuf;
 
+    use crate::commands::benchmark::test_support::{acquire_cwd_lock, RepoProcessLock};
+
     struct CurrentDirGuard(PathBuf);
 
     impl CurrentDirGuard {
@@ -134,6 +136,9 @@ mod tests {
         use super::{render_commands, DEFAULT_RENDERED_COMMANDS_PATH};
 
         let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
+        let _repo_lock =
+            RepoProcessLock::acquire(&root, "benchmark-readiness-mutators").expect("repo lock");
         let _cwd = CurrentDirGuard::enter(&root);
         let report = render_commands(&root, PathBuf::from(DEFAULT_RENDERED_COMMANDS_PATH))
             .expect("render commands");

@@ -132,6 +132,8 @@ pub(crate) mod schema_validation;
 pub(crate) mod stage_catalog;
 pub(crate) mod suite;
 pub(crate) mod taxonomy_database;
+#[cfg(test)]
+pub(crate) mod test_support;
 pub(crate) mod vcf_benchmark_bindings;
 pub(crate) mod vcf_stage_families;
 pub(crate) mod workspace;

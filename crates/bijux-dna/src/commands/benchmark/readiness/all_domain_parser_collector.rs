@@ -621,6 +621,7 @@ mod tests {
     use std::env;
     use std::path::{Path, PathBuf};
 
+    use crate::commands::benchmark::test_support::{acquire_cwd_lock, RepoProcessLock};
     use serde_json::Value;
 
     use super::{
@@ -656,6 +657,9 @@ mod tests {
     #[test]
     fn render_all_domain_parser_collector_reports_fake_and_real_smoke_rows() {
         let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
+        let _repo_lock =
+            RepoProcessLock::acquire(&root, "benchmark-readiness-mutators").expect("repo lock");
         let _cwd_guard = CurrentDirGuard::change_to(&root);
         let report = render_all_domain_parser_collector(
             &root,
