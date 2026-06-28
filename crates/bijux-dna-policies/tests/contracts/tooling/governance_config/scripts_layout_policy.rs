@@ -7,6 +7,14 @@ fn workspace_root() -> PathBuf {
     bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
+fn contains_legacy_scripts_reference(raw: &str) -> bool {
+    let legacy = ["scr", "ipts/"].concat();
+    raw.match_indices(&legacy).any(|(index, _)| {
+        let prefix = &raw[..index];
+        !prefix.ends_with(".github/")
+    })
+}
+
 #[test]
 fn policy__contracts__scripts_layout_policy__legacy_scripts_directory_is_removed() {
     let root = workspace_root();
@@ -20,7 +28,6 @@ fn policy__contracts__scripts_layout_policy__legacy_scripts_directory_is_removed
 #[test]
 fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scripts() {
     let root = workspace_root();
-    let legacy = ["scr", "ipts/"].concat();
     let allowlist = [
         ".github/workflows/automerge-pr.yml",
         ".github/workflows/bijux-std.yml",
@@ -44,7 +51,9 @@ fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scri
             let raw = std::fs::read_to_string(&scope).unwrap_or_default();
             let rel =
                 scope.strip_prefix(&root).unwrap_or(&scope).to_string_lossy().replace('\\', "/");
-            if raw.contains(&legacy) && !allowlist.iter().any(|allowed| rel == *allowed) {
+            if contains_legacy_scripts_reference(&raw)
+                && !allowlist.iter().any(|allowed| rel == *allowed)
+            {
                 offenders.push(scope.display().to_string());
             }
             continue;
@@ -71,7 +80,7 @@ fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scri
                 continue;
             }
             let raw = std::fs::read_to_string(entry.path()).unwrap_or_default();
-            if raw.contains(&legacy) {
+            if contains_legacy_scripts_reference(&raw) {
                 offenders.push(entry.path().display().to_string());
             }
         }
@@ -82,6 +91,15 @@ fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scri
         "legacy automation references remain in repo content:\n{}",
         offenders.join("\n")
     );
+}
+
+#[test]
+fn policy__contracts__scripts_layout_policy__github_scripts_references_are_not_treated_as_legacy(
+) {
+    assert!(!contains_legacy_scripts_reference(
+        "python3 .github/scripts/check_workflow_prerequisites.py"
+    ));
+    assert!(contains_legacy_scripts_reference("python3 scripts/check_workflow_prerequisites.py"));
 }
 
 #[test]
