@@ -94,8 +94,7 @@ fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scri
 }
 
 #[test]
-fn policy__contracts__scripts_layout_policy__github_scripts_references_are_not_treated_as_legacy(
-) {
+fn policy__contracts__scripts_layout_policy__github_scripts_references_are_not_treated_as_legacy() {
     assert!(!contains_legacy_scripts_reference(
         "python3 .github/scripts/check_workflow_prerequisites.py"
     ));

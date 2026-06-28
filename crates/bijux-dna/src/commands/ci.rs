@@ -405,9 +405,7 @@ pub(crate) fn audit_workflow_slow_tier_manual_only(
     let ok = workflow_dispatch_enabled
         && run_slow_tier_input.is_some()
         && !run_slow_tier_default
-        && slow_tier_if
-            .as_deref()
-            .is_some_and(|guard| guard.contains(expected_if))
+        && slow_tier_if.as_deref().is_some_and(|guard| guard.contains(expected_if))
         && slow_tier_target_jobs == vec!["slow-tier".to_string()];
     let report = SlowTierManualOnlyReport {
         schema_version: "bijux.ci.slow_tier_manual_only.v1".to_string(),
@@ -727,8 +725,7 @@ fn read_workflow_yaml(path: &Path) -> Result<YamlValue> {
 
 fn workflow_on_block<'a>(yaml: &'a YamlValue) -> Option<&'a YamlValue> {
     let root = yaml.as_mapping()?;
-    root.get(YamlValue::String("on".to_string()))
-        .or_else(|| root.get(YamlValue::Bool(true)))
+    root.get(YamlValue::String("on".to_string())).or_else(|| root.get(YamlValue::Bool(true)))
 }
 
 fn collect_workflow_target_usages(path: &Path, target: &str) -> Result<Vec<WorkflowTargetUsage>> {
