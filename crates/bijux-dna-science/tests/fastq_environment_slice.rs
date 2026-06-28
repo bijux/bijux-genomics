@@ -162,8 +162,10 @@ fn lock_is_older_than(path: &Path, threshold: Duration) -> Result<bool> {
 
 #[cfg(unix)]
 fn process_is_alive(pid: u32) -> bool {
-    let system = sysinfo::System::new_all();
-    system.process(sysinfo::Pid::from_u32(pid)).is_some()
+    std::process::Command::new("kill")
+        .args(["-0", &pid.to_string()])
+        .status()
+        .is_ok_and(|status| status.success())
 }
 
 #[cfg(not(unix))]

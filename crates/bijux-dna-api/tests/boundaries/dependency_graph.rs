@@ -31,8 +31,7 @@ const NORMAL_DEPS: &[&str] = &[
     "walkdir",
 ];
 
-const DEV_DEPS: &[&str] =
-    &["bijux-dna-policies", "bijux-dna-testkit", "insta", "sysinfo", "tempfile"];
+const DEV_DEPS: &[&str] = &["bijux-dna-policies", "bijux-dna-testkit", "insta", "tempfile"];
 
 #[test]
 fn normal_dependency_graph_matches_api_integration_boundary() {
