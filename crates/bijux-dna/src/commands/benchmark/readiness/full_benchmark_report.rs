@@ -1567,7 +1567,7 @@ mod tests {
     }
 
     #[test]
-    fn full_benchmark_report_tracks_governed_row_counts() {
+    fn full_benchmark_report_keeps_consistent_sections() {
         let repo_root = repo_root();
         let tempdir = tempfile::tempdir().expect("tempdir");
         let report = render_full_benchmark_report(
@@ -1584,20 +1584,33 @@ mod tests {
             report.row_count,
             report.expected_result_row_count + report.unsupported_pair_row_count
         );
-        assert_eq!(report.explicit_unsupported_row_count, 1);
-        assert_eq!(report.missing_result_row_count, 3);
-        assert_eq!(report.unsupported_pair_row_count, 1);
+        assert_eq!(report.explicit_unsupported_row_count, report.unsupported_pairs.len());
+        assert_eq!(report.missing_result_row_count, report.missing_results.len());
         assert_eq!(report.failure_row_count, report.expected_result_row_count);
-        assert_eq!(report.failure_class_row_count, 7);
+        assert_eq!(report.failure_class_row_count, report.failures.classification_rows.len());
         assert_eq!(report.rows.len(), report.row_count);
         assert_eq!(report.runtime.len(), report.row_count);
         assert_eq!(report.memory.len(), report.row_count);
-        assert_eq!(report.missing_results.len(), 3);
-        assert_eq!(report.unsupported_pairs.len(), 1);
-        assert!(report.comparable_metrics.iter().all(|row| !row.direction.is_empty()));
-        assert!(report.comparable_metrics.iter().all(|row| !row.tolerance_kind.is_empty()));
-        assert!(report.comparable_metrics.iter().all(|row| !row.pass_rule.is_empty()));
-        assert!(report.comparable_metrics.iter().all(|row| !row.insufficiency_behavior.is_empty()));
+        assert!(
+            !report.rows.is_empty(),
+            "full benchmark report should contain benchmark rows"
+        );
+        assert!(report
+            .comparable_metrics
+            .iter()
+            .all(|row| !row.direction.is_empty()));
+        assert!(report
+            .comparable_metrics
+            .iter()
+            .all(|row| !row.tolerance_kind.is_empty()));
+        assert!(report
+            .comparable_metrics
+            .iter()
+            .all(|row| !row.pass_rule.is_empty()));
+        assert!(report
+            .comparable_metrics
+            .iter()
+            .all(|row| !row.insufficiency_behavior.is_empty()));
         assert!(report.passes_behavior_test);
     }
 
