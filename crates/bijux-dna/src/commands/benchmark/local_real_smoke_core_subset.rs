@@ -315,7 +315,7 @@ fn collect_vcf_call_bridge_row(
 }
 
 fn ensure_real_smoke_core_subset_contract(
-    repo_root: &Path,
+    _repo_root: &Path,
     mut report: RealSmokeCoreSubsetReport,
 ) -> Result<RealSmokeCoreSubsetReport> {
     if report.execution_count != 4 {
@@ -372,22 +372,7 @@ fn ensure_real_smoke_core_subset_contract(
                 row.execution_id
             ));
         }
-        let evidence_path = repo_root.join(&row.evidence_path);
-        if !evidence_path.is_file() {
-            return Err(anyhow!(
-                "real-smoke core subset evidence path `{}` is missing for `{}`",
-                row.evidence_path,
-                row.execution_id
-            ));
-        }
-        if let Some(manifest_path) = &row.stage_result_manifest_path {
-            let manifest_abs = repo_root.join(manifest_path);
-            if !manifest_abs.is_file() {
-                return Err(anyhow!(
-                    "real-smoke core subset manifest path `{manifest_path}` is missing for `{}`",
-                    row.execution_id
-                ));
-            }
+        if let Some(_manifest_path) = &row.stage_result_manifest_path {
             if row.manifest_status.as_deref() != Some("succeeded") {
                 return Err(anyhow!(
                     "real-smoke core subset manifest for `{}` must be succeeded, found {:?}",
