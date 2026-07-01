@@ -1591,26 +1591,11 @@ mod tests {
         assert_eq!(report.rows.len(), report.row_count);
         assert_eq!(report.runtime.len(), report.row_count);
         assert_eq!(report.memory.len(), report.row_count);
-        assert!(
-            !report.rows.is_empty(),
-            "full benchmark report should contain benchmark rows"
-        );
-        assert!(report
-            .comparable_metrics
-            .iter()
-            .all(|row| !row.direction.is_empty()));
-        assert!(report
-            .comparable_metrics
-            .iter()
-            .all(|row| !row.tolerance_kind.is_empty()));
-        assert!(report
-            .comparable_metrics
-            .iter()
-            .all(|row| !row.pass_rule.is_empty()));
-        assert!(report
-            .comparable_metrics
-            .iter()
-            .all(|row| !row.insufficiency_behavior.is_empty()));
+        assert!(!report.rows.is_empty(), "full benchmark report should contain benchmark rows");
+        assert!(report.comparable_metrics.iter().all(|row| !row.direction.is_empty()));
+        assert!(report.comparable_metrics.iter().all(|row| !row.tolerance_kind.is_empty()));
+        assert!(report.comparable_metrics.iter().all(|row| !row.pass_rule.is_empty()));
+        assert!(report.comparable_metrics.iter().all(|row| !row.insufficiency_behavior.is_empty()));
         assert!(report.passes_behavior_test);
     }
 

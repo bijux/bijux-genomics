@@ -1029,7 +1029,11 @@ fn repo_relative_pathbuf(repo_root: &Path, path: &Path) -> PathBuf {
 }
 
 fn resolve_repo_pathbuf(repo_root: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() { path.to_path_buf() } else { repo_root.join(path) }
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
 }
 
 #[cfg(test)]

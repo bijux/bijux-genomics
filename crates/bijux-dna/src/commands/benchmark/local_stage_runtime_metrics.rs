@@ -157,10 +157,7 @@ mod tests {
         assert_eq!(report.schema_version, LOCAL_STAGE_RUNTIME_METRICS_REPORT_SCHEMA_VERSION);
         assert_eq!(report.fake_run_root, "runs/bench/local-fake-runs/stages-runtime-metrics");
         assert_eq!(report.stage_count, report.stages.len());
-        assert!(
-            !report.stages.is_empty(),
-            "runtime metrics report should contain stage metrics"
-        );
+        assert!(!report.stages.is_empty(), "runtime metrics report should contain stage metrics");
         assert!(report.stages.iter().all(|stage| {
             stage.runtime_mode == "fake_run"
                 && !stage.started_at.is_empty()

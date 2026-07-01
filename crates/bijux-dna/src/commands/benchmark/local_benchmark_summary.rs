@@ -381,10 +381,7 @@ mod tests {
             report.ready_stage_count + report.incomplete_stage_count + report.failed_stage_count,
             report.stage_count
         );
-        assert!(
-            !report.stages.is_empty(),
-            "benchmark summary should contain stage rows"
-        );
+        assert!(!report.stages.is_empty(), "benchmark summary should contain stage rows");
         assert!(report.stages.iter().all(|stage| {
             stage.readiness_status == BenchLocalBenchmarkReadinessStatus::Ready
                 && stage.runtime_status == "succeeded"

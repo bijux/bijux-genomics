@@ -495,10 +495,7 @@ mod tests {
         assert_eq!(fake_runs.schema_version, "bijux.bench.local_stage_fake_runs.v1");
         assert_eq!(fake_runs.fake_run_root, "runs/bench/local-fake-runs/stages");
         assert_eq!(fake_runs.stage_count, fake_runs.stages.len());
-        assert!(
-            !fake_runs.stages.is_empty(),
-            "fake-run manifest should contain stage entries"
-        );
+        assert!(!fake_runs.stages.is_empty(), "fake-run manifest should contain stage entries");
         assert!(fake_runs.stages.iter().all(|stage| {
             stage.declared_output_count >= 1
                 && stage.created_output_count == stage.declared_output_count
