@@ -85,10 +85,10 @@ fn stale_repo_test_lock(path: &Path) -> Result<bool> {
     let owner_path = path.join(TEST_LOCK_OWNER_FILE);
     match fs::read_to_string(&owner_path) {
         Ok(raw_pid) => {
-            let pid = raw_pid.trim().parse::<u32>().map_err(|error| {
-                anyhow!("parse repo test lock owner `{}`: {error}", owner_path.display())
-            })?;
-            Ok(!process_is_alive(pid))
+            match raw_pid.trim().parse::<u32>() {
+                Ok(pid) => Ok(!process_is_alive(pid)),
+                Err(_) => Ok(lock_is_older_than(path, TEST_LOCK_MISSING_OWNER_GRACE)?),
+            }
         }
         Err(error) if error.kind() == ErrorKind::NotFound => {
             Ok(lock_is_older_than(path, TEST_LOCK_MISSING_OWNER_GRACE)?)
