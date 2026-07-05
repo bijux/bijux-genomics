@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 use serde::Deserialize;
@@ -108,6 +109,61 @@ struct QaCoverageBlockerEntry {
     blocker: String,
 }
 
+#[derive(Clone, Debug, Default)]
+struct GovernedArchiveTracker {
+    tracked_paths: Option<BTreeSet<String>>,
+}
+
+impl GovernedArchiveTracker {
+    fn discover(root: &Path) -> Result<Self> {
+        // Repository-owned science outputs must stay stable even when a workstation carries
+        // extra untracked archive packets under science/docs/.
+        if !root.join(".git").exists() {
+            return Ok(Self::default());
+        }
+
+        let output = Command::new("git")
+            .arg("-C")
+            .arg(root)
+            .args(["ls-files", "--cached", "--"])
+            .arg("science/docs")
+            .output()
+            .with_context(|| format!("list tracked science docs under {}", root.display()))?;
+        if !output.status.success() {
+            return Err(anyhow!(
+                "list tracked science docs under {} failed: {}",
+                root.display(),
+                String::from_utf8_lossy(&output.stderr).trim()
+            ));
+        }
+
+        let tracked_paths = String::from_utf8(output.stdout)
+            .context("decode tracked science docs listing")?
+            .lines()
+            .map(str::trim)
+            .filter(|path| !path.is_empty())
+            .map(ToOwned::to_owned)
+            .collect::<BTreeSet<_>>();
+        Ok(Self { tracked_paths: Some(tracked_paths) })
+    }
+
+    fn contains(&self, root: &Path, relative_path: &str) -> bool {
+        let normalized = relative_path.trim().trim_end_matches('/');
+        if normalized.is_empty() {
+            return false;
+        }
+
+        match &self.tracked_paths {
+            Some(tracked_paths) => {
+                let prefix = format!("{normalized}/");
+                tracked_paths.contains(normalized)
+                    || tracked_paths.iter().any(|path| path.starts_with(&prefix))
+            }
+            None => root.join(normalized).exists(),
+        }
+    }
+}
+
 /// Load and validate authored science specs from a workspace.
 ///
 /// # Errors
@@ -214,7 +270,8 @@ pub fn compile_workspace(root: &Path) -> Result<CompiledScience> {
 /// Returns an error when loaded specs contain unresolved references or required FASTQ evidence
 /// sources cannot be resolved.
 pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScience> {
-    let source_inventory = build_source_inventory(root, loaded);
+    let governed_archives = GovernedArchiveTracker::discover(root)?;
+    let source_inventory = build_source_inventory(root, loaded, &governed_archives);
     let source_archive_gaps = build_source_archive_gaps(&source_inventory);
     let source_archive_summary =
         build_source_archive_summary(&source_inventory, &source_archive_gaps);
@@ -232,9 +289,14 @@ pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScien
         &fastq_container_reference_rows,
         &tool_evidence_map,
         &paper_map,
+        &governed_archives,
     );
-    let fastq_paper_archive_rows =
-        build_fastq_paper_archive_rows(root, &fastq_environment_rows, &paper_map);
+    let fastq_paper_archive_rows = build_fastq_paper_archive_rows(
+        root,
+        &fastq_environment_rows,
+        &paper_map,
+        &governed_archives,
+    );
     let fastq_closure_gate_rows = build_fastq_closure_gate_rows(
         &fastq_environment_rows,
         &fastq_download_backlog_rows,
@@ -300,7 +362,11 @@ pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScien
     })
 }
 
-fn build_source_inventory(root: &Path, loaded: &LoadedSpecs) -> Vec<SourceInventoryRow> {
+fn build_source_inventory(
+    root: &Path,
+    loaded: &LoadedSpecs,
+    governed_archives: &GovernedArchiveTracker,
+) -> Vec<SourceInventoryRow> {
     let mut rows = loaded
         .sources
         .values()
@@ -309,7 +375,7 @@ fn build_source_inventory(root: &Path, loaded: &LoadedSpecs) -> Vec<SourceInvent
             let archive_status = match source.access {
                 SourceAccess::RepoPath => "not_applicable".to_string(),
                 SourceAccess::ManualDownload | SourceAccess::ManualClone => {
-                    if root.join(&archive_path).exists() {
+                    if governed_archives.contains(root, &archive_path) {
                         "present".to_string()
                     } else {
                         "missing".to_string()
@@ -850,6 +916,7 @@ fn build_fastq_download_backlog_rows(
     rows: &[crate::domain::FastqContainerReferenceRow],
     evidence_map: &[ToolEvidenceMapEntry],
     paper_map: &[PaperMapEntry],
+    governed_archives: &GovernedArchiveTracker,
 ) -> Vec<crate::domain::FastqDownloadBacklogRow> {
     let evidence_by_tool = evidence_map
         .iter()
@@ -877,7 +944,7 @@ fn build_fastq_download_backlog_rows(
             );
             let archive_status = if archive_path.is_empty() {
                 "not_applicable".to_string()
-            } else if root.join(&archive_path).exists() {
+            } else if governed_archives.contains(root, &archive_path) {
                 "present".to_string()
             } else {
                 "missing".to_string()
@@ -999,6 +1066,7 @@ fn build_fastq_paper_archive_rows(
     root: &Path,
     environment_rows: &[FastqEnvironmentRow],
     paper_map: &[PaperMapEntry],
+    governed_archives: &GovernedArchiveTracker,
 ) -> Vec<crate::domain::FastqPaperArchiveRow> {
     let mut stage_map = BTreeMap::<String, BTreeSet<String>>::new();
     for row in environment_rows {
@@ -1018,7 +1086,7 @@ fn build_fastq_paper_archive_rows(
             open_access_status: entry.open_access_status.clone(),
             primary_locator: entry.primary_locator.clone(),
             supporting_locators: entry.supporting_locators.clone(),
-            archive_status: if root.join(&entry.paper_root).exists() {
+            archive_status: if governed_archives.contains(root, &entry.paper_root) {
                 "present".to_string()
             } else {
                 "missing".to_string()
