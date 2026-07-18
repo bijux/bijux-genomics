@@ -20,8 +20,9 @@ Public targets (stable contract):
 - `gate-release-essential`
 - `refresh-assets-toy`
 - `refresh-assets-golden`
+- shared Rust targets: `format-rs`, `fmt-rs`, `lint-rs`, `test-rs`, `test-slow-rs`, `test-all-rs`, `audit-rs`, `coverage-rs`, `doctor-rs`, and `rustdoc-check`
 
-All other make targets are internal and must be prefixed with `_`.
+Repository-owned implementation targets outside this list are internal and must be prefixed with `_`.
 
 Benchmark note:
 - benchmark orchestration and dossier rendering belong to `bijux-dna`
@@ -32,16 +33,9 @@ Internal targets can be listed with:
 - `SHOW_INTERNAL=1 make help`
 
 Target -> implementation mapping (no hidden magic):
-- `fmt` -> `makes/bin/rust_gate.sh fmt`
-- `lint` -> `makes/bin/rust_gate.sh lint`
-- `audit` -> `makes/bin/rust_gate.sh audit`
-- `test` -> `makes/bin/rust_gate.sh test`
-- `test-slow` -> `makes/bin/rust_gate.sh test-slow`
-- `test-all` -> `makes/bin/rust_gate.sh test-all`
-- `test-all-frozen` -> `makes/bin/run_pinned_ref_gate.sh` with `PINNED_REF_GATE_TARGET=test-all`
-- `lint-frozen` -> `makes/bin/run_pinned_ref_gate.sh` with `PINNED_REF_GATE_TARGET=lint`
-- `audit-frozen` -> `makes/bin/run_pinned_ref_gate.sh` with `PINNED_REF_GATE_TARGET=audit`
-- `coverage` -> `makes/bin/rust_gate.sh coverage`
+- `fmt`, `lint`, `test`, `test-slow`, `test-all`, and `coverage` -> shared `bijux-makes-rs` targets through `makes/bin/run_genomics_rust_gate.sh`
+- `audit` -> the shared Rust audit after Genomics audit-governance prerequisites
+- `test-all-frozen`, `lint-frozen`, and `audit-frozen` -> shared immutable-ref launcher
 - `doctor` -> `cargo run -q -p bijux-dna-dev -- tooling run repo-doctor --fast` + fast parity checks
 - `release-gate` -> docs + root layout + registry lock + container version lock/authority checks
 - `gate-essential` -> fast architecture + domain schema + planner determinism + runtime/evidence contract lane
@@ -52,9 +46,9 @@ Target -> implementation mapping (no hidden magic):
 
 Rust gate artifact layout:
 - fast Rust gates write under `artifacts/rust/`
-- `make test-all-frozen`, `make lint-frozen`, and `make audit-frozen` start the requested gate from a pinned checkout for `TEST_ALL_FROZEN_REF` (default `HEAD`) and write the run under `artifacts/<sha>/`
+- `make test-all-frozen`, `make lint-frozen`, and `make audit-frozen` start the requested gate from `PINNED_REF` (default `HEAD`) and write the run under `artifacts/<sha>/`
 - pinned-ref gate runs materialize the exact source snapshot under `artifacts/<sha>/frozen-repo/` so reports and code stay pinned to the same commit
-- pinned-ref gate runs isolate cargo state per gate under `artifacts/<sha>/target/<gate>`, `artifacts/<sha>/cargo/home/<gate>`, and `artifacts/<sha>/tmp/<gate>`
+- pinned-ref gate runs isolate Cargo state under `artifacts/<sha>/rust/`
 - pinned-ref gate runs record launcher state under `artifacts/<sha>/background/`, including `<gate>.console.log`, `<gate>.pid`, and `<gate>.exit.status`
 - `make test-all` and `make test-all-frozen` run the complete suite with no fast/slow filter expression and no slow timeout
 - `make lint` is the fast product-crate clippy lane and excludes `bijux-dna-dev`

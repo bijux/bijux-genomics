@@ -6,6 +6,10 @@ ROOT_MK_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 JOBS ?= $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 8)
 NEXTEST_JOBS ?= $(JOBS)
 
+BIJUX_MAKES_SHARED_ROOT := $(CURDIR)/.bijux/shared
+include $(BIJUX_MAKES_SHARED_ROOT)/bijux-makes/environment.mk
+include $(BIJUX_MAKES_SHARED_ROOT)/bijux-makes/guards.mk
+
 include $(ROOT_MK_DIR)/_macro.mk
 include $(ROOT_MK_DIR)/cargo.mk
 include $(ROOT_MK_DIR)/cargo-dev.mk
@@ -16,6 +20,8 @@ include $(ROOT_MK_DIR)/lab.mk
 include $(ROOT_MK_DIR)/lunarc.mk
 include $(ROOT_MK_DIR)/docs.mk
 include $(ROOT_MK_DIR)/policies.mk
+include $(ROOT_MK_DIR)/bijux-std.mk
+include $(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/bijux.mk
 
 .DEFAULT_GOAL := help
 

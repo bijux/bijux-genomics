@@ -95,8 +95,13 @@ fn policy__contracts__ci_tools_policy__coverage_command_policy_is_stable() {
     let root = workspace_root();
     let cargo_mk = root.join("makes").join("cargo.mk");
     let cargo_mk_content = std::fs::read_to_string(&cargo_mk).expect("read cargo.mk");
-    let rust_gate = root.join("makes").join("bin").join("rust_gate.sh");
-    let rust_gate_content = std::fs::read_to_string(&rust_gate).expect("read rust_gate.sh");
+    let rust_gate = root
+        .join(".bijux")
+        .join("shared")
+        .join("bijux-makes-rs")
+        .join("scripts")
+        .join("rust_gate.sh");
+    let rust_gate_content = std::fs::read_to_string(&rust_gate).expect("read shared rust_gate.sh");
 
     let cargo_mk_required = [
         "coverage-workspace: ## Run the governed coverage control-plane lane.",
@@ -110,16 +115,14 @@ fn policy__contracts__ci_tools_policy__coverage_command_policy_is_stable() {
         "COVERAGE_BASELINE=\"$(COVERAGE_BASELINE)\"",
         "COVERAGE_THRESHOLDS=\"$(COVERAGE_THRESHOLDS)\"",
         "cargo run -q -p bijux-dna-dev -- tooling run ci-coverage",
-        "coverage-rs: ## Run Rust coverage with llvm-cov and emit reports.",
-        "\"$(RUST_GATE_BIN)\" coverage",
     ];
     let rust_gate_required = [
         "cargo llvm-cov nextest",
         "--workspace",
         "--all-features",
         "--run-ignored all",
-        "--config-file \"${nextest_config_file}\"",
-        "--profile \"${nextest_profile_all}\"",
+        "--config-file \"${NEXTEST_CONFIG_FILE}\"",
+        "--profile \"${NEXTEST_PROFILE_ALL:-default}\"",
         "cargo llvm-cov report --summary-only",
     ];
 
