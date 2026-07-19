@@ -93,8 +93,13 @@ _lint-automation:
 	@echo "Running automation lint gates in parallel (jobs=$(LINT_PARALLEL_JOBS)); logs: $(ARTIFACTS_DIR)/lint-parallel"
 	@while IFS= read -r cmd; do printf '%s\0' "$$cmd"; done < "$(ARTIFACTS_DIR)/lint-parallel/commands.txt" \
 	| xargs -0 -n1 -P "$(LINT_PARALLEL_JOBS)" sh -c '\
-		cmd="$$2"; \
-		name=$$(printf "%s" "$$cmd" | tr -cs "[:alnum:]._-" "_"); \
+		manifest_cmd="$$3"; \
+		name=$$(printf "%s" "$$manifest_cmd" | tr -cs "[:alnum:]._-" "_"); \
+		cmd="$$manifest_cmd"; \
+		case "$$cmd" in \
+			artifacts/target/debug/bijux-dna-dev\ *) \
+				cmd="\"$$2\"$${cmd#artifacts/target/debug/bijux-dna-dev}" ;; \
+		esac; \
 		log_file="$$1/$$name.log"; \
 		if sh -c "$$cmd" >"$$log_file" 2>&1; then \
 			printf "ok %s\n" "$$cmd"; \
@@ -102,7 +107,7 @@ _lint-automation:
 			printf "FAILED %s\n" "$$cmd" >&2; \
 			tail -n 80 "$$log_file" >&2; \
 			exit 1; \
-		fi' sh "$(ARTIFACTS_DIR)/lint-parallel"
+		fi' sh "$(ARTIFACTS_DIR)/lint-parallel" "$(DEV_DNA_BIN)"
 	@find "$(ARTIFACTS_DIR)/lint-parallel" -type f -name '._*' -delete
 
 lint-automation: ## Run repo-doctor + automation/container lint checks (parallelized), without clippy.
