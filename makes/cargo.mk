@@ -24,11 +24,16 @@ COVERAGE_OUT = coverage.json
 DEV_DNA_BIN ?= $(CARGO_TARGET_DIR)/debug/bijux-dna-dev
 DEV_DNA_BOOTSTRAP ?= makes/bin/dev_dna_bootstrap.sh
 GENOMICS_RUST_GATE_BIN ?= makes/bin/run_genomics_rust_gate.sh
+GITHUB_WORKFLOW_GATE_BIN ?= makes/bin/run_github_workflow_gate.sh
 RUST_GATE_BIN ?= $(GENOMICS_RUST_GATE_BIN)
 RUST_CLIPPY_EXCLUDES ?= bijux-dna-dev
 RUST_AUDIT_PREREQUISITES += audit-policy-rs
 NEXTEST_STATUS_LEVEL ?= all
 NEXTEST_FINAL_STATUS_LEVEL ?= all
+
+BIJUX_HELP_TARGETS += github-all github-all-frozen
+BIJUX_HELP_github-all := Run repository-controlled GitHub workflow gates
+BIJUX_HELP_github-all-frozen := Launch pinned GitHub workflow gates in the background
 
 fmt:
 	@$(ensure_artifact_env)
@@ -462,6 +467,13 @@ science-fixtures-fast: ## Validate FASTQ/BAM/VCF plus aDNA/eDNA/amplicon/populat
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets science-fixtures-fast
 
+github-all: ## Run repository-controlled GitHub workflow gates.
+	@$(ensure_artifact_env)
+	@GITHUB_WORKFLOW_ARTIFACT_DIR="$(ARTIFACT_ROOT)/github-all" "$(GITHUB_WORKFLOW_GATE_BIN)"
+
+github-all-frozen: ## Launch pinned GitHub workflow gates in the background.
+	@PINNED_GATE_TARGET=github-all PINNED_ALLOWED_TARGETS="github-all" "$(PINNED_GATE_BIN)"
+
 _ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
 	$(MAKE) _ssot-policy-fast
 	$(MAKE) fmt
@@ -628,7 +640,7 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@cargo run -q -p bijux-dna-dev -- assets run refresh-golden
 
-.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs test-all-frozen lint-frozen audit-frozen audit audit-rs coverage coverage-rs coverage-workspace ci doctor _check _verify-artifact-env \
+.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs test-all-frozen lint-frozen audit-frozen audit audit-rs coverage coverage-rs coverage-workspace ci doctor github-all github-all-frozen _check _verify-artifact-env \
 		_clean-artifact-scratch \
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \
