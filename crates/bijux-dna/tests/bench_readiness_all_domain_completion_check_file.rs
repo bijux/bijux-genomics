@@ -15,7 +15,7 @@ fn bench_readiness_all_domain_completion_check_writes_governed_fixture_tree() {
     let home = tempfile::tempdir().expect("tempdir");
 
     let output = sandbox
-        .command(env!("CARGO_BIN_EXE_bijux-dna"))
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")

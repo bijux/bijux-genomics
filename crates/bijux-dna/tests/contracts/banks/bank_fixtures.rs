@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::ffi::{OsStr, OsString};
+use std::ffi::OsString;
 use std::fs;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
@@ -93,8 +93,8 @@ impl RepoSandbox {
         self.root.path()
     }
 
-    pub fn command(&self, program: impl AsRef<OsStr>) -> Command {
-        let mut command = Command::new(program);
+    pub fn bijux_dna_command(&self) -> Command {
+        let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
         command
             .current_dir(self.path())
             .env("BIJUX_REPO_ROOT", self.path())

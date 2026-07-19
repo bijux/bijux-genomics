@@ -145,7 +145,7 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
     seed_tool_smoke_manifests(repo_root);
 
     let output = sandbox
-        .command(env!("CARGO_BIN_EXE_bijux-dna"))
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
@@ -215,7 +215,7 @@ fn bench_readiness_retained_toolset_executable_local_writes_gate_file() {
     seed_tool_smoke_manifests(repo_root);
 
     let output = sandbox
-        .command(env!("CARGO_BIN_EXE_bijux-dna"))
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
