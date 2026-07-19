@@ -45,21 +45,18 @@ fn generated_defaults_snapshot_carries_governance_metadata() -> anyhow::Result<(
 }
 
 #[test]
-fn generated_deprecations_snapshot_tracks_known_records() -> anyhow::Result<()> {
+fn generated_deprecations_snapshot_excludes_retired_bamtools_record() -> anyhow::Result<()> {
     let root = support::repo_root();
     let raw = std::fs::read_to_string(
         root.join("configs/ci/registry/domain_deprecations_snapshot.json"),
     )?;
     let deprecations: Vec<DomainDeprecationCatalog> = serde_json::from_str(&raw)?;
     assert!(
-        deprecations.iter().any(|domain| {
-            domain.domain_id == "bam"
-                && domain
-                    .deprecations
-                    .iter()
-                    .any(|entry| entry.tool_id.as_deref() == Some("bamtools"))
-        }),
-        "checked-in deprecations snapshot must preserve known BAM deprecation records"
+        deprecations
+            .iter()
+            .flat_map(|domain| &domain.deprecations)
+            .all(|entry| entry.tool_id.as_deref() != Some("bamtools")),
+        "checked-in deprecations snapshot must exclude the retired BAMTools deprecation"
     );
     Ok(())
 }
