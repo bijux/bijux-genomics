@@ -11,9 +11,6 @@ retries = { count = 1, backoff = "fixed", delay = "1s" }
 [store]
 dir = "artifacts/rust/test/nextest-store"
 
-[test-groups.benchmark-readiness-mutators]
-max-threads = 1
-
 [test-groups.micro-benchmark-mutators]
 max-threads = 1
 
@@ -32,15 +29,11 @@ status-level = "pass"
 [profile.full]
 retries = { count = 0, backoff = "fixed", delay = "1s" }
 fail-fast = false
-test-threads = 1
+test-threads = 8
 slow-timeout = "1s"
 failure-output = "immediate"
 success-output = "never"
 status-level = "pass"
-
-[[profile.full.overrides]]
-filter = 'package(bijux-dna) and test(/^(?:bench_readiness_|bench_active_scope_validate_fast|bench_paths_validate)/)'
-test-group = 'benchmark-readiness-mutators'
 
 [[profile.full.overrides]]
 filter = 'package(bijux-dna) and test(/^(?:bench_local_amplicon_micro_pipeline|bench_local_bam_micro_smoke_subset|bench_run_micro)/)'

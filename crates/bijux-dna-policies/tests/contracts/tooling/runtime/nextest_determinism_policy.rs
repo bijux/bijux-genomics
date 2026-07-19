@@ -36,6 +36,9 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         .expect("read configs/rust/nextest.toml");
     let cargo_mk =
         std::fs::read_to_string(root.join("makes/cargo.mk")).expect("read makes/cargo.mk");
+    let shared_cargo_mk =
+        std::fs::read_to_string(root.join(".bijux/shared/bijux-makes-rs/cargo.mk"))
+            .expect("read shared Rust Make contract");
     let root_mk = std::fs::read_to_string(root.join("makes/root.mk")).expect("read makes/root.mk");
     let rust_gate =
         std::fs::read_to_string(root.join(".bijux/shared/bijux-makes-rs/scripts/rust_gate.sh"))
@@ -63,8 +66,8 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         "profile.full must keep the complete suite available after failures"
     );
     bijux_dna_policies::policy_assert!(
-        full_profile.contains("test-threads = 1"),
-        "profile.full must keep the full suite deterministic"
+        full_profile.contains("test-threads = 8"),
+        "profile.full must run the complete suite with eight nextest workers"
     );
     bijux_dna_policies::policy_assert!(
         full_profile.contains("slow-timeout = \"1s\""),
@@ -94,20 +97,16 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         "root Make entrypoint must load the shared common and Rust contracts"
     );
     bijux_dna_policies::policy_assert!(
-        cargo_mk.contains("NEXTEST_THREADS_ALL ?= $(if $(CARGO_BUILD_JOBS),$(CARGO_BUILD_JOBS),8)"),
-        "test-all must default the frozen/full-suite cargo job fan-out to 8"
+        shared_cargo_mk.contains("NEXTEST_THREADS_ALL ?= 8"),
+        "shared test-all must default complete suites to eight nextest workers"
     );
     bijux_dna_policies::policy_assert!(
-        !config.contains("[profile.full-parallel]"),
-        "full-suite test-all should not declare an unsafe parallel nextest profile while governed outputs share repo paths"
+        !cargo_mk.contains("NEXTEST_THREADS_ALL"),
+        "repository Make policy must not override shared complete-suite concurrency"
     );
     bijux_dna_policies::policy_assert!(
-        !cargo_mk.contains("NEXTEST_TEST_THREADS_ALL ?= 8"),
-        "test-all must not advertise a governed nextest test-thread override while shared benchmark outputs remain non-isolated"
-    );
-    bijux_dna_policies::policy_assert!(
-        !rust_gate.contains("--test-threads \"${nextest_test_threads_all}\""),
-        "rust gate test-all lane must not pass duplicate nextest test-thread overrides"
+        rust_gate.contains("\"${NEXTEST_THREADS_ALL:-8}\""),
+        "shared Rust gate must preserve eight-worker execution when invoked directly"
     );
     bijux_dna_policies::policy_assert!(
         rust_gate.contains("args+=(--run-ignored all --retries 0)"),
