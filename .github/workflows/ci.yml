@@ -2,7 +2,7 @@
 # Source of truth: bijux-std/.github/standards/repo-config.manifest.json and bijux-std/shared/bijux-gh/workflows/.
 # Do not edit this generated copy directly.
 
-name: ci
+name: "repo / ci"
 on:
   pull_request:
     branches:
@@ -20,7 +20,98 @@ on:
 concurrency:
   group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
   cancel-in-progress: true
+permissions:
+  contents: read
+env:
+  RUST_TOOLCHAIN_VERSION: 1.88.0
+  CARGO_DENY_VERSION: 0.18.3
+  CARGO_AUDIT_VERSION: 0.22.0
+  CARGO_NEXTEST_VERSION: 0.9.100
+  SCCACHE_GHA_ENABLED: true
+  RUSTC_WRAPPER: sccache
 jobs:
+  fmt:
+    name: "repo / ci / fmt"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: "Check out the repository"
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: "Set up Rust"
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        with:
+          toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
+          components: rustfmt
+      - name: "Restore the Rust cache"
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        with:
+          shared-key: ci-fmt
+      - name: "Run repository formatting gate"
+        run: "make fmt"
+    if: "${{ github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]' }}"
+  lint:
+    name: "repo / ci / lint"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: "Check out the repository"
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: "Install Linux build dependencies"
+        run: "sudo apt-get update && sudo apt-get install --yes pkg-config libfontconfig1-dev libfreetype6-dev"
+      - name: "Set up Rust"
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        with:
+          toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
+          components: clippy
+      - name: "Restore the Rust cache"
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        with:
+          shared-key: ci-lint
+      - name: "Run repository lint gate"
+        run: "make lint"
+    if: "${{ github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]' }}"
+  audit:
+    name: "repo / ci / audit"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: "Check out the repository"
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: "Set up Rust"
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        with:
+          toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
+      - name: "Restore the Rust cache"
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        with:
+          shared-key: ci-audit
+      - name: "Install Rust audit tools"
+        run: "cargo install --locked cargo-deny --version \"${{ env.CARGO_DENY_VERSION }}\" && cargo install --locked cargo-audit --version \"${{ env.CARGO_AUDIT_VERSION }}\""
+      - name: "Run repository audit gate"
+        run: "make audit"
+    if: "${{ github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]' }}"
+  test:
+    name: "repo / ci / test"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: "Check out the repository"
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: "Install Linux build dependencies"
+        run: "sudo apt-get update && sudo apt-get install --yes pkg-config libfontconfig1-dev libfreetype6-dev"
+      - name: "Set up Rust"
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        with:
+          toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
+      - name: "Restore the Rust cache"
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        with:
+          shared-key: ci-test
+      - name: "Install cargo-nextest"
+        run: "cargo install --locked cargo-nextest --version \"${{ env.CARGO_NEXTEST_VERSION }}\""
+      - name: "Run repository test gate"
+        run: "make test"
+    if: "${{ github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]' }}"
   ssot_policy:
     name: ssot-policy-fast
     if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
@@ -191,9 +282,13 @@ jobs:
             make _policy-no-raw-cargo
           
   fast-tier:
-    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (always() && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))))) }}"
+    if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (always() && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')))) }}"
     runs-on: ubuntu-latest
     needs:
+      - fmt
+      - lint
+      - audit
+      - test
       - ssot_policy
       - workspace_hygiene
       - unit_contract_fast
@@ -205,6 +300,10 @@ jobs:
       - name: "Require fast CI lanes to pass"
         shell: bash
         env:
+          FMT_RESULT: "${{ needs.fmt.result }}"
+          LINT_RESULT: "${{ needs.lint.result }}"
+          AUDIT_RESULT: "${{ needs.audit.result }}"
+          TEST_RESULT: "${{ needs.test.result }}"
           SSOT_POLICY_RESULT: "${{ needs.ssot_policy.result }}"
           WORKSPACE_HYGIENE_RESULT: "${{ needs.workspace_hygiene.result }}"
           UNIT_CONTRACT_FAST_RESULT: "${{ needs.unit_contract_fast.result }}"
@@ -216,6 +315,10 @@ jobs:
           |
             set -euo pipefail
             for result in \
+              "${FMT_RESULT}" \
+              "${LINT_RESULT}" \
+              "${AUDIT_RESULT}" \
+              "${TEST_RESULT}" \
               "${SSOT_POLICY_RESULT}" \
               "${WORKSPACE_HYGIENE_RESULT}" \
               "${UNIT_CONTRACT_FAST_RESULT}" \
