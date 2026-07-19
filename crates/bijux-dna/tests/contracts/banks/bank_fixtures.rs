@@ -183,7 +183,7 @@ impl RepoProcessLock {
             match fs::create_dir(&path) {
                 Ok(()) => match write_lock_owner(&path, &owner) {
                     Ok(()) => return Ok(Self { path, owner }),
-                    Err(error) if error.kind() == ErrorKind::NotFound => continue,
+                    Err(error) if error.kind() == ErrorKind::NotFound => {}
                     Err(error) => {
                         return Err(anyhow!(
                             "write repo test lock owner `{}`: {error}",
