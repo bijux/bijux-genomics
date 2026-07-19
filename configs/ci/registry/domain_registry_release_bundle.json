@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
   "source_commit": "1d2b65af4fa02dc2f3c0de2f629daa6400aa0b76",
-  "bundle_checksum_sha256": "f56f1a446e3807e4b30de22b02d070d3ecda6670b0f07d0afe5c8e339e854e33",
+  "bundle_checksum_sha256": "e2bc1052bf0f89df8ffa5ecebae0ba5bffc3e862e20f97f5091699e95579005b",
   "domains": [
     {
       "domain_id": "bam",
@@ -4355,17 +4355,8 @@
           "fixture_path": "domain/bam/fixtures/bam.validate/samtools.txt"
         }
       ],
-      "deprecations": [
-        {
-          "stage_id": "bam.validate",
-          "tool_id": "bamtools",
-          "deprecated_since": "2026-01-01",
-          "removal_after": "2026-07-01",
-          "rationale": "Example policy entry used to enforce deprecation-window contract checks.",
-          "replacement": "samtools"
-        }
-      ],
-      "checksum_sha256": "44f64b3b6d70e7e27317d9713b6c63325a5403040e320659d949b3989f6f8d5b"
+      "deprecations": [],
+      "checksum_sha256": "13fd1bfa9c5661961cb680d86e1ada900a33f7dbcdf7357e59e03db62287d8c5"
     },
     {
       "domain_id": "fastq",

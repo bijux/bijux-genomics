@@ -3,7 +3,7 @@
 # purpose = Compatibility dashboard inputs for deprecated ids and fields.
 # authority = bijux-dna-dev
 # stability = stable
-# last_updated = 2026-04-30
+# last_updated = 2026-07-19
 
 schema_version = "bijux.compatibility_deprecations.v1"
 
@@ -15,15 +15,6 @@ deadline = "2026-12-31"
 migration_test_status = "covered by planner and evidence profile contract snapshots"
 source = "governance compatibility inventory"
 notes = "Legacy qc_post naming remains internal-only; external workflow manifests must use fastq.report_qc."
-
-[[deprecation]]
-kind = "tool_id"
-subject = "bamtools"
-replacement = "samtools"
-deadline = "2026-07-01"
-migration_test_status = "covered by check-deprecations-enforcement"
-source = "configs/ci/registry/deprecations.toml"
-notes = "Deprecated only for bam.validate."
 
 [[deprecation]]
 kind = "metric_id"

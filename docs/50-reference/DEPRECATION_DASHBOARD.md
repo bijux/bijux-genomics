@@ -20,7 +20,6 @@ Deprecation rows come from `configs/ci/compatibility/deprecations.toml` and are 
 | Kind | Subject | Replacement | Deadline | Migration Test Status | Source | Notes |
 |---|---|---|---|---|---|---|
 | `stage_id` | fastq.qc_post | fastq.report_qc | `2026-12-31` | `covered by planner and evidence profile contract snapshots` | `governance compatibility inventory` | Legacy qc_post naming remains internal-only; external workflow manifests must use fastq.report_qc. |
-| `tool_id` | bamtools | samtools | `2026-07-01` | `covered by check-deprecations-enforcement` | `configs/ci/registry/deprecations.toml` | Deprecated only for bam.validate. |
 | `metric_id` | runtime_s_legacy | runtime_s | `2026-12-31` | `covered by governed error and schema registry review` | `governance compatibility inventory` | Legacy imported benchmark rows must normalize to runtime_s before publication. |
 | `param` | vcf.impute.legacy_chunk_size | chunk_window_size_bp | `next downstream VCF release` | `covered by check-vcf-deprecation-lifecycle` | `configs/vcf/deprecations/knobs.toml` | Removal phase. |
 | `param` | vcf.phasing.legacy_region | chunk_chr_include | `next downstream VCF release` | `covered by check-vcf-deprecation-lifecycle` | `configs/vcf/deprecations/knobs.toml` | Warn phase. |
