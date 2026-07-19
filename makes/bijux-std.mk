@@ -1,6 +1,6 @@
 BIJUX_STD_CHECK_SCRIPT ?= .bijux/shared/bijux-checks/check-bijux-std.sh
 BIJUX_STD_UPDATE_SCRIPT ?= .bijux/shared/bijux-checks/update-bijux-std.sh
-BIJUX_STD_REF ?= 8f223441a9f0e640b3a56c16ae7549d4e70e6130
+BIJUX_STD_REF ?= 96096ba77bb054a074ea3f0f83a2d4ff1af85a03
 BIJUX_STD_GIT_URL ?= https://github.com/bijux/bijux-std.git
 BIJUX_STD_CAPABILITIES ?= docs python rust
 BIJUX_STD_UPDATE_CHANNEL ?= branch
