@@ -376,14 +376,10 @@ pub(crate) fn audit_workflow_slow_tier_manual_only(
         .get("jobs")
         .and_then(YamlValue::as_mapping)
         .ok_or_else(|| anyhow!("workflow `{}` is missing `jobs`", absolute_workflow.display()))?;
-    let slow_tier_job = jobs
-        .get(YamlValue::String("slow-tier".to_string()))
-        .and_then(YamlValue::as_mapping)
-        .ok_or_else(|| {
-            anyhow!("workflow `{}` is missing slow-tier job", absolute_workflow.display())
-        })?;
+    let slow_tier_job =
+        jobs.get(YamlValue::String("slow-tier".to_string())).and_then(YamlValue::as_mapping);
     let slow_tier_if = slow_tier_job
-        .get(YamlValue::String("if".to_string()))
+        .and_then(|job| job.get(YamlValue::String("if".to_string())))
         .and_then(YamlValue::as_str)
         .map(ToOwned::to_owned);
     let slow_tier_target_jobs = jobs
@@ -402,11 +398,16 @@ pub(crate) fn audit_workflow_slow_tier_manual_only(
         })
         .collect::<Vec<_>>();
     let expected_if = "github.event_name == 'workflow_dispatch' && inputs.run_slow_tier == true";
-    let ok = workflow_dispatch_enabled
+    let no_slow_tier = slow_tier_job.is_none()
+        && run_slow_tier_input.is_none()
+        && slow_tier_target_jobs.is_empty();
+    let manual_slow_tier = slow_tier_job.is_some()
+        && workflow_dispatch_enabled
         && run_slow_tier_input.is_some()
         && !run_slow_tier_default
         && slow_tier_if.as_deref().is_some_and(|guard| guard.contains(expected_if))
         && slow_tier_target_jobs == vec!["slow-tier".to_string()];
+    let ok = no_slow_tier || manual_slow_tier;
     let report = SlowTierManualOnlyReport {
         schema_version: "bijux.ci.slow_tier_manual_only.v1".to_string(),
         workflow_path: display_relative(repo_root, &absolute_workflow),
@@ -911,7 +912,28 @@ mod tests {
             &workflow,
             Some(&temp.path().join("slow-tier-manual-only.json")),
         )?;
+        assert!(slow_tier.ok);
         assert!(slow_tier.workflow.workflow_dispatch_enabled);
+        assert!(!slow_tier.workflow.run_slow_tier_input_present);
+        assert!(slow_tier.slow_tier_if.is_none());
+        assert!(slow_tier.slow_tier_target_jobs.is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn workflow_audit_rejects_automatic_slow_target() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let workflow = root.path().join("ci.yml");
+        write_utf8_report(
+            &workflow,
+            "name: continuous integration\non: push\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - run: make ci-slow\n",
+        )?;
+        let result = audit_workflow_slow_tier_manual_only(
+            root.path(),
+            &workflow,
+            Some(&root.path().join("slow-tier-manual-only.json")),
+        );
+        assert!(result.is_err(), "automatic slow targets must fail the workflow audit");
         Ok(())
     }
 
