@@ -209,15 +209,44 @@ fn collect_legacy_automation_hits(rel: &str, raw: &str, re: &Regex, out: &mut BT
             continue;
         }
         for capture in re.find_iter(line) {
-            if line[..capture.start()].ends_with(".github/") {
+            let prefix = &line[..capture.start()];
+            if prefix.ends_with(".github/") || is_governed_shared_script_prefix(prefix) {
                 continue;
             }
-            if line[..capture.start()].ends_with(".bijux/shared/bijux-checks/")
-                || line[..capture.start()].ends_with("shared/bijux-checks/")
+            if prefix.ends_with(".bijux/shared/bijux-checks/")
+                || prefix.ends_with("shared/bijux-checks/")
             {
                 continue;
             }
             out.insert(format!("{rel}:{}:{}", index + 1, capture.as_str()));
         }
+    }
+}
+
+fn is_governed_shared_script_prefix(prefix: &str) -> bool {
+    prefix.ends_with(".bijux/shared/bijux-makes-rs/")
+        || prefix.ends_with("shared/bijux-makes-rs/")
+        || prefix.ends_with("$(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_governed_shared_script_prefix;
+
+    #[test]
+    fn governed_shared_rust_automation_is_recognized() {
+        assert!(is_governed_shared_script_prefix(
+            "shared_gate=${repo_root}/.bijux/shared/bijux-makes-rs/"
+        ));
+        assert!(is_governed_shared_script_prefix(
+            "NEXTEST_EXPR_BIN ?= $(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/"
+        ));
+    }
+
+    #[test]
+    fn repository_local_script_paths_remain_legacy() {
+        assert!(!is_governed_shared_script_prefix(""));
+        assert!(!is_governed_shared_script_prefix("makes/"));
+        assert!(!is_governed_shared_script_prefix("tools/"));
     }
 }
