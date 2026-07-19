@@ -1,13 +1,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 use serde::Deserialize;
 use toml::Value as TomlValue;
 
 use crate::domain::{
-    BindingResolutionRow, BindingSpec, ClaimEvidenceRow, ClaimSpec, CompiledScience,
+    ArchiveStatus, BindingResolutionRow, BindingSpec, ClaimEvidenceRow, ClaimSpec, CompiledScience,
     DecisionReasoningRow, FastqClosureGateRow, FastqClosureSummary, FastqDefaultBindingRiskRow,
     FastqEnvironmentRow, FastqEvidenceSummary, FastqMissingClosurePrerequisiteRow,
     FastqTruthDeltaRow, LoadedSpecs, ScienceIndex, SourceAccess, SourceArchiveGapRow,
@@ -86,6 +85,7 @@ struct ToolEvidenceMapEntry {
     source_id: String,
     tool_id: String,
     archive_path: String,
+    archive_status: String,
     paper_root: String,
     acquisition_mode: String,
     primary_locator: String,
@@ -96,6 +96,7 @@ struct PaperMapEntry {
     paper_id: String,
     tool_id: String,
     paper_root: String,
+    archive_status: String,
     paper_status: String,
     open_access_status: String,
     primary_locator: String,
@@ -107,61 +108,6 @@ struct PaperMapEntry {
 struct QaCoverageBlockerEntry {
     stage_id: String,
     blocker: String,
-}
-
-#[derive(Clone, Debug, Default)]
-struct GovernedArchiveTracker {
-    tracked_paths: Option<BTreeSet<String>>,
-}
-
-impl GovernedArchiveTracker {
-    fn discover(root: &Path) -> Result<Self> {
-        // Repository-owned science outputs must stay stable even when a workstation carries
-        // extra untracked archive packets under science/docs/.
-        if !root.join(".git").exists() {
-            return Ok(Self::default());
-        }
-
-        let output = Command::new("git")
-            .arg("-C")
-            .arg(root)
-            .args(["ls-files", "--cached", "--"])
-            .arg("science/docs")
-            .output()
-            .with_context(|| format!("list tracked science docs under {}", root.display()))?;
-        if !output.status.success() {
-            return Err(anyhow!(
-                "list tracked science docs under {} failed: {}",
-                root.display(),
-                String::from_utf8_lossy(&output.stderr).trim()
-            ));
-        }
-
-        let tracked_paths = String::from_utf8(output.stdout)
-            .context("decode tracked science docs listing")?
-            .lines()
-            .map(str::trim)
-            .filter(|path| !path.is_empty())
-            .map(ToOwned::to_owned)
-            .collect::<BTreeSet<_>>();
-        Ok(Self { tracked_paths: Some(tracked_paths) })
-    }
-
-    fn contains(&self, root: &Path, relative_path: &str) -> bool {
-        let normalized = relative_path.trim().trim_end_matches('/');
-        if normalized.is_empty() {
-            return false;
-        }
-
-        match &self.tracked_paths {
-            Some(tracked_paths) => {
-                let prefix = format!("{normalized}/");
-                tracked_paths.contains(normalized)
-                    || tracked_paths.iter().any(|path| path.starts_with(&prefix))
-            }
-            None => root.join(normalized).exists(),
-        }
-    }
 }
 
 /// Load and validate authored science specs from a workspace.
@@ -270,8 +216,7 @@ pub fn compile_workspace(root: &Path) -> Result<CompiledScience> {
 /// Returns an error when loaded specs contain unresolved references or required FASTQ evidence
 /// sources cannot be resolved.
 pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScience> {
-    let governed_archives = GovernedArchiveTracker::discover(root)?;
-    let source_inventory = build_source_inventory(root, loaded, &governed_archives);
+    let source_inventory = build_source_inventory(loaded);
     let source_archive_gaps = build_source_archive_gaps(&source_inventory);
     let source_archive_summary =
         build_source_archive_summary(&source_inventory, &source_archive_gaps);
@@ -285,18 +230,12 @@ pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScien
     let paper_map = load_fastq_paper_map(root, loaded)?;
     let qa_coverage_blockers = load_fastq_qa_coverage_blockers(root, loaded)?;
     let fastq_download_backlog_rows = build_fastq_download_backlog_rows(
-        root,
         &fastq_container_reference_rows,
         &tool_evidence_map,
         &paper_map,
-        &governed_archives,
     );
-    let fastq_paper_archive_rows = build_fastq_paper_archive_rows(
-        root,
-        &fastq_environment_rows,
-        &paper_map,
-        &governed_archives,
-    );
+    let fastq_paper_archive_rows =
+        build_fastq_paper_archive_rows(&fastq_environment_rows, &paper_map);
     let fastq_closure_gate_rows = build_fastq_closure_gate_rows(
         &fastq_environment_rows,
         &fastq_download_backlog_rows,
@@ -362,11 +301,7 @@ pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScien
     })
 }
 
-fn build_source_inventory(
-    root: &Path,
-    loaded: &LoadedSpecs,
-    governed_archives: &GovernedArchiveTracker,
-) -> Vec<SourceInventoryRow> {
+fn build_source_inventory(loaded: &LoadedSpecs) -> Vec<SourceInventoryRow> {
     let mut rows = loaded
         .sources
         .values()
@@ -374,13 +309,10 @@ fn build_source_inventory(
             let archive_path = source.archive_path.clone().unwrap_or_default();
             let archive_status = match source.access {
                 SourceAccess::RepoPath => "not_applicable".to_string(),
-                SourceAccess::ManualDownload | SourceAccess::ManualClone => {
-                    if governed_archives.contains(root, &archive_path) {
-                        "present".to_string()
-                    } else {
-                        "missing".to_string()
-                    }
-                }
+                SourceAccess::ManualDownload | SourceAccess::ManualClone => source
+                    .archive_status
+                    .as_ref()
+                    .map_or_else(|| "missing".to_string(), archive_status_label),
             };
             SourceInventoryRow {
                 source_id: source.source_id.to_string(),
@@ -595,6 +527,9 @@ fn validate_source(row: &SourceSpec) -> Result<()> {
             if row.archive_path.is_some() {
                 return Err(anyhow!("repo_path sources must not declare archive_path"));
             }
+            if row.archive_status.is_some() {
+                return Err(anyhow!("repo_path sources must not declare archive_status"));
+            }
             if matches!(
                 row.kind,
                 SourceKind::ExternalDocument | SourceKind::ExternalRepository | SourceKind::Paper
@@ -618,6 +553,9 @@ fn validate_source(row: &SourceSpec) -> Result<()> {
                 return Err(anyhow!(
                     "archive_path must live under science/docs/ for manual acquisition sources"
                 ));
+            }
+            if row.archive_status.is_none() {
+                return Err(anyhow!("manual acquisition sources must declare archive_status"));
             }
             if matches!(row.access, SourceAccess::ManualClone)
                 && !matches!(row.kind, SourceKind::ExternalRepository)
@@ -912,11 +850,9 @@ fn build_fastq_container_reference_rows(
 }
 
 fn build_fastq_download_backlog_rows(
-    root: &Path,
     rows: &[crate::domain::FastqContainerReferenceRow],
     evidence_map: &[ToolEvidenceMapEntry],
     paper_map: &[PaperMapEntry],
-    governed_archives: &GovernedArchiveTracker,
 ) -> Vec<crate::domain::FastqDownloadBacklogRow> {
     let evidence_by_tool = evidence_map
         .iter()
@@ -944,10 +880,9 @@ fn build_fastq_download_backlog_rows(
             );
             let archive_status = if archive_path.is_empty() {
                 "not_applicable".to_string()
-            } else if governed_archives.contains(root, &archive_path) {
-                "present".to_string()
             } else {
-                "missing".to_string()
+                tool_entry
+                    .map_or_else(|| "missing".to_string(), |entry| entry.archive_status.clone())
             };
             let locator = tool_entry
                 .map_or_else(|| row.upstream.clone(), |entry| entry.primary_locator.clone());
@@ -1063,10 +998,8 @@ fn default_archive_path(tool_id: &str, acquisition_mode: &str) -> String {
 }
 
 fn build_fastq_paper_archive_rows(
-    root: &Path,
     environment_rows: &[FastqEnvironmentRow],
     paper_map: &[PaperMapEntry],
-    governed_archives: &GovernedArchiveTracker,
 ) -> Vec<crate::domain::FastqPaperArchiveRow> {
     let mut stage_map = BTreeMap::<String, BTreeSet<String>>::new();
     for row in environment_rows {
@@ -1086,11 +1019,7 @@ fn build_fastq_paper_archive_rows(
             open_access_status: entry.open_access_status.clone(),
             primary_locator: entry.primary_locator.clone(),
             supporting_locators: entry.supporting_locators.clone(),
-            archive_status: if governed_archives.contains(root, &entry.paper_root) {
-                "present".to_string()
-            } else {
-                "missing".to_string()
-            },
+            archive_status: entry.archive_status.clone(),
             notes: entry.notes.clone(),
         })
         .collect::<Vec<_>>();
@@ -1618,8 +1547,13 @@ fn load_fastq_tool_evidence_map(
     let rows = parse_tsv_rows(&read_utf8(&path)?);
     let mut out = Vec::new();
     for row in rows {
+        let source_id = row_value(&row, "source_id");
         out.push(ToolEvidenceMapEntry {
-            source_id: row_value(&row, "source_id"),
+            archive_status: validated_archive_status(
+                &row_value(&row, "archive_status"),
+                &format!("FASTQ tool evidence row {source_id}"),
+            )?,
+            source_id,
             tool_id: row_value(&row, "tool_id"),
             archive_path: row_value(&row, "archive_path"),
             paper_root: row_value(&row, "paper_root"),
@@ -1638,8 +1572,13 @@ fn load_fastq_paper_map(root: &Path, loaded: &LoadedSpecs) -> Result<Vec<PaperMa
     let rows = parse_tsv_rows(&read_utf8(&path)?);
     let mut out = Vec::new();
     for row in rows {
+        let paper_id = row_value(&row, "paper_id");
         out.push(PaperMapEntry {
-            paper_id: row_value(&row, "paper_id"),
+            archive_status: validated_archive_status(
+                &row_value(&row, "archive_status"),
+                &format!("FASTQ paper map row {paper_id}"),
+            )?,
+            paper_id,
             tool_id: row_value(&row, "tool_id"),
             paper_root: row_value(&row, "paper_root"),
             paper_status: row_value(&row, "paper_status"),
@@ -1650,6 +1589,21 @@ fn load_fastq_paper_map(root: &Path, loaded: &LoadedSpecs) -> Result<Vec<PaperMa
         });
     }
     Ok(out)
+}
+
+fn validated_archive_status(value: &str, context: &str) -> Result<String> {
+    match value {
+        "missing" | "present" => Ok(value.to_string()),
+        _ => Err(anyhow!("{context} must declare archive_status as missing or present")),
+    }
+}
+
+fn archive_status_label(status: &ArchiveStatus) -> String {
+    match status {
+        ArchiveStatus::Missing => "missing",
+        ArchiveStatus::Present => "present",
+    }
+    .to_string()
 }
 
 fn load_fastq_qa_coverage_blockers(

@@ -124,6 +124,13 @@ pub enum SourceAccess {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum ArchiveStatus {
+    Missing,
+    Present,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum EnforcementLevel {
     Advisory,
     Required,
@@ -142,6 +149,8 @@ pub struct SourceSpec {
     pub authority: String,
     #[serde(default)]
     pub archive_path: Option<String>,
+    #[serde(default)]
+    pub archive_status: Option<ArchiveStatus>,
     #[serde(default)]
     pub citation: Option<String>,
     #[serde(default)]
