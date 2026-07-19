@@ -115,8 +115,7 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
 
 #[test]
 fn bench_readiness_output_contract_audit_write_governed_json_file() {
-    let (sandbox, output) =
-        run_cli(&["bench", "readiness", "render-output-contract-tests"]);
+    let (sandbox, output) = run_cli(&["bench", "readiness", "render-output-contract-tests"]);
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",

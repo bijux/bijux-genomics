@@ -139,8 +139,7 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let sandbox =
-        support::RepoSandbox::new("retained-toolset-executable-").expect("repo sandbox");
+    let sandbox = support::RepoSandbox::new("retained-toolset-executable-").expect("repo sandbox");
     let repo_root = sandbox.path();
     let home = tempfile::tempdir().expect("tempdir");
     seed_tool_smoke_manifests(repo_root);

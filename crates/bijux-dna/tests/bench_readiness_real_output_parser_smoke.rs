@@ -212,8 +212,7 @@ fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parse
 
 #[test]
 fn bench_readiness_real_output_parser_smoke_writes_governed_json_file() {
-    let (sandbox, output) =
-        run_cli(&["bench", "readiness", "render-real-output-parser-smoke"]);
+    let (sandbox, output) = run_cli(&["bench", "readiness", "render-real-output-parser-smoke"]);
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",
