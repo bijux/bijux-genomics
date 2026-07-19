@@ -1,30 +1,29 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
-
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli(args: &[&str]) -> std::process::Output {
+fn run_cli(args: &[&str]) -> (support::RepoSandbox, std::process::Output) {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox = support::RepoSandbox::new("real-output-parser-smoke-").expect("repo sandbox");
     let home = tempfile::tempdir().expect("tempdir");
 
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+    let output = sandbox
+        .command(env!("CARGO_BIN_EXE_bijux-dna"))
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
         .args(args)
         .output()
-        .expect("run cli")
+        .expect("run cli");
+    (sandbox, output)
 }
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
-    let output = run_cli(args);
+    let (_sandbox, output) = run_cli(args);
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -213,7 +212,8 @@ fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parse
 
 #[test]
 fn bench_readiness_real_output_parser_smoke_writes_governed_json_file() {
-    let output = run_cli(&["bench", "readiness", "render-real-output-parser-smoke"]);
+    let (sandbox, output) =
+        run_cli(&["bench", "readiness", "render-real-output-parser-smoke"]);
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -222,11 +222,10 @@ fn bench_readiness_real_output_parser_smoke_writes_governed_json_file() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let repo_root = support::repo_root().expect("repo root");
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(rendered_path.trim(), "benchmarks/readiness/tools/real-output-parser-smoke.json");
 
-    let report_path = repo_root.join(rendered_path.trim());
+    let report_path = sandbox.path().join(rendered_path.trim());
     assert!(report_path.is_file(), "real-output parser smoke report JSON must exist");
 
     let payload: serde_json::Value =
