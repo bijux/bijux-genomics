@@ -58,11 +58,16 @@ if [[ "${#gate_targets[@]}" -eq 0 ]]; then
 fi
 
 mkdir -p "${artifact_dir}"
-rm -f "${artifact_dir}"/*.exit.status "${artifact_dir}"/*.log "${summary_file}"
+rm -f \
+  "${artifact_dir}"/*.exit.status \
+  "${artifact_dir}"/*.exit.status.pending \
+  "${artifact_dir}"/*.log \
+  "${summary_file}"
 printf 'gate\ttarget\texit_code\tlog\n' >"${summary_file}"
 
 pids=()
 
+# shellcheck disable=SC2329  # Invoked indirectly by the signal trap.
 terminate_gates() {
   for pid in "${pids[@]:-}"; do
     kill "${pid}" 2>/dev/null || true
@@ -75,32 +80,70 @@ for index in "${!gate_names[@]}"; do
   gate_target="${gate_targets[${index}]}"
   gate_log="${artifact_dir}/${gate_name}.log"
   gate_status="${artifact_dir}/${gate_name}.exit.status"
+  gate_pending_status="${gate_status}.pending"
+  printf 'started gate: %s (make %s)\nlog: %s\n' \
+    "${gate_name}" \
+    "${gate_target}" \
+    "${gate_log}"
   (
     set +e
     "${make_bin}" --no-print-directory "${gate_target}" >"${gate_log}" 2>&1
     exit_code=$?
     set -e
-    printf '%s\n' "${exit_code}" >"${gate_status}"
+    printf '%s\n' "${exit_code}" >"${gate_pending_status}"
+    mv "${gate_pending_status}" "${gate_status}"
     exit "${exit_code}"
   ) &
   pids+=("$!")
 done
 
 overall_status=0
+completed=()
+exit_codes=()
+completed_count=0
+while [[ "${completed_count}" -lt "${#gate_names[@]}" ]]; do
+  observed_completion=0
+  for index in "${!gate_names[@]}"; do
+    if [[ "${completed[${index}]:-0}" -eq 1 ]]; then
+      continue
+    fi
+    gate_status="${artifact_dir}/${gate_names[${index}]}.exit.status"
+    if [[ ! -f "${gate_status}" ]]; then
+      continue
+    fi
+    exit_code="$(<"${gate_status}")"
+    if [[ ! "${exit_code}" =~ ^[0-9]+$ ]]; then
+      echo "invalid gate status: ${gate_status}" >&2
+      exit 1
+    fi
+    completed[index]=1
+    exit_codes[index]="${exit_code}"
+    completed_count=$((completed_count + 1))
+    observed_completion=1
+    if [[ "${exit_code}" -ne 0 ]]; then
+      overall_status=1
+    fi
+    printf 'completed gate: %s (exit %s)\n' \
+      "${gate_names[${index}]}" \
+      "${exit_code}"
+  done
+  if [[ "${observed_completion}" -eq 0 ]]; then
+    sleep 0.2
+  fi
+done
+
+for pid in "${pids[@]}"; do
+  wait "${pid}" 2>/dev/null || true
+done
+
 for index in "${!gate_names[@]}"; do
   gate_name="${gate_names[${index}]}"
   gate_target="${gate_targets[${index}]}"
   gate_log="${artifact_dir}/${gate_name}.log"
-  if wait "${pids[${index}]}"; then
-    exit_code=0
-  else
-    exit_code=$?
-    overall_status=1
-  fi
   printf '%s\t%s\t%s\t%s\n' \
     "${gate_name}" \
     "${gate_target}" \
-    "${exit_code}" \
+    "${exit_codes[${index}]}" \
     "${gate_log}" >>"${summary_file}"
 done
 
@@ -109,9 +152,8 @@ column -t -s $'\t' "${summary_file}" 2>/dev/null || cat "${summary_file}"
 if [[ "${overall_status}" -ne 0 ]]; then
   for index in "${!gate_names[@]}"; do
     gate_name="${gate_names[${index}]}"
-    gate_status="${artifact_dir}/${gate_name}.exit.status"
     gate_log="${artifact_dir}/${gate_name}.log"
-    if [[ "$(cat "${gate_status}")" -ne 0 ]]; then
+    if [[ "${exit_codes[${index}]}" -ne 0 ]]; then
       printf '\nfailed gate: %s\nlog: %s\n' "${gate_name}" "${gate_log}" >&2
       tail -n 40 "${gate_log}" >&2
     fi

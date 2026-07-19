@@ -38,8 +38,8 @@ Target -> implementation mapping (no hidden magic):
 - `fmt`, `lint`, `test`, `test-slow`, `test-all`, and `coverage` -> shared `bijux-makes-rs` targets through `makes/bin/run_genomics_rust_gate.sh`
 - `audit` -> the shared Rust audit after Genomics audit-governance prerequisites
 - `test-all-frozen`, `lint-frozen`, and `audit-frozen` -> shared immutable-ref launcher
-- `github-all` -> the unique Make commands declared by `.github/workflows/ci.yml`, discovered from the pinned source and run concurrently with isolated logs; the complete `test-all` lane replaces the narrower CI `test` lane
-- `github-all-frozen` -> the shared immutable-ref launcher running `github-all`
+- `github-all` -> the unique Make commands declared by `.github/workflows/ci.yml`, discovered from the pinned source and run concurrently with isolated logs and live start/completion status; the complete `test-all` lane replaces the narrower CI `test` lane
+- `github-all-frozen` -> the shared immutable-ref launcher running `github-all` after verifying that the requested ref provides the gate
 - `doctor` -> `cargo run -q -p bijux-dna-dev -- tooling run repo-doctor --fast` + fast parity checks
 - `release-gate` -> docs + root layout + registry lock + container version lock/authority checks
 - `gate-essential` -> fast architecture + domain schema + planner determinism + runtime/evidence contract lane
@@ -54,7 +54,8 @@ Rust gate artifact layout:
 - pinned-ref gate runs materialize the exact source snapshot under `artifacts/<sha>/frozen-repo/` so reports and code stay pinned to the same commit
 - pinned-ref gate runs isolate Cargo state under `artifacts/<sha>/rust/`
 - pinned-ref gate runs record launcher state under `artifacts/<sha>/background/`, including `<gate>.console.log`, `<gate>.pid`, and `<gate>.exit.status`
-- `make github-all-frozen` records per-gate logs, exit statuses, and an aggregate summary under `artifacts/<sha>/github-all/`
+- `make github-all-frozen` rejects refs that predate the `github-all` contract before starting a background process
+- `make github-all-frozen` records live per-gate progress in the console log and records per-gate logs, exit statuses, and an aggregate summary under `artifacts/<sha>/github-all/`
 - `make test-all` and `make test-all-frozen` run the complete suite with no fast/slow filter expression and no slow timeout
 - `make lint` is the fast product-crate clippy lane and excludes `bijux-dna-dev`
 - workspace governance checks remain available through `make lint-workspace`

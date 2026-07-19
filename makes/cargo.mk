@@ -25,6 +25,7 @@ DEV_DNA_BIN ?= $(CARGO_TARGET_DIR)/debug/bijux-dna-dev
 DEV_DNA_BOOTSTRAP ?= makes/bin/dev_dna_bootstrap.sh
 GENOMICS_RUST_GATE_BIN ?= makes/bin/run_genomics_rust_gate.sh
 GITHUB_WORKFLOW_GATE_BIN ?= makes/bin/run_github_workflow_gate.sh
+GITHUB_WORKFLOW_REF_VALIDATOR ?= makes/bin/validate_github_workflow_ref.sh
 RUST_GATE_BIN ?= $(GENOMICS_RUST_GATE_BIN)
 RUST_CLIPPY_EXCLUDES ?= bijux-dna-dev
 RUST_AUDIT_PREREQUISITES += audit-policy-rs
@@ -472,6 +473,7 @@ github-all: ## Run repository-controlled GitHub workflow gates.
 	@GITHUB_WORKFLOW_ARTIFACT_DIR="$(ARTIFACT_ROOT)/github-all" "$(GITHUB_WORKFLOW_GATE_BIN)"
 
 github-all-frozen: ## Launch pinned GitHub workflow gates in the background.
+	@"$(GITHUB_WORKFLOW_REF_VALIDATOR)"
 	@PINNED_GATE_TARGET=github-all PINNED_ALLOWED_TARGETS="github-all" "$(PINNED_GATE_BIN)"
 
 _ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
