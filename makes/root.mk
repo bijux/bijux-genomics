@@ -1,5 +1,3 @@
-SHELL := /bin/sh
-
 ROOT_MK_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
 # Automatic parallel job detection

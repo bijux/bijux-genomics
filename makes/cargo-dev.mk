@@ -1,4 +1,3 @@
-SHELL := /bin/sh
 ROOT_MK_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 include $(ROOT_MK_DIR)/_macro.mk
 
