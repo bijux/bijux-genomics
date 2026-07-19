@@ -50,9 +50,9 @@ Target -> implementation mapping (no hidden magic):
 
 Rust gate artifact layout:
 - fast Rust gates write under `artifacts/rust/`
-- `make test-all-frozen`, `make lint-frozen`, `make audit-frozen`, and `make github-all-frozen` start the requested gate from `PINNED_REF` (default `HEAD`) and write the run under `artifacts/<sha>/`
-- pinned-ref gate runs materialize the exact source snapshot under `artifacts/<sha>/frozen-repo/` so reports and code stay pinned to the same commit
-- pinned-ref gate runs isolate Cargo state under `artifacts/<sha>/rust/`
+- `make test-all-frozen`, `make lint-frozen`, `make audit-frozen`, and `make github-all-frozen` start the requested gate from `PINNED_REF` (default `HEAD`) and write gate-owned state under `artifacts/<sha>/gates/<gate>/`
+- pinned-ref gate runs materialize the exact source snapshot under `artifacts/<sha>/gates/<gate>/frozen-repo/` so reports and code stay pinned to the same commit
+- pinned-ref gate runs isolate Cargo and generated state under `artifacts/<sha>/gates/<gate>/artifacts/`, allowing different gates for the same commit to run concurrently
 - pinned-ref gate runs record launcher state under `artifacts/<sha>/background/`, including `<gate>.console.log`, `<gate>.pid`, and `<gate>.exit.status`
 - `make github-all-frozen` rejects refs that predate the `github-all` contract before starting a background process
 - `make github-all-frozen` records live per-gate progress in the console log and records per-gate logs, exit statuses, and an aggregate summary under `artifacts/<sha>/github-all/`
