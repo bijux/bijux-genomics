@@ -4,8 +4,9 @@ use std::fs;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, Result};
 use serde_json::{Map, Value};
@@ -23,7 +24,9 @@ const TEST_LOCK_POLL_INTERVAL: Duration = Duration::from_millis(50);
 #[allow(dead_code)]
 const TEST_LOCK_OWNER_FILE: &str = "owner.pid";
 #[allow(dead_code)]
-const TEST_LOCK_MISSING_OWNER_GRACE: Duration = Duration::from_secs(1);
+const TEST_LOCK_MISSING_OWNER_GRACE: Duration = Duration::from_secs(30);
+#[allow(dead_code)]
+static LOCK_OWNER_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 pub struct EnvGuard {
     cwd: PathBuf,
@@ -163,6 +166,7 @@ pub fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 #[allow(dead_code)]
 pub struct RepoProcessLock {
     path: PathBuf,
+    owner: String,
 }
 
 #[allow(dead_code)]
@@ -172,14 +176,21 @@ impl RepoProcessLock {
         let lock_root = repo_root.join(TEST_LOCK_ROOT);
         fs::create_dir_all(&lock_root)?;
         let path = lock_root.join(name);
+        let owner = lock_owner_record();
         let deadline = Instant::now() + TEST_LOCK_WAIT_TIMEOUT;
 
         loop {
             match fs::create_dir(&path) {
-                Ok(()) => {
-                    write_lock_owner(&path)?;
-                    return Ok(Self { path });
-                }
+                Ok(()) => match write_lock_owner(&path, &owner) {
+                    Ok(()) => return Ok(Self { path, owner }),
+                    Err(error) if error.kind() == ErrorKind::NotFound => continue,
+                    Err(error) => {
+                        return Err(anyhow!(
+                            "write repo test lock owner `{}`: {error}",
+                            path.display()
+                        ));
+                    }
+                },
                 Err(error) if error.kind() == ErrorKind::AlreadyExists => {
                     if stale_repo_test_lock(&path)? {
                         match fs::remove_dir_all(&path) {
@@ -213,19 +224,28 @@ impl RepoProcessLock {
 
 impl Drop for RepoProcessLock {
     fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.path);
+        let owner_path = self.path.join(TEST_LOCK_OWNER_FILE);
+        if fs::read_to_string(owner_path).is_ok_and(|owner| owner == self.owner) {
+            let _ = fs::remove_dir_all(&self.path);
+        }
     }
 }
 
-fn write_lock_owner(path: &Path) -> Result<()> {
-    fs::write(path.join(TEST_LOCK_OWNER_FILE), std::process::id().to_string())
-        .map_err(|error| anyhow!("write repo test lock owner `{}`: {error}", path.display()))
+fn lock_owner_record() -> String {
+    let created_at =
+        SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_nanos();
+    let sequence = LOCK_OWNER_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+    format!("{}\n{created_at}:{sequence}", std::process::id())
+}
+
+fn write_lock_owner(path: &Path, owner: &str) -> std::io::Result<()> {
+    fs::write(path.join(TEST_LOCK_OWNER_FILE), owner)
 }
 
 fn stale_repo_test_lock(path: &Path) -> Result<bool> {
     let owner_path = path.join(TEST_LOCK_OWNER_FILE);
     match fs::read_to_string(&owner_path) {
-        Ok(raw_pid) => match raw_pid.trim().parse::<u32>() {
+        Ok(owner) => match owner.lines().next().unwrap_or_default().parse::<u32>() {
             Ok(pid) => Ok(!process_is_alive(pid)),
             Err(_) => Ok(lock_is_older_than(path, TEST_LOCK_MISSING_OWNER_GRACE)?),
         },
