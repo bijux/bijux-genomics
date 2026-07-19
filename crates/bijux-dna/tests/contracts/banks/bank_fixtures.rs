@@ -93,6 +93,7 @@ impl RepoSandbox {
         self.root.path()
     }
 
+    #[must_use]
     pub fn bijux_dna_command(&self) -> Command {
         let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
         command
