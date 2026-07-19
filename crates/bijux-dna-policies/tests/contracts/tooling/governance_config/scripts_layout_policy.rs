@@ -7,26 +7,28 @@ fn workspace_root() -> PathBuf {
     bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
-fn contains_legacy_scripts_reference(raw: &str) -> bool {
-    let legacy = ["scr", "ipts/"].concat();
-    raw.match_indices(&legacy).any(|(index, _)| {
+fn contains_root_automation_reference(raw: &str) -> bool {
+    let automation_segment = ["scr", "ipts/"].concat();
+    raw.match_indices(&automation_segment).any(|(index, _)| {
         let prefix = &raw[..index];
-        !prefix.ends_with(".github/")
+        ![".github/", "bijux-makes/", "bijux-makes-rs/"]
+            .iter()
+            .any(|governed_parent| prefix.ends_with(governed_parent))
     })
 }
 
 #[test]
-fn policy__contracts__scripts_layout_policy__legacy_scripts_directory_is_removed() {
+fn policy__contracts__scripts_layout_policy__root_automation_directory_is_absent() {
     let root = workspace_root();
-    let legacy_dir = ["scr", "ipts"].concat();
+    let root_automation_dir = ["scr", "ipts"].concat();
     bijux_dna_policies::policy_assert!(
-        !root.join(&legacy_dir).exists(),
-        "legacy automation directory must be fully migrated into bijux-dna-dev and removed"
+        !root.join(&root_automation_dir).exists(),
+        "root automation must be owned by bijux-dna-dev or a governed shared library"
     );
 }
 
 #[test]
-fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scripts() {
+fn policy__contracts__scripts_layout_policy__repo_does_not_reference_root_automation() {
     let root = workspace_root();
     let allowlist = [
         ".github/workflows/automerge-pr.yml",
@@ -51,7 +53,7 @@ fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scri
             let raw = std::fs::read_to_string(&scope).unwrap_or_default();
             let rel =
                 scope.strip_prefix(&root).unwrap_or(&scope).to_string_lossy().replace('\\', "/");
-            if contains_legacy_scripts_reference(&raw)
+            if contains_root_automation_reference(&raw)
                 && !allowlist.iter().any(|allowed| rel == *allowed)
             {
                 offenders.push(scope.display().to_string());
@@ -80,7 +82,7 @@ fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scri
                 continue;
             }
             let raw = std::fs::read_to_string(entry.path()).unwrap_or_default();
-            if contains_legacy_scripts_reference(&raw) {
+            if contains_root_automation_reference(&raw) {
                 offenders.push(entry.path().display().to_string());
             }
         }
@@ -88,17 +90,20 @@ fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scri
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "legacy automation references remain in repo content:\n{}",
+        "root automation references remain in repo content:\n{}",
         offenders.join("\n")
     );
 }
 
 #[test]
-fn policy__contracts__scripts_layout_policy__github_scripts_references_are_not_treated_as_legacy() {
-    assert!(!contains_legacy_scripts_reference(
+fn policy__contracts__scripts_layout_policy__governed_script_libraries_are_not_root_automation() {
+    assert!(!contains_root_automation_reference(
         "python3 .github/scripts/check_workflow_prerequisites.py"
     ));
-    assert!(contains_legacy_scripts_reference("python3 scripts/check_workflow_prerequisites.py"));
+    assert!(!contains_root_automation_reference(
+        "$(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/scripts/nextest_expr.sh"
+    ));
+    assert!(contains_root_automation_reference("python3 scripts/check_workflow_prerequisites.py"));
 }
 
 #[test]
