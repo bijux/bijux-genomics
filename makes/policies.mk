@@ -1,5 +1,3 @@
-SHELL := /bin/sh
-
 # Guardrail culprits helpers (read-only diagnostics).
 # Expected empty output when constraints are satisfied.
 

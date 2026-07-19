@@ -449,6 +449,7 @@ mod tests {
         DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH, FASTQ_REMOVED_RESULT_ID,
         VCF_REMOVED_RESULT_ID,
     };
+    use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -478,6 +479,9 @@ mod tests {
     #[test]
     fn all_domain_missing_result_audit_tracks_removed_rows_per_domain() {
         let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
+        let _repo_lock =
+            RepoProcessLock::acquire(&root, "benchmark-readiness-mutators").expect("repo lock");
         let _cwd_guard = CurrentDirGuard::change_to(&root);
         let report = render_all_domain_missing_result_audit(
             &root,

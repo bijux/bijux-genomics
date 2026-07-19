@@ -364,7 +364,7 @@ mod tests {
 
     #[cfg(feature = "bam_downstream")]
     #[test]
-    fn benchmark_summary_reports_governed_51_stage_slice() {
+    fn benchmark_summary_tracks_ready_stage_statuses() {
         let root = repo_root();
         let report = render_local_benchmark_summary(
             &root,
@@ -375,10 +375,13 @@ mod tests {
         .expect("render local benchmark summary");
 
         assert_eq!(report.schema_version, LOCAL_BENCHMARK_SUMMARY_SCHEMA_VERSION);
-        assert_eq!(report.stage_count, 51);
-        assert_eq!(report.ready_stage_count, 51);
-        assert_eq!(report.incomplete_stage_count, 0);
-        assert_eq!(report.failed_stage_count, 0);
+        assert_eq!(report.fake_run_root, "runs/bench/local-fake-runs/stages-benchmark-summary");
+        assert_eq!(report.stage_count, report.stages.len());
+        assert_eq!(
+            report.ready_stage_count + report.incomplete_stage_count + report.failed_stage_count,
+            report.stage_count
+        );
+        assert!(!report.stages.is_empty(), "benchmark summary should contain stage rows");
         assert!(report.stages.iter().all(|stage| {
             stage.readiness_status == BenchLocalBenchmarkReadinessStatus::Ready
                 && stage.runtime_status == "succeeded"

@@ -167,7 +167,6 @@ fn process_is_alive(pid: u32) -> bool {
     };
     match nix::sys::signal::kill(nix::unistd::Pid::from_raw(pid), None) {
         Ok(()) | Err(nix::errno::Errno::EPERM) => true,
-        Err(nix::errno::Errno::ESRCH) => false,
         Err(_) => false,
     }
 }
@@ -277,7 +276,17 @@ fn assert_fastq_slice_rows(compiled: &CompiledScience) {
         .index
         .fastq_evidence_summary
         .default_risk_counts
-        .contains_key("closure_prerequisite_blocked"));
+        .contains_key("archive_evidence_blocked"));
+    assert!(compiled
+        .index
+        .fastq_evidence_summary
+        .prerequisite_counts
+        .contains_key("missing_upstream_archive"));
+    assert!(compiled
+        .index
+        .fastq_evidence_summary
+        .prerequisite_counts
+        .contains_key("missing_paper_archive"));
 }
 
 fn assert_committed_outputs_match(root: &Path, compiled: &CompiledScience) -> Result<()> {

@@ -131,8 +131,12 @@ mod tests {
     #[test]
     fn rendered_command_argv_reports_governed_benchmark_ready_row_slice() {
         use super::{render_command_argv, DEFAULT_RENDERED_COMMAND_ARGV_PATH};
+        use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
 
         let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
+        let _repo_lock =
+            RepoProcessLock::acquire(&root, "benchmark-readiness-mutators").expect("repo lock");
         let _cwd = CurrentDirGuard::enter(&root);
         let report = render_command_argv(&root, PathBuf::from(DEFAULT_RENDERED_COMMAND_ARGV_PATH))
             .expect("render command argv");

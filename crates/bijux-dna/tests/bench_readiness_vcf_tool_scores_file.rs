@@ -2,23 +2,19 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn render_path(label: &str) -> PathBuf {
-    tempfile::Builder::new()
-        .prefix(label)
-        .tempdir()
-        .expect("temporary score directory")
-        .keep()
-        .join("VCF_TOOL_SCORES.tsv")
+fn render_path(sandbox: &support::RepoSandbox, contract: &str) -> PathBuf {
+    let output_dir = sandbox.path().join("artifacts/tests/vcf-tool-scores").join(contract);
+    fs::create_dir_all(&output_dir).expect("create score output directory");
+    output_dir.join("VCF_TOOL_SCORES.tsv")
 }
 
-fn run_cli(repo_root: &Path, home: &Path, args: &[&str]) -> std::process::Output {
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(repo_root)
+fn run_cli(sandbox: &support::RepoSandbox, home: &Path, args: &[&str]) -> std::process::Output {
+    sandbox
+        .bijux_dna_command()
         .env("HOME", home)
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
@@ -30,14 +26,11 @@ fn run_cli(repo_root: &Path, home: &Path, args: &[&str]) -> std::process::Output
 
 #[test]
 fn bench_readiness_vcf_tool_scores_writes_governed_tsv_columns() {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox = support::RepoSandbox::new("vcf-tool-score-columns-").expect("repo sandbox");
     let home = tempfile::tempdir().expect("tempdir");
+    sandbox.materialize_vcf_score_evidence(home.path()).expect("materialize VCF score evidence");
 
-    let output =
-        run_cli(&repo_root, home.path(), &["bench", "readiness", "render-vcf-tool-scores"]);
+    let output = run_cli(&sandbox, home.path(), &["bench", "readiness", "render-vcf-tool-scores"]);
 
     assert!(
         output.status.success(),
@@ -50,7 +43,8 @@ fn bench_readiness_vcf_tool_scores_writes_governed_tsv_columns() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(rendered_path.trim(), "runs/bench/micro/vcf/VCF_TOOL_SCORES.tsv");
 
-    let tsv = fs::read_to_string(repo_root.join(rendered_path.trim())).expect("read VCF score TSV");
+    let tsv =
+        fs::read_to_string(sandbox.path().join(rendered_path.trim())).expect("read VCF score TSV");
     let mut lines = tsv.lines();
     assert_eq!(
         lines.next(),
@@ -95,16 +89,15 @@ fn bench_readiness_vcf_tool_scores_writes_governed_tsv_columns() {
 
 #[test]
 fn bench_readiness_vcf_tool_scores_render_and_validate_custom_file() {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox = support::RepoSandbox::new("vcf-tool-score-validation-").expect("repo sandbox");
     let home = tempfile::tempdir().expect("tempdir");
-    let output_path = render_path("vcf-tool-scores-file-");
+    sandbox.materialize_vcf_score_evidence(home.path()).expect("materialize VCF score evidence");
+    let output_path = render_path(&sandbox, "render-validation");
     let output_arg = output_path.to_string_lossy().into_owned();
+    let reported_path = support::path_relative_to_repo(sandbox.path(), &output_path);
 
     let render_output = run_cli(
-        &repo_root,
+        &sandbox,
         home.path(),
         &["bench", "readiness", "render-vcf-tool-scores", "--output", &output_arg],
     );
@@ -115,10 +108,10 @@ fn bench_readiness_vcf_tool_scores_render_and_validate_custom_file() {
         String::from_utf8_lossy(&render_output.stdout),
         String::from_utf8_lossy(&render_output.stderr)
     );
-    assert_eq!(String::from_utf8(render_output.stdout).expect("stdout utf8").trim(), output_arg);
+    assert_eq!(String::from_utf8(render_output.stdout).expect("stdout utf8").trim(), reported_path);
 
     let validate_output = run_cli(
-        &repo_root,
+        &sandbox,
         home.path(),
         &["bench", "readiness", "validate-vcf-tool-scores", "--input", &output_arg],
     );
@@ -129,21 +122,23 @@ fn bench_readiness_vcf_tool_scores_render_and_validate_custom_file() {
         String::from_utf8_lossy(&validate_output.stdout),
         String::from_utf8_lossy(&validate_output.stderr)
     );
-    assert_eq!(String::from_utf8(validate_output.stdout).expect("stdout utf8").trim(), output_arg);
+    assert_eq!(
+        String::from_utf8(validate_output.stdout).expect("stdout utf8").trim(),
+        reported_path
+    );
 }
 
 #[test]
 fn bench_readiness_vcf_tool_scores_validation_rejects_stale_file() {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox =
+        support::RepoSandbox::new("vcf-tool-score-stale-validation-").expect("repo sandbox");
     let home = tempfile::tempdir().expect("tempdir");
-    let output_path = render_path("vcf-tool-scores-stale-");
+    sandbox.materialize_vcf_score_evidence(home.path()).expect("materialize VCF score evidence");
+    let output_path = render_path(&sandbox, "stale-validation");
     let output_arg = output_path.to_string_lossy().into_owned();
 
     let render_output = run_cli(
-        &repo_root,
+        &sandbox,
         home.path(),
         &["bench", "readiness", "render-vcf-tool-scores", "--output", &output_arg],
     );
@@ -160,7 +155,7 @@ fn bench_readiness_vcf_tool_scores_validation_rejects_stale_file() {
     fs::write(&output_path, stale).expect("write stale TSV");
 
     let validate_output = run_cli(
-        &repo_root,
+        &sandbox,
         home.path(),
         &["bench", "readiness", "validate-vcf-tool-scores", "--input", &output_arg],
     );

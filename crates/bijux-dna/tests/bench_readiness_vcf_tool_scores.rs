@@ -1,20 +1,16 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
-
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli(args: &[&str]) -> std::process::Output {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
-    let home = tempfile::tempdir().expect("tempdir");
-
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
-        .env("HOME", home.path())
+fn run_cli(
+    sandbox: &support::RepoSandbox,
+    home: &std::path::Path,
+    args: &[&str],
+) -> std::process::Output {
+    sandbox
+        .bijux_dna_command()
+        .env("HOME", home)
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
@@ -24,7 +20,11 @@ fn run_cli(args: &[&str]) -> std::process::Output {
 }
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
-    let output = run_cli(args);
+    let sandbox = support::RepoSandbox::new("vcf-tool-score-readiness-").expect("repo sandbox");
+    let home = tempfile::tempdir().expect("tempdir");
+    sandbox.materialize_vcf_score_evidence(home.path()).expect("materialize VCF score evidence");
+
+    let output = run_cli(&sandbox, home.path(), args);
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",

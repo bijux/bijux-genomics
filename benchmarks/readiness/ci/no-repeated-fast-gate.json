@@ -4,12 +4,6 @@
   "audit_kind": "no_repeated_target",
   "ok": true,
   "target": "make ci-fast",
-  "usage_count": 1,
-  "usages": [
-    {
-      "job_id": "fast-tier",
-      "step_name": "Minimal CI gate",
-      "command": "make ci-fast"
-    }
-  ]
+  "usage_count": 0,
+  "usages": []
 }

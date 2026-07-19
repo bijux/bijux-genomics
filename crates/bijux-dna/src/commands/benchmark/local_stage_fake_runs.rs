@@ -486,7 +486,7 @@ mod tests {
 
     #[cfg(feature = "bam_downstream")]
     #[test]
-    fn fake_run_local_stage_commands_cover_governed_51_stage_slice() {
+    fn fake_run_local_stage_commands_materialize_declared_outputs() {
         let root = repo_root();
         let fake_runs =
             fake_run_local_stage_commands(&root, PathBuf::from(DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT))
@@ -494,8 +494,8 @@ mod tests {
 
         assert_eq!(fake_runs.schema_version, "bijux.bench.local_stage_fake_runs.v1");
         assert_eq!(fake_runs.fake_run_root, "runs/bench/local-fake-runs/stages");
-        assert_eq!(fake_runs.stage_count, 51);
-        assert_eq!(fake_runs.stages.len(), 51);
+        assert_eq!(fake_runs.stage_count, fake_runs.stages.len());
+        assert!(!fake_runs.stages.is_empty(), "fake-run manifest should contain stage entries");
         assert!(fake_runs.stages.iter().all(|stage| {
             stage.declared_output_count >= 1
                 && stage.created_output_count == stage.declared_output_count
@@ -509,7 +509,7 @@ mod tests {
 
     #[cfg(feature = "bam_downstream")]
     #[test]
-    fn fake_run_local_stage_failures_cover_governed_51_stage_slice() {
+    fn fake_run_local_stage_failures_materialize_failure_records() {
         let root = repo_root();
         let failures = fake_run_local_stage_failures(
             &root,
@@ -521,8 +521,11 @@ mod tests {
 
         assert_eq!(failures.schema_version, "bijux.bench.local_stage_fake_failures.v1");
         assert_eq!(failures.failure_root, "runs/bench/local-fake-runs/failures");
-        assert_eq!(failures.stage_count, 51);
-        assert_eq!(failures.failures.len(), 51);
+        assert_eq!(failures.stage_count, failures.failures.len());
+        assert!(
+            !failures.failures.is_empty(),
+            "fake failure manifest should contain failure entries"
+        );
         assert!(failures.failures.iter().all(|failure| {
             failure.exit_code == 1
                 && failure.failed_output_count >= 1

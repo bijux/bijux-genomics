@@ -2713,7 +2713,7 @@
       "result_status": "succeeded",
       "domain": "bam",
       "stage_id": "bam.genotyping",
-      "tool_id": "angsd",
+      "tool_id": "bijux-dna",
       "pipeline_id": "bam-genotyping-to-vcf-downstream",
       "node_id": "bam.genotyping",
       "result_id": null,
@@ -2725,7 +2725,7 @@
       "manifest_path": "runs/bench/local-fake-runs/pipelines/essential/bam-genotyping-to-vcf-downstream/bam.genotyping/stage-result.json",
       "declared_output_count": 6,
       "normalized_metric_count": 0,
-      "detail": "essential pipeline fake-run node with command source `bam_governed_stage_command`"
+      "detail": "essential pipeline fake-run node with command source `local_stage_materialization`"
     },
     {
       "record_id": "expected:bam:corpus-01-adna-bam-mini:bam.haplogroups:sample-set:yleaf",

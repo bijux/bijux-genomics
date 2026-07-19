@@ -1079,14 +1079,29 @@ fn bench_local_materialize_stage_bam_bias_mitigation_json_writes_governed_smoke_
 
 #[test]
 fn bench_local_materialize_stage_bam_recalibration_json_writes_governed_smoke_bundle() {
-    let (repo_root, payload) = run_cli_json_with_repo_root(&[
-        "bench",
-        "local",
-        "materialize-stage",
-        "--stage-id",
-        "bam.recalibration",
-        "--json",
-    ]);
+    let sandbox =
+        support::RepoSandbox::new("bam-recalibration-materialization-").expect("repo sandbox");
+    let home = tempfile::tempdir().expect("tempdir");
+    let output = sandbox
+        .bijux_dna_command()
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(["bench", "local", "materialize-stage", "--stage-id", "bam.recalibration", "--json"])
+        .output()
+        .expect("run cli");
+
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let payload: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("parse stdout as json");
+    let repo_root = sandbox.path();
 
     assert_eq!(
         payload.get("stage_id").and_then(serde_json::Value::as_str),

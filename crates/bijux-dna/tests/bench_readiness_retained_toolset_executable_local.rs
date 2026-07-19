@@ -1,7 +1,5 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
-
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
@@ -141,12 +139,13 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox = support::RepoSandbox::new("retained-toolset-executable-").expect("repo sandbox");
+    let repo_root = sandbox.path();
     let home = tempfile::tempdir().expect("tempdir");
-    seed_tool_smoke_manifests(&repo_root);
+    seed_tool_smoke_manifests(repo_root);
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+    let output = sandbox
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
@@ -209,12 +208,14 @@ fn bench_readiness_retained_toolset_executable_local_writes_gate_file() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox =
+        support::RepoSandbox::new("retained-toolset-executable-file-").expect("repo sandbox");
+    let repo_root = sandbox.path();
     let home = tempfile::tempdir().expect("tempdir");
-    seed_tool_smoke_manifests(&repo_root);
+    seed_tool_smoke_manifests(repo_root);
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+    let output = sandbox
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")

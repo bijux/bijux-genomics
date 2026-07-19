@@ -754,6 +754,7 @@ mod tests {
         render_fastq_trim_stages_ready, DEFAULT_FASTQ_TRIM_STAGES_READY_PATH,
         FASTQ_TRIM_STAGES_READY_SCHEMA_VERSION,
     };
+    use crate::commands::benchmark::repo_locking::RepoProcessLock;
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -765,6 +766,8 @@ mod tests {
     #[test]
     fn render_fastq_trim_stages_ready_reports_complete_trim_bindings() {
         let root = repo_root();
+        let _repo_lock =
+            RepoProcessLock::acquire(&root, "benchmark-readiness-mutators").expect("repo lock");
         let report = render_fastq_trim_stages_ready(
             &root,
             PathBuf::from(DEFAULT_FASTQ_TRIM_STAGES_READY_PATH),

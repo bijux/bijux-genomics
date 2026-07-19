@@ -214,6 +214,7 @@ fn dna_tree_matches_architecture_contract() {
         "stage_catalog.rs",
         "suite/",
         "taxonomy_database.rs",
+        "repo_locking.rs",
         "vcf_benchmark_bindings.rs",
         "vcf_stage_families.rs",
         "workspace/",

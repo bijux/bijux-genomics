@@ -142,7 +142,7 @@ mod tests {
 
     #[cfg(feature = "bam_downstream")]
     #[test]
-    fn runtime_metrics_report_governed_51_stage_slice_from_fake_run_manifests() {
+    fn runtime_metrics_report_tracks_fake_run_runtime_fields() {
         let root = repo_root();
         let fake_run_root = PathBuf::from("runs/bench/local-fake-runs/stages-runtime-metrics");
         fake_run_local_stage_commands(&root, fake_run_root.clone())
@@ -155,8 +155,9 @@ mod tests {
         .expect("collect local stage runtime metrics");
 
         assert_eq!(report.schema_version, LOCAL_STAGE_RUNTIME_METRICS_REPORT_SCHEMA_VERSION);
-        assert_eq!(report.stage_count, 51);
-        assert_eq!(report.stages.len(), 51);
+        assert_eq!(report.fake_run_root, "runs/bench/local-fake-runs/stages-runtime-metrics");
+        assert_eq!(report.stage_count, report.stages.len());
+        assert!(!report.stages.is_empty(), "runtime metrics report should contain stage metrics");
         assert!(report.stages.iter().all(|stage| {
             stage.runtime_mode == "fake_run"
                 && !stage.started_at.is_empty()

@@ -3,6 +3,7 @@ use std::ffi::OsString;
 use std::fs;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
@@ -55,8 +56,108 @@ pub fn crate_root(name: &str) -> Result<PathBuf> {
     test_support::crate_root(name)
 }
 
+#[allow(dead_code)]
 pub fn repo_root() -> Result<PathBuf> {
     test_support::repo_root()
+}
+
+#[allow(dead_code)]
+pub struct RepoSandbox {
+    root: tempfile::TempDir,
+}
+
+#[allow(dead_code)]
+impl RepoSandbox {
+    pub fn new(label: &str) -> Result<Self> {
+        let source_root = test_support::repo_root()?;
+        let sandbox_parent = source_root.join("artifacts/readiness-sandboxes");
+        fs::create_dir_all(&sandbox_parent)?;
+        let root = tempfile::Builder::new().prefix(label).tempdir_in(sandbox_parent)?;
+        let checkout = Command::new("git")
+            .current_dir(&source_root)
+            .args(["checkout-index", "--all", "--force"])
+            .arg(format!("--prefix={}/", root.path().display()))
+            .output()
+            .map_err(|error| anyhow!("materialize repository sandbox: {error}"))?;
+        if !checkout.status.success() {
+            return Err(anyhow!(
+                "materialize repository sandbox: {}",
+                String::from_utf8_lossy(&checkout.stderr).trim()
+            ));
+        }
+        Ok(Self { root })
+    }
+
+    #[must_use]
+    pub fn path(&self) -> &Path {
+        self.root.path()
+    }
+
+    #[must_use]
+    pub fn bijux_dna_command(&self) -> Command {
+        let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
+        command
+            .current_dir(self.path())
+            .env("BIJUX_REPO_ROOT", self.path())
+            .env("BIJUX_BENCHMARK_ROOT", self.path().join("benchmarks"));
+        command
+    }
+
+    pub fn materialize_vcf_score_evidence(&self, home: &Path) -> Result<()> {
+        const SMOKE_COMMANDS: &[&[&str]] = &[
+            &["bench", "local", "run-vcf-admixture-smoke"],
+            &["bench", "local", "run-vcf-call-smoke"],
+            &["bench", "local", "run-vcf-call-diploid-smoke"],
+            &["bench", "local", "run-vcf-call-gl-smoke"],
+            &["bench", "local", "run-vcf-call-pseudohaploid-smoke"],
+            &["bench", "local", "run-vcf-damage-filter-smoke"],
+            &["bench", "local", "run-vcf-filter-smoke"],
+            &["bench", "local", "run-vcf-gl-propagation-smoke"],
+            &["bench", "local", "run-vcf-impute-smoke"],
+            &["bench", "local", "run-vcf-imputation-metrics-smoke"],
+            &["bench", "local", "run-vcf-pca-smoke"],
+            &["bench", "local", "run-vcf-pca-smoke", "--tool-id", "eigensoft"],
+            &["bench", "local", "run-vcf-phasing-smoke"],
+            &["bench", "local", "run-vcf-population-structure-smoke"],
+            &["bench", "local", "run-vcf-postprocess-smoke"],
+            &["bench", "local", "run-vcf-prepare-reference-panel-smoke"],
+            &["bench", "local", "run-vcf-qc-smoke", "--tool-id", "bcftools"],
+            &["bench", "local", "run-vcf-qc-smoke", "--tool-id", "plink"],
+            &["bench", "local", "run-vcf-qc-smoke"],
+            &["bench", "local", "run-vcf-roh-smoke"],
+            &["bench", "local", "run-vcf-stats-smoke"],
+        ];
+
+        for args in SMOKE_COMMANDS {
+            let output = self
+                .bijux_dna_command()
+                .env("HOME", home)
+                .env("BIJUX_SKIP_QA", "1")
+                .env("BIJUX_ALLOW_SILVER", "1")
+                .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+                .args(*args)
+                .output()
+                .map_err(|error| anyhow!("run VCF score evidence command: {error}"))?;
+            if !output.status.success() {
+                return Err(anyhow!(
+                    "VCF score evidence command failed: {}\ncommand: {}\nstdout:\n{}\nstderr:\n{}",
+                    output.status,
+                    args.join(" "),
+                    String::from_utf8_lossy(&output.stdout),
+                    String::from_utf8_lossy(&output.stderr)
+                ));
+            }
+        }
+        Ok(())
+    }
+}
+
+#[allow(dead_code)]
+#[must_use]
+pub fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root)
+        .map_or_else(|_| path.display().to_string(), |relative| relative.display().to_string())
+        .replace('\\', "/")
 }
 
 #[allow(dead_code)]
@@ -124,12 +225,10 @@ fn write_lock_owner(path: &Path) -> Result<()> {
 fn stale_repo_test_lock(path: &Path) -> Result<bool> {
     let owner_path = path.join(TEST_LOCK_OWNER_FILE);
     match fs::read_to_string(&owner_path) {
-        Ok(raw_pid) => {
-            let pid = raw_pid.trim().parse::<u32>().map_err(|error| {
-                anyhow!("parse repo test lock owner `{}`: {error}", owner_path.display())
-            })?;
-            Ok(!process_is_alive(pid))
-        }
+        Ok(raw_pid) => match raw_pid.trim().parse::<u32>() {
+            Ok(pid) => Ok(!process_is_alive(pid)),
+            Err(_) => Ok(lock_is_older_than(path, TEST_LOCK_MISSING_OWNER_GRACE)?),
+        },
         Err(error) if error.kind() == ErrorKind::NotFound => {
             Ok(lock_is_older_than(path, TEST_LOCK_MISSING_OWNER_GRACE)?)
         }
@@ -160,7 +259,6 @@ fn process_is_alive(pid: u32) -> bool {
     };
     match nix::sys::signal::kill(nix::unistd::Pid::from_raw(pid), None) {
         Ok(()) | Err(nix::errno::Errno::EPERM) => true,
-        Err(nix::errno::Errno::ESRCH) => false,
         Err(_) => false,
     }
 }

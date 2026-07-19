@@ -43,6 +43,7 @@ fn ci_audit_no_repeated_fast_gate_accepts_make_selector_and_writes_report() {
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(payload.get("target").and_then(serde_json::Value::as_str), Some("make ci-fast"));
-    assert_eq!(payload.get("usage_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(payload.get("usage_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("usages").and_then(serde_json::Value::as_array).map(Vec::len), Some(0));
     assert!(out.is_file(), "audit must write the governed report file");
 }

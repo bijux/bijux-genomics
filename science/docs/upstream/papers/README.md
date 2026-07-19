@@ -17,7 +17,8 @@ this paper packet surface specializes.
 - [TODO_DOWNLOAD.md](TODO_DOWNLOAD.md)
   operator-facing paper archive worklist for local downloads and homepage snapshots
 - [TOOL_PAPER_MAP.tsv](TOOL_PAPER_MAP.tsv)
-  tracked map from tools to durable paper roots, access status, and paper locators
+  tracked map from tools to durable paper roots, access status, paper locators,
+  and an explicit `archive_status` used by deterministic generated outputs
 
 ## Local Payloads
 
@@ -28,4 +29,6 @@ under the matching directory, for example:
 - [<paper-id>/notes/](<paper-id>/notes/)
 
 Use the paper root even when the paper is not yet downloaded or requires
-licensed access. The root itself is part of the contract.
+licensed access. The root itself is part of the contract. Set `archive_status`
+to `present` only after the local archive operator verifies the payload; use
+`missing` while acquisition remains outstanding.

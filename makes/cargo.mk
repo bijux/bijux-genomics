@@ -3,13 +3,14 @@ NEXTEST_PROFILE_FAST ?= fast-unit
 NEXTEST_PROFILE_SLOW ?= slow-integration
 NEXTEST_PROFILE_CERT ?= certification
 NEXTEST_PROFILE_ALL ?= full
-NEXTEST_THREADS_ALL ?= $(if $(CARGO_BUILD_JOBS),$(CARGO_BUILD_JOBS),8)
 ARTIFACTS_DIR ?= $(ARTIFACT_ROOT)/make/$(or $(MAKECMDGOALS),manual)
 NEXTEST_TOML := configs/rust/nextest.toml
+NEXTEST_CONFIG_FILE ?= $(CURDIR)/$(NEXTEST_TOML)
 NEXTEST_CONFIG ?= --config-file $(NEXTEST_TOML)
-NEXTEST_EXPR_BIN ?= makes/bin/nextest_expr.sh
+NEXTEST_EXPR_BIN ?= $(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/scripts/nextest_expr.sh
 NEXTEST_FAST_EXPR ?= $(shell "$(NEXTEST_EXPR_BIN)" fast)
 NEXTEST_SLOW_EXPR ?= $(shell "$(NEXTEST_EXPR_BIN)" slow)
+NEXTEST_SLOW_NAME_EXPR ?= test(/::slow__/)
 NEXTEST_NO_TESTS ?= pass
 RUN_IGNORED = --run-ignored all
 TEST_FEATURES = --all-features
@@ -22,27 +23,10 @@ COVERAGE_THRESHOLDS := configs/coverage/thresholds.toml
 COVERAGE_OUT = coverage.json
 DEV_DNA_BIN ?= $(CARGO_TARGET_DIR)/debug/bijux-dna-dev
 DEV_DNA_BOOTSTRAP ?= makes/bin/dev_dna_bootstrap.sh
-RUST_GATE_BIN ?= makes/bin/rust_gate.sh
-PINNED_REF_GATE_BIN ?= makes/bin/run_pinned_ref_gate.sh
-RS_ARTIFACT_ROOT ?= $(ARTIFACT_ROOT)/rust
-RS_RUN_ID ?= local
-RS_TARGET_DIR ?= $(abspath $(RS_ARTIFACT_ROOT)/target)
-RS_NEXTEST_CACHE_DIR ?= $(RS_TARGET_DIR)/nextest
-RS_NEXTEST_CONFIG_HOME ?= $(abspath $(RS_ARTIFACT_ROOT)/nextest/config)
-RS_PROFRAW_DIR ?= $(abspath $(RS_ARTIFACT_ROOT)/coverage/profraw)
-RS_LLVM_PROFILE_FILE ?= $(abspath $(RS_PROFRAW_DIR)/default_%m_%p.profraw)
-RS_COVERAGE_TARGET_DIR ?= $(abspath $(RS_ARTIFACT_ROOT)/coverage/target)
-RS_FMT_REPORT ?= $(RS_ARTIFACT_ROOT)/fmt/$(RS_RUN_ID)/report.txt
-RS_LINT_REPORT ?= $(RS_ARTIFACT_ROOT)/lint/$(RS_RUN_ID)/report.txt
-RS_TEST_REPORT ?= $(RS_ARTIFACT_ROOT)/test/$(RS_RUN_ID)/nextest.log
-RS_TEST_SLOW_REPORT ?= $(RS_ARTIFACT_ROOT)/test/$(RS_RUN_ID)/nextest-slow.log
-RS_TEST_ALL_REPORT ?= $(RS_ARTIFACT_ROOT)/test/$(RS_RUN_ID)/nextest-all.log
-RS_AUDIT_REPORT ?= $(RS_ARTIFACT_ROOT)/audit/$(RS_RUN_ID)/report.txt
-RS_COVERAGE_DIR ?= $(RS_ARTIFACT_ROOT)/coverage/$(RS_RUN_ID)
-RS_LCOV_FILE ?= $(RS_COVERAGE_DIR)/lcov.info
-RS_COVERAGE_TEST_REPORT ?= $(RS_COVERAGE_DIR)/nextest.log
-RS_COVERAGE_SUMMARY_REPORT ?= $(RS_COVERAGE_DIR)/summary.txt
-RS_CLIPPY_EXCLUDES ?= bijux-dna-dev
+GENOMICS_RUST_GATE_BIN ?= makes/bin/run_genomics_rust_gate.sh
+RUST_GATE_BIN ?= $(GENOMICS_RUST_GATE_BIN)
+RUST_CLIPPY_EXCLUDES ?= bijux-dna-dev
+RUST_AUDIT_PREREQUISITES += audit-policy-rs
 NEXTEST_STATUS_LEVEL ?= all
 NEXTEST_FINAL_STATUS_LEVEL ?= all
 
@@ -54,10 +38,6 @@ _dev-dna-bin:
 	@$(ensure_artifact_env)
 	@$(DEV_DNA_BOOTSTRAP) "$(DEV_DNA_BIN)"
 
-fmt-rs: ## Run Rust formatting checks.
-	@$(ensure_artifact_env)
-	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_TARGET_DIR="$(RS_TARGET_DIR)" RS_FMT_REPORT="$(RS_FMT_REPORT)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" fmt
-
 _fmt:
 	@$(ensure_artifact_env)
 	@$(MAKE) fmt-rs
@@ -65,10 +45,6 @@ _fmt:
 lint:
 	@$(ensure_artifact_env)
 	@$(MAKE) lint-rs
-
-lint-rs: ## Run Rust clippy checks with deny-warnings.
-	@$(ensure_artifact_env)
-	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_TARGET_DIR="$(RS_TARGET_DIR)" RS_LINT_REPORT="$(RS_LINT_REPORT)" RS_CLIPPY_EXCLUDES="$(RS_CLIPPY_EXCLUDES)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" lint
 
 lint-workspace: ## Run Rust lint plus workspace config/docs/automation policy gates.
 	@$(ensure_artifact_env)
@@ -172,10 +148,6 @@ test:
 	@$(ensure_artifact_env)
 	@$(MAKE) test-rs
 
-test-rs: ## Run Rust fast suite and exclude named plus rostered slow tests above the 1s threshold.
-	@$(ensure_artifact_env)
-	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_TARGET_DIR="$(RS_TARGET_DIR)" RS_NEXTEST_CACHE_DIR="$(RS_NEXTEST_CACHE_DIR)" RS_NEXTEST_CONFIG_HOME="$(RS_NEXTEST_CONFIG_HOME)" RS_PROFRAW_DIR="$(RS_PROFRAW_DIR)" RS_LLVM_PROFILE_FILE="$(RS_LLVM_PROFILE_FILE)" RS_TEST_REPORT="$(RS_TEST_REPORT)" NEXTEST_CONFIG_FILE="$(NEXTEST_TOML)" NEXTEST_PROFILE_FAST="$(NEXTEST_PROFILE_FAST)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" NEXTEST_STATUS_LEVEL="$(NEXTEST_STATUS_LEVEL)" NEXTEST_FINAL_STATUS_LEVEL="$(NEXTEST_FINAL_STATUS_LEVEL)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" test
-
 test-fast: ## Compatibility alias for the fast Rust suite.
 	@$(ensure_artifact_env)
 	@$(MAKE) test-rs
@@ -184,29 +156,9 @@ test-slow: ## Run Rust tests labeled as slow.
 	@$(ensure_artifact_env)
 	@$(MAKE) test-slow-rs
 
-test-slow-rs: ## Run Rust slow suite (tests labeled with slow__ or promoted from the 1s fast lane budget).
-	@$(ensure_artifact_env)
-	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_TARGET_DIR="$(RS_TARGET_DIR)" RS_NEXTEST_CACHE_DIR="$(RS_NEXTEST_CACHE_DIR)" RS_NEXTEST_CONFIG_HOME="$(RS_NEXTEST_CONFIG_HOME)" RS_PROFRAW_DIR="$(RS_PROFRAW_DIR)" RS_LLVM_PROFILE_FILE="$(RS_LLVM_PROFILE_FILE)" RS_TEST_SLOW_REPORT="$(RS_TEST_SLOW_REPORT)" NEXTEST_CONFIG_FILE="$(NEXTEST_TOML)" NEXTEST_PROFILE_SLOW="$(NEXTEST_PROFILE_SLOW)" NEXTEST_SLOW_EXPR="$(NEXTEST_SLOW_EXPR)" NEXTEST_STATUS_LEVEL="$(NEXTEST_STATUS_LEVEL)" NEXTEST_FINAL_STATUS_LEVEL="$(NEXTEST_FINAL_STATUS_LEVEL)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" test-slow
-
 test-all: ## Run the full Rust suite, including ignored tests.
 	@$(ensure_artifact_env)
 	@$(MAKE) test-all-rs
-
-test-all-rs: ## Run the full Rust suite, including ignored and long-running tests.
-	@$(ensure_artifact_env)
-	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_TARGET_DIR="$(RS_TARGET_DIR)" RS_NEXTEST_CACHE_DIR="$(RS_NEXTEST_CACHE_DIR)" RS_NEXTEST_CONFIG_HOME="$(RS_NEXTEST_CONFIG_HOME)" RS_PROFRAW_DIR="$(RS_PROFRAW_DIR)" RS_LLVM_PROFILE_FILE="$(RS_LLVM_PROFILE_FILE)" RS_TEST_ALL_REPORT="$(RS_TEST_ALL_REPORT)" NEXTEST_CONFIG_FILE="$(NEXTEST_TOML)" NEXTEST_PROFILE_ALL="$(NEXTEST_PROFILE_ALL)" NEXTEST_THREADS_ALL="$(NEXTEST_THREADS_ALL)" NEXTEST_STATUS_LEVEL="$(NEXTEST_STATUS_LEVEL)" NEXTEST_FINAL_STATUS_LEVEL="$(NEXTEST_FINAL_STATUS_LEVEL)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" test-all
-
-test-all-frozen: ## Start a detached background full-suite run for a frozen commit and write artifacts plus frozen source under artifacts/<sha>/.
-	@$(ensure_artifact_env)
-	@PINNED_REF_GATE_TARGET="test-all" "$(PINNED_REF_GATE_BIN)"
-
-lint-frozen: ## Start a detached background lint run for a pinned commit and write artifacts plus pinned source under artifacts/<sha>/.
-	@$(ensure_artifact_env)
-	@PINNED_REF_GATE_TARGET="lint" "$(PINNED_REF_GATE_BIN)"
-
-audit-frozen: ## Start a detached background audit run for a pinned commit and write artifacts plus pinned source under artifacts/<sha>/.
-	@$(ensure_artifact_env)
-	@PINNED_REF_GATE_TARGET="audit" "$(PINNED_REF_GATE_BIN)"
 
 _test:
 	@$(ensure_artifact_env)
@@ -227,9 +179,11 @@ audit:
 	@$(ensure_artifact_env)
 	@$(MAKE) audit-rs
 
-audit-rs: ## Run Rust advisory and license audits.
+audit-policy-rs: ## Verify Genomics audit governance before Cargo advisory checks
 	@$(ensure_artifact_env)
-	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_TARGET_DIR="$(RS_TARGET_DIR)" RS_AUDIT_REPORT="$(RS_AUDIT_REPORT)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" audit
+	@$(MAKE) _dev-dna-bin >/dev/null
+	@$(DEV_DNA_BIN) checks run check-audit-allowlist
+	@$(DEV_DNA_BIN) checks run check-deny-policy-deviations
 
 _audit:
 	@$(ensure_artifact_env)
@@ -238,10 +192,6 @@ _audit:
 coverage:
 	@$(ensure_artifact_env)
 	@$(MAKE) coverage-rs
-
-coverage-rs: ## Run Rust coverage with llvm-cov and emit reports.
-	@$(ensure_artifact_env)
-	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_NEXTEST_CACHE_DIR="$(RS_NEXTEST_CACHE_DIR)" RS_NEXTEST_CONFIG_HOME="$(RS_NEXTEST_CONFIG_HOME)" RS_PROFRAW_DIR="$(RS_PROFRAW_DIR)" RS_LLVM_PROFILE_FILE="$(RS_LLVM_PROFILE_FILE)" RS_COVERAGE_TARGET_DIR="$(RS_COVERAGE_TARGET_DIR)" RS_COVERAGE_DIR="$(RS_COVERAGE_DIR)" RS_LCOV_FILE="$(RS_LCOV_FILE)" RS_COVERAGE_TEST_REPORT="$(RS_COVERAGE_TEST_REPORT)" RS_COVERAGE_SUMMARY_REPORT="$(RS_COVERAGE_SUMMARY_REPORT)" NEXTEST_CONFIG_FILE="$(NEXTEST_TOML)" NEXTEST_PROFILE_ALL="$(NEXTEST_PROFILE_ALL)" NEXTEST_STATUS_LEVEL="$(NEXTEST_STATUS_LEVEL)" NEXTEST_FINAL_STATUS_LEVEL="$(NEXTEST_FINAL_STATUS_LEVEL)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" coverage
 
 coverage-workspace: ## Run the governed coverage control-plane lane.
 	@$(ensure_artifact_env)

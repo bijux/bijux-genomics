@@ -6,7 +6,7 @@ use serde::Deserialize;
 use toml::Value as TomlValue;
 
 use crate::domain::{
-    BindingResolutionRow, BindingSpec, ClaimEvidenceRow, ClaimSpec, CompiledScience,
+    ArchiveStatus, BindingResolutionRow, BindingSpec, ClaimEvidenceRow, ClaimSpec, CompiledScience,
     DecisionReasoningRow, FastqClosureGateRow, FastqClosureSummary, FastqDefaultBindingRiskRow,
     FastqEnvironmentRow, FastqEvidenceSummary, FastqMissingClosurePrerequisiteRow,
     FastqTruthDeltaRow, LoadedSpecs, ScienceIndex, SourceAccess, SourceArchiveGapRow,
@@ -85,6 +85,7 @@ struct ToolEvidenceMapEntry {
     source_id: String,
     tool_id: String,
     archive_path: String,
+    archive_status: String,
     paper_root: String,
     acquisition_mode: String,
     primary_locator: String,
@@ -95,6 +96,7 @@ struct PaperMapEntry {
     paper_id: String,
     tool_id: String,
     paper_root: String,
+    archive_status: String,
     paper_status: String,
     open_access_status: String,
     primary_locator: String,
@@ -214,7 +216,7 @@ pub fn compile_workspace(root: &Path) -> Result<CompiledScience> {
 /// Returns an error when loaded specs contain unresolved references or required FASTQ evidence
 /// sources cannot be resolved.
 pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScience> {
-    let source_inventory = build_source_inventory(root, loaded);
+    let source_inventory = build_source_inventory(loaded);
     let source_archive_gaps = build_source_archive_gaps(&source_inventory);
     let source_archive_summary =
         build_source_archive_summary(&source_inventory, &source_archive_gaps);
@@ -228,13 +230,12 @@ pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScien
     let paper_map = load_fastq_paper_map(root, loaded)?;
     let qa_coverage_blockers = load_fastq_qa_coverage_blockers(root, loaded)?;
     let fastq_download_backlog_rows = build_fastq_download_backlog_rows(
-        root,
         &fastq_container_reference_rows,
         &tool_evidence_map,
         &paper_map,
     );
     let fastq_paper_archive_rows =
-        build_fastq_paper_archive_rows(root, &fastq_environment_rows, &paper_map);
+        build_fastq_paper_archive_rows(&fastq_environment_rows, &paper_map);
     let fastq_closure_gate_rows = build_fastq_closure_gate_rows(
         &fastq_environment_rows,
         &fastq_download_backlog_rows,
@@ -300,7 +301,7 @@ pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScien
     })
 }
 
-fn build_source_inventory(root: &Path, loaded: &LoadedSpecs) -> Vec<SourceInventoryRow> {
+fn build_source_inventory(loaded: &LoadedSpecs) -> Vec<SourceInventoryRow> {
     let mut rows = loaded
         .sources
         .values()
@@ -308,13 +309,10 @@ fn build_source_inventory(root: &Path, loaded: &LoadedSpecs) -> Vec<SourceInvent
             let archive_path = source.archive_path.clone().unwrap_or_default();
             let archive_status = match source.access {
                 SourceAccess::RepoPath => "not_applicable".to_string(),
-                SourceAccess::ManualDownload | SourceAccess::ManualClone => {
-                    if root.join(&archive_path).exists() {
-                        "present".to_string()
-                    } else {
-                        "missing".to_string()
-                    }
-                }
+                SourceAccess::ManualDownload | SourceAccess::ManualClone => source
+                    .archive_status
+                    .as_ref()
+                    .map_or_else(|| "missing".to_string(), archive_status_label),
             };
             SourceInventoryRow {
                 source_id: source.source_id.to_string(),
@@ -529,6 +527,9 @@ fn validate_source(row: &SourceSpec) -> Result<()> {
             if row.archive_path.is_some() {
                 return Err(anyhow!("repo_path sources must not declare archive_path"));
             }
+            if row.archive_status.is_some() {
+                return Err(anyhow!("repo_path sources must not declare archive_status"));
+            }
             if matches!(
                 row.kind,
                 SourceKind::ExternalDocument | SourceKind::ExternalRepository | SourceKind::Paper
@@ -552,6 +553,9 @@ fn validate_source(row: &SourceSpec) -> Result<()> {
                 return Err(anyhow!(
                     "archive_path must live under science/docs/ for manual acquisition sources"
                 ));
+            }
+            if row.archive_status.is_none() {
+                return Err(anyhow!("manual acquisition sources must declare archive_status"));
             }
             if matches!(row.access, SourceAccess::ManualClone)
                 && !matches!(row.kind, SourceKind::ExternalRepository)
@@ -846,7 +850,6 @@ fn build_fastq_container_reference_rows(
 }
 
 fn build_fastq_download_backlog_rows(
-    root: &Path,
     rows: &[crate::domain::FastqContainerReferenceRow],
     evidence_map: &[ToolEvidenceMapEntry],
     paper_map: &[PaperMapEntry],
@@ -877,10 +880,9 @@ fn build_fastq_download_backlog_rows(
             );
             let archive_status = if archive_path.is_empty() {
                 "not_applicable".to_string()
-            } else if root.join(&archive_path).exists() {
-                "present".to_string()
             } else {
-                "missing".to_string()
+                tool_entry
+                    .map_or_else(|| "missing".to_string(), |entry| entry.archive_status.clone())
             };
             let locator = tool_entry
                 .map_or_else(|| row.upstream.clone(), |entry| entry.primary_locator.clone());
@@ -996,7 +998,6 @@ fn default_archive_path(tool_id: &str, acquisition_mode: &str) -> String {
 }
 
 fn build_fastq_paper_archive_rows(
-    root: &Path,
     environment_rows: &[FastqEnvironmentRow],
     paper_map: &[PaperMapEntry],
 ) -> Vec<crate::domain::FastqPaperArchiveRow> {
@@ -1018,11 +1019,7 @@ fn build_fastq_paper_archive_rows(
             open_access_status: entry.open_access_status.clone(),
             primary_locator: entry.primary_locator.clone(),
             supporting_locators: entry.supporting_locators.clone(),
-            archive_status: if root.join(&entry.paper_root).exists() {
-                "present".to_string()
-            } else {
-                "missing".to_string()
-            },
+            archive_status: entry.archive_status.clone(),
             notes: entry.notes.clone(),
         })
         .collect::<Vec<_>>();
@@ -1550,8 +1547,13 @@ fn load_fastq_tool_evidence_map(
     let rows = parse_tsv_rows(&read_utf8(&path)?);
     let mut out = Vec::new();
     for row in rows {
+        let source_id = row_value(&row, "source_id");
         out.push(ToolEvidenceMapEntry {
-            source_id: row_value(&row, "source_id"),
+            archive_status: validated_archive_status(
+                &row_value(&row, "archive_status"),
+                &format!("FASTQ tool evidence row {source_id}"),
+            )?,
+            source_id,
             tool_id: row_value(&row, "tool_id"),
             archive_path: row_value(&row, "archive_path"),
             paper_root: row_value(&row, "paper_root"),
@@ -1570,8 +1572,13 @@ fn load_fastq_paper_map(root: &Path, loaded: &LoadedSpecs) -> Result<Vec<PaperMa
     let rows = parse_tsv_rows(&read_utf8(&path)?);
     let mut out = Vec::new();
     for row in rows {
+        let paper_id = row_value(&row, "paper_id");
         out.push(PaperMapEntry {
-            paper_id: row_value(&row, "paper_id"),
+            archive_status: validated_archive_status(
+                &row_value(&row, "archive_status"),
+                &format!("FASTQ paper map row {paper_id}"),
+            )?,
+            paper_id,
             tool_id: row_value(&row, "tool_id"),
             paper_root: row_value(&row, "paper_root"),
             paper_status: row_value(&row, "paper_status"),
@@ -1582,6 +1589,21 @@ fn load_fastq_paper_map(root: &Path, loaded: &LoadedSpecs) -> Result<Vec<PaperMa
         });
     }
     Ok(out)
+}
+
+fn validated_archive_status(value: &str, context: &str) -> Result<String> {
+    match value {
+        "missing" | "present" => Ok(value.to_string()),
+        _ => Err(anyhow!("{context} must declare archive_status as missing or present")),
+    }
+}
+
+fn archive_status_label(status: &ArchiveStatus) -> String {
+    match status {
+        ArchiveStatus::Missing => "missing",
+        ArchiveStatus::Present => "present",
+    }
+    .to_string()
 }
 
 fn load_fastq_qa_coverage_blockers(

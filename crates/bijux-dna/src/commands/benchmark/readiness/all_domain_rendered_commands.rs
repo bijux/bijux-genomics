@@ -535,6 +535,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{render_all_domain_commands, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH};
+    use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -564,6 +565,9 @@ mod tests {
     #[test]
     fn all_domain_rendered_commands_report_tracks_governed_rows() {
         let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
+        let _repo_lock =
+            RepoProcessLock::acquire(&root, "benchmark-readiness-mutators").expect("repo lock");
         let _cwd_guard = CurrentDirGuard::change_to(&root);
         let report = render_all_domain_commands(
             &root,

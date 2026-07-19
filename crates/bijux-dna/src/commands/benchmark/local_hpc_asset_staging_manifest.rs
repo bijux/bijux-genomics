@@ -555,8 +555,9 @@ mod tests {
     use super::{
         load_rendered_command_argv_rows, load_validated_hpc_asset_staging_manifest_path,
         render_hpc_asset_staging_manifest, validate_hpc_asset_staging_manifest_path,
-        DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH, LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION,
+        LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION,
     };
+    use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -565,18 +566,30 @@ mod tests {
             .expect("canonicalize repo root")
     }
 
+    fn manifest_path(repo_root: &std::path::Path, label: &str) -> (tempfile::TempDir, PathBuf) {
+        let temp_root = repo_root.join("runs/bench/test-sandboxes");
+        std::fs::create_dir_all(&temp_root).expect("create HPC asset staging test root");
+        let temp_dir = tempfile::Builder::new()
+            .prefix(label)
+            .tempdir_in(temp_root)
+            .expect("create temp manifest directory");
+        let manifest_path = temp_dir.path().join("asset-staging-manifest.json");
+        (temp_dir, manifest_path)
+    }
+
     #[test]
     fn rendered_hpc_asset_staging_manifest_covers_all_domain_jobs() {
         let root = repo_root();
-        let manifest = render_hpc_asset_staging_manifest(
-            &root,
-            PathBuf::from(DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH),
-        )
-        .expect("render HPC asset staging manifest");
+        let _cwd_guard = acquire_cwd_lock();
+        let _repo_lock =
+            RepoProcessLock::acquire(&root, "benchmark-readiness-mutators").expect("repo lock");
+        let (_temp_dir, manifest_path) = manifest_path(&root, "rendered-hpc-asset-staging-");
+        let manifest = render_hpc_asset_staging_manifest(&root, manifest_path)
+            .expect("render HPC asset staging manifest");
         let rows = load_rendered_command_argv_rows(&root).expect("load all-domain command argv");
 
         assert_eq!(manifest.schema_version, LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION);
-        assert_eq!(manifest.output_path, "runs/bench/hpc-dry-run/asset-staging-manifest.json");
+        assert!(manifest.output_path.starts_with("runs/bench/test-sandboxes/"));
         assert_eq!(manifest.selected_job_count, rows.len());
         assert_eq!(manifest.jobs.len(), rows.len());
         assert!(manifest.staged_input_count >= manifest.jobs.len());
@@ -621,30 +634,28 @@ mod tests {
     #[test]
     fn loaded_hpc_asset_staging_manifest_matches_governed_render() {
         let root = repo_root();
-        let rendered = render_hpc_asset_staging_manifest(
-            &root,
-            PathBuf::from(DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH),
-        )
-        .expect("render HPC asset staging manifest");
-        let loaded = load_validated_hpc_asset_staging_manifest_path(
-            &root,
-            &root.join(DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH),
-        )
-        .expect("load validated HPC asset staging manifest");
+        let _cwd_guard = acquire_cwd_lock();
+        let _repo_lock =
+            RepoProcessLock::acquire(&root, "benchmark-readiness-mutators").expect("repo lock");
+        let (_temp_dir, manifest_path) = manifest_path(&root, "loaded-hpc-asset-staging-");
+        let rendered = render_hpc_asset_staging_manifest(&root, manifest_path.clone())
+            .expect("render HPC asset staging manifest");
+        let loaded = load_validated_hpc_asset_staging_manifest_path(&root, &manifest_path)
+            .expect("load validated HPC asset staging manifest");
 
         assert_eq!(loaded, rendered);
-        assert_eq!(loaded.output_path, "runs/bench/hpc-dry-run/asset-staging-manifest.json");
+        assert!(loaded.output_path.starts_with("runs/bench/test-sandboxes/"));
     }
 
     #[test]
     fn validated_hpc_asset_staging_manifest_rejects_stale_selected_job_count() {
         let root = repo_root();
-        let manifest_path = root.join(DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH);
-        let rendered = render_hpc_asset_staging_manifest(
-            &root,
-            PathBuf::from(DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH),
-        )
-        .expect("render HPC asset staging manifest");
+        let _cwd_guard = acquire_cwd_lock();
+        let _repo_lock =
+            RepoProcessLock::acquire(&root, "benchmark-readiness-mutators").expect("repo lock");
+        let (_temp_dir, manifest_path) = manifest_path(&root, "validated-hpc-asset-staging-");
+        let rendered = render_hpc_asset_staging_manifest(&root, manifest_path.clone())
+            .expect("render HPC asset staging manifest");
         let stale_body =
             std::fs::read_to_string(&manifest_path).expect("read manifest body").replacen(
                 &format!("\"selected_job_count\": {}", rendered.selected_job_count),

@@ -25,6 +25,7 @@ fn bench_readiness_stage_scoring_writes_and_validates_governed_toml_file() {
     let home = tempfile::tempdir().expect("tempdir");
     let config_path = render_config_path(&repo_root, "stage-scoring-file-");
     let config_arg = config_path.to_string_lossy().into_owned();
+    let reported_path = support::path_relative_to_repo(&repo_root, &config_path);
 
     let render_output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
         .current_dir(&repo_root)
@@ -44,7 +45,7 @@ fn bench_readiness_stage_scoring_writes_and_validates_governed_toml_file() {
     );
 
     let printed_render_path = String::from_utf8(render_output.stdout).expect("stdout utf8");
-    assert_eq!(printed_render_path.trim(), config_arg);
+    assert_eq!(printed_render_path.trim(), reported_path);
 
     let body = fs::read_to_string(&config_path).expect("read rendered TOML");
     let rendered: toml::Value = toml::from_str(&body).expect("parse rendered TOML");
@@ -71,7 +72,7 @@ fn bench_readiness_stage_scoring_writes_and_validates_governed_toml_file() {
     );
 
     let printed_validate_path = String::from_utf8(validate_output.stdout).expect("stdout utf8");
-    assert_eq!(printed_validate_path.trim(), config_arg);
+    assert_eq!(printed_validate_path.trim(), reported_path);
 }
 
 #[test]
