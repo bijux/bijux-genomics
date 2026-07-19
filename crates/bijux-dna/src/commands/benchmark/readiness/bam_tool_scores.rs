@@ -644,6 +644,9 @@ fn merge_mapping_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.mapping_summary/mapping_summary.tsv");
+    if !path.is_file() {
+        return Ok(());
+    }
     let tsv_rows = read_tsv_rows(&path)?;
     for row in tsv_rows {
         let stage_id = "bam.mapping_summary";
@@ -922,6 +925,9 @@ fn merge_coverage_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.coverage/coverage.tsv");
+    if !path.is_file() {
+        return Ok(());
+    }
     let tsv_rows = read_tsv_rows(&path)?;
     if tsv_rows.is_empty() {
         return Ok(());
@@ -1488,6 +1494,9 @@ fn merge_gc_bias_summary(
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root.join("runs/bench/local-smoke/bam.gc_bias/gc_bias.tsv");
+    if !path.is_file() {
+        return Ok(());
+    }
     let tsv_rows = read_tsv_rows(&path)?;
     if tsv_rows.is_empty() {
         return Ok(());

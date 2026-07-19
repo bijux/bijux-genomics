@@ -954,8 +954,9 @@ fn merge_case_stage_report(
     contract_label: &str,
 ) -> Result<()> {
     let absolute_path = repo_root.join(relative_path);
-    let root = load_optional_json_value(&absolute_path)?
-        .ok_or_else(|| anyhow!("missing {}", absolute_path.display()))?;
+    let Some(root) = load_optional_json_value(&absolute_path)? else {
+        return Ok(());
+    };
     let stage_id = required_str(&root, "stage_id")?.to_string();
     let cases = root
         .get("cases")
@@ -1009,8 +1010,9 @@ fn merge_profile_reads_summary(
     rows: &mut BTreeMap<(String, String), FastqEvidenceAggregate>,
 ) -> Result<()> {
     let absolute_path = repo_root.join("runs/bench/local-smoke/fastq.profile_reads/profile.json");
-    let root = load_optional_json_value(&absolute_path)?
-        .ok_or_else(|| anyhow!("missing {}", absolute_path.display()))?;
+    let Some(root) = load_optional_json_value(&absolute_path)? else {
+        return Ok(());
+    };
     let stage_id = required_str(&root, "stage_id")?.to_string();
     let cases = root
         .get("cases")
@@ -1046,8 +1048,9 @@ fn merge_validate_reads_summary(
     rows: &mut BTreeMap<(String, String), FastqEvidenceAggregate>,
 ) -> Result<()> {
     let absolute_path = repo_root.join("runs/bench/local-smoke/fastq.validate_reads/report.json");
-    let root = load_optional_json_value(&absolute_path)?
-        .ok_or_else(|| anyhow!("missing {}", absolute_path.display()))?;
+    let Some(root) = load_optional_json_value(&absolute_path)? else {
+        return Ok(());
+    };
     let stage_id = required_str(&root, "stage_id")?.to_string();
     let cases = root
         .get("cases")
@@ -1089,8 +1092,9 @@ fn merge_screen_taxonomy_summary(
 ) -> Result<()> {
     let absolute_path = repo_root
         .join("runs/bench/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/report.json");
-    let root = load_optional_json_value(&absolute_path)?
-        .ok_or_else(|| anyhow!("missing {}", absolute_path.display()))?;
+    let Some(root) = load_optional_json_value(&absolute_path)? else {
+        return Ok(());
+    };
     let stage_id = required_str(&root, "stage_id")?.to_string();
     let tool_id = required_str(&root, "tool_id")?.to_string();
     let samples = root
