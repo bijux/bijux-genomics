@@ -1,8 +1,9 @@
 use std::collections::BTreeMap;
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
@@ -55,8 +56,51 @@ pub fn crate_root(name: &str) -> Result<PathBuf> {
     test_support::crate_root(name)
 }
 
+#[allow(dead_code)]
 pub fn repo_root() -> Result<PathBuf> {
     test_support::repo_root()
+}
+
+#[allow(dead_code)]
+pub struct RepoSandbox {
+    root: tempfile::TempDir,
+}
+
+#[allow(dead_code)]
+impl RepoSandbox {
+    pub fn new(label: &str) -> Result<Self> {
+        let source_root = test_support::repo_root()?;
+        let sandbox_parent = source_root.join("artifacts/readiness-sandboxes");
+        fs::create_dir_all(&sandbox_parent)?;
+        let root = tempfile::Builder::new().prefix(label).tempdir_in(sandbox_parent)?;
+        let checkout = Command::new("git")
+            .current_dir(&source_root)
+            .args(["checkout-index", "--all", "--force"])
+            .arg(format!("--prefix={}/", root.path().display()))
+            .output()
+            .map_err(|error| anyhow!("materialize repository sandbox: {error}"))?;
+        if !checkout.status.success() {
+            return Err(anyhow!(
+                "materialize repository sandbox: {}",
+                String::from_utf8_lossy(&checkout.stderr).trim()
+            ));
+        }
+        Ok(Self { root })
+    }
+
+    #[must_use]
+    pub fn path(&self) -> &Path {
+        self.root.path()
+    }
+
+    pub fn command(&self, program: impl AsRef<OsStr>) -> Command {
+        let mut command = Command::new(program);
+        command
+            .current_dir(self.path())
+            .env("BIJUX_REPO_ROOT", self.path())
+            .env("BIJUX_BENCHMARK_ROOT", self.path().join("benchmarks"));
+        command
+    }
 }
 
 #[allow(dead_code)]
