@@ -60,6 +60,13 @@ pub fn repo_root() -> Result<PathBuf> {
 }
 
 #[allow(dead_code)]
+pub fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root)
+        .map_or_else(|_| path.display().to_string(), |relative| relative.display().to_string())
+        .replace('\\', "/")
+}
+
+#[allow(dead_code)]
 pub struct RepoProcessLock {
     path: PathBuf,
 }

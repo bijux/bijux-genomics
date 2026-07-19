@@ -34,7 +34,7 @@ fn dev_crates_parser_effect_audit_writes_the_governed_audit_report() {
 
     let payload: serde_json::Value =
         serde_json::from_slice(&output.stdout).expect("stdout json payload");
-    let expected_output_path = out.display().to_string();
+    let expected_output_path = support::path_relative_to_repo(&repo_root, &out);
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.crates.parser_no_execution.v1")

@@ -34,7 +34,7 @@ fn dev_crates_result_id_stability_reports_canonical_alignment() {
 
     let payload: serde_json::Value =
         serde_json::from_slice(&output.stdout).expect("stdout json payload");
-    let expected_output_path = out.display().to_string();
+    let expected_output_path = support::path_relative_to_repo(&repo_root, &out);
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.crates.result_id_stability.v1")

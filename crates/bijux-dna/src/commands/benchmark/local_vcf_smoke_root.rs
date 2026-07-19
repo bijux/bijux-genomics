@@ -309,7 +309,10 @@ mod tests {
         let report = render_vcf_smoke_root(&repo_root, redirected_manifest.clone())
             .expect("render VCF smoke root with redirected manifest");
 
-        assert_eq!(report.manifest_path, redirected_manifest.to_string_lossy().replace('\\', "/"));
+        assert_eq!(
+            report.manifest_path,
+            super::path_relative_to_repo(&repo_root, &redirected_manifest)
+        );
         assert_eq!(report.root_path, "runs/bench/local-smoke/vcf");
         assert!(report
             .rows

@@ -102,6 +102,7 @@ fn bench_readiness_bam_tool_scores_render_and_validate_custom_file() {
     let home = tempfile::tempdir().expect("tempdir");
     let output_path = render_path("bam-tool-scores-file-");
     let output_arg = output_path.to_string_lossy().into_owned();
+    let reported_path = support::path_relative_to_repo(&repo_root, &output_path);
 
     let render_output = run_cli(
         &repo_root,
@@ -115,7 +116,7 @@ fn bench_readiness_bam_tool_scores_render_and_validate_custom_file() {
         String::from_utf8_lossy(&render_output.stdout),
         String::from_utf8_lossy(&render_output.stderr)
     );
-    assert_eq!(String::from_utf8(render_output.stdout).expect("stdout utf8").trim(), output_arg);
+    assert_eq!(String::from_utf8(render_output.stdout).expect("stdout utf8").trim(), reported_path);
 
     let validate_output = run_cli(
         &repo_root,
@@ -129,7 +130,10 @@ fn bench_readiness_bam_tool_scores_render_and_validate_custom_file() {
         String::from_utf8_lossy(&validate_output.stdout),
         String::from_utf8_lossy(&validate_output.stderr)
     );
-    assert_eq!(String::from_utf8(validate_output.stdout).expect("stdout utf8").trim(), output_arg);
+    assert_eq!(
+        String::from_utf8(validate_output.stdout).expect("stdout utf8").trim(),
+        reported_path
+    );
 }
 
 #[test]

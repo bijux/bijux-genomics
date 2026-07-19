@@ -3498,7 +3498,7 @@ nodes:
         assert_eq!(report.pipeline_id, "fastq-to-bam-cross");
         assert_eq!(report.domain, "cross");
         assert_eq!(report.node_count, 2);
-        assert_eq!(report.config_path, config_dir.display().to_string());
+        assert_eq!(report.config_path, super::path_relative_to_repo(&repo_root, &config_dir));
         assert_eq!(report.project_source_count, 0);
         assert_eq!(
             report.reference_context.as_ref().map(|context| context.reference_bundle_id.as_str()),
