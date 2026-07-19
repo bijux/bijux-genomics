@@ -40,6 +40,9 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
     let rust_gate =
         std::fs::read_to_string(root.join(".bijux/shared/bijux-makes-rs/scripts/rust_gate.sh"))
             .expect("read shared Rust gate");
+    let pinned_gate =
+        std::fs::read_to_string(root.join(".bijux/shared/bijux-makes/scripts/run_pinned_gate.sh"))
+            .expect("read shared pinned gate");
     let slow_roster = std::fs::read_to_string(root.join("configs/rust/nextest-slow-roster.txt"))
         .expect("read nextest slow roster");
     bijux_dna_policies::policy_assert!(
@@ -110,6 +113,23 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         rust_gate.contains("args+=(--run-ignored all --retries 0)"),
         "shared test-all lane must include ignored tests and disable retries"
     );
+    bijux_dna_policies::policy_assert!(
+        rust_gate.contains("\"nextest-summary:\"") && rust_gate.contains("return \"${status}\""),
+        "shared test-all lane must preserve the final nextest summary and exit status"
+    );
+    for needle in [
+        "pinned_ref=\"${PINNED_REF:-${TEST_ALL_FROZEN_REF:-HEAD}}\"",
+        "export PROJECT_ROOT=\"${pinned_repo_dir}\"",
+        "artifact_execution_root=\"${pinned_repo_dir}/artifacts\"",
+        "export ARTIFACT_ROOT=\"${artifact_execution_root}\"",
+        "artifact publication conflict:",
+        "ln -s ",
+    ] {
+        bijux_dna_policies::policy_assert!(
+            pinned_gate.contains(needle),
+            "shared pinned gate must preserve `{needle}`"
+        );
+    }
     bijux_dna_policies::policy_assert!(
         slow_roster.lines().map(str::trim).any(|line| !line.is_empty() && !line.starts_with('#')),
         "nextest slow roster must contain governed slow test names"

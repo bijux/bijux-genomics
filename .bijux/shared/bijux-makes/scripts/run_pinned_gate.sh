@@ -14,7 +14,7 @@ require_tool make
 require_tool python3
 
 repo_root="$(git rev-parse --show-toplevel)"
-pinned_ref="${PINNED_REF:-HEAD}"
+pinned_ref="${PINNED_REF:-${TEST_ALL_FROZEN_REF:-HEAD}}"
 pinned_target="${PINNED_GATE_TARGET:-}"
 allowed_targets="${PINNED_ALLOWED_TARGETS:-}"
 
@@ -86,6 +86,13 @@ else
   git -C "${pinned_repo_dir}" checkout --detach --force "${full_sha}" >/dev/null
 fi
 
+artifact_execution_root="${artifact_root}"
+pinned_rust_gate="${pinned_repo_dir}/.bijux/shared/bijux-makes-rs/scripts/rust_gate.sh"
+if [[ -f "${pinned_rust_gate}" ]] &&
+  ! grep -Fq 'configured_artifact_boundary=' "${pinned_rust_gate}"; then
+  artifact_execution_root="${pinned_repo_dir}/artifacts"
+fi
+
 release_lock
 
 if [[ -f "${pid_file}" ]]; then
@@ -102,6 +109,7 @@ commit=${full_sha}
 target=${pinned_target}
 source=${pinned_repo_dir}
 artifact_root=${artifact_root}
+artifact_execution_root=${artifact_execution_root}
 console_log=${console_log}
 status_file=${status_file}
 EOF
@@ -111,13 +119,58 @@ cat >"${launcher_file}" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
 cd "${pinned_repo_dir}"
-export ARTIFACT_ROOT="${artifact_root}"
+
+unset \
+  PROJECT_ROOT \
+  ARTIFACT_ROOT \
+  RUN_ID \
+  RS_ARTIFACT_ROOT \
+  RS_RUN_ID \
+  RS_TARGET_DIR \
+  RS_CARGO_HOME \
+  RS_TMP_DIR \
+  RS_NEXTEST_CACHE_DIR \
+  RS_NEXTEST_CONFIG_HOME \
+  NEXTEST_CONFIG_FILE \
+  NEXTEST_SLOW_ROSTER \
+  NEXTEST_EXPR_BIN \
+  RUST_DENY_CONFIG \
+  RUSTFMT_CONFIG \
+  RUST_CLIPPY_CONFIG_DIR
+
+export PROJECT_ROOT="${pinned_repo_dir}"
+export ARTIFACT_ROOT="${artifact_execution_root}"
 export RUN_ID="${short_sha}"
 status=0
 set +e
 make "${pinned_target}"
 status=\$?
 set -e
+
+if [[ "${artifact_execution_root}" != "${artifact_root}" ]]; then
+  shopt -s nullglob
+  for source_path in "${artifact_execution_root}"/*; do
+    artifact_name="\${source_path##*/}"
+    published_path="${artifact_root}/\${artifact_name}"
+    expected_target="frozen-repo/artifacts/\${artifact_name}"
+    if [[ -L "\${published_path}" ]] &&
+      [[ "\$(readlink "\${published_path}")" == "\${expected_target}" ]]; then
+      continue
+    fi
+    if [[ -d "\${published_path}" ]] &&
+      [[ -z "\$(find "\${published_path}" -mindepth 1 -print -quit)" ]]; then
+      rmdir "\${published_path}"
+    fi
+    if [[ -e "\${published_path}" || -L "\${published_path}" ]]; then
+      printf 'artifact publication conflict: %s\n' "\${published_path}" >&2
+      status=1
+      continue
+    fi
+    ln -s "\${expected_target}" "\${published_path}"
+  done
+  shopt -u nullglob
+fi
+
 printf '%s\n' "\${status}" >"${status_file}"
 exit "\${status}"
 EOF
