@@ -250,24 +250,30 @@ _clean-artifact-scratch:
 	@mkdir -p "$(ARTIFACT_ROOT)/tmp"
 
 _policy-fast: ## Run fast policy checks (no snapshots)
+	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets policy-fast
 	$(MAKE) _domain-gates
 
 _ssot-policy-fast: ## Fast-fail SSOT and registry policy checks.
+	@$(ensure_artifact_env)
 	cargo run -q -p bijux-dna-dev -- checks run check-ssot-guardrails
 	$(MAKE) _domain-gates
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets ssot-policy-fast
 
 _test-profile-invariants: ## Run pipeline profile invariant contract tests.
+	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets test-profile-invariants
 
 _registry-lint: ## Run strict tool registry reproducibility policy checks.
+	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets registry-lint
 
 _unit-contract-fast: ## Fast unit/contract checks for critical crates.
+	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets unit-contract-fast
 
 _release-readiness: ## Block merges on experimental tools, unknown metrics schemas, or floating pins.
+	@$(ensure_artifact_env)
 	$(MAKE) _registry-lint
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets release-readiness
 
@@ -525,6 +531,7 @@ _check-generated-config-headers:
 	cargo run -q -p bijux-dna-dev -- checks run check-generated-config-headers
 
 _policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/control-plane surfaces.
+	@$(ensure_artifact_env)
 	cargo run -q -p bijux-dna-dev -- checks run check-no-raw-cargo-in-makes
 	cargo run -q -p bijux-dna-dev -- checks run check-no-raw-cargo-in-automation
 
