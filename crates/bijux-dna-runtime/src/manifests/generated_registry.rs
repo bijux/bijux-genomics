@@ -21,7 +21,7 @@ pub(super) fn read_generated_registry(registry_path: &Path) -> Result<ToolRegist
     let raw = std::fs::read_to_string(registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;
     let mut parsed: toml::Value =
-        raw.parse().with_context(|| format!("parse {}", registry_path.display()))?;
+        toml::from_str(&raw).with_context(|| format!("parse {}", registry_path.display()))?;
     if experimental_manifests_enabled() {
         let experimental_path = registry_path
             .parent()
@@ -30,8 +30,7 @@ pub(super) fn read_generated_registry(registry_path: &Path) -> Result<ToolRegist
         if experimental_path.exists() {
             let exp_raw = std::fs::read_to_string(&experimental_path)
                 .with_context(|| format!("read {}", experimental_path.display()))?;
-            let exp: toml::Value = exp_raw
-                .parse()
+            let exp: toml::Value = toml::from_str(&exp_raw)
                 .with_context(|| format!("parse {}", experimental_path.display()))?;
             if let Some(exp_tools) = exp.get("tools").and_then(toml::Value::as_array) {
                 let current = parsed

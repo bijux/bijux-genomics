@@ -8,10 +8,9 @@ use std::path::Path;
 use bijux_dna_stage_contract::{entries, ReadinessBadge};
 
 fn read_toml(path: &Path) -> toml::Value {
-    std::fs::read_to_string(path)
-        .unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
-        .parse()
-        .unwrap_or_else(|err| panic!("parse {}: {err}", path.display()))
+    let raw = std::fs::read_to_string(path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+    toml::from_str(&raw).unwrap_or_else(|err| panic!("parse {}: {err}", path.display()))
 }
 
 fn stage_rows(path: &Path) -> Vec<toml::Value> {

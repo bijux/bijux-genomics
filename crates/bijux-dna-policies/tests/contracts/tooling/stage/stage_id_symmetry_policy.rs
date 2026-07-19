@@ -6,7 +6,7 @@ fn stage_ids_from(path: &std::path::Path) -> Vec<String> {
     let raw = std::fs::read_to_string(path)
         .unwrap_or_else(|_| panic!("read stage config {}", path.display()));
     let doc: toml::Value =
-        raw.parse().unwrap_or_else(|_| panic!("parse stage config {}", path.display()));
+        toml::from_str(&raw).unwrap_or_else(|_| panic!("parse stage config {}", path.display()));
     doc.get("stages")
         .and_then(toml::Value::as_array)
         .map(|items| {

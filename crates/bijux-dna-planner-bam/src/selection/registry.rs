@@ -13,7 +13,7 @@ pub fn tool_registry_toml() -> Option<toml::Value> {
                 return None;
             }
             let raw = std::fs::read_to_string(path).ok()?;
-            raw.parse::<toml::Value>().ok()
+            toml::from_str::<toml::Value>(&raw).ok()
         })
         .clone()
 }

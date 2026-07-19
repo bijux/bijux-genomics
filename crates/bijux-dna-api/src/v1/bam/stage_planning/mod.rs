@@ -26,7 +26,7 @@ fn stage_status(stage_id: &str) -> Option<String> {
     let cwd = std::env::current_dir().ok()?;
     let path = bijux_dna_infra::configs_file(&cwd, "ci/stages/stages.toml");
     let raw = std::fs::read_to_string(path).ok()?;
-    let parsed = raw.parse::<toml::Value>().ok()?;
+    let parsed = toml::from_str::<toml::Value>(&raw).ok()?;
     let entries = parsed.get("stages")?.as_array()?;
     entries.iter().find_map(|entry| {
         let id = entry.get("id").and_then(toml::Value::as_str)?;

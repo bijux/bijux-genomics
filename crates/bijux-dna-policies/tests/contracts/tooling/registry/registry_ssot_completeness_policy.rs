@@ -37,7 +37,7 @@ fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_to
     let root = support::workspace_root();
     let images_raw = std::fs::read_to_string(root.join("configs/ci/tools/images.toml"))
         .expect("read configs/ci/tools/images.toml");
-    let images: toml::Value = images_raw.parse().expect("parse images");
+    let images: toml::Value = toml::from_str(&images_raw).expect("parse images");
     let image_ids =
         images.as_table().map(|t| t.keys().cloned().collect::<BTreeSet<_>>()).unwrap_or_default();
     let mut offenders = Vec::new();
@@ -52,10 +52,10 @@ fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_to
         let stages_raw = std::fs::read_to_string(root.join(stages_rel))
             .unwrap_or_else(|err| panic!("read {stages_rel}: {err}"));
 
-        let tool_registry: toml::Value =
-            tool_registry_raw.parse().unwrap_or_else(|err| panic!("parse {registry_rel}: {err}"));
+        let tool_registry: toml::Value = toml::from_str(&tool_registry_raw)
+            .unwrap_or_else(|err| panic!("parse {registry_rel}: {err}"));
         let stages: toml::Value =
-            stages_raw.parse().unwrap_or_else(|err| panic!("parse {stages_rel}: {err}"));
+            toml::from_str(&stages_raw).unwrap_or_else(|err| panic!("parse {stages_rel}: {err}"));
 
         let tool_rows = table_array(&tool_registry, "tools");
         let stage_rows = table_array(&tool_registry, "stages");

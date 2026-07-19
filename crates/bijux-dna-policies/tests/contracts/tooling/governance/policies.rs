@@ -23,8 +23,8 @@ fn crate_dependencies(root: &Path, crate_name: &str) -> BTreeSet<String> {
     let manifest = root.join("crates").join(crate_name).join("Cargo.toml");
     let content = std::fs::read_to_string(&manifest)
         .unwrap_or_else(|_| panic!("read manifest {}", manifest.display()));
-    let parsed: TomlValue =
-        content.parse().unwrap_or_else(|_| panic!("parse manifest {}", manifest.display()));
+    let parsed: TomlValue = toml::from_str(&content)
+        .unwrap_or_else(|_| panic!("parse manifest {}", manifest.display()));
     let mut deps = BTreeSet::new();
 
     let mut collect_from = |table: Option<&TomlValue>| {
@@ -75,7 +75,7 @@ fn configured_domains(root: &Path) -> Vec<String> {
     let raw = std::fs::read_to_string(&path)
         .unwrap_or_else(|_| panic!("read domains config {}", path.display()));
     let parsed: TomlValue =
-        raw.parse().unwrap_or_else(|_| panic!("parse domains config {}", path.display()));
+        toml::from_str(&raw).unwrap_or_else(|_| panic!("parse domains config {}", path.display()));
     parsed
         .get("domains")
         .and_then(TomlValue::as_array)

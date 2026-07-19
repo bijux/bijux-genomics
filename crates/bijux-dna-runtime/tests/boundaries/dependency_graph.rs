@@ -10,8 +10,7 @@ fn dependency_graph_matches_runtime_boundary() {
     let manifest_path = root.join("Cargo.toml");
     let manifest = fs::read_to_string(&manifest_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", manifest_path.display()));
-    let manifest = manifest
-        .parse::<Value>()
+    let manifest = toml::from_str::<Value>(&manifest)
         .unwrap_or_else(|err| panic!("parse {}: {err}", manifest_path.display()));
     let deps_doc = fs::read_to_string(root.join("docs/DEPENDENCIES.md"))
         .unwrap_or_else(|err| panic!("read docs/DEPENDENCIES.md: {err}"));

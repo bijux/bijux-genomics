@@ -23,7 +23,7 @@ fn policy__contracts__fastq_route_policy__route_registry_covers_required_familie
     let root = support::workspace_root();
     let raw = std::fs::read_to_string(root.join("domain/fastq/route_policies.toml"))
         .expect("read domain/fastq/route_policies.toml");
-    let parsed = raw.parse::<toml::Value>().expect("parse route_policies.toml");
+    let parsed = toml::from_str::<toml::Value>(&raw).expect("parse route_policies.toml");
 
     assert_eq!(
         parsed.get("schema_version").and_then(toml::Value::as_str),

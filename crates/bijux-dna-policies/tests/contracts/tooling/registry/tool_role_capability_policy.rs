@@ -19,7 +19,7 @@ fn policy__contracts__tool_role_capability_policy__stage_tools_match_required_ro
     let root = support::workspace_root();
     let raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
         .expect("read registry");
-    let parsed: toml::Value = raw.parse().expect("parse registry");
+    let parsed: toml::Value = toml::from_str(&raw).expect("parse registry");
 
     let tools = parsed.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     let stages = parsed.get("stages").and_then(toml::Value::as_array).cloned().unwrap_or_default();

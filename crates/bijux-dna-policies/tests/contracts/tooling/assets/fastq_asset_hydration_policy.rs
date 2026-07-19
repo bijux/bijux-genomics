@@ -24,18 +24,16 @@ fn array_strings(row: &toml::Value, key: &str) -> Vec<String> {
 #[test]
 fn policy__contracts__fastq_asset_hydration_policy__bundles_resolve_locks_and_routes() {
     let root = support::workspace_root();
-    let locks = std::fs::read_to_string(root.join("configs/runtime/asset_locks.toml"))
-        .expect("read asset_locks.toml")
-        .parse::<toml::Value>()
-        .expect("parse asset_locks.toml");
-    let hydration = std::fs::read_to_string(root.join("configs/runtime/asset_hydration.toml"))
-        .expect("read asset_hydration.toml")
-        .parse::<toml::Value>()
-        .expect("parse asset_hydration.toml");
-    let routes = std::fs::read_to_string(root.join("domain/fastq/route_policies.toml"))
-        .expect("read route_policies.toml")
-        .parse::<toml::Value>()
-        .expect("parse route_policies.toml");
+    let locks_raw = std::fs::read_to_string(root.join("configs/runtime/asset_locks.toml"))
+        .expect("read asset_locks.toml");
+    let locks = toml::from_str::<toml::Value>(&locks_raw).expect("parse asset_locks.toml");
+    let hydration_raw = std::fs::read_to_string(root.join("configs/runtime/asset_hydration.toml"))
+        .expect("read asset_hydration.toml");
+    let hydration =
+        toml::from_str::<toml::Value>(&hydration_raw).expect("parse asset_hydration.toml");
+    let routes_raw = std::fs::read_to_string(root.join("domain/fastq/route_policies.toml"))
+        .expect("read route_policies.toml");
+    let routes = toml::from_str::<toml::Value>(&routes_raw).expect("parse route_policies.toml");
 
     let lock_families = table_array(&locks, "lock_family")
         .into_iter()

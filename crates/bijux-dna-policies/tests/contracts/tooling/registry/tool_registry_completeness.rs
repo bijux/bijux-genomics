@@ -28,7 +28,7 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
         let raw = std::fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
         let parsed: toml::Value =
-            raw.parse().unwrap_or_else(|err| panic!("parse {}: {err}", path.display()));
+            toml::from_str(&raw).unwrap_or_else(|err| panic!("parse {}: {err}", path.display()));
 
         for entry in as_table_array(&parsed, "tools") {
             let id = as_str_field(entry, "id").unwrap_or("<missing>");

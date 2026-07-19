@@ -11,7 +11,8 @@ fn policy__contracts__stage_tool_matrix_policy__stages_have_primary_validation_a
     let registry_path = workspace_root().join("configs/ci/registry/tool_registry.toml");
     let raw = std::fs::read_to_string(&registry_path)
         .expect("read configs/ci/registry/tool_registry.toml");
-    let parsed: toml::Value = raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
+    let parsed: toml::Value =
+        toml::from_str(&raw).expect("parse configs/ci/registry/tool_registry.toml");
 
     let mut offenders = Vec::new();
 

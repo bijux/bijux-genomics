@@ -32,7 +32,7 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
 
 fn parse_toml(path: &std::path::Path) -> toml::Value {
     let raw = std::fs::read_to_string(path).unwrap_or_else(|_| panic!("read {}", path.display()));
-    raw.parse::<toml::Value>().unwrap_or_else(|_| panic!("parse {}", path.display()))
+    toml::from_str::<toml::Value>(&raw).unwrap_or_else(|_| panic!("parse {}", path.display()))
 }
 
 fn resolve_ssot_path(root: &std::path::Path, rel: &str) -> std::path::PathBuf {

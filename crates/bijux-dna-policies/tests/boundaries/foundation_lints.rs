@@ -117,8 +117,7 @@ fn policy__boundaries__foundation_lints__external_dependencies_use_workspace_cat
         let manifest_path = workspace.join("crates").join(crate_name).join("Cargo.toml");
         let manifest = std::fs::read_to_string(&manifest_path)
             .unwrap_or_else(|err| panic!("read {}: {err}", manifest_path.display()));
-        let manifest = manifest
-            .parse::<Value>()
+        let manifest = toml::from_str::<Value>(&manifest)
             .unwrap_or_else(|err| panic!("parse {}: {err}", manifest_path.display()));
 
         for section in ["dependencies", "dev-dependencies"] {

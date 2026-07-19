@@ -12,7 +12,8 @@ fn policy__contracts__tool_registry_stage_domain_policy__production_tool_binding
     let registry_path = workspace_root().join("configs/ci/registry/tool_registry.toml");
     let raw = std::fs::read_to_string(&registry_path)
         .expect("read configs/ci/registry/tool_registry.toml");
-    let parsed: toml::Value = raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
+    let parsed: toml::Value =
+        toml::from_str(&raw).expect("parse configs/ci/registry/tool_registry.toml");
 
     let tools = parsed.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     let stages = parsed.get("stages").and_then(toml::Value::as_array).cloned().unwrap_or_default();

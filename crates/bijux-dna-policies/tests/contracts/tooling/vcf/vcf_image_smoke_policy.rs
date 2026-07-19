@@ -16,11 +16,11 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
     let registry_raw = std::fs::read_to_string(&registry_path)
         .unwrap_or_else(|_| panic!("read {registry_path:?}"));
     let registry: toml::Value =
-        registry_raw.parse().unwrap_or_else(|_| panic!("parse {registry_path:?}"));
+        toml::from_str(&registry_raw).unwrap_or_else(|_| panic!("parse {registry_path:?}"));
     let images_raw =
         std::fs::read_to_string(&images_path).unwrap_or_else(|_| panic!("read {images_path:?}"));
     let images: toml::Value =
-        images_raw.parse().unwrap_or_else(|_| panic!("parse {images_path:?}"));
+        toml::from_str(&images_raw).unwrap_or_else(|_| panic!("parse {images_path:?}"));
     let mut native_sources = WalkDir::new(&native_dir)
         .into_iter()
         .filter_map(Result::ok)

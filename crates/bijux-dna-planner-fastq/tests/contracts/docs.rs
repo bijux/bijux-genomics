@@ -19,7 +19,8 @@ fn read_doc(path: &Path) -> String {
 
 fn parse_toml(path: &Path) -> Value {
     let raw = read_doc(path);
-    raw.parse::<Value>().unwrap_or_else(|error| panic!("parse {}: {error}", path.display()))
+    toml::from_str::<Value>(&raw)
+        .unwrap_or_else(|error| panic!("parse {}: {error}", path.display()))
 }
 
 #[test]
