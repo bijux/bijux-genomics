@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant};
 
 use anyhow::{anyhow, Result};
 use serde_json::{Map, Value};
@@ -232,10 +232,8 @@ impl Drop for RepoProcessLock {
 }
 
 fn lock_owner_record() -> String {
-    let created_at =
-        SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_nanos();
     let sequence = LOCK_OWNER_SEQUENCE.fetch_add(1, Ordering::Relaxed);
-    format!("{}\n{created_at}:{sequence}", std::process::id())
+    format!("{}\n{sequence}", std::process::id())
 }
 
 fn write_lock_owner(path: &Path, owner: &str) -> std::io::Result<()> {
