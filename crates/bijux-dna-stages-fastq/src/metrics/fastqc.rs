@@ -76,6 +76,10 @@ pub(super) struct OverrepresentedSummary {
     pub(super) count: u64,
 }
 
+fn usize_to_f64(value: usize) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
 pub(super) fn fastqc_metrics_v2_from_dir(dir: &Path) -> Option<FastqcMetricsV2> {
     let path = find_fastqc_data(dir)?;
     let raw = std::fs::read_to_string(path).ok()?;
@@ -153,8 +157,7 @@ fn parse_per_base_quality(lines: &[String]) -> Option<PerBaseQualitySummary> {
     }
     let mean_min = means.iter().copied().fold(f64::INFINITY, f64::min);
     let mean_max = means.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-    #[allow(clippy::cast_precision_loss)]
-    let mean_mean = means.iter().sum::<f64>() / means.len() as f64;
+    let mean_mean = means.iter().sum::<f64>() / usize_to_f64(means.len());
     let bases_below_q20 = means.iter().filter(|v| **v < 20.0).count() as u64;
     let bases_below_q30 = means.iter().filter(|v| **v < 30.0).count() as u64;
     Some(PerBaseQualitySummary { mean_min, mean_max, mean_mean, bases_below_q20, bases_below_q30 })
@@ -194,14 +197,12 @@ fn parse_gc_distribution(lines: &[String]) -> Option<GcDistributionSummary> {
         }
     }
     let std_gc = (var_sum / total).sqrt();
-    #[allow(clippy::cast_precision_loss)]
-    let mean_count = counts.iter().sum::<f64>() / counts.len() as f64;
+    let mean_count = counts.iter().sum::<f64>() / usize_to_f64(counts.len());
     let mut count_var = 0.0;
     for count in &counts {
         count_var += (count - mean_count).powi(2);
     }
-    #[allow(clippy::cast_precision_loss)]
-    let count_std = (count_var / counts.len() as f64).sqrt();
+    let count_std = (count_var / usize_to_f64(counts.len())).sqrt();
     let outlier = counts.iter().any(|count| *count > mean_count + (3.0 * count_std));
     Some(GcDistributionSummary { mean_gc, std_gc, outlier })
 }
@@ -241,14 +242,10 @@ fn parse_adapter_content(lines: &[String]) -> Option<AdapterContentSummary> {
             continue;
         }
         let local_max = values.iter().copied().fold(0.0, f64::max);
-        #[allow(clippy::cast_precision_loss)]
-        let local_mean = values.iter().sum::<f64>() / values.len() as f64;
+        let local_mean = values.iter().sum::<f64>() / usize_to_f64(values.len());
         max_percent = max_percent.max(local_max);
         sum += values.iter().sum::<f64>();
-        #[allow(clippy::cast_precision_loss)]
-        {
-            count += values.len() as f64;
-        }
+        count += usize_to_f64(values.len());
         adapters.push(AdapterSignal {
             name: name.clone(),
             max_percent: local_max,
@@ -291,8 +288,7 @@ fn parse_n_content(lines: &[String]) -> Option<NContentSummary> {
     if values.is_empty() {
         return None;
     }
-    #[allow(clippy::cast_precision_loss)]
-    let mean_percent = values.iter().sum::<f64>() / values.len() as f64;
+    let mean_percent = values.iter().sum::<f64>() / usize_to_f64(values.len());
     let max_percent = values.iter().copied().fold(0.0, f64::max);
     Some(NContentSummary { mean_percent, max_percent })
 }

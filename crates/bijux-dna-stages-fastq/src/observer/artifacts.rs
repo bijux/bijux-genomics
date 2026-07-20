@@ -16,6 +16,14 @@ fn run_artifacts_dir(run_dir: &Path) -> PathBuf {
     run_dir.join("run_artifacts")
 }
 
+#[derive(Debug, Clone)]
+pub struct AdapterTrimmingObservation {
+    pub total_reads: u64,
+    pub reads_with_adapter: u64,
+    pub bases_trimmed_total: u64,
+    pub per_adapter_counts: std::collections::BTreeMap<String, u64>,
+}
+
 /// # Errors
 /// Returns an error if the effective adapter artifact directory or JSON payload cannot be written.
 pub fn write_effective_adapters(
@@ -84,7 +92,6 @@ pub fn write_adapter_bank_ref(
     Ok(path)
 }
 
-#[allow(clippy::too_many_arguments)]
 /// # Errors
 /// Returns an error if the adapter trimming report directory or JSON payload cannot be written.
 pub fn write_adapter_trimming_report(
@@ -92,10 +99,7 @@ pub fn write_adapter_trimming_report(
     tool: &str,
     tool_version: &str,
     params: &serde_json::Value,
-    total_reads: u64,
-    reads_with_adapter: u64,
-    bases_trimmed_total: u64,
-    per_adapter_counts: std::collections::BTreeMap<String, u64>,
+    observation: AdapterTrimmingObservation,
 ) -> Result<PathBuf> {
     let root = run_artifacts_dir(run_dir);
     let reports_dir = root.join("reports");
@@ -103,10 +107,10 @@ pub fn write_adapter_trimming_report(
     let path = reports_dir.join("adapter_trimming_report.json");
     let report = AdapterTrimmingReportV1 {
         schema_version: "bijux.adapter_trimming_report.v1".to_string(),
-        reads_with_adapter,
-        total_reads,
-        bases_trimmed_total,
-        per_adapter_counts,
+        reads_with_adapter: observation.reads_with_adapter,
+        total_reads: observation.total_reads,
+        bases_trimmed_total: observation.bases_trimmed_total,
+        per_adapter_counts: observation.per_adapter_counts,
         top_k_adapters: Vec::new(),
         tool: ToolReferenceV1 {
             id: tool.to_string(),

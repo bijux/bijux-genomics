@@ -23,12 +23,12 @@ mod contracts {
         run_gl_propagation_stage, run_ibd_stage, run_imputation_orchestration_stage,
         run_impute_stage, run_pca_stage, run_phasing_stage, run_population_structure_stage,
         run_postprocess_stage, run_prepare_reference_panel_stage, run_qc_stage, run_roh_stage,
-        run_stats_stage_real, AdmixtureStageParams, ChunkFailurePolicy, ChunkingPlanParams,
-        DamageFilterStageParams, DamageUdgRegime, DemographyStageParams, GlPropagationStageParams,
-        IbdStageParams, ImputationAcceptMode, ImputeBackend, ImputeStageParams, PcaStageParams,
-        PhasingBackend, PhasingStageParams, PopulationPreprocessingParams,
-        PopulationStructureStageParams, PostprocessStageParams, PrepareReferencePanelParams,
-        QcStageParams, RohStageParams,
+        run_stats_stage_real, AdmixtureStageParams, ChunkFailurePolicy, ChunkRunContext,
+        ChunkingPlanParams, DamageFilterStageParams, DamageUdgRegime, DemographyStageParams,
+        GlPropagationStageParams, IbdStageParams, ImputationAcceptMode, ImputeBackend,
+        ImputeStageParams, PcaStageParams, PhasingBackend, PhasingStageParams,
+        PopulationPreprocessingParams, PopulationStructureStageParams, PostprocessStageParams,
+        PrepareReferencePanelParams, QcStageParams, RohStageParams,
     };
     use bijux_dna_stages_vcf::stage_specs::{supported_vcf_stages, vcf_stage_catalog};
     use bijux_dna_stages_vcf::wrappers::verify_tool_wrapper;

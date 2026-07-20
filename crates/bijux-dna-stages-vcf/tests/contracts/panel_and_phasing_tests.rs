@@ -354,10 +354,12 @@
             default_coverage_regime: None,
         };
         let outputs = run_chunked_regions(
-            input,
-            input,
-            dir.path(),
-            &species,
+            ChunkRunContext {
+                input_vcf: input,
+                panel_vcf: input,
+                out_dir: dir.path(),
+                species: &species,
+            },
             &ChunkingPlanParams {
                 window_size_bp: 10_000_000,
                 overlap_bp: 10_000,
