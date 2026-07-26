@@ -24,7 +24,17 @@ fn policy__contracts__nextest_determinism_policy__ci_profile_disables_flaky_orde
     );
     bijux_dna_policies::policy_assert!(
         config.contains("slow-timeout = { period = \"1s\", terminate-after = 1 }"),
-        "fast nextest profiles must classify tests over 1 second as slow"
+        "profile.ci must terminate tests that exceed the one-second CI contract"
+    );
+    let fast_unit_profile = config
+        .split("[profile.fast-unit]\n")
+        .nth(1)
+        .and_then(|tail| tail.split("\n[profile.").next())
+        .expect("profile.fast-unit section");
+    bijux_dna_policies::policy_assert!(
+        fast_unit_profile
+            .contains("slow-timeout = { period = \"1s\", terminate-after = 15 }"),
+        "profile.fast-unit must report tests as slow after one second and terminate after 15 seconds"
     );
 }
 
