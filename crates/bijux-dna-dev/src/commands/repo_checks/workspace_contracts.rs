@@ -173,8 +173,11 @@ pub(crate) fn check_examples_runner_contract(
             std::fs::remove_dir_all(&output_dir)
                 .with_context(|| format!("remove {}", output_dir.display()))?;
         }
-        let output =
-            run_native_ops_command(NativeOpsCommandKey::ExamplesRun, workspace, &[id.clone()])?;
+        let output = run_native_ops_command(
+            NativeOpsCommandKey::ExamplesRun,
+            workspace,
+            std::slice::from_ref(&id),
+        )?;
         if !output.is_success() {
             return fail(
                 check,

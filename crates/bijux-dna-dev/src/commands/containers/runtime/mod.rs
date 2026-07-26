@@ -893,24 +893,6 @@ pub(super) fn run_environment_smoke_for_with_env(
     run_argv_with_env(workspace, &argv, &envs)
 }
 
-#[cfg(test)]
-#[allow(clippy::expect_used)]
-mod tests {
-    use super::merge_bijux_command_env;
-
-    #[test]
-    fn merge_bijux_command_env_preserves_explicit_values() {
-        let merged = merge_bijux_command_env(&[
-            ("BIJUX_BIN".to_string(), "/tmp/custom-bijux".to_string()),
-            ("OTHER".to_string(), "value".to_string()),
-        ]);
-        assert!(merged
-            .iter()
-            .any(|(key, value)| key == "BIJUX_BIN" && value == "/tmp/custom-bijux"));
-        assert!(merged.iter().any(|(key, value)| key == "OTHER" && value == "value"));
-    }
-}
-
 pub(super) fn resolved_smoke_tools(workspace: &Workspace) -> Result<String> {
     let tools = env_or_empty("TOOLS");
     if !tools.is_empty() {
@@ -1232,4 +1214,22 @@ pub(super) fn merge_outcomes(
     left.stdout.push_str(&right.stdout);
     left.stderr.push_str(&right.stderr);
     left
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use super::merge_bijux_command_env;
+
+    #[test]
+    fn merge_bijux_command_env_preserves_explicit_values() {
+        let merged = merge_bijux_command_env(&[
+            ("BIJUX_BIN".to_string(), "/tmp/custom-bijux".to_string()),
+            ("OTHER".to_string(), "value".to_string()),
+        ]);
+        assert!(merged
+            .iter()
+            .any(|(key, value)| key == "BIJUX_BIN" && value == "/tmp/custom-bijux"));
+        assert!(merged.iter().any(|(key, value)| key == "OTHER" && value == "value"));
+    }
 }

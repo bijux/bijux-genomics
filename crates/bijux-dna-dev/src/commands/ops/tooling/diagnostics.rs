@@ -592,7 +592,7 @@ pub(in super::super) fn tooling_crash_triage(
     if causes.is_empty() {
         causes.push((10, "unknown", "No high-confidence pattern found; inspect full logs."));
     }
-    causes.sort_by(|left, right| right.0.cmp(&left.0));
+    causes.sort_by_key(|cause| std::cmp::Reverse(cause.0));
     let mut stdout = String::from("crash-triage: top causes\n");
     for (_, code, message) in causes.into_iter().take(5) {
         stdout.push_str(&format!("- {code}: {message}\n"));

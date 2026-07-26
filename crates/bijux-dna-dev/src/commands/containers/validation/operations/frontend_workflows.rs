@@ -287,7 +287,8 @@ pub(in super::super::super) fn run_apptainer_frontend_reproducibility(
     for path in sample {
         let tool =
             path.file_stem().and_then(|value| value.to_str()).unwrap_or_default().to_string();
-        let outcome = validation::check_apptainer_rebuild_repro(workspace, &[tool.clone()])?;
+        let outcome =
+            validation::check_apptainer_rebuild_repro(workspace, std::slice::from_ref(&tool))?;
         let deterministic = outcome.is_success();
         items.push(serde_json::json!({
             "tool": tool,
