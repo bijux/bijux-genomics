@@ -1,4 +1,19 @@
 #[test]
+fn vcf_index_bgzip_tabix_writes_queryable_assets() {
+    let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+    let input = std::path::Path::new("tests/fixtures/vcf/default/input.vcf");
+    let output = dir.path().join("indexed.vcf.gz");
+
+    let index = bijux_dna_stages_vcf::vcf_io::vcf_index_bgzip_tabix(input, &output)
+        .unwrap_or_else(|err| panic!("index fixture: {err}"));
+
+    assert!(output.exists(), "BGZF output missing");
+    assert_eq!(index, std::path::PathBuf::from(format!("{}.tbi", output.display())));
+    assert!(index.exists(), "tabix index missing");
+    noodles_tabix::fs::read(index).unwrap_or_else(|err| panic!("read tabix index: {err}"));
+}
+
+#[test]
 fn vcf_io_real_tools_split_extract_concat_and_overlap() {
     if std::env::var("BIJUX_E2E").is_err() {
         return;

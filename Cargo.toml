@@ -71,7 +71,11 @@ opentelemetry = "0.32"
 opentelemetry_sdk = "0.32"
 insta = "1"
 noodles-bam = "0.90"
+noodles-bgzf = "0.47"
+noodles-core = "0.20"
+noodles-csi = "0.56"
 noodles-sam = "0.85"
+noodles-tabix = "0.62"
 bijux-dna-analyze = { path = "crates/bijux-dna-analyze" }
 bijux-dna = { path = "crates/bijux-dna" }
 bijux-dna-api = { path = "crates/bijux-dna-api" }
