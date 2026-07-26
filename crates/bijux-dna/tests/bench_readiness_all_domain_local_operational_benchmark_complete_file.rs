@@ -1,22 +1,20 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
-
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
 #[test]
 fn bench_readiness_all_domain_local_operational_benchmark_complete_writes_gate_file() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _repo_lock =
-        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox =
+        support::RepoSandbox::new("all-domain-operational-benchmark-").expect("repo sandbox");
+    let repo_root = sandbox.path();
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+    let output = sandbox
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")

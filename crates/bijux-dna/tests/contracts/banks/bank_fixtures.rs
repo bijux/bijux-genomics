@@ -67,12 +67,14 @@ pub fn repo_root() -> Result<PathBuf> {
 #[allow(dead_code)]
 pub struct RepoSandbox {
     root: tempfile::TempDir,
+    git_dir: PathBuf,
 }
 
 #[allow(dead_code)]
 impl RepoSandbox {
     pub fn new(label: &str) -> Result<Self> {
         let source_root = test_support::repo_root()?;
+        let git_dir = resolve_git_dir(&source_root)?;
         let sandbox_parent = source_root.join("artifacts/readiness-sandboxes");
         fs::create_dir_all(&sandbox_parent)?;
         let root = tempfile::Builder::new().prefix(label).tempdir_in(sandbox_parent)?;
@@ -88,7 +90,7 @@ impl RepoSandbox {
                 String::from_utf8_lossy(&checkout.stderr).trim()
             ));
         }
-        Ok(Self { root })
+        Ok(Self { root, git_dir })
     }
 
     #[must_use]
@@ -102,7 +104,9 @@ impl RepoSandbox {
         command
             .current_dir(self.path())
             .env("BIJUX_REPO_ROOT", self.path())
-            .env("BIJUX_BENCHMARK_ROOT", self.path().join("benchmarks"));
+            .env("BIJUX_BENCHMARK_ROOT", self.path().join("benchmarks"))
+            .env("GIT_DIR", &self.git_dir)
+            .env("GIT_WORK_TREE", self.path());
         command
     }
 
@@ -153,6 +157,23 @@ impl RepoSandbox {
         }
         Ok(())
     }
+}
+
+fn resolve_git_dir(source_root: &Path) -> Result<PathBuf> {
+    let output = Command::new("git")
+        .current_dir(source_root)
+        .args(["rev-parse", "--absolute-git-dir"])
+        .output()
+        .map_err(|error| anyhow!("resolve repository git directory: {error}"))?;
+    if !output.status.success() {
+        return Err(anyhow!(
+            "resolve repository git directory: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    let git_dir = String::from_utf8(output.stdout)
+        .map_err(|error| anyhow!("decode repository git directory: {error}"))?;
+    Ok(PathBuf::from(git_dir.trim()))
 }
 
 #[allow(dead_code)]
