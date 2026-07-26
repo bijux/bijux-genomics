@@ -2035,6 +2035,7 @@ fn timestamp_marker() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
 
     #[test]
     fn core_germline_micro_pipeline_renders_real_handoffs() {
@@ -2042,6 +2043,9 @@ mod tests {
             .join("../..")
             .canonicalize()
             .expect("canonical repo root");
+        let _cwd_lock = acquire_cwd_lock();
+        let _repo_lock =
+            RepoProcessLock::acquire(&repo_root, "micro-benchmark-mutators").expect("repo lock");
         let output_path = repo_root.join(
             "artifacts/tests/benchmark/core-germline-micro-pipeline/MICRO_PIPELINE_SUMMARY.json",
         );
