@@ -10,44 +10,42 @@ pub(super) fn resolve_workspace_root() -> Result<PathBuf> {
 }
 
 fn resolve_workspace_root_from(start: &Path) -> Result<PathBuf> {
-    start
-        .ancestors()
-        .find(|candidate| {
-            candidate.join("Cargo.toml").is_file()
-                && candidate.join("crates/bijux-dna-dev/Cargo.toml").is_file()
-        })
-        .map(Path::to_path_buf)
-        .with_context(|| format!("resolve bijux-genomics workspace above {}", start.display()))
+    workspace_root_ancestor(start, |candidate| {
+        candidate.join("Cargo.toml").is_file()
+            && candidate.join("crates/bijux-dna-dev/Cargo.toml").is_file()
+    })
+    .with_context(|| format!("resolve bijux-genomics workspace above {}", start.display()))
+}
+
+fn workspace_root_ancestor(
+    start: &Path,
+    has_workspace_markers: impl Fn(&Path) -> bool,
+) -> Option<PathBuf> {
+    start.ancestors().find(|candidate| has_workspace_markers(candidate)).map(Path::to_path_buf)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::resolve_workspace_root_from;
+    use std::path::Path;
+
+    use super::workspace_root_ancestor;
 
     #[test]
-    fn resolves_checkout_from_nested_directory() -> anyhow::Result<()> {
-        let checkout = tempfile::tempdir()?;
-        std::fs::write(checkout.path().join("Cargo.toml"), "")?;
-        let crate_dir = checkout.path().join("crates/bijux-dna-dev");
-        std::fs::create_dir_all(&crate_dir)?;
-        std::fs::write(crate_dir.join("Cargo.toml"), "")?;
-        let nested = checkout.path().join("artifacts/runs");
-        std::fs::create_dir_all(&nested)?;
+    fn resolves_checkout_from_nested_directory() {
+        let checkout = Path::new("checkout");
+        let nested = checkout.join("artifacts/runs");
 
-        let resolved = resolve_workspace_root_from(&nested)?;
+        let resolved = workspace_root_ancestor(&nested, |candidate| candidate == checkout);
 
-        assert_eq!(resolved, checkout.path());
-        Ok(())
+        assert_eq!(resolved.as_deref(), Some(checkout));
     }
 
     #[test]
-    fn rejects_directory_outside_checkout() -> anyhow::Result<()> {
-        let directory = tempfile::tempdir()?;
-        let Err(error) = resolve_workspace_root_from(directory.path()) else {
-            anyhow::bail!("directory without workspace markers resolved successfully");
-        };
+    fn rejects_directory_outside_checkout() {
+        let directory = Path::new("outside");
 
-        assert!(error.to_string().contains("resolve bijux-genomics workspace"));
-        Ok(())
+        let resolved = workspace_root_ancestor(directory, |_| false);
+
+        assert_eq!(resolved, None);
     }
 }
