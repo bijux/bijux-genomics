@@ -1,22 +1,14 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::collections::BTreeSet;
-use std::process::Command;
-
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli_json(args: &[&str]) -> serde_json::Value {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _repo_lock =
-        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+fn run_cli_json(sandbox: &support::RepoSandbox, args: &[&str]) -> serde_json::Value {
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+    let output = sandbox
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
@@ -38,8 +30,11 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_all_domain_failure_classification_reports_each_required_class() {
-    let payload =
-        run_cli_json(&["bench", "readiness", "render-all-domain-failure-classification", "--json"]);
+    let sandbox = support::RepoSandbox::new("failure-classification-").expect("repo sandbox");
+    let payload = run_cli_json(
+        &sandbox,
+        &["bench", "readiness", "render-all-domain-failure-classification", "--json"],
+    );
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),

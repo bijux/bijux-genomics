@@ -1,22 +1,16 @@
 #![allow(clippy::expect_used)]
 
 use std::fs;
-use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli(args: &[&str]) -> (std::path::PathBuf, std::process::Output) {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _repo_lock =
-        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+fn run_cli(args: &[&str]) -> (support::RepoSandbox, std::process::Output) {
+    let sandbox = support::RepoSandbox::new("fixture-root-validation-").expect("repo sandbox");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+    let output = sandbox
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
@@ -25,12 +19,12 @@ fn run_cli(args: &[&str]) -> (std::path::PathBuf, std::process::Output) {
         .output()
         .expect("run cli");
 
-    (repo_root, output)
+    (sandbox, output)
 }
 
 #[test]
 fn fixtures_validate_all_writes_benchmark_root_report_file() {
-    let (repo_root, output) =
+    let (sandbox, output) =
         run_cli(&["fixtures", "validate", "--root", "benchmarks/tests/fixtures", "--all"]);
 
     assert!(
@@ -46,7 +40,8 @@ fn fixtures_validate_all_writes_benchmark_root_report_file() {
         "benchmarks/readiness/benchmark-fixture-root-validation.json"
     );
 
-    let report_path = repo_root.join("benchmarks/readiness/benchmark-fixture-root-validation.json");
+    let report_path =
+        sandbox.path().join("benchmarks/readiness/benchmark-fixture-root-validation.json");
     let report_raw = fs::read_to_string(&report_path).expect("read report");
     let report: serde_json::Value = serde_json::from_str(&report_raw).expect("parse report");
 

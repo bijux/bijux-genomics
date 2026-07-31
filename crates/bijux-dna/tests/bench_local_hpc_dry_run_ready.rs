@@ -2,7 +2,6 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
@@ -18,17 +17,11 @@ fn render_path(repo_root: &Path, label: &str) -> (tempfile::TempDir, PathBuf) {
     (temp_dir, report_path)
 }
 
-fn run_cli(args: &[&str]) -> std::process::Output {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _repo_lock =
-        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+fn run_cli(sandbox: &support::RepoSandbox, args: &[&str]) -> std::process::Output {
     let home = tempfile::tempdir().expect("tempdir");
 
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+    sandbox
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
@@ -40,11 +33,13 @@ fn run_cli(args: &[&str]) -> std::process::Output {
 
 #[test]
 fn bench_local_render_hpc_dry_run_ready_proves_goals_481_to_489() {
-    let repo_root = support::repo_root().expect("repo root");
-    let (_temp_dir, report_path) = render_path(&repo_root, "render-hpc-dry-run-ready-");
+    let sandbox = support::RepoSandbox::new("hpc-dry-run-readiness-").expect("repo sandbox");
+    let repo_root = sandbox.path();
+    let (_temp_dir, report_path) = render_path(repo_root, "render-hpc-dry-run-ready-");
     let report_arg = report_path.to_string_lossy().into_owned();
 
-    let output = run_cli(&["bench", "local", "render-hpc-dry-run-ready", "--output", &report_arg]);
+    let output =
+        run_cli(&sandbox, &["bench", "local", "render-hpc-dry-run-ready", "--output", &report_arg]);
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -57,7 +52,7 @@ fn bench_local_render_hpc_dry_run_ready_proves_goals_481_to_489() {
     assert_eq!(
         printed_path.trim(),
         report_path
-            .strip_prefix(&repo_root)
+            .strip_prefix(repo_root)
             .expect("report path relative to repo root")
             .to_string_lossy()
     );

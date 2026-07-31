@@ -1,19 +1,20 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
-
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli(args: &[&str]) -> std::process::Output {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+const FASTQ_SCORE_EVIDENCE_COMMANDS: &[&[&str]] = &[
+    &["bench", "local", "materialize-stage", "--stage-id", "fastq.filter_reads"],
+    &["bench", "local", "materialize-stage", "--stage-id", "fastq.trim_reads"],
+    &["bench", "local", "materialize-stage", "--stage-id", "fastq.validate_reads"],
+    &["bench", "local", "run-edna-micro-pipeline"],
+];
+
+fn run_cli(sandbox: &support::RepoSandbox, args: &[&str]) -> std::process::Output {
     let home = tempfile::tempdir().expect("tempdir");
 
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+    sandbox
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
@@ -23,8 +24,22 @@ fn run_cli(args: &[&str]) -> std::process::Output {
         .expect("run cli")
 }
 
-fn run_cli_json(args: &[&str]) -> serde_json::Value {
-    let output = run_cli(args);
+fn materialize_fastq_score_evidence(sandbox: &support::RepoSandbox) {
+    for args in FASTQ_SCORE_EVIDENCE_COMMANDS {
+        let output = run_cli(sandbox, args);
+        assert!(
+            output.status.success(),
+            "FASTQ score evidence command failed: {}\ncommand: {}\nstdout:\n{}\nstderr:\n{}",
+            output.status,
+            args.join(" "),
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+}
+
+fn run_cli_json(sandbox: &support::RepoSandbox, args: &[&str]) -> serde_json::Value {
+    let output = run_cli(sandbox, args);
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -37,7 +52,10 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_fastq_tool_scores_report_governs_real_fastq_evidence() {
-    let payload = run_cli_json(&["bench", "readiness", "render-fastq-tool-scores", "--json"]);
+    let sandbox = support::RepoSandbox::new("fastq-tool-scores-").expect("repo sandbox");
+    materialize_fastq_score_evidence(&sandbox);
+    let payload =
+        run_cli_json(&sandbox, &["bench", "readiness", "render-fastq-tool-scores", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -54,25 +72,51 @@ fn bench_readiness_fastq_tool_scores_report_governs_real_fastq_evidence() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(42));
-    assert_eq!(payload.get("scored_row_count").and_then(serde_json::Value::as_u64), Some(22));
+
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert_eq!(rows.len(), 71);
+    let score_status_count = |status: &str| {
+        u64::try_from(
+            rows.iter()
+                .filter(|row| {
+                    row.get("score_status").and_then(serde_json::Value::as_str) == Some(status)
+                })
+                .count(),
+        )
+        .expect("score status count fits u64")
+    };
+    let scored_row_count = score_status_count("scored");
+    let insufficient_evidence_row_count = score_status_count("insufficient_evidence");
+    let blocked_row_count = score_status_count("blocked");
+    assert_eq!(scored_row_count, 10);
+    assert_eq!(insufficient_evidence_row_count, 61);
+    assert_eq!(blocked_row_count, 0);
+    assert_eq!(
+        payload.get("scored_row_count").and_then(serde_json::Value::as_u64),
+        Some(scored_row_count)
+    );
     assert_eq!(
         payload.get("insufficient_evidence_row_count").and_then(serde_json::Value::as_u64),
-        Some(49)
+        Some(insufficient_evidence_row_count)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(
+        payload.get("blocked_row_count").and_then(serde_json::Value::as_u64),
+        Some(blocked_row_count)
+    );
 
     let failure_counts = payload
         .get("failure_class_counts")
         .and_then(serde_json::Value::as_object)
         .expect("failure_class_counts");
-    assert_eq!(failure_counts.get("none").and_then(serde_json::Value::as_u64), Some(22));
+    assert_eq!(
+        failure_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
+        u64::try_from(rows.len()).expect("row count fits u64")
+    );
+    assert_eq!(failure_counts.get("none").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(
         failure_counts.get("insufficient_data").and_then(serde_json::Value::as_u64),
-        Some(49)
+        Some(61)
     );
-
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 71);
 
     let filter_fastp = rows
         .iter()
