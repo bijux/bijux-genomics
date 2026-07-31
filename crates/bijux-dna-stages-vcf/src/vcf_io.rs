@@ -249,35 +249,44 @@ fn write_bgzf_vcf_and_tabix(
     output_tbi: &Path,
 ) -> Result<()> {
     let input = File::open(input_vcf).with_context(|| format!("open {}", input_vcf.display()))?;
-    let output =
-        File::create(output_vcfgz).with_context(|| format!("create {}", output_vcfgz.display()))?;
-    let mut writer = bgzf::io::Writer::new(output);
     let mut indexer = tabix::index::Indexer::default();
     indexer.set_header(csi::binning_index::index::header::Builder::vcf().build());
-    let mut chunk_start = writer.virtual_position();
 
-    for line in BufReader::new(input).lines() {
-        let line = line.with_context(|| format!("read {}", input_vcf.display()))?;
-        writeln!(writer, "{line}")
-            .with_context(|| format!("write BGZF payload {}", output_vcfgz.display()))?;
-        let chunk_end = writer.virtual_position();
+    bijux_dna_infra::atomic_write_with(output_vcfgz, |output| {
+        let mut writer = bgzf::io::Writer::new(output);
+        let mut chunk_start = writer.virtual_position();
 
-        if !line.starts_with('#') && !line.is_empty() {
-            let (reference_sequence_name, start, end) = vcf_record_interval(&line)?;
-            indexer
-                .add_record(reference_sequence_name, start, end, Chunk::new(chunk_start, chunk_end))
-                .with_context(|| format!("index VCF record: {line}"))?;
+        for line in BufReader::new(input).lines() {
+            let line = line?;
+            writeln!(writer, "{line}")?;
+            let chunk_end = writer.virtual_position();
+
+            if !line.starts_with('#') && !line.is_empty() {
+                let (reference_sequence_name, start, end) = vcf_record_interval(&line)
+                    .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))?;
+                indexer
+                    .add_record(
+                        reference_sequence_name,
+                        start,
+                        end,
+                        Chunk::new(chunk_start, chunk_end),
+                    )
+                    .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))?;
+            }
+
+            chunk_start = chunk_end;
         }
 
-        chunk_start = chunk_end;
-    }
+        writer.finish()?;
+        Ok(())
+    })
+    .with_context(|| format!("write indexed BGZF payload {}", output_vcfgz.display()))?;
 
-    writer.finish().with_context(|| format!("finish {}", output_vcfgz.display()))?;
     let index = indexer.build();
-    let index_output =
-        File::create(output_tbi).with_context(|| format!("create {}", output_tbi.display()))?;
-    let mut index_writer = tabix::io::Writer::new(index_output);
-    index_writer.write_index(&index).with_context(|| format!("write {}", output_tbi.display()))?;
+    bijux_dna_infra::atomic_write_with(output_tbi, |output| {
+        tabix::io::Writer::new(output).write_index(&index)
+    })
+    .with_context(|| format!("write {}", output_tbi.display()))?;
     Ok(())
 }
 
