@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::collections::BTreeMap;
 use std::ffi::OsString;
 use std::fs;
@@ -28,14 +29,29 @@ const TEST_LOCK_MISSING_OWNER_GRACE: Duration = Duration::from_secs(30);
 #[allow(dead_code)]
 static LOCK_OWNER_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
+thread_local! {
+    static REPO_MUTATOR_LOCK_DEPTH: Cell<usize> = const { Cell::new(0) };
+}
+
 pub struct EnvGuard {
     cwd: PathBuf,
     env: BTreeMap<OsString, OsString>,
+    _sandbox: Option<RepoSandbox>,
 }
 
 impl EnvGuard {
     pub fn new() -> Result<Self> {
-        Ok(Self { cwd: std::env::current_dir()?, env: std::env::vars_os().collect() })
+        let cwd = std::env::current_dir()?;
+        let env = std::env::vars_os().collect();
+        let sandbox = if repo_mutator_lock_held() {
+            Some(RepoSandbox::new("locked-repository-mutator-")?)
+        } else {
+            None
+        };
+        if let Some(sandbox) = &sandbox {
+            std::env::set_current_dir(sandbox.path())?;
+        }
+        Ok(Self { cwd, env, _sandbox: sandbox })
     }
 }
 
@@ -188,6 +204,7 @@ pub fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 pub struct RepoProcessLock {
     path: PathBuf,
     owner: String,
+    _sandbox_request: RepoSandboxRequest,
 }
 
 #[allow(dead_code)]
@@ -203,7 +220,13 @@ impl RepoProcessLock {
         loop {
             match fs::create_dir(&path) {
                 Ok(()) => match write_lock_owner(&path, &owner) {
-                    Ok(()) => return Ok(Self { path, owner }),
+                    Ok(()) => {
+                        return Ok(Self {
+                            path,
+                            owner,
+                            _sandbox_request: RepoSandboxRequest::new(),
+                        });
+                    }
                     Err(error) if error.kind() == ErrorKind::NotFound => {}
                     Err(error) => {
                         return Err(anyhow!(
@@ -241,6 +264,25 @@ impl RepoProcessLock {
             }
         }
     }
+}
+
+struct RepoSandboxRequest;
+
+impl RepoSandboxRequest {
+    fn new() -> Self {
+        REPO_MUTATOR_LOCK_DEPTH.with(|depth| depth.set(depth.get().saturating_add(1)));
+        Self
+    }
+}
+
+impl Drop for RepoSandboxRequest {
+    fn drop(&mut self) {
+        REPO_MUTATOR_LOCK_DEPTH.with(|depth| depth.set(depth.get().saturating_sub(1)));
+    }
+}
+
+fn repo_mutator_lock_held() -> bool {
+    REPO_MUTATOR_LOCK_DEPTH.with(|depth| depth.get() > 0)
 }
 
 impl Drop for RepoProcessLock {
