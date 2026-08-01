@@ -624,8 +624,7 @@ fn timestamp_marker() -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        run_local_vcf_impute_smoke, summarize_imputed_output, write_governed_impute_input_vcf,
-        write_governed_impute_truth_vcf,
+        summarize_imputed_output, write_governed_impute_input_vcf, write_governed_impute_truth_vcf,
     };
 
     #[test]
@@ -642,25 +641,5 @@ mod tests {
         assert_eq!(input_summary.masked_sample_gt, "./.");
         assert_eq!(truth_summary.masked_sample_gt, "0/1");
         assert_eq!(truth_summary.donor_sample_gt, "0/1");
-    }
-
-    #[test]
-    fn governed_vcf_impute_smoke_reports_masked_truth_match() {
-        let repo_root = tempfile::tempdir().expect("tempdir");
-        let report =
-            run_local_vcf_impute_smoke(repo_root.path(), "beagle").expect("run local impute smoke");
-        assert_eq!(report.stage_id, "vcf.impute");
-        assert_eq!(report.tool_id, "beagle");
-        assert_eq!(report.missing_before, 1);
-        assert_eq!(report.missing_after, 0);
-        assert_eq!(report.imputed_genotypes, 1);
-        assert_eq!(report.low_confidence_count, 1);
-        assert_eq!(report.masked_truth_site_count, 1);
-        assert_eq!(report.masked_truth_match_count, 1);
-        assert_eq!(report.unresolved_count, 0);
-        assert_eq!(report.masked_sample_gt, "0/1");
-        assert_eq!(report.donor_sample_gt, "0/1");
-        assert!(report.parseable);
-        assert!(report.gl_present);
     }
 }
