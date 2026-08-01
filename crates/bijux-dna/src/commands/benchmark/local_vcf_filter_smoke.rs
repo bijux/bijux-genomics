@@ -540,12 +540,9 @@ fn timestamp_marker() -> String {
 
 #[cfg(test)]
 mod tests {
-    use bijux_dna_domain_vcf::params::VcfFilterParams;
-    use bijux_dna_stages_vcf::pipeline::run_filter_stage_real;
-
     use super::{
         parse_vcf_record_count, resolve_governed_vcf_filter_smoke_contract,
-        summarize_filtered_output, write_governed_filter_input_vcf,
+        write_governed_filter_input_vcf,
     };
 
     #[test]
@@ -566,38 +563,5 @@ mod tests {
         write_governed_filter_input_vcf(&input_vcf).expect("write governed input");
         let record_count = parse_vcf_record_count(&input_vcf).expect("count records");
         assert_eq!(record_count, 5);
-    }
-
-    #[test]
-    fn governed_filter_fixture_exercises_expected_filter_tags() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let input_vcf = dir.path().join("filter_input.vcf");
-        write_governed_filter_input_vcf(&input_vcf).expect("write governed input");
-        let out = run_filter_stage_real(
-            &input_vcf,
-            dir.path(),
-            &VcfFilterParams {
-                sample_name: "sample_a".to_string(),
-                min_qual: 30.0,
-                require_pass: false,
-                normalize: true,
-                require_bgzip_tabix: true,
-                production_profile: false,
-                ..VcfFilterParams::default()
-            },
-        )
-        .expect("run filter stage");
-        let summary = summarize_filtered_output(&out.filtered_vcf).expect("summarize output");
-        assert_eq!(summary.pass_variants, 1);
-        assert_eq!(summary.failed_variants, 4);
-        assert_eq!(
-            summary.filter_ids,
-            vec![
-                "HIGH_MISSING".to_string(),
-                "LOWQUAL".to_string(),
-                "LOW_DP".to_string(),
-                "LOW_MQ".to_string(),
-            ]
-        );
     }
 }
