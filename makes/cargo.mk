@@ -52,7 +52,13 @@ lint:
 	@$(ensure_artifact_env)
 	@$(MAKE) lint-rs
 
-lint-workspace: ## Run Rust lint plus workspace config/docs/automation policy gates.
+lint-workspace: ## Run CI-sized workspace config, docs, and automation contract gates.
+	@$(ensure_artifact_env)
+	@$(MAKE) _lint-configs
+	@$(MAKE) _lint-docs
+	@$(MAKE) _lint-automation-contracts
+
+lint-governance: ## Run exhaustive workspace governance, domain, container, and Rust lint gates.
 	@$(ensure_artifact_env)
 	@$(MAKE) _lint
 
@@ -109,6 +115,20 @@ _lint-automation:
 			exit 1; \
 		fi' sh "$(ARTIFACTS_DIR)/lint-parallel" "$(DEV_DNA_BIN)"
 	@find "$(ARTIFACTS_DIR)/lint-parallel" -type f -name '._*' -delete
+
+_lint-automation-contracts:
+	@$(ensure_artifact_env)
+	@$(MAKE) _dev-dna-bin >/dev/null
+	@$(DEV_DNA_BIN) tooling run repo-doctor --fast
+	@$(DEV_DNA_BIN) checks run check-automation-interface
+	@$(DEV_DNA_BIN) checks run check-automation-writes
+	@$(DEV_DNA_BIN) checks run check-automation-network-usage
+	@$(DEV_DNA_BIN) checks run check-automation-temp-discipline
+	@$(DEV_DNA_BIN) checks run check-artifact-env-contract
+	@$(DEV_DNA_BIN) checks run check-output-roots
+	@$(DEV_DNA_BIN) checks run check-gitignore-contract
+	@$(DEV_DNA_BIN) checks run check-no-raw-cargo-in-makes
+	@$(DEV_DNA_BIN) checks run check-no-raw-cargo-in-automation
 
 lint-automation: ## Run repo-doctor + automation/container lint checks (parallelized), without clippy.
 	@$(ensure_artifact_env)
@@ -647,7 +667,7 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@cargo run -q -p bijux-dna-dev -- assets run refresh-golden
 
-.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs test-all-frozen lint-frozen audit-frozen audit audit-rs coverage coverage-rs coverage-workspace ci doctor github-all github-all-frozen _check _verify-artifact-env \
+.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-governance lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs test-all-frozen lint-frozen audit-frozen audit audit-rs coverage coverage-rs coverage-workspace ci doctor github-all github-all-frozen _check _verify-artifact-env \
 		_clean-artifact-scratch \
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \

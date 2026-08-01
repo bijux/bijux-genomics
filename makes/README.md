@@ -58,7 +58,8 @@ Rust gate artifact layout:
 - `make github-all-frozen` records live per-gate progress in the console log and records per-gate logs, exit statuses, and an aggregate summary under `artifacts/<sha>/github-all/`
 - `make test-all` and `make test-all-frozen` run the complete suite with no fast/slow filter expression and no slow timeout
 - `make lint` is the fast product-crate clippy lane and excludes `bijux-dna-dev`
-- workspace governance checks remain available through `make lint-workspace`
+- `make lint-workspace` is the CI-sized workspace lane for configuration, documentation, and automation-boundary contracts; Rust formatting and product-crate clippy remain independent CI gates
+- exhaustive workspace governance, domain, container, and Rust lint checks remain available through `make lint-governance`
 - `make test` is the fast Rust lane: it excludes named plus rostered slow tests above the 1-second threshold
 - `make test-slow` is the lane for tests that exceed the fast-lane budget
 - `make test-all` is the unfiltered, unbounded full-suite lane
@@ -71,6 +72,7 @@ Current internal targets surfaced by help:
 - `domain-validate`
 - `examples-validate`
 - `lint-workspace`
+- `lint-governance`
 - `_policy-fast`
 - `_ci-fast`
 - `_ci-slow`
