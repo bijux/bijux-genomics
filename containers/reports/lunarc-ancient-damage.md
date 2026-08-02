@@ -1,7 +1,7 @@
 # LUNARC ancient-DNA damage validation
 
-This report records runtime and stage qualification of the ngsBriggs and
-mapDamage 2 containers on public ancient-horse run `ERR2112767`
+This report records runtime and stage qualification of the ngsBriggs,
+mapDamage 2, and AuthentiCT containers on public ancient-horse run `ERR2112767`
 (`Borly4_PAVH8_4978`, BioSample `SAMEA104233654`) against EquCab3.0. The source
 alignment and reference were admitted by checksum. Every execution used an
 immutable Apptainer image, a clean commit-addressed checkout, a governed output
@@ -24,6 +24,9 @@ from `containers/contracts/sites/lunarc.yml` and archived with each run.
 | expose reliance on plotting-derived tables | mapDamage 2.2.2 | `run-1048` | `3457858` | failed | 29s | native analysis passed but projection refused absent plot tables |
 | validate native-table rate projection | mapDamage 2.2.2 | `run-1049` | `3457866` | passed | 30s | independently confirmed terminal rates |
 | bound reference and runtime footprint | mapDamage 2.2.2 | `run-1050` | `3457867` | passed | 17s | same rates with a 56.8 MB image and 41,402 bytes of native tables |
+| expose an acceptance-regex defect | Samtools 1.20 | `run-1090` | `3458076` | failed | 1s | valid SAM was not admitted |
+| materialize the MD-tagged alignment stream | Samtools 1.20 | `run-1092` | `3458078` | passed | 1s | 86,363,583-byte checksummed SAM |
+| measure terminal deamination | AuthentiCT 1.0.0 | `run-1093` | `3458079` | passed | 40s | 7,817-byte deamination table |
 
 The preparation command used `samtools view -b -F 5`: bit `0x1` removes paired
 records and bit `0x4` removes unmapped records. This is an explicit adapter to
@@ -59,6 +62,15 @@ headers after compiling `seqtk`, reducing the SIF from 175,280,128 to
 56,786,944 bytes. A failed intermediate build remains recorded because it
 proved that `gcc`, `make`, and zlib headers are real build dependencies.
 
+AuthentiCT's documented interface reads SAM text with an `MD` tag. The source
+corpus is a digest-pinned BAM, so `run-1092` materialized the complete SAM
+stream with Samtools and retained the output as an upstream result. Preserved
+`run-1090` produced valid content but failed admission because its version
+regex assumed Samtools emitted only one line; the corrected contract accepts
+the documented leading version line without weakening any execution check.
+`run-1093` consumed that exact SAM digest with mapping-quality, read-length,
+and base-quality cutoffs of 20, 30, and 20 respectively.
+
 ## Observed outputs
 
 The admitted result contains:
@@ -75,6 +87,12 @@ The mapDamage result contains:
 - the native nucleotide-composition table; and
 - the native read-length distribution.
 
+The AuthentiCT result contains the native position-wise deamination table with
+derived and total counts plus confidence intervals. The rates at positions
+`-1` and `1` were `0.0019827326573637187` and `0.003279650170648464` from
+79/39,844 and 123/37,504 observations respectively. These are recorded
+measurements, not authenticity or contamination acceptance decisions.
+
 The terminal rates in this deliberately small admitted slice were
 `C→T (5′) = 0.0` and `G→A (3′) = 0.0`. Those values demonstrate parsing and
 contract closure only. They are not evidence that the sample lacks ancient-DNA
@@ -87,12 +105,15 @@ reproduced those values. Reference merging did not change either rate.
 
 ## Claim boundary
 
-This evidence closes the ngsBriggs and mapDamage runtime and real-stage
+This evidence closes the ngsBriggs, mapDamage, and AuthentiCT runtime and real-stage
 contracts on LUNARC. It verifies immutable inputs, negative-input behavior,
 native output retention, governed projection, independently recalculated
-rates, and Slurm provenance. It does not establish damage detection
-sensitivity, ancient-DNA authenticity, biological acceptance, cross-tool
-agreement, benchmark variance, or release qualification.
+rates, and Slurm provenance. AuthentiCT's qualified command measures its native
+deamination surface; it does not run `deam2cont` or establish that the source
+library satisfies AuthentiCT's single-stranded-library assumptions. The
+evidence does not establish damage detection sensitivity, ancient-DNA
+authenticity, biological acceptance, cross-tool agreement, benchmark variance,
+or release qualification.
 
 The admitted BAM was produced by an external preprocessing pipeline and the
 single-end compatibility slice is small. A scientific claim requires a
