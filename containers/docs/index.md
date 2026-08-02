@@ -82,7 +82,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `ibdhap` | `planned` | `non-bijux` | `arm64` |
 | `ibdne` | `planned` | `non-bijux` | `arm64` |
 | `ibdseq` | `planned` | `bijux` | `arm64` |
-| `impute5` | `planned` | `non-bijux` | `arm64` |
+| `impute5` | `unsupported` | `none` | `none` |
 | `kaiju` | `production` | `bijux` | `arm64` |
 | `king` | `production` | `bijux` | `arm64` |
 | `kraken2` | `production` | `bijux` | `arm64` |

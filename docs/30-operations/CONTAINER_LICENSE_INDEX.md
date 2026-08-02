@@ -62,7 +62,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `ibdhap` | `non-bijux` | `unknown` | `https://example.invalid/ibdhap` | `0.1.0` | `sha256:51e7c8d86fdd055b4b990896cd4efada4cc27556c6e4073235dc24899140a6e3` |
 | `ibdne` | `non-bijux` | `Apache-2.0` | `https://faculty.washington.edu/browning/ibdne.html` | `23Apr20.ae9` | `sha256:b3324ebd74ed69477067e0aec1dd22be56b1bcedbbe72d8757cda28746312665` |
 | `ibdseq` | `bijux` | `Apache-2.0` | `https://faculty.washington.edu/browning/ibdseq.html` | `r1206` | `sha256:a835c7282444d8920109362ca012f9a9ac1eb54665d34fb0ca0380a3e0fed8ec` |
-| `impute5` | `non-bijux` | `research-only` | `https://jmarchini.org/software/#impute-5` | `1.2.0` | `sha256:3333333333333333333333333333333333333333333333333333333333333333` |
+| `impute5` | `non-bijux` | `LicenseRef-Oxford-Academic-Use` | `https://jmarchini.org/software/#impute-5` | `1.2.0` | `not-distributed` |
 | `kaiju` | `bijux` | `NOASSERTION` | `https://github.com/bioinformatics-centre/kaiju` | `1.10.0` | `sha256:a8cc1e366558427bb3a111498565dc5c63d12ef0ef41870a41f2dcd8df318a59` |
 | `king` | `bijux` | `NOASSERTION` | `https://www.kingrelatedness.com/executables/Linux-king230.tar.gz` | `2.3.0` | `sha256:5a00cb504b56e3a05c8aa2b4531b1f85c9947e7c9aa89bfec7afd72b28663b39` |
 | `kraken2` | `bijux` | `NOASSERTION` | `https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz` | `2.1.3` | `sha256:5269fa14adfb02e38c2da2e605e909a432d76c680d73e2e0e80e27ccd04d7c69` |

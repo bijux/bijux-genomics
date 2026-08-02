@@ -33,7 +33,7 @@ The VCF domain mixes currently supported calling stages with many planned downst
 | glimpse | `vcf.imputation_metrics`, `vcf.impute` | planned citation closure | https://odelaneau.github.io/GLIMPSE/ |
 | ibdhap | `vcf.ibd` | upstream locator is still unresolved in the governed tool contract | https://example.invalid/ibdhap |
 | ibdne | `vcf.demography` | planned citation closure | https://faculty.washington.edu/browning/ibdne.shtml |
-| impute5 | `vcf.imputation_metrics`, `vcf.impute` | planned citation closure | https://jmarchini.org/software/#impute-5 |
+| impute5 | `vcf.imputation_metrics`, `vcf.impute` | Rubinacci, Delaneau, and Marchini (2020), DOI `10.1371/journal.pgen.1009049`; external academic-use license required | https://jmarchini.org/software/#impute-5 |
 | minimac4 | `vcf.imputation_metrics`, `vcf.impute` | planned citation closure | https://genome.sph.umich.edu/wiki/Minimac4 |
 | plink | `vcf.qc`, `vcf.admixture`, `vcf.population_structure` | planned citation closure | https://www.cog-genomics.org/plink/ |
 | plink2 | `vcf.qc`, `vcf.pca`, `vcf.admixture`, `vcf.population_structure`, `vcf.roh` | planned citation closure | https://www.cog-genomics.org/plink/2.0/ |

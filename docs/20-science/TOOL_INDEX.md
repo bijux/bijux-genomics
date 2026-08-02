@@ -32,7 +32,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 - `ibdhap` (planned) : vcf.ibd
 - `ibdne` (planned) : vcf.ibd, vcf.demography
 - `ibdseq` (planned) : vcf.ibd
-- `impute5` (planned) : vcf.impute, vcf.imputation_metrics
+- `impute5` (unsupported) : vcf.impute, vcf.imputation_metrics
 - `minimac4` (planned) : vcf.impute, vcf.imputation_metrics
 - `plink` (experimental) : vcf.qc, vcf.admixture
 - `plink2` (experimental) : vcf.qc, vcf.pca, vcf.population_structure, vcf.roh, vcf.admixture
@@ -81,7 +81,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `ibdhap` | `relatedness` | `vcf.ibd` | `registry_lock` | `0.1.0-planned` | planned | `planned` |
 | `ibdne` | `demography` | `vcf.ibd, vcf.demography` | `registry_lock` | `1.0-planned` | planned | `planned` |
 | `ibdseq` | `relatedness` | `vcf.ibd` | `registry_lock` | `3.0-planned` | planned | `planned` |
-| `impute5` | `imputation` | `vcf.impute, vcf.imputation_metrics` | `registry_lock` | `0.0.0-planned` | planned | `planned` |
+| `impute5` | `imputation` | `vcf.impute, vcf.imputation_metrics` | `external@licensed-installation` | `1.2.0` | paper:https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009049 | `unsupported` |
 | `kaiju` | `screen` | `fastq.screen_taxonomy` | `bijuxdna/kaiju@sha256:4f30fd9becc62e873bc223231c717bba5b42db8a4f993979bf26c7fc00979f9b` | `1.10.0` | paper:https://www.nature.com/articles/ncomms11257 | `production` |
 | `king` | `transform` | `bam.kinship` | `bijuxdna/king:2.3.0` | `2.3.0` | paper:https://academic.oup.com/bioinformatics/article/26/22/2867/228512 | `production` |
 | `kraken2` | `screen` | `fastq.screen_taxonomy` | `bijuxdna/kraken2@sha256:e493061d26aeea71812ed8b587a0e65f67617b192e225d8d53eba896dfe7cb35` | `2.1.3` | paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0 | `production` |

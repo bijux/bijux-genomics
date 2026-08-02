@@ -12,9 +12,9 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/impute5.license.toml](../../licenses/impute5.license.toml)
 
 - Version: `1.2.0`
-- License: `research-only`
-- Runtime support: `docker-arm64, apptainer`
+- License: `LicenseRef-Oxford-Academic-Use`
+- Runtime support: `none`
 - Smoke status: `unknown`
 
 ## Known Limitations
-- No declared limitations.
+- No runtime implementation currently present.

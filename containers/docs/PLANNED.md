@@ -33,7 +33,6 @@ Contracts:
 | `ibdhap` | `vcf.ibd` | `docker_apptainer` | Haplotype-oriented IBD analysis path kept planned until wrapper behavior is validated. | `@bijux-genomics` |
 | `ibdne` | `vcf.ibd`, `vcf.demography` | `docker_apptainer` | IBD-derived demographic inference path that depends on stable IBD segment inputs. | `@bijux-genomics` |
 | `glimpse` | `vcf.impute`, `vcf.imputation_metrics` | `docker_apptainer` | Low-coverage imputation baseline needed for genotype-likelihood workflows. | `@bijux-genomics` |
-| `impute5` | `vcf.impute`, `vcf.imputation_metrics` | `docker_apptainer` | Alternate imputation lineage for cross-method accuracy and runtime comparison. | `@bijux-genomics` |
 | `minimac4` | `vcf.impute`, `vcf.imputation_metrics` | `docker_apptainer` | Widely used imputation path that should stay visible until scientific validation is wired. | `@bijux-genomics` |
 
 ## VCF Downstream Stack Admission Checklist
@@ -55,5 +54,4 @@ For each tool below, promotion from `planned` to `experimental`/`production` req
 | `ibdhap` | non-bijux apptainer + docker arm64 | confirm wrapper contract and scientific comparability before promotion |
 | `ibdne` | non-bijux apptainer + docker arm64 | confirm wrapper contract and demography-specific acceptance criteria before promotion |
 | `glimpse` | non-bijux apptainer + docker arm64 | add imputation smoke fixtures and acceptance thresholds before promotion |
-| `impute5` | non-bijux apptainer + docker arm64 | resolve licensing/scientific acceptance details and add smoke fixtures before promotion |
 | `minimac4` | non-bijux apptainer + docker arm64 | add imputation smoke fixtures and acceptance thresholds before promotion |

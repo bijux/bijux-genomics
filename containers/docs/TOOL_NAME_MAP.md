@@ -55,7 +55,7 @@
 | `ibdhap` | `ibdhap` | `planned` |
 | `ibdne` | `ibdne` | `planned` |
 | `ibdseq` | `ibdseq` | `planned` |
-| `impute5` | `impute5` | `planned` |
+| `impute5` | `impute5` | `unsupported` |
 | `kaiju` | `kaiju` | `production` |
 | `king` | `king` | `production` |
 | `kraken2` | `kraken2` | `production` |
