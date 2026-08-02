@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "a6d4b49a1782ce7f3954759453aa1ebcf330e98acebba6cd99dd1fb4a5d89ed1",
+  "source_sha256": "48e8320d0c5626df5c1df9a272fb263bf6c9d367618a449b53a6852bd6171436",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -948,7 +948,7 @@
     {
       "id": "plink2",
       "display_name": "PLINK 2",
-      "version": "2.00a5",
+      "version": "2.00a5.8",
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
@@ -958,7 +958,7 @@
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/plink2.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.plink2",
-      "contract_sha256": "a6727722040b49d8dc51b8f412c7dd76889ac4feff0c0878b2dda64dc9d32eb4"
+      "contract_sha256": "83388ec865a56b78a963edf709e39468205d4dec6a69e974de54e7654a4dc228"
     },
     {
       "id": "pmdtools",

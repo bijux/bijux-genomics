@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-02T20:00:54+02:00",
+  "build_date_utc": "2026-08-02T21:40:32+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -982,7 +982,7 @@
       "version": "1.90"
     },
     {
-      "entry_sha256": "521793f959761eb533c398bf23325d826007f57062cb180be12f2244bd3c364a",
+      "entry_sha256": "15f1816fbef4cc9a25e9371b15238bbaa74281d8a5dc54637f4794029053970c",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -995,7 +995,7 @@
       "source_sha256": "e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec",
       "status": "experimental",
       "tool": "plink2",
-      "version": "2.00a5"
+      "version": "2.00a5.8"
     },
     {
       "entry_sha256": "93a50cf945c74e2b7379cc0f3e1fd5ed83855fd8efbc1888ac96248cf53ae4bf",
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "7f542bd5fa94245d8a26698813b3adb0f71a246f3e555e5ec79d99ca8302ecb6",
+  "source_sha256": "75cc145af34e1abb45ea50e8f9b630da0198172894a793b831e3cc301b1e7d54",
   "version_map_source": "artifacts/containers/version_map.json"
 }
