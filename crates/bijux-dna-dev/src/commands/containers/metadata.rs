@@ -584,7 +584,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
     let registry = registry_tool_map(workspace)?;
     let versions = tool_versions(workspace)?;
     let mut entries = Vec::new();
-    for (tool, _status) in governed_container_statuses(workspace)? {
+    for (tool, status) in governed_container_statuses(workspace)? {
         let row = registry.get(&tool).cloned().unwrap_or_default();
         let version_row = versions.get(&tool);
         let kind = if is_non_bijux_apptainer_source(workspace, &tool)
@@ -614,6 +614,8 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
             version_row.map(|value| table_string(value, "source_sha256")).unwrap_or_default();
         let checksum = if source_sha.len() == 64 {
             format!("sha256:{source_sha}")
+        } else if status == "unsupported" {
+            "not-distributed".to_string()
         } else {
             format!("sha256:{}", sha256_hex(format!("{tool}:{source}:{version}").as_bytes()))
         };
@@ -804,14 +806,16 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
             errors.push(format!("{} upstream_url must be URL", workspace.rel(&meta).display()));
         }
         let checksum = table_string(data, "upstream_checksum");
-        let checksum_ok = checksum.starts_with("sha256:")
-            && checksum.len() == "sha256:".len() + 64
-            && checksum["sha256:".len()..]
-                .chars()
-                .all(|ch| ch.is_ascii_hexdigit() && !ch.is_ascii_uppercase());
+        let checksum_ok = checksum == "not-distributed"
+            && governed_statuses.get(tool).is_some_and(|status| status == "unsupported")
+            || checksum.starts_with("sha256:")
+                && checksum.len() == "sha256:".len() + 64
+                && checksum["sha256:".len()..]
+                    .chars()
+                    .all(|ch| ch.is_ascii_hexdigit() && !ch.is_ascii_uppercase());
         if !checksum_ok {
             errors.push(format!(
-                "{} upstream_checksum must be exact sha256:<64hex>",
+                "{} upstream_checksum must be exact sha256:<64hex> or not-distributed for an unsupported tool",
                 workspace.rel(&meta).display()
             ));
         }

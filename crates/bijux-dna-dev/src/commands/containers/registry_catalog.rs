@@ -153,22 +153,22 @@ pub(super) fn governed_container_statuses(
 
 pub(super) fn is_non_bijux_apptainer_source(workspace: &Workspace, tool_id: &str) -> bool {
     let apptainer = workspace.path(&format!("containers/apptainer/{tool_id}.def"));
-    apptainer.exists()
-        && (read_utf8(&apptainer).unwrap_or_default().contains("NON_BIJUX_SOURCES.md")
-            || matches!(
-                tool_id,
-                "bcftools"
-                    | "beagle"
-                    | "eagle"
-                    | "eigensoft"
-                    | "germline"
-                    | "glimpse"
-                    | "ibdhap"
-                    | "ibdne"
-                    | "impute5"
-                    | "minimac4"
-                    | "shapeit5"
-            ))
+    (apptainer.exists()
+        && read_utf8(&apptainer).unwrap_or_default().contains("NON_BIJUX_SOURCES.md"))
+        || matches!(
+            tool_id,
+            "bcftools"
+                | "beagle"
+                | "eagle"
+                | "eigensoft"
+                | "germline"
+                | "glimpse"
+                | "ibdhap"
+                | "ibdne"
+                | "impute5"
+                | "minimac4"
+                | "shapeit5"
+        )
 }
 
 pub(super) fn apptainer_def_paths(workspace: &Workspace) -> Vec<PathBuf> {
