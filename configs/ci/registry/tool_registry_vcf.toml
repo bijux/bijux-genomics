@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/** + containers/contracts/catalog.toml
-# source_commit: 7f452f4c48b06806c32f7a7ba503f117f94f5b0b
+# source_commit: e828f071e4f058111477d1eb0327bb7a261ba7af
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -19,9 +19,9 @@ version = "0.940"
 default_version = "0.940"
 upstream = "https://github.com/ANGSD/angsd"
 version_rule = "pinned"
-license = "MIT"
+license = "NOASSERTION"
 citation = "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4"
-pinned_commit = "sha256:695c5f714e23ba5572e2525b7445439b632f52653e28ea46ed9988fc2f765169"
+pinned_commit = "sha256:e3da076b523e7d1fc32450019ff9d99f5cd2db722d260ce236bb775bc163fdc7"
 pin_strategy = "source_sha256"
 container_ref = "bijuxdna/angsd:0.940"
 runtimes = ["docker", "apptainer"]
