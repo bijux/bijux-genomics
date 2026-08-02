@@ -38,7 +38,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
     apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
     apt-get -o Acquire::Check-Valid-Until=false update
-    apt-get install -y --no-install-recommends curl patch python3 python3-pip python3-pysam python3-setuptools python3-venv
+    apt-get install -y --no-install-recommends curl gcc make patch python3 python3-pip python3-pysam python3-setuptools python3-venv zlib1g-dev
     curl --fail --location --silent --show-error --output /opt/mapdamage2.tar.gz https://github.com/ginolhac/mapDamage/archive/55518aa83141d8f885ce10751c22113f674e95de.tar.gz
     echo 'a7dd300489674eeb72e28c5e99627f73840dd7a74c6efce76c1eaee8e7898c54  /opt/mapdamage2.tar.gz' | sha256sum --check --strict
     mkdir /opt/mapdamage2
@@ -54,6 +54,8 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     chmod 0755 /usr/local/bin/mapdamage2
     mapdamage2 --version | grep -Fx 'mapdamage2 2.2.2 (commit 55518aa83141d8f885ce10751c22113f674e95de)'
     rm -rf /opt/mapdamage2 /opt/mapdamage2.tar.gz /opt/skip-r-library-check-without-r.patch
+    apt-get purge -y curl gcc make patch python3-pip python3-setuptools python3-venv zlib1g-dev
+    apt-get autoremove -y
     rm -rf /var/lib/apt/lists/*
 %runscript
     exec /usr/local/bin/mapdamage2 "$@"
