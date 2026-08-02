@@ -152,3 +152,18 @@ report <- c(
 writeLines(report, file.path(output_dir, "report.json"))
 unlink(filtered_r1)
 if (!is.null(input_r2)) unlink(filtered_r2)
+
+required_outputs <- file.path(
+  output_dir,
+  c(
+    "asv-table.tsv",
+    "asv-sequences.fasta",
+    "taxonomy-ready.fasta",
+    "taxonomy-ready.fastq.gz",
+    "report.json"
+  )
+)
+output_sizes <- file.info(required_outputs)$size
+if (any(is.na(output_sizes)) || any(output_sizes == 0L)) {
+  stop("DADA2 did not emit a complete non-empty result bundle", call. = FALSE)
+}

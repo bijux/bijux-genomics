@@ -8,7 +8,7 @@ case "${1:-}" in
             'usage: dada2 infer-asvs --input INPUT_R1.fastq[.gz] [--input-r2 INPUT_R2.fastq[.gz]] --output-dir DIR [--sample-id ID] [--threads N]' \
             '' \
             'Infer single-sample ASVs and emit the governed table, representative' \
-            'sequences, taxonomy-ready sequences, filtered reads, and JSON report.'
+            'sequences, taxonomy-ready sequences, and JSON metrics report.'
         ;;
     infer-asvs)
         shift
