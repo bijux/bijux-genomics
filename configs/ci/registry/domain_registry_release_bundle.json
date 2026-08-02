@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "workspace-local",
-  "bundle_checksum_sha256": "576ecfc0e72cd8d3886a6b18d665e9185a1625516b87a38aa23b7f94365fcceb",
+  "source_commit": "bd79778636f8fd824ae1c7fa1782aea2f33a986c",
+  "bundle_checksum_sha256": "251908e768c94053b0aceeb68e90c0682a4512c8c4e3dc9d496befd65c9695e3",
   "domains": [
     {
       "domain_id": "bam",
@@ -2940,10 +2940,10 @@
           "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "0.3.10",
+          "default_version": "0.3.11",
           "upstream": "https://github.com/brentp/mosdepth",
           "pin_strategy": "pinned",
-          "license": "GPL-3.0",
+          "license": "MIT",
           "citation": "paper:https://academic.oup.com/bioinformatics/article-abstract/34/5/867/4583630",
           "version_cmd": "mosdepth --version",
           "help_cmd": "mosdepth --help",
@@ -2962,7 +2962,7 @@
           "metrics_schema_id": "bijux.bam.coverage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
           "container": {
-            "image": "bijuxdna/mosdepth:0.3.10",
+            "image": "bijuxdna/mosdepth:0.3.11",
             "digest": ""
           }
         },
@@ -4358,7 +4358,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "8d9ee57ba5b35bb77d4c960a5f9a861d31bfcdbbbdda70c4f6f3edd35e930cb4"
+      "checksum_sha256": "3424bd62ec4567c84f96b06de55063f6c1ff8b86d67eee975db10dc09d3cb594"
     },
     {
       "domain_id": "fastq",
@@ -13501,7 +13501,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "a39fc48806bc8fd0af59523c06ec92ae425323958cc9d9c22383c2a1ce3e84ad"
+      "checksum_sha256": "8ddbaeb6acf8afae910c9316bf68e7b190cd1511177c13b372bf3584c93964cd"
     },
     {
       "domain_id": "vcf",
@@ -16661,7 +16661,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "fd481104fd1349b41841e63b375bf9f4dd0054f0e00cbf32b5de71cce439539a"
+      "checksum_sha256": "2b535e56809ef2f5cf3d9b1e66c821f374b02ed5aa9e4e416db31432dbcee141"
     }
   ]
 }

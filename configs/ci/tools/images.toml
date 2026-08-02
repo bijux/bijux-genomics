@@ -1,16 +1,16 @@
-# GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 1d2b65af4fa02dc2f3c0de2f629daa6400aa0b76
+# GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
+# source_commit: bd79778636f8fd824ae1c7fa1782aea2f33a986c
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
 # owner = bijux-dna-domain-compiler
-# purpose = Contract config generated from domain/** sources
+# purpose = Contract config generated from domain/** + containers/contracts/catalog.toml
 # authority = bijux-dna-domain-compiler
 # stability = stable
 # last_updated = 2026-02-14
 
 [adapterremoval]
-version = "2.3.3"
+version = "2.3.4"
 
 [addeam]
 version = "1.0.0"
@@ -20,13 +20,12 @@ version = "3.2"
 
 [angsd]
 version = "0.940"
-enabled = false
 
 [atropos]
 version = "1.1.31"
 
 [authenticct]
-version = "latest-pinned"
+version = "1.0.0"
 
 [bamtools]
 version = "2.5.2"
@@ -35,13 +34,13 @@ version = "2.5.2"
 version = "1.0.15"
 
 [bayeshammer]
-version = "4.2.0"
+version = "3.15.5"
 
 [bbduk]
-version = "latest-pinned"
+version = "39.06"
 
 [bbmerge]
-version = "39.01"
+version = "39.06"
 
 [bcftools]
 version = "1.20"
@@ -53,7 +52,7 @@ version = "5.4"
 version = "2.31.1"
 
 [bijux_dna]
-version = "workspace"
+version = "0.1.0"
 
 [bowtie2]
 version = "2.5.4"
@@ -68,7 +67,7 @@ version = "0.7.17"
 version = "1.0.4"
 
 [clumpify]
-version = "39.08"
+version = "39.06"
 
 [contammix]
 version = "1.0.11"
@@ -77,29 +76,29 @@ version = "1.0.11"
 version = "4.9"
 
 [dada2]
-version = "latest-pinned"
+version = "1.30.0"
 
 [damageprofiler]
 version = "1.1"
 
 [eagle]
-version = "planned"
+version = "2.4.1"
 enabled = false
 
 [eigensoft]
 version = "8.0.0"
 
 [fastp]
-version = "latest-pinned"
+version = "0.23.4"
 
 [fastq_scan]
-version = "0.0.1"
+version = "1.0.1"
 
 [fastqc]
-version = "latest-pinned"
+version = "0.12.1"
 
 [fastqvalidator]
-version = "latest-pinned"
+version = "0.1.1"
 
 [fastuniq]
 version = "1.1"
@@ -111,29 +110,29 @@ version = "0.0.14"
 version = "2.2.00"
 
 [fqtools]
-version = "latest-pinned"
+version = "2.3"
 
 [gatk]
 version = "4.6.2.0"
 
 [germline]
-version = "planned"
+version = "1.5.3"
 enabled = false
 
 [glimpse]
-version = "planned"
+version = "1.1.1"
 enabled = false
 
 [ibdhap]
 version = "3.4"
-enabled = true
+enabled = false
 
 [ibdne]
-version = "planned"
+version = "23Apr20.ae9"
 enabled = false
 
 [ibdseq]
-version = "planned"
+version = "r1206"
 enabled = false
 
 [impute5]
@@ -153,7 +152,7 @@ version = "2.1.3"
 version = "1.0.4"
 
 [leehom]
-version = "bbddce1542ce"
+version = "1.2.18"
 
 [lighter]
 version = "1.1.2"
@@ -162,33 +161,33 @@ version = "1.1.2"
 version = "2.2.2"
 
 [minimac4]
-version = "planned"
+version = "4.1.6"
 enabled = false
 
 [mosdepth]
-version = "0.3.10"
+version = "0.3.11"
 
 [multiqc]
-version = "1.24"
+version = "1.21"
 
 [musket]
 version = "1.1"
 
 [ngsbriggs]
-version = "0.1.3"
+version = "0.01"
 
 [pear]
-version = "latest-pinned"
+version = "0.9.6"
 
 [picard]
-version = "latest-pinned"
+version = "3.3.0"
 
 [plink]
-version = "planned"
+version = "1.90b7.2"
 enabled = false
 
 [plink2]
-version = "2.00a5"
+version = "2.00a6"
 
 [pmdtools]
 version = "0.60"
@@ -200,44 +199,44 @@ version = "3.2.0"
 version = "1.2.4"
 
 [pydamage]
-version = "1.0.0"
+version = "0.80"
 
 [rcorrector]
 version = "1.0.7"
 
 [rxy]
-version = "latest-pinned"
+version = "1.0.0"
 
 [samtools]
-version = "1.21"
+version = "1.20"
 
 [schmutzi]
-version = "latest-pinned"
+version = "1.5.4"
 
 [seqfu]
-version = "2.4.0"
+version = "1.26.0"
 
 [seqkit]
-version = "latest-pinned"
+version = "2.8.2"
 
 [seqkit_stats]
-version = "latest-pinned"
+version = "2.8.2"
 
 [seqtk]
-version = "latest-pinned"
+version = "1.4"
 
 [shapeit]
-version = "planned"
+version = "4.2.2"
 enabled = false
 
 [shapeit5]
 version = "5.1.1"
 
 [skewer]
-version = "978e8e46cba4"
+version = "0.2.2"
 
 [sortmerna]
-version = "latest-pinned"
+version = "4.3.7"
 
 [star]
 version = "2.7.11b"
@@ -249,13 +248,13 @@ version = "0.6.10"
 version = "0.39"
 
 [umi_tools]
-version = "latest-pinned"
+version = "1.1.6"
 
 [verifybamid2]
 version = "2.0.1"
 
 [vsearch]
-version = "latest-pinned"
+version = "2.29.3"
 
 [yleaf]
-version = "latest-pinned"
+version = "4.1.4"
