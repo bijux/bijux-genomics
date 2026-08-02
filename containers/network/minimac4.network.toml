@@ -1,5 +1,5 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 tool_id = "minimac4"
 runtime_network = false
 build_network = true
