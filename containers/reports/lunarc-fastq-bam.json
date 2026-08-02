@@ -93,6 +93,20 @@
       "output_bytes": 246
     },
     {
+      "tool": "flash2",
+      "run_id": "run-1078",
+      "repository_commit": "db43a6f9c6b724685a5dbaaf4e58c04abef62b9e",
+      "slurm_job_id": "3458063",
+      "status": "passed",
+      "elapsed_seconds": 1,
+      "image_sha256": "3fdfb65afaf1c9967f7ffae5a0015f18b627099fd7ed95efc07626d7932aeac7",
+      "build_evidence_sha256": "372b8732cf207d23285b9282e71b319514f07ed9a69e4cadf54228bfccf3ef42",
+      "evidence_sha256": "977f50051cabb6905a6740f2a5fb77a66d1f3f835dc476ce46f13ce221b5ac77",
+      "accounting_sha256": "7bdf4fe5adcc667514e59656fe3e51bbaba245e4d9ff97704e4e9d901a6daa12",
+      "output_sha256": "7659c995d4d2d5f336afdcc0941aed51e13d63d00d219c343bc7de2b01b68947",
+      "output_bytes": 774658
+    },
+    {
       "tool": "adapterremoval",
       "run_id": "run-1002",
       "repository_commit": "fd989ab019a266afb10950271012bfef48833570",
