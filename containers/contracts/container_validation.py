@@ -596,7 +596,7 @@ def collect_accounting(manifest_path: Path) -> Path:
         values = line.split("|")
         if len(values) != len(fields):
             raise ContractError(f"unexpected sacct row for {job_id}: {line}")
-        rows.append(dict(zip(fields, values, strict=True)))
+        rows.append(dict(zip(fields, values)))
     if not rows:
         raise ContractError(f"Slurm accounting is unavailable for terminal job {job_id}")
     result_root: Path = contract["result_root"]
