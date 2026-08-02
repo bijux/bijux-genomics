@@ -30,7 +30,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `bbduk` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/bbmap/` | `39.06` | `sha256:596ee3f86b7f491badd25a60e019405d5827a280df56c14c4237aa15e4e15e70` |
 | `bbmerge` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/bbmap/` | `39.06` | `sha256:7fad57ddf6255b74dd08e8d570218c43e773e571fb30cd2c25ad21deedbd6a65` |
 | `bcftools` | `non-bijux` | `NOASSERTION` | `https://github.com/samtools/bcftools` | `1.20` | `sha256:25b6c8ab18ad5eb053c969d2640f9eb58d4638a37f51e5188f9f09d8753ae923` |
-| `beagle` | `non-bijux` | `GPL-3.0` | `https://faculty.washington.edu/browning/beagle/beagle.html` | `5.4` | `sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f` |
+| `beagle` | `non-bijux` | `GPL-3.0` | `https://faculty.washington.edu/browning/beagle/beagle.html` | `5.4` | `sha256:938f0b1ab12385e0686790cef52d7b9491c96c0c1837af5c0d62c9a6576a8956` |
 | `bedtools` | `bijux` | `NOASSERTION` | `https://github.com/arq5x/bedtools2` | `2.31.1` | `sha256:6862c44a3faf630cd20c5564dd6025f32258989f6079e736edba8e88e92940e5` |
 | `bijux_dna` | `bijux` | `Apache-2.0` | `https://github.com/bijux/bijux-genomics` | `0.1.0` | `sha256:a6662f59c7283ff89d7f7c3b6aa23bcb2fda58f07fc2dd2831d85639166bc5f1` |
 | `bowtie2` | `bijux` | `NOASSERTION` | `https://github.com/BenLangmead/bowtie2` | `2.5.4` | `sha256:d18520808b8c89328b402bd4cd374955ca6a87dc401f97d5784bdc56bd58e70a` |

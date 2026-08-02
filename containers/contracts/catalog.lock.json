@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "1e011b8a9f1a74d0ff8ad61c1bc71f99855a9d2fea09055c83cc7a4919825fba",
+  "source_sha256": "6db1dbf3bc45c0f91dde93cc9c3f54ce5695d44e2c0d69ca24647aeeaac49a4c",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -219,11 +219,11 @@
       "qualification": "unverified",
       "upstream": "https://faculty.washington.edu/browning/beagle/beagle.html",
       "license": "GPL-3.0",
-      "source_sha256": "220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f",
+      "source_sha256": "938f0b1ab12385e0686790cef52d7b9491c96c0c1837af5c0d62c9a6576a8956",
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/beagle.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.beagle",
-      "contract_sha256": "27fc8d9941eec359b569eff59a662faebd79040bcbc9605f83b90c91cf0687a4"
+      "contract_sha256": "c02608a2c32b2bc686e053e3255da5ff29fe87c27b14c4a9c9108a5ac08327b4"
     },
     {
       "id": "bedtools",

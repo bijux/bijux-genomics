@@ -9,7 +9,7 @@ Classification contract:
 
 | tool_id | apptainer_def | why_non_bijux | upstream_source | upstream_license | upstream_checksum | patching_rules |
 |---|---|---|---|---|---|---|
-| `beagle` | `containers/apptainer/beagle.def` | upstream recipe retained to minimize divergence from vendor build process | https://faculty.washington.edu/browning/beagle/beagle.html | `GPL-3.0` | `sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f` | only compatibility/packaging patches; no algorithmic behavior changes |
+| `beagle` | `containers/apptainer/beagle.def` | upstream recipe retained to minimize divergence from vendor build process | https://faculty.washington.edu/browning/beagle/beagle.html | `GPL-3.0` | `sha256:938f0b1ab12385e0686790cef52d7b9491c96c0c1837af5c0d62c9a6576a8956` | only compatibility/packaging patches; no algorithmic behavior changes |
 | `bcftools` | `containers/apptainer/bcftools.def` | upstream recipe retained to minimize divergence from vendor build process | https://github.com/samtools/bcftools | `MIT` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
 | `eigensoft` | `containers/apptainer/eigensoft.def` | upstream recipe retained to minimize divergence from vendor build process | https://github.com/DReichLab/EIG | `GPL-2.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
 | `germline` | `containers/apptainer/germline.def` | upstream recipe retained to minimize divergence from vendor build process | https://www.cs.columbia.edu/~gusev/germline/ | `GPL-3.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |

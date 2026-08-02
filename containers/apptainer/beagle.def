@@ -15,7 +15,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 # Runtime UID policy: non-root runtime with caller-owned output paths
 
     org.opencontainers.image.source https://faculty.washington.edu/browning/beagle/beagle.html
-    org.opencontainers.image.revision 220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f
+    org.opencontainers.image.revision 938f0b1ab12385e0686790cef52d7b9491c96c0c1837af5c0d62c9a6576a8956
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 5.4
@@ -43,7 +43,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     curl --fail --location --proto '=https' --tlsv1.2 \
       --output /opt/beagle/beagle.jar \
       https://faculty.washington.edu/browning/beagle/beagle.29Oct24.c8e.jar
-    echo '220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f  /opt/beagle/beagle.jar' | sha256sum -c -
+    echo '938f0b1ab12385e0686790cef52d7b9491c96c0c1837af5c0d62c9a6576a8956  /opt/beagle/beagle.jar' | sha256sum -c -
     chmod 0755 /usr/local/bin/beagle
     beagle --version | grep -Fx 'beagle 5.4'
     beagle --help >/dev/null
