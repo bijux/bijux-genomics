@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "06344ff63c5f2e586911b441bffd61f384fc608e838e3a7a316dfddf37c53ba1",
+  "source_sha256": "5b6593ca7d836bafa080501ac52c299e50985a5602ff667ca2809f42295c5b03",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -128,12 +128,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/pezmaster31/bamtools",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "MIT",
+      "source_sha256": "4d8b84bd07b673d0ed41031348f10ca98dd6fa6a4460f9b9668d6f1d4084dfc8",
       "pinned_commit": "9f2fa61d5c10588a426dec12422255d6d0c87d84",
       "apptainer_definition": "containers/apptainer/bamtools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bamtools",
-      "contract_sha256": "37cca2f9abdb1d98f4860988fce465bf6544d2fc467255b363b2d0feb75e82b4"
+      "contract_sha256": "842cf87bb5a33d7cda4b884c270288c667423db19eca3ec7ea9e6ffcbea7b886"
     },
     {
       "id": "bamutil",

@@ -43,6 +43,8 @@ version = "2.5.2"
 source = "https://github.com/pezmaster31/bamtools"
 date_pinned = "2026-02-12"
 pinned_commit = "9f2fa61d5c10588a426dec12422255d6d0c87d84"
+source_sha256 = "4d8b84bd07b673d0ed41031348f10ca98dd6fa6a4460f9b9668d6f1d4084dfc8"
+upstream_license = "MIT"
 
 [bayeshammer]
 version = "3.15.5"

@@ -24,7 +24,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `angsd` | `bijux` | `NOASSERTION` | `https://github.com/ANGSD/angsd` | `0.940` | `sha256:c0c7f752a60e08102b81ef2955038ac89731e10e5828046afbe1cbcd4978e51d` |
 | `atropos` | `bijux` | `NOASSERTION` | `https://github.com/jdidion/atropos` | `1.1.31` | `sha256:b36f26cbc0749ea5fde0b0fccc8a048c178dc1481f5acac2c04c0bd362b19d25` |
 | `authenticct` | `bijux` | `NOASSERTION` | `https://github.com/StephanePeyregne/AuthentiCT` | `1.0.0` | `sha256:1efe53ab7cd0d6d899899d506c25d86f8ab3d397f5754a992584ffc38ea8a6d0` |
-| `bamtools` | `bijux` | `NOASSERTION` | `https://github.com/pezmaster31/bamtools` | `2.5.2` | `sha256:202b1e5ee4d17bb0cb7dcc23c93a4f0c4cbba8f7bed5253f86f90fc126c6a25d` |
+| `bamtools` | `bijux` | `MIT` | `https://github.com/pezmaster31/bamtools` | `2.5.2` | `sha256:4d8b84bd07b673d0ed41031348f10ca98dd6fa6a4460f9b9668d6f1d4084dfc8` |
 | `bamutil` | `bijux` | `NOASSERTION` | `https://github.com/statgen/bamUtil` | `1.0.15` | `sha256:21f5139115d04c564a5fd5617cb5f501f81a0c36e7c9303de51cad144de93493` |
 | `bayeshammer` | `bijux` | `NOASSERTION` | `https://github.com/ablab/spades` | `3.15.5` | `sha256:5e25657c6a1de41018d361815aeec0c8c4a6cc1966d9d64af121fec88fbb3e8c` |
 | `bbduk` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/bbmap/` | `39.06` | `sha256:596ee3f86b7f491badd25a60e019405d5827a280df56c14c4237aa15e4e15e70` |
