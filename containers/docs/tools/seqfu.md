@@ -11,7 +11,7 @@ Purpose: generated per-tool container contract summary.
 - License index: [containers/licenses/README.md](../../licenses/README.md)
 - Tool license record: [containers/licenses/seqfu.license.toml](../../licenses/seqfu.license.toml)
 
-- Version: `2.4.0`
+- Version: `1.26.0`
 - License: `NOASSERTION`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

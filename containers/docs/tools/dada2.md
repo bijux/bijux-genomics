@@ -12,7 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/dada2.license.toml](../../licenses/dada2.license.toml)
 
 - Version: `1.30.0`
-- License: `NOASSERTION`
+- License: `LGPL-2.0-only`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

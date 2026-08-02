@@ -11,7 +11,7 @@ Purpose: generated per-tool container contract summary.
 - License index: [containers/licenses/README.md](../../licenses/README.md)
 - Tool license record: [containers/licenses/fqtools.license.toml](../../licenses/fqtools.license.toml)
 
-- Version: `2.0`
+- Version: `2.3`
 - License: `NOASSERTION`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

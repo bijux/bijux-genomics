@@ -11,7 +11,7 @@ Purpose: generated per-tool container contract summary.
 - License index: [containers/licenses/README.md](../../licenses/README.md)
 - Tool license record: [containers/licenses/ngsbriggs.license.toml](../../licenses/ngsbriggs.license.toml)
 
-- Version: `0.1.3`
+- Version: `0.01`
 - License: `NOASSERTION`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
