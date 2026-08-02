@@ -10,4 +10,4 @@ Policy:
 
 | tool_id | rationale | owner |
 |---|---|---|
-| `*` | Transition period while legacy images are migrated to non-root runtime and write-path contracts. | `bijux-dna-platform` |
+| `*` | Transition period while legacy images are migrated to non-root runtime and write-path contracts. | `bijux-genomics` |

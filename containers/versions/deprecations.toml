@@ -1,5 +1,5 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 
 [[deprecation]]
 tool_id = "bamtools"
