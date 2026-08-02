@@ -73,16 +73,22 @@ pub mod damage {
         .into_iter()
         .filter(|artifact| required_outputs.contains(&artifact.name.as_str()))
         .collect();
-        let ngsbriggs_reference = if tool.tool_id.as_str() == "ngsbriggs" {
-            Some(reference.ok_or_else(|| anyhow::anyhow!("ngsbriggs requires a reference FASTA"))?)
-        } else {
-            None
-        };
+        let damage_reference =
+            if matches!(tool.tool_id.as_str(), "mapdamage2" | "ngsbriggs") {
+                Some(reference.ok_or_else(|| {
+                    anyhow::anyhow!("{} requires a reference FASTA", tool.tool_id)
+                })?)
+            } else {
+                None
+            };
         let out_json = out_dir.join("damage.pydamage.json");
         let command = match tool.tool_id.as_str() {
-            "mapdamage2" => {
-                crate::tool_adapters::tools::mapdamage2::damage_args(bam, out_dir, params)
-            }
+            "mapdamage2" => crate::tool_adapters::tools::mapdamage2::damage_args(
+                bam,
+                damage_reference.expect("mapdamage2 reference validated above"),
+                out_dir,
+                params,
+            ),
             "damageprofiler" => crate::tool_adapters::tools::damageprofiler::args(
                 bam,
                 &out_dir.join("damage.profiler.json"),
@@ -95,7 +101,7 @@ pub mod damage {
             ),
             "ngsbriggs" => crate::tool_adapters::tools::ngsbriggs::args(
                 bam,
-                ngsbriggs_reference.expect("ngsbriggs reference validated above"),
+                damage_reference.expect("ngsbriggs reference validated above"),
                 &out_dir.join("damage.ngsbriggs.json"),
                 params,
             ),
@@ -111,7 +117,7 @@ pub mod damage {
             bam.to_path_buf(),
             ArtifactRole::Bam,
         )];
-        if let Some(reference) = ngsbriggs_reference {
+        if let Some(reference) = damage_reference {
             inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
                 ArtifactId::from_static("reference"),
                 reference.to_path_buf(),
@@ -131,7 +137,7 @@ pub mod damage {
             out_dir: out_dir.to_path_buf(),
             params: serde_json::json!({
                 "bam": bam,
-                "reference": ngsbriggs_reference,
+                "reference": damage_reference,
                 "udg_model": params.udg_model,
                 "pmd_threshold_5p": params.pmd_threshold_5p,
                 "pmd_threshold_3p": params.pmd_threshold_3p,

@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-02T18:23:24+02:00",
+  "build_date_utc": "2026-08-02T18:28:52+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -822,7 +822,7 @@
       "version": "1.1.2"
     },
     {
-      "entry_sha256": "7b35b6444d6f905d602146239ec4a541cc98a54fae86952e2708d68859fc2a65",
+      "entry_sha256": "a62c18e482aa5db934204167925f09d8931951ab4763f3e5cc34f7bdfb19e04d",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -831,8 +831,8 @@
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://github.com/ginolhac/mapDamage",
-      "source_sha256": "",
+      "source": "https://github.com/ginolhac/mapDamage/archive/55518aa83141d8f885ce10751c22113f674e95de.tar.gz",
+      "source_sha256": "a7dd300489674eeb72e28c5e99627f73840dd7a74c6efce76c1eaee8e7898c54",
       "status": "production",
       "tool": "mapdamage2",
       "version": "2.2.2"
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "2ff01638c8a2485ada0842f97bf25684b69e4912bc583ba4f777e83d3de525d6",
+  "source_sha256": "b9a22187c2e0652d1dd345b408744bd148b2e9516935c57b3f85461683f1ae30",
   "version_map_source": "artifacts/containers/version_map.json"
 }

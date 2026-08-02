@@ -130,6 +130,29 @@ fn local_damage_output_contract_plans_cover_all_governed_tools() -> Result<()> {
             "pydamage".to_string(),
         ])
     );
+    let mapdamage2 = plans
+        .iter()
+        .find(|case| case.plan.tool_id.as_str() == "mapdamage2")
+        .unwrap_or_else(|| panic!("mapdamage2 damage plan missing"));
+    assert_eq!(
+        mapdamage2.plan.command.template,
+        vec![
+            "mapdamage2",
+            "analyze",
+            "--bam",
+            mapdamage2.bam.to_str().unwrap_or_default(),
+            "--reference",
+            mapdamage2.reference.to_str().unwrap_or_default(),
+            "--out-dir",
+            mapdamage2.plan.out_dir.to_str().unwrap_or_default(),
+        ]
+    );
+    assert!(mapdamage2
+        .plan
+        .io
+        .inputs
+        .iter()
+        .any(|input| { input.name.as_str() == "reference" && input.path == mapdamage2.reference }));
     assert!(
         plans.iter().any(|case| {
             case.plan.tool_id.as_str() == "addeam"

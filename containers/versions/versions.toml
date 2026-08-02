@@ -285,9 +285,12 @@ pinned_commit = "fecf71152ee923033358306264aaed0a693622cd"
 
 [mapdamage2]
 version = "2.2.2"
-source = "https://github.com/ginolhac/mapDamage"
-date_pinned = "2026-02-12"
+source = "https://github.com/ginolhac/mapDamage/archive/55518aa83141d8f885ce10751c22113f674e95de.tar.gz"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "MIT"
 pinned_commit = "55518aa83141d8f885ce10751c22113f674e95de"
+source_sha256 = "a7dd300489674eeb72e28c5e99627f73840dd7a74c6efce76c1eaee8e7898c54"
 
 [metaphlan]
 version = "4.1.1"

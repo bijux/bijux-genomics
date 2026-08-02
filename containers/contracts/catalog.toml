@@ -1397,29 +1397,29 @@ real_test_input_kind = "fastq"
 [[tools]]
 id = "mapdamage2"
 display_name = "mapDamage 2"
-purpose = "Provides transform execution for governed genomics stages."
+purpose = "Profiles terminal nucleotide misincorporation patterns from aligned ancient-DNA reads."
 version = "2.2.2"
 support_disposition = "retained"
 qualification = "unverified"
 upstream = "https://github.com/ginolhac/mapDamage"
 documentation = "https://github.com/ginolhac/mapDamage"
-license = "GPL-3.0"
-source_sha256 = ""
+license = "MIT"
+source_sha256 = "a7dd300489674eeb72e28c5e99627f73840dd7a74c6efce76c1eaee8e7898c54"
 pinned_commit = "55518aa83141d8f885ce10751c22113f674e95de"
 domains = ["bam"]
 stage_ids = ["bam.bias_mitigation", "bam.damage"]
 expected_bin = "mapdamage2"
 version_command = "mapdamage2 --version"
 help_command = "mapdamage2 --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+expected_version_regex = "mapdamage2 2[.]2[.]2 [(]commit 55518aa83141d8f885ce10751c22113f674e95de[)]"
 apptainer_definition = "containers/apptainer/mapdamage2.def"
 apptainer_supported = true
 dockerfile = "containers/docker/Dockerfile.arm64.mapdamage2"
 docker_arm64_supported = true
 build_network = true
 runtime_network = false
-real_test_stage = "bam.bias_mitigation"
-real_test_input_kind = "bam"
+real_test_stage = "bam.damage"
+real_test_input_kind = "bam_with_reference"
 
 [[tools]]
 id = "metaphlan"

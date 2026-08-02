@@ -69,7 +69,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `krakenuniq` | `bijux` | `NOASSERTION` | `https://github.com/fbreitwieser/krakenuniq` | `1.0.4` | `sha256:d4cdfedb97cb74d26f21c2de00fccde980c33c6e79436ac05f7318aedc85112f` |
 | `leehom` | `bijux` | `NOASSERTION` | `https://github.com/grenaud/leeHom` | `1.2.18` | `sha256:87cbc83c04b51264b7d986aaf9bf7abaedaa827d1a72f783d4c43b63b3cc95ca` |
 | `lighter` | `bijux` | `NOASSERTION` | `https://github.com/mourisl/Lighter` | `1.1.2` | `sha256:a956c7be74331d85f54b3b64c1dceafed67abde06ed7c9f5352d44c48636862e` |
-| `mapdamage2` | `bijux` | `NOASSERTION` | `https://github.com/ginolhac/mapDamage` | `2.2.2` | `sha256:f928447226e2d7e062e9cc9123dc1ce9d37f09a130b4c73f1b95795f2e9b7968` |
+| `mapdamage2` | `bijux` | `MIT` | `https://github.com/ginolhac/mapDamage/archive/55518aa83141d8f885ce10751c22113f674e95de.tar.gz` | `2.2.2` | `sha256:a7dd300489674eeb72e28c5e99627f73840dd7a74c6efce76c1eaee8e7898c54` |
 | `metaphlan` | `bijux` | `NOASSERTION` | `https://github.com/biobakery/MetaPhlAn` | `4.1.1` | `sha256:db3f6105a8466aa493be0acc3a11f0d205a8c8b6b1f6778e95b700ac262dff92` |
 | `minimac4` | `non-bijux` | `GPL-3.0-only` | `https://github.com/statgen/Minimac4` | `4.1.6` | `sha256:5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3` |
 | `mosdepth` | `bijux` | `NOASSERTION` | `https://github.com/brentp/mosdepth` | `0.3.11` | `sha256:32105a34f76f78b6912833010dd0bf66a7ab527a2a3c267d7670ee63ff267ac8` |
