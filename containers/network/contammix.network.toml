@@ -3,4 +3,4 @@
 tool_id = "contammix"
 runtime_network = false
 build_network = true
-notes = "No runtime call-home expected; build may download pinned artifacts."
+notes = "Runtime is offline; builds fetch only the locked Ubuntu snapshot and checksum-verified upstream tag archive."

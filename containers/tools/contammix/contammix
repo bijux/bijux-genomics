@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+    --version)
+        echo 'contammix 1.0.11 (contamMix package 1.0-10)'
+        ;;
+    --help|-h|"")
+        printf '%s\n' \
+            'usage: contammix estimate --samFn INPUT.bam --malnFn ALIGNMENT.fa [OPTIONS]' \
+            '' \
+            'Estimate mitochondrial contamination with the upstream contamMix MCMC model.' \
+            'The release identity is upstream tag v1.0-11; its R package metadata is 1.0-10.' \
+            'Run "contammix estimate" without inputs for the complete upstream option reference.'
+        ;;
+    estimate)
+        shift
+        exec Rscript /usr/local/lib/R/site-library/contamMix/exec/estimate.R "$@"
+        ;;
+    *)
+        echo "contammix: unknown command: $1" >&2
+        echo 'run "contammix --help" for usage' >&2
+        exit 2
+        ;;
+esac

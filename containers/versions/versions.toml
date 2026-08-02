@@ -123,9 +123,10 @@ pinned_commit = "92d6e7969afd786ba196b019620453a965a46cdd"
 
 [contammix]
 version = "1.0.11"
-source = "https://bioconductor.org/packages/contamMix"
-date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+source = "https://github.com/plfjohnson/contamMix/archive/refs/tags/v1.0-11.tar.gz"
+date_pinned = "2026-08-02"
+pinned_commit = "46c2b9c9fa82c2507f2b084f0b37d862a0825f4b"
+source_sha256 = "1bfd53eca5554c957771daa51a2520306e90da17423dded39454ac8f23424a22"
 
 [cutadapt]
 version = "4.9"
