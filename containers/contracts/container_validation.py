@@ -241,7 +241,49 @@ def freeze_repository(commit: str, governance_path: Path) -> Path:
         text=True,
     )
     if completed.returncode != 0:
-        raise ContractError(f"cannot create frozen worktree: {completed.stderr.strip()}")
+        cleanup = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(active_repository),
+                "worktree",
+                "remove",
+                "--force",
+                "--force",
+                str(target),
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        cleanup_note = ""
+        if cleanup.returncode != 0 and target.exists():
+            cleanup_note = f"; incomplete worktree remains for inspection: {target}"
+        raise ContractError(
+            f"cannot create frozen worktree: {completed.stderr.strip()}{cleanup_note}"
+        )
+    try:
+        if git_output(target, "rev-parse", "HEAD") != commit:
+            raise ContractError("new frozen worktree has the wrong commit")
+        if git_output(target, "status", "--porcelain"):
+            raise ContractError("new frozen worktree is not clean")
+    except ContractError as exc:
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(active_repository),
+                "worktree",
+                "remove",
+                "--force",
+                "--force",
+                str(target),
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        raise ContractError(f"cannot verify frozen worktree: {exc}") from exc
     return target
 
 
