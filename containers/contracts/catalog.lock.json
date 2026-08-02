@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "b5dfa726f9a81c66657f1692bed920b7b6764fc1ee5b199fb834742517ddc280",
+  "source_sha256": "701e7a4aa62c11178c2bfa426f07cf0c708103fc7b76207cd0f497c8fb660292",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -98,12 +98,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/jdidion/atropos",
-      "license": "AGPL-3.0-or-later",
-      "source_sha256": "9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806",
+      "license": "MIT AND CC0-1.0",
+      "source_sha256": "7f23fc141336f508d4198cd491cf223082811d83a0607999c22dc80ca4ed4874",
       "pinned_commit": "916a0bfbc18149bbefb83ccff9fe2a0807415807",
       "apptainer_definition": "containers/apptainer/atropos.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.atropos",
-      "contract_sha256": "f0248834efbf1b2641e9dc1c0ada00e8c5ccc4d2574b843db419f50eda2ccf04"
+      "contract_sha256": "99ef79d9f9e56978530a77c6fa2887e72a25b95aa0a947af44ba33cf9a689928"
     },
     {
       "id": "authenticct",
