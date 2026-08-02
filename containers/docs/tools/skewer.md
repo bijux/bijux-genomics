@@ -12,7 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/skewer.license.toml](../../licenses/skewer.license.toml)
 
 - Version: `0.2.2`
-- License: `NOASSERTION`
+- License: `MIT`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

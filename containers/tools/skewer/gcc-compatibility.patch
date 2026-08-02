@@ -1,0 +1,5 @@
+--- a/src/matrix.h
++++ b/src/matrix.h
+@@ -52 +52 @@
+-	bool operator()(const ELEMENT &elem1, const ELEMENT &elem2){
++	bool operator()(const ELEMENT &elem1, const ELEMENT &elem2) const {

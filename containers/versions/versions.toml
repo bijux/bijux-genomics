@@ -450,8 +450,10 @@ source_sha256 = "dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f
 [skewer]
 version = "0.2.2"
 source = "https://github.com/relipmoc/skewer"
-date_pinned = "2026-02-12"
+date_pinned = "2026-08-02"
 pinned_commit = "978e8e46cba44595ece623e5387749284a86b74b"
+source_sha256 = "695c5f714e23ba5572e2525b7445439b632f52653e28ea46ed9988fc2f765169"
+upstream_license = "MIT"
 
 [sortmerna]
 version = "4.3.7"
