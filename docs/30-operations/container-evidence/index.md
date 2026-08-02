@@ -7,6 +7,7 @@ evidence identities.
 
 - [Ancient DNA damage](ANCIENT_DAMAGE.md)
 - [Amplicon ASV](AMPLICON_ASV.md)
+- [BAM coverage](BAM_COVERAGE.md)
 - [FASTQ to BAM](FASTQ_BAM.md)
 - [Reference complexity](REFERENCE_COMPLEXITY.md)
 - [VCF phasing](VCF_PHASING.md)
