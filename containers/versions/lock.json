@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-02T17:31:47+02:00",
+  "build_date_utc": "2026-08-02T17:43:04+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -1142,20 +1142,20 @@
       "version": "1.5.4"
     },
     {
-      "entry_sha256": "118c3e5633ed78ece88e4b054516dbca1e1a52b5d2b5248b70ebd870d7980cb7",
+      "entry_sha256": "9f6e6d4574f1b44f4db415506ae3d05cc20952fe6dd1a8e6d621db44a33aa6f2",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "0000000000000000000000000000000000000000",
+      "pinned_commit": "681a8fe013f8bed1590ff68e2f62820d2d4303c5",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://github.com/telatin/seqfu2",
-      "source_sha256": "",
+      "source": "https://github.com/telatin/seqfu2/archive/refs/tags/v1.26.0.tar.gz",
+      "source_sha256": "2b3aa5d6f983aed570d26b0cf48d910f847704d57401ef64e5b026de3dd0afff",
       "status": "production",
       "tool": "seqfu",
-      "version": "2.4.0"
+      "version": "1.26.0"
     },
     {
       "entry_sha256": "171ce57cb1b3ff9dd67aa2022bc42f5f50d8eaf7a8d8ab96b525b01126678904",
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "0ff0c43a0fea57a4aeb4441b0ccc6f8ba9df2de90e34ce1a9cf5b37d5427a9fc",
+  "source_sha256": "ce40864f690cae432170400f8f2dbb02548a433d5eaab889c3e282a3319dddff",
   "version_map_source": "artifacts/containers/version_map.json"
 }
