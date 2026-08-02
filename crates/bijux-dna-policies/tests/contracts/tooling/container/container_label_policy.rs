@@ -20,7 +20,7 @@ fn policy__contracts__container_label_policy__container_labels_include_tool_vers
             let Some(name) = path.file_name().and_then(std::ffi::OsStr::to_str) else {
                 continue;
             };
-            if !name.starts_with("Dockerfile.") {
+            if !name.starts_with("Dockerfile.arm64.") {
                 continue;
             }
             let content = std::fs::read_to_string(path).unwrap_or_default();

@@ -513,7 +513,7 @@ mod env_runtime_support_tests {
             version: Some("3.2".to_string()),
             pinned_commit: Some("git:6ec40283b87f845dbb833342633258c8e7c18333".to_string()),
             container_ref: Some("bijuxdna/alientrimmer:3.2".to_string()),
-            apptainer_def: Some("containers/apptainer/shared/alientrimmer.def".to_string()),
+            apptainer_def: Some("containers/apptainer/alientrimmer.def".to_string()),
             ..RegistryRow::default()
         };
 
@@ -529,7 +529,7 @@ mod env_runtime_support_tests {
             version: Some("2.1.3".to_string()),
             pinned_commit: Some("sha256:pending".to_string()),
             container_ref: Some("bijuxdna/kraken2@sha256:pending".to_string()),
-            apptainer_def: Some("containers/apptainer/shared/kraken2.def".to_string()),
+            apptainer_def: Some("containers/apptainer/kraken2.def".to_string()),
             ..RegistryRow::default()
         };
 
@@ -548,7 +548,7 @@ mod env_runtime_support_tests {
             version: Some("1.5-r133".to_string()),
             pinned_commit: Some(format!("sha256:{zero}")),
             container_ref: Some(format!("bijuxdna/seqtk@sha256:{zero}")),
-            apptainer_def: Some("containers/apptainer/shared/seqtk.def".to_string()),
+            apptainer_def: Some("containers/apptainer/seqtk.def".to_string()),
             ..RegistryRow::default()
         };
 

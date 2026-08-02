@@ -3,7 +3,7 @@ source_id: "source.fastq.container-dockerfiles"
 kind: "repo_directory"
 access: "repo_path"
 title: "FASTQ container dockerfiles"
-locator: "containers/docker/arm64"
+locator: "containers/docker"
 authority: "containers.docker.arm64"
 notes:
   - "This source confirms that governed FASTQ tool registry entries point at stable dockerfile paths."

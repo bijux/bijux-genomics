@@ -18,5 +18,5 @@ capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.population_structure.v1"
 comparability_notes: "Comparable only when LD pruning, missingness thresholds, PCA component count, and reference build stay identical."
 container:
-  image: "containers/docker/arm64/Dockerfile.plink2"
+  image: "containers/docker/Dockerfile.arm64.plink2"
   digest: "sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"

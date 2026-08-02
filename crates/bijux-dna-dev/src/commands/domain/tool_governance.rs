@@ -113,19 +113,17 @@ pub(super) fn check_shared_tools(workspace: &Workspace) -> Result<DomainCommandO
 
 pub(super) fn check_tool_container_parity(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     let external = external_tools(workspace)?;
-    let docker_tools = fs::read_dir(workspace.path("containers/docker/arm64"))
-        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
+    let docker_tools = fs::read_dir(workspace.path("containers/docker"))
+        .with_context(|| format!("read {}", workspace.path("containers/docker").display()))?
         .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
             let name = entry.file_name();
             let name = name.to_string_lossy();
-            name.strip_prefix("Dockerfile.").map(ToString::to_string)
+            name.strip_prefix("Dockerfile.arm64.").map(ToString::to_string)
         })
         .collect::<BTreeSet<_>>();
-    let apptainer_tools = fs::read_dir(workspace.path("containers/apptainer/shared"))
-        .with_context(|| {
-            format!("read {}", workspace.path("containers/apptainer/shared").display())
-        })?
+    let apptainer_tools = fs::read_dir(workspace.path("containers/apptainer"))
+        .with_context(|| format!("read {}", workspace.path("containers/apptainer").display()))?
         .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
             if entry.path().extension().and_then(|ext| ext.to_str()) == Some("def") {

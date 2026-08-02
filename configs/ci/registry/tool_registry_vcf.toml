@@ -36,8 +36,8 @@ expected_bin = "angsd"
 expected_artifacts = ["gl_vcf", "damage_report", "gl_provenance", "pseudohaploid_sampling_log", "gl_propagation_report", "damage_bias_audit_report"]
 metrics_schema = "bijux.vcf.gl.v1"
 comparability_notes = "Comparable only when GL model, PMD filters, and reference build are identical."
-dockerfile = "containers/docker/arm64/Dockerfile.angsd"
-apptainer_def = "containers/apptainer/shared/angsd.def"
+dockerfile = "containers/docker/Dockerfile.arm64.angsd"
+apptainer_def = "containers/apptainer/angsd.def"
 require_labels = true
 
 [[tools]]
@@ -67,8 +67,8 @@ expected_bin = "bcftools"
 expected_artifacts = ["vcf", "vcf_metrics", "gl_vcf", "gl_provenance", "damage_report", "damage_bias_audit_report", "gl_propagation_report", "pseudohaploid_sampling_log"]
 metrics_schema = "bijux.vcf.stats.v1"
 comparability_notes = "Comparable only within same stage contract and reference build."
-dockerfile = "containers/docker/arm64/Dockerfile.bcftools"
-apptainer_def = "containers/apptainer/shared/bcftools.def"
+dockerfile = "containers/docker/Dockerfile.arm64.bcftools"
+apptainer_def = "containers/apptainer/bcftools.def"
 require_labels = true
 
 [[tools]]
@@ -98,8 +98,8 @@ expected_bin = "beagle"
 expected_artifacts = ["phased_vcf", "imputed_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
 comparability_notes = "Comparable only when panel build, genetic map, and pinned Beagle profile stay identical."
-dockerfile = "containers/docker/arm64/Dockerfile.beagle"
-apptainer_def = "containers/apptainer/shared/beagle.def"
+dockerfile = "containers/docker/Dockerfile.arm64.beagle"
+apptainer_def = "containers/apptainer/beagle.def"
 require_labels = true
 
 [[tools]]
@@ -129,8 +129,8 @@ expected_bin = "eagle"
 expected_artifacts = ["phased_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
 comparability_notes = "External planned tool for phasing; containerization pending."
-dockerfile = "containers/docker/arm64/Dockerfile.eagle"
-apptainer_def = "containers/apptainer/shared/eagle.def"
+dockerfile = "containers/docker/Dockerfile.arm64.eagle"
+apptainer_def = "containers/apptainer/eagle.def"
 require_labels = true
 
 [[tools]]
@@ -160,8 +160,8 @@ expected_bin = "smartpca"
 expected_artifacts = ["pca_report", "population_structure_report", "metrics.json"]
 metrics_schema = "bijux.vcf.population_structure.v1"
 comparability_notes = "Comparable only when the EIGENSTRAT conversion path, smartpca projection settings, and reference build stay identical."
-dockerfile = "containers/docker/arm64/Dockerfile.eigensoft"
-apptainer_def = "containers/apptainer/shared/eigensoft.def"
+dockerfile = "containers/docker/Dockerfile.arm64.eigensoft"
+apptainer_def = "containers/apptainer/eigensoft.def"
 require_labels = true
 
 [[tools]]
@@ -191,8 +191,8 @@ expected_bin = "germline"
 expected_artifacts = ["ibd_segments", "metrics.json"]
 metrics_schema = "bijux.vcf.ibd.v1"
 comparability_notes = "Planned tool; compare only within pinned profile and reference build."
-dockerfile = "containers/docker/arm64/Dockerfile.germline"
-apptainer_def = "containers/apptainer/shared/germline.def"
+dockerfile = "containers/docker/Dockerfile.arm64.germline"
+apptainer_def = "containers/apptainer/germline.def"
 require_labels = true
 
 [[tools]]
@@ -222,8 +222,8 @@ expected_bin = "glimpse"
 expected_artifacts = ["imputed_vcf"]
 metrics_schema = "bijux.vcf.imputation_metrics.v1"
 comparability_notes = "External planned tool for low-coverage/aDNA-oriented imputation workflows."
-dockerfile = "containers/docker/arm64/Dockerfile.glimpse"
-apptainer_def = "containers/apptainer/shared/glimpse.def"
+dockerfile = "containers/docker/Dockerfile.arm64.glimpse"
+apptainer_def = "containers/apptainer/glimpse.def"
 require_labels = true
 
 [[tools]]
@@ -253,8 +253,8 @@ expected_bin = "ibdhap"
 expected_artifacts = ["ibd_segments", "ibd_haplotype_report", "metrics.json"]
 metrics_schema = "bijux.vcf.ibd.v1"
 comparability_notes = "Planned tool; compare only within pinned profile and reference build."
-dockerfile = "containers/docker/arm64/Dockerfile.ibdhap"
-apptainer_def = "containers/apptainer/shared/ibdhap.def"
+dockerfile = "containers/docker/Dockerfile.arm64.ibdhap"
+apptainer_def = "containers/apptainer/ibdhap.def"
 require_labels = true
 
 [[tools]]
@@ -284,8 +284,8 @@ expected_bin = "ibdne"
 expected_artifacts = ["demography_report", "metrics.json"]
 metrics_schema = "bijux.vcf.demography.v1"
 comparability_notes = "Planned tool; compare only within pinned profile and reference build."
-dockerfile = "containers/docker/arm64/Dockerfile.ibdne"
-apptainer_def = "containers/apptainer/shared/ibdne.def"
+dockerfile = "containers/docker/Dockerfile.arm64.ibdne"
+apptainer_def = "containers/apptainer/ibdne.def"
 require_labels = true
 
 [[tools]]
@@ -315,8 +315,8 @@ expected_bin = "ibdseq"
 expected_artifacts = ["ibd_segments", "metrics.json"]
 metrics_schema = "bijux.vcf.ibd.v1"
 comparability_notes = "Planned tool; compare only within pinned profile and reference build."
-dockerfile = "containers/docker/arm64/Dockerfile.ibdseq"
-apptainer_def = "containers/apptainer/shared/ibdseq.def"
+dockerfile = "containers/docker/Dockerfile.arm64.ibdseq"
+apptainer_def = "containers/apptainer/ibdseq.def"
 require_labels = true
 
 [[tools]]
@@ -346,8 +346,8 @@ expected_bin = "impute5"
 expected_artifacts = ["imputed_vcf"]
 metrics_schema = "bijux.vcf.imputation_metrics.v1"
 comparability_notes = "External planned tool pending container policy and licensing review."
-dockerfile = "containers/docker/arm64/Dockerfile.impute5"
-apptainer_def = "containers/apptainer/shared/impute5.def"
+dockerfile = "containers/docker/Dockerfile.arm64.impute5"
+apptainer_def = "containers/apptainer/impute5.def"
 require_labels = true
 
 [[tools]]
@@ -377,8 +377,8 @@ expected_bin = "minimac4"
 expected_artifacts = ["imputed_vcf"]
 metrics_schema = "bijux.vcf.imputation_metrics.v1"
 comparability_notes = "External planned tool for imputation; containerization pending."
-dockerfile = "containers/docker/arm64/Dockerfile.minimac4"
-apptainer_def = "containers/apptainer/shared/minimac4.def"
+dockerfile = "containers/docker/Dockerfile.arm64.minimac4"
+apptainer_def = "containers/apptainer/minimac4.def"
 require_labels = true
 
 [[tools]]
@@ -395,7 +395,7 @@ license = "GPL-3.0"
 citation = "planned"
 pinned_commit = "planned"
 pin_strategy = "container_digest"
-container_ref = "containers/docker/arm64/Dockerfile.plink@planned"
+container_ref = "containers/docker/Dockerfile.arm64.plink@planned"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "plink --version"
@@ -408,8 +408,8 @@ expected_bin = "plink"
 expected_artifacts = ["qc_report", "admixture_report", "population_structure_report", "metrics.json"]
 metrics_schema = "bijux.vcf.population_structure.v1"
 comparability_notes = "Planned tool; compare only within pinned profile and reference build."
-dockerfile = "containers/docker/arm64/Dockerfile.plink"
-apptainer_def = "containers/apptainer/shared/plink.def"
+dockerfile = "containers/docker/Dockerfile.arm64.plink"
+apptainer_def = "containers/apptainer/plink.def"
 require_labels = true
 
 [[tools]]
@@ -426,7 +426,7 @@ license = "GPL-3.0"
 citation = "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4342193/"
 pinned_commit = "sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"
 pin_strategy = "container_digest"
-container_ref = "containers/docker/arm64/Dockerfile.plink2@sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"
+container_ref = "containers/docker/Dockerfile.arm64.plink2@sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "plink2 --version"
@@ -439,8 +439,8 @@ expected_bin = "plink2"
 expected_artifacts = ["qc_report", "pca_report", "admixture_report", "population_structure_report", "roh_report", "metrics.json"]
 metrics_schema = "bijux.vcf.population_structure.v1"
 comparability_notes = "Comparable only when LD pruning, missingness thresholds, PCA component count, and reference build stay identical."
-dockerfile = "containers/docker/arm64/Dockerfile.plink2"
-apptainer_def = "containers/apptainer/shared/plink2.def"
+dockerfile = "containers/docker/Dockerfile.arm64.plink2"
+apptainer_def = "containers/apptainer/plink2.def"
 require_labels = true
 
 [[tools]]
@@ -470,8 +470,8 @@ expected_bin = "shapeit5"
 expected_artifacts = ["phased_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
 comparability_notes = "Comparable only when panel build, genetic map, and pinned Shapeit5 profile stay identical."
-dockerfile = "containers/docker/arm64/Dockerfile.shapeit5"
-apptainer_def = "containers/apptainer/shared/shapeit5.def"
+dockerfile = "containers/docker/Dockerfile.arm64.shapeit5"
+apptainer_def = "containers/apptainer/shapeit5.def"
 require_labels = true
 
 [[stages]]

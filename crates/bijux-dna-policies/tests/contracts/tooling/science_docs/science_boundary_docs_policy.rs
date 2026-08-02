@@ -260,7 +260,7 @@ fn policy__contracts__science_boundary_docs_policy__container_promotion_policy_l
         "../README.md".to_string(),
         "../index.md".to_string(),
         "VERSION_AUTHORITY.md".to_string(),
-        "../apptainer/shared/NON_BIJUX_SOURCES.md".to_string(),
+        "UPSTREAM_SOURCES.md".to_string(),
         "../versions/versions.toml".to_string(),
         "../versions/LOCK.md".to_string(),
         "../OWNERS.toml".to_string(),
@@ -373,9 +373,9 @@ fn policy__contracts__science_boundary_docs_policy__container_ghcr_publish_doc_l
         "../../.github/workflows/publish-ghcr-apptainer-images.yml".to_string(),
         "../versions/versions.toml".to_string(),
         "../../configs/ci/registry/".to_string(),
-        "../docker/arm64/".to_string(),
-        "../apptainer/shared/".to_string(),
-        "../apptainer/shared/NON_BIJUX_SOURCES.md".to_string(),
+        "../docker/".to_string(),
+        "../apptainer/".to_string(),
+        "UPSTREAM_SOURCES.md".to_string(),
     ]);
     let documented = markdown_link_targets("containers/docs/GHCR_PUBLISH.md")
         .into_iter()
@@ -385,6 +385,7 @@ fn policy__contracts__science_boundary_docs_policy__container_ghcr_publish_doc_l
                 || target.starts_with("../../configs/")
                 || target == "VERSION_AUTHORITY.md"
                 || target == "RELEASE_CHECKLIST.md"
+                || target == "UPSTREAM_SOURCES.md"
         })
         .collect::<BTreeSet<_>>();
     assert_eq!(
@@ -471,8 +472,8 @@ fn policy__contracts__science_boundary_docs_policy__container_style_doc_links_go
         "../index.md".to_string(),
         "../docker/NONROOT_EXCEPTIONS.md".to_string(),
         "../docker/ENTRYPOINT_EXCEPTIONS.md".to_string(),
-        "../apptainer/shared/NON_BIJUX_SOURCES.md".to_string(),
-        "../apptainer/shared/TEMPLATE.def.inc".to_string(),
+        "UPSTREAM_SOURCES.md".to_string(),
+        "../contracts/apptainer-recipe-contract.def.inc".to_string(),
     ]);
     let documented = markdown_link_targets("containers/docs/STYLE.md");
     assert_eq!(
@@ -488,7 +489,7 @@ fn policy__contracts__science_boundary_docs_policy__licensing_reference_doc_link
         "../../LICENSE".to_string(),
         "../../containers/licenses/README.md".to_string(),
         "../../containers/versions/versions.toml".to_string(),
-        "../../containers/apptainer/shared/NON_BIJUX_SOURCES.md".to_string(),
+        "../../containers/docs/UPSTREAM_SOURCES.md".to_string(),
     ]);
     let documented = markdown_link_targets("docs/50-reference/LICENSING.md");
     assert_eq!(
@@ -671,7 +672,7 @@ fn policy__contracts__science_boundary_docs_policy__container_docs_index_links_g
         "../TOOL_IDS.txt".to_string(),
         "../versions/versions.toml".to_string(),
         "../versions/lock.json".to_string(),
-        "../apptainer/shared/NON_BIJUX_SOURCES.md".to_string(),
+        "UPSTREAM_SOURCES.md".to_string(),
         "../OWNERS.toml".to_string(),
     ]);
     let documented = markdown_link_targets("containers/docs/index.md");

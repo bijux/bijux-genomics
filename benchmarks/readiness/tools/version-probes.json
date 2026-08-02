@@ -1316,7 +1316,7 @@
         "vcf.roh"
       ],
       "resolution_kind": "docker_image",
-      "resolution_target": "containers/docker/arm64/Dockerfile.plink2@sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec",
+      "resolution_target": "containers/docker/Dockerfile.arm64.plink2@sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec",
       "version_probe_status": "ready",
       "command_entrypoint": "plink2",
       "version_cmd": "plink2 --version",

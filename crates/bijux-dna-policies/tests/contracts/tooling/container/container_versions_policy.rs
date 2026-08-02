@@ -39,19 +39,16 @@ fn policy__contracts__container_versions_policy__each_container_definition_has_v
         .unwrap_or_else(|| panic!("{} must be TOML table", versions_path.display()));
 
     let mut expected = BTreeSet::new();
-    for entry in
-        WalkDir::new(root.join("containers/docker/arm64")).into_iter().filter_map(Result::ok)
-    {
+    for entry in WalkDir::new(root.join("containers/docker")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
         let name = entry.file_name().to_string_lossy();
-        if let Some(id) = name.strip_prefix("Dockerfile.") {
+        if let Some(id) = name.strip_prefix("Dockerfile.arm64.") {
             expected.insert(id.to_string());
         }
     }
-    for entry in
-        WalkDir::new(root.join("containers/apptainer/shared")).into_iter().filter_map(Result::ok)
+    for entry in WalkDir::new(root.join("containers/apptainer")).into_iter().filter_map(Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
@@ -100,9 +97,7 @@ fn policy__contracts__container_versions_policy__no_latest_floating_or_unpinned_
     let root = support::workspace_root();
     let mut offenders = Vec::new();
 
-    for entry in
-        WalkDir::new(root.join("containers/docker/arm64")).into_iter().filter_map(Result::ok)
-    {
+    for entry in WalkDir::new(root.join("containers/docker")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -110,7 +105,7 @@ fn policy__contracts__container_versions_policy__no_latest_floating_or_unpinned_
         let Some(name) = path.file_name().and_then(std::ffi::OsStr::to_str) else {
             continue;
         };
-        if !name.starts_with("Dockerfile.") {
+        if !name.starts_with("Dockerfile.arm64.") {
             continue;
         }
         let content = std::fs::read_to_string(path).unwrap_or_default();
@@ -130,8 +125,7 @@ fn policy__contracts__container_versions_policy__no_latest_floating_or_unpinned_
         }
     }
 
-    for entry in
-        WalkDir::new(root.join("containers/apptainer/shared")).into_iter().filter_map(Result::ok)
+    for entry in WalkDir::new(root.join("containers/apptainer")).into_iter().filter_map(Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;

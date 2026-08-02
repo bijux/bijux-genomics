@@ -541,8 +541,8 @@ mod tests {
             docker_runtime: "docker-arm64".to_string(),
             image_uri: "docker-daemon://bijuxdna/adapterremoval:2.3.3-arm64".to_string(),
             local_image_name: "bijuxdna/adapterremoval:2.3.3-arm64".to_string(),
-            dockerfile: "containers/docker/arm64/Dockerfile.adapterremoval".to_string(),
-            apptainer_def: "containers/apptainer/shared/adapterremoval.def".to_string(),
+            dockerfile: "containers/docker/Dockerfile.arm64.adapterremoval".to_string(),
+            apptainer_def: "containers/apptainer/adapterremoval.def".to_string(),
             apptainer_cache_key: "abc123".to_string(),
             cache_root: APPTAINER_CACHE_ROOT_TEMPLATE.to_string(),
             expected_sif_path:

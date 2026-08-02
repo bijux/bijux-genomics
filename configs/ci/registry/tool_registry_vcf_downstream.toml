@@ -38,8 +38,8 @@ expected_bin = "beagle"
 expected_artifacts = ["phased_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
 comparability_notes = "planned"
-apptainer_def = "containers/apptainer/shared/beagle.def"
-dockerfile = "containers/docker/arm64/Dockerfile.beagle"
+apptainer_def = "containers/apptainer/beagle.def"
+dockerfile = "containers/docker/Dockerfile.arm64.beagle"
 require_labels = true
 
 [[tools]]
@@ -75,8 +75,8 @@ expected_bin = "angsd"
 expected_artifacts = ["gl_vcf", "damage_report", "gl_provenance", "pseudohaploid_sampling_log", "gl_propagation_report", "damage_bias_audit_report"]
 metrics_schema = "bijux.vcf.gl.v1"
 comparability_notes = "Comparable only when GL model, PMD filters, and reference build are identical."
-dockerfile = "containers/docker/arm64/Dockerfile.angsd"
-apptainer_def = "containers/apptainer/shared/angsd.def"
+dockerfile = "containers/docker/Dockerfile.arm64.angsd"
+apptainer_def = "containers/apptainer/angsd.def"
 require_labels = true
 
 [[tools]]
@@ -112,7 +112,7 @@ expected_bin = "shapeit"
 expected_artifacts = ["phased_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
 comparability_notes = "planned"
-apptainer_def = "containers/apptainer/shared/shapeit.def"
+apptainer_def = "containers/apptainer/shapeit.def"
 require_labels = true
 
 [[tools]]
@@ -147,8 +147,8 @@ expected_bin = "plink"
 expected_artifacts = ["qc_report", "admixture_report"]
 metrics_schema = "bijux.vcf.qc.v1"
 comparability_notes = "planned"
-dockerfile = "containers/docker/arm64/Dockerfile.plink"
-apptainer_def = "containers/apptainer/shared/plink.def"
+dockerfile = "containers/docker/Dockerfile.arm64.plink"
+apptainer_def = "containers/apptainer/plink.def"
 require_labels = true
 
 [[tools]]
@@ -183,8 +183,8 @@ expected_bin = "plink2"
 expected_artifacts = ["analysis_report"]
 metrics_schema = "bijux.vcf.pca.v1"
 comparability_notes = "planned"
-dockerfile = "containers/docker/arm64/Dockerfile.plink2"
-apptainer_def = "containers/apptainer/shared/plink2.def"
+dockerfile = "containers/docker/Dockerfile.arm64.plink2"
+apptainer_def = "containers/apptainer/plink2.def"
 require_labels = true
 
 [[tools]]
@@ -220,8 +220,8 @@ expected_bin = "smartpca"
 expected_artifacts = ["pca_report"]
 metrics_schema = "bijux.vcf.pca.v1"
 comparability_notes = "planned"
-apptainer_def = "containers/apptainer/shared/eigensoft.def"
-dockerfile = "containers/docker/arm64/Dockerfile.eigensoft"
+apptainer_def = "containers/apptainer/eigensoft.def"
+dockerfile = "containers/docker/Dockerfile.arm64.eigensoft"
 require_labels = true
 
 [[tools]]
@@ -257,8 +257,8 @@ expected_bin = "germline"
 expected_artifacts = ["ibd_segments"]
 metrics_schema = "bijux.vcf.ibd.v1"
 comparability_notes = "planned"
-apptainer_def = "containers/apptainer/shared/germline.def"
-dockerfile = "containers/docker/arm64/Dockerfile.germline"
+apptainer_def = "containers/apptainer/germline.def"
+dockerfile = "containers/docker/Dockerfile.arm64.germline"
 require_labels = true
 
 [[tools]]
@@ -294,7 +294,7 @@ expected_bin = "ibdseq"
 expected_artifacts = ["ibd_segments"]
 metrics_schema = "bijux.vcf.ibd.v1"
 comparability_notes = "planned"
-apptainer_def = "containers/apptainer/shared/ibdseq.def"
+apptainer_def = "containers/apptainer/ibdseq.def"
 require_labels = true
 
 [[tools]]
@@ -330,8 +330,8 @@ expected_bin = "ibdhap"
 expected_artifacts = ["ibd_segments"]
 metrics_schema = "bijux.vcf.ibd.v1"
 comparability_notes = "planned"
-apptainer_def = "containers/apptainer/shared/ibdhap.def"
-dockerfile = "containers/docker/arm64/Dockerfile.ibdhap"
+apptainer_def = "containers/apptainer/ibdhap.def"
+dockerfile = "containers/docker/Dockerfile.arm64.ibdhap"
 require_labels = true
 
 [[tools]]
@@ -367,8 +367,8 @@ expected_bin = "ibdne"
 expected_artifacts = ["demography_report"]
 metrics_schema = "bijux.vcf.ibd.v1"
 comparability_notes = "planned"
-apptainer_def = "containers/apptainer/shared/ibdne.def"
-dockerfile = "containers/docker/arm64/Dockerfile.ibdne"
+apptainer_def = "containers/apptainer/ibdne.def"
+dockerfile = "containers/docker/Dockerfile.arm64.ibdne"
 require_labels = true
 
 [[tools]]
@@ -404,8 +404,8 @@ expected_bin = "glimpse"
 expected_artifacts = ["imputed_vcf"]
 metrics_schema = "bijux.vcf.imputation_metrics.v1"
 comparability_notes = "planned"
-dockerfile = "containers/docker/arm64/Dockerfile.glimpse"
-apptainer_def = "containers/apptainer/shared/glimpse.def"
+dockerfile = "containers/docker/Dockerfile.arm64.glimpse"
+apptainer_def = "containers/apptainer/glimpse.def"
 require_labels = true
 
 [[tools]]
@@ -441,8 +441,8 @@ expected_bin = "impute5"
 expected_artifacts = ["imputed_vcf"]
 metrics_schema = "bijux.vcf.imputation_metrics.v1"
 comparability_notes = "planned"
-dockerfile = "containers/docker/arm64/Dockerfile.impute5"
-apptainer_def = "containers/apptainer/shared/impute5.def"
+dockerfile = "containers/docker/Dockerfile.arm64.impute5"
+apptainer_def = "containers/apptainer/impute5.def"
 require_labels = true
 
 [[tools]]
@@ -478,8 +478,8 @@ expected_bin = "shapeit5"
 expected_artifacts = ["phased_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
 comparability_notes = "planned"
-dockerfile = "containers/docker/arm64/Dockerfile.shapeit5"
-apptainer_def = "containers/apptainer/shared/shapeit5.def"
+dockerfile = "containers/docker/Dockerfile.arm64.shapeit5"
+apptainer_def = "containers/apptainer/shapeit5.def"
 require_labels = true
 
 [[tools]]
@@ -515,8 +515,8 @@ expected_bin = "eagle"
 expected_artifacts = ["phased_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
 comparability_notes = "planned"
-dockerfile = "containers/docker/arm64/Dockerfile.eagle"
-apptainer_def = "containers/apptainer/shared/eagle.def"
+dockerfile = "containers/docker/Dockerfile.arm64.eagle"
+apptainer_def = "containers/apptainer/eagle.def"
 require_labels = true
 
 [[tools]]
@@ -552,6 +552,6 @@ expected_bin = "minimac4"
 expected_artifacts = ["imputed_vcf"]
 metrics_schema = "bijux.vcf.imputation_metrics.v1"
 comparability_notes = "planned"
-dockerfile = "containers/docker/arm64/Dockerfile.minimac4"
-apptainer_def = "containers/apptainer/shared/minimac4.def"
+dockerfile = "containers/docker/Dockerfile.arm64.minimac4"
+apptainer_def = "containers/apptainer/minimac4.def"
 require_labels = true

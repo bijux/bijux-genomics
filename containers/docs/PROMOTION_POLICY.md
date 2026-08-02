@@ -14,7 +14,7 @@ surfaces this promotion policy depends on.
 1. License clarity:
    - Registry entry has a known license.
    - Non-bijux tools are present in
-     [containers/apptainer/shared/NON_BIJUX_SOURCES.md](../apptainer/shared/NON_BIJUX_SOURCES.md).
+     [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).
 2. Provenance:
    - Upstream source URL and checksum are recorded.
    - Version row exists in [containers/versions/versions.toml](../versions/versions.toml).

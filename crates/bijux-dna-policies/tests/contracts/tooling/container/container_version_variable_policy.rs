@@ -18,7 +18,7 @@ fn policy__contracts__container_version_variable_policy__container_definitions_d
         let Some(name) = path.file_name().and_then(std::ffi::OsStr::to_str) else {
             continue;
         };
-        if !name.starts_with("Dockerfile.") {
+        if !name.starts_with("Dockerfile.arm64.") {
             continue;
         }
         let raw = std::fs::read_to_string(path).unwrap_or_default();

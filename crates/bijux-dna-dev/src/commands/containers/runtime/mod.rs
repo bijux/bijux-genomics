@@ -328,7 +328,7 @@ pub(super) fn check_bijux_apptainer_built(
         .collect::<BTreeMap<_, _>>();
     let bijux_defs = apptainer_def_paths(workspace)
         .into_iter()
-        .filter(|path| path.starts_with(workspace.path("containers/apptainer/shared")))
+        .filter(|path| path.starts_with(workspace.path("containers/apptainer")))
         .filter_map(|path| path.file_stem().and_then(|name| name.to_str()).map(ToOwned::to_owned))
         .collect::<Vec<_>>();
     let mut errors = Vec::new();
@@ -419,7 +419,7 @@ pub(super) fn check_missing_images(workspace: &Workspace) -> Result<ContainerCom
 }
 
 pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let sources_doc = workspace.path("containers/apptainer/shared/NON_BIJUX_SOURCES.md");
+    let sources_doc = workspace.path("containers/docs/UPSTREAM_SOURCES.md");
     if !sources_doc.exists() {
         return Ok(ContainerCommandOutcome::failure(format!(
             "missing required provenance index: {}\n",
@@ -460,7 +460,7 @@ pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<Container
             errors.push(format!("{tool_id}: missing row in NON_BIJUX_SOURCES.md"));
             continue;
         };
-        let expected_path = format!("containers/apptainer/shared/{tool_id}.def");
+        let expected_path = format!("containers/apptainer/{tool_id}.def");
         if def_path != &expected_path {
             errors.push(format!(
                 "{tool_id}: def path mismatch, expected {expected_path}, got {def_path}"

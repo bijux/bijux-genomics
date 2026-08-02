@@ -49,7 +49,7 @@ fn vcf_registry_stage_ids(index: &DomainIndex, tool: &DomainToolLoose) -> Vec<St
 }
 
 fn vcf_apptainer_def(tool: &DomainToolLoose) -> String {
-    let shared = format!("containers/apptainer/shared/{}.def", tool.tool_id);
+    let shared = format!("containers/apptainer/{}.def", tool.tool_id);
     if Path::new(&shared).exists() {
         return shared;
     }
@@ -68,7 +68,7 @@ fn vcf_apptainer_def(tool: &DomainToolLoose) -> String {
 }
 
 fn vcf_dockerfile(tool: &DomainToolLoose) -> String {
-    format!("containers/docker/arm64/Dockerfile.{}", tool.tool_id)
+    format!("containers/docker/Dockerfile.arm64.{}", tool.tool_id)
 }
 
 fn vcf_expected_version_regex(expected_bin: &str) -> String {

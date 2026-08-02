@@ -95,11 +95,11 @@ pub(in super::super) fn check_rebuild_repro(
             })
         }
     };
-    let dockerfile = workspace.path(&format!("containers/docker/arm64/Dockerfile.{tool}"));
+    let dockerfile = workspace.path(&format!("containers/docker/Dockerfile.arm64.{tool}"));
     if !dockerfile.is_file() {
         return success_line(format!("rebuild-repro: skip (no dockerfile for {tool})"));
     }
-    let context = workspace.path("containers/docker/arm64");
+    let context = workspace.path("containers/docker");
     let image1 = format!("bijux-repro/{tool}:run1");
     let image2 = format!("bijux-repro/{tool}:run2");
     let build_args = |image: &str| -> Vec<String> {
@@ -202,7 +202,7 @@ pub(in super::super) fn check_apptainer_rebuild_repro(
             })
         }
     };
-    let definition = workspace.path(&format!("containers/apptainer/shared/{tool}.def"));
+    let definition = workspace.path(&format!("containers/apptainer/{tool}.def"));
     if !definition.is_file() {
         return success_line(format!("apptainer rebuild repro: skip (no def for {tool})"));
     }

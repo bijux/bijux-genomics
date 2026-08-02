@@ -855,8 +855,7 @@ pub(super) fn check_version_authority(workspace: &Workspace) -> Result<Container
     }
 
     let version_source_marker = "VERSION_SOURCE: containers/versions/versions.toml";
-    for root in [workspace.path("containers/apptainer"), workspace.path("containers/docker/arm64")]
-    {
+    for root in [workspace.path("containers/apptainer"), workspace.path("containers/docker")] {
         for entry in walkdir::WalkDir::new(&root)
             .into_iter()
             .filter_map(std::result::Result::ok)
@@ -865,7 +864,7 @@ pub(super) fn check_version_authority(workspace: &Workspace) -> Result<Container
             let ext = entry.path().extension().and_then(|ext| ext.to_str());
             let file_name =
                 entry.path().file_name().and_then(|name| name.to_str()).unwrap_or_default();
-            if ext != Some("def") && !file_name.starts_with("Dockerfile.") {
+            if ext != Some("def") && !file_name.starts_with("Dockerfile.arm64.") {
                 continue;
             }
             let raw = read_utf8(entry.path()).unwrap_or_default();
