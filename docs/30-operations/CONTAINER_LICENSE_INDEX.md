@@ -96,7 +96,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `seqpurge` | `bijux` | `NOASSERTION` | `https://github.com/imgag/ngs-bits` | `2026_06` | `sha256:16bac795ea14ad2ed635435bffd9b5d4de2939bc0b9ed2e87cf0889be91ad4ed` |
 | `seqtk` | `bijux` | `NOASSERTION` | `https://github.com/lh3/seqtk.git` | `1.4` | `sha256:c200063b416c6a64fa4655669e904ba17df01433877a99d6764c91006d8e1ab2` |
 | `shapeit` | `bijux` | `MIT` | `https://github.com/odelaneau/shapeit4` | `4.2.2` | `sha256:2ee4e369ada23e58d6d3bbb4e0ac7a252b2769f24d63fc635ffbbace0f2b3ce9` |
-| `shapeit5` | `non-bijux` | `MIT` | `https://odelaneau.github.io/shapeit5/` | `5.1.1` | `sha256:1111111111111111111111111111111111111111111111111111111111111111` |
+| `shapeit5` | `non-bijux` | `MIT` | `https://github.com/odelaneau/shapeit/archive/c34d4db3e99a2f7e23deb727671ae260901a5886.tar.gz` | `5.1.1` | `sha256:dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8` |
 | `skewer` | `bijux` | `NOASSERTION` | `https://github.com/relipmoc/skewer` | `0.2.2` | `sha256:68e2009aa40c4d67541668619dbc8cab89983adf2ede293bf89acc8834bbcfc0` |
 | `sortmerna` | `bijux` | `NOASSERTION` | `https://github.com/biocore/sortmerna` | `4.3.7` | `sha256:c82be49fb7077411860e0d4e3c28b422c2930312ec70168bdb17d96483d613ee` |
 | `spades` | `bijux` | `NOASSERTION` | `https://github.com/ablab/spades` | `4.0.0` | `sha256:bd9a84eff7621bf1e21225325bccb311c06f634999d75b1e1471060f4d929eac` |

@@ -116,7 +116,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `seqpurge` | `experimental` | `bijux` | `arm64` |
 | `seqtk` | `production` | `bijux` | `arm64` |
 | `shapeit` | `planned` | `bijux` | `none` |
-| `shapeit5` | `experimental` | `non-bijux` | `arm64` |
+| `shapeit5` | `production` | `non-bijux` | `none` |
 | `skewer` | `production` | `bijux` | `arm64` |
 | `sortmerna` | `production` | `bijux` | `arm64` |
 | `spades` | `experimental` | `bijux` | `arm64` |

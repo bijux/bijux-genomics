@@ -37,7 +37,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 - `plink` (experimental) : vcf.qc, vcf.admixture
 - `plink2` (experimental) : vcf.qc, vcf.pca, vcf.population_structure, vcf.roh, vcf.admixture
 - `shapeit` (planned) : vcf.phasing
-- `shapeit5` (experimental) : vcf.phasing
+- `shapeit5` (production) : vcf.phasing
 
 | Tool ID | Purpose | Stage Bindings | Container Ref | Version | Citation | Status |
 |---|---|---|---|---|---|---|
@@ -111,7 +111,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `seqkit_stats` | `transform` | `fastq.profile_read_lengths, fastq.profile_reads` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.7.0` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5051824/ | `production` |
 | `seqtk` | `validator` | `fastq.validate_reads` | `bijuxdna/seqtk@sha256:16e615286a66f1654278a862ad47c3d62bdfabbbf17cb2e12a568256d1b05024` | `1.5-r133` | software:https://github.com/lh3/seqtk | `production` |
 | `shapeit` | `phasing` | `vcf.phasing` | `registry_lock` | `4.2.2-planned` | planned | `planned` |
-| `shapeit5` | `phasing` | `vcf.phasing` | `registry_lock` | `5.4` | planned | `experimental` |
+| `shapeit5` | `phasing` | `vcf.phasing` | `registry_lock` | `5.1.1` | paper:https://www.nature.com/articles/s41588-023-01415-w | `production` |
 | `skewer` | `trimmer` | `fastq.trim_reads` | `bijuxdna/skewer:978e8e46cba4` | `978e8e46cba4` | paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-182 | `production` |
 | `sortmerna` | `transform` | `fastq.deplete_rrna` | `bijuxdna/sortmerna@sha256:2021b21d075d06404339ec019b9729f2dfb820685c86835df654c2fb7d8b447c` | `4.3.7` | paper:https://academic.oup.com/bioinformatics/article/28/24/3211/246053 | `production` |
 | `star` | `transform` | `fastq.index_reference` | `bijuxdna/star:2.7.11b` | `2.7.11b` | paper:https://academic.oup.com/bioinformatics/article/29/1/15/272537 | `production` |

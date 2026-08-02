@@ -89,7 +89,7 @@
 | `seqpurge` | `seqpurge` | `experimental` |
 | `seqtk` | `seqtk` | `production` |
 | `shapeit` | `shapeit` | `planned` |
-| `shapeit5` | `shapeit5` | `experimental` |
+| `shapeit5` | `shapeit5` | `production` |
 | `skewer` | `skewer` | `production` |
 | `sortmerna` | `sortmerna` | `production` |
 | `spades` | `spades.py` | `experimental` |
