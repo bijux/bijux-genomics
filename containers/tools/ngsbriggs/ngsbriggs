@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+    --version)
+        echo 'ngsbriggs 0.01 (commit ab3b5ae8a388b9b1874dd2854fdec32bd9195f22)'
+        ;;
+    --help|-h|"")
+        /usr/local/libexec/ngsbriggs 2>&1 || true
+        ;;
+    *)
+        exec /usr/local/libexec/ngsbriggs "$@"
+        ;;
+esac
