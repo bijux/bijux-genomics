@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use bijux_dna_domain_bam::metrics::SexConfidenceClass;
 use bijux_dna_domain_bam::metrics::{
     parse_contamination_json, parse_damageprofiler_json, parse_mapdamage2_misincorporation,
     parse_mosdepth_summary, parse_picard_gc_bias_metrics, parse_picard_insert_size_metrics,
@@ -62,5 +63,14 @@ fn parse_bam_fixtures_roundtrip() -> anyhow::Result<()> {
     let gc_bias = parse_picard_gc_bias_metrics(&fixture_path("gc_bias.metrics.txt"))?;
     assert!(gc_bias.total_clusters >= gc_bias.aligned_reads);
 
+    Ok(())
+}
+
+#[test]
+fn parse_sex_json_honors_explicit_r_y_classification() -> anyhow::Result<()> {
+    let sex = parse_sex_json(&fixture_path("rxy_female.json"))?;
+    assert_eq!(sex.classification, SexConfidenceClass::Female);
+    assert!(sex.sufficient_data);
+    assert_eq!(sex.x_to_y_ratio, 0.0);
     Ok(())
 }

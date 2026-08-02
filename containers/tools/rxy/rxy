@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+"""Infer chromosomal sex from X/Y mapped-read counts."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import math
+import subprocess
+import sys
+from pathlib import Path
+from typing import Iterable, TextIO
+
+VERSION = "1.0.0"
+DEFAULT_X_CONTIGS = ("X", "chrX")
+DEFAULT_Y_CONTIGS = ("Y", "chrY")
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="rxy",
+        description=(
+            "Infer chromosomal sex using the R_y proportion of Y-aligned reads "
+            "among reads aligned to X or Y."
+        ),
+    )
+    parser.add_argument("--version", action="version", version=f"rxy {VERSION}")
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--input", type=Path, metavar="BAM", help="indexed input BAM")
+    source.add_argument(
+        "--idxstats",
+        type=Path,
+        metavar="TSV",
+        help="existing samtools idxstats output",
+    )
+    parser.add_argument(
+        "--x-contig",
+        action="append",
+        dest="x_contigs",
+        metavar="NAME",
+        help="exact X contig name; repeat to accept aliases",
+    )
+    parser.add_argument(
+        "--y-contig",
+        action="append",
+        dest="y_contigs",
+        metavar="NAME",
+        help="exact Y contig name; repeat to accept aliases",
+    )
+    parser.add_argument("--female-limit", type=float, default=0.016)
+    parser.add_argument("--male-limit", type=float, default=0.075)
+    parser.add_argument("--minimum-sex-reads", type=int, default=100)
+    return parser
+
+
+def _idxstats_from_bam(path: Path) -> str:
+    completed = subprocess.run(
+        ["samtools", "idxstats", str(path)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return completed.stdout
+
+
+def _mapped_counts(lines: Iterable[str], x_contigs: set[str], y_contigs: set[str]) -> tuple[int, int, int]:
+    total = 0
+    x_reads = 0
+    y_reads = 0
+    for line_number, raw in enumerate(lines, start=1):
+        line = raw.strip()
+        if not line:
+            continue
+        fields = line.split("\t")
+        if len(fields) < 4:
+            raise ValueError(f"idxstats line {line_number} has fewer than four columns")
+        try:
+            mapped = int(fields[2])
+        except ValueError as error:
+            raise ValueError(f"idxstats line {line_number} has a non-integer mapped count") from error
+        if mapped < 0:
+            raise ValueError(f"idxstats line {line_number} has a negative mapped count")
+        contig = fields[0]
+        total += mapped
+        if contig in x_contigs:
+            x_reads += mapped
+        if contig in y_contigs:
+            y_reads += mapped
+    return total, x_reads, y_reads
+
+
+def _report(
+    total: int,
+    x_reads: int,
+    y_reads: int,
+    female_limit: float,
+    male_limit: float,
+    minimum_sex_reads: int,
+) -> dict[str, object]:
+    sex_reads = x_reads + y_reads
+    y_fraction = y_reads / sex_reads if sex_reads else None
+    standard_error = (
+        math.sqrt(y_fraction * (1.0 - y_fraction) / sex_reads)
+        if y_fraction is not None
+        else None
+    )
+    margin = 1.96 * standard_error if standard_error is not None else None
+    lower = max(0.0, y_fraction - margin) if margin is not None else None
+    upper = min(1.0, y_fraction + margin) if margin is not None else None
+
+    if sex_reads < minimum_sex_reads:
+        classification = "insufficient"
+    elif upper is not None and upper < female_limit:
+        classification = "female"
+    elif lower is not None and lower > male_limit:
+        classification = "male"
+    else:
+        classification = "ambiguous"
+
+    sufficient = classification in {"female", "male"}
+    return {
+        "schema_version": "bijux.rxy.v1",
+        "method": "r_y",
+        "total_mapped_reads": total,
+        "x_mapped_reads": x_reads,
+        "y_mapped_reads": y_reads,
+        "sex_chromosome_reads": sex_reads,
+        "y_fraction": y_fraction,
+        "standard_error": standard_error,
+        "confidence_interval_95": {"lower": lower, "upper": upper},
+        "female_limit": female_limit,
+        "male_limit": male_limit,
+        "minimum_sex_reads": minimum_sex_reads,
+        "classification": classification,
+        "sufficient_data": sufficient,
+        "confidence": 0.95 if sufficient else 0.0,
+        "x_to_y_ratio": x_reads / y_reads if y_reads else 0.0,
+        "x_to_y_ratio_defined": y_reads > 0,
+    }
+
+
+def main(argv: list[str] | None = None, stdout: TextIO = sys.stdout) -> int:
+    args = _parser().parse_args(argv)
+    if not 0.0 <= args.female_limit < args.male_limit <= 1.0:
+        raise SystemExit("rxy: female and male limits must satisfy 0 <= female < male <= 1")
+    if args.minimum_sex_reads < 1:
+        raise SystemExit("rxy: --minimum-sex-reads must be positive")
+
+    x_contigs = set(args.x_contigs or DEFAULT_X_CONTIGS)
+    y_contigs = set(args.y_contigs or DEFAULT_Y_CONTIGS)
+    if x_contigs & y_contigs:
+        raise SystemExit("rxy: X and Y contig sets must not overlap")
+
+    try:
+        if args.input is not None:
+            idxstats = _idxstats_from_bam(args.input)
+        else:
+            idxstats = args.idxstats.read_text(encoding="utf-8")
+        counts = _mapped_counts(idxstats.splitlines(), x_contigs, y_contigs)
+    except (OSError, subprocess.CalledProcessError, ValueError) as error:
+        raise SystemExit(f"rxy: {error}") from error
+
+    report = _report(*counts, args.female_limit, args.male_limit, args.minimum_sex_reads)
+    report["input"] = str(args.input if args.input is not None else args.idxstats)
+    report["x_contigs"] = sorted(x_contigs)
+    report["y_contigs"] = sorted(y_contigs)
+    json.dump(report, stdout, indent=2, sort_keys=True)
+    stdout.write("\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
