@@ -343,7 +343,7 @@ upstream_license = "GPL-3.0"
 source_sha256 = "6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578"
 
 [plink2]
-version = "2.00a5.8"
+version = "2.00a6"
 source = "https://www.cog-genomics.org/plink/2.0/"
 date_pinned = "2026-02-13"
 status = "experimental"

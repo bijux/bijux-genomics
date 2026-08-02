@@ -18,7 +18,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.revision 2.00~a5.8-231123+dfsg-1
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
-    org.opencontainers.image.version 2.00a5.8
+    org.opencontainers.image.version 2.00a6
     org.opencontainers.image.tool plink2
     org.opencontainers.image.title plink2
 
@@ -38,7 +38,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends plink2=2.00~a5.8-231123+dfsg-1
     dpkg-query --show --showformat='${Version}\n' plink2 | grep -Fx '2.00~a5.8-231123+dfsg-1'
-    plink2 --version 2>&1 | grep -F 'PLINK v2.00a5.8'
+    plink2 --version 2>&1 | grep -F 'PLINK v2.00a6'
     plink2 --help >/dev/null
     apt-get clean
     rm -rf /var/lib/apt/lists/*
@@ -48,8 +48,8 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 
 %test
     dpkg-query --show --showformat='${Version}\n' plink2 | grep -Fx '2.00~a5.8-231123+dfsg-1'
-    plink2 --version 2>&1 | grep -F 'PLINK v2.00a5.8'
+    plink2 --version 2>&1 | grep -F 'PLINK v2.00a6'
     plink2 --help >/dev/null
 
 %help
-    PLINK 2.00a5.8 installed from the exact package in the locked Ubuntu snapshot.
+    PLINK 2.00a6 installed from the exact package in the locked Ubuntu snapshot.
