@@ -12,6 +12,38 @@ require_readable_input() {
     fi
 }
 
+terminal_damage_rates() {
+    awk -F '\t' '
+        /^#/ { next }
+        $1 == "Chr" {
+            for (column = 1; column <= NF; column++) {
+                if ($column == "End") end_column = column
+                if ($column == "Pos") position_column = column
+                if ($column == "C") c_column = column
+                if ($column == "G") g_column = column
+                if ($column == "C>T") c_to_t_column = column
+                if ($column == "G>A") g_to_a_column = column
+            }
+            next
+        }
+        $end_column == "5p" && $position_column == 1 {
+            c_to_t_count += $c_to_t_column
+            c_count += $c_column
+        }
+        $end_column == "3p" && $position_column == 1 {
+            g_to_a_count += $g_to_a_column
+            g_count += $g_column
+        }
+        END {
+            if (!end_column || !position_column || !c_column || !g_column ||
+                !c_to_t_column || !g_to_a_column || c_count <= 0 || g_count <= 0) {
+                exit 1
+            }
+            printf "%.12g %.12g\n", c_to_t_count / c_count, g_to_a_count / g_count
+        }
+    ' "$1"
+}
+
 validate_raw_inputs() {
     expected_path=
     for argument do
@@ -95,8 +127,16 @@ run_analysis() {
         --no-stats \
         --no-plot
 
-    c_to_t_5p=$(awk '$1 == 1 { print $2; exit }' "$native_tmp/5pCtoT_freq.txt")
-    g_to_a_3p=$(awk '$1 == 1 { print $2; exit }' "$native_tmp/3pGtoA_freq.txt")
+    if ! rates=$(terminal_damage_rates "$native_tmp/misincorporation.txt"); then
+        printf 'mapdamage2 analyze: terminal damage counts are absent or invalid\n' >&2
+        exit 65
+    fi
+    c_to_t_5p=${rates%% *}
+    g_to_a_3p=${rates#* }
+    if [ "$c_to_t_5p" = "$rates" ] || [ -z "$g_to_a_3p" ] || [ "$g_to_a_3p" != "${g_to_a_3p%% *}" ]; then
+        printf 'mapdamage2 analyze: terminal damage rates are absent or invalid\n' >&2
+        exit 65
+    fi
     if ! awk -v ct="$c_to_t_5p" -v ga="$g_to_a_3p" \
         'BEGIN { exit !(ct ~ /^[0-9.]+$/ && ga ~ /^[0-9.]+$/ && ct >= 0 && ct <= 1 && ga >= 0 && ga <= 1) }'; then
         printf 'mapdamage2 analyze: terminal damage rates are absent or invalid\n' >&2
