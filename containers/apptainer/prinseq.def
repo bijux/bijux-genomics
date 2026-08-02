@@ -16,13 +16,9 @@ Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    MAINTAINER Bijan Mousavi <bijan@bijux.io>
-    VERSION PRINSEQ++-v1.2.4
     org.opencontainers.image.source https://github.com/Adrian-Cantu/PRINSEQ-plus-plus
-
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
+    org.opencontainers.image.revision 3dde89b381c9df27792478f68e7e4f3bca4d45ff
+    org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 1.2.4
     org.opencontainers.image.tool prinseq
@@ -31,39 +27,37 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
-
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
 
-    apt-get update
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends \
         build-essential \
-        ca-certificates \
-        wget \
+        curl \
         libboost-all-dev \
         gzip \
         tar
-
-    # Build from the official release tarball (avoids autotools regeneration pitfalls)
-    cd /tmp
-    wget -O prinseq-plus-plus-1.2.4.tar.gz \
-      https://github.com/Adrian-Cantu/PRINSEQ-plus-plus/releases/download/v1.2.4/prinseq-plus-plus-1.2.4.tar.gz
-
-    tar -xvf prinseq-plus-plus-1.2.4.tar.gz
-    cd prinseq-plus-plus-1.2.4
-
+    curl --fail --location --silent --show-error --output /opt/prinseq.tar.gz https://github.com/Adrian-Cantu/PRINSEQ-plus-plus/releases/download/v1.2.4/prinseq-plus-plus-1.2.4.tar.gz
+    echo '957fd45f035ef94e5b8a478f4de82e2f2099d490a69a5acd73a4bdad4dd0eea3  /opt/prinseq.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/prinseq.tar.gz --directory /opt
+    cd /opt/prinseq-plus-plus-1.2.4
     ./configure --prefix=/usr/local
     make -j"$(nproc)"
     make install
-
+    prinseq++ --version | grep -F '1.2.4'
+    prinseq++ --help >/dev/null
     cd /
-    rm -rf /tmp/prinseq-plus-plus-1.2.4 /tmp/prinseq-plus-plus-1.2.4.tar.gz
-
-    # Keep boost runtime libs (do NOT purge libboost-* unless you re-install the needed runtime packages explicitly)
+    rm -rf /opt/prinseq-plus-plus-1.2.4 /opt/prinseq.tar.gz
     rm -rf /var/lib/apt/lists/*
+
+%test
+    prinseq++ --version | grep -F '1.2.4'
+    prinseq++ --help >/dev/null
 %runscript
     if [ $# -eq 0 ]; then
         exec prinseq++ --help
@@ -72,5 +66,5 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     fi
 
 %help
-    PRINSEQ++ v1.2.4 built from the official release tarball.
+    PRINSEQ++ v1.2.4 built from its authenticated official release tarball.
     Executable: prinseq++

@@ -352,9 +352,10 @@ pinned_commit = "18b5901e93d417ea91fd675b499e401deadfe3c5"
 
 [prinseq]
 version = "1.2.4"
-source = "https://github.com/uwb-linux/prinseq"
-date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+source = "https://github.com/Adrian-Cantu/PRINSEQ-plus-plus"
+date_pinned = "2026-08-02"
+pinned_commit = "3dde89b381c9df27792478f68e7e4f3bca4d45ff"
+source_sha256 = "957fd45f035ef94e5b8a478f4de82e2f2099d490a69a5acd73a4bdad4dd0eea3"
 
 [pydamage]
 version = "0.80"
