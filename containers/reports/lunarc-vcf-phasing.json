@@ -1,0 +1,57 @@
+{
+  "schema_version": "bijux.container.report_index.v1",
+  "report_id": "lunarc-vcf-phasing",
+  "site": "lunarc",
+  "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+  "corpus": "1000-genomes-phase3-chr22",
+  "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
+  "claims": {
+    "runtime": "passed",
+    "stage": "passed",
+    "science": "not_assessed",
+    "benchmark": "not_assessed",
+    "release": "not_qualified"
+  },
+  "runs": [
+    {
+      "tool": "shapeit5",
+      "run_id": "run-1033",
+      "slurm_job_id": "3457723",
+      "status": "passed",
+      "elapsed_seconds": 282,
+      "evidence_sha256": "132115bf6684c33d98bc5807f294f186fac1a92d0b7cd6a0866ad8ddb89cfea3",
+      "accounting_sha256": "062c71c5b524aef11f2bcfabd976e26afca676caee5b89a2850a9781a9a00163",
+      "output_sha256": "6512312e776c0a4835165a5089e94fe3bd2263af9bf05996e9acd2f716b48579"
+    },
+    {
+      "tool": "eagle",
+      "run_id": "run-1034",
+      "slurm_job_id": "3457724",
+      "status": "failed",
+      "failure": "multiallelic input requires governed normalization",
+      "superseded_by": "run-1036",
+      "evidence_sha256": "74462dea4ffb5d4634455a723be870e43be5958206dd32979801eb2f6e4b6bc7",
+      "accounting_sha256": "d43cbadcacb6f7d3f68b4e3086d1dd47cdb7016fbfeb128db2c62793a8bfa688"
+    },
+    {
+      "tool": "bcftools",
+      "run_id": "run-1035",
+      "slurm_job_id": "3457731",
+      "status": "passed",
+      "elapsed_seconds": 6,
+      "evidence_sha256": "4f504540b5044a94f9cf21ca8368d2ace8b76abdc2f673298a1d70d04aa3eaa8",
+      "accounting_sha256": "f4a042406c61b403732bc71e082f8d4ba00134ced6dcf5311ef2a61ca90457eb",
+      "output_sha256": "f7e7ff32ac8d9c802dff6bc097e28e18111ae3342101294334d01dbc5f0aad15"
+    },
+    {
+      "tool": "eagle",
+      "run_id": "run-1036",
+      "slurm_job_id": "3457739",
+      "status": "passed",
+      "elapsed_seconds": 179,
+      "evidence_sha256": "858b7fe65b848732f2efc6011ab96f36110ea8970157477e895ea38eb575d2a1",
+      "accounting_sha256": "03c19e12259e2818c1ccc780656850d962885ea880bac2dbdb978ac625bb4e40",
+      "output_sha256": "331e17ceb743a72752dcc6b56f7cc12bbb5a01b481bdf6840873c1290f1564ae"
+    }
+  ]
+}

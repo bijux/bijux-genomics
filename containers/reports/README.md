@@ -1,0 +1,22 @@
+# Container evidence reports
+
+This directory contains small, reviewed summaries of real container runs. Raw
+images, logs, inputs, and run products remain in the governed execution site;
+the repository records immutable identities and enough provenance to audit the
+claim without copying large or restricted artifacts into Git.
+
+A report must distinguish these claims:
+
+- **runtime**: version, help, and invalid-input behavior passed;
+- **stage**: the tool produced the declared output on non-fixture input;
+- **science**: predefined scientific metrics passed;
+- **benchmark**: comparable resource and quality measurements exist;
+- **release**: all required evidence dimensions are complete.
+
+Stage execution alone is not scientific validation or release qualification.
+Failed runs remain visible in the execution-site evidence and are replaced by
+a new run identifier after the cause is corrected.
+
+## Reports
+
+- [LUNARC VCF phasing validation](lunarc-vcf-phasing.md)

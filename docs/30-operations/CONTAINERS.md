@@ -1,38 +1,71 @@
 # Containers
 
 ## What
-Defines container image naming and build rules.
+
+Defines container identity, build, execution, and evidence rules.
 
 ## Why
-Container digests make execution reproducible.
+
+An image digest makes the runtime repeatable, but it does not prove that a
+tool handles real data correctly. Bijux Genomics therefore records source,
+build, runtime, stage, scientific, benchmark, security, and release evidence
+as separate claims.
 
 ## Purpose
-Define the operational container contract used by CI, runtime, and tool admission workflows.
+
+Provide one operational contract for local checks, immutable image admission,
+LUNARC Slurm execution, and public evidence reporting.
 
 ## Scope
-Applies to registry-linked container definitions, versions, and smoke-policy behavior.
+
+Applies to catalog entries, Docker and Apptainer recipes, source locks, site
+configuration, run manifests, and reviewed evidence summaries.
 
 ## Non-goals
+
 - Managing registries for the user.
+- Treating a version or help command as scientific validation.
+- Publishing raw corpora, large run products, or credential values.
 
 ## Contracts
-- images.toml must include digests for production runs.
-- Docker definitions are `arm64`-only unless policy and checks are updated.
-- Container filenames must match generated `containers/TOOL_IDS.txt`.
 
-## HPC Forward-compat
-- HPC environments may pull/store containers under site-managed roots.
-- Tool/container contract remains registry-driven; only pull/cache location changes.
-- Docs and scripts must reference profile-configured paths, not local hardcoded roots.
+- Production runs use immutable source, image, repository, and input
+  identities.
+- Apptainer is the governed LUNARC runtime. Docker support is declared per
+  tool and architecture; absence is explicit rather than simulated.
+- Version, help, negative, and real-data commands are distinct checks.
+- Raw results stay in the configured study tree. Small reviewed reports carry
+  immutable evidence and accounting checksums into the repository.
+- Unsupported tools remain visible with a durable reason.
 
-## Examples
-- `bijuxdna/fastp:0.23.4-arm64` with immutable digest.
+## Configured HPC execution
+
+Reusable code contains no LUNARC study path. The governed YAML site contract
+defines the study, repository, frozen-checkout, runtime, account, and partition
+settings. Every run archives that contract with its scientific pipeline and a
+credential-reference document that contains no secrets.
+
+The executor validates configured roots, exact checksums, a clean frozen Git
+commit, output uniqueness, and Slurm policy before submission. It preserves
+failed runs and collects terminal accounting separately.
+
+## Real evidence
+
+The [LUNARC VCF phasing report](../../containers/reports/lunarc-vcf-phasing.md)
+records a real 2,504-sample BCFtools, SHAPEIT5, and Eagle execution chain. It
+also explains why stage success is not yet a scientific accuracy or release
+claim.
 
 ## Failure modes
-- Missing digest blocks promotion to production.
-- HPC cache-path assumptions can break container smoke/build workflows.
 
-## Canonical Admission Reference
+- Missing digest blocks promotion to production.
+- A path outside the configured root blocks submission.
+- An existing result directory blocks overwrite and requires a new run ID.
+- Missing input normalization is recorded as a failed run and corrected by an
+  explicit governed derivation.
+
+## Canonical admission reference
+
 - Use [docs/50-reference/TOOL_ADMISSION.md](../50-reference/TOOL_ADMISSION.md)
   as the single authoritative "how to add tool" checklist.
 
@@ -41,4 +74,5 @@ Applies to registry-linked container definitions, versions, and smoke-policy beh
 - [containers/docs/index.md](../../containers/docs/index.md)
 - [containers/README.md](../../containers/README.md)
 - [containers/docs/RELEASE_CHECKLIST.md](../../containers/docs/RELEASE_CHECKLIST.md)
-- [containers/docs/PLANNED.md](../../containers/docs/PLANNED.md)
+- [containers/docs/LUNARC_EXECUTION_CONTRACT.md](../../containers/docs/LUNARC_EXECUTION_CONTRACT.md)
+- [containers/reports/README.md](../../containers/reports/README.md)
