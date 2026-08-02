@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use chrono::{Local, NaiveDate, Utc};
 use regex::Regex;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use walkdir::WalkDir;
 
@@ -15,6 +15,7 @@ use crate::runtime::workspace::Workspace;
 
 mod command_support;
 mod content_support;
+mod contracts;
 mod dispatch;
 mod metadata;
 mod registry_catalog;

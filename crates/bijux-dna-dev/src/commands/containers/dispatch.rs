@@ -54,6 +54,17 @@ pub(super) fn run_native_container_command(
             ensure_no_args("container-runtime-check", args)?;
             run_container_runtime_check()
         }
+        NativeContainerCommandKey::CheckContractCatalog => {
+            ensure_no_args("check-contract-catalog", args)?;
+            contracts::check_contract_catalog(workspace)
+        }
+        NativeContainerCommandKey::GenerateContractLock => {
+            contracts::generate_contract_lock(workspace, args)
+        }
+        NativeContainerCommandKey::CheckContractLock => {
+            ensure_no_args("check-contract-lock", args)?;
+            contracts::check_contract_lock(workspace)
+        }
         NativeContainerCommandKey::GenerateToolIds => metadata::generate_tool_ids(workspace, args),
         NativeContainerCommandKey::CheckToolIdManifest => {
             ensure_no_args("check-tool-id-manifest", args)?;
