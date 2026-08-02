@@ -49,7 +49,8 @@ Target -> implementation mapping (no hidden magic):
 - `ci` -> `make fmt lint audit test coverage` under the shared `artifacts/` contract
 
 Rust gate artifact layout:
-- fast Rust gates write under `artifacts/rust/`
+- fast Rust gate reports write under `artifacts/rust/`, while compiled objects and dependencies
+  reuse the common `artifacts/target/` and `artifacts/cargo/home/` caches
 - `make test-all-frozen`, `make lint-frozen`, `make audit-frozen`, and `make github-all-frozen` start the requested gate from `PINNED_REF` (default `HEAD`) and write gate-owned state under `artifacts/<sha>/gates/<gate>/`
 - pinned-ref gate runs materialize the exact source snapshot under `artifacts/<sha>/gates/<gate>/frozen-repo/` so reports and code stay pinned to the same commit
 - pinned-ref gate runs isolate Cargo and generated state under `artifacts/<sha>/gates/<gate>/artifacts/`, allowing different gates for the same commit to run concurrently

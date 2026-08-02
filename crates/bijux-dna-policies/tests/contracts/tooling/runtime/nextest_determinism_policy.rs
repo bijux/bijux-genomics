@@ -95,6 +95,14 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         "test-all must default to the deterministic full nextest profile"
     );
     bijux_dna_policies::policy_assert!(
+        cargo_mk.contains("RS_TARGET_DIR ?= $(abspath $(ARTIFACT_ROOT)/target)"),
+        "repository and shared Rust gates must reuse one Cargo target directory"
+    );
+    bijux_dna_policies::policy_assert!(
+        cargo_mk.contains("RS_CARGO_HOME ?= $(abspath $(ARTIFACT_ROOT)/cargo/home)"),
+        "repository and shared Rust gates must reuse one Cargo dependency cache"
+    );
+    bijux_dna_policies::policy_assert!(
         cargo_mk.contains("NEXTEST_EXPR_BIN ?= $(CURDIR)/makes/bin/nextest_expr.sh"),
         "make test lanes must use the repository Nextest expression boundary"
     );

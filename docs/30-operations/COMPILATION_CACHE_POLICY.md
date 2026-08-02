@@ -16,6 +16,8 @@ Applies to developer-oriented Rust build reuse, shared target-root conventions, 
 - CI correctness must not depend on cache presence.
 - Shared or automated dev runs must honor the governed artifact environment in
   [ISOLATION.md](ISOLATION.md).
+- Canonical Rust gates and repository-specific gates within one checkout reuse the same
+  `artifacts/target` build cache and `artifacts/cargo/home` dependency cache.
 - The local helper surface for cache-aware Rust workflows is
   [makes/cargo-dev.mk](../../makes/cargo-dev.mk).
 - Crate-local `RUSTFLAGS` overrides require governance review.
@@ -23,8 +25,8 @@ Applies to developer-oriented Rust build reuse, shared target-root conventions, 
 ## Recommended Local Setup
 1. Install `sccache`.
 2. Export `RUSTC_WRAPPER=$(command -v sccache)` in your shell profile.
-3. Use shared `artifacts/target` reuse for interactive local builds, and prefer isolate target
-   roots for shared or automated runs.
+3. Use shared `artifacts/target` reuse for interactive local builds and sequential gates in one
+   checkout. Frozen or concurrent independent runs receive isolated artifact roots.
 
 ## Diagnostics
 - `sccache --show-stats`
