@@ -1,0 +1,86 @@
+{
+  "schema_version": "bijux.container.report_index.v1",
+  "report_id": "lunarc-fastq-bam",
+  "site": "lunarc",
+  "corpus": "ena-prjeb10854-err1021817-read-prefix-100000",
+  "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
+  "claims": {
+    "runtime": "passed",
+    "stage": "passed",
+    "science": "not_assessed",
+    "benchmark": "not_assessed",
+    "release": "not_qualified"
+  },
+  "runs": [
+    {
+      "tool": "adapterremoval",
+      "run_id": "run-1002",
+      "repository_commit": "fd989ab019a266afb10950271012bfef48833570",
+      "slurm_job_id": "3457168",
+      "status": "passed",
+      "elapsed_seconds": 4,
+      "evidence_sha256": "e9a780d11c4e91c4a4cc9722bb02360e8ee7d2d9420a1edc5138dda41945a612",
+      "accounting_sha256": "4cc6d53eafa098ac3b1cd5768678ec7fd2788982c358146e1fae7b90936e4ec1"
+    },
+    {
+      "tool": "bwa",
+      "run_id": "run-1003",
+      "repository_commit": "8c93c770b8b1fe41c23f2ee6a47686c9722c16f7",
+      "slurm_job_id": "3457577",
+      "status": "passed",
+      "elapsed_seconds": 1801,
+      "evidence_sha256": "c337903cb858b3dfd16fade0b94d3afae93c5b5b394663faed9c24667375d5c1",
+      "accounting_sha256": "c082187f030898dd47af834c9e14695f9979f805e3f8c8bae43b506617755c15"
+    },
+    {
+      "tool": "bwa",
+      "run_id": "run-1004",
+      "repository_commit": "8f34c94a3a9306720d80e02939e2d081f9de6197",
+      "slurm_job_id": "3457596",
+      "status": "passed",
+      "elapsed_seconds": 11,
+      "evidence_sha256": "7d7f39e1f1f17f8ad39777852ae0dbcace69cdb62fd3843a9228d409dc3953e4",
+      "accounting_sha256": "245638d9b2680b9bb65f0c75ec2b317d48118aeb3214fe3d02bf2a1245baa809"
+    },
+    {
+      "tool": "samtools",
+      "run_id": "run-1011",
+      "repository_commit": "a7690273fbf58648d4adf485d7d4037e0f983132",
+      "slurm_job_id": "3457606",
+      "status": "passed",
+      "elapsed_seconds": 2,
+      "evidence_sha256": "a21553b9489aae2078765c6ef166a597295c7a1cde4c45c630f24e33a51802a1",
+      "accounting_sha256": "c573573a5049c7dd00e43fa0195a5e7b19c433b92dba297e60270117d5c2a013"
+    },
+    {
+      "tool": "samtools",
+      "run_id": "run-1013",
+      "repository_commit": "58233a97a6ff6f4523cae1eb9d2b631f297d0520",
+      "slurm_job_id": "3457614",
+      "status": "passed",
+      "elapsed_seconds": 3,
+      "evidence_sha256": "f4cf05a80edf24c696b9e6dc50de5775212ac4c8d4c5cedbd1baed090cddab9b",
+      "accounting_sha256": "1befe6ccf74ded6e0939df707cc2065ce5724dac5150eae4c0276be6530e91ba"
+    },
+    {
+      "tool": "samtools",
+      "run_id": "run-1027",
+      "repository_commit": "cf74b5cf0843d9f4ffce2d0f7f6d646221756e03",
+      "slurm_job_id": "3457657",
+      "status": "passed",
+      "elapsed_seconds": 2,
+      "evidence_sha256": "c8e5b18aadc8ec4f8208b9838e7877b2dd0b35da37a1f06e4ca19d9e546f669a",
+      "accounting_sha256": "ddfdfa523bcca59585e6015e358bdd3f92663845b068c05b9b9868fc6b295c4c"
+    },
+    {
+      "tool": "qualimap",
+      "run_id": "run-1030",
+      "repository_commit": "703dd600386cd668f4f75726a523a4e113034da7",
+      "slurm_job_id": "3457679",
+      "status": "passed",
+      "elapsed_seconds": 10,
+      "evidence_sha256": "9dfcfe082f6d3f9336001166dad137dd72466ef3d153be2977e1071ace1e83b1",
+      "accounting_sha256": "5482885f20e7e92aa1d9cc8ea09b2733b3f8f57891f27c1df4d4b74a15b4a8eb"
+    }
+  ]
+}

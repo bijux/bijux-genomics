@@ -51,9 +51,11 @@ failed runs and collects terminal accounting separately.
 
 ## Real evidence
 
+The [LUNARC FASTQ-to-BAM report](../../containers/reports/lunarc-fastq-bam.md)
+records a real horse WGS trimming, alignment, sorting, indexing, and QC chain.
 The [LUNARC VCF phasing report](../../containers/reports/lunarc-vcf-phasing.md)
-records a real 2,504-sample BCFtools, SHAPEIT5, and Eagle execution chain. It
-also explains why stage success is not yet a scientific accuracy or release
+records a real 2,504-sample BCFtools, SHAPEIT5, and Eagle execution chain. Both
+reports explain why stage success is not yet a scientific accuracy or release
 claim.
 
 ## Failure modes
