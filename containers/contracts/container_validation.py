@@ -448,7 +448,6 @@ def render_slurm(pipeline_path: Path, credential_path: Path, output_path: Path) 
     stdout_path = output_path.parent / "slurm-%j.stdout.log"
     stderr_path = output_path.parent / "slurm-%j.stderr.log"
     script = f"""#!/usr/bin/env bash
-set -euo pipefail
 #SBATCH --job-name={job_name}
 #SBATCH --account={resources['account']}
 #SBATCH --partition={resources['partition']}
@@ -458,6 +457,7 @@ set -euo pipefail
 #SBATCH --output={stdout_path}
 #SBATCH --error={stderr_path}
 
+set -euo pipefail
 export LANG=C
 export LC_ALL=C
 export TZ=UTC
