@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+    --version) echo 'dada2 1.30.0' ;;
+    --help|-h|"")
+        printf '%s\n' 'usage: dada2 infer-asvs INPUT.fastq[.gz] OUTPUT.csv' '       dada2 SCRIPT.R [ARG ...]'
+        ;;
+    infer-asvs)
+        shift
+        exec Rscript /opt/dada2/infer-asvs.R "$@"
+        ;;
+    *) exec Rscript "$@" ;;
+esac

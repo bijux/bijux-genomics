@@ -2,55 +2,61 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: dada2
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
+# Version policy: verified Bioconductor source archive
+# Upstream source: https://bioconductor.org/packages/3.18/bioc/html/dada2.html
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and release archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 
-# VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    org.opencontainers.image.source https://bioconductor.org/packages/dada2
-    org.opencontainers.image.title dada2
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.source https://bioconductor.org/packages/3.18/bioc/html/dada2.html
+    org.opencontainers.image.revision c6653fe77c3d62dd91207bbbf6641ec143fb8a498967e240a97af26de7e27667
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses LGPL-2.0-only
     org.opencontainers.image.version 1.30.0
     org.opencontainers.image.tool dada2
+    org.opencontainers.image.title DADA2
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    export VERSION_DADA2=1.30.0
+
+%files
+    containers/tools/dada2/dada2 /usr/local/bin/dada2
+    containers/tools/dada2/infer-asvs.R /opt/dada2/infer-asvs.R
+
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update
-    apt-get install -y --no-install-recommends r-base
-    cat > /usr/local/bin/dada2 <<'EOS'
-#!/usr/bin/env sh
-set -eu
-case "${1:-}" in
-  --version) echo "${VERSION_DADA2}"; exit 0 ;;
-  --help|-h|"") echo "dada2 R package wrapper"; echo "usage: dada2 <script.R> [args]"; exit 0 ;;
-esac
-script="$1"; shift
-exec Rscript "$script" "$@"
-EOS
-    chmod 0755 /usr/local/bin/dada2
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends build-essential curl r-base r-base-dev r-bioc-biocgenerics r-bioc-biostrings r-bioc-iranges r-bioc-shortread r-bioc-xvector r-cran-ggplot2 r-cran-rcpp r-cran-rcppparallel r-cran-reshape2
+    curl --fail --location --silent --show-error --output /opt/dada2_1.30.0.tar.gz https://bioconductor.org/packages/3.18/bioc/src/contrib/dada2_1.30.0.tar.gz
+    echo 'c6653fe77c3d62dd91207bbbf6641ec143fb8a498967e240a97af26de7e27667  /opt/dada2_1.30.0.tar.gz' | sha256sum --check --strict
+    R CMD INSTALL /opt/dada2_1.30.0.tar.gz
+    Rscript -e 'stopifnot(as.character(packageVersion("dada2")) == "1.30.0")'
+    chmod 0755 /usr/local/bin/dada2 /opt/dada2/infer-asvs.R
+    dada2 --version | grep -Fx 'dada2 1.30.0'
+    rm /opt/dada2_1.30.0.tar.gz
     rm -rf /var/lib/apt/lists/*
+
 %runscript
-    if [ $# -eq 0 ]; then
-        exec dada2 --help
-    else
-        exec dada2 "$@"
-    fi
+    exec /usr/local/bin/dada2 "$@"
+
+%test
+    dada2 --version | grep -Fx 'dada2 1.30.0'
+    dada2 --help >/dev/null
+    Rscript -e 'stopifnot(as.character(packageVersion("dada2")) == "1.30.0")'
+
 %help
-    dada2 wrapper image.
+    DADA2 1.30.0 compiled from its verified Bioconductor source archive.

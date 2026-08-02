@@ -507,9 +507,12 @@ pinned_commit = "0000000000000000000000000000000000000000"
 
 [dada2]
 version = "1.30.0"
-source = "https://bioconductor.org/packages/dada2"
-date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+source = "https://bioconductor.org/packages/3.18/bioc/html/dada2.html"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "LGPL-2.0-only"
+pinned_commit = "ec87892"
+source_sha256 = "c6653fe77c3d62dd91207bbbf6641ec143fb8a498967e240a97af26de7e27667"
 
 [diamond]
 version = "2.1.10"
