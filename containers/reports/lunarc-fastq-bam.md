@@ -32,6 +32,7 @@ root.
 | coordinate sorting | Samtools 1.20 | `run-1013` | `3457614` | 3s | 15,570,479-byte sorted BAM |
 | mapping-quality filtering | BamTools 2.5.2 | `run-1086` | `3458069` | 3s | 14,707,241-byte filtered BAM |
 | paired-read overlap correction | bamUtil 1.0.15 | `run-1087` | `3458070` | 3s | 15,764,483-byte corrected BAM |
+| whole-genome coverage summary | Mosdepth 0.3.11 | `run-1088` | `3458072` | 16s | global depth distribution and per-contig summary |
 | CSI indexing | Samtools 1.20 | `run-1027` | `3457657` | 2s | sorted BAM plus CSI index |
 | alignment QC | Qualimap 2.3 | `run-1030` | `3457679` | 10s | metrics text and HTML report |
 
@@ -76,6 +77,12 @@ disabled, and emitted an overlap-corrected BAM plus run statistics. These runs
 establish the stage interfaces and output integrity. They do not establish the
 scientific suitability of MAPQ 20, quantify overlap corrections against known
 truth, or prove agreement with an independent implementation.
+
+Mosdepth consumed the digest-pinned coordinate-sorted BAM and its CSI index,
+then emitted a global depth distribution and per-contig summary without
+runtime network access. This establishes the real `bam.coverage` execution
+surface and output lineage. It does not establish a minimum usable coverage,
+uniformity threshold, or agreement with an independent coverage engine.
 
 The evidence does not yet prove read-retention thresholds, mapping quality,
 endogenous fraction, duplication, coverage suitability, cross-aligner

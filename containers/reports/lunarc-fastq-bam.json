@@ -250,6 +250,23 @@
       "operation": "clipOverlap"
     },
     {
+      "tool": "mosdepth",
+      "run_id": "run-1088",
+      "repository_commit": "6fa5d55f3b092de162f7f136461037431aaea494",
+      "slurm_job_id": "3458072",
+      "status": "passed",
+      "elapsed_seconds": 16,
+      "image_sha256": "21697c7ae5919429ded46ea4aead6f2b93edf234271e4389655d79f4012db8f5",
+      "build_evidence_sha256": "df18787a178243169bdc1f3cd62e8c597e33dda920a9b3916d30449f120a8329",
+      "evidence_sha256": "951942a53bb8e7823715c5489bdf35d3ae81e965e874ec6d416e93fd730fe3d1",
+      "accounting_sha256": "0d1e179d1b502e9c61bac66349663552444237df50c87c81f6ad624cf00eb730",
+      "global_distribution_sha256": "3f77304e5fae4b838f0927885cf3dc40b5d765aeeead8c8e81859b7578c4df31",
+      "global_distribution_bytes": 12002,
+      "summary_sha256": "3852c282e5947c21094fc90de091027941ee812a04475a05788914d97a7e1761",
+      "summary_bytes": 8060,
+      "operation": "whole-genome depth summary"
+    },
+    {
       "tool": "samtools",
       "run_id": "run-1027",
       "repository_commit": "cf74b5cf0843d9f4ffce2d0f7f6d646221756e03",
