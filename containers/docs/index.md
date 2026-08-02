@@ -33,7 +33,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.
 - GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.
 - Non-bijux provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).
-- Ownership map: [containers/OWNERS.toml](../OWNERS.toml).
+- Ownership authority: [containers/contracts/catalog.toml](../contracts/catalog.toml).
 
 ## Tool Container Coverage
 | tool_id | status | apptainer_source | docker_source |

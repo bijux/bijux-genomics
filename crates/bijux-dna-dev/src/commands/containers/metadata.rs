@@ -212,7 +212,8 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "- GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.".to_string(),
         "- GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.".to_string(),
         "- Non-bijux provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).".to_string(),
-        "- Ownership map: [containers/OWNERS.toml](../OWNERS.toml).".to_string(),
+        "- Ownership authority: [containers/contracts/catalog.toml](../contracts/catalog.toml)."
+            .to_string(),
         String::new(),
         "## Tool Container Coverage".to_string(),
         "| tool_id | status | apptainer_source | docker_source |".to_string(),
@@ -626,7 +627,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
             .unwrap_or_else(|| "NOASSERTION".to_string());
         let file_content = [
             "# schema_version = 1".to_string(),
-            "# owner = bijux-dna-platform".to_string(),
+            "# owner = bijux-genomics".to_string(),
             format!("tool_id = \"{tool}\""),
             format!("container_kind = \"{kind}\""),
             format!("spdx = \"{spdx}\""),

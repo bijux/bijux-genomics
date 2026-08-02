@@ -1184,7 +1184,7 @@ pub(super) fn deprecate_version(
             Utc::now().date_naive().format("%Y-%m-%d"),
             rationale.replace('"', "\\\""),
         ),
-        "# schema_version = 1\n# owner = bijux-dna-platform\n\n",
+        "# schema_version = 1\n# owner = bijux-genomics\n\n",
     )?;
     regenerate_lifecycle_outputs(workspace)?;
     success_line(format!("deprecated {tool}@{version} (compatibility_mode={compatibility_mode})"))

@@ -36,5 +36,6 @@ Implementation note:
 - Manual edits to registry status fields are forbidden; use native lifecycle commands only.
 
 ## Ownership
-- Tool ownership is tracked in [containers/OWNERS.toml](../OWNERS.toml).
+- Tool ownership and contact are defined once in
+  [containers/contracts/catalog.toml](../contracts/catalog.toml).
 - Owner must review promotions and demotions.

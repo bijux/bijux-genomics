@@ -501,48 +501,19 @@ pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<Container
 }
 
 pub(super) fn check_owners(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let owners_path = workspace.path("containers/OWNERS.toml");
-    if !owners_path.exists() {
-        return Ok(ContainerCommandOutcome::failure("missing containers/OWNERS.toml\n"));
-    }
-    let owners_data = load_toml(&owners_path)?;
-    let owner_rows =
-        owners_data.get("owner").and_then(toml::Value::as_array).cloned().unwrap_or_default();
-    if owner_rows.is_empty() {
-        return Ok(ContainerCommandOutcome::failure(
-            "containers/OWNERS.toml has no [[owner]] rows\n",
-        ));
-    }
-    let mut rows = Vec::new();
-    for row in owner_rows {
-        let Some(row) = row.as_table() else {
-            continue;
-        };
-        let tool_id = table_string(row, "tool_id");
-        let team = table_string(row, "team");
-        let contact = table_string(row, "contact");
-        if tool_id.is_empty() || team.is_empty() || contact.is_empty() {
-            return Ok(ContainerCommandOutcome::failure(
-                "each [[owner]] row must include tool_id, team, contact\n",
-            ));
-        }
-        if tool_id == "*" {
-            return Ok(ContainerCommandOutcome::failure(
-                "containers/OWNERS.toml: wildcard tool_id='*' is not allowed; map each tool explicitly\n",
-            ));
-        }
-        rows.push((tool_id, team));
-    }
-    let tool_ids = tool_status_manifest(workspace)?.into_keys().collect::<Vec<_>>();
+    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
     let mut errors = Vec::new();
-    for tool_id in tool_ids {
-        let matches = rows.iter().filter(|(pattern, _)| pattern == &tool_id).count();
-        if matches != 1 {
-            errors.push(format!("{tool_id}: expected exactly one owner match, got {matches}"));
-        }
+    if catalog.get("owner").and_then(toml::Value::as_str) != Some("Bijux Genomics") {
+        errors.push("catalog owner must be Bijux Genomics".to_string());
+    }
+    if catalog.get("contact").and_then(toml::Value::as_str) != Some("bijan@bijux.io") {
+        errors.push("catalog contact must be bijan@bijux.io".to_string());
+    }
+    if catalog.get("tools").and_then(toml::Value::as_array).is_none_or(Vec::is_empty) {
+        errors.push("catalog must own at least one tool contract".to_string());
     }
     if errors.is_empty() {
-        return success_line("container owners: OK");
+        return success_line("container ownership authority: OK (catalog.toml)");
     }
     failure_lines("container owners check failed:", &errors)
 }
