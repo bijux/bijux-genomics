@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "85d57f726018a46cb41550385d60ba0cc92c25d7eaa00dc50b10968578b04f60",
+  "source_sha256": "9ca7d160ac14aae685e048dcfa58b0c83dc74e4cf68f8fd63e02aa896f5a09f6",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -233,12 +233,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/arq5x/bedtools2",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "MIT",
+      "source_sha256": "79a1ba318d309f4e74bfa74258b73ef578dccb1045e270998d7fe9da9f43a50e",
       "pinned_commit": "705ccfdf2c9a77d71560c8adcece0663c2f5e18e",
       "apptainer_definition": "containers/apptainer/bedtools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bedtools",
-      "contract_sha256": "0c49292b858626cef0bb0d4d1093f057e21b932764d6b969a0780ef479b52741"
+      "contract_sha256": "c492d9acc78b9e79d93561d5a5a331587733307a18a6ce0bcacb518be948008a"
     },
     {
       "id": "bijux_dna",
