@@ -45,7 +45,8 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
         https://github.com/lh3/bwa/archive/9f26bfcc7780753129b60717ecab0ebba6f04b7c.tar.gz
     echo '79763dd6c48e8b01b8e27d99e6e5575d8bbca419e3eed9f3e330af072e63b370  /tmp/bwa.tar.gz' | sha256sum --check --strict
     tar --extract --gzip --file /tmp/bwa.tar.gz --directory /tmp
-    make --directory /tmp/bwa-9f26bfcc7780753129b60717ecab0ebba6f04b7c -j"$(nproc)"
+    make --directory /tmp/bwa-9f26bfcc7780753129b60717ecab0ebba6f04b7c \
+        CFLAGS='-g -Wall -Wno-unused-function -O2 -fcommon' -j"$(nproc)"
     install -m 0755 /tmp/bwa-9f26bfcc7780753129b60717ecab0ebba6f04b7c/bwa /usr/local/libexec-bwa
     cat > /usr/local/bin/bwa <<'EOF'
 #!/usr/bin/env sh

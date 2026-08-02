@@ -40,7 +40,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
     apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends \
-        curl gcc make perl \
+        bzip2 curl gcc make perl \
         zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev libssl-dev libdeflate-dev libncurses-dev
     curl --fail --location --silent --show-error \
         --output /tmp/samtools.tar.bz2 \
