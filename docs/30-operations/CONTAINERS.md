@@ -58,6 +58,10 @@ records ngsBriggs input-contract correction and real Slurm execution on a
 public ancient-horse alignment.
 The [LUNARC reference-complexity report](container-evidence/REFERENCE_COMPLEXITY.md)
 records real EquCab3.0 interval extraction and DustMasker execution.
+The [LUNARC amplicon ASV report](container-evidence/AMPLICON_ASV.md) records
+single-end and overlapping paired-end DADA2 inference, including the preserved
+runtime-dependency and incompatible-corpus failures that shaped the final
+contract.
 The [LUNARC VCF phasing report](container-evidence/VCF_PHASING.md)
 records a real 2,504-sample BCFtools, SHAPEIT4, SHAPEIT5, and Eagle execution
 chain. The
