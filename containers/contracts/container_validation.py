@@ -23,8 +23,8 @@ CREDENTIAL_SCHEMA = "bijux.container.credential_reference.v1"
 EVIDENCE_SCHEMA = "bijux.container.evidence.v1"
 RUN_ID_PATTERN = re.compile(r"run-[1-9][0-9]{3,}")
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
-GOVERNED_ROOT = Path("/home/bijan/lu2024-12-24/Dardel/STUDY")
-SOURCE_ROOT = Path("/home/bijan/bijux/bijux-genomics")
+GOVERNED_ROOT = Path("/home/bijan/lu2024-12-24/Dardel/STUDY").resolve()
+SOURCE_ROOT = Path("/home/bijan/bijux/bijux-genomics").resolve()
 
 
 class ContractError(RuntimeError):
