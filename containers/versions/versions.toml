@@ -574,6 +574,8 @@ pinned_commit = "681a8fe013f8bed1590ff68e2f62820d2d4303c5"
 source_sha256 = "2b3aa5d6f983aed570d26b0cf48d910f847704d57401ef64e5b026de3dd0afff"
 linux_amd64_package_sha256 = "e215acc98bd5f0e1d637b9931c9929b565b30688be714b4dc421fe61bf9cd689"
 linux_arm64_package_sha256 = "158efdbdb2c47bf4ed7397805ea69d35800672ca289ac25c0bc8e2fc40f145f6"
+linux_amd64_pcre_sha256 = "8f35c244b1631a4f31fb1d66ab6e1d9bfac0ca9b679deced1112c7225b3ad138"
+linux_arm64_pcre_sha256 = "7a6062de76f695f6d8f0ddda0ff171e4b47e2b863d6012def440c7703aea0069"
 
 [seqprep]
 version = "1.3.2"

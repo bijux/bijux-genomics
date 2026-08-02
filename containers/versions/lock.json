@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-02T17:43:04+02:00",
+  "build_date_utc": "2026-08-02T17:47:48+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "ce40864f690cae432170400f8f2dbb02548a433d5eaab889c3e282a3319dddff",
+  "source_sha256": "658d33cf3ca31ba34d182907d9251a05457932a747e75f04ea40bfd7900bd2b1",
   "version_map_source": "artifacts/containers/version_map.json"
 }

@@ -21,14 +21,18 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
     apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
     apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
     apt-get -o Acquire::Check-Valid-Until=false update && \
-    apt-get install -y --no-install-recommends curl unzip zstd zlib1g && \
+    apt-get install -y --no-install-recommends bzip2 curl unzip zstd zlib1g && \
+    curl --fail --location --silent --show-error --output /opt/pcre.tar.bz2 https://api.anaconda.org/download/conda-forge/pcre/8.45/linux-aarch64/pcre-8.45-h01db608_0.tar.bz2 && \
+    echo '7a6062de76f695f6d8f0ddda0ff171e4b47e2b863d6012def440c7703aea0069  /opt/pcre.tar.bz2' | sha256sum --check --strict && \
+    tar --extract --bzip2 --file /opt/pcre.tar.bz2 --directory /usr/local && \
     curl --fail --location --silent --show-error --output /opt/seqfu.conda https://api.anaconda.org/download/bioconda/seqfu/1.26.0/linux-aarch64/seqfu-1.26.0-h0bbf5d2_0.conda && \
     echo '158efdbdb2c47bf4ed7397805ea69d35800672ca289ac25c0bc8e2fc40f145f6  /opt/seqfu.conda' | sha256sum --check --strict && \
     mkdir /opt/seqfu-package && \
     unzip -q /opt/seqfu.conda 'pkg-*.tar.zst' -d /opt/seqfu-package && \
     tar --zstd --extract --file /opt/seqfu-package/pkg-seqfu-1.26.0-h0bbf5d2_0.tar.zst --directory /usr/local && \
     seqfu --version | grep -Fx '1.26.0' && \
-    rm -rf /opt/seqfu.conda /opt/seqfu-package /var/lib/apt/lists/* && \
+    rm -rf /opt/pcre.tar.bz2 /opt/seqfu.conda /opt/seqfu-package && \
+    rm -rf /var/lib/apt/lists/* && \
     useradd --system --uid 65532 --home-dir /work --create-home bijux
 USER 65532:65532
 WORKDIR /work
