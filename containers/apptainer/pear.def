@@ -30,7 +30,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export VERSION_PEAR=0.9.6
 
 %files
-    containers/tools/pear/pear /usr/local/bin/pear
+    containers/tools/pear/pear /opt/pear-wrapper
 
 %post
     set -eux
@@ -51,7 +51,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     make -j"$(nproc)"
     make install
     mv /usr/local/bin/pear /usr/local/libexec-pear
-    chmod 0755 /usr/local/bin/pear
+    install -m 0755 /opt/pear-wrapper /usr/local/bin/pear
     pear --version | grep -Fx '0.9.6'
     cd /
     rm -rf /opt/pear-0.9.6-src /opt/pear.tar.gz
