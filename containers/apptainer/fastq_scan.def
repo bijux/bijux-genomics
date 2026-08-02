@@ -2,54 +2,63 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: fastq_scan
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
+# Version policy: immutable upstream commit and verified source archive
+# Upstream source: https://github.com/rpetit3/fastq-scan
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 
-# VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.title fastq_scan
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
-    org.opencontainers.image.version 0.0.1
+    org.opencontainers.image.source https://github.com/rpetit3/fastq-scan
+    org.opencontainers.image.revision 966991c58bd44cbf7644851b7118f7d06146f3c5
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses MIT
+    org.opencontainers.image.version 1.0.1
     org.opencontainers.image.tool fastq_scan
+    org.opencontainers.image.title fastq-scan
+
+%files
+    containers/tools/fastq_scan/fastq_scan /usr/local/bin/fastq_scan
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    export VERSION_FASTQ_SCAN=0.0.1
+
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update
-    apt-get install -y --no-install-recommends seqkit
-    cat > /usr/local/bin/fastq_scan <<'EOS'
-#!/usr/bin/env sh
-set -eu
-case "${1:-}" in
-  --version) echo "${VERSION_FASTQ_SCAN}"; exit 0 ;;
-  --help|-h|"") echo "fastq_scan compatibility wrapper"; echo "usage: fastq_scan <fastq[.gz]>"; exit 0 ;;
-esac
-exec seqkit stats "$@"
-EOS
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends curl g++ make gzip
+    mkdir -p /opt/fastq-scan-source
+    curl --fail --location --silent --show-error \
+        --output /opt/fastq-scan-source/source.tar.gz \
+        https://github.com/rpetit3/fastq-scan/archive/966991c58bd44cbf7644851b7118f7d06146f3c5.tar.gz
+    echo '74a665f4550a98bb0565de47cc17772d8372a9777c4dc845b959090363fe778e  /opt/fastq-scan-source/source.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/fastq-scan-source/source.tar.gz --directory /opt/fastq-scan-source --strip-components=1
+    make --directory /opt/fastq-scan-source
+    install -m 0755 /opt/fastq-scan-source/fastq-scan /usr/local/libexec-fastq-scan
     chmod 0755 /usr/local/bin/fastq_scan
+    fastq_scan --version | grep -F 'fastq-scan 1.0.1'
+    rm -rf /opt/fastq-scan-source
     rm -rf /var/lib/apt/lists/*
+
 %runscript
-    if [ $# -eq 0 ]; then
-        exec fastq_scan --help
-    else
-        exec fastq_scan "$@"
-    fi
+    exec /usr/local/bin/fastq_scan "$@"
+
+%test
+    fastq_scan --version | grep -F 'fastq-scan 1.0.1'
+    fastq_scan --help >/dev/null
+
 %help
-    fastq_scan compatibility image.
+    fastq-scan 1.0.1 with a governed file-input adapter for pipeline use.

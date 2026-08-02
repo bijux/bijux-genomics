@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+# SPDX-License-Identifier: GPL-3.0-only
+set -eu
+
+case "${1:-}" in
+  --version|-v)
+    exec /usr/local/libexec-fastq-scan -v
+    ;;
+  --help|-h|"")
+    exec /usr/local/libexec-fastq-scan -h
+    ;;
+esac
+
+input=$1
+shift
+if [ ! -f "$input" ]; then
+    printf 'fastq_scan: input is not a readable file: %s\n' "$input" >&2
+    exit 2
+fi
+case "$input" in
+  *.gz) gzip --decompress --stdout -- "$input" | /usr/local/libexec-fastq-scan "$@" ;;
+  *) /usr/local/libexec-fastq-scan "$@" < "$input" ;;
+esac

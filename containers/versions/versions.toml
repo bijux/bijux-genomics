@@ -516,10 +516,10 @@ date_pinned = "2026-02-16"
 pinned_commit = "0000000000000000000000000000000000000000"
 
 [fastq_scan]
-version = "0.0.1"
-source = "https://github.com/bijux/bijux-genomics"
+version = "1.0.1"
+source = "https://github.com/rpetit3/fastq-scan"
 date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "966991c58bd44cbf7644851b7118f7d06146f3c5"
 
 [fastuniq]
 version = "1.1"
