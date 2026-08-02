@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+# SPDX-License-Identifier: Apache-2.0
+set -eu
+
+case "${1:-}" in
+    --version)
+        echo 'germline 1.5.3'
+        ;;
+    --help|-h|"")
+        printf '%s\n' \
+            'usage: germline -input INPUT_PREFIX -output OUTPUT_PREFIX [native options]' \
+            '' \
+            'Run the pinned GERMLINE 1.5.3 binary with native PED/MAP input.' \
+            'Use --version to print the governed runtime version.'
+        ;;
+    *)
+        exec /opt/germline/bin/germline-native "$@"
+        ;;
+esac
