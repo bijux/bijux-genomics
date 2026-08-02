@@ -192,10 +192,10 @@ date_pinned = "2026-02-12"
 pinned_commit = "64826f4574b11b3c0ae7460826f30be16f49c3ea"
 
 [fqtools]
-version = "2.0"
+version = "2.3"
 source = "https://github.com/alastair-droop/fqtools"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "63c6fa707fabc7569c2f256b8bcfc6ebb760f72a"
 
 [germline]
 version = "1.5.3"

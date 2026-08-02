@@ -2,79 +2,69 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: fqtools
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
+# Version policy: immutable upstream commit and verified source archive
+# Upstream source: https://github.com/alastair-droop/fqtools
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 
-# VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    MAINTAINER Bijan Mousavi <bijan@bijux.io>
-    VERSION fqtools-v2.3
     org.opencontainers.image.source https://github.com/alastair-droop/fqtools
-
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
-    org.opencontainers.image.version 2.0
+    org.opencontainers.image.revision 63c6fa707fabc7569c2f256b8bcfc6ebb760f72a
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-3.0-only
+    org.opencontainers.image.version 2.3
     org.opencontainers.image.tool fqtools
     org.opencontainers.image.title fqtools
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-
-    apt-get update -qq && \
-    apt-get install -y --no-install-recommends \
-        git build-essential zlib1g-dev libhts-dev ca-certificates && \
-
-    git clone --branch v2.3 --depth 1 \
-        https://github.com/alastair-droop/fqtools /opt/fqtools && \
-    cd /opt/fqtools && git checkout 63c6fa707fabc7569c2f256b8bcfc6ebb760f72a && cd - >/dev/null && \
-
-    cd /opt/fqtools && \
-    make -j$(nproc) HTSDIR=/usr CFLAGS="-O2 -g -Wall -Wextra -Wno-unused-parameter -fcommon" && \
-    cp bin/fqtools /usr/local/bin/fqtools-bin && \
-
-    # Create a wrapper script with version reporting.
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends curl gcc make zlib1g-dev libhts-dev
+    curl --fail --location --silent --show-error \
+        --output /tmp/fqtools.tar.gz \
+        https://github.com/alastair-droop/fqtools/archive/63c6fa707fabc7569c2f256b8bcfc6ebb760f72a.tar.gz
+    echo '209020076fcc0e7beee4e86ca2579242799536ba47f4fdd2411dc5a0f86aa3f6  /tmp/fqtools.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /tmp/fqtools.tar.gz --directory /tmp
+    make --directory /tmp/fqtools-63c6fa707fabc7569c2f256b8bcfc6ebb760f72a \
+        HTSDIR=/usr CFLAGS='-O2 -g -Wall -Wextra -Wno-unused-parameter -fcommon' -j"$(nproc)"
+    install -m 0755 /tmp/fqtools-63c6fa707fabc7569c2f256b8bcfc6ebb760f72a/bin/fqtools /usr/local/libexec-fqtools
     cat > /usr/local/bin/fqtools <<'EOF'
-#!/bin/sh
-case "$1" in
-  --version|-v)
-    echo "2.3"
-    exit 0;;
-  --help|-h|"")
-    exec /usr/local/bin/fqtools-bin -h;;
-  *)
-    exec /usr/local/bin/fqtools-bin "$@";;
+#!/usr/bin/env sh
+set -eu
+case "${1:-}" in
+  --version|-v) printf '%s\n' '2.3' ;;
+  --help|-h|"") exec /usr/local/libexec-fqtools -h ;;
+  *) exec /usr/local/libexec-fqtools "$@" ;;
 esac
 EOF
-    chmod +x /usr/local/bin/fqtools && \
-
-    # Clean up source and build dependencies.
-    rm -rf /opt/fqtools && \
+    chmod 0755 /usr/local/bin/fqtools
+    test "$(fqtools --version)" = 2.3
+    rm -rf /tmp/fqtools-*
     rm -rf /var/lib/apt/lists/*
+
 %runscript
-    if [ $# -eq 0 ]; then
-        exec /usr/local/bin/fqtools --help
-    else
-        exec /usr/local/bin/fqtools "$@"
-    fi
+    exec /usr/local/bin/fqtools "$@"
+
+%test
+    test "$(fqtools --version)" = 2.3
+    fqtools --help >/dev/null
 
 %help
-    This Apptainer image provides fqtools version 2.3, compiled from source.
-    The default command is 'fqtools'; run without arguments to display help.
+    fqtools 2.3 built from the catalog-locked upstream commit.
