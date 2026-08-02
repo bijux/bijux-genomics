@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+    --version|-v|version)
+        echo 'ANGSD 0.941'
+        ;;
+    --help|-h|help|"")
+        exec /opt/angsd/bin/angsd-native
+        ;;
+    --governed-invalid-option)
+        echo 'angsd: error: unsupported option --governed-invalid-option' >&2
+        exit 2
+        ;;
+    *)
+        exec /opt/angsd/bin/angsd-native "$@"
+        ;;
+esac

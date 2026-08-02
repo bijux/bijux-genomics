@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+
+download_archive() {
+  local url="$1"
+  local expected_sha256="$2"
+  local destination="$3"
+  local archive="$work_dir/source.tar.gz"
+
+  curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error --output "$archive" "$url"
+  printf '%s  %s\n' "$expected_sha256" "$archive" | sha256sum --check --strict
+  mkdir -p "$destination"
+  tar --extract --gzip --file "$archive" --directory "$destination" --strip-components=1
+  rm -f "$archive"
+}
+
+download_archive \
+  'https://github.com/ANGSD/angsd/archive/b3099ed756e7aff87d2d1dd4fd30cdf36998380b.tar.gz' \
+  'e3da076b523e7d1fc32450019ff9d99f5cd2db722d260ce236bb775bc163fdc7' \
+  /opt/angsd/source
+download_archive \
+  'https://github.com/samtools/htslib/archive/e769401d18c19ce6150a1d40bdccd2af814e6b1c.tar.gz' \
+  '13414199839cd309a7bcc724eb2e467525c0c30b7b0efb3237eace8dc7141940' \
+  /opt/angsd/source/htslib
+download_archive \
+  'https://github.com/samtools/htscodecs/archive/b6615cdf542a83badc805d2195bc514220f19ce6.tar.gz' \
+  'd0e30936a7f40e69006316767b74a926c9a0aa1af21d0b8d773d3861617815ee' \
+  /opt/angsd/source/htslib/htscodecs
+
+printf '%s\n' \
+  '#define HTSCODECS_VERSION_TEXT "1.1.1-gb6615cdf542a83badc805d2195bc514220f19ce6"' \
+  > /opt/angsd/source/htslib/htscodecs/htscodecs/version.h
+
+(
+  cd /opt/angsd/source/htslib
+  autoreconf --install
+  ./configure
+  make --jobs 2
+)
+make --directory /opt/angsd/source --jobs 2 HTSSRC=/opt/angsd/source/htslib
+
+install -d -m 0755 /opt/angsd/bin
+install -m 0755 /opt/angsd/source/angsd /opt/angsd/bin/angsd-native
+chmod 0755 /usr/local/bin/angsd
+/usr/local/bin/angsd --version | grep -Fx 'ANGSD 0.941'
+/usr/local/bin/angsd --help >/dev/null 2>&1
