@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "6471513032a2f87582500216d3548144e9a19e7b6e8134e1a6d4b3dbed0fc943",
+  "source_sha256": "85d57f726018a46cb41550385d60ba0cc92c25d7eaa00dc50b10968578b04f60",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -1117,13 +1117,13 @@
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
-      "upstream": "https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz",
-      "license": "GPL-3.0",
-      "source_sha256": "8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9dc",
-      "pinned_commit": "",
+      "upstream": "https://github.com/shenwei356/seqkit",
+      "license": "MIT",
+      "source_sha256": "a6515a64bf28ceba6922a3854d8ec898ca2ca637b4b00fc883c83076dfaf1ffa",
+      "pinned_commit": "1aef84fbc2381db2e73639632bc44a5f7a0a8bcc",
       "apptainer_definition": "containers/apptainer/seqkit.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqkit",
-      "contract_sha256": "04c5d3c32cee46bd6db7bfea340a39886889b02201a6c371cb84df4a71628b84"
+      "contract_sha256": "ba64de4d796e2757938343aa7911df0873e947fbc8afc365d0e50316cc4c7a87"
     },
     {
       "id": "seqkit_stats",
@@ -1133,12 +1133,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/shenwei356/seqkit",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "MIT",
+      "source_sha256": "a6515a64bf28ceba6922a3854d8ec898ca2ca637b4b00fc883c83076dfaf1ffa",
       "pinned_commit": "1aef84fbc2381db2e73639632bc44a5f7a0a8bcc",
       "apptainer_definition": "containers/apptainer/seqkit_stats.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqkit_stats",
-      "contract_sha256": "30a3dc448c458e48d83206478ebf0de06daf320aece53fae525188db723d4f3f"
+      "contract_sha256": "e6e39cc6da49562424251235b7f374deb06fd1627fa025a625699c17fd0879e5"
     },
     {
       "id": "seqprep",
@@ -1177,13 +1177,13 @@
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
-      "upstream": "https://github.com/lh3/seqtk.git",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "upstream": "https://github.com/lh3/seqtk",
+      "license": "MIT",
+      "source_sha256": "d124604ec24f29ed14ce127426ab90e0f3a2c0280c80d1a3ff8b1c09feede19c",
       "pinned_commit": "ae7defa8bead3ef77d241f12194dc66acdd40fca",
       "apptainer_definition": "containers/apptainer/seqtk.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqtk",
-      "contract_sha256": "d062392b185bdbc1a4cc70c55492d5d27ec7153c23d2c4f5f8b9abd832e2a4be"
+      "contract_sha256": "39ab4d27ada206899fe8625460a17a2147f7c1b08afcfc029d9194e324ee7acb"
     },
     {
       "id": "shapeit",
