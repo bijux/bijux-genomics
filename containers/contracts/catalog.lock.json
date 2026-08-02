@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "f041d18dbe153f4cbe6d2270fb4354095d9cf4775bf96a9d0d14ca155f8d1e50",
+  "source_sha256": "9f52d97f3640dda40550edf7f9dc5b146470f8f780b4655167a9431c8b882ab2",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -1148,12 +1148,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/jstjohn/SeqPrep",
-      "license": "NOASSERTION",
-      "source_sha256": "",
+      "license": "MIT",
+      "source_sha256": "f45d466650f40b66a83f6ccaa8dbfee104d142ca2cc69c5014b14a92c7b76cb8",
       "pinned_commit": "575507b0b9c94701bdf67bb592da8ba91ba9639c",
       "apptainer_definition": "containers/apptainer/seqprep.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqprep",
-      "contract_sha256": "cd4a8a2798a0f78bab0551141d5bfc77bc0b548691120ad2c65ba153b768a301"
+      "contract_sha256": "08023601b9e0c2c27287cf470b723b4fa9e7b33fb930070d89076f52de7c1300"
     },
     {
       "id": "seqpurge",

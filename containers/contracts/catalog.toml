@@ -2018,28 +2018,28 @@ real_test_input_kind = "fastq"
 [[tools]]
 id = "seqprep"
 display_name = "SeqPrep"
-purpose = "Provides scientific tool execution for governed genomics stages."
+purpose = "Merges overlapping read pairs and trims paired-end adapters for governed FASTQ stages."
 version = "1.3.2"
 support_disposition = "retained"
 qualification = "unverified"
 upstream = "https://github.com/jstjohn/SeqPrep"
 documentation = "https://github.com/jstjohn/SeqPrep"
-license = "NOASSERTION"
-source_sha256 = ""
+license = "MIT"
+source_sha256 = "f45d466650f40b66a83f6ccaa8dbfee104d142ca2cc69c5014b14a92c7b76cb8"
 pinned_commit = "575507b0b9c94701bdf67bb592da8ba91ba9639c"
 domains = ["fastq"]
-stage_ids = []
+stage_ids = ["fastq.merge_pairs", "fastq.trim_reads"]
 expected_bin = "seqprep"
 version_command = "seqprep --version"
 help_command = "seqprep --help"
-expected_version_regex = ".+"
+expected_version_regex = "seqprep 1[.]3[.]2"
 apptainer_definition = "containers/apptainer/seqprep.def"
 apptainer_supported = true
 dockerfile = "containers/docker/Dockerfile.arm64.seqprep"
 docker_arm64_supported = true
 build_network = true
 runtime_network = false
-real_test_stage = "container.runtime"
+real_test_stage = "fastq.merge_pairs"
 real_test_input_kind = "fastq"
 
 [[tools]]

@@ -92,7 +92,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `seqfu` | `bijux` | `NOASSERTION` | `https://github.com/telatin/seqfu2/archive/refs/tags/v1.26.0.tar.gz` | `1.26.0` | `sha256:2b3aa5d6f983aed570d26b0cf48d910f847704d57401ef64e5b026de3dd0afff` |
 | `seqkit` | `bijux` | `NOASSERTION` | `https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz` | `2.8.2` | `sha256:8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9dc` |
 | `seqkit_stats` | `bijux` | `NOASSERTION` | `https://github.com/shenwei356/seqkit` | `2.8.2` | `sha256:05a2a93924694dedaa2d1bd8d3f2232a746c86a01f19d990e7776b012753317e` |
-| `seqprep` | `bijux` | `NOASSERTION` | `https://github.com/jstjohn/SeqPrep` | `1.3.2` | `sha256:ccd11946e632f755c782db26a4b4524171ec87d1edfe9f4f39c457750390904e` |
+| `seqprep` | `bijux` | `MIT` | `https://github.com/jstjohn/SeqPrep` | `1.3.2` | `sha256:f45d466650f40b66a83f6ccaa8dbfee104d142ca2cc69c5014b14a92c7b76cb8` |
 | `seqpurge` | `bijux` | `NOASSERTION` | `https://github.com/imgag/ngs-bits` | `2026_06` | `sha256:16bac795ea14ad2ed635435bffd9b5d4de2939bc0b9ed2e87cf0889be91ad4ed` |
 | `seqtk` | `bijux` | `NOASSERTION` | `https://github.com/lh3/seqtk.git` | `1.4` | `sha256:c200063b416c6a64fa4655669e904ba17df01433877a99d6764c91006d8e1ab2` |
 | `shapeit` | `bijux` | `MIT` | `https://github.com/odelaneau/shapeit4` | `4.2.2` | `sha256:2ee4e369ada23e58d6d3bbb4e0ac7a252b2769f24d63fc635ffbbace0f2b3ce9` |

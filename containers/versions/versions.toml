@@ -601,8 +601,10 @@ linux_arm64_pcre_sha256 = "7a6062de76f695f6d8f0ddda0ff171e4b47e2b863d6012def440c
 [seqprep]
 version = "1.3.2"
 source = "https://github.com/jstjohn/SeqPrep"
-date_pinned = "2026-02-16"
+date_pinned = "2026-08-02"
 pinned_commit = "575507b0b9c94701bdf67bb592da8ba91ba9639c"
+source_sha256 = "f45d466650f40b66a83f6ccaa8dbfee104d142ca2cc69c5014b14a92c7b76cb8"
+upstream_license = "MIT"
 
 [seqpurge]
 version = "2026_06"
