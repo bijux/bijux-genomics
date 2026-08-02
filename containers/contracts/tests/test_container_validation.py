@@ -62,6 +62,16 @@ class GovernanceContractTests(unittest.TestCase):
                 ):
                     container_validation.validate_governance(self.governance(root))
 
+    def test_sbatch_cluster_suffix_is_removed_from_numeric_identity(self) -> None:
+        self.assertEqual(
+            container_validation.parse_sbatch_job_id("3457577;lunarc\n"),
+            "3457577",
+        )
+
+    def test_non_numeric_sbatch_identity_is_rejected(self) -> None:
+        with self.assertRaisesRegex(container_validation.ContractError, "numeric job id"):
+            container_validation.parse_sbatch_job_id("submission failed")
+
 
 class BuildAdmissionTests(unittest.TestCase):
     def test_immutable_name_carries_runtime_and_content_identity(self) -> None:

@@ -674,6 +674,54 @@ exec python3 {contract['repository_path'] / 'containers/contracts/container_vali
     output_path.chmod(0o750)
 
 
+def parse_sbatch_job_id(value: str) -> str:
+    job_id = value.strip().split(";", 1)[0]
+    if not job_id.isdigit():
+        raise ContractError(f"sbatch did not return a numeric job id: {value.strip()!r}")
+    return job_id
+
+
+def submit_manifest(manifest_path: Path) -> str:
+    manifest_path = manifest_path.resolve()
+    governance_path = manifest_path / "config-governance.yml"
+    pipeline_path = manifest_path / "config-pipeline.yml"
+    credential_path = manifest_path / "config-credential.yml"
+    governance = load_governance(governance_path)
+    require_under(
+        manifest_path,
+        governance["study_root"] / "containers" / "manifests",
+        "manifest",
+    )
+    contract = validate_contracts(governance_path, pipeline_path, credential_path)
+    if manifest_path.name != contract["run_id"]:
+        raise ContractError("manifest directory must end with the governed run id")
+    submit_path = manifest_path / "submit.sh"
+    job_id_path = manifest_path / "slurm-job-id.txt"
+    if submit_path.exists() or job_id_path.exists():
+        raise ContractError("refusing to overwrite an existing submission record")
+    render_slurm(governance_path, pipeline_path, credential_path, submit_path)
+    syntax = subprocess.run(
+        ["bash", "-n", str(submit_path)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if syntax.returncode != 0:
+        submit_path.unlink()
+        raise ContractError(f"rendered Slurm script is invalid: {syntax.stderr.strip()}")
+    submitted = subprocess.run(
+        ["sbatch", "--parsable", str(submit_path)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if submitted.returncode != 0:
+        raise ContractError(f"Slurm submission failed: {submitted.stderr.strip()}")
+    job_id = parse_sbatch_job_id(submitted.stdout)
+    job_id_path.write_text(job_id + "\n", encoding="utf-8")
+    return job_id
+
+
 def collect_accounting(manifest_path: Path) -> Path:
     manifest_path = manifest_path.resolve()
     governance_path = manifest_path / "config-governance.yml"
@@ -773,6 +821,8 @@ def parser() -> argparse.ArgumentParser:
     freeze.add_argument("--commit", required=True)
     collect = commands.add_parser("collect-accounting")
     collect.add_argument("--manifest", type=Path, required=True)
+    submit = commands.add_parser("submit")
+    submit.add_argument("--manifest", type=Path, required=True)
     return root
 
 
@@ -790,6 +840,9 @@ def main() -> int:
             return 0
         if args.command == "collect-accounting":
             print(collect_accounting(args.manifest))
+            return 0
+        if args.command == "submit":
+            print(submit_manifest(args.manifest))
             return 0
         render_slurm(args.governance, args.pipeline, args.credentials, args.output)
         print(args.output)

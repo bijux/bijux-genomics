@@ -32,11 +32,8 @@ python3 containers/contracts/container_validation.py freeze-repository \
   --governance containers/contracts/sites/lunarc.yml \
   --commit COMMIT_SHA
 
-python3 containers/contracts/container_validation.py render-slurm \
-  --governance MANIFEST/config-governance.yml \
-  --pipeline MANIFEST/config-pipeline.yml \
-  --credentials MANIFEST/config-credential.yml \
-  --output MANIFEST/submit.sh
+python3 containers/contracts/container_validation.py submit \
+  --manifest MANIFEST
 
 python3 containers/contracts/container_validation.py collect-accounting \
   --manifest MANIFEST
