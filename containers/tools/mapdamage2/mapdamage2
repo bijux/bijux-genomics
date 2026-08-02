@@ -125,7 +125,8 @@ run_analysis() {
         -r "$reference" \
         -d "$native_tmp" \
         --no-stats \
-        --no-plot
+        --no-plot \
+        --merge-reference-sequences
 
     if ! rates=$(terminal_damage_rates "$native_tmp/misincorporation.txt"); then
         printf 'mapdamage2 analyze: terminal damage counts are absent or invalid\n' >&2
