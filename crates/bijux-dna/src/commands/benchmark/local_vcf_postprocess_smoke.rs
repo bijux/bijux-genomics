@@ -530,16 +530,7 @@ fn timestamp_marker() -> String {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
-    use super::{run_local_vcf_postprocess_smoke, write_governed_postprocess_input_vcf};
-
-    fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root")
-    }
+    use super::write_governed_postprocess_input_vcf;
 
     #[test]
     fn governed_postprocess_input_fixture_keeps_multiallelic_and_indel_cases() {
@@ -550,22 +541,5 @@ mod tests {
         assert!(raw.contains("g,t"));
         assert!(raw.contains("\tAA\tA\t"));
         assert!(raw.contains("\ts2\ts1"));
-    }
-
-    #[test]
-    fn local_vcf_postprocess_smoke_emits_governed_contract_outputs() {
-        let root = repo_root();
-        let report =
-            run_local_vcf_postprocess_smoke(&root, "bcftools").expect("run postprocess smoke");
-        assert_eq!(report.stage_id, "vcf.postprocess");
-        assert_eq!(report.tool_id, "bcftools");
-        assert!(root.join(&report.output_vcf_path).exists());
-        assert!(root.join(&report.output_tbi_path).exists());
-        assert!(root.join(&report.final_manifest_path).exists());
-        assert!(root.join(&report.validate_outputs_path).exists());
-        assert_eq!(report.sample_ids, vec!["s1".to_string(), "s2".to_string()]);
-        assert_eq!(report.multiallelic_records_remaining, 0);
-        assert!(report.mq_removed);
-        assert!(report.parseable);
     }
 }

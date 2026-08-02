@@ -50,6 +50,14 @@ pub struct ChunkRunOutputs {
     pub run_mode: String,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct ChunkRunContext<'a> {
+    pub input_vcf: &'a Path,
+    pub panel_vcf: &'a Path,
+    pub out_dir: &'a Path,
+    pub species: &'a SpeciesContext,
+}
+
 #[derive(Debug, Clone, Serialize)]
 struct ChunkProvenance {
     chunk_id: String,
@@ -201,16 +209,13 @@ fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
 
 /// # Errors
 /// Returns an error if chunk execution/merge validation fails.
-#[allow(clippy::too_many_arguments)]
 pub fn run_chunked_regions(
-    input_vcf: &Path,
-    panel_vcf: &Path,
-    out_dir: &Path,
-    species_context: &SpeciesContext,
+    context: ChunkRunContext<'_>,
     params: &ChunkingPlanParams,
     policy: ChunkFailurePolicy,
     rerun_chunk: Option<&str>,
 ) -> Result<ChunkRunOutputs> {
+    let ChunkRunContext { input_vcf, panel_vcf, out_dir, species: species_context } = context;
     bijux_dna_infra::ensure_dir(out_dir)?;
     let contract = crate::path_contract::VcfPathContract::canonical(out_dir);
     let stage_logs_dir = contract.logs_dir.join("vcf.chunked_merge");

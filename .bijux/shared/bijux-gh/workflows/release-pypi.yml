@@ -111,7 +111,7 @@ jobs:
       python_interpreter: ${{ steps.config.outputs.python_interpreter }}
     steps:
       - name: Checkout release configuration
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
@@ -263,7 +263,7 @@ jobs:
           wait_for_ci_command="$(from_values "" "${BIJUX_PYPI_WAIT_FOR_CI_COMMAND:-}" "${{ vars.BIJUX_PYPI_WAIT_FOR_CI_COMMAND || '' }}" "")"
           plan_command="$(from_values "" "${BIJUX_PYPI_PLAN_COMMAND:-}" "${{ vars.BIJUX_PYPI_PLAN_COMMAND || '' }}" "")"
           prepare_command="$(from_values "" "${BIJUX_PYPI_PREPARE_COMMAND:-}" "${{ vars.BIJUX_PYPI_PREPARE_COMMAND || '' }}" "")"
-          publish_command="$(from_values "" "${BIJUX_PYPI_PUBLISH_COMMAND:-}" "${{ vars.BIJUX_PYPI_PUBLISH_COMMAND || '' }}" "make publish-py PUBLISH_BUILD=0")"
+          publish_command="$(from_values "" "${BIJUX_PYPI_PUBLISH_COMMAND:-}" "${{ vars.BIJUX_PYPI_PUBLISH_COMMAND || '' }}" "")"
           setup_python="$(bool_from_values "" "${BIJUX_PYPI_SETUP_PYTHON:-}" "${{ vars.BIJUX_PYPI_SETUP_PYTHON || '' }}" "true")"
           python_version="$(from_values "" "${BIJUX_PYPI_PYTHON_VERSION:-}" "${{ vars.BIJUX_PYPI_PYTHON_VERSION || '' }}" "3.11")"
           setup_rust="$(bool_from_values "" "${BIJUX_PYPI_SETUP_RUST:-}" "${{ vars.BIJUX_PYPI_SETUP_RUST || '' }}" "true")"
@@ -418,7 +418,7 @@ jobs:
         id: trusted_publish
         if: ${{ steps.auth.outputs.mode != 'token' }}
         continue-on-error: true
-        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
+        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # release/v1
         with:
           packages-dir: .github/tmp/${{ matrix.package_slug }}-dist
           skip-existing: ${{ needs.resolve.outputs.skip_existing == 'true' }}
@@ -438,7 +438,7 @@ jobs:
         if: ${{ (steps.auth.outputs.mode == 'token' || (steps.auth.outputs.mode != 'token' && needs.resolve.outputs.allow_token_bootstrap_on_missing == 'true' && steps.trusted_publish.outcome == 'failure' && steps.pypi_project.outputs.probe_status == 'missing')) && env.PYPI_API_TOKEN_PRESENT == 'true' }}
         env:
           PYPI_API_TOKEN_PRESENT: ${{ secrets.PYPI_API_TOKEN != '' }}
-        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
+        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # release/v1
         with:
           packages-dir: .github/tmp/${{ matrix.package_slug }}-dist
           skip-existing: ${{ needs.resolve.outputs.skip_existing == 'true' }}
@@ -469,13 +469,16 @@ jobs:
     if: ${{ needs.resolve.outputs.enabled == 'true' && needs.resolve.outputs.mode == 'maturin' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    environment:
+      name: ${{ needs.resolve.outputs.environment_name }}
     permissions:
       contents: read
       actions: read
+      id-token: write
 
     steps:
       - name: Checkout release commit
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           ref: ${{ github.sha }}
@@ -486,22 +489,24 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           TARGET_SHA: ${{ github.sha }}
           TARGET_REF_NAME: ${{ github.ref_name }}
+          WAIT_FOR_CI_COMMAND: ${{ needs.resolve.outputs.wait_for_ci_command }}
         shell: bash
         run: |
           set -euo pipefail
           CI_WAIT_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           export CI_WAIT_STARTED_AT
-          eval "${{ needs.resolve.outputs.wait_for_ci_command }}"
+          eval "${WAIT_FOR_CI_COMMAND}"
 
       - name: Decide whether to publish PyPI distributions
         id: plan
         if: ${{ needs.resolve.outputs.plan_command != '' }}
         env:
+          PLAN_COMMAND: ${{ needs.resolve.outputs.plan_command }}
           TARGET_SHA: ${{ github.sha }}
         shell: bash
         run: |
           set -euo pipefail
-          eval "${{ needs.resolve.outputs.plan_command }}"
+          eval "${PLAN_COMMAND}"
 
       - name: Resolve publish decision
         id: release
@@ -529,7 +534,7 @@ jobs:
 
       - name: Set up Python
         if: ${{ steps.release.outputs.publish == 'true' && needs.resolve.outputs.setup_python == 'true' }}
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ needs.resolve.outputs.python_version }}
           cache: pip
@@ -549,6 +554,7 @@ jobs:
         if: ${{ steps.release.outputs.publish == 'true' }}
         id: release_tree
         env:
+          PREPARE_COMMAND: ${{ needs.resolve.outputs.prepare_command }}
           RELEASE_VERSION: ${{ steps.release.outputs.version }}
         shell: bash
         run: |
@@ -557,7 +563,7 @@ jobs:
           rm -rf "${release_tree}"
 
           if [[ -n "${{ needs.resolve.outputs.prepare_command }}" ]]; then
-            eval "${{ needs.resolve.outputs.prepare_command }}"
+            eval "${PREPARE_COMMAND}"
           else
             python3 .github/scripts/prepare_release_tree.py \
               --workspace-root . \
@@ -598,12 +604,111 @@ jobs:
             --manifest-path ${{ needs.resolve.outputs.manifest_path }}
             --out ${{ github.workspace }}/artifacts/python/build
 
-      - name: Publish PyPI distributions
-        if: ${{ steps.release.outputs.publish == 'true' }}
+      - name: Resolve publish auth mode
+        id: auth
+        if: ${{ steps.release.outputs.publish == 'true' && needs.resolve.outputs.publish_command == '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mode='${{ needs.resolve.outputs.publish_auth_default }}'
+          case "${mode}" in
+            trusted|token) ;;
+            *)
+              echo "Unsupported publish auth mode: ${mode}" >&2
+              echo "Expected one of: trusted, token" >&2
+              exit 1
+              ;;
+          esac
+          echo "mode=${mode}" >> "$GITHUB_OUTPUT"
+
+      - name: Probe package presence on PyPI
+        id: pypi_project
+        if: ${{ steps.release.outputs.publish == 'true' && needs.resolve.outputs.publish_command == '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_name=''
+          dist_path="$(find artifacts/python/build -maxdepth 1 -type f \( -name '*.whl' -o -name '*.tar.gz' \) | sort | head -n 1)"
+          if [[ -n "${dist_path}" ]]; then
+            file_name="$(basename "${dist_path}")"
+            package_name="${file_name%%-*}"
+            package_name="${package_name//_/-}"
+          fi
+          if [[ -z "${package_name}" ]]; then
+            package_name='${{ github.event.repository.name }}'
+          fi
+          status_code="$(curl --silent --show-error --location --retry 2 --retry-delay 1 --output /dev/null --write-out '%{http_code}' "https://pypi.org/pypi/${package_name}/json" || true)"
+          case "${status_code}" in
+            200)
+              echo "exists=true" >> "$GITHUB_OUTPUT"
+              echo "probe_status=exists" >> "$GITHUB_OUTPUT"
+              ;;
+            404)
+              echo "exists=false" >> "$GITHUB_OUTPUT"
+              echo "probe_status=missing" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "exists=unknown" >> "$GITHUB_OUTPUT"
+              echo "probe_status=error" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Publish PyPI distributions with custom command
+        if: ${{ steps.release.outputs.publish == 'true' && needs.resolve.outputs.publish_command != '' }}
         env:
+          PUBLISH_COMMAND: ${{ needs.resolve.outputs.publish_command }}
           PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
           RELEASE_VERSION: ${{ steps.release.outputs.version }}
         shell: bash
         run: |
           set -euo pipefail
-          eval "${{ needs.resolve.outputs.publish_command }}"
+          eval "${PUBLISH_COMMAND}"
+
+      - name: Publish to PyPI (trusted publisher)
+        id: trusted_publish
+        if: ${{ steps.release.outputs.publish == 'true' && needs.resolve.outputs.publish_command == '' && steps.auth.outputs.mode != 'token' }}
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # release/v1
+        with:
+          packages-dir: artifacts/python/build
+          skip-existing: ${{ needs.resolve.outputs.skip_existing == 'true' }}
+
+      - name: Validate token bootstrap prerequisites
+        if: ${{ steps.release.outputs.publish == 'true' && needs.resolve.outputs.publish_command == '' && (steps.auth.outputs.mode == 'token' || (steps.auth.outputs.mode != 'token' && needs.resolve.outputs.allow_token_bootstrap_on_missing == 'true' && steps.trusted_publish.outcome == 'failure' && steps.pypi_project.outputs.probe_status == 'missing')) && env.PYPI_API_TOKEN_PRESENT != 'true' }}
+        env:
+          PYPI_API_TOKEN_PRESENT: ${{ secrets.PYPI_API_TOKEN != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Token publish mode requires PYPI_API_TOKEN to be configured." >&2
+          exit 1
+
+      - name: Publish to PyPI (token bootstrap)
+        id: token_publish
+        if: ${{ steps.release.outputs.publish == 'true' && needs.resolve.outputs.publish_command == '' && (steps.auth.outputs.mode == 'token' || (steps.auth.outputs.mode != 'token' && needs.resolve.outputs.allow_token_bootstrap_on_missing == 'true' && steps.trusted_publish.outcome == 'failure' && steps.pypi_project.outputs.probe_status == 'missing')) && env.PYPI_API_TOKEN_PRESENT == 'true' }}
+        env:
+          PYPI_API_TOKEN_PRESENT: ${{ secrets.PYPI_API_TOKEN != '' }}
+        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # release/v1
+        with:
+          packages-dir: artifacts/python/build
+          skip-existing: ${{ needs.resolve.outputs.skip_existing == 'true' }}
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Fail on indeterminate PyPI probe
+        if: ${{ steps.release.outputs.publish == 'true' && needs.resolve.outputs.publish_command == '' && steps.auth.outputs.mode != 'token' && steps.trusted_publish.outcome == 'failure' && steps.pypi_project.outputs.probe_status == 'error' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Trusted publish failed and PyPI probe result was indeterminate." >&2
+          echo "Refusing token bootstrap for safety; retry later or force token mode explicitly." >&2
+          exit 1
+
+      - name: Validate publish mode resolution
+        if: ${{ steps.release.outputs.publish == 'true' && needs.resolve.outputs.publish_command == '' && steps.auth.outputs.mode != 'token' && steps.trusted_publish.outcome == 'failure' && steps.token_publish.outcome != 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Trusted publish failed and token bootstrap did not succeed." >&2
+          echo "Set PYPI_API_TOKEN or configure trusted publishers for this repository/package." >&2
+          exit 1

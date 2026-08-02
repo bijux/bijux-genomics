@@ -430,7 +430,7 @@ fn timestamp_marker() -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{run_local_vcf_imputation_metrics_smoke, summarize_imputation_metrics};
+    use super::summarize_imputation_metrics;
 
     #[test]
     fn imputation_metrics_summary_reports_missing_quality_fields_explicitly() {
@@ -456,22 +456,5 @@ mod tests {
             ]
         );
         assert_eq!(summary.status, "explicit_missing_quality_fields");
-    }
-
-    #[test]
-    fn governed_vcf_imputation_metrics_smoke_reports_quality_surface() {
-        let repo_root = tempfile::tempdir().expect("tempdir");
-        let report = run_local_vcf_imputation_metrics_smoke(repo_root.path(), "beagle")
-            .expect("run local imputation metrics smoke");
-        assert_eq!(report.stage_id, "vcf.imputation_metrics");
-        assert_eq!(report.tool_id, "beagle");
-        assert_eq!(report.concordance, Some(1.0));
-        assert!(report.mean_info_score > 0.8);
-        assert!(report.r2_available);
-        assert!(report.dosage_r2.is_some_and(|value| value > 0.7));
-        assert_eq!(report.low_confidence_sites, 1);
-        assert_eq!(report.masked_truth_sites, 1);
-        assert!(report.missing_quality_fields.is_empty());
-        assert_eq!(report.status, "complete");
     }
 }

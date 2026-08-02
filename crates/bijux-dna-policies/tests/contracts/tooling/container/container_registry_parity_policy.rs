@@ -30,7 +30,7 @@ fn load_registry_tool_defs_for_runtime(runtime: &str) -> Vec<RuntimeDefSpec> {
         let raw = std::fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
         let parsed: toml::Value =
-            raw.parse().unwrap_or_else(|err| panic!("parse {}: {err}", path.display()));
+            toml::from_str(&raw).unwrap_or_else(|err| panic!("parse {}: {err}", path.display()));
         let Some(rows) = parsed.get("tools").and_then(toml::Value::as_array) else {
             continue;
         };

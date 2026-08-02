@@ -24,7 +24,7 @@ fn policy__contracts__default_profile_binding_policy__default_profiles_use_regis
         "configs/ci/registry/tool_registry_vcf.toml",
     ] {
         let raw = std::fs::read_to_string(root.join(rel)).expect("read registry");
-        let parsed: toml::Value = raw.parse().expect("parse registry");
+        let parsed: toml::Value = toml::from_str(&raw).expect("parse registry");
         tools.extend(
             parsed.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default(),
         );

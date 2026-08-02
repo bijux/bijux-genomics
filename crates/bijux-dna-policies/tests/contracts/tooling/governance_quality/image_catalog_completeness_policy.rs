@@ -12,8 +12,8 @@ fn policy__contracts__image_catalog_completeness_policy__production_tools_have_i
     let images_raw = std::fs::read_to_string(root.join("configs/ci/tools/images.toml"))
         .expect("read configs/ci/tools/images.toml");
 
-    let registry: toml::Value = registry_raw.parse().expect("parse tool_registry.toml");
-    let images: toml::Value = images_raw.parse().expect("parse images.toml");
+    let registry: toml::Value = toml::from_str(&registry_raw).expect("parse tool_registry.toml");
+    let images: toml::Value = toml::from_str(&images_raw).expect("parse images.toml");
 
     let production_tools = registry
         .get("tools")

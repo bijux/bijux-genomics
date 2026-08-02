@@ -21,7 +21,7 @@ fn policy__contracts__binding_decision_record_policy__complex_binding_changes_re
     let registry_raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
         .expect("read configs/ci/registry/tool_registry.toml");
     let registry: toml::Value =
-        registry_raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
+        toml::from_str(&registry_raw).expect("parse configs/ci/registry/tool_registry.toml");
 
     let decision_path = root.join("docs/decisions/TOOL_BINDING_DECISIONS.md");
     let decision_raw = std::fs::read_to_string(&decision_path)

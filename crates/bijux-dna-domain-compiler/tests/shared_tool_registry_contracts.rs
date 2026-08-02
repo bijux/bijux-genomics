@@ -5,13 +5,13 @@ mod support;
 
 fn tools_array(path: &std::path::Path) -> anyhow::Result<Vec<toml::Value>> {
     let raw = std::fs::read_to_string(path)?;
-    let value = raw.parse::<toml::Value>()?;
+    let value = toml::from_str::<toml::Value>(&raw)?;
     Ok(value.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default())
 }
 
 fn stages_array(path: &std::path::Path) -> anyhow::Result<Vec<toml::Value>> {
     let raw = std::fs::read_to_string(path)?;
-    let value = raw.parse::<toml::Value>()?;
+    let value = toml::from_str::<toml::Value>(&raw)?;
     Ok(value.get("stages").and_then(toml::Value::as_array).cloned().unwrap_or_default())
 }
 

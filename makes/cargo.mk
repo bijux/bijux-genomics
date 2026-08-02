@@ -7,7 +7,9 @@ ARTIFACTS_DIR ?= $(ARTIFACT_ROOT)/make/$(or $(MAKECMDGOALS),manual)
 NEXTEST_TOML := configs/rust/nextest.toml
 NEXTEST_CONFIG_FILE ?= $(CURDIR)/$(NEXTEST_TOML)
 NEXTEST_CONFIG ?= --config-file $(NEXTEST_TOML)
-NEXTEST_EXPR_BIN ?= $(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/scripts/nextest_expr.sh
+RS_TARGET_DIR ?= $(abspath $(ARTIFACT_ROOT)/target)
+RS_CARGO_HOME ?= $(abspath $(ARTIFACT_ROOT)/cargo/home)
+NEXTEST_EXPR_BIN ?= $(CURDIR)/makes/bin/nextest_expr.sh
 NEXTEST_FAST_EXPR ?= $(shell "$(NEXTEST_EXPR_BIN)" fast)
 NEXTEST_SLOW_EXPR ?= $(shell "$(NEXTEST_EXPR_BIN)" slow)
 NEXTEST_SLOW_NAME_EXPR ?= test(/::slow__/)
@@ -24,11 +26,17 @@ COVERAGE_OUT = coverage.json
 DEV_DNA_BIN ?= $(CARGO_TARGET_DIR)/debug/bijux-dna-dev
 DEV_DNA_BOOTSTRAP ?= makes/bin/dev_dna_bootstrap.sh
 GENOMICS_RUST_GATE_BIN ?= makes/bin/run_genomics_rust_gate.sh
+GITHUB_WORKFLOW_GATE_BIN ?= makes/bin/run_github_workflow_gate.sh
+GITHUB_WORKFLOW_REF_VALIDATOR ?= makes/bin/validate_github_workflow_ref.sh
 RUST_GATE_BIN ?= $(GENOMICS_RUST_GATE_BIN)
 RUST_CLIPPY_EXCLUDES ?= bijux-dna-dev
 RUST_AUDIT_PREREQUISITES += audit-policy-rs
 NEXTEST_STATUS_LEVEL ?= all
 NEXTEST_FINAL_STATUS_LEVEL ?= all
+
+BIJUX_HELP_TARGETS += github-all github-all-frozen
+BIJUX_HELP_github-all := Run repository-controlled GitHub workflow gates
+BIJUX_HELP_github-all-frozen := Launch pinned GitHub workflow gates in the background
 
 fmt:
 	@$(ensure_artifact_env)
@@ -46,7 +54,13 @@ lint:
 	@$(ensure_artifact_env)
 	@$(MAKE) lint-rs
 
-lint-workspace: ## Run Rust lint plus workspace config/docs/automation policy gates.
+lint-workspace: ## Run CI-sized workspace config, docs, and automation contract gates.
+	@$(ensure_artifact_env)
+	@$(MAKE) _lint-configs
+	@$(MAKE) _lint-docs
+	@$(MAKE) _lint-automation-contracts
+
+lint-governance: ## Run exhaustive workspace governance, domain, container, and Rust lint gates.
 	@$(ensure_artifact_env)
 	@$(MAKE) _lint
 
@@ -87,8 +101,13 @@ _lint-automation:
 	@echo "Running automation lint gates in parallel (jobs=$(LINT_PARALLEL_JOBS)); logs: $(ARTIFACTS_DIR)/lint-parallel"
 	@while IFS= read -r cmd; do printf '%s\0' "$$cmd"; done < "$(ARTIFACTS_DIR)/lint-parallel/commands.txt" \
 	| xargs -0 -n1 -P "$(LINT_PARALLEL_JOBS)" sh -c '\
-		cmd="$$2"; \
-		name=$$(printf "%s" "$$cmd" | tr -cs "[:alnum:]._-" "_"); \
+		manifest_cmd="$$3"; \
+		name=$$(printf "%s" "$$manifest_cmd" | tr -cs "[:alnum:]._-" "_"); \
+		cmd="$$manifest_cmd"; \
+		case "$$cmd" in \
+			artifacts/target/debug/bijux-dna-dev\ *) \
+				cmd="\"$$2\"$${cmd#artifacts/target/debug/bijux-dna-dev}" ;; \
+		esac; \
 		log_file="$$1/$$name.log"; \
 		if sh -c "$$cmd" >"$$log_file" 2>&1; then \
 			printf "ok %s\n" "$$cmd"; \
@@ -96,8 +115,22 @@ _lint-automation:
 			printf "FAILED %s\n" "$$cmd" >&2; \
 			tail -n 80 "$$log_file" >&2; \
 			exit 1; \
-		fi' sh "$(ARTIFACTS_DIR)/lint-parallel"
+		fi' sh "$(ARTIFACTS_DIR)/lint-parallel" "$(DEV_DNA_BIN)"
 	@find "$(ARTIFACTS_DIR)/lint-parallel" -type f -name '._*' -delete
+
+_lint-automation-contracts:
+	@$(ensure_artifact_env)
+	@$(MAKE) _dev-dna-bin >/dev/null
+	@$(DEV_DNA_BIN) tooling run repo-doctor --fast
+	@$(DEV_DNA_BIN) checks run check-automation-interface
+	@$(DEV_DNA_BIN) checks run check-automation-writes
+	@$(DEV_DNA_BIN) checks run check-automation-network-usage
+	@$(DEV_DNA_BIN) checks run check-automation-temp-discipline
+	@$(DEV_DNA_BIN) checks run check-artifact-env-contract
+	@$(DEV_DNA_BIN) checks run check-output-roots
+	@$(DEV_DNA_BIN) checks run check-gitignore-contract
+	@$(DEV_DNA_BIN) checks run check-no-raw-cargo-in-makes
+	@$(DEV_DNA_BIN) checks run check-no-raw-cargo-in-automation
 
 lint-automation: ## Run repo-doctor + automation/container lint checks (parallelized), without clippy.
 	@$(ensure_artifact_env)
@@ -250,24 +283,30 @@ _clean-artifact-scratch:
 	@mkdir -p "$(ARTIFACT_ROOT)/tmp"
 
 _policy-fast: ## Run fast policy checks (no snapshots)
+	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets policy-fast
 	$(MAKE) _domain-gates
 
 _ssot-policy-fast: ## Fast-fail SSOT and registry policy checks.
+	@$(ensure_artifact_env)
 	cargo run -q -p bijux-dna-dev -- checks run check-ssot-guardrails
 	$(MAKE) _domain-gates
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets ssot-policy-fast
 
 _test-profile-invariants: ## Run pipeline profile invariant contract tests.
+	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets test-profile-invariants
 
 _registry-lint: ## Run strict tool registry reproducibility policy checks.
+	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets registry-lint
 
 _unit-contract-fast: ## Fast unit/contract checks for critical crates.
+	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets unit-contract-fast
 
 _release-readiness: ## Block merges on experimental tools, unknown metrics schemas, or floating pins.
+	@$(ensure_artifact_env)
 	$(MAKE) _registry-lint
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets release-readiness
 
@@ -456,6 +495,14 @@ science-fixtures-fast: ## Validate FASTQ/BAM/VCF plus aDNA/eDNA/amplicon/populat
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets science-fixtures-fast
 
+github-all: ## Run repository-controlled GitHub workflow gates.
+	@$(ensure_artifact_env)
+	@GITHUB_WORKFLOW_ARTIFACT_DIR="$(ARTIFACT_ROOT)/github-all" "$(GITHUB_WORKFLOW_GATE_BIN)"
+
+github-all-frozen: ## Launch pinned GitHub workflow gates in the background.
+	@"$(GITHUB_WORKFLOW_REF_VALIDATOR)"
+	@PINNED_GATE_TARGET=github-all PINNED_ALLOWED_TARGETS="github-all" "$(PINNED_GATE_BIN)"
+
 _ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
 	$(MAKE) _ssot-policy-fast
 	$(MAKE) fmt
@@ -525,6 +572,7 @@ _check-generated-config-headers:
 	cargo run -q -p bijux-dna-dev -- checks run check-generated-config-headers
 
 _policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/control-plane surfaces.
+	@$(ensure_artifact_env)
 	cargo run -q -p bijux-dna-dev -- checks run check-no-raw-cargo-in-makes
 	cargo run -q -p bijux-dna-dev -- checks run check-no-raw-cargo-in-automation
 
@@ -621,7 +669,7 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@cargo run -q -p bijux-dna-dev -- assets run refresh-golden
 
-.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs test-all-frozen lint-frozen audit-frozen audit audit-rs coverage coverage-rs coverage-workspace ci doctor _check _verify-artifact-env \
+.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-governance lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs test-all-frozen lint-frozen audit-frozen audit audit-rs coverage coverage-rs coverage-workspace ci doctor github-all github-all-frozen _check _verify-artifact-env \
 		_clean-artifact-scratch \
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \

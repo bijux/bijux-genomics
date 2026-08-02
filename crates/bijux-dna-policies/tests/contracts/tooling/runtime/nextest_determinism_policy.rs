@@ -24,7 +24,17 @@ fn policy__contracts__nextest_determinism_policy__ci_profile_disables_flaky_orde
     );
     bijux_dna_policies::policy_assert!(
         config.contains("slow-timeout = { period = \"1s\", terminate-after = 1 }"),
-        "fast nextest profiles must classify tests over 1 second as slow"
+        "profile.ci must terminate tests that exceed the one-second CI contract"
+    );
+    let fast_unit_profile = config
+        .split("[profile.fast-unit]\n")
+        .nth(1)
+        .and_then(|tail| tail.split("\n[profile.").next())
+        .expect("profile.fast-unit section");
+    bijux_dna_policies::policy_assert!(
+        fast_unit_profile
+            .contains("slow-timeout = { period = \"1s\", terminate-after = 15 }"),
+        "profile.fast-unit must report tests as slow after one second and terminate after 15 seconds"
     );
 }
 
@@ -46,6 +56,12 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
     let pinned_gate =
         std::fs::read_to_string(root.join(".bijux/shared/bijux-makes/scripts/run_pinned_gate.sh"))
             .expect("read shared pinned gate");
+    let nextest_expression_builder = root.join("makes/bin/nextest_expr.sh");
+    let nextest_expression_builder_source = std::fs::read_to_string(&nextest_expression_builder)
+        .expect("read Nextest expression builder");
+    let github_gate_runner =
+        std::fs::read_to_string(root.join("makes/bin/run_github_workflow_gate.sh"))
+            .expect("read GitHub workflow gate runner");
     let slow_roster = std::fs::read_to_string(root.join("configs/rust/nextest-slow-roster.txt"))
         .expect("read nextest slow roster");
     bijux_dna_policies::policy_assert!(
@@ -82,10 +98,29 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         "test-all must default to the deterministic full nextest profile"
     );
     bijux_dna_policies::policy_assert!(
-        cargo_mk.contains(
-            "NEXTEST_EXPR_BIN ?= $(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/scripts/nextest_expr.sh"
-        ),
-        "make test lanes must derive slow-test filters from the shared expression builder"
+        cargo_mk.contains("RS_TARGET_DIR ?= $(abspath $(ARTIFACT_ROOT)/target)"),
+        "repository and shared Rust gates must reuse one Cargo target directory"
+    );
+    bijux_dna_policies::policy_assert!(
+        cargo_mk.contains("RS_CARGO_HOME ?= $(abspath $(ARTIFACT_ROOT)/cargo/home)"),
+        "repository and shared Rust gates must reuse one Cargo dependency cache"
+    );
+    bijux_dna_policies::policy_assert!(
+        cargo_mk.contains("NEXTEST_EXPR_BIN ?= $(CURDIR)/makes/bin/nextest_expr.sh"),
+        "make test lanes must use the repository Nextest expression boundary"
+    );
+    bijux_dna_policies::policy_assert!(
+        nextest_expression_builder_source
+            .contains(".bijux/shared/bijux-makes-rs/scripts/nextest_expr.sh")
+            && nextest_expression_builder_source
+                .contains("sed 's#test(/\\^(?:#test(/(?:^|::)(?:#g'"),
+        "the repository Nextest expression boundary must preserve the shared builder and match rostered unit-test suffixes"
+    );
+    bijux_dna_policies::policy_assert!(
+        github_gate_runner.contains("cargo nextest list")
+            && github_gate_runner.contains("export CARGO_TARGET_DIR=\"${cargo_target_dir}\"")
+            && !github_gate_runner.contains("gate_target=\"test-all\""),
+        "github-all must prepare one shared test build and preserve the workflow's fast test lane"
     );
     bijux_dna_policies::policy_assert!(
         cargo_mk.contains("NEXTEST_SLOW_NAME_EXPR ?= test(/::slow__/)"),

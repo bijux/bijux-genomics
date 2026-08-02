@@ -21,7 +21,7 @@ fn policy__contracts__benchmark_suite_support_policy__production_benchmark_tools
     let registry_raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
         .expect("read configs/ci/registry/tool_registry.toml");
     let registry: toml::Value =
-        registry_raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
+        toml::from_str(&registry_raw).expect("parse configs/ci/registry/tool_registry.toml");
 
     let suite_files = std::fs::read_dir(root.join("crates/bijux-dna-bench/bench/suites"))
         .expect("read bench suite directory")
@@ -40,7 +40,7 @@ fn policy__contracts__benchmark_suite_support_policy__production_benchmark_tools
         let raw =
             std::fs::read_to_string(&file).unwrap_or_else(|_| panic!("read {}", file.display()));
         let parsed: toml::Value =
-            raw.parse().unwrap_or_else(|_| panic!("parse {}", file.display()));
+            toml::from_str(&raw).unwrap_or_else(|_| panic!("parse {}", file.display()));
         if let Some(stages) = parsed.get("stages").and_then(toml::Value::as_array) {
             for stage in stages {
                 for tool in list(stage, "tools") {

@@ -36,9 +36,9 @@ fn policy__contracts__stage_catalog_registry_parity_policy__supported_stage_tool
             .unwrap_or_else(|err| panic!("read {registry_rel}: {err}"));
 
         let stages: toml::Value =
-            stages_raw.parse().unwrap_or_else(|err| panic!("parse {stages_rel}: {err}"));
-        let registry: toml::Value =
-            registry_raw.parse().unwrap_or_else(|err| panic!("parse {registry_rel}: {err}"));
+            toml::from_str(&stages_raw).unwrap_or_else(|err| panic!("parse {stages_rel}: {err}"));
+        let registry: toml::Value = toml::from_str(&registry_raw)
+            .unwrap_or_else(|err| panic!("parse {registry_rel}: {err}"));
 
         let mut registry_stage_tools = BTreeMap::<String, BTreeSet<String>>::new();
         for tool in table_array(&registry, "tools") {

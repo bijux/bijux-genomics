@@ -7,7 +7,7 @@ fn policy__contracts__stages_output_typing_policy__generated_stages_define_outpu
     let stages_path = support::workspace_root().join("configs/ci/stages/stages.toml");
     let raw = std::fs::read_to_string(&stages_path)
         .unwrap_or_else(|_| panic!("read {}", stages_path.display()));
-    let parsed: toml::Value = raw.parse().expect("parse configs/ci/stages/stages.toml");
+    let parsed: toml::Value = toml::from_str(&raw).expect("parse configs/ci/stages/stages.toml");
     let entries = parsed.get("stages").and_then(toml::Value::as_array).cloned().unwrap_or_default();
 
     let mut offenders = Vec::new();

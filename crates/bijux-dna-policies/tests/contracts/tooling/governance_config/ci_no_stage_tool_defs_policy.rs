@@ -17,7 +17,7 @@ fn policy__contracts__ci_no_stage_tool_defs_policy__workflows_must_not_define_st
     let registry_raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
         .expect("read configs/ci/registry/tool_registry.toml");
     let parsed: toml::Value =
-        registry_raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
+        toml::from_str(&registry_raw).expect("parse configs/ci/registry/tool_registry.toml");
 
     let mut ids = BTreeSet::new();
     if let Some(tools) = parsed.get("tools").and_then(toml::Value::as_array) {

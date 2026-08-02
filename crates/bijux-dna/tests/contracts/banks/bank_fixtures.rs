@@ -1,9 +1,11 @@
+use std::cell::Cell;
 use std::collections::BTreeMap;
 use std::ffi::OsString;
 use std::fs;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
@@ -23,16 +25,33 @@ const TEST_LOCK_POLL_INTERVAL: Duration = Duration::from_millis(50);
 #[allow(dead_code)]
 const TEST_LOCK_OWNER_FILE: &str = "owner.pid";
 #[allow(dead_code)]
-const TEST_LOCK_MISSING_OWNER_GRACE: Duration = Duration::from_secs(1);
+const TEST_LOCK_MISSING_OWNER_GRACE: Duration = Duration::from_secs(30);
+#[allow(dead_code)]
+static LOCK_OWNER_SEQUENCE: AtomicU64 = AtomicU64::new(0);
+
+thread_local! {
+    static REPO_MUTATOR_LOCK_DEPTH: Cell<usize> = const { Cell::new(0) };
+}
 
 pub struct EnvGuard {
     cwd: PathBuf,
     env: BTreeMap<OsString, OsString>,
+    _sandbox: Option<RepoSandbox>,
 }
 
 impl EnvGuard {
     pub fn new() -> Result<Self> {
-        Ok(Self { cwd: std::env::current_dir()?, env: std::env::vars_os().collect() })
+        let cwd = std::env::current_dir()?;
+        let env = std::env::vars_os().collect();
+        let sandbox = if repo_mutator_lock_held() {
+            Some(RepoSandbox::new("locked-repository-mutator-")?)
+        } else {
+            None
+        };
+        if let Some(sandbox) = &sandbox {
+            std::env::set_current_dir(sandbox.path())?;
+        }
+        Ok(Self { cwd, env, _sandbox: sandbox })
     }
 }
 
@@ -64,12 +83,14 @@ pub fn repo_root() -> Result<PathBuf> {
 #[allow(dead_code)]
 pub struct RepoSandbox {
     root: tempfile::TempDir,
+    git_dir: PathBuf,
 }
 
 #[allow(dead_code)]
 impl RepoSandbox {
     pub fn new(label: &str) -> Result<Self> {
         let source_root = test_support::repo_root()?;
+        let git_dir = resolve_git_dir(&source_root)?;
         let sandbox_parent = source_root.join("artifacts/readiness-sandboxes");
         fs::create_dir_all(&sandbox_parent)?;
         let root = tempfile::Builder::new().prefix(label).tempdir_in(sandbox_parent)?;
@@ -85,7 +106,7 @@ impl RepoSandbox {
                 String::from_utf8_lossy(&checkout.stderr).trim()
             ));
         }
-        Ok(Self { root })
+        Ok(Self { root, git_dir })
     }
 
     #[must_use]
@@ -99,7 +120,9 @@ impl RepoSandbox {
         command
             .current_dir(self.path())
             .env("BIJUX_REPO_ROOT", self.path())
-            .env("BIJUX_BENCHMARK_ROOT", self.path().join("benchmarks"));
+            .env("BIJUX_BENCHMARK_ROOT", self.path().join("benchmarks"))
+            .env("GIT_DIR", &self.git_dir)
+            .env("GIT_WORK_TREE", self.path());
         command
     }
 
@@ -152,6 +175,23 @@ impl RepoSandbox {
     }
 }
 
+fn resolve_git_dir(source_root: &Path) -> Result<PathBuf> {
+    let output = Command::new("git")
+        .current_dir(source_root)
+        .args(["rev-parse", "--absolute-git-dir"])
+        .output()
+        .map_err(|error| anyhow!("resolve repository git directory: {error}"))?;
+    if !output.status.success() {
+        return Err(anyhow!(
+            "resolve repository git directory: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        ));
+    }
+    let git_dir = String::from_utf8(output.stdout)
+        .map_err(|error| anyhow!("decode repository git directory: {error}"))?;
+    Ok(PathBuf::from(git_dir.trim()))
+}
+
 #[allow(dead_code)]
 #[must_use]
 pub fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
@@ -163,6 +203,8 @@ pub fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 #[allow(dead_code)]
 pub struct RepoProcessLock {
     path: PathBuf,
+    owner: String,
+    _sandbox_request: RepoSandboxRequest,
 }
 
 #[allow(dead_code)]
@@ -172,14 +214,27 @@ impl RepoProcessLock {
         let lock_root = repo_root.join(TEST_LOCK_ROOT);
         fs::create_dir_all(&lock_root)?;
         let path = lock_root.join(name);
+        let owner = lock_owner_record();
         let deadline = Instant::now() + TEST_LOCK_WAIT_TIMEOUT;
 
         loop {
             match fs::create_dir(&path) {
-                Ok(()) => {
-                    write_lock_owner(&path)?;
-                    return Ok(Self { path });
-                }
+                Ok(()) => match write_lock_owner(&path, &owner) {
+                    Ok(()) => {
+                        return Ok(Self {
+                            path,
+                            owner,
+                            _sandbox_request: RepoSandboxRequest::new(),
+                        });
+                    }
+                    Err(error) if error.kind() == ErrorKind::NotFound => {}
+                    Err(error) => {
+                        return Err(anyhow!(
+                            "write repo test lock owner `{}`: {error}",
+                            path.display()
+                        ));
+                    }
+                },
                 Err(error) if error.kind() == ErrorKind::AlreadyExists => {
                     if stale_repo_test_lock(&path)? {
                         match fs::remove_dir_all(&path) {
@@ -211,21 +266,47 @@ impl RepoProcessLock {
     }
 }
 
-impl Drop for RepoProcessLock {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.path);
+struct RepoSandboxRequest;
+
+impl RepoSandboxRequest {
+    fn new() -> Self {
+        REPO_MUTATOR_LOCK_DEPTH.with(|depth| depth.set(depth.get().saturating_add(1)));
+        Self
     }
 }
 
-fn write_lock_owner(path: &Path) -> Result<()> {
-    fs::write(path.join(TEST_LOCK_OWNER_FILE), std::process::id().to_string())
-        .map_err(|error| anyhow!("write repo test lock owner `{}`: {error}", path.display()))
+impl Drop for RepoSandboxRequest {
+    fn drop(&mut self) {
+        REPO_MUTATOR_LOCK_DEPTH.with(|depth| depth.set(depth.get().saturating_sub(1)));
+    }
+}
+
+fn repo_mutator_lock_held() -> bool {
+    REPO_MUTATOR_LOCK_DEPTH.with(|depth| depth.get() > 0)
+}
+
+impl Drop for RepoProcessLock {
+    fn drop(&mut self) {
+        let owner_path = self.path.join(TEST_LOCK_OWNER_FILE);
+        if fs::read_to_string(owner_path).is_ok_and(|owner| owner == self.owner) {
+            let _ = fs::remove_dir_all(&self.path);
+        }
+    }
+}
+
+fn lock_owner_record() -> String {
+    let sequence = LOCK_OWNER_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+    format!("{}\n{sequence}", std::process::id())
+}
+
+fn write_lock_owner(path: &Path, owner: &str) -> std::io::Result<()> {
+    fs::write(path.join(TEST_LOCK_OWNER_FILE), owner)
 }
 
 fn stale_repo_test_lock(path: &Path) -> Result<bool> {
     let owner_path = path.join(TEST_LOCK_OWNER_FILE);
     match fs::read_to_string(&owner_path) {
-        Ok(raw_pid) => match raw_pid.trim().parse::<u32>() {
+        Ok(owner) => match owner.lines().next().unwrap_or_default().parse::<u32>() {
             Ok(pid) => Ok(!process_is_alive(pid)),
             Err(_) => Ok(lock_is_older_than(path, TEST_LOCK_MISSING_OWNER_GRACE)?),
         },

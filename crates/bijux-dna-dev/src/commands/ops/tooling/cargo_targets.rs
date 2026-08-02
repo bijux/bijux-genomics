@@ -131,25 +131,10 @@ pub(in super::super) fn tooling_cargo_targets(
             ],
             &common_envs,
         ),
-        "unit-contract-fast" => run_programs_with_env(
+        "unit-contract-fast" => run_program_with_env(
             workspace,
-            &[
-                ("cargo", vec!["test", "-p", "bijux-dna-runner", "--lib", "--", "--nocapture"]),
-                (
-                    "cargo",
-                    vec!["test", "-p", "bijux-dna-planner-fastq", "--lib", "--", "--nocapture"],
-                ),
-                (
-                    "cargo",
-                    vec!["test", "-p", "bijux-dna-planner-bam", "--lib", "--", "--nocapture"],
-                ),
-                (
-                    "cargo",
-                    vec!["test", "-p", "bijux-dna-stages-fastq", "--lib", "--", "--nocapture"],
-                ),
-                ("cargo", vec!["test", "-p", "bijux-dna-stages-bam", "--lib", "--", "--nocapture"]),
-                ("cargo", vec!["test", "-p", "bijux-dna-api", "--lib", "--", "--nocapture"]),
-            ],
+            "cargo",
+            &unit_contract_fast_command_args(),
             &common_envs,
         ),
         "release-readiness" => run_programs_with_env(
@@ -1496,6 +1481,30 @@ pub(in super::super) fn tooling_cargo_targets(
     }
 }
 
+fn unit_contract_fast_command_args() -> Vec<String> {
+    [
+        "test",
+        "-p",
+        "bijux-dna-runner",
+        "-p",
+        "bijux-dna-planner-fastq",
+        "-p",
+        "bijux-dna-planner-bam",
+        "-p",
+        "bijux-dna-stages-fastq",
+        "-p",
+        "bijux-dna-stages-bam",
+        "-p",
+        "bijux-dna-api",
+        "--lib",
+        "--",
+        "--nocapture",
+    ]
+    .into_iter()
+    .map(ToOwned::to_owned)
+    .collect()
+}
+
 fn science_fixtures_fast_command_args() -> Vec<String> {
     vec![
         "test".to_string(),
@@ -1622,7 +1631,16 @@ fn science_fixtures_fast_command_args() -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::science_fixtures_fast_command_args;
+    use super::{science_fixtures_fast_command_args, unit_contract_fast_command_args};
+
+    #[test]
+    fn unit_contract_fast_uses_one_workspace_aware_cargo_invocation() {
+        let args = unit_contract_fast_command_args();
+        assert_eq!(args.first().map(String::as_str), Some("test"));
+        assert_eq!(args.iter().filter(|arg| arg.as_str() == "test").count(), 1);
+        assert_eq!(args.iter().filter(|arg| arg.as_str() == "-p").count(), 6);
+        assert!(args.iter().any(|arg| arg == "--lib"));
+    }
 
     #[test]
     fn science_fixtures_fast_keeps_taxonomy_and_fixture_validation_targets() {

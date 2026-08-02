@@ -9,8 +9,7 @@ fn dependency_graph_matches_planner_fastq_boundary() {
     let manifest_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
     let manifest = fs::read_to_string(&manifest_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", manifest_path.display()));
-    let manifest = manifest
-        .parse::<Value>()
+    let manifest = toml::from_str::<Value>(&manifest)
         .unwrap_or_else(|err| panic!("parse {}: {err}", manifest_path.display()));
 
     assert_eq!(
@@ -72,8 +71,7 @@ fn internal_dependencies_use_workspace_catalog() {
     let manifest_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
     let manifest = fs::read_to_string(&manifest_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", manifest_path.display()));
-    let manifest = manifest
-        .parse::<Value>()
+    let manifest = toml::from_str::<Value>(&manifest)
         .unwrap_or_else(|err| panic!("parse {}: {err}", manifest_path.display()));
 
     for dependency in [

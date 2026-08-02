@@ -13,7 +13,8 @@ use support::workspace_root;
 fn parse_registry(path: &std::path::Path) -> toml::Value {
     let raw = std::fs::read_to_string(path)
         .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
-    raw.parse::<toml::Value>().unwrap_or_else(|err| panic!("parse {}: {err}", path.display()))
+    toml::from_str::<toml::Value>(&raw)
+        .unwrap_or_else(|err| panic!("parse {}: {err}", path.display()))
 }
 
 fn tools_by_id(parsed: &toml::Value) -> BTreeMap<String, toml::Value> {

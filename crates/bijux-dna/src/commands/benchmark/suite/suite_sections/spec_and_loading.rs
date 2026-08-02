@@ -228,7 +228,7 @@ fn load_bench_knobs(cwd: &Path) -> BenchKnobs {
     let Ok(raw) = fs::read_to_string(path) else {
         return BenchKnobs::default();
     };
-    let Ok(parsed): Result<toml::Value, _> = raw.parse() else {
+    let Ok(parsed): Result<toml::Value, _> = toml::from_str(&raw) else {
         return BenchKnobs::default();
     };
     let defaults = parsed.get("defaults").and_then(toml::Value::as_table);

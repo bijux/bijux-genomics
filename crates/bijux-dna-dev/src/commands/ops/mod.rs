@@ -881,6 +881,7 @@ fn generate_deprecation_dashboard_doc(workspace: &Workspace, out: &Path) -> Resu
     );
     lines.extend([
         format!("- Source schema: `{}`", cfg.schema_version),
+        "- Supported kinds: `stage_id`, `tool_id`, `metric_id`, `param`, `field`".to_string(),
         String::new(),
         "| Kind | Subject | Replacement | Deadline | Migration Test Status | Source | Notes |"
             .to_string(),

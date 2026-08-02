@@ -67,7 +67,7 @@ fn lookup_param_schema_id(stage_id: &str) -> Option<String> {
                 continue;
             }
             let raw = std::fs::read_to_string(&path).ok()?;
-            let parsed: toml::Value = raw.parse().ok()?;
+            let parsed: toml::Value = toml::from_str(&raw).ok()?;
             let rows = parsed.get("params").and_then(toml::Value::as_array)?;
             for row in rows {
                 let id = row.get("stage_id").and_then(toml::Value::as_str)?;

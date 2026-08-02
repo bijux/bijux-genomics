@@ -32,8 +32,8 @@ fn policy__contracts__container_versions_policy__each_container_definition_has_v
     let versions_path = root.join("containers/versions/versions.toml");
     let raw = std::fs::read_to_string(&versions_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", versions_path.display()));
-    let parsed: toml::Value =
-        raw.parse().unwrap_or_else(|err| panic!("parse {}: {err}", versions_path.display()));
+    let parsed: toml::Value = toml::from_str(&raw)
+        .unwrap_or_else(|err| panic!("parse {}: {err}", versions_path.display()));
     let table = parsed
         .as_table()
         .unwrap_or_else(|| panic!("{} must be TOML table", versions_path.display()));

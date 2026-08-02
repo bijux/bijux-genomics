@@ -26,7 +26,7 @@ pub(in super::super) fn tooling_benchmark_smoke_level1(
     let mut rows = Vec::new();
     for (example_id, example_root) in &examples {
         let outcome =
-            examples_run(workspace, &["--allow-non-isolate".to_string(), example_id.to_string()])?;
+            examples_run(workspace, &["--allow-non-isolate".to_string(), example_id.clone()])?;
         if !outcome.is_success() {
             return Ok(outcome);
         }

@@ -11,7 +11,7 @@ fn dependency_graph_matches_pipeline_boundary() {
     let manifest = fs::read_to_string(&manifest)
         .unwrap_or_else(|err| panic!("read {}: {err}", manifest.display()));
     let manifest =
-        manifest.parse::<Value>().unwrap_or_else(|err| panic!("parse Cargo.toml: {err}"));
+        toml::from_str::<Value>(&manifest).unwrap_or_else(|err| panic!("parse Cargo.toml: {err}"));
 
     assert_eq!(
         dependency_keys(&manifest, "dependencies"),

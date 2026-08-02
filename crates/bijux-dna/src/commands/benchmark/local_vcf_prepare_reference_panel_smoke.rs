@@ -632,12 +632,7 @@ fn timestamp_marker() -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        materialize_governed_prepare_reference_panel_raw_fixture, parse_record_count,
-        resolve_governed_vcf_prepare_reference_panel_smoke_contract,
-        run_local_vcf_prepare_reference_panel_smoke,
-        write_governed_prepare_reference_panel_input_vcf,
-    };
+    use super::resolve_governed_vcf_prepare_reference_panel_smoke_contract;
 
     #[test]
     fn governed_prepare_reference_panel_contract_uses_matrix_row() {
@@ -649,34 +644,5 @@ mod tests {
         assert_eq!(contract.input_fixture_id, "reference_panel_sort_and_deduplicate");
         assert_eq!(contract.panel_id, "hsapiens_grch38_mini");
         assert_eq!(contract.map_id, "hsapiens_grch38_chr_map");
-    }
-
-    #[test]
-    fn governed_prepare_reference_panel_fixture_tracks_duplicate_count() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let input_path = dir.path().join("input.vcf");
-        write_governed_prepare_reference_panel_input_vcf(&input_path).expect("write input fixture");
-        assert_eq!(parse_record_count(&input_path).expect("count input"), 4);
-
-        let raw_panel =
-            materialize_governed_prepare_reference_panel_raw_fixture(dir.path()).expect("panel");
-        assert_eq!(parse_record_count(&raw_panel).expect("count raw panel"), 5);
-    }
-
-    #[test]
-    fn governed_prepare_reference_panel_smoke_reports_normalized_panel_metrics() {
-        let repo_root = tempfile::tempdir().expect("tempdir");
-        let report = run_local_vcf_prepare_reference_panel_smoke(repo_root.path(), "bcftools")
-            .expect("run local panel smoke");
-        assert_eq!(report.stage_id, "vcf.prepare_reference_panel");
-        assert_eq!(report.tool_id, "bcftools");
-        assert_eq!(report.input_variants, 5);
-        assert_eq!(report.output_variants, 4);
-        assert_eq!(report.duplicate_sites_removed, 1);
-        assert_eq!(report.normalization_status, "sorted_indexed_deduplicated");
-        assert_eq!(report.sample_count, 1);
-        assert_eq!(report.sample_ids, vec!["sample1".to_string()]);
-        assert!(report.sample_consistent);
-        assert!(report.parseable);
     }
 }

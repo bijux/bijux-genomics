@@ -26,7 +26,7 @@ fn parse_scalar(raw: &str, key: &str) -> Option<String> {
 
 fn parse_toml_path(path: &Path) -> Result<toml::Value> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    raw.parse::<toml::Value>().map_err(|err| anyhow!("parse {}: {err}", path.display()))
+    toml::from_str::<toml::Value>(&raw).map_err(|err| anyhow!("parse {}: {err}", path.display()))
 }
 
 fn toml_array<'a>(value: &'a toml::Value, key: &str) -> Result<Vec<&'a toml::Value>> {

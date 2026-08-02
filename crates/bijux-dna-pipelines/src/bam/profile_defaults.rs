@@ -62,9 +62,9 @@ pub(super) fn filter_downstream(stages: &mut Vec<BamStage>) {
 }
 
 fn registry_default_tools() -> BTreeMap<String, String> {
-    let parsed: toml::Value = include_str!("../../../../configs/ci/registry/tool_registry.toml")
-        .parse()
-        .expect("generated configs/ci/registry/tool_registry.toml must parse");
+    let parsed: toml::Value =
+        toml::from_str(include_str!("../../../../configs/ci/registry/tool_registry.toml"))
+            .expect("generated configs/ci/registry/tool_registry.toml must parse");
     parsed
         .get("stages")
         .and_then(toml::Value::as_array)
@@ -127,9 +127,9 @@ fn bam_stage_order(stage: &BamStage) -> usize {
 }
 
 pub(super) fn catalog_bam_stages() -> Vec<BamStage> {
-    let parsed: toml::Value = include_str!("../../../../configs/ci/stages/stages.toml")
-        .parse()
-        .expect("generated configs/ci/stages/stages.toml must parse");
+    let parsed: toml::Value =
+        toml::from_str(include_str!("../../../../configs/ci/stages/stages.toml"))
+            .expect("generated configs/ci/stages/stages.toml must parse");
     let mut stages = parsed
         .get("stages")
         .and_then(toml::Value::as_array)

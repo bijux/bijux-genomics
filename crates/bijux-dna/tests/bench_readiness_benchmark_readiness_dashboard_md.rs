@@ -1,34 +1,34 @@
 #![cfg(feature = "bam_downstream")]
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
-
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli(args: &[&str]) -> std::process::Output {
+fn run_cli(args: &[&str]) -> (support::RepoSandbox, std::process::Output) {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _repo_lock =
-        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox =
+        support::RepoSandbox::new("benchmark-readiness-dashboard-file-").expect("repo sandbox");
     let home = tempfile::tempdir().expect("tempdir");
 
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+    let output = sandbox
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
         .args(args)
         .output()
-        .expect("run cli")
+        .expect("run cli");
+
+    (sandbox, output)
 }
 
 #[test]
 fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_outputs() {
-    let output = run_cli(&["bench", "readiness", "render-benchmark-readiness-dashboard"]);
+    let (sandbox, output) =
+        run_cli(&["bench", "readiness", "render-benchmark-readiness-dashboard"]);
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -40,7 +40,7 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(rendered_path.trim(), "benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.md");
 
-    let repo_root = support::repo_root().expect("repo root");
+    let repo_root = sandbox.path();
     let markdown = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read dashboard markdown");
     let json_path = repo_root.join("benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.json");

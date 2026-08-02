@@ -1430,7 +1430,8 @@ fn load_planned_out_of_scope(stage_dir: &Path) -> Result<BTreeMap<String, BTreeS
 
 fn load_tool_registry(path: &Path) -> Result<BTreeMap<String, ToolRegistryEntry>> {
     let raw = read_utf8(path)?;
-    let root: TomlValue = raw.parse().with_context(|| format!("parse TOML {}", path.display()))?;
+    let root: TomlValue =
+        toml::from_str(&raw).with_context(|| format!("parse TOML {}", path.display()))?;
     let mut out = BTreeMap::new();
     for row in root.get("tools").and_then(TomlValue::as_array).cloned().unwrap_or_default() {
         let Some(table) = row.as_table() else {

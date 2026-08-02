@@ -7,7 +7,7 @@ fn configured_domains(root: &std::path::Path) -> Vec<String> {
     let raw = std::fs::read_to_string(&path)
         .unwrap_or_else(|_| panic!("read domains config {}", path.display()));
     let parsed: toml::Value =
-        raw.parse().unwrap_or_else(|_| panic!("parse domains config {}", path.display()));
+        toml::from_str(&raw).unwrap_or_else(|_| panic!("parse domains config {}", path.display()));
     parsed
         .get("domains")
         .and_then(toml::Value::as_array)

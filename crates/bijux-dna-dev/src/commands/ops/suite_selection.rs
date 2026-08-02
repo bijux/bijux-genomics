@@ -45,7 +45,10 @@ fn parse_governed_slow_roster(content: &str) -> Vec<String> {
 fn compose_slow_expression(roster: &[String]) -> String {
     match roster_regex_alternation(roster) {
         Some(roster_regex) => {
-            format!("{legacy} or test(/^(?:{roster_regex})$/)", legacy = legacy_slow_expression())
+            format!(
+                "{legacy} or test(/(?:^|::)(?:{roster_regex})$/)",
+                legacy = legacy_slow_expression()
+            )
         }
         None => legacy_slow_expression().to_string(),
     }
@@ -78,7 +81,7 @@ mod tests {
         let roster = vec!["suite::tests::slow_case".to_string(), "bench_slow_case".to_string()];
         assert_eq!(
             compose_slow_expression(&roster),
-            "test(/::slow__/) or test(/^(?:suite::tests::slow_case|bench_slow_case)$/)"
+            "test(/::slow__/) or test(/(?:^|::)(?:suite::tests::slow_case|bench_slow_case)$/)"
         );
     }
 

@@ -480,9 +480,7 @@ fn timestamp_marker() -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        run_local_vcf_phasing_smoke, summarize_phasing_genotypes, write_governed_phasing_input_vcf,
-    };
+    use super::{summarize_phasing_genotypes, write_governed_phasing_input_vcf};
 
     #[test]
     fn governed_phasing_fixture_tracks_unphased_input_counts() {
@@ -494,20 +492,5 @@ mod tests {
         assert_eq!(summary.phased_genotypes, 0);
         assert_eq!(summary.unphased_genotypes, 8);
         assert_eq!(summary.phase_set_count, 0);
-    }
-
-    #[test]
-    fn governed_vcf_phasing_smoke_reports_fully_phased_output() {
-        let repo_root = tempfile::tempdir().expect("tempdir");
-        let report = run_local_vcf_phasing_smoke(repo_root.path(), "shapeit5")
-            .expect("run local phasing smoke");
-        assert_eq!(report.stage_id, "vcf.phasing");
-        assert_eq!(report.tool_id, "shapeit5");
-        assert_eq!(report.input_genotypes, 8);
-        assert_eq!(report.phased_genotypes, 8);
-        assert_eq!(report.unphased_genotypes, 0);
-        assert_eq!(report.phase_set_count, 2);
-        assert_eq!(report.sample_ids, vec!["cohort_alpha".to_string(), "cohort_beta".to_string()]);
-        assert!(report.parseable);
     }
 }

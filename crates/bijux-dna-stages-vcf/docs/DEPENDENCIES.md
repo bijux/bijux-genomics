@@ -14,6 +14,8 @@ spec crates because it owns executable VCF stage helpers.
 - `bijux-dna-db-ref`: reference panel, map, and bundle lookup.
 - `bijux-dna-infra`: atomic writes, directory helpers, and hashing utilities.
 - `bijux-dna-runner`: governed external process execution for VCF stage helpers.
+- `noodles-bgzf`, `noodles-core`, `noodles-csi`, and `noodles-tabix`: native
+  BGZF compression and Tabix index generation for deterministic VCF fixtures.
 
 ## Dev Dependencies
 

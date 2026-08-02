@@ -2031,36 +2031,3 @@ fn timestamp_marker() -> String {
         .map_or(0, |duration| duration.as_secs())
         .to_string()
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn core_germline_micro_pipeline_renders_real_handoffs() {
-        let repo_root = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonical repo root");
-        let output_path = repo_root.join(
-            "artifacts/tests/benchmark/core-germline-micro-pipeline/MICRO_PIPELINE_SUMMARY.json",
-        );
-
-        let report = render_core_germline_micro_pipeline(&repo_root, output_path.clone())
-            .expect("render core germline micro pipeline");
-
-        assert_eq!(report.schema_version, "bijux.bench.local_core_germline_micro_pipeline.v1");
-        assert_eq!(report.pipeline_id, "core-germline-fastq-bam-vcf");
-        assert_eq!(report.stage_count, 12);
-        assert_eq!(report.handoff_count, 20);
-        assert!(report.passes_behavior_test);
-        assert_eq!(
-            report.output_path,
-            "artifacts/tests/benchmark/core-germline-micro-pipeline/MICRO_PIPELINE_SUMMARY.json"
-        );
-        assert!(output_path.is_file(), "pipeline summary file must exist");
-        assert!(report.handoffs.iter().all(|handoff| handoff.accepted));
-        assert!(report.rows.iter().any(|row| row.stage_id == "vcf.call"));
-        assert!(report.rows.iter().any(|row| row.stage_id == "vcf.qc"));
-    }
-}

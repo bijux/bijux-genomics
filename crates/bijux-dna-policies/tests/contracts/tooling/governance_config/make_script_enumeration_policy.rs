@@ -10,8 +10,7 @@ fn repo_root() -> PathBuf {
 fn parse_tool_ids(tool_registry_path: &Path) -> Vec<String> {
     let raw = std::fs::read_to_string(tool_registry_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", tool_registry_path.display()));
-    let parsed = raw
-        .parse::<toml::Value>()
+    let parsed = toml::from_str::<toml::Value>(&raw)
         .unwrap_or_else(|err| panic!("parse {}: {err}", tool_registry_path.display()));
     let mut ids = parsed
         .get("tools")

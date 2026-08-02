@@ -1,22 +1,18 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::path::PathBuf;
-use std::process::Command;
-
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli_json_with_repo_root(args: &[&str]) -> (PathBuf, serde_json::Value) {
+fn run_cli_json_with_sandbox(args: &[&str]) -> (support::RepoSandbox, serde_json::Value) {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _repo_lock =
-        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox =
+        support::RepoSandbox::new("all-domain-parser-collector-file-").expect("repo sandbox");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+    let output = sandbox
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
@@ -33,17 +29,18 @@ fn run_cli_json_with_repo_root(args: &[&str]) -> (PathBuf, serde_json::Value) {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    (repo_root, serde_json::from_slice(&output.stdout).expect("parse stdout as json"))
+    (sandbox, serde_json::from_slice(&output.stdout).expect("parse stdout as json"))
 }
 
 #[test]
 fn bench_readiness_all_domain_parser_collector_writes_governed_report_and_fixture_paths() {
-    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+    let (sandbox, payload) = run_cli_json_with_sandbox(&[
         "bench",
         "readiness",
         "render-all-domain-parser-collector",
         "--json",
     ]);
+    let repo_root = sandbox.path();
 
     let report_path = repo_root.join("benchmarks/readiness/parser-collector-all-domains.json");
     assert!(report_path.is_file(), "collector report must exist");

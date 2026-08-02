@@ -103,7 +103,7 @@ fn placeholder_digest_tools() -> BTreeSet<String> {
 fn production_fastq_tag_only_container_tools() -> BTreeSet<String> {
     let raw = workspace_file("configs/ci/registry/tool_registry.toml");
     let parsed: toml::Value =
-        raw.parse().unwrap_or_else(|err| panic!("parse production tool registry: {err}"));
+        toml::from_str(&raw).unwrap_or_else(|err| panic!("parse production tool registry: {err}"));
     parsed
         .get("tools")
         .and_then(toml::Value::as_array)
