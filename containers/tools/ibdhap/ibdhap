@@ -93,20 +93,22 @@ def interpolate_cm(position: int, positions: list[int], cms: list[float]) -> flo
     return left_cm + fraction * (right_cm - left_cm)
 
 
-def parse_frequency(info: str, line_number: int) -> float:
+def parse_frequency(info: str, line_number: int) -> float | None:
     for field in info.split(";"):
         if field.startswith("AF="):
             value = field.removeprefix("AF=")
             if "," in value:
-                break
+                return None
             try:
                 frequency = float(value)
             except ValueError as exc:
                 raise InputError(f"invalid AF at VCF row {line_number}") from exc
-            if 0.0 < frequency < 1.0 and math.isfinite(frequency):
-                return frequency
-            break
-    raise InputError(f"VCF row {line_number} lacks a finite biallelic AF between zero and one")
+            if not math.isfinite(frequency):
+                raise InputError(f"non-finite AF at VCF row {line_number}")
+            if frequency < 0.0 or frequency > 1.0:
+                raise InputError(f"AF outside [0, 1] at VCF row {line_number}")
+            return frequency if 0.0 < frequency < 1.0 else None
+    return None
 
 
 def parse_genotype(sample_field: str, format_fields: list[str], line_number: int) -> tuple[int, int]:
@@ -134,10 +136,13 @@ def load_vcf(
     samples: tuple[str, str],
     region: tuple[str, int, int],
     maximum_markers: int,
-) -> list[dict[str, object]]:
+) -> tuple[list[dict[str, object]], dict[str, int]]:
     chromosome, start, end = region
     sample_indexes: tuple[int, int] | None = None
     records: list[dict[str, object]] = []
+    data_rows = 0
+    region_biallelic_rows = 0
+    skipped_frequency_rows = 0
     with open_text(path) as stream:
         for line_number, line in enumerate(stream, start=1):
             if line.startswith("##"):
@@ -153,6 +158,7 @@ def load_vcf(
                 continue
             if sample_indexes is None:
                 raise InputError("VCF data appears before the #CHROM header")
+            data_rows += 1
             fields = line.rstrip("\n").split("\t")
             if len(fields) <= max(sample_indexes):
                 raise InputError(f"truncated VCF row {line_number}")
@@ -166,7 +172,11 @@ def load_vcf(
                 continue
             if len(fields[3]) != 1 or len(fields[4]) != 1 or "," in fields[4]:
                 continue
+            region_biallelic_rows += 1
             frequency = parse_frequency(fields[7], line_number)
+            if frequency is None:
+                skipped_frequency_rows += 1
+                continue
             format_fields = fields[8].split(":")
             genotypes = (
                 parse_genotype(fields[sample_indexes[0]], format_fields, line_number),
@@ -184,7 +194,14 @@ def load_vcf(
             )
     if len(records) < 2:
         raise InputError("fewer than two complete phased biallelic SNPs remain in the region")
-    return select_evenly(records, maximum_markers)
+    selected = select_evenly(records, maximum_markers)
+    return selected, {
+        "vcf_data_rows": data_rows,
+        "region_biallelic_rows": region_biallelic_rows,
+        "skipped_uninformative_frequency_rows": skipped_frequency_rows,
+        "eligible_phased_rows": len(records),
+        "selected_marker_rows": len(selected),
+    }
 
 
 def write_morgan_inputs(
@@ -251,6 +268,7 @@ def summarize_scores(
     genetic_map: Path,
     samples: tuple[str, str],
     region: str,
+    selection: dict[str, int],
 ) -> None:
     row_count = 0
     maximum_sum_deviation = 0.0
@@ -285,6 +303,7 @@ def summarize_scores(
                 "genetic_map": str(genetic_map),
                 "samples": list(samples),
                 "region": region,
+                "marker_selection": selection,
                 "score_rows": row_count,
                 "state_count": 15,
                 "maximum_probability_sum_deviation": maximum_sum_deviation,
@@ -319,7 +338,7 @@ def analyze_vcf(args: argparse.Namespace) -> None:
         raise InputError("exactly two distinct sample IDs are required")
     chromosome, _, _ = args.region
     positions, cms = load_genetic_map(map_path, chromosome)
-    records = load_vcf(vcf_path, samples, args.region, args.max_markers)
+    records, selection = load_vcf(vcf_path, samples, args.region, args.max_markers)
     parameter, markers = write_morgan_inputs(args.work_dir.resolve(), samples, records, positions, cms)
     scores = args.scores.resolve()
     identifiers = args.identifiers.resolve()
@@ -329,7 +348,15 @@ def analyze_vcf(args: argparse.Namespace) -> None:
         if output.exists():
             raise InputError(f"refusing to overwrite existing output: {output}")
     run_upstream(parameter, markers, scores, identifiers)
-    summarize_scores(vcf_path, summary, map_path, samples, args.region_text)
+    summarize_scores(
+        scores,
+        summary,
+        vcf_path,
+        map_path,
+        samples,
+        args.region_text,
+        selection,
+    )
 
 
 def run_parameter_file(args: argparse.Namespace) -> None:
