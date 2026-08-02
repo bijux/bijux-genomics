@@ -1,12 +1,12 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 tool_id = "bwa"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "GPL-3.0-only"
+upstream_license_id = "GPL-3.0-only"
 upstream_url = "https://github.com/lh3/bwa"
 upstream_version = "0.7.17"
-upstream_checksum = "sha256:0a12a651177e746a5515aabdb69bc67ac0079bba5f75dd2164646fd7aacc3e70"
+upstream_checksum = "sha256:79763dd6c48e8b01b8e27d99e6e5575d8bbca419e3eed9f3e330af072e63b370"
 redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
 citation = "upstream:https://github.com/lh3/bwa"
 version = "0.7.17"

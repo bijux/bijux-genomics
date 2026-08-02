@@ -1,54 +1,43 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: GPL-3.0.
-# The bijux-dna software source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=0.7.17
+LABEL org.opencontainers.image.source="https://github.com/lh3/bwa" \
+      org.opencontainers.image.revision="9f26bfcc7780753129b60717ecab0ebba6f04b7c" \
       org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
-      org.opencontainers.image.version="${TOOL_VERSION}"
-LABEL org.opencontainers.image.tool="bwa"
-LABEL org.opencontainers.image.title="bwa"
-LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
+      org.opencontainers.image.licenses="GPL-3.0-only" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="bwa" \
+      org.opencontainers.image.title="BWA" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 
-# Keep the ARG and ENV for VERSION_BWA for consistency,
-# but the apt-installed version might differ.
-ARG VERSION_BWA=0.7.18
-ENV VERSION_BWA=$VERSION_BWA
+ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y --no-install-recommends ca-certificates curl gcc make zlib1g-dev && \
+    curl --fail --location --silent --show-error \
+      --output /tmp/bwa.tar.gz \
+      https://github.com/lh3/bwa/archive/9f26bfcc7780753129b60717ecab0ebba6f04b7c.tar.gz && \
+    echo '79763dd6c48e8b01b8e27d99e6e5575d8bbca419e3eed9f3e330af072e63b370  /tmp/bwa.tar.gz' | sha256sum --check --strict && \
+    tar --extract --gzip --file /tmp/bwa.tar.gz --directory /tmp && \
+    make --directory /tmp/bwa-9f26bfcc7780753129b60717ecab0ebba6f04b7c -j"$(nproc)" && \
+    install -m 0755 /tmp/bwa-9f26bfcc7780753129b60717ecab0ebba6f04b7c/bwa /usr/local/libexec-bwa && \
+    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' \
+      'case "${1:-}" in' \
+      '  --version) /usr/local/libexec-bwa 2>&1 | sed -n "s/^Version: //p" ;;' \
+      '  --help|-h|"") /usr/local/libexec-bwa 2>&1 || true ;;' \
+      '  *) exec /usr/local/libexec-bwa "$@" ;;' \
+      'esac' > /usr/local/bin/bwa && \
+    chmod 0755 /usr/local/bin/bwa && \
+    test "$(bwa --version)" = "0.7.17-r1188" && \
+    rm -rf /tmp/bwa* /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
-RUN apt-get update && \
-    # Install bwa directly via apt-get
-    apt-get install -y --no-install-recommends bwa && \
-    # Move the original bwa to bwa-bin
-    mv /usr/bin/bwa /usr/local/bin/bwa-bin && \
-    # Verify the installed BWA version for informational purposes
-    echo "--- BWA version installed by apt ---" && \
-    /usr/local/bin/bwa-bin --version || true && \
-    # Cleanup apt lists to reduce image size
-    rm -rf /var/lib/apt/lists/* && \
-    apt-get autoremove -y
-
-# wrapper in the usual pattern (no change needed here, it still calls the 'bwa' command)
-RUN echo '#!/bin/sh' > /usr/local/bin/bwa && \
-    echo 'if [ "$1" = "--version" ]; then' >> /usr/local/bin/bwa && \
-    echo '    echo "$VERSION_BWA"' >> /usr/local/bin/bwa && \
-    echo '    exit 0' >> /usr/local/bin/bwa && \
-    echo 'elif [ "$1" = "--help" ]; then' >> /usr/local/bin/bwa && \
-    echo '    /usr/local/bin/bwa-bin 2>&1' >> /usr/local/bin/bwa && \
-    echo '    exit 0' >> /usr/local/bin/bwa && \
-    echo 'else' >> /usr/local/bin/bwa && \
-    echo '    /usr/local/bin/bwa-bin "$@"' >> /usr/local/bin/bwa && \
-    echo 'fi' >> /usr/local/bin/bwa && \
-    chmod +x /usr/local/bin/bwa
-
-WORKDIR /data
-ENTRYPOINT ["bwa"]
+USER 65532:65532
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/bwa"]
 CMD ["--help"]

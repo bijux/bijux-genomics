@@ -3,6 +3,8 @@ version = "2.3.4"
 source = "https://github.com/MikkelSchubert/adapterremoval"
 date_pinned = "2026-02-12"
 pinned_commit = "79b296b8fcfd853757d798528128c37a166331a9"
+source_sha256 = "47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20"
+upstream_license = "GPL-3.0"
 
 [addeam]
 version = "1.0.0"
@@ -110,6 +112,8 @@ version = "0.7.17"
 source = "https://github.com/lh3/bwa"
 date_pinned = "2026-02-12"
 pinned_commit = "9f26bfcc7780753129b60717ecab0ebba6f04b7c"
+source_sha256 = "79763dd6c48e8b01b8e27d99e6e5575d8bbca419e3eed9f3e330af072e63b370"
+upstream_license = "GPL-3.0"
 
 [centrifuge]
 version = "1.0.4"
@@ -378,6 +382,8 @@ version = "1.20"
 source = "https://github.com/samtools/samtools"
 date_pinned = "2026-02-12"
 pinned_commit = "906a3b562ef985d2a9777768f8a81001d6ce6dcb"
+source_sha256 = "c71be865e241613c2ca99679c074f1a0daeb55288af577db945bdabe3eb2cf10"
+upstream_license = "MIT"
 
 [schmutzi]
 version = "1.5.4"

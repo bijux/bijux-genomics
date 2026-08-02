@@ -3,69 +3,58 @@
 # The bijux-dna software source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
 # BIJUX_TEMPLATE: v1
-
 # Tool ID: adapterremoval
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
+# Version policy: immutable upstream commit and verified source archive
+# Upstream source: https://github.com/MikkelSchubert/adapterremoval
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 
-# VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
 From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    MAINTAINER Bijan Mousavi <bijan@bijux.io>
-    VERSION AdapterRemoval-v2.3.3
-
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
+    org.opencontainers.image.source https://github.com/MikkelSchubert/adapterremoval
+    org.opencontainers.image.revision 79b296b8fcfd853757d798528128c37a166331a9
+    org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 2.3.4
     org.opencontainers.image.tool adapterremoval
-    org.opencontainers.image.title adapterremoval
+    org.opencontainers.image.title AdapterRemoval
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        ca-certificates git build-essential zlib1g-dev libbz2-dev && \
-
-    ADAPTERREMOVAL_VERSION=2.3.3 && \
-
-    for i in 1 2 3; do \
-        git clone https://github.com/MikkelSchubert/adapterremoval.git /opt/adapterremoval && break || \
-        echo "Git clone attempt $i failed, retrying..." && sleep 5; \
-    done || { echo "Failed to clone AdapterRemoval repository after 3 attempts"; exit 1; } && \
-
-    cd /opt/adapterremoval && \
-    git checkout 54bc0d6ffbbbc81ce60dc227e8ddd8e56ddf1501 && \
-    make && \
-    mv build/AdapterRemoval /usr/local/bin/adapterremoval-bin && \
-    rm -rf /opt/adapterremoval && \
-
-    # Create a wrapper script.
-    printf '#!/bin/sh\nexec /usr/local/bin/adapterremoval-bin "$@"\n' > /usr/local/bin/adapterremoval && \
-    chmod +x /usr/local/bin/adapterremoval && \
-
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends ca-certificates curl g++ make zlib1g-dev libbz2-dev
+    curl --fail --location --silent --show-error \
+        --output /tmp/adapterremoval.tar.gz \
+        https://github.com/MikkelSchubert/adapterremoval/archive/79b296b8fcfd853757d798528128c37a166331a9.tar.gz
+    echo '47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20  /tmp/adapterremoval.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /tmp/adapterremoval.tar.gz --directory /tmp
+    make --directory /tmp/adapterremoval-79b296b8fcfd853757d798528128c37a166331a9 -j"$(nproc)"
+    make --directory /tmp/adapterremoval-79b296b8fcfd853757d798528128c37a166331a9 install
+    ln -s /usr/local/bin/AdapterRemoval /usr/local/bin/adapterremoval
+    adapterremoval --version
+    rm -rf /tmp/adapterremoval*
     rm -rf /var/lib/apt/lists/*
+
 %runscript
-    if [ $# -eq 0 ]; then
-        exec /usr/local/bin/adapterremoval --help
-    else
-        exec /usr/local/bin/adapterremoval "$@"
-    fi
+    exec /usr/local/bin/adapterremoval "$@"
+
+%test
+    adapterremoval --version
+    adapterremoval --help >/dev/null
 
 %help
-    This Apptainer image provides AdapterRemoval version 2.3.3.
-    Run with arguments to execute the tool, or without arguments to display help.
+    AdapterRemoval 2.3.4 built from the catalog-locked upstream commit.
+    The runscript forwards arguments directly to the authentic binary.

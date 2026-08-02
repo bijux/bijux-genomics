@@ -1,48 +1,37 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: GPL-3.0.
-# The bijux-dna software source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=2.3.4
+LABEL org.opencontainers.image.source="https://github.com/MikkelSchubert/adapterremoval" \
+      org.opencontainers.image.revision="79b296b8fcfd853757d798528128c37a166331a9" \
       org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
-      org.opencontainers.image.version="${TOOL_VERSION}"
-LABEL org.opencontainers.image.tool="adapterremoval"
-LABEL org.opencontainers.image.title="adapterremoval"
-LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
+      org.opencontainers.image.licenses="GPL-3.0-only" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="adapterremoval" \
+      org.opencontainers.image.title="AdapterRemoval" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 
-ARG ADAPTERREMOVAL_VERSION=2.3.3
-ENV ADAPTERREMOVAL_VERSION=${ADAPTERREMOVAL_VERSION}
+ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y --no-install-recommends ca-certificates curl g++ make zlib1g-dev libbz2-dev && \
+    curl --fail --location --silent --show-error \
+      --output /tmp/adapterremoval.tar.gz \
+      https://github.com/MikkelSchubert/adapterremoval/archive/79b296b8fcfd853757d798528128c37a166331a9.tar.gz && \
+    echo '47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20  /tmp/adapterremoval.tar.gz' | sha256sum --check --strict && \
+    tar --extract --gzip --file /tmp/adapterremoval.tar.gz --directory /tmp && \
+    make --directory /tmp/adapterremoval-79b296b8fcfd853757d798528128c37a166331a9 -j"$(nproc)" && \
+    make --directory /tmp/adapterremoval-79b296b8fcfd853757d798528128c37a166331a9 install && \
+    ln -s /usr/local/bin/AdapterRemoval /usr/local/bin/adapterremoval && \
+    adapterremoval --version && \
+    rm -rf /tmp/adapterremoval* /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        ca-certificates git build-essential zlib1g-dev libbz2-dev && \
-    for i in 1 2 3; do \
-        git clone https://github.com/MikkelSchubert/adapterremoval.git /opt/adapterremoval && break || \
-        echo "Git clone attempt $i failed, retrying..." && sleep 5; \
-    done || { echo "Failed to clone AdapterRemoval repository after 3 attempts"; exit 1; } && \
-    cd /opt/adapterremoval && \
-    git checkout 54bc0d6ffbbbc81ce60dc227e8ddd8e56ddf1501 && \
-    make && \
-    mv build/AdapterRemoval /usr/local/bin/adapterremoval-bin && \
-    rm -rf /opt/adapterremoval && \
-    apt-get purge -y git build-essential && \
-    apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
-
-# Create a wrapper script for unified AdapterRemoval execution
-RUN echo '#!/bin/sh' > /usr/local/bin/adapterremoval && \
-    echo '/usr/local/bin/adapterremoval-bin "$@"' >> /usr/local/bin/adapterremoval && \
-    chmod +x /usr/local/bin/adapterremoval
-
-WORKDIR /data
-ENTRYPOINT ["adapterremoval"]
+USER 65532:65532
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/adapterremoval"]
 CMD ["--help"]

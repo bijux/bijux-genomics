@@ -1,47 +1,40 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: GPL-3.0.
-# The bijux-dna software source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=1.20
+LABEL org.opencontainers.image.source="https://github.com/samtools/samtools" \
+      org.opencontainers.image.revision="906a3b562ef985d2a9777768f8a81001d6ce6dcb" \
       org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
-      org.opencontainers.image.version="${TOOL_VERSION}"
-LABEL org.opencontainers.image.tool="samtools"
-LABEL org.opencontainers.image.title="samtools"
-LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="samtools" \
+      org.opencontainers.image.title="Samtools" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 
-ARG VERSION_SAMTOOLS=1.21
-ENV VERSION_SAMTOOLS=${VERSION_SAMTOOLS}
-
-RUN apt-get update && \
+ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
     apt-get install -y --no-install-recommends \
-        samtools && \
-    mv /usr/bin/samtools /usr/local/bin/samtools-bin && \
-    rm -rf /var/lib/apt/lists/* && \
-    apt-get autoremove -y
+      ca-certificates curl gcc make perl \
+      zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev libssl-dev libdeflate-dev libncurses-dev && \
+    curl --fail --location --silent --show-error \
+      --output /tmp/samtools.tar.bz2 \
+      https://github.com/samtools/samtools/releases/download/1.20/samtools-1.20.tar.bz2 && \
+    echo 'c71be865e241613c2ca99679c074f1a0daeb55288af577db945bdabe3eb2cf10  /tmp/samtools.tar.bz2' | sha256sum --check --strict && \
+    tar --extract --bzip2 --file /tmp/samtools.tar.bz2 --directory /tmp && \
+    cd /tmp/samtools-1.20 && \
+    ./configure --prefix=/usr/local && \
+    make -j"$(nproc)" && \
+    make install && \
+    samtools --version | grep '^samtools 1.20$' && \
+    rm -rf /tmp/samtools* /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
-# Create a wrapper script for unified Samtools execution
-RUN echo '#!/bin/sh' > /usr/local/bin/samtools && \
-    echo 'if [ "$1" = "--version" ]; then' >> /usr/local/bin/samtools && \
-    echo '    echo "$VERSION_SAMTOOLS"' >> /usr/local/bin/samtools && \
-    echo '    exit 0' >> /usr/local/bin/samtools && \
-    echo 'elif [ "$1" = "--help" ]; then' >> /usr/local/bin/samtools && \
-    echo '    /usr/local/bin/samtools-bin --help' >> /usr/local/bin/samtools && \
-    echo '    exit 0' >> /usr/local/bin/samtools && \
-    echo 'else' >> /usr/local/bin/samtools && \
-    echo '    /usr/local/bin/samtools-bin "$@"' >> /usr/local/bin/samtools && \
-    echo 'fi' >> /usr/local/bin/samtools && \
-    chmod +x /usr/local/bin/samtools
-
-WORKDIR /data
-ENTRYPOINT ["samtools"]
+USER 65532:65532
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/samtools"]
 CMD ["--help"]
