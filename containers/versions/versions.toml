@@ -365,9 +365,10 @@ pinned_commit = "65f40b4dec0d414d1cb3962e8692f3e990e68491"
 
 [qualimap]
 version = "2.3"
-source = "http://qualimap.conesalab.org/"
-date_pinned = "2026-02-12"
+source = "https://bitbucket.org/kokonech/qualimap"
+date_pinned = "2026-08-02"
 pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "2a04dd864b712da30923cce3bc8dfc6ea59612118e8b0ff1a246fe43b8d34c40"
 
 [rcorrector]
 version = "1.0.7"

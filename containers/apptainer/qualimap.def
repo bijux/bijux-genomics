@@ -16,14 +16,10 @@ Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    MAINTAINER Bijan Mousavi <bijan@bijux.io>
-    VERSION Qualimap-v2.3
     org.opencontainers.image.source https://bitbucket.org/kokonech/qualimap
-
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.revision 2a04dd864b712da30923cce3bc8dfc6ea59612118e8b0ff1a246fe43b8d34c40
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-2.0-only
     org.opencontainers.image.version 2.3
     org.opencontainers.image.tool qualimap
     org.opencontainers.image.title qualimap
@@ -31,43 +27,32 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+%files
+    containers/tools/qualimap/qualimap /usr/local/bin/qualimap
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
 
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        curl \
-        ca-certificates \
-        unzip \
-        openjdk-11-jre-headless && \
-
-    curl -L --retry 5 --retry-delay 3 --connect-timeout 20 --max-time 300 \
-        -o /tmp/qualimap.zip \
-        https://bitbucket.org/kokonech/qualimap/downloads/qualimap_v2.3.zip && \
-    unzip -q /tmp/qualimap.zip -d /opt && \
-    mv /opt/qualimap_v2.3 /opt/qualimap && \
-    rm /tmp/qualimap.zip && \
-
-    # Create a wrapper script with version override and help handling.
-    cat > /usr/local/bin/qualimap <<'EOF'
-#!/bin/sh
-if [ "$1" = "--version" ]; then
-    echo "2.3"
-    exit 0
-elif [ "$1" = "--help" ]; then
-    /opt/qualimap/qualimap --help
-    exit 0
-else
-    /opt/qualimap/qualimap "$@"
-fi
-EOF
-    chmod +x /usr/local/bin/qualimap && \
-
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends curl openjdk-11-jre-headless unzip
+    curl --fail --location --silent --show-error --output /opt/qualimap.zip https://bitbucket.org/kokonech/qualimap/downloads/qualimap_v2.3.zip
+    echo '2a04dd864b712da30923cce3bc8dfc6ea59612118e8b0ff1a246fe43b8d34c40  /opt/qualimap.zip' | sha256sum --check --strict
+    unzip -q /opt/qualimap.zip -d /opt
+    mv /opt/qualimap_v2.3 /opt/qualimap
+    chmod 0755 /usr/local/bin/qualimap
+    qualimap --version | grep -Fx '2.3'
+    qualimap --help >/dev/null
+    rm /opt/qualimap.zip
     rm -rf /var/lib/apt/lists/*
+
+%test
+    qualimap --version | grep -Fx '2.3'
+    qualimap --help >/dev/null
 %runscript
     if [ $# -eq 0 ]; then
         exec /usr/local/bin/qualimap --help
@@ -76,7 +61,4 @@ EOF
     fi
 
 %help
-    This Apptainer image provides Qualimap version 2.3.
-    The default command is 'qualimap' (with wrapper for consistent --version output).
-    Run without arguments to display help.
-    Note: Qualimap requires aligned BAM files and optional GFF/BED for specific analyses.
+    Qualimap 2.3 from its authenticated official release archive.
