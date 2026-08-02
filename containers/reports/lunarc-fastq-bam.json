@@ -49,6 +49,22 @@
       "output_bytes": 16023606
     },
     {
+      "tool": "fastp",
+      "run_id": "run-1075",
+      "repository_commit": "569a3098bea532d892a144ca7b73b6e56f2125e1",
+      "slurm_job_id": "3458056",
+      "status": "passed",
+      "elapsed_seconds": 2,
+      "image_sha256": "510fd454fd9cdd2c1efe5f3e75ec280e98be5cfd1f0e496f0ade02554206e639",
+      "build_evidence_sha256": "13a466c053edadcd5883ac094208176c38ef750589439e27f970fa7a0bfe2a3a",
+      "evidence_sha256": "e0cfc0279eece016a37bb25eae75ff9d31ef1351a873d6ce198c3fbf5aefcff1",
+      "accounting_sha256": "518c4d687e94c42f73dacb45cebe8b53b248042117ce32f3ada7a8943700e334",
+      "output_sha256": "710cc589573165e6389400c8e7d6c5c30d54a4fd6b14398fa700222be2037ba7",
+      "output_bytes": 7779954,
+      "json_report_sha256": "018174a9a3fe1bbdc787d945dcc33088a96857824be9040d40813ab5cb99e0a2",
+      "html_report_sha256": "704c8ac25d9cf09cc0b3b70ed495b8cc8fed6be751fa222213aee507ed87a1af"
+    },
+    {
       "tool": "adapterremoval",
       "run_id": "run-1002",
       "repository_commit": "fd989ab019a266afb10950271012bfef48833570",
