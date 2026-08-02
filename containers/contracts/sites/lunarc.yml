@@ -1,0 +1,12 @@
+schema_version: bijux.container.governance.v1
+site:
+  id: lunarc
+  hostname_regex: '^(cosmos[0-9]+|cn[0-9]+)(\.int\.lunarc)?$'
+paths:
+  study_root: /home/bijan/lu2024-12-24/Dardel/STUDY
+  active_repository: /home/bijan/bijux/bijux-genomics
+  frozen_repositories: /home/bijan/bijux/bijux-genomics-runs
+slurm:
+  account: lu2026-2-20
+  partitions:
+    - lu48

@@ -5,6 +5,7 @@ Authoritative entrypoint:
 
 Operational docs index:
 - [containers/docs/index.md](docs/index.md)
+- [containers/docs/LUNARC_EXECUTION_CONTRACT.md](docs/LUNARC_EXECUTION_CONTRACT.md)
 - [containers/docs/TOOL_LIFECYCLE.md](docs/TOOL_LIFECYCLE.md)
 - [containers/docs/VERSION_AUTHORITY.md](docs/VERSION_AUTHORITY.md)
 - [containers/docs/SCIENCE_EVIDENCE_BOUNDARY.md](docs/SCIENCE_EVIDENCE_BOUNDARY.md)

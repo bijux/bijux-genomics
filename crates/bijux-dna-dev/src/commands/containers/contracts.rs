@@ -7,6 +7,8 @@ const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
 const LOCK_PATH: &str = "containers/contracts/catalog.lock.json";
 const PIPELINE_SCHEMA_PATH: &str = "containers/contracts/config-pipeline.schema.json";
 const CREDENTIAL_SCHEMA_PATH: &str = "containers/contracts/config-credential.schema.json";
+const GOVERNANCE_SCHEMA_PATH: &str = "containers/contracts/config-governance.schema.json";
+const LUNARC_GOVERNANCE_PATH: &str = "containers/contracts/sites/lunarc.yml";
 const VALIDATION_EXECUTOR_PATH: &str = "containers/contracts/container_validation.py";
 const CATALOG_SCHEMA: &str = "bijux.container.catalog.v1";
 const EVIDENCE_SCHEMA: &str = "bijux.container.evidence.v1";
@@ -140,7 +142,7 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
     if catalog.evidence_schema != EVIDENCE_SCHEMA {
         errors.push(format!("evidence_schema must be {EVIDENCE_SCHEMA}"));
     }
-    for schema_path in [PIPELINE_SCHEMA_PATH, CREDENTIAL_SCHEMA_PATH] {
+    for schema_path in [PIPELINE_SCHEMA_PATH, CREDENTIAL_SCHEMA_PATH, GOVERNANCE_SCHEMA_PATH] {
         let path = workspace.path(schema_path);
         match read_utf8(&path)
             .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).map_err(Into::into))
@@ -152,6 +154,9 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
     }
     if !workspace.path(VALIDATION_EXECUTOR_PATH).is_file() {
         errors.push(format!("missing {VALIDATION_EXECUTOR_PATH}"));
+    }
+    if !workspace.path(LUNARC_GOVERNANCE_PATH).is_file() {
+        errors.push(format!("missing {LUNARC_GOVERNANCE_PATH}"));
     }
     if catalog.recipe_license != "GPL-3.0-only" {
         errors.push("recipe_license must identify the repository recipe license".to_string());

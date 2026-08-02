@@ -20,12 +20,10 @@ import yaml
 
 PIPELINE_SCHEMA = "bijux.container.pipeline.v1"
 CREDENTIAL_SCHEMA = "bijux.container.credential_reference.v1"
+GOVERNANCE_SCHEMA = "bijux.container.governance.v1"
 EVIDENCE_SCHEMA = "bijux.container.evidence.v1"
 RUN_ID_PATTERN = re.compile(r"run-[1-9][0-9]{3,}")
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
-GOVERNED_ROOT = Path("/home/bijan/lu2024-12-24/Dardel/STUDY").resolve()
-ACTIVE_SOURCE_ROOT = Path("/home/bijan/bijux/bijux-genomics").resolve()
-FROZEN_SOURCE_ROOT = Path("/home/bijan/bijux/bijux-genomics-runs").resolve()
 ACTIVE_SLURM_STATES = {
     "CONFIGURING",
     "COMPLETING",
@@ -128,25 +126,99 @@ def git_output(repo: Path, *args: str) -> str:
     return completed.stdout.strip()
 
 
-def freeze_repository(commit: str) -> Path:
+def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
+    require_keys(config, {"schema_version", "site", "paths", "slurm"}, "governance contract")
+    if config.get("schema_version") != GOVERNANCE_SCHEMA:
+        raise ContractError(f"governance schema_version must be {GOVERNANCE_SCHEMA}")
+
+    site = require_mapping(config, "site")
+    require_keys(site, {"id", "hostname_regex"}, "governance site")
+    require_text(site, "id")
+    hostname_regex = require_text(site, "hostname_regex")
+    try:
+        hostname_pattern = re.compile(hostname_regex)
+    except re.error as exc:
+        raise ContractError(f"site.hostname_regex is invalid: {exc}") from exc
+    hostname = socket.gethostname()
+    if hostname_pattern.fullmatch(hostname) is None:
+        raise ContractError(
+            f"host {hostname!r} is outside governed site {site['id']!r}"
+        )
+
+    paths = require_mapping(config, "paths")
+    require_keys(
+        paths,
+        {"study_root", "active_repository", "frozen_repositories"},
+        "governance paths",
+    )
+    resolved_paths = {}
+    for key in ("study_root", "active_repository", "frozen_repositories"):
+        declared = Path(require_text(paths, key))
+        if not declared.is_absolute():
+            raise ContractError(f"paths.{key} must be absolute")
+        resolved_paths[key] = declared.resolve()
+    if resolved_paths["active_repository"] == resolved_paths["frozen_repositories"]:
+        raise ContractError("active and frozen repository roots must differ")
+    if not resolved_paths["study_root"].is_dir():
+        raise ContractError(f"governed study root does not exist: {resolved_paths['study_root']}")
+    if not resolved_paths["active_repository"].is_dir():
+        raise ContractError(
+            f"active repository does not exist: {resolved_paths['active_repository']}"
+        )
+
+    slurm = require_mapping(config, "slurm")
+    require_keys(slurm, {"account", "partitions"}, "governance Slurm policy")
+    account = require_text(slurm, "account")
+    partitions = slurm.get("partitions")
+    if (
+        not isinstance(partitions, list)
+        or not partitions
+        or any(not isinstance(partition, str) or not partition for partition in partitions)
+        or partitions != sorted(set(partitions))
+    ):
+        raise ContractError("slurm.partitions must be a sorted unique list")
+
+    return {
+        "site_id": site["id"],
+        "hostname": hostname,
+        "study_root": resolved_paths["study_root"],
+        "active_repository": resolved_paths["active_repository"],
+        "frozen_repositories": resolved_paths["frozen_repositories"],
+        "slurm_account": account,
+        "slurm_partitions": partitions,
+    }
+
+
+def load_governance(path: Path) -> dict[str, Any]:
+    config = load_yaml(path)
+    governance = validate_governance(config)
+    governance["config"] = config
+    governance["path"] = path.resolve()
+    return governance
+
+
+def freeze_repository(commit: str, governance_path: Path) -> Path:
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ContractError("frozen repository commit must be a full Git commit")
-    if git_output(ACTIVE_SOURCE_ROOT, "status", "--porcelain"):
+    governance = load_governance(governance_path)
+    active_repository: Path = governance["active_repository"]
+    frozen_repositories: Path = governance["frozen_repositories"]
+    if git_output(active_repository, "status", "--porcelain"):
         raise ContractError("active LUNARC repository must be clean before freezing a run")
-    git_output(ACTIVE_SOURCE_ROOT, "cat-file", "-e", f"{commit}^{{commit}}")
-    target = FROZEN_SOURCE_ROOT / commit
+    git_output(active_repository, "cat-file", "-e", f"{commit}^{{commit}}")
+    target = frozen_repositories / commit
     if target.exists():
         if git_output(target, "rev-parse", "HEAD") != commit:
             raise ContractError(f"existing frozen worktree has the wrong commit: {target}")
         if git_output(target, "status", "--porcelain"):
             raise ContractError(f"existing frozen worktree is dirty: {target}")
         return target
-    FROZEN_SOURCE_ROOT.mkdir(parents=True, exist_ok=True)
+    frozen_repositories.mkdir(parents=True, exist_ok=True)
     completed = subprocess.run(
         [
             "git",
             "-C",
-            str(ACTIVE_SOURCE_ROOT),
+            str(active_repository),
             "worktree",
             "add",
             "--detach",
@@ -204,7 +276,11 @@ def validate_credentials(config: dict[str, Any]) -> None:
 
 
 def validate_pipeline(
-    config: dict[str, Any], pipeline_path: Path, credential_path: Path
+    config: dict[str, Any],
+    governance: dict[str, Any],
+    governance_path: Path,
+    pipeline_path: Path,
+    credential_path: Path,
 ) -> dict[str, Any]:
     require_keys(
         config,
@@ -243,9 +319,12 @@ def validate_pipeline(
     expected_commit = require_text(repository, "commit")
     if not re.fullmatch(r"[0-9a-f]{40}", expected_commit):
         raise ContractError("repository.commit must be a full Git commit")
-    is_active_checkout = repository_path == ACTIVE_SOURCE_ROOT
+    active_repository: Path = governance["active_repository"]
+    frozen_repositories: Path = governance["frozen_repositories"]
+    study_root: Path = governance["study_root"]
+    is_active_checkout = repository_path == active_repository
     is_frozen_checkout = (
-        repository_path.parent == FROZEN_SOURCE_ROOT
+        repository_path.parent == frozen_repositories
         and repository_path.name == expected_commit
     )
     if not (is_active_checkout or is_frozen_checkout):
@@ -262,7 +341,7 @@ def validate_pipeline(
     image = require_mapping(config, "image")
     require_keys(image, {"path", "sha256"}, "image")
     image_path = resolved(require_text(image, "path"))
-    require_under(image_path, GOVERNED_ROOT / "containers" / "apptainer", "image.path")
+    require_under(image_path, study_root / "containers" / "apptainer", "image.path")
     if not image_path.is_file() or image_path.suffix != ".sif":
         raise ContractError(f"image.path must be an existing immutable SIF: {image_path}")
     image_sha256 = require_text(image, "sha256")
@@ -299,9 +378,9 @@ def validate_pipeline(
             raise ContractError(f"data input {index} path must be absolute")
         input_path = resolved(str(declared_input_path))
         input_root = (
-            GOVERNED_ROOT / "results"
+            study_root / "results"
             if input_kind == "upstream_result"
-            else GOVERNED_ROOT / "data"
+            else study_root / "data"
         )
         require_under(input_path, input_root, f"data.inputs[{index}].path")
         if not input_path.is_file():
@@ -325,7 +404,7 @@ def validate_pipeline(
     result_root = resolved(str(declared_result_root))
     require_under(
         result_root,
-        GOVERNED_ROOT / "results" / "container-validation",
+        study_root / "results" / "container-validation",
         "outputs.result_root",
     )
     if result_root.name != run_id:
@@ -348,6 +427,10 @@ def validate_pipeline(
     )
     for key in ("account", "partition", "walltime"):
         require_text(resources, key)
+    if resources["account"] != governance["slurm_account"]:
+        raise ContractError("resources.account is outside the governance contract")
+    if resources["partition"] not in governance["slurm_partitions"]:
+        raise ContractError("resources.partition is outside the governance contract")
     for key in ("cpus", "memory_mb", "scratch_mb"):
         value = resources.get(key)
         if not isinstance(value, int) or value <= 0:
@@ -369,8 +452,14 @@ def validate_pipeline(
     if acceptance.get("negative_exit_nonzero") is not True:
         raise ContractError("acceptance must require a non-zero negative check")
 
-    if credential_path.resolve().parent != pipeline_path.resolve().parent:
-        raise ContractError("pipeline and credential contracts must be archived together")
+    contract_parent = pipeline_path.resolve().parent
+    if (
+        credential_path.resolve().parent != contract_parent
+        or governance_path.resolve().parent != contract_parent
+    ):
+        raise ContractError(
+            "governance, pipeline, and credential contracts must be archived together"
+        )
 
     return {
         "run_id": run_id,
@@ -386,14 +475,24 @@ def validate_pipeline(
         "required_files": required_files,
         "resources": resources,
         "acceptance": acceptance,
+        "governance": governance,
     }
 
 
-def validate_contracts(pipeline_path: Path, credential_path: Path) -> dict[str, Any]:
+def validate_contracts(
+    governance_path: Path, pipeline_path: Path, credential_path: Path
+) -> dict[str, Any]:
+    governance = load_governance(governance_path)
     credentials = load_yaml(credential_path)
     validate_credentials(credentials)
     pipeline = load_yaml(pipeline_path)
-    resolved_contract = validate_pipeline(pipeline, pipeline_path, credential_path)
+    resolved_contract = validate_pipeline(
+        pipeline,
+        governance,
+        governance_path,
+        pipeline_path,
+        credential_path,
+    )
     resolved_contract["pipeline"] = pipeline
     resolved_contract["credentials"] = credentials
     return resolved_contract
@@ -427,12 +526,13 @@ def write_json(path: Path, value: dict[str, Any]) -> None:
     temporary.replace(path)
 
 
-def execute(pipeline_path: Path, credential_path: Path) -> int:
-    contract = validate_contracts(pipeline_path, credential_path)
+def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -> int:
+    contract = validate_contracts(governance_path, pipeline_path, credential_path)
     result_root: Path = contract["result_root"]
     if result_root.exists():
         raise ContractError(f"refusing to overwrite run result root: {result_root}")
     result_root.mkdir(parents=True, mode=0o750)
+    (result_root / "config-governance.yml").write_bytes(governance_path.read_bytes())
     (result_root / "config-pipeline.yml").write_bytes(pipeline_path.read_bytes())
     (result_root / "config-credential.yml").write_bytes(credential_path.read_bytes())
 
@@ -498,6 +598,11 @@ def execute(pipeline_path: Path, credential_path: Path) -> int:
         "repository_commit": contract["repository_commit"],
         "repository_path": str(contract["repository_path"]),
         "repository_clean": True,
+        "governance_sha256": sha256_file(governance_path),
+        "site": {
+            "id": contract["governance"]["site_id"],
+            "host": contract["governance"]["hostname"],
+        },
         "pipeline_sha256": sha256_file(pipeline_path),
         "credential_reference_sha256": sha256_file(credential_path),
         "image": {
@@ -522,8 +627,13 @@ def execute(pipeline_path: Path, credential_path: Path) -> int:
     return 0 if not failures else 1
 
 
-def render_slurm(pipeline_path: Path, credential_path: Path, output_path: Path) -> None:
-    contract = validate_contracts(pipeline_path, credential_path)
+def render_slurm(
+    governance_path: Path,
+    pipeline_path: Path,
+    credential_path: Path,
+    output_path: Path,
+) -> None:
+    contract = validate_contracts(governance_path, pipeline_path, credential_path)
     resources = contract["resources"]
     run = contract["pipeline"]["run"]
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -545,6 +655,7 @@ export LANG=C
 export LC_ALL=C
 export TZ=UTC
 exec python3 {contract['repository_path'] / 'containers/contracts/container_validation.py'} execute \\
+  --governance {governance_path.resolve()} \\
   --pipeline {pipeline_path.resolve()} \\
   --credentials {credential_path.resolve()}
 """
@@ -554,14 +665,16 @@ exec python3 {contract['repository_path'] / 'containers/contracts/container_vali
 
 def collect_accounting(manifest_path: Path) -> Path:
     manifest_path = manifest_path.resolve()
+    governance_path = manifest_path / "config-governance.yml"
+    governance = load_governance(governance_path)
     require_under(
         manifest_path,
-        GOVERNED_ROOT / "containers" / "manifests",
+        governance["study_root"] / "containers" / "manifests",
         "manifest",
     )
     pipeline_path = manifest_path / "config-pipeline.yml"
     credential_path = manifest_path / "config-credential.yml"
-    contract = validate_contracts(pipeline_path, credential_path)
+    contract = validate_contracts(governance_path, pipeline_path, credential_path)
     job_id = (manifest_path / "slurm-job-id.txt").read_text(encoding="utf-8").strip()
     if not job_id.isdigit():
         raise ContractError("manifest Slurm job id must be numeric")
@@ -621,6 +734,7 @@ def collect_accounting(manifest_path: Path) -> Path:
         "collected_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
         "rows": rows,
         "submit_script_sha256": sha256_file(submit_path),
+        "governance_sha256": sha256_file(governance_path),
         "pipeline_sha256": sha256_file(pipeline_path),
         "credential_reference_sha256": sha256_file(credential_path),
     }
@@ -635,13 +749,16 @@ def parser() -> argparse.ArgumentParser:
     commands = root.add_subparsers(dest="command", required=True)
     for name in ("validate", "execute"):
         command = commands.add_parser(name)
+        command.add_argument("--governance", type=Path, required=True)
         command.add_argument("--pipeline", type=Path, required=True)
         command.add_argument("--credentials", type=Path, required=True)
     render = commands.add_parser("render-slurm")
+    render.add_argument("--governance", type=Path, required=True)
     render.add_argument("--pipeline", type=Path, required=True)
     render.add_argument("--credentials", type=Path, required=True)
     render.add_argument("--output", type=Path, required=True)
     freeze = commands.add_parser("freeze-repository")
+    freeze.add_argument("--governance", type=Path, required=True)
     freeze.add_argument("--commit", required=True)
     collect = commands.add_parser("collect-accounting")
     collect.add_argument("--manifest", type=Path, required=True)
@@ -652,18 +769,18 @@ def main() -> int:
     args = parser().parse_args()
     try:
         if args.command == "validate":
-            validate_contracts(args.pipeline, args.credentials)
+            validate_contracts(args.governance, args.pipeline, args.credentials)
             print("container validation contracts: OK")
             return 0
         if args.command == "execute":
-            return execute(args.pipeline, args.credentials)
+            return execute(args.governance, args.pipeline, args.credentials)
         if args.command == "freeze-repository":
-            print(freeze_repository(args.commit))
+            print(freeze_repository(args.commit, args.governance))
             return 0
         if args.command == "collect-accounting":
             print(collect_accounting(args.manifest))
             return 0
-        render_slurm(args.pipeline, args.credentials, args.output)
+        render_slurm(args.governance, args.pipeline, args.credentials, args.output)
         print(args.output)
         return 0
     except ContractError as exc:
