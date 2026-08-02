@@ -3,7 +3,7 @@
   "$id": "https://bijux.github.io/bijux-genomics/schemas/container-governance-v1.json",
   "title": "Bijux Genomics site-governance contract",
   "type": "object",
-  "required": ["schema_version", "site", "paths", "slurm"],
+  "required": ["schema_version", "site", "paths", "runtime", "slurm"],
   "properties": {
     "schema_version": {"const": "bijux.container.governance.v1"},
     "site": {
@@ -22,6 +22,14 @@
         "study_root": {"type": "string", "pattern": "^/"},
         "active_repository": {"type": "string", "pattern": "^/"},
         "frozen_repositories": {"type": "string", "pattern": "^/"}
+      },
+      "additionalProperties": false
+    },
+    "runtime": {
+      "type": "object",
+      "required": ["apptainer_architecture"],
+      "properties": {
+        "apptainer_architecture": {"enum": ["linux/amd64", "linux/arm64"]}
       },
       "additionalProperties": false
     },

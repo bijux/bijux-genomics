@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -11,7 +12,14 @@ EXECUTOR = Path(__file__).parents[1] / "container_validation.py"
 SPEC = importlib.util.spec_from_file_location("container_validation", EXECUTOR)
 assert SPEC is not None and SPEC.loader is not None
 container_validation = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = container_validation
 SPEC.loader.exec_module(container_validation)
+
+BUILD_EXECUTOR = Path(__file__).parents[1] / "container_build.py"
+BUILD_SPEC = importlib.util.spec_from_file_location("container_build", BUILD_EXECUTOR)
+assert BUILD_SPEC is not None and BUILD_SPEC.loader is not None
+container_build = importlib.util.module_from_spec(BUILD_SPEC)
+BUILD_SPEC.loader.exec_module(container_build)
 
 
 class GovernanceContractTests(unittest.TestCase):
@@ -28,6 +36,7 @@ class GovernanceContractTests(unittest.TestCase):
                 "active_repository": str(active),
                 "frozen_repositories": str(root / "frozen-repositories"),
             },
+            "runtime": {"apptainer_architecture": "linux/amd64"},
             "slurm": {"account": "science", "partitions": ["compute"]},
         }
 
@@ -52,6 +61,20 @@ class GovernanceContractTests(unittest.TestCase):
                     "outside governed site",
                 ):
                     container_validation.validate_governance(self.governance(root))
+
+
+class BuildAdmissionTests(unittest.TestCase):
+    def test_immutable_name_carries_runtime_and_content_identity(self) -> None:
+        name = container_build.immutable_image_name(
+            "adapterremoval",
+            "2.3.4",
+            "linux/amd64",
+            "a" * 64,
+        )
+        self.assertEqual(
+            name,
+            "adapterremoval-2.3.4-linux-amd64-aaaaaaaaaaaa.sif",
+        )
 
 
 if __name__ == "__main__":

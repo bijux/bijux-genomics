@@ -127,7 +127,11 @@ def git_output(repo: Path, *args: str) -> str:
 
 
 def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
-    require_keys(config, {"schema_version", "site", "paths", "slurm"}, "governance contract")
+    require_keys(
+        config,
+        {"schema_version", "site", "paths", "runtime", "slurm"},
+        "governance contract",
+    )
     if config.get("schema_version") != GOVERNANCE_SCHEMA:
         raise ContractError(f"governance schema_version must be {GOVERNANCE_SCHEMA}")
 
@@ -166,6 +170,12 @@ def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
             f"active repository does not exist: {resolved_paths['active_repository']}"
         )
 
+    runtime = require_mapping(config, "runtime")
+    require_keys(runtime, {"apptainer_architecture"}, "governance runtime")
+    architecture = require_text(runtime, "apptainer_architecture")
+    if architecture not in {"linux/amd64", "linux/arm64"}:
+        raise ContractError(f"unsupported Apptainer architecture: {architecture}")
+
     slurm = require_mapping(config, "slurm")
     require_keys(slurm, {"account", "partitions"}, "governance Slurm policy")
     account = require_text(slurm, "account")
@@ -184,6 +194,7 @@ def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
         "study_root": resolved_paths["study_root"],
         "active_repository": resolved_paths["active_repository"],
         "frozen_repositories": resolved_paths["frozen_repositories"],
+        "apptainer_architecture": architecture,
         "slurm_account": account,
         "slurm_partitions": partitions,
     }

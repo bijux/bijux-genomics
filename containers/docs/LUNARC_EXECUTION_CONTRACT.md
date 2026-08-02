@@ -46,3 +46,16 @@ The executor validates the current hostname against the site contract, rejects
 paths outside the configured study roots, restricts Slurm resources to the
 configured account and partitions, checks every immutable digest, and refuses
 to overwrite an existing result or accounting record.
+
+Frontend builds remain in `containers/apptainer/.building` until the admission
+command verifies the recipe at the declared Git commit, the completed build
+log, and machine-readable Apptainer inspection. It then moves the SIF to an
+immutable architecture-and-content-addressed name and writes build evidence:
+
+```console
+python3 containers/contracts/container_build.py \
+  --governance containers/contracts/sites/lunarc.yml \
+  --tool TOOL --version VERSION --repository-commit COMMIT_SHA \
+  --definition containers/apptainer/TOOL.def \
+  --staged-image STAGED_SIF --build-log BUILD_LOG
+```
