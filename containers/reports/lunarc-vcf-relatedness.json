@@ -2,7 +2,7 @@
   "schema_version": "bijux.container.report_index.v1",
   "report_id": "lunarc-vcf-relatedness",
   "site": "lunarc",
-  "repository_commit": "cd19ed5c31348a9786a7bb7fdebd546239fdeb24",
+  "initial_repository_commit": "cd19ed5c31348a9786a7bb7fdebd546239fdeb24",
   "corpus": "1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome",
   "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
   "claims": {
@@ -95,6 +95,35 @@
       "evidence_sha256": "8124c0e86f1d7b6c156825ecd8e0847f3460f77cc19e736645046363cd874dae",
       "accounting_sha256": "a15319dafabdeafbb9cf26569996fb8354aa725453c8e87103e5c23650b96671",
       "output_sha256": "66da6c7e1cab069a13775f7f045174c98299cee31a5875b51fd3d1b6ea94edec"
+    },
+    {
+      "tool": "ibdhap",
+      "run_id": "run-1067",
+      "repository_commit": "17a6ee7ab1163f07b34a5619cc44b3679e9ccd03",
+      "slurm_job_id": "3457992",
+      "status": "passed",
+      "elapsed_seconds": 7,
+      "eligible_marker_count": 41705,
+      "selected_marker_count": 500,
+      "state_count": 15,
+      "interpretation": "posterior four-gamete IBD-state probabilities, not called segments",
+      "evidence_sha256": "a3302397717e2d708c820e8adb0e5f076fc4972563a6a6a7a10c43eef2aa18e5",
+      "accounting_sha256": "76f465f584493c0a2a7bc8b6032a48fc5addc819b4c3a0507409c360da6f2652",
+      "output_sha256": "f4a3b8067352be7d8da8b3df707a6c19229f0f901d406ea45b5087c3d9890374"
+    },
+    {
+      "tool": "germline",
+      "run_id": "run-1069",
+      "repository_commit": "17a6ee7ab1163f07b34a5619cc44b3679e9ccd03",
+      "slurm_job_id": "3457995",
+      "status": "passed",
+      "elapsed_seconds": 3,
+      "sample_count": 100,
+      "segment_row_count": 18,
+      "interpretation": "candidate segments, not relatedness or accuracy validation",
+      "evidence_sha256": "fef316f289834a00b27f487d1b39f2e4091bcbbe10a796e6618197e7e10b4f85",
+      "accounting_sha256": "2f64b889d4135642ee6ea6648534dbf571346430a1c707380378d54fe0925fb5",
+      "output_sha256": "64e746d07343a8be7a78f806ec51d0e3cbc97d430f123ecc7059da7a5faf0879"
     }
   ],
   "science_boundary": {
