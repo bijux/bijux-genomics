@@ -21,6 +21,7 @@ root.
 | read-quality and adapter profiling | FastQC 0.12.1 | `run-1076` | `3458057` | 4s | HTML report plus machine-readable archive |
 | low-complexity filtering | fastp 0.23.4 | `run-1075` | `3458056` | 2s | filtered FASTQ plus JSON and HTML reports |
 | paired-read merging | FLASH2 2.2.00 | `run-1078` | `3458063` | 1s | 774,658-byte merged-read FASTQ |
+| adapter trimming | Skewer 0.2.2 | `run-1079` | `3458064` | 1s | 25,992,094-byte trimmed FASTQ stream |
 | paired-read trimming | AdapterRemoval 2.3.4 | `run-1002` | `3457168` | 4s | two trimmed FASTQ files |
 | reference indexing | BWA 0.7.17 | `run-1003` | `3457577` | 30m01s | five EquCab3.0 index files |
 | read alignment | BWA 0.7.17 | `run-1004` | `3457596` | 11s | 60,534,232-byte SAM stream |
@@ -50,7 +51,9 @@ rather than governed pass/fail criteria. fastQValidator accepted the complete
 FASTQ stream structurally; this is format evidence, not evidence that the reads
 are biologically suitable for a downstream analysis. FLASH2 produced merged
 reads from the governed pair, but overlap correctness and agreement with
-another merger have not been assessed.
+another merger have not been assessed. Skewer exercised its default adapter
+contract on the full read stream; retained-read and adapter-removal thresholds
+have not yet been declared or assessed.
 
 The evidence does not yet prove read-retention thresholds, mapping quality,
 endogenous fraction, duplication, coverage suitability, cross-aligner
