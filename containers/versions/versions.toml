@@ -520,8 +520,10 @@ pinned_commit = "1130513e06223ffd12c74a11e8e2c967e108a825"
 [dustmasker]
 version = "2.15.0"
 source = "https://www.ncbi.nlm.nih.gov/books/NBK279690/"
-date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "LicenseRef-NCBI-Public-Domain"
+source_sha256 = "6918c370524c8d44e028bf491e8f245a895e07c66c77b261ce3b38d6058216e0"
 
 [fastq_scan]
 version = "1.0.1"
