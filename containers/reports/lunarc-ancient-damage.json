@@ -11,6 +11,50 @@
     "benchmark": "not_assessed",
     "release": "not_qualified"
   },
+  "mapdamage_builds": [
+    {
+      "repository_commit": "69e12482e1ecb19eac90f51deef5b841c3129076",
+      "status": "runtime_preflight_failed",
+      "failure_class": "missing_bundled_seqtk",
+      "image_sha256": "fb078a59027f1f4c771b92b92321e1adb13f5aca9f62485102ab44e099123725",
+      "image_size_bytes": 175255552,
+      "build_evidence_sha256": "bdcd296332b6b4d0e86328d84382824a590977e7256770fca738566f7fa75b75"
+    },
+    {
+      "repository_commit": "952aa80a41ce55297b54f290299c378fd9ef7e56",
+      "status": "passed",
+      "image_sha256": "fe844de7efe86c58b1bd5a7682836257215d8af661c322daf23f5c0ce61aa74d",
+      "image_size_bytes": 175280128,
+      "build_evidence_sha256": "fad3be4382d0104e2d4e7b1ed7fada3a270f165cc04232199a085b7616acc996"
+    },
+    {
+      "repository_commit": "b738b7ea18c6b58e7ff05f03453e20fa89163162",
+      "status": "passed",
+      "image_sha256": "eebdbec567fbeb14cb3d434d838a28a781b29a4a5238152ec7b76073b09dd17d",
+      "image_size_bytes": 175280128,
+      "build_evidence_sha256": "bbb1b822178591d25befbcc7b36e04ee79980df76e2a9b4f49f40c24369c97a4"
+    },
+    {
+      "repository_commit": "f8db1d4c07f050720797a662b64f202cb52dd933",
+      "status": "passed",
+      "image_sha256": "f762917cc1adb21f95d56298831c06ec37e3fc44e240272768aca193cebc8fdf",
+      "image_size_bytes": 175280128,
+      "build_evidence_sha256": "c48fc9c2d163351079773ac7cd375f0e652b27dbed1351993a6780c5294ca271"
+    },
+    {
+      "repository_commit": "0c9ef6de148ca7394aa8207aa29ec82971063052",
+      "status": "failed",
+      "failure_class": "missing_seqtk_build_toolchain",
+      "build_log_sha256": "5935b9ecaf58f1a22922a8b1806cce6891cc2bfe785ea8edf7e1f9ff7bf50339"
+    },
+    {
+      "repository_commit": "814ed68d6408bb720a91ff30ee19c59a2105b530",
+      "status": "passed",
+      "image_sha256": "3f6570d3130c0921ba15d83bda7ebad02469e37e970e9b84cd20078859eb60f0",
+      "image_size_bytes": 56786944,
+      "build_evidence_sha256": "19429d545a10e887a178277fe21384a9f3e1a7da1e249b9524c99c09e02c4c7a"
+    }
+  ],
   "runs": [
     {
       "tool": "ngsbriggs",
@@ -64,6 +108,73 @@
       "observations": {
         "c_to_t_5p": 0.0,
         "g_to_a_3p": 0.0
+      }
+    },
+    {
+      "tool": "mapdamage2",
+      "run_id": "run-1047",
+      "repository_commit": "952aa80a41ce55297b54f290299c378fd9ef7e56",
+      "slurm_job_id": "3457852",
+      "status": "failed",
+      "failure_class": "unconditional_r_probe",
+      "elapsed_seconds": 4,
+      "image_sha256": "fe844de7efe86c58b1bd5a7682836257215d8af661c322daf23f5c0ce61aa74d",
+      "evidence_sha256": "f59ea7c257acfccd85d6a192dc4221f7188a006c7b27adaaa6dfc0bbc381d7e1",
+      "accounting_sha256": "8c0b0af603892d7fd178dcd3ec5f3eeeb8e83c8db2b11f9d0955ac6fdf565a23"
+    },
+    {
+      "tool": "mapdamage2",
+      "run_id": "run-1048",
+      "repository_commit": "b738b7ea18c6b58e7ff05f03453e20fa89163162",
+      "slurm_job_id": "3457858",
+      "status": "failed",
+      "failure_class": "plot_table_projection",
+      "elapsed_seconds": 29,
+      "image_sha256": "eebdbec567fbeb14cb3d434d838a28a781b29a4a5238152ec7b76073b09dd17d",
+      "evidence_sha256": "e8e1920249a31976d94c6118d8538d4e7e9c28ca60c7802ff84c8aa376270151",
+      "accounting_sha256": "5f5ec568458a79408e78a8b78541f77e8538136f3adb7a784b7a0ad60cf18ab6"
+    },
+    {
+      "tool": "mapdamage2",
+      "run_id": "run-1049",
+      "repository_commit": "f8db1d4c07f050720797a662b64f202cb52dd933",
+      "slurm_job_id": "3457866",
+      "status": "passed",
+      "elapsed_seconds": 30,
+      "image_sha256": "f762917cc1adb21f95d56298831c06ec37e3fc44e240272768aca193cebc8fdf",
+      "evidence_sha256": "1836766bb0c298f89f5872a51f55970cada52631aeba28cee09f6a6110389031",
+      "accounting_sha256": "5656f881082db447b636a8388f14dd4bcea5648fdf2a2ab75a70b6cf550bde3f",
+      "native_output_bytes": 148817327,
+      "observations": {
+        "c_to_t_5p": 0.00361819,
+        "g_to_a_3p": 0.00340736
+      }
+    },
+    {
+      "tool": "mapdamage2",
+      "run_id": "run-1050",
+      "repository_commit": "814ed68d6408bb720a91ff30ee19c59a2105b530",
+      "slurm_job_id": "3457867",
+      "status": "passed",
+      "elapsed_seconds": 17,
+      "image_sha256": "3f6570d3130c0921ba15d83bda7ebad02469e37e970e9b84cd20078859eb60f0",
+      "input_sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87",
+      "evidence_sha256": "5df2dd017381d6d91d4e235dd5ef33d60e852b083f8a7ff303816dc8cd829f35",
+      "accounting_sha256": "6668001348918a1bda4f054f634e648636f05cf1e94bfe4f7ff426054bd9e542",
+      "native_output_bytes": 41402,
+      "outputs": {
+        "damage_summary_sha256": "a039cc80941fc25d8e246b14c837c5f518d1dcd0550b9dad5adbeb0b80274f99",
+        "misincorporation_sha256": "0f49a99d90175036ca5b8b71b7b924845c7186c39c74a4caa91110892fbfba64",
+        "nucleotide_composition_sha256": "c73d2d8cbeb747a935a13f0790d62e645082dca4257dddb08a52cd88bbe1eaf4",
+        "lengths_sha256": "3bfd0913ad3b2dc6fd5f8c7e9a3b9180a3bd222cc275a3b21435ee0e8cc9239f"
+      },
+      "observations": {
+        "c_to_t_5p": 0.00361819,
+        "g_to_a_3p": 0.00340736,
+        "c_to_t_numerator": 147,
+        "c_to_t_denominator": 40628,
+        "g_to_a_numerator": 139,
+        "g_to_a_denominator": 40794
       }
     }
   ]
