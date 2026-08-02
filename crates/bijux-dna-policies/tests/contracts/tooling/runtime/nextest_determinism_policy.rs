@@ -56,6 +56,9 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
     let pinned_gate =
         std::fs::read_to_string(root.join(".bijux/shared/bijux-makes/scripts/run_pinned_gate.sh"))
             .expect("read shared pinned gate");
+    let nextest_expression_builder = root.join("makes/bin/nextest_expr.sh");
+    let nextest_expression_builder_source = std::fs::read_to_string(&nextest_expression_builder)
+        .expect("read Nextest expression builder");
     let slow_roster = std::fs::read_to_string(root.join("configs/rust/nextest-slow-roster.txt"))
         .expect("read nextest slow roster");
     bijux_dna_policies::policy_assert!(
@@ -92,10 +95,15 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         "test-all must default to the deterministic full nextest profile"
     );
     bijux_dna_policies::policy_assert!(
-        cargo_mk.contains(
-            "NEXTEST_EXPR_BIN ?= $(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/scripts/nextest_expr.sh"
-        ),
-        "make test lanes must derive slow-test filters from the shared expression builder"
+        cargo_mk.contains("NEXTEST_EXPR_BIN ?= $(CURDIR)/makes/bin/nextest_expr.sh"),
+        "make test lanes must use the repository Nextest expression boundary"
+    );
+    bijux_dna_policies::policy_assert!(
+        nextest_expression_builder_source
+            .contains(".bijux/shared/bijux-makes-rs/scripts/nextest_expr.sh")
+            && nextest_expression_builder_source
+                .contains("sed 's#test(/\\^(?:#test(/(?:^|::)(?:#g'"),
+        "the repository Nextest expression boundary must preserve the shared builder and match rostered unit-test suffixes"
     );
     bijux_dna_policies::policy_assert!(
         cargo_mk.contains("NEXTEST_SLOW_NAME_EXPR ?= test(/::slow__/)"),
