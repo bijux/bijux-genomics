@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+# SPDX-License-Identifier: Apache-2.0
+set -eu
+
+case "${1:-}" in
+    --version)
+        echo 'beagle 5.4'
+        ;;
+    --help|-h|"")
+        printf '%s\n' \
+            'usage: beagle gt=INPUT.vcf[.gz] out=OUTPUT_PREFIX [nthreads=N] [key=value ...]' \
+            '' \
+            'Run the pinned Beagle 5.4 jar for genotype phasing and imputation.' \
+            'Parameters use Beagle native key=value syntax; runtime network access' \
+            'is not required. The output prefix produces .vcf.gz and .log files.' \
+            '' \
+            'Use --version to print the governed runtime version.'
+        ;;
+    *)
+        exec java -jar /opt/beagle/beagle.jar "$@"
+        ;;
+esac
