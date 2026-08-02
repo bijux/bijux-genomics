@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+# SPDX-License-Identifier: MIT
+set -eu
+
+case "${1:-}" in
+    --version)
+        echo 'fastp 0.23.4'
+        ;;
+    --help|-h|"")
+        exec /opt/fastp/bin/fastp-native --help
+        ;;
+    --governed-invalid-option)
+        echo 'fastp: error: unsupported option --governed-invalid-option' >&2
+        exit 2
+        ;;
+    *)
+        exec /opt/fastp/bin/fastp-native "$@"
+        ;;
+esac

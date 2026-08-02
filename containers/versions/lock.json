@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-02T22:32:00+02:00",
+  "build_date_utc": "2026-08-02T22:34:42+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -470,16 +470,16 @@
       "version": "8.0.0"
     },
     {
-      "entry_sha256": "fcdd040265ba8d248fe5cd55d3170034c42a496eed32dda20669f1c5e408c4f8",
+      "entry_sha256": "14b4b2bc1509954d32c77627a7599de33cfc2ae6b839f74331a29c0a6da26e53",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "1ffcaed6892832c09c4b4094c201cd4eff8fa622",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz",
+      "source": "https://github.com/OpenGene/fastp",
       "source_sha256": "4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b5",
       "status": "production",
       "tool": "fastp",
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "caae700256e599e0440bfebdb50e7ba144cb95708811dc4f75be01e5f0e9feff",
+  "source_sha256": "c168dd409f125ad13154142613609f6a3daa5ac372dea08babba3a855e3f4652",
   "version_map_source": "artifacts/containers/version_map.json"
 }

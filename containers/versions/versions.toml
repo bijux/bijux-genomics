@@ -160,9 +160,11 @@ source_sha256 = "83207df20d658142c8d3d93db8d2d668b06812a90cc474454d18b62b973ca4c
 
 [fastp]
 version = "0.23.4"
-source = "https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz"
-date_pinned = "2026-02-12"
+source = "https://github.com/OpenGene/fastp"
+date_pinned = "2026-08-02"
+pinned_commit = "1ffcaed6892832c09c4b4094c201cd4eff8fa622"
 source_sha256 = "4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b5"
+upstream_license = "MIT"
 
 [fastq_screen]
 version = "0.15.3"

@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "9ca7d160ac14aae685e048dcfa58b0c83dc74e4cf68f8fd63e02aa896f5a09f6",
+  "source_sha256": "3aaded27fcc9d89c21d14b551b69fbc9da692bbb5e49fa134458b4802a3669e5",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -472,13 +472,13 @@
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
-      "upstream": "https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz",
-      "license": "GPL-3.0",
+      "upstream": "https://github.com/OpenGene/fastp",
+      "license": "MIT",
       "source_sha256": "4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b5",
-      "pinned_commit": "",
+      "pinned_commit": "1ffcaed6892832c09c4b4094c201cd4eff8fa622",
       "apptainer_definition": "containers/apptainer/fastp.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastp",
-      "contract_sha256": "711993a651bca0591b2dc004ffabde2eb06773bdf9af8e1be76abd1d8a3d6ae0"
+      "contract_sha256": "b6a3bacdd65ea8deb4cb505da9294132b1bfaaefebc5f008df781b4651512dcd"
     },
     {
       "id": "fastq_scan",
