@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-02T18:28:52+02:00",
+  "build_date_utc": "2026-08-02T20:00:54+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -662,20 +662,20 @@
       "version": "1.1.1"
     },
     {
-      "entry_sha256": "22a927c384e702fdf43bd034a329f5b4a7078f7ab8e7ae8b6d377334b55e9700",
+      "entry_sha256": "6750adc681caafdc114261e87fbe0b9bc96286ed5694304c685e34d9221a45e7",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "0000000000000000000000000000000000000000",
+      "pinned_commit": "",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://example.invalid/ibdhap",
-      "source_sha256": "",
-      "status": "planned",
+      "source": "https://sites.stat.washington.edu/thompson/Genepi/MORGAN/Morgan.shtml",
+      "source_sha256": "195a84d877413a83de15a20da45d92d2441303b8373b47727ed2e3ab92dc2e6a",
+      "status": "experimental",
       "tool": "ibdhap",
-      "version": "0.1.0"
+      "version": "3.4"
     },
     {
       "entry_sha256": "013b6cf8ee6334618a0b01d1cd22f2043060948e35ba6dd97134417dd6e02029",
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "b9a22187c2e0652d1dd345b408744bd148b2e9516935c57b3f85461683f1ae30",
+  "source_sha256": "7f542bd5fa94245d8a26698813b3adb0f71a246f3e555e5ec79d99ca8302ecb6",
   "version_map_source": "artifacts/containers/version_map.json"
 }

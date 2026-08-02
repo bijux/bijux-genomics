@@ -59,7 +59,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `gatk` | `bijux` | `NOASSERTION` | `https://github.com/broadinstitute/gatk` | `4.6.2.0` | `sha256:343d7b6ed18123e559b7d4277c31cbcbd1c6ce68a2285175bf9a400b1e613bc9` |
 | `germline` | `non-bijux` | `GPL-3.0` | `https://www.cs.columbia.edu/~gusev/germline/` | `1.5.3` | `sha256:2712053ab9d4dea7b2346e7f5a70ec84f6f003720f5e1ab5fbe1c709c7c8f6d2` |
 | `glimpse` | `non-bijux` | `MIT` | `https://github.com/odelaneau/GLIMPSE` | `1.1.1` | `sha256:d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c` |
-| `ibdhap` | `non-bijux` | `unknown` | `https://example.invalid/ibdhap` | `0.1.0` | `sha256:51e7c8d86fdd055b4b990896cd4efada4cc27556c6e4073235dc24899140a6e3` |
+| `ibdhap` | `non-bijux` | `LicenseRef-MORGAN-2006` | `https://sites.stat.washington.edu/thompson/Genepi/MORGAN/Morgan.shtml` | `3.4` | `sha256:195a84d877413a83de15a20da45d92d2441303b8373b47727ed2e3ab92dc2e6a` |
 | `ibdne` | `non-bijux` | `Apache-2.0` | `https://faculty.washington.edu/browning/ibdne.html` | `23Apr20.ae9` | `sha256:b3324ebd74ed69477067e0aec1dd22be56b1bcedbbe72d8757cda28746312665` |
 | `ibdseq` | `bijux` | `Apache-2.0` | `https://faculty.washington.edu/browning/ibdseq.html` | `r1206` | `sha256:a835c7282444d8920109362ca012f9a9ac1eb54665d34fb0ca0380a3e0fed8ec` |
 | `impute5` | `non-bijux` | `LicenseRef-Oxford-Academic-Use` | `https://jmarchini.org/software/#impute-5` | `1.2.0` | `not-distributed` |

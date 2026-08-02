@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "1d2b65af4fa02dc2f3c0de2f629daa6400aa0b76",
-  "bundle_checksum_sha256": "e2bc1052bf0f89df8ffa5ecebae0ba5bffc3e862e20f97f5091699e95579005b",
+  "source_commit": "workspace-local",
+  "bundle_checksum_sha256": "576ecfc0e72cd8d3886a6b18d665e9185a1625516b87a38aa23b7f94365fcceb",
   "domains": [
     {
       "domain_id": "bam",
@@ -2910,7 +2910,7 @@
           "default_version": "2.2.2",
           "upstream": "https://github.com/ginolhac/mapDamage",
           "pin_strategy": "pinned",
-          "license": "GPL-3.0",
+          "license": "MIT",
           "citation": "paper:https://academic.oup.com/bioinformatics/article/29/13/1682/184965",
           "version_cmd": "mapdamage2 --version",
           "help_cmd": "mapdamage2 --help",
@@ -2925,7 +2925,8 @@
             "damage_profile"
           ],
           "capabilities": [
-            "bam_input"
+            "bam_input",
+            "reference_input"
           ],
           "metrics_schema_id": "bijux.bam.damage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
@@ -3018,7 +3019,8 @@
             "damage_profile"
           ],
           "capabilities": [
-            "bam_input"
+            "bam_input",
+            "reference_input"
           ],
           "metrics_schema_id": "bijux.bam.damage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
@@ -4356,7 +4358,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "13fd1bfa9c5661961cb680d86e1ada900a33f7dbcdf7357e59e03db62287d8c5"
+      "checksum_sha256": "8d9ee57ba5b35bb77d4c960a5f9a861d31bfcdbbbdda70c4f6f3edd35e930cb4"
     },
     {
       "domain_id": "fastq",
@@ -10232,7 +10234,7 @@
           "default_version": "latest-pinned",
           "upstream": "https://github.com/benjjneb/dada2",
           "pin_strategy": "pinned",
-          "license": "GPL-3.0",
+          "license": "LGPL-2.0-only",
           "citation": "paper:https://www.nature.com/articles/nmeth.3869",
           "version_cmd": "dada2 --version",
           "help_cmd": "dada2 --help",
@@ -13499,7 +13501,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "8ee7477ecd36650939f99f8562fdabfb8ad83974e5710863fd039f06a12c0793"
+      "checksum_sha256": "a39fc48806bc8fd0af59523c06ec92ae425323958cc9d9c22383c2a1ce3e84ad"
     },
     {
       "domain_id": "vcf",
@@ -15359,11 +15361,11 @@
           "status": "planned",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "planned",
-          "upstream": "https://example.invalid/ibdhap",
-          "pin_strategy": "container_digest",
-          "license": "unknown",
-          "citation": "planned",
+          "default_version": "3.4",
+          "upstream": "https://sites.stat.washington.edu/thompson/Genepi/MORGAN/Morgan.shtml",
+          "pin_strategy": "source_sha256",
+          "license": "LicenseRef-MORGAN-2006",
+          "citation": "manual:https://sites.stat.washington.edu/thompson/Genepi/MORGAN/README_ibdhap",
           "version_cmd": "ibdhap --version",
           "help_cmd": "ibdhap --help",
           "stage_ids": [
@@ -15372,7 +15374,7 @@
           "planned_stage_ids": [],
           "expected_artifacts": [
             "ibd_haplotype_report",
-            "ibd_segments",
+            "ibd_state_probabilities",
             "metrics.json"
           ],
           "capabilities": [
@@ -15380,9 +15382,9 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.vcf.ibd.v1",
-          "comparability_notes": "Planned tool; compare only within pinned profile and reference build.",
+          "comparability_notes": "Compare posterior state probabilities only under the same marker map, transition model, priors, and sample pair; these outputs are not direct segment calls.",
           "container": {
-            "image": "containers/apptainer/lunarc/ibdhap.def",
+            "image": "containers/apptainer/ibdhap.def",
             "digest": "planned"
           }
         },
@@ -16659,7 +16661,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "3ff8d36792111edc51f79b8e71a5b8b4be07b71460d9086f4c61038fae55ee2f"
+      "checksum_sha256": "fd481104fd1349b41841e63b375bf9f4dd0054f0e00cbf32b5de71cce439539a"
     }
   ]
 }

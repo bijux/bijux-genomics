@@ -216,12 +216,12 @@ source_sha256 = "d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5
 pinned_commit = "c27e90d0f8df6b64c0ecf26af13ad6f112c94a9a"
 
 [ibdhap]
-version = "0.1.0"
-source = "https://example.invalid/ibdhap"
-date_pinned = "2026-02-13"
-status = "planned"
-upstream_license = "unknown"
-pinned_commit = "0000000000000000000000000000000000000000"
+version = "3.4"
+source = "https://sites.stat.washington.edu/thompson/Genepi/MORGAN/Morgan.shtml"
+date_pinned = "2026-08-02"
+status = "experimental"
+upstream_license = "LicenseRef-MORGAN-2006"
+source_sha256 = "195a84d877413a83de15a20da45d92d2441303b8373b47727ed2e3ab92dc2e6a"
 
 [ibdne]
 version = "23Apr20.ae9"

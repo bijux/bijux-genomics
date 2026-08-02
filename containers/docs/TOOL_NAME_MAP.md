@@ -52,7 +52,7 @@
 | `gatk` | `gatk` | `experimental` |
 | `germline` | `germline` | `experimental` |
 | `glimpse` | `glimpse` | `planned` |
-| `ibdhap` | `ibdhap` | `planned` |
+| `ibdhap` | `ibdhap` | `experimental` |
 | `ibdne` | `ibdne` | `planned` |
 | `ibdseq` | `ibdseq` | `planned` |
 | `impute5` | `impute5` | `unsupported` |

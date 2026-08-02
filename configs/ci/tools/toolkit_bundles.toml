@@ -14,5 +14,5 @@ purpose = "Production BAM processing and alignment-postprocessing toolkit."
 tools = ["samtools", "bedtools", "mosdepth", "mapdamage2", "verifybamid2"]
 
 [bundles.vcf_downstream]
-purpose = "VCF downstream population/IBD toolkit (planned promotion path)."
+purpose = "VCF downstream population and IBD analysis toolkit."
 tools = ["bcftools", "plink", "plink2", "beagle", "eigensoft", "germline", "ibdhap", "ibdne"]

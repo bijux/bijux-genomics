@@ -6,17 +6,17 @@ authoritative: false
 strict_capable: true
 status: "planned"
 scope: "post_vcf"
-default_version: "planned"
-upstream: "https://example.invalid/ibdhap"
-pin_strategy: "container_digest"
-license: "unknown"
-citation: "planned"
+default_version: "3.4"
+upstream: "https://sites.stat.washington.edu/thompson/Genepi/MORGAN/Morgan.shtml"
+pin_strategy: "source_sha256"
+license: "LicenseRef-MORGAN-2006"
+citation: "manual:https://sites.stat.washington.edu/thompson/Genepi/MORGAN/README_ibdhap"
 version_cmd: "ibdhap --version"
 help_cmd: "ibdhap --help"
-expected_artifacts: ["ibd_segments", "ibd_haplotype_report", "metrics.json"]
+expected_artifacts: ["ibd_state_probabilities", "ibd_haplotype_report", "metrics.json"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.ibd.v1"
-comparability_notes: "Planned tool; compare only within pinned profile and reference build."
+comparability_notes: "Compare posterior state probabilities only under the same marker map, transition model, priors, and sample pair; these outputs are not direct segment calls."
 container:
-  image: "containers/apptainer/lunarc/ibdhap.def"
+  image: "containers/apptainer/ibdhap.def"
   digest: "planned"

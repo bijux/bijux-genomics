@@ -1,0 +1,394 @@
+#!/usr/bin/env python3
+"""Stable container interface for MORGAN IBDHap 3.4."""
+
+from __future__ import annotations
+
+import argparse
+from bisect import bisect_left
+import gzip
+import json
+import math
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+from typing import TextIO
+
+
+VERSION = "3.4"
+DEFAULT_BINARY = "/opt/morgan/bin/ibd_haplo"
+REGION_PATTERN = re.compile(r"([^:]+):([1-9][0-9]*)-([1-9][0-9]*)")
+
+
+class InputError(RuntimeError):
+    """Raised when an input cannot satisfy the IBDHap scientific contract."""
+
+
+def open_text(path: Path) -> TextIO:
+    if path.suffix == ".gz":
+        return gzip.open(path, "rt", encoding="utf-8")
+    return path.open("r", encoding="utf-8")
+
+
+def parse_region(value: str) -> tuple[str, int, int]:
+    match = REGION_PATTERN.fullmatch(value)
+    if match is None:
+        raise argparse.ArgumentTypeError("region must use CHROM:START-END")
+    chromosome, start_text, end_text = match.groups()
+    start, end = int(start_text), int(end_text)
+    if start >= end:
+        raise argparse.ArgumentTypeError("region start must precede its end")
+    return chromosome, start, end
+
+
+def safe_name(value: str, label: str) -> str:
+    if re.fullmatch(r"[A-Za-z0-9_.-]+", value) is None:
+        raise InputError(f"{label} contains characters MORGAN cannot identify safely: {value!r}")
+    return value
+
+
+def load_genetic_map(path: Path, chromosome: str) -> tuple[list[int], list[float]]:
+    positions: list[int] = []
+    centimorgans: list[float] = []
+    with open_text(path) as stream:
+        header = stream.readline().strip().split()
+        try:
+            position_index = header.index("pos")
+            chromosome_index = header.index("chr")
+            cm_index = header.index("cM")
+        except ValueError as exc:
+            raise InputError("genetic map header must contain pos, chr, and cM") from exc
+        for line_number, line in enumerate(stream, start=2):
+            fields = line.split()
+            if not fields:
+                continue
+            if len(fields) <= max(position_index, chromosome_index, cm_index):
+                raise InputError(f"malformed genetic map row {line_number}")
+            if fields[chromosome_index] != chromosome:
+                continue
+            try:
+                position = int(fields[position_index])
+                cm = float(fields[cm_index])
+            except ValueError as exc:
+                raise InputError(f"non-numeric genetic map row {line_number}") from exc
+            if positions and (position <= positions[-1] or cm < centimorgans[-1]):
+                raise InputError("genetic map positions must increase and cM values cannot decrease")
+            positions.append(position)
+            centimorgans.append(cm)
+    if len(positions) < 2:
+        raise InputError(f"genetic map has fewer than two rows for chromosome {chromosome}")
+    return positions, centimorgans
+
+
+def interpolate_cm(position: int, positions: list[int], cms: list[float]) -> float:
+    index = bisect_left(positions, position)
+    if index == 0 or index == len(positions):
+        raise InputError(f"variant position {position} is outside the genetic map")
+    if positions[index] == position:
+        return cms[index]
+    left_position, right_position = positions[index - 1], positions[index]
+    left_cm, right_cm = cms[index - 1], cms[index]
+    fraction = (position - left_position) / (right_position - left_position)
+    return left_cm + fraction * (right_cm - left_cm)
+
+
+def parse_frequency(info: str, line_number: int) -> float:
+    for field in info.split(";"):
+        if field.startswith("AF="):
+            value = field.removeprefix("AF=")
+            if "," in value:
+                break
+            try:
+                frequency = float(value)
+            except ValueError as exc:
+                raise InputError(f"invalid AF at VCF row {line_number}") from exc
+            if 0.0 < frequency < 1.0 and math.isfinite(frequency):
+                return frequency
+            break
+    raise InputError(f"VCF row {line_number} lacks a finite biallelic AF between zero and one")
+
+
+def parse_genotype(sample_field: str, format_fields: list[str], line_number: int) -> tuple[int, int]:
+    try:
+        gt = sample_field.split(":")[format_fields.index("GT")]
+    except (ValueError, IndexError) as exc:
+        raise InputError(f"VCF row {line_number} lacks a GT field") from exc
+    if "|" not in gt:
+        raise InputError(f"VCF row {line_number} is not phased")
+    alleles = gt.split("|")
+    if len(alleles) != 2 or any(allele not in {"0", "1"} for allele in alleles):
+        raise InputError(f"VCF row {line_number} has a missing or non-biallelic genotype")
+    return int(alleles[0]) + 1, int(alleles[1]) + 1
+
+
+def select_evenly(records: list[dict[str, object]], maximum: int) -> list[dict[str, object]]:
+    if len(records) <= maximum:
+        return records
+    indexes = [round(index * (len(records) - 1) / (maximum - 1)) for index in range(maximum)]
+    return [records[index] for index in indexes]
+
+
+def load_vcf(
+    path: Path,
+    samples: tuple[str, str],
+    region: tuple[str, int, int],
+    maximum_markers: int,
+) -> list[dict[str, object]]:
+    chromosome, start, end = region
+    sample_indexes: tuple[int, int] | None = None
+    records: list[dict[str, object]] = []
+    with open_text(path) as stream:
+        for line_number, line in enumerate(stream, start=1):
+            if line.startswith("##"):
+                continue
+            if line.startswith("#CHROM"):
+                header = line.rstrip("\n").split("\t")
+                missing = [sample for sample in samples if sample not in header[9:]]
+                if missing:
+                    raise InputError(f"VCF does not contain requested samples: {missing}")
+                sample_indexes = (header.index(samples[0]), header.index(samples[1]))
+                continue
+            if line.startswith("#"):
+                continue
+            if sample_indexes is None:
+                raise InputError("VCF data appears before the #CHROM header")
+            fields = line.rstrip("\n").split("\t")
+            if len(fields) <= max(sample_indexes):
+                raise InputError(f"truncated VCF row {line_number}")
+            if fields[0] != chromosome:
+                continue
+            try:
+                position = int(fields[1])
+            except ValueError as exc:
+                raise InputError(f"invalid VCF position at row {line_number}") from exc
+            if position < start or position > end:
+                continue
+            if len(fields[3]) != 1 or len(fields[4]) != 1 or "," in fields[4]:
+                continue
+            frequency = parse_frequency(fields[7], line_number)
+            format_fields = fields[8].split(":")
+            genotypes = (
+                parse_genotype(fields[sample_indexes[0]], format_fields, line_number),
+                parse_genotype(fields[sample_indexes[1]], format_fields, line_number),
+            )
+            records.append(
+                {
+                    "position": position,
+                    "name": safe_name(fields[2], "VCF marker ID")
+                    if fields[2] != "."
+                    else f"chr{chromosome}_{position}",
+                    "frequency": frequency,
+                    "genotypes": genotypes,
+                }
+            )
+    if len(records) < 2:
+        raise InputError("fewer than two complete phased biallelic SNPs remain in the region")
+    return select_evenly(records, maximum_markers)
+
+
+def write_morgan_inputs(
+    work_directory: Path,
+    samples: tuple[str, str],
+    records: list[dict[str, object]],
+    positions: list[int],
+    cms: list[float],
+) -> tuple[Path, Path]:
+    work_directory.mkdir(parents=True, exist_ok=False)
+    parameter_path = work_directory / "analysis.par"
+    marker_path = work_directory / "markers.dat"
+    marker_cms = [interpolate_cm(int(record["position"]), positions, cms) for record in records]
+    retained: list[tuple[dict[str, object], float]] = []
+    for record, cm in zip(records, marker_cms, strict=True):
+        if not retained or cm > retained[-1][1]:
+            retained.append((record, cm))
+    if len(retained) < 2:
+        raise InputError("genetic map interpolation leaves fewer than two increasing marker positions")
+
+    parameter_path.write_text(
+        "\n".join(
+            [
+                "set printlevel 3",
+                "select all markers",
+                "select phased data",
+                "select 2011 state transition matrix",
+                "set population kinship 0.01",
+                "set kinship change rate 0.05",
+                "set transition matrix null fraction 0.05",
+                "set genotyping error rate 0.01",
+                "output four-gamete state order jacquard",
+                f"set scoreset 1 proband gametes {samples[0]} 0 {samples[0]} 1 {samples[1]} 0 {samples[1]} 1",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    lines = [
+        "map marker positions " + " ".join(f"{cm:.9f}" for _, cm in retained),
+        "set marker names " + " ".join(str(record["name"]) for record, _ in retained),
+    ]
+    for index, (record, _) in enumerate(retained, start=1):
+        frequency = float(record["frequency"])
+        lines.append(f"set marker {index} allele frequencies {1.0 - frequency:.9f} {frequency:.9f}")
+    lines.append(f"set markers {len(retained)} data")
+    for sample_index, sample in enumerate(samples):
+        alleles = []
+        for record, _ in retained:
+            genotype = record["genotypes"]
+            assert isinstance(genotype, tuple)
+            pair = genotype[sample_index]
+            alleles.extend(str(allele) for allele in pair)
+        lines.append(f" {sample}  " + " ".join(alleles))
+    marker_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return parameter_path, marker_path
+
+
+def summarize_scores(
+    scores_path: Path,
+    summary_path: Path,
+    source_vcf: Path,
+    genetic_map: Path,
+    samples: tuple[str, str],
+    region: str,
+) -> None:
+    row_count = 0
+    maximum_sum_deviation = 0.0
+    with scores_path.open("r", encoding="utf-8") as stream:
+        for line_number, line in enumerate(stream, start=1):
+            fields = line.split()
+            if not fields:
+                continue
+            if len(fields) != 18:
+                raise InputError(f"unexpected IBDHap score width at row {line_number}: {len(fields)}")
+            try:
+                probabilities = [float(value) for value in fields[3:]]
+            except ValueError as exc:
+                raise InputError(f"non-numeric IBDHap score at row {line_number}") from exc
+            if any(value < 0.0 or value > 1.0 for value in probabilities):
+                raise InputError(f"IBDHap score outside [0, 1] at row {line_number}")
+            maximum_sum_deviation = max(maximum_sum_deviation, abs(sum(probabilities) - 1.0))
+            row_count += 1
+    if row_count < 2:
+        raise InputError("IBDHap emitted fewer than two marker probability rows")
+    if maximum_sum_deviation > 0.002:
+        raise InputError(
+            f"IBDHap state probabilities do not sum to one within output precision: {maximum_sum_deviation:.6f}"
+        )
+    summary_path.write_text(
+        json.dumps(
+            {
+                "schema_version": "bijux.ibdhap.analysis.v1",
+                "tool": "MORGAN IBDHap",
+                "version": VERSION,
+                "source_vcf": str(source_vcf),
+                "genetic_map": str(genetic_map),
+                "samples": list(samples),
+                "region": region,
+                "score_rows": row_count,
+                "state_count": 15,
+                "maximum_probability_sum_deviation": maximum_sum_deviation,
+                "interpretation": "posterior four-gamete IBD-state probabilities; not called pairwise segments",
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def run_upstream(parameter: Path, markers: Path, scores: Path, identifiers: Path) -> None:
+    binary = os.environ.get("IBDHAP_BINARY", DEFAULT_BINARY)
+    completed = subprocess.run(
+        [binary, str(parameter), "mark", str(markers), "rscor", str(scores), "rxtr", str(identifiers)],
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise InputError(f"MORGAN ibd_haplo exited with status {completed.returncode}")
+
+
+def analyze_vcf(args: argparse.Namespace) -> None:
+    vcf_path = args.vcf.resolve()
+    map_path = args.genetic_map.resolve()
+    for path, label in ((vcf_path, "VCF"), (map_path, "genetic map")):
+        if not path.is_file():
+            raise InputError(f"{label} does not exist: {path}")
+    samples = tuple(safe_name(sample, "sample ID") for sample in args.sample)
+    if len(samples) != 2 or samples[0] == samples[1]:
+        raise InputError("exactly two distinct sample IDs are required")
+    chromosome, _, _ = args.region
+    positions, cms = load_genetic_map(map_path, chromosome)
+    records = load_vcf(vcf_path, samples, args.region, args.max_markers)
+    parameter, markers = write_morgan_inputs(args.work_dir.resolve(), samples, records, positions, cms)
+    scores = args.scores.resolve()
+    identifiers = args.identifiers.resolve()
+    summary = args.summary.resolve()
+    for output in (scores, identifiers, summary):
+        output.parent.mkdir(parents=True, exist_ok=True)
+        if output.exists():
+            raise InputError(f"refusing to overwrite existing output: {output}")
+    run_upstream(parameter, markers, scores, identifiers)
+    summarize_scores(vcf_path, summary, map_path, samples, args.region_text)
+
+
+def run_parameter_file(args: argparse.Namespace) -> None:
+    for path, label in ((args.parameter, "parameter file"), (args.markers, "marker file")):
+        if not path.is_file():
+            raise InputError(f"{label} does not exist: {path}")
+    for output in (args.scores, args.identifiers):
+        output.parent.mkdir(parents=True, exist_ok=True)
+        if output.exists():
+            raise InputError(f"refusing to overwrite existing output: {output}")
+    run_upstream(args.parameter.resolve(), args.markers.resolve(), args.scores.resolve(), args.identifiers.resolve())
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="ibdhap",
+        description="Run MORGAN IBDHap 3.4 with explicit parameter files or a governed phased-VCF adapter.",
+    )
+    parser.add_argument("--version", action="version", version=f"ibdhap {VERSION}")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    raw = subparsers.add_parser("run", help="run the upstream binary with MORGAN inputs")
+    raw.add_argument("--parameter", type=Path, required=True)
+    raw.add_argument("--markers", type=Path, required=True)
+    raw.add_argument("--scores", type=Path, required=True)
+    raw.add_argument("--identifiers", type=Path, required=True)
+    raw.set_defaults(handler=run_parameter_file)
+
+    vcf = subparsers.add_parser(
+        "analyze-vcf",
+        help="convert two phased VCF samples and report posterior IBD-state probabilities",
+    )
+    vcf.add_argument("--vcf", type=Path, required=True)
+    vcf.add_argument("--genetic-map", type=Path, required=True)
+    vcf.add_argument("--sample", action="append", required=True)
+    vcf.add_argument("--region", dest="region_text", required=True)
+    vcf.add_argument("--max-markers", type=int, default=500)
+    vcf.add_argument("--work-dir", type=Path, required=True)
+    vcf.add_argument("--scores", type=Path, required=True)
+    vcf.add_argument("--identifiers", type=Path, required=True)
+    vcf.add_argument("--summary", type=Path, required=True)
+    vcf.set_defaults(handler=analyze_vcf)
+    return parser
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+    if hasattr(args, "region_text"):
+        args.region = parse_region(args.region_text)
+        if args.max_markers < 2 or args.max_markers > 5000:
+            parser.error("--max-markers must be between 2 and 5000")
+    try:
+        args.handler(args)
+    except (InputError, OSError) as exc:
+        print(f"ibdhap: error: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
