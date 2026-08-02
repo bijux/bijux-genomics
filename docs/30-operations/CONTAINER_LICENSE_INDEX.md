@@ -21,7 +21,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `adapterremoval` | `bijux` | `GPL-3.0` | `https://github.com/MikkelSchubert/adapterremoval` | `2.3.4` | `sha256:47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20` |
 | `addeam` | `bijux` | `GPL-3.0-only` | `https://github.com/LouisPwr/AdDeam` | `1.0.0` | `sha256:baf975b48cf42cf7f4c49428182f6faaf4996707984b353b7cccaa80daf7da40` |
 | `alientrimmer` | `bijux` | `GPL-3.0` | `https://gitlab.pasteur.fr/GIPhy/AlienTrimmer` | `3.2` | `sha256:5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730` |
-| `angsd` | `bijux` | `NOASSERTION` | `https://github.com/ANGSD/angsd` | `0.940` | `sha256:c0c7f752a60e08102b81ef2955038ac89731e10e5828046afbe1cbcd4978e51d` |
+| `angsd` | `bijux` | `NOASSERTION` | `https://github.com/ANGSD/angsd` | `0.940` | `sha256:e3da076b523e7d1fc32450019ff9d99f5cd2db722d260ce236bb775bc163fdc7` |
 | `atropos` | `bijux` | `NOASSERTION` | `https://github.com/jdidion/atropos` | `1.1.31` | `sha256:b36f26cbc0749ea5fde0b0fccc8a048c178dc1481f5acac2c04c0bd362b19d25` |
 | `authenticct` | `bijux` | `GPL-3.0-only` | `https://github.com/StephanePeyregne/AuthentiCT` | `1.0.0` | `sha256:179b79fa0e23ed18c2cc9338055a691575addc513a6e3765d912bb728c249834` |
 | `bamtools` | `bijux` | `MIT` | `https://github.com/pezmaster31/bamtools` | `2.5.2` | `sha256:4d8b84bd07b673d0ed41031348f10ca98dd6fa6a4460f9b9668d6f1d4084dfc8` |
