@@ -25,14 +25,18 @@ successful demographic run is claimed:
   chromosome.
 - `run-1041` demonstrated that the default cross-chromosome sample filter is
   also inapplicable to this validation slice.
-- `run-1042` disabled both settings and exposed the fundamental incompatibility:
-  IBDseq reports LOD in its final segment column, whereas IBDNe expects the
-  hap-IBD output convention with segment length in centimorgans.
+- `run-1042` disabled both settings and confirmed that no segment from the
+  narrow interval survives IBDNe's scientifically meaningful 2 cM minimum.
+  Inspection of the checksum-pinned IBDNe source confirmed that its parser
+  accepts IBDseq's eight-column records and derives segment lengths from the
+  required PLINK genetic map; the final IBDseq field is treated as a score,
+  not a length.
 
 The failed evidence is retained. No further parameter relaxation is valid.
-The next run requires an authenticated hap-IBD container and a governed,
-population-aware whole-genome cohort. Until those prerequisites exist, IBDNe
-remains runtime-visible but stage-unverified.
+The next run requires a governed, population-aware cohort spanning enough of
+the genome to contain 2 cM IBD segments and, for confidence intervals, multiple
+chromosomes. Until those prerequisites exist, IBDNe remains runtime-visible
+but stage-unverified.
 
 ## Claim boundary
 

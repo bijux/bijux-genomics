@@ -56,14 +56,14 @@
       "run_id": "run-1042",
       "slurm_job_id": "3457791",
       "status": "failed",
-      "failure": "IBDseq LOD output is not the hap-IBD centimorgan segment format required by IBDNe",
+      "failure": "the narrow chromosome 22 interval contains no segments meeting IBDNe's 2 cM minimum",
       "evidence_sha256": "8afdd16cf00d2093c9e2d53b76ad14b50e4782fefab7c6677d56733b3ab08859",
       "accounting_sha256": "7cf1ac517c2e636ce4ee4c2f0bc233cc4605befad8d7bd8bc1e807f2ebfda93b"
     }
   ],
   "blocker": {
-    "required_input": "whole-genome hap-IBD segments with genetic length in centimorgans",
-    "required_producer": "authenticated hap-IBD runtime",
-    "resolution": "admit a population-aware whole-genome cohort and hap-IBD container before any further IBDNe run"
+    "required_input": "population-aware IBD segments spanning enough genetic distance to include segments of at least 2 cM",
+    "required_reference": "PLINK-format genetic map matching the segment coordinates",
+    "resolution": "admit a broader cohort and retain the documented 2 cM minimum; use multiple chromosomes before claiming bootstrap confidence intervals"
   }
 }
