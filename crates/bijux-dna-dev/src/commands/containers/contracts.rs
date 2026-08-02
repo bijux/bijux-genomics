@@ -56,6 +56,8 @@ struct ContainerContract {
     apptainer_supported: bool,
     dockerfile: String,
     docker_arm64_supported: bool,
+    #[serde(default)]
+    docker_arm64_reason: String,
     build_network: bool,
     runtime_network: bool,
     real_test_stage: String,
@@ -295,6 +297,12 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
             }
         }
         if tool.docker_arm64_supported {
+            if !tool.docker_arm64_reason.is_empty() {
+                errors.push(format!(
+                    "{}: supported Docker ARM64 runtime must not carry an exception reason",
+                    tool.id
+                ));
+            }
             let expected = format!("containers/docker/Dockerfile.arm64.{}", tool.id);
             if tool.dockerfile != expected {
                 errors.push(format!("{}: dockerfile must be {expected}", tool.id));
@@ -306,6 +314,13 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
         } else if !tool.dockerfile.is_empty() {
             errors.push(format!(
                 "{}: unsupported Docker runtime must not name a Dockerfile",
+                tool.id
+            ));
+        } else if tool.support_disposition == "retained"
+            && tool.docker_arm64_reason.trim().is_empty()
+        {
+            errors.push(format!(
+                "{}: retained tool without Docker ARM64 support must explain the architecture constraint",
                 tool.id
             ));
         }

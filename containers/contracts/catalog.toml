@@ -2118,6 +2118,7 @@ apptainer_definition = "containers/apptainer/shapeit.def"
 apptainer_supported = true
 dockerfile = ""
 docker_arm64_supported = false
+docker_arm64_reason = "SHAPEIT4 requires x86 AVX2 vector instructions; the supported runtime is the amd64 Apptainer image."
 build_network = true
 runtime_network = false
 real_test_stage = "vcf.phasing"
