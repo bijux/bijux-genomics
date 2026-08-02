@@ -1,12 +1,12 @@
 # schema_version = 1
 # owner = bijux-genomics
 tool_id = "seqpurge"
-container_kind = "third-party"
-spdx = "MIT"
-upstream_license_id = "MIT"
+container_kind = "bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
 upstream_url = "https://github.com/imgag/ngs-bits"
 upstream_version = "2026_06"
-upstream_checksum = "sha256:1ebb761e990855a122d651f26786d118aa60a77fe4bd84deaaa26543aa786348"
-redistribution_note = "Redistribution must preserve the upstream MIT copyright and license notice."
+upstream_checksum = "sha256:16bac795ea14ad2ed635435bffd9b5d4de2939bc0b9ed2e87cf0889be91ad4ed"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
 citation = "upstream:https://github.com/imgag/ngs-bits"
 version = "2026_06"

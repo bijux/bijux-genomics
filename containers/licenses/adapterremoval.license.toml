@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "adapterremoval"
 container_kind = "bijux"
-spdx = "GPL-3.0-only"
-upstream_license_id = "GPL-3.0-only"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://github.com/MikkelSchubert/adapterremoval"
 upstream_version = "2.3.4"
 upstream_checksum = "sha256:47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20"

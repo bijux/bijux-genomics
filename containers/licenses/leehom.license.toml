@@ -1,12 +1,12 @@
 # schema_version = 1
 # owner = bijux-genomics
 tool_id = "leehom"
-container_kind = "third-party"
-spdx = "GPL-3.0-only"
-upstream_license_id = "GPL-3.0-only"
+container_kind = "bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
 upstream_url = "https://github.com/grenaud/leeHom"
 upstream_version = "1.2.18"
-upstream_checksum = "sha256:8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
-redistribution_note = "Redistribution must preserve GPL-3.0 source and license obligations."
+upstream_checksum = "sha256:87cbc83c04b51264b7d986aaf9bf7abaedaa827d1a72f783d4c43b63b3cc95ca"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
 citation = "upstream:https://github.com/grenaud/leeHom"
 version = "1.2.18"

@@ -1,12 +1,12 @@
 # schema_version = 1
 # owner = bijux-genomics
 tool_id = "yleaf"
-container_kind = "third-party"
-spdx = "MIT"
-upstream_license_id = "MIT"
+container_kind = "bijux"
+spdx = "NOASSERTION"
+upstream_license_id = "NOASSERTION"
 upstream_url = "https://github.com/genid/Yleaf"
 upstream_version = "4.1.4"
-upstream_checksum = "sha256:3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
-redistribution_note = "Redistribution must preserve the upstream MIT copyright and license notice."
+upstream_checksum = "sha256:b98f63250878caa3b20d40dea352f2fb81438bcf45bc0830693c6e74f69ab9c4"
+redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
 citation = "upstream:https://github.com/genid/Yleaf"
 version = "4.1.4"

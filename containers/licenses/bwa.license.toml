@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "bwa"
 container_kind = "bijux"
-spdx = "GPL-3.0-only"
-upstream_license_id = "GPL-3.0-only"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://github.com/lh3/bwa"
 upstream_version = "0.7.17"
 upstream_checksum = "sha256:79763dd6c48e8b01b8e27d99e6e5575d8bbca419e3eed9f3e330af072e63b370"
