@@ -503,8 +503,8 @@ pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<Container
 pub(super) fn check_owners(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
     let mut errors = Vec::new();
-    if catalog.get("owner").and_then(toml::Value::as_str) != Some("Bijux Genomics") {
-        errors.push("catalog owner must be Bijux Genomics".to_string());
+    if catalog.get("owner").and_then(toml::Value::as_str) != Some("Bijan Mousavi") {
+        errors.push("catalog owner must be Bijan Mousavi".to_string());
     }
     if catalog.get("contact").and_then(toml::Value::as_str) != Some("bijan@bijux.io") {
         errors.push("catalog contact must be bijan@bijux.io".to_string());

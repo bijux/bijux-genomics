@@ -1,7 +1,7 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 # purpose = Contract config for configs/ci/tools/toolkit_bundles.toml
-# authority = bijux-dna-platform
+# authority = bijux-genomics
 # stability = stable
 # last_updated = 2026-02-13
 
