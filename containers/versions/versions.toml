@@ -416,11 +416,11 @@ pinned_commit = "ae7defa8bead3ef77d241f12194dc66acdd40fca"
 
 [shapeit]
 version = "4.2.2"
-source = "https://odelaneau.github.io/shapeit4/"
-date_pinned = "2026-02-13"
-status = "planned"
+source = "https://github.com/odelaneau/shapeit4"
+date_pinned = "2026-08-02"
 upstream_license = "MIT"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "16865e593ad50689271ead985dc8f4296d2f491d"
+source_sha256 = "2ee4e369ada23e58d6d3bbb4e0ac7a252b2769f24d63fc635ffbbace0f2b3ce9"
 
 [shapeit5]
 version = "5.1.1"
