@@ -220,6 +220,36 @@
       "accounting_sha256": "1befe6ccf74ded6e0939df707cc2065ce5724dac5150eae4c0276be6530e91ba"
     },
     {
+      "tool": "bamtools",
+      "run_id": "run-1086",
+      "repository_commit": "5ad3f4d9d22e53f03246b2d39b98ded1d8a79c76",
+      "slurm_job_id": "3458069",
+      "status": "passed",
+      "elapsed_seconds": 3,
+      "image_sha256": "003a62856bc4953cd87d1ffea6ddfe54ea45bd84ee5f906834f95c800f1f643c",
+      "build_evidence_sha256": "a6a3a4ffd34041df48a61b6985993f221005ec62b9a363162d6f47b14c3a83e9",
+      "evidence_sha256": "92e11f38c462ac70f65b8f86a22f5408b7f3128eff40fe12c14233e84f81e8b8",
+      "accounting_sha256": "482e72b12eabc81ac04c43f0910ce6c09797184eed1eb39a6e96cff0e645e14f",
+      "output_sha256": "12c777ff272d37ede2b1f47bc0e25a5d44d05225f2a8d43d393fc789635cf87a",
+      "output_bytes": 14707241,
+      "filter_expression": "mapQuality >=20"
+    },
+    {
+      "tool": "bamutil",
+      "run_id": "run-1087",
+      "repository_commit": "1c38962f2871667b738f648ec66c526a31081670",
+      "slurm_job_id": "3458070",
+      "status": "passed",
+      "elapsed_seconds": 3,
+      "image_sha256": "b9e8aebb70381153230b3e2883af7f71b47ad8efed9f3c8beb1392dec7cda5c3",
+      "build_evidence_sha256": "0eaf56c5866ad29daa949955f182714fed9e29a3abc45d765a07fe4a22086221",
+      "evidence_sha256": "7acc39da7b6793177dee064ba8909fb2f894f92ed1b1f7cc357644eeea65f1ec",
+      "accounting_sha256": "d895c2114c5917961e695edbb1776b6b90707e2b85b8d0ba899f95c7ff833f93",
+      "output_sha256": "4a34eeff3387b0d9bda611770df1ad44ade56f57f11f20614bdfc5e0246699c1",
+      "output_bytes": 15764483,
+      "operation": "clipOverlap"
+    },
+    {
       "tool": "samtools",
       "run_id": "run-1027",
       "repository_commit": "cf74b5cf0843d9f4ffce2d0f7f6d646221756e03",

@@ -30,6 +30,8 @@ root.
 | read alignment | BWA 0.7.17 | `run-1004` | `3457596` | 11s | 60,534,232-byte SAM stream |
 | SAM-to-BAM conversion | Samtools 1.20 | `run-1011` | `3457606` | 2s | 15,639,030-byte BAM |
 | coordinate sorting | Samtools 1.20 | `run-1013` | `3457614` | 3s | 15,570,479-byte sorted BAM |
+| mapping-quality filtering | BamTools 2.5.2 | `run-1086` | `3458069` | 3s | 14,707,241-byte filtered BAM |
+| paired-read overlap correction | bamUtil 1.0.15 | `run-1087` | `3458070` | 3s | 15,764,483-byte corrected BAM |
 | CSI indexing | Samtools 1.20 | `run-1027` | `3457657` | 2s | sorted BAM plus CSI index |
 | alignment QC | Qualimap 2.3 | `run-1030` | `3457679` | 10s | metrics text and HTML report |
 
@@ -66,6 +68,14 @@ implementation. VSEARCH clustered the public WGS read subset and emitted
 centroids; this proves the `fastq.cluster_otus` runtime contract only. The WGS
 corpus is not an amplicon community and therefore cannot support OTU accuracy,
 ecological interpretation, or clustering-threshold claims.
+
+BamTools applied its declared mapping-quality expression to the governed
+coordinate-sorted BAM and emitted a readable non-empty BAM. bamUtil executed
+its native `clipOverlap` implementation, compiled with phone-home support
+disabled, and emitted an overlap-corrected BAM plus run statistics. These runs
+establish the stage interfaces and output integrity. They do not establish the
+scientific suitability of MAPQ 20, quantify overlap corrections against known
+truth, or prove agreement with an independent implementation.
 
 The evidence does not yet prove read-retention thresholds, mapping quality,
 endogenous fraction, duplication, coverage suitability, cross-aligner
