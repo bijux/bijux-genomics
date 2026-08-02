@@ -5,9 +5,10 @@ subset of public horse whole-genome run `ERR1021817` against the EquCab3.0
 reference. Each run used a checksummed input, immutable Apptainer image, clean
 commit-addressed checkout, governed output root, and terminal Slurm accounting.
 
-The machine-readable identities are in
-[`lunarc-fastq-bam.json`](lunarc-fastq-bam.json). Raw inputs, images, logs, and
-outputs remain under the governed LUNARC study root.
+The machine-readable identities are in the
+[repository evidence index](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/lunarc-fastq-bam.json).
+Raw inputs, images, logs, and outputs remain under the governed LUNARC study
+root.
 
 ## Execution chain
 

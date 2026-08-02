@@ -4,10 +4,10 @@ This report records a real IBDseq execution and the discovered IBDNe input
 boundary on a public 100-sample 1000 Genomes chromosome 22 slice. The source
 panel contains 44,115 biallelic records from `22:20000000-22000000`.
 
-The machine-readable identities are in
-[`lunarc-vcf-relatedness.json`](lunarc-vcf-relatedness.json). Raw manifests,
-logs, outputs, and Slurm accounting remain under the governed LUNARC study
-root.
+The machine-readable identities are in the
+[repository evidence index](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/lunarc-vcf-relatedness.json).
+Raw manifests, logs, outputs, and Slurm accounting remain under the governed
+LUNARC study root.
 
 ## Passing execution
 

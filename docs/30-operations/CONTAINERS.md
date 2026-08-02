@@ -51,12 +51,12 @@ failed runs and collects terminal accounting separately.
 
 ## Real evidence
 
-The [LUNARC FASTQ-to-BAM report](../../containers/reports/lunarc-fastq-bam.md)
+The [LUNARC FASTQ-to-BAM report](container-evidence/FASTQ_BAM.md)
 records a real horse WGS trimming, alignment, sorting, indexing, and QC chain.
-The [LUNARC VCF phasing report](../../containers/reports/lunarc-vcf-phasing.md)
+The [LUNARC VCF phasing report](container-evidence/VCF_PHASING.md)
 records a real 2,504-sample BCFtools, SHAPEIT4, SHAPEIT5, and Eagle execution
 chain. The
-[LUNARC VCF relatedness report](../../containers/reports/lunarc-vcf-relatedness.md)
+[LUNARC VCF relatedness report](container-evidence/VCF_RELATEDNESS.md)
 records a passing IBDseq run and the incompatible-input boundary that prevents
 an honest IBDNe claim. The reports explain why stage success is not yet a
 scientific accuracy or release claim.
@@ -75,9 +75,9 @@ scientific accuracy or release claim.
   as the single authoritative "how to add tool" checklist.
 
 ## References
-- [containers/index.md](../../containers/index.md)
-- [containers/docs/index.md](../../containers/docs/index.md)
-- [containers/README.md](../../containers/README.md)
-- [containers/docs/RELEASE_CHECKLIST.md](../../containers/docs/RELEASE_CHECKLIST.md)
-- [containers/docs/LUNARC_EXECUTION_CONTRACT.md](../../containers/docs/LUNARC_EXECUTION_CONTRACT.md)
-- [containers/reports/README.md](../../containers/reports/README.md)
+
+- [Container implementation](https://github.com/bijux/bijux-genomics/tree/main/containers)
+- [Container contract documentation](https://github.com/bijux/bijux-genomics/tree/main/containers/docs)
+- [Release checklist](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/RELEASE_CHECKLIST.md)
+- [LUNARC execution contract](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/LUNARC_EXECUTION_CONTRACT.md)
+- [Evidence report index](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/README.md)

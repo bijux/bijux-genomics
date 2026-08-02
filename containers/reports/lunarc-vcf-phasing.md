@@ -6,10 +6,10 @@ chromosome 22 cohort. Every job ran through an immutable Apptainer image and a
 manifest-bound checkout of repository commit
 `c07932e6374fc0ef1511a6341223fd8e0baf226c`.
 
-The machine-readable identities are in
-[`lunarc-vcf-phasing.json`](lunarc-vcf-phasing.json). Raw manifests, logs,
-outputs, and Slurm records remain below the governed LUNARC study root and are
-verified by the SHA-256 values in that index.
+The machine-readable identities are in the
+[repository evidence index](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/lunarc-vcf-phasing.json).
+Raw manifests, logs, outputs, and Slurm records remain below the governed
+LUNARC study root and are verified by the SHA-256 values in that index.
 
 ## What passed
 
