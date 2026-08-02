@@ -543,6 +543,85 @@ exec python3 {contract['repository_path'] / 'containers/contracts/container_vali
     output_path.chmod(0o750)
 
 
+def collect_accounting(manifest_path: Path) -> Path:
+    manifest_path = manifest_path.resolve()
+    require_under(
+        manifest_path,
+        GOVERNED_ROOT / "containers" / "manifests",
+        "manifest",
+    )
+    pipeline_path = manifest_path / "config-pipeline.yml"
+    credential_path = manifest_path / "config-credential.yml"
+    contract = validate_contracts(pipeline_path, credential_path)
+    job_id = (manifest_path / "slurm-job-id.txt").read_text(encoding="utf-8").strip()
+    if not job_id.isdigit():
+        raise ContractError("manifest Slurm job id must be numeric")
+    queued = subprocess.run(
+        ["squeue", "-h", "-j", job_id, "-o", "%T"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if queued.returncode != 0:
+        raise ContractError(f"cannot query queued job {job_id}: {queued.stderr.strip()}")
+    if queued.stdout.strip():
+        raise ContractError(f"Slurm job {job_id} is not terminal: {queued.stdout.strip()}")
+    fields = [
+        "JobID",
+        "JobName",
+        "State",
+        "ExitCode",
+        "Elapsed",
+        "ElapsedRaw",
+        "AllocCPUS",
+        "ReqMem",
+        "MaxRSS",
+        "AveRSS",
+        "TotalCPU",
+        "CPUTimeRAW",
+        "NodeList",
+    ]
+    completed = subprocess.run(
+        ["sacct", "-X", "-n", "-P", "-j", job_id, "-o", ",".join(fields)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        raise ContractError(f"cannot collect accounting for {job_id}: {completed.stderr.strip()}")
+    rows = []
+    for line in completed.stdout.splitlines():
+        if not line.strip():
+            continue
+        values = line.split("|")
+        if len(values) != len(fields):
+            raise ContractError(f"unexpected sacct row for {job_id}: {line}")
+        rows.append(dict(zip(fields, values, strict=True)))
+    if not rows:
+        raise ContractError(f"Slurm accounting is unavailable for terminal job {job_id}")
+    result_root: Path = contract["result_root"]
+    if not result_root.is_dir():
+        raise ContractError(f"run result root does not exist: {result_root}")
+    accounting_path = result_root / "slurm-accounting.json"
+    if accounting_path.exists():
+        raise ContractError(f"refusing to overwrite accounting evidence: {accounting_path}")
+    submit_path = manifest_path / "submit.sh"
+    record = {
+        "schema_version": "bijux.slurm.accounting.v1",
+        "run_id": contract["run_id"],
+        "slurm_job_id": job_id,
+        "collected_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "rows": rows,
+        "submit_script_sha256": sha256_file(submit_path),
+        "pipeline_sha256": sha256_file(pipeline_path),
+        "credential_reference_sha256": sha256_file(credential_path),
+    }
+    write_json(accounting_path, record)
+    (result_root / "submit.sh").write_bytes(submit_path.read_bytes())
+    (result_root / "slurm-job-id.txt").write_text(job_id + "\n", encoding="utf-8")
+    return accounting_path
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(description=__doc__)
     commands = root.add_subparsers(dest="command", required=True)
@@ -556,6 +635,8 @@ def parser() -> argparse.ArgumentParser:
     render.add_argument("--output", type=Path, required=True)
     freeze = commands.add_parser("freeze-repository")
     freeze.add_argument("--commit", required=True)
+    collect = commands.add_parser("collect-accounting")
+    collect.add_argument("--manifest", type=Path, required=True)
     return root
 
 
@@ -570,6 +651,9 @@ def main() -> int:
             return execute(args.pipeline, args.credentials)
         if args.command == "freeze-repository":
             print(freeze_repository(args.commit))
+            return 0
+        if args.command == "collect-accounting":
+            print(collect_accounting(args.manifest))
             return 0
         render_slurm(args.pipeline, args.credentials, args.output)
         print(args.output)
