@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "6db1dbf3bc45c0f91dde93cc9c3f54ce5695d44e2c0d69ca24647aeeaac49a4c",
+  "source_sha256": "940ea2ff55bd61acc177eda61da32e42ce012296fa6bcb7350268dcfe4c298cf",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -933,17 +933,17 @@
     {
       "id": "plink",
       "display_name": "PLINK",
-      "version": "1.90",
+      "version": "1.90b7.2",
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://www.cog-genomics.org/plink/",
       "license": "GPL-3.0",
-      "source_sha256": "6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578",
+      "source_sha256": "1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3",
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/plink.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.plink",
-      "contract_sha256": "f54ce3c107c7dbd427b9aef39f5649a8f5654b63497b909affce3e64dbedd070"
+      "contract_sha256": "d700bf14abc0a06cae415ca0776b442cb7d10d5a93e21760135f2b0d0d131086"
     },
     {
       "id": "plink2",

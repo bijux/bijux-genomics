@@ -78,7 +78,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `ngsbriggs` | `bijux` | `NOASSERTION` | `https://github.com/RAHenriksen/ngsBriggs/archive/ab3b5ae8a388b9b1874dd2854fdec32bd9195f22.tar.gz` | `0.01` | `sha256:afa0d40a8ab85074363cbb6415461504888bb707f04a40ee31b4f632ce629cf7` |
 | `pear` | `bijux` | `NOASSERTION` | `https://cme.h-its.org/exelixis/web/software/pear/` | `0.9.6` | `sha256:f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b` |
 | `picard` | `bijux` | `NOASSERTION` | `https://github.com/broadinstitute/picard` | `3.3.0` | `sha256:a8274ec032205d9b910479b4663375b4380430b0416b53a851b755c37a4c55ca` |
-| `plink` | `bijux` | `GPL-3.0` | `https://www.cog-genomics.org/plink/` | `1.90` | `sha256:6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578` |
+| `plink` | `bijux` | `GPL-3.0` | `https://www.cog-genomics.org/plink/` | `1.90b7.2` | `sha256:1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3` |
 | `plink2` | `bijux` | `GPL-3.0` | `https://www.cog-genomics.org/plink/2.0/` | `2.00a6` | `sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec` |
 | `pmdtools` | `bijux` | `NOASSERTION` | `https://github.com/pontussk/PMDtools` | `0.60` | `sha256:08ce5fd237b9555976e918eeef376f2d149474cd8b9f56e78a4fd9a77c9bb36b` |
 | `preseq` | `bijux` | `NOASSERTION` | `https://github.com/smithlabcode/preseq` | `3.2.0` | `sha256:64ba0ddd9cf6ac5af43dac29ca81570bb54a6d5c0a2b8681c71552ec13581114` |

@@ -15,10 +15,10 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 
 %labels
     org.opencontainers.image.source https://www.cog-genomics.org/plink/
-    org.opencontainers.image.revision 6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578
+    org.opencontainers.image.revision 1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
-    org.opencontainers.image.version 1.90
+    org.opencontainers.image.version 1.90b7.2
     org.opencontainers.image.tool plink
     org.opencontainers.image.title plink
 
@@ -40,10 +40,10 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     curl --fail --location --proto '=https' --tlsv1.2 \
       --output /opt/plink.zip \
       https://s3.amazonaws.com/plink1-assets/plink_linux_x86_64_20231211.zip
-    echo '6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578  /opt/plink.zip' | sha256sum -c -
+    echo '1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3  /opt/plink.zip' | sha256sum -c -
     unzip -q /opt/plink.zip -d /opt/plink-release
     install -m 0755 /opt/plink-release/plink /usr/local/bin/plink
-    plink --version 2>&1 | grep -F 'PLINK v1.90'
+    plink --version 2>&1 | grep -F 'PLINK v1.90b7.2'
     plink --help >/dev/null
     rm -rf /opt/plink.zip /opt/plink-release
     apt-get purge -y --auto-remove curl unzip
@@ -54,8 +54,8 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     exec /usr/local/bin/plink "$@"
 
 %test
-    plink --version 2>&1 | grep -F 'PLINK v1.90'
+    plink --version 2>&1 | grep -F 'PLINK v1.90b7.2'
     plink --help >/dev/null
 
 %help
-    PLINK 1.90 installed from the exact upstream Linux release archive.
+    PLINK 1.90b7.2 installed from the exact upstream Linux release archive.

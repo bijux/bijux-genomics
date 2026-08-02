@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-02T22:16:28+02:00",
+  "build_date_utc": "2026-08-02T22:18:30+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -966,7 +966,7 @@
       "version": "3.3.0"
     },
     {
-      "entry_sha256": "f36c891662f00efecd29034d46262373967e0c9b9df4ab64e1bf4677bc57b5af",
+      "entry_sha256": "4e50a5a776322e416fa949c2500b3b7942c6a4ee08cd3a47cd5e9f16cc9e8751",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -976,10 +976,10 @@
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://www.cog-genomics.org/plink/",
-      "source_sha256": "6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578",
+      "source_sha256": "1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3",
       "status": "experimental",
       "tool": "plink",
-      "version": "1.90"
+      "version": "1.90b7.2"
     },
     {
       "entry_sha256": "232f2c9dde1c0ce9183dad54cb72b23d75ff3ad25c733b659d9eabe5029dac95",
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "fddc0c36df3e62fa159af99989a3d856bd100bd1e90d0c14e144c5a52068bc74",
+  "source_sha256": "cbbbc7512224f3a748fdd79ae1069339e6942fa9f0572981b58b794c2294d5c3",
   "version_map_source": "artifacts/containers/version_map.json"
 }

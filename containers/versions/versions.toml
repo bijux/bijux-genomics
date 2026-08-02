@@ -335,12 +335,12 @@ pinned_commit = "0000000000000000000000000000000000000000"
 source_sha256 = "f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b"
 
 [plink]
-version = "1.90"
+version = "1.90b7.2"
 source = "https://www.cog-genomics.org/plink/"
 date_pinned = "2026-02-13"
 status = "experimental"
 upstream_license = "GPL-3.0"
-source_sha256 = "6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578"
+source_sha256 = "1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3"
 
 [plink2]
 version = "2.00a6"
