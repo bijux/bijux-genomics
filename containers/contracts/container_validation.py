@@ -24,7 +24,8 @@ EVIDENCE_SCHEMA = "bijux.container.evidence.v1"
 RUN_ID_PATTERN = re.compile(r"run-[1-9][0-9]{3,}")
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 GOVERNED_ROOT = Path("/home/bijan/lu2024-12-24/Dardel/STUDY").resolve()
-SOURCE_ROOT = Path("/home/bijan/bijux/bijux-genomics").resolve()
+ACTIVE_SOURCE_ROOT = Path("/home/bijan/bijux/bijux-genomics").resolve()
+FROZEN_SOURCE_ROOT = Path("/home/bijan/bijux/bijux-genomics-runs").resolve()
 
 
 class ContractError(RuntimeError):
@@ -118,6 +119,40 @@ def git_output(repo: Path, *args: str) -> str:
     return completed.stdout.strip()
 
 
+def freeze_repository(commit: str) -> Path:
+    if not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise ContractError("frozen repository commit must be a full Git commit")
+    if git_output(ACTIVE_SOURCE_ROOT, "status", "--porcelain"):
+        raise ContractError("active LUNARC repository must be clean before freezing a run")
+    git_output(ACTIVE_SOURCE_ROOT, "cat-file", "-e", f"{commit}^{{commit}}")
+    target = FROZEN_SOURCE_ROOT / commit
+    if target.exists():
+        if git_output(target, "rev-parse", "HEAD") != commit:
+            raise ContractError(f"existing frozen worktree has the wrong commit: {target}")
+        if git_output(target, "status", "--porcelain"):
+            raise ContractError(f"existing frozen worktree is dirty: {target}")
+        return target
+    FROZEN_SOURCE_ROOT.mkdir(parents=True, exist_ok=True)
+    completed = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(ACTIVE_SOURCE_ROOT),
+            "worktree",
+            "add",
+            "--detach",
+            str(target),
+            commit,
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        raise ContractError(f"cannot create frozen worktree: {completed.stderr.strip()}")
+    return target
+
+
 def validate_credentials(config: dict[str, Any]) -> None:
     require_keys(
         config,
@@ -196,11 +231,18 @@ def validate_pipeline(
     repository = require_mapping(config, "repository")
     require_keys(repository, {"path", "commit", "clean"}, "repository")
     repository_path = resolved(require_text(repository, "path"))
-    if repository_path != SOURCE_ROOT:
-        raise ContractError(f"repository.path must be {SOURCE_ROOT}")
     expected_commit = require_text(repository, "commit")
     if not re.fullmatch(r"[0-9a-f]{40}", expected_commit):
         raise ContractError("repository.commit must be a full Git commit")
+    is_active_checkout = repository_path == ACTIVE_SOURCE_ROOT
+    is_frozen_checkout = (
+        repository_path.parent == FROZEN_SOURCE_ROOT
+        and repository_path.name == expected_commit
+    )
+    if not (is_active_checkout or is_frozen_checkout):
+        raise ContractError(
+            "repository.path must identify the active checkout or its commit-addressed frozen worktree"
+        )
     if require_bool(repository, "clean") is not True:
         raise ContractError("repository.clean must be true")
     if git_output(repository_path, "rev-parse", "HEAD") != expected_commit:
@@ -224,12 +266,16 @@ def validate_pipeline(
     inputs = data.get("inputs")
     if not isinstance(inputs, list) or not inputs:
         raise ContractError("data.inputs must contain at least one governed input")
+    input_binds = []
     for index, item in enumerate(inputs):
         if not isinstance(item, dict):
             raise ContractError(f"data input {index} must be a mapping")
         require_keys(item, {"id", "path", "sha256"}, f"data input {index}")
         require_text(item, "id")
-        input_path = resolved(require_text(item, "path"))
+        declared_input_path = Path(require_text(item, "path"))
+        if not declared_input_path.is_absolute():
+            raise ContractError(f"data input {index} path must be absolute")
+        input_path = resolved(str(declared_input_path))
         require_under(input_path, GOVERNED_ROOT / "data", f"data.inputs[{index}].path")
         if not input_path.is_file():
             raise ContractError(f"data input does not exist: {input_path}")
@@ -237,6 +283,7 @@ def validate_pipeline(
         validate_digest(digest, f"data.inputs[{index}].sha256")
         if sha256_file(input_path) != digest:
             raise ContractError(f"data input digest mismatch: {input_path}")
+        input_binds.append((input_path, declared_input_path))
 
     commands = require_mapping(config, "commands")
     require_keys(commands, {"version", "help", "real", "negative"}, "commands")
@@ -245,7 +292,10 @@ def validate_pipeline(
 
     outputs = require_mapping(config, "outputs")
     require_keys(outputs, {"result_root", "required_files"}, "outputs")
-    result_root = resolved(require_text(outputs, "result_root"))
+    declared_result_root = Path(require_text(outputs, "result_root"))
+    if not declared_result_root.is_absolute():
+        raise ContractError("outputs.result_root must be absolute")
+    result_root = resolved(str(declared_result_root))
     require_under(
         result_root,
         GOVERNED_ROOT / "results" / "container-validation",
@@ -302,8 +352,10 @@ def validate_pipeline(
         "image_path": image_path,
         "image_sha256": image_sha256,
         "inputs": inputs,
+        "input_binds": input_binds,
         "commands": commands,
         "result_root": result_root,
+        "declared_result_root": declared_result_root,
         "required_files": required_files,
         "resources": resources,
         "acceptance": acceptance,
@@ -323,13 +375,13 @@ def validate_contracts(pipeline_path: Path, credential_path: Path) -> dict[str, 
 def run_apptainer(
     image_path: Path,
     argv: list[str],
-    binds: list[tuple[Path, str]],
+    binds: list[tuple[Path, Path, str]],
     stdout_path: Path,
     stderr_path: Path,
 ) -> int:
     command = ["apptainer", "exec", "--cleanenv", "--containall", "--net", "--network", "none"]
-    for source, mode in binds:
-        command.extend(["--bind", f"{source}:{source}:{mode}"])
+    for source, target, mode in binds:
+        command.extend(["--bind", f"{source}:{target}:{mode}"])
     command.extend([str(image_path), *argv])
     with stdout_path.open("wb") as stdout, stderr_path.open("wb") as stderr:
         completed = subprocess.run(
@@ -357,8 +409,11 @@ def execute(pipeline_path: Path, credential_path: Path) -> int:
     (result_root / "config-pipeline.yml").write_bytes(pipeline_path.read_bytes())
     (result_root / "config-credential.yml").write_bytes(credential_path.read_bytes())
 
-    inputs = [(resolved(item["path"]), "ro") for item in contract["inputs"]]
-    binds = [*inputs, (result_root, "rw")]
+    input_binds = [(source, target, "ro") for source, target in contract["input_binds"]]
+    binds = [
+        *input_binds,
+        (result_root, contract["declared_result_root"], "rw"),
+    ]
     checks: dict[str, dict[str, Any]] = {}
     for name in ("version", "help", "real", "negative"):
         stdout_path = result_root / f"{name}.stdout.log"
@@ -414,6 +469,7 @@ def execute(pipeline_path: Path, credential_path: Path) -> int:
         "failure_class": None if not failures else "container_validation",
         "failures": failures,
         "repository_commit": contract["repository_commit"],
+        "repository_path": str(contract["repository_path"]),
         "repository_clean": True,
         "pipeline_sha256": sha256_file(pipeline_path),
         "credential_reference_sha256": sha256_file(credential_path),
@@ -461,7 +517,7 @@ set -euo pipefail
 export LANG=C
 export LC_ALL=C
 export TZ=UTC
-exec python3 {SOURCE_ROOT / 'containers/contracts/container_validation.py'} execute \\
+exec python3 {contract['repository_path'] / 'containers/contracts/container_validation.py'} execute \\
   --pipeline {pipeline_path.resolve()} \\
   --credentials {credential_path.resolve()}
 """
@@ -480,6 +536,8 @@ def parser() -> argparse.ArgumentParser:
     render.add_argument("--pipeline", type=Path, required=True)
     render.add_argument("--credentials", type=Path, required=True)
     render.add_argument("--output", type=Path, required=True)
+    freeze = commands.add_parser("freeze-repository")
+    freeze.add_argument("--commit", required=True)
     return root
 
 
@@ -492,6 +550,9 @@ def main() -> int:
             return 0
         if args.command == "execute":
             return execute(args.pipeline, args.credentials)
+        if args.command == "freeze-repository":
+            print(freeze_repository(args.commit))
+            return 0
         render_slurm(args.pipeline, args.credentials, args.output)
         print(args.output)
         return 0
