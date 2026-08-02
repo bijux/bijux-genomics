@@ -17,6 +17,7 @@ root.
 | FASTQ profiling | SeqKit 2.8.2 | `run-1071` | `3458024` | 1s | 315-byte sequence statistics table |
 | read-length profiling | SeqKit Stats 2.8.2 | `run-1072` | `3458025` | 1s | independently reproduced statistics table |
 | FASTQ-to-FASTA conversion | Seqtk 1.4 | `run-1073` | `3458026` | 1s | 16,023,606-byte FASTA stream |
+| read-quality and adapter profiling | FastQC 0.12.1 | `run-1076` | `3458057` | 4s | HTML report plus machine-readable archive |
 | low-complexity filtering | fastp 0.23.4 | `run-1075` | `3458056` | 2s | filtered FASTQ plus JSON and HTML reports |
 | paired-read trimming | AdapterRemoval 2.3.4 | `run-1002` | `3457168` | 4s | two trimmed FASTQ files |
 | reference indexing | BWA 0.7.17 | `run-1003` | `3457577` | 30m01s | five EquCab3.0 index files |
@@ -41,7 +42,9 @@ agreement establishes the container interfaces, not the scientific suitability
 of any threshold. The FASTA conversion establishes format transformation, not
 read validity. The fastp run exercised its low-complexity filter and produced
 machine-readable and human-readable reports, but no biological acceptance
-threshold was applied to those observations.
+threshold was applied to those observations. FastQC likewise produced its full
+quality and adapter report; individual module statuses remain observations
+rather than governed pass/fail criteria.
 
 The evidence does not yet prove read-retention thresholds, mapping quality,
 endogenous fraction, duplication, coverage suitability, cross-aligner

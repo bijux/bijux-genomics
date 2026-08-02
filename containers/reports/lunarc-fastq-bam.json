@@ -65,6 +65,20 @@
       "html_report_sha256": "704c8ac25d9cf09cc0b3b70ed495b8cc8fed6be751fa222213aee507ed87a1af"
     },
     {
+      "tool": "fastqc",
+      "run_id": "run-1076",
+      "repository_commit": "46d84160c0510c0440ec9645e9cf7de2c767f703",
+      "slurm_job_id": "3458057",
+      "status": "passed",
+      "elapsed_seconds": 4,
+      "image_sha256": "67d35b581fd832f7ffb40618001a1d92cb12a45490784457e5edfeb352a2bcad",
+      "build_evidence_sha256": "8e45a3d35b265bfb268c7e80d6df611ef6c24f06e91fc39e16af01256f7b96cf",
+      "evidence_sha256": "384cffa7d65084cf7d20cff82b5121e4a4c267c942ec3bd52c23c6c8cd39260c",
+      "accounting_sha256": "7adea3666f163f76a23d4916d910acf3b68a02bcefd7735d9d1f735f0a8b2f7f",
+      "html_report_sha256": "03f2a76c0eb7e342299c73fc773acd873790ec8eac64e9cf312cfd8a61c04112",
+      "archive_sha256": "dc3359da945e8171a0a921d6da6f220de3ea0176278554da2022be715d8acee4"
+    },
+    {
       "tool": "adapterremoval",
       "run_id": "run-1002",
       "repository_commit": "fd989ab019a266afb10950271012bfef48833570",
