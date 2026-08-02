@@ -1,8 +1,7 @@
-# SPDX-License-Identifier: MIT
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: MIT.
-# The bijux-dna software source code is licensed under Apache-2.0.
 
 # Tool ID: bcftools
 # Version policy: pinned_or_registry_locked

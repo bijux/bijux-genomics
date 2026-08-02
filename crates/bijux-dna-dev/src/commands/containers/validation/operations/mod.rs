@@ -253,9 +253,9 @@ pub(in super::super) fn check_apptainer_bijux_header(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
     let expected = [
-        "# Container definition license: GPL-3.0.",
-        "# This container definition is part of bijux-dna.",
-        "# The bijux-dna software source code is licensed under Apache-2.0.",
+        "# Container recipe license: GPL-3.0-only.",
+        "# This container recipe is maintained by Bijux Genomics.",
+        "# Bijux Genomics source code is licensed under Apache-2.0.",
         "# Copyright (C) 2026 Bijan Mousavi",
     ];
     let mut errors = Vec::new();
