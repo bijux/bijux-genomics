@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+    --version) echo 'ibdseq r1206' ;;
+    --help|-h|"")
+        set +e
+        java -jar /opt/ibdseq/ibdseq.jar
+        status=$?
+        set -e
+        if [ "$status" -ne 0 ] && [ "$status" -ne 1 ]; then
+            exit "$status"
+        fi
+        ;;
+    *) exec java -jar /opt/ibdseq/ibdseq.jar "$@" ;;
+esac

@@ -222,20 +222,20 @@ upstream_license = "unknown"
 pinned_commit = "0000000000000000000000000000000000000000"
 
 [ibdne]
-version = "1.0"
-source = "https://faculty.washington.edu/browning/ibdne.shtml"
-date_pinned = "2026-02-13"
-status = "planned"
-upstream_license = "GPL-3.0"
-pinned_commit = "0000000000000000000000000000000000000000"
+version = "23Apr20.ae9"
+source = "https://faculty.washington.edu/browning/ibdne.html"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "Apache-2.0"
+source_sha256 = "b3324ebd74ed69477067e0aec1dd22be56b1bcedbbe72d8757cda28746312665"
 
 [ibdseq]
-version = "3.0"
-source = "https://faculty.washington.edu/browning/ibdseq.shtml"
-date_pinned = "2026-02-13"
-status = "planned"
-upstream_license = "GPL-3.0"
-pinned_commit = "0000000000000000000000000000000000000000"
+version = "r1206"
+source = "https://faculty.washington.edu/browning/ibdseq.html"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "Apache-2.0"
+source_sha256 = "a835c7282444d8920109362ca012f9a9ac1eb54665d34fb0ca0380a3e0fed8ec"
 
 [impute5]
 version = "1.2.0"

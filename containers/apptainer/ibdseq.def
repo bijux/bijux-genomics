@@ -2,58 +2,61 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# VERSION_SOURCE: containers/versions/versions.toml
+# Tool ID: ibdseq
+# Version policy: verified official binary and matching source archive
+# Upstream source: https://faculty.washington.edu/browning/ibdseq.html
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and release files
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
+
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-# Tool ID: ibdseq
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-    org.opencontainers.image.source https://faculty.washington.edu/browning/ibdseq.shtml
-    org.opencontainers.image.revision planned-3.0
-    org.opencontainers.image.created 2026-02-13T00:00:00Z
-    org.opencontainers.image.licenses GPL-3.0
-    org.opencontainers.image.version 3.0-planned
+    org.opencontainers.image.source https://faculty.washington.edu/browning/ibdseq.html
+    org.opencontainers.image.revision a835c7282444d8920109362ca012f9a9ac1eb54665d34fb0ca0380a3e0fed8ec
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses Apache-2.0
+    org.opencontainers.image.version r1206
     org.opencontainers.image.tool ibdseq
-    org.opencontainers.image.title ibdseq
+    org.opencontainers.image.title IBDseq
 
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+
+%files
+    containers/tools/ibdseq/ibdseq /usr/local/bin/ibdseq
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq
-    apt-get install -y --no-install-recommends ca-certificates
-    cat >/usr/local/bin/ibdseq <<'SH'
-#!/usr/bin/env bash
-set -euo pipefail
-if [[ "${1:-}" == "--version" ]]; then
-  echo "ibdseq 3.0-planned"
-  exit 0
-fi
-if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
-  echo "ibdseq planned wrapper image. Upstream: https://faculty.washington.edu/browning/ibdseq.shtml"
-  exit 0
-fi
-echo "error: ibdseq runtime payload is not bundled in this planned wrapper image" >&2
-exit 2
-SH
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends curl openjdk-17-jre-headless
+    mkdir -p /opt/ibdseq
+    curl --fail --location --silent --show-error --output /opt/ibdseq/ibdseq.jar https://faculty.washington.edu/browning/ibdseq/ibdseq.r1206.jar
+    curl --fail --location --silent --show-error --output /opt/ibdseq/source.zip https://faculty.washington.edu/browning/ibdseq/ibdseq.r1206.zip
+    echo '6b750f46f5557e8c5e2f612449d34510c14392d427632ee850de5e96e5d0c2e1  /opt/ibdseq/ibdseq.jar' | sha256sum --check --strict
+    echo 'a835c7282444d8920109362ca012f9a9ac1eb54665d34fb0ca0380a3e0fed8ec  /opt/ibdseq/source.zip' | sha256sum --check --strict
+    rm /opt/ibdseq/source.zip
+    chmod 0555 /opt/ibdseq/ibdseq.jar
     chmod 0755 /usr/local/bin/ibdseq
-    apt-get clean
+    ibdseq --version | grep -Fx 'ibdseq r1206'
     rm -rf /var/lib/apt/lists/*
 
 %runscript
-    exec ibdseq "$@"
+    exec /usr/local/bin/ibdseq "$@"
+
+%test
+    ibdseq --version | grep -Fx 'ibdseq r1206'
+    ibdseq --help >/dev/null
 
 %help
-    Bijux Apptainer wrapper for planned IBDSeq admission.
+    IBDseq r1206 from the verified official JAR and matching source archive.
