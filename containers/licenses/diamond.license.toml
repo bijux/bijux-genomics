@@ -1,5 +1,5 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 tool_id = "diamond"
 container_kind = "bijux"
 spdx = "NOASSERTION"
