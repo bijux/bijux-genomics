@@ -174,9 +174,11 @@ pinned_commit = "6dfa1eef0d3103dd7829eb1f586b4d8a121f911b"
 
 [fastqc]
 version = "0.12.1"
-source = "https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip"
-date_pinned = "2026-02-12"
+source = "https://github.com/s-andrews/FastQC"
+date_pinned = "2026-08-02"
+pinned_commit = "e7ef390bf10382f60786bdd0cf28abd4f8683ffd"
 source_sha256 = "5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa7"
+upstream_license = "GPL-3.0-only"
 
 [fastqvalidator]
 version = "0.1.1"

@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-02T22:34:42+02:00",
+  "build_date_utc": "2026-08-02T23:34:54+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -518,16 +518,16 @@
       "version": "0.15.3"
     },
     {
-      "entry_sha256": "9a7c960ecedaac9b066d0bc9a831a5e7fc505192b3e8dacd5f8d2cab49032576",
+      "entry_sha256": "fd903c48db2028373e0e812c0ec28b35196d951dd45d18da6e3a591c2ce5eab0",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "e7ef390bf10382f60786bdd0cf28abd4f8683ffd",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip",
+      "source": "https://github.com/s-andrews/FastQC",
       "source_sha256": "5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa7",
       "status": "production",
       "tool": "fastqc",
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "c168dd409f125ad13154142613609f6a3daa5ac372dea08babba3a855e3f4652",
+  "source_sha256": "c14b9cbaf74a900727e7fb16a0497d3f18edb11edd1ccd2631e24da24abc8345",
   "version_map_source": "artifacts/containers/version_map.json"
 }
