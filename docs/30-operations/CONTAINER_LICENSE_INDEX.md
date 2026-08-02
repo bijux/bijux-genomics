@@ -105,5 +105,5 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `trimmomatic` | `bijux` | `NOASSERTION` | `http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip` | `0.39` | `sha256:2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca` |
 | `umi_tools` | `bijux` | `NOASSERTION` | `https://github.com/CGATOxford/UMI-tools` | `1.1.6` | `sha256:52f5a89a629a746671fe7c7642e847d7a1e81e49cde6bf05b330c23eab817a0d` |
 | `verifybamid2` | `bijux` | `NOASSERTION` | `https://github.com/Griffan/VerifyBamID` | `2.0.1` | `sha256:af9a0621cf519a6e2d7f45dc99af81b64aeb419d960de2c6af1a806a37d91ab9` |
-| `vsearch` | `bijux` | `NOASSERTION` | `https://github.com/torognes/vsearch` | `2.29.3` | `sha256:3232156ff62cdb664ef9c415f186bc7a59c81860f5fd1e679c4219421ab6885d` |
+| `vsearch` | `bijux` | `BSD-2-Clause` | `https://github.com/torognes/vsearch` | `2.29.3` | `sha256:6a1039a99422340cbfb3c723f0caa414e91e7d36b963075e59f033ac59580c0e` |
 | `yleaf` | `bijux` | `NOASSERTION` | `https://github.com/genid/Yleaf` | `4.1.4` | `sha256:b98f63250878caa3b20d40dea352f2fb81438bcf45bc0830693c6e74f69ab9c4` |

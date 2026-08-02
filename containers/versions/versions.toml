@@ -502,8 +502,10 @@ pinned_commit = "83a1c936ef2e1a8c9e78ed2d2e2d328adf0c6447"
 [vsearch]
 version = "2.29.3"
 source = "https://github.com/torognes/vsearch"
-date_pinned = "2026-02-12"
+date_pinned = "2026-08-02"
 pinned_commit = "bbd17a05faaf7401176e36b7947874c1e5152cee"
+source_sha256 = "6a1039a99422340cbfb3c723f0caa414e91e7d36b963075e59f033ac59580c0e"
+upstream_license = "BSD-2-Clause"
 
 [yleaf]
 version = "4.1.4"
