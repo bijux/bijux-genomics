@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "9904d8804e13e1dbb54e2ae38b3eb6b2960b7899c1b08003851e0151134d4f72",
+  "source_sha256": "923cca8ceac4da6baf904cca69094117b1e2b830d5f2797f4055d1d6f45a90eb",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -533,12 +533,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/statgen/fastQValidator",
-      "license": "GPL-3.0",
-      "source_sha256": "",
-      "pinned_commit": "fb764e0d5ba0c791eb0293b544f44e49da05e3d0",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "0172c7e86bdb33dbf71900a3a9b2a6aae4ec9f6918f934a7c23a9d599e12181c",
+      "pinned_commit": "4cb293ca4153459b05ae7983f65a082d56b55c21",
       "apptainer_definition": "containers/apptainer/fastqvalidator.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastqvalidator",
-      "contract_sha256": "dfb47231fbba146aa3005f3d7d6e7e2d690463f502d331fa038074558560970d"
+      "contract_sha256": "d977c23f4aa1f72420314b1bbee485ee8975862710fb01fd2574f580ea4405c7"
     },
     {
       "id": "fastuniq",

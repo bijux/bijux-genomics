@@ -51,7 +51,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `fastq_scan` | `bijux` | `NOASSERTION` | `https://github.com/rpetit3/fastq-scan` | `1.0.1` | `sha256:d932fa6a8fc8cafc20ac434b653c4324a0aecc75a5deef4f610971c3e368978d` |
 | `fastq_screen` | `bijux` | `NOASSERTION` | `https://github.com/StevenWingett/FastQ-Screen` | `0.15.3` | `sha256:76ec0ea9a0d1f5d1089f53728ec1db118963b287d025ce0c95887ff5ed481525` |
 | `fastqc` | `bijux` | `GPL-3.0-only` | `https://github.com/s-andrews/FastQC` | `0.12.1` | `sha256:5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa7` |
-| `fastqvalidator` | `bijux` | `NOASSERTION` | `https://github.com/statgen/fastQValidator` | `0.1.1` | `sha256:d9ce089cce39f2751619477e42a95a65c4ffe91a3875407f5a5d990b4f76424a` |
+| `fastqvalidator` | `bijux` | `GPL-3.0-or-later` | `https://github.com/statgen/fastQValidator` | `0.1.1` | `sha256:0172c7e86bdb33dbf71900a3a9b2a6aae4ec9f6918f934a7c23a9d599e12181c` |
 | `fastuniq` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/fastuniq/` | `1.1` | `sha256:9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae` |
 | `fastx_clipper` | `bijux` | `NOASSERTION` | `https://github.com/agordon/fastx_toolkit` | `0.0.14` | `sha256:f29b52706133c33c925d6a472d6d7b39a705aba26001074bb1d87446f3ecfcd5` |
 | `flash2` | `bijux` | `NOASSERTION` | `https://github.com/dstreett/FLASH2` | `2.2.00` | `sha256:f544a5ff21d9ba908520fc400b0097317a253838e39d80834be1163c16cac7a9` |

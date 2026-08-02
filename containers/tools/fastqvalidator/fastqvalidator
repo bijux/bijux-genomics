@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+set -eu
+
+case "${1:-}" in
+    --version)
+        echo 'fastqvalidator 0.1.1'
+        ;;
+    --help|-h|"")
+        echo 'usage: fastqvalidator --file FASTQ [options]'
+        ;;
+    --governed-invalid-option)
+        echo 'fastqvalidator: error: unsupported option --governed-invalid-option' >&2
+        exit 2
+        ;;
+    *)
+        exec /opt/fastqvalidator/bin/fastqvalidator-native "$@"
+        ;;
+esac

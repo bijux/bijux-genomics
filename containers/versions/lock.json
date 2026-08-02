@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-02T23:34:54+02:00",
+  "build_date_utc": "2026-08-02T23:38:22+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -534,17 +534,17 @@
       "version": "0.12.1"
     },
     {
-      "entry_sha256": "84e680ac64d4ea8617583112f969e0dd9560075f53755a2730fa0f706e3d097f",
+      "entry_sha256": "a4ad95e8911297aadd22de7e002cacde10dca6fcd945f74799408d2406c6646d",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "fb764e0d5ba0c791eb0293b544f44e49da05e3d0",
+      "pinned_commit": "4cb293ca4153459b05ae7983f65a082d56b55c21",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://github.com/statgen/fastQValidator",
-      "source_sha256": "",
+      "source_sha256": "0172c7e86bdb33dbf71900a3a9b2a6aae4ec9f6918f934a7c23a9d599e12181c",
       "status": "production",
       "tool": "fastqvalidator",
       "version": "0.1.1"
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "c14b9cbaf74a900727e7fb16a0497d3f18edb11edd1ccd2631e24da24abc8345",
+  "source_sha256": "94325d54bc44ac0a5f5f64814abe5df1bf13d5eb9b4dcd379decb665fbd59718",
   "version_map_source": "artifacts/containers/version_map.json"
 }
