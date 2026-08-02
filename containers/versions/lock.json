@@ -22,7 +22,7 @@
       "version": "2.3.4"
     },
     {
-      "entry_sha256": "8adaa44df4ad23203b1cd2a6db5a2995a4b9b4eac654c490d741438818c95c51",
+      "entry_sha256": "72c69156c99bf9557c301aae5084f66263d06b5e8098410f6a5b9aff903a1f19",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -32,7 +32,7 @@
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://github.com/LouisPwr/AdDeam",
-      "source_sha256": "",
+      "source_sha256": "baf975b48cf42cf7f4c49428182f6faaf4996707984b353b7cccaa80daf7da40",
       "status": "production",
       "tool": "addeam",
       "version": "1.0.0"
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "9f9004e2db3fe6056fea0f0a03861732f1a2b2fbacb933e904fdb5f92c170a0a",
+  "source_sha256": "f1484362f1751378878b7f7978a6ce6d88256c019e11ef9379b22710d4336ec1",
   "version_map_source": "artifacts/containers/version_map.json"
 }

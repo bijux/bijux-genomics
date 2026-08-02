@@ -11,6 +11,8 @@ version = "1.0.0"
 source = "https://github.com/LouisPwr/AdDeam"
 date_pinned = "2026-02-12"
 pinned_commit = "8122b9a99d560ef8ea8abdd5b1aacccd00ea0cdd"
+source_sha256 = "baf975b48cf42cf7f4c49428182f6faaf4996707984b353b7cccaa80daf7da40"
+upstream_license = "GPL-3.0-only"
 
 [alientrimmer]
 version = "3.2"

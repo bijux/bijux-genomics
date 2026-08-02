@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "523eaa040a553b29013645ace20cc4c042780026387f17aaa1db55492bb8c4f1",
+  "source_sha256": "36fef412f2a1d4ed4f48eab2494a0b2ee8ac4a97ff3e36aa87d8e15a4e4e3a6c",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -53,12 +53,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/LouisPwr/AdDeam",
-      "license": "GPL-3.0-or-later",
-      "source_sha256": "da5aa6c5791c69cf254f8d9b817392be79a74d6c3384fbcf6c32fcd392b76ae8",
+      "license": "GPL-3.0-only",
+      "source_sha256": "baf975b48cf42cf7f4c49428182f6faaf4996707984b353b7cccaa80daf7da40",
       "pinned_commit": "8122b9a99d560ef8ea8abdd5b1aacccd00ea0cdd",
       "apptainer_definition": "containers/apptainer/addeam.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.addeam",
-      "contract_sha256": "e098d5bc2a94e29bddb41db5d664c60302c634fe861ea34b0b817bed8c072992"
+      "contract_sha256": "81ace7c0e5a0d0178661597f84c9eae087055f62f2a6c94ef4be060958483c61"
     },
     {
       "id": "alientrimmer",
