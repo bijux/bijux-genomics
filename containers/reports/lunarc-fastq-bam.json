@@ -121,6 +121,55 @@
       "output_bytes": 25992094
     },
     {
+      "tool": "fastx_clipper",
+      "run_id": "run-1083",
+      "repository_commit": "2b0acb2c14e60801cd7e94b13dbec2f39799bc82",
+      "slurm_job_id": "3458067",
+      "status": "passed",
+      "elapsed_seconds": 3,
+      "image_sha256": "bc54cc2336929e04879aed99e2a4eb4fdd25c824e760b9d49d7ad7a3e3c16aeb",
+      "build_evidence_sha256": "066f7b16fed0fa83f4409a0d270de37295003238e8701281420bf28714b22c50",
+      "evidence_sha256": "55ed3ffed5f172fae977aaebfcf92f9ed64794037e81f7f423423cb424915e73",
+      "accounting_sha256": "61643647bb18900bb77e2c6e98f95777e1dc26f00e47b53ccda4c8df749910ed",
+      "input_sha256": "f95166df34bf2c3ce3b8641f62068a3ab1e3a9bbb1ec71c570035b7d844588e2",
+      "input_encoding": "plain_fastq",
+      "output_sha256": "0229a5a3c62c7d2648fc99e66f38f0c5a6bf4eb25525b7e9869e29b38dc5b05a",
+      "output_bytes": 23421049
+    },
+    {
+      "tool": "seqprep",
+      "run_id": "run-1082",
+      "repository_commit": "2b0acb2c14e60801cd7e94b13dbec2f39799bc82",
+      "slurm_job_id": "3458066",
+      "status": "passed",
+      "elapsed_seconds": 8,
+      "image_sha256": "685325d733fde648552d38ad0666eb5645950b2fdac4e835fcbe9d3ad238debf",
+      "build_evidence_sha256": "607d7ed9b63e3b14c155f561580122f2cc5bdc5b486cc6172e939e692afb16a5",
+      "evidence_sha256": "bad4f65a181727ebbd6995057d32a2f3073e6d67a3ed07bfdce38fdc0934401e",
+      "accounting_sha256": "4305fad633bc3fe36c9b405a007d9ae6e236eddcd70f405779bcd7802eed59a7",
+      "merged_sha256": "02eab7c405406d92d16492da7df53743d0bfe714006e4e2d2adf06055e7f8222",
+      "merged_bytes": 9813,
+      "unmerged_r1_sha256": "1c3fc630226d03f8c5021da79a5bdc65b3723f78b58429b05f782d4eb6a06b6f",
+      "unmerged_r1_bytes": 7533030,
+      "unmerged_r2_sha256": "3a07d0091be6defc01f0188bcd0848ec45a0295a94f207b559c94e91f12d3a64",
+      "unmerged_r2_bytes": 7770262
+    },
+    {
+      "tool": "vsearch",
+      "run_id": "run-1084",
+      "repository_commit": "7c508db009352c0ce935b863bbde56806a48ad72",
+      "slurm_job_id": "3458068",
+      "status": "passed",
+      "elapsed_seconds": 5,
+      "image_sha256": "4d7794c1563989143c42b3a17772a6daf82837bc6c9ce3aca28dca7449f82180",
+      "build_evidence_sha256": "444fb65fd7cd1da899edff7b81b30864f4c609bd90c85ceb8f1cfaee91eaf932",
+      "evidence_sha256": "13c2aabe1d722247720fc862ef6bb0fc24a876df9ddd25bc1b2db79020f5fbc7",
+      "accounting_sha256": "fa9b9f0166ea5a26a7e96fbc5a1a876288b2b6f0a813850db5f64bdc2316b068",
+      "output_sha256": "915560d31bb99057fb4d7698998c42e19b49b9fa2037488f97697a359ae94b1b",
+      "output_bytes": 5143891,
+      "science_scope": "runtime_interface_only_non_amplicon_corpus"
+    },
+    {
       "tool": "adapterremoval",
       "run_id": "run-1002",
       "repository_commit": "fd989ab019a266afb10950271012bfef48833570",
@@ -189,6 +238,15 @@
       "elapsed_seconds": 10,
       "evidence_sha256": "9dfcfe082f6d3f9336001166dad137dd72466ef3d153be2977e1071ace1e83b1",
       "accounting_sha256": "5482885f20e7e92aa1d9cc8ea09b2733b3f8f57891f27c1df4d4b74a15b4a8eb"
+    }
+  ],
+  "preserved_failures": [
+    {
+      "tool": "fastx_clipper",
+      "run_id": "run-1080",
+      "classification": "input_encoding_unsupported_gzip",
+      "evidence_sha256": "d0ebafd1d2ce2ae38a2b108b78186edb717d5d0cc0cf659fee68404129a85a06",
+      "accounting_sha256": "8a1f37c21bf64f968329ef6d4b6b7e4d8e1d09ea9414bd38546a7bfe3397e8c5"
     }
   ]
 }

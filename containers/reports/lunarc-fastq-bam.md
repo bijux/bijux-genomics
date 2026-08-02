@@ -22,6 +22,9 @@ root.
 | low-complexity filtering | fastp 0.23.4 | `run-1075` | `3458056` | 2s | filtered FASTQ plus JSON and HTML reports |
 | paired-read merging | FLASH2 2.2.00 | `run-1078` | `3458063` | 1s | 774,658-byte merged-read FASTQ |
 | adapter trimming | Skewer 0.2.2 | `run-1079` | `3458064` | 1s | 25,992,094-byte trimmed FASTQ stream |
+| adapter clipping | FASTX Clipper 0.0.14 | `run-1083` | `3458067` | 3s | 23,421,049-byte trimmed FASTQ stream |
+| paired-read preparation | SeqPrep 1.3.2 | `run-1082` | `3458066` | 8s | merged reads plus two unmerged-read streams |
+| sequence clustering | VSEARCH 2.29.3 | `run-1084` | `3458068` | 5s | 5,143,891-byte centroid FASTA |
 | paired-read trimming | AdapterRemoval 2.3.4 | `run-1002` | `3457168` | 4s | two trimmed FASTQ files |
 | reference indexing | BWA 0.7.17 | `run-1003` | `3457577` | 30m01s | five EquCab3.0 index files |
 | read alignment | BWA 0.7.17 | `run-1004` | `3457596` | 11s | 60,534,232-byte SAM stream |
@@ -53,7 +56,16 @@ are biologically suitable for a downstream analysis. FLASH2 produced merged
 reads from the governed pair, but overlap correctness and agreement with
 another merger have not been assessed. Skewer exercised its default adapter
 contract on the full read stream; retained-read and adapter-removal thresholds
-have not yet been declared or assessed.
+have not yet been declared or assessed. FASTX Clipper processed a governed
+uncompressed derivative of the same public FASTQ because its native parser
+rejected the gzip stream in preserved run `run-1080`; this proves the declared
+plain-FASTQ interface and makes the compression limitation explicit. SeqPrep
+produced merged and unmerged outputs from the governed pair, but overlap and
+adapter-removal correctness have not been compared with truth or another
+implementation. VSEARCH clustered the public WGS read subset and emitted
+centroids; this proves the `fastq.cluster_otus` runtime contract only. The WGS
+corpus is not an amplicon community and therefore cannot support OTU accuracy,
+ecological interpretation, or clustering-threshold claims.
 
 The evidence does not yet prove read-retention thresholds, mapping quality,
 endogenous fraction, duplication, coverage suitability, cross-aligner
