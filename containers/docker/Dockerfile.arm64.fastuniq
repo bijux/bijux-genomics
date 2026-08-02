@@ -4,12 +4,11 @@
 # Container definition license: GPL-3.0.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
-FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=1.1
+LABEL org.opencontainers.image.source="https://sourceforge.net/projects/fastuniq/" \
+      org.opencontainers.image.revision="9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae" \
       org.opencontainers.image.created="${OCI_CREATED}" \
       org.opencontainers.image.licenses="GPL-3.0" \
       org.opencontainers.image.version="${TOOL_VERSION}"
@@ -17,22 +16,18 @@ LABEL org.opencontainers.image.tool="fastuniq"
 LABEL org.opencontainers.image.title="fastuniq"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
-
-ARG VERSION_FASTUNIQ=1.1
-ENV VERSION_FASTUNIQ=${VERSION_FASTUNIQ}
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      build-essential \
-      ca-certificates \
-      curl && \
-    curl -fsSL "https://sourceforge.net/projects/fastuniq/files/FastUniq-${VERSION_FASTUNIQ}.tar.gz/download" -o /tmp/FastUniq.tar.gz && \
-    tar -xzf /tmp/FastUniq.tar.gz -C /tmp && \
-    sed -i 's/[[:space:]]-m64//g' /tmp/FastUniq/source/Makefile && \
-    make -C /tmp/FastUniq/source && \
-    install -d /usr/local/libexec && \
-    install -m 0755 /tmp/FastUniq/source/fastuniq /usr/local/libexec/fastuniq.real && \
+ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive VERSION_FASTUNIQ=1.1
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y --no-install-recommends build-essential curl && \
+    curl --fail --location --silent --show-error --output /opt/FastUniq.tar.gz "https://sourceforge.net/projects/fastuniq/files/FastUniq-${VERSION_FASTUNIQ}.tar.gz/download" && \
+    echo '9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae  /opt/FastUniq.tar.gz' | sha256sum --check --strict && \
+    tar --extract --gzip --file /opt/FastUniq.tar.gz --directory /opt && \
+    sed -i 's/[[:space:]]-m64//g' /opt/FastUniq/source/Makefile && \
+    make --directory /opt/FastUniq/source -j"$(nproc)" && \
+    install -m 0755 /opt/FastUniq/source/fastuniq /usr/local/libexec-fastuniq && \
     printf '%s\n' \
     '#!/bin/sh' \
     'set -eu' \
@@ -47,12 +42,36 @@ RUN apt-get update && \
     '    exit 0' \
     '    ;;' \
     'esac' \
-    'exec /usr/local/libexec/fastuniq.real "$@"' \
+    'exec /usr/local/libexec-fastuniq "$@"' \
     > /usr/local/bin/fastuniq && \
-    chmod +x /usr/local/bin/fastuniq && \
-    rm -rf /tmp/FastUniq /tmp/FastUniq.tar.gz && \
-    rm -rf /var/lib/apt/lists/*
+    chmod 0755 /usr/local/bin/fastuniq && \
+    fastuniq --version | grep -Fx '1.1'
 
-WORKDIR /data
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=1.1
+LABEL org.opencontainers.image.source="https://sourceforge.net/projects/fastuniq/" \
+      org.opencontainers.image.revision="9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="fastuniq" \
+      org.opencontainers.image.title="FastUniq" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV LANG=C LC_ALL=C TZ=UTC VERSION_FASTUNIQ=1.1
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y --no-install-recommends libgomp1 zlib1g && \
+    rm -rf /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
+COPY --from=builder /usr/local/libexec-fastuniq /usr/local/libexec-fastuniq
+COPY --from=builder /usr/local/bin/fastuniq /usr/local/bin/fastuniq
+RUN fastuniq --version | grep -Fx '1.1'
+
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["fastuniq"]
 CMD []

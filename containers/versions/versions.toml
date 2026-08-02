@@ -527,8 +527,9 @@ pinned_commit = "966991c58bd44cbf7644851b7118f7d06146f3c5"
 [fastuniq]
 version = "1.1"
 source = "https://sourceforge.net/projects/fastuniq/"
-date_pinned = "2026-02-16"
+date_pinned = "2026-08-02"
 pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae"
 
 [gatk]
 version = "4.6.2.0"

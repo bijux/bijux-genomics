@@ -18,8 +18,8 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 %labels
     org.opencontainers.image.source https://sourceforge.net/projects/fastuniq/
     org.opencontainers.image.title fastuniq
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
+    org.opencontainers.image.revision 9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae
+    org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 1.1
     org.opencontainers.image.tool fastuniq
@@ -34,13 +34,16 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     VERSION_FASTUNIQ=1.1
     export VERSION_FASTUNIQ
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends build-essential ca-certificates curl
-    curl -fsSL "https://sourceforge.net/projects/fastuniq/files/FastUniq-${VERSION_FASTUNIQ}.tar.gz/download" -o /tmp/FastUniq.tar.gz
-    tar -xzf /tmp/FastUniq.tar.gz -C /tmp
-    make -C /tmp/FastUniq/source
-    install -d /usr/local/libexec
-    install -m 0755 /tmp/FastUniq/source/fastuniq /usr/local/libexec/fastuniq.real
+    curl --fail --location --silent --show-error --output /opt/FastUniq.tar.gz "https://sourceforge.net/projects/fastuniq/files/FastUniq-${VERSION_FASTUNIQ}.tar.gz/download"
+    echo '9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae  /opt/FastUniq.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/FastUniq.tar.gz --directory /opt
+    make --directory /opt/FastUniq/source -j"$(nproc)"
+    install -m 0755 /opt/FastUniq/source/fastuniq /usr/local/libexec-fastuniq
     cat > /usr/local/bin/fastuniq <<'EOS'
 #!/usr/bin/env sh
 set -eu
@@ -54,10 +57,11 @@ EOH
     exit 0
     ;;
 esac
-exec /usr/local/libexec/fastuniq.real "$@"
+exec /usr/local/libexec-fastuniq "$@"
 EOS
     chmod 0755 /usr/local/bin/fastuniq
-    rm -rf /tmp/FastUniq /tmp/FastUniq.tar.gz
+    fastuniq --version | grep -Fx '1.1'
+    rm -rf /opt/FastUniq /opt/FastUniq.tar.gz
     rm -rf /var/lib/apt/lists/*
 %runscript
     if [ $# -eq 0 ]; then
