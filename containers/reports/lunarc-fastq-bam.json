@@ -13,6 +13,42 @@
   },
   "runs": [
     {
+      "tool": "seqkit",
+      "run_id": "run-1071",
+      "repository_commit": "e2cec523eddef2db149374e7fbbbca29607e3912",
+      "slurm_job_id": "3458024",
+      "status": "passed",
+      "elapsed_seconds": 1,
+      "evidence_sha256": "29ec719fad61ac19c068257f9e643003a69463bca9173ca9d4323403227769e3",
+      "accounting_sha256": "cf45db1d8a1ff237d7bf8057ed979863a702f6a77dea8abc8faaa6f263881f2e",
+      "output_sha256": "269cac58c237c106d3f44df7b9972c0e41dc443df69353f20b2b6b649f740e10",
+      "output_bytes": 315
+    },
+    {
+      "tool": "seqkit_stats",
+      "run_id": "run-1072",
+      "repository_commit": "e2cec523eddef2db149374e7fbbbca29607e3912",
+      "slurm_job_id": "3458025",
+      "status": "passed",
+      "elapsed_seconds": 1,
+      "evidence_sha256": "0727606acfb53b44bc7547ed3649fe3183bbd25a26182d64505990bf8abc65ef",
+      "accounting_sha256": "622278199311cc2d3ecbe5cad63610378a8b8596d9cc3fad04605c7cdfbcb49d",
+      "output_sha256": "269cac58c237c106d3f44df7b9972c0e41dc443df69353f20b2b6b649f740e10",
+      "output_bytes": 315
+    },
+    {
+      "tool": "seqtk",
+      "run_id": "run-1073",
+      "repository_commit": "e2cec523eddef2db149374e7fbbbca29607e3912",
+      "slurm_job_id": "3458026",
+      "status": "passed",
+      "elapsed_seconds": 1,
+      "evidence_sha256": "e22bdfd8333d891f4f00deaac52712aaf6f3293e6a4be2d28e2a16ea9d39ac53",
+      "accounting_sha256": "4ca58a2403b44c0f63fadfe6f3c7580c25128b2898ec1b6d6ee57a3095a4eac3",
+      "output_sha256": "8133f2dc6bf0f1c368ea605a68f7003a81f4f1b6e1be0ccab392cd222fda33b2",
+      "output_bytes": 16023606
+    },
+    {
       "tool": "adapterremoval",
       "run_id": "run-1002",
       "repository_commit": "fd989ab019a266afb10950271012bfef48833570",

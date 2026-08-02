@@ -14,6 +14,9 @@ root.
 
 | Stage | Tool | Run | Slurm job | Elapsed | Principal output |
 |---|---|---:|---:|---:|---|
+| FASTQ profiling | SeqKit 2.8.2 | `run-1071` | `3458024` | 1s | 315-byte sequence statistics table |
+| read-length profiling | SeqKit Stats 2.8.2 | `run-1072` | `3458025` | 1s | independently reproduced statistics table |
+| FASTQ-to-FASTA conversion | Seqtk 1.4 | `run-1073` | `3458026` | 1s | 16,023,606-byte FASTA stream |
 | paired-read trimming | AdapterRemoval 2.3.4 | `run-1002` | `3457168` | 4s | two trimmed FASTQ files |
 | reference indexing | BWA 0.7.17 | `run-1003` | `3457577` | 30m01s | five EquCab3.0 index files |
 | read alignment | BWA 0.7.17 | `run-1004` | `3457596` | 11s | 60,534,232-byte SAM stream |
@@ -29,9 +32,14 @@ lineage from filenames.
 
 ## Claim boundary
 
-This proves runtime interfaces and non-fixture execution for trimming,
-reference indexing, alignment, BAM transformation, indexing, and alignment
-reporting. It does not yet prove read-retention thresholds, mapping quality,
+This proves runtime interfaces and non-fixture execution for FASTQ statistics,
+FASTQ-to-FASTA conversion, trimming, reference indexing, alignment, BAM
+transformation, indexing, and alignment reporting. The two statistics surfaces
+reproduced the same governed 315-byte table. That agreement establishes the
+container interfaces, not the scientific suitability of any threshold. The
+FASTA conversion establishes format transformation, not read validity.
+
+The evidence does not yet prove read-retention thresholds, mapping quality,
 endogenous fraction, duplication, coverage suitability, cross-aligner
 agreement, benchmark variance, security acceptance, or release qualification.
 
