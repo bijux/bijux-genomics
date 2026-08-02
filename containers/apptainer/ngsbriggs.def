@@ -44,6 +44,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     mkdir /opt/ngsBriggs
     tar --extract --gzip --file /opt/ngsBriggs.tar.gz --directory /opt/ngsBriggs --strip-components 1
     CPATH=/usr/include/eigen3 make -C /opt/ngsBriggs HTSSRC=systemwide
+    install -d -m 0755 /usr/local/libexec
     install -m 0755 /opt/ngsBriggs/ngsbriggs /usr/local/libexec/ngsbriggs
     chmod 0755 /usr/local/bin/ngsbriggs
     ngsbriggs --version | grep -Fx 'ngsbriggs 0.01 (commit ab3b5ae8a388b9b1874dd2854fdec32bd9195f22)'

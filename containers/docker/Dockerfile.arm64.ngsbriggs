@@ -26,6 +26,7 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
     mkdir /opt/ngsBriggs && \
     tar --extract --gzip --file /opt/ngsBriggs.tar.gz --directory /opt/ngsBriggs --strip-components 1 && \
     CPATH=/usr/include/eigen3 make -C /opt/ngsBriggs HTSSRC=systemwide && \
+    install -d -m 0755 /usr/local/libexec && \
     install -m 0755 /opt/ngsBriggs/ngsbriggs /usr/local/libexec/ngsbriggs && \
     rm -rf /opt/ngsBriggs /opt/ngsBriggs.tar.gz && \
     rm -rf /var/lib/apt/lists/* && \
