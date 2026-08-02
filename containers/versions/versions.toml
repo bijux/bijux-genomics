@@ -142,11 +142,12 @@ pinned_commit = "3be52404124ae294f0eaf2fa622fe8af548bb6ed"
 
 [eagle]
 version = "2.4.1"
-source = "https://alkesgroup.broadinstitute.org/Eagle/"
-date_pinned = "2026-02-13"
-status = "planned"
-upstream_license = "GPL-3.0"
-source_sha256 = "4444444444444444444444444444444444444444444444444444444444444444"
+source = "https://github.com/poruloh/Eagle/archive/dec140eefc0eda3b7f02233a3c02361eaeb8227c.tar.gz"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "GPL-3.0-or-later"
+pinned_commit = "dec140eefc0eda3b7f02233a3c02361eaeb8227c"
+source_sha256 = "85804bfe972186ccb66e602856d6e04044302e5c0dbf9309849b0cde981e3432"
 
 [eigensoft]
 version = "8.0.0"

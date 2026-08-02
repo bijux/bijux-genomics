@@ -1,0 +1,30 @@
+diff --git a/src/MemoryUtils.cpp b/src/MemoryUtils.cpp
+index a6b1683..3f2ec7c 100644
+--- a/src/MemoryUtils.cpp
++++ b/src/MemoryUtils.cpp
+@@ -23,7 +23,10 @@ void *ALIGNED_MALLOC(uint64 size) {
+ #ifdef USE_MKL_MALLOC
+   void *p = mkl_malloc(size, MEM_ALIGNMENT);
+ #else
+-  void *p = _mm_malloc(size, MEM_ALIGNMENT);
++  void *p = NULL;
++  if (posix_memalign(&p, MEM_ALIGNMENT, size) != 0) {
++    p = NULL;
++  }
+ #endif
+   // TODO: change to assert() or dispense with altogether and change ALIGNED_MALLOC to macro?
+   if (p == NULL) {
+diff --git a/src/MemoryUtils.hpp b/src/MemoryUtils.hpp
+index 6d552e8..777cfc3 100644
+--- a/src/MemoryUtils.hpp
++++ b/src/MemoryUtils.hpp
+@@ -29,7 +29,7 @@ void *ALIGNED_MALLOC(uint64 size);
+ #include <mkl.h>
+ #define ALIGNED_FREE mkl_free
+ #else
+-#include <xmmintrin.h>
+-#define ALIGNED_FREE _mm_free
++#include <cstdlib>
++#define ALIGNED_FREE free
+ #endif
+ #define ALIGNED_MALLOC_DOUBLES(numDoubles) (double *) ALIGNED_MALLOC((numDoubles)*sizeof(double))
