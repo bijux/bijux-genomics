@@ -482,10 +482,11 @@ date_pinned = "2026-02-12"
 pinned_commit = "bbd17a05faaf7401176e36b7947874c1e5152cee"
 
 [yleaf]
-version = "3.0.3"
+version = "4.1.4"
 source = "https://github.com/genid/Yleaf"
-date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+date_pinned = "2026-08-02"
+source_sha256 = "b98f63250878caa3b20d40dea352f2fb81438bcf45bc0830693c6e74f69ab9c4"
+pinned_commit = "a2368eaaf08c0af53063514ed435d9e844b0ac1e"
 
 [bamutil]
 version = "1.0.15"
