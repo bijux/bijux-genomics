@@ -5,7 +5,7 @@ case "${1:-}" in
     --version) echo 'dada2 1.30.0' ;;
     --help|-h|"")
         printf '%s\n' \
-            'usage: dada2 infer-asvs --input INPUT.fastq[.gz] --output-dir DIR [--sample-id ID] [--threads N]' \
+            'usage: dada2 infer-asvs --input INPUT_R1.fastq[.gz] [--input-r2 INPUT_R2.fastq[.gz]] --output-dir DIR [--sample-id ID] [--threads N]' \
             '' \
             'Infer single-sample ASVs and emit the governed table, representative' \
             'sequences, taxonomy-ready sequences, filtered reads, and JSON report.'

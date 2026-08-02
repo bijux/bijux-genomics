@@ -3,11 +3,11 @@
 suppressPackageStartupMessages(library(dada2))
 
 parse_args <- function(args) {
-  values <- list(input = NULL, output_dir = NULL, sample_id = NULL, threads = 1L)
+  values <- list(input = NULL, input_r2 = NULL, output_dir = NULL, sample_id = NULL, threads = 1L)
   index <- 1L
   while (index <= length(args)) {
     flag <- args[[index]]
-    if (!(flag %in% c("--input", "--output-dir", "--sample-id", "--threads"))) {
+    if (!(flag %in% c("--input", "--input-r2", "--output-dir", "--sample-id", "--threads"))) {
       stop(sprintf("unknown argument: %s", flag), call. = FALSE)
     }
     if (index == length(args)) {
@@ -15,6 +15,7 @@ parse_args <- function(args) {
     }
     value <- args[[index + 1L]]
     if (flag == "--input") values$input <- value
+    if (flag == "--input-r2") values$input_r2 <- value
     if (flag == "--output-dir") values$output_dir <- value
     if (flag == "--sample-id") values$sample_id <- value
     if (flag == "--threads") values$threads <- suppressWarnings(as.integer(value))
@@ -37,28 +38,53 @@ parse_args <- function(args) {
 
 options <- parse_args(commandArgs(trailingOnly = TRUE))
 input <- normalizePath(options$input, mustWork = TRUE)
+input_r2 <- if (is.null(options$input_r2)) NULL else normalizePath(options$input_r2, mustWork = TRUE)
 output_dir <- options$output_dir
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-filtered <- file.path(output_dir, "filtered.fastq.gz")
+filtered_r1 <- file.path(output_dir, "filtered-r1.fastq.gz")
 
-filter_result <- filterAndTrim(
-  input,
-  filtered,
-  maxN = 0,
-  maxEE = 2,
-  truncQ = 2,
-  rm.phix = TRUE,
-  compress = TRUE,
-  multithread = options$threads
-)
+if (is.null(input_r2)) {
+  filter_result <- filterAndTrim(
+    input,
+    filtered_r1,
+    maxN = 0,
+    maxEE = 2,
+    truncQ = 2,
+    rm.phix = TRUE,
+    compress = TRUE,
+    multithread = options$threads
+  )
+} else {
+  filtered_r2 <- file.path(output_dir, "filtered-r2.fastq.gz")
+  filter_result <- filterAndTrim(
+    input,
+    filtered_r1,
+    input_r2,
+    filtered_r2,
+    maxN = 0,
+    maxEE = c(2, 2),
+    truncQ = 2,
+    rm.phix = TRUE,
+    compress = TRUE,
+    multithread = options$threads
+  )
+}
 if (filter_result[[1, "reads.out"]] == 0L) {
   stop("DADA2 filtering retained no reads", call. = FALSE)
 }
 
-errors <- learnErrors(filtered, multithread = options$threads, verbose = TRUE)
-dereplicated <- derepFastq(filtered, verbose = TRUE)
-inferred <- dada(dereplicated, err = errors, multithread = options$threads)
-sequence_table <- makeSequenceTable(inferred)
+errors_r1 <- learnErrors(filtered_r1, multithread = options$threads, verbose = TRUE)
+dereplicated_r1 <- derepFastq(filtered_r1, verbose = TRUE)
+inferred_r1 <- dada(dereplicated_r1, err = errors_r1, multithread = options$threads)
+if (is.null(input_r2)) {
+  sequence_table <- makeSequenceTable(inferred_r1)
+} else {
+  errors_r2 <- learnErrors(filtered_r2, multithread = options$threads, verbose = TRUE)
+  dereplicated_r2 <- derepFastq(filtered_r2, verbose = TRUE)
+  inferred_r2 <- dada(dereplicated_r2, err = errors_r2, multithread = options$threads)
+  merged <- mergePairs(inferred_r1, dereplicated_r1, inferred_r2, dereplicated_r2, verbose = TRUE)
+  sequence_table <- makeSequenceTable(merged)
+}
 nonchimeric <- removeBimeraDenovo(
   sequence_table,
   method = "consensus",
@@ -115,6 +141,7 @@ report <- c(
   '  "schema_version": "bijux.dada2.infer_asvs.v1",',
   sprintf('  "dada2_version": "%s",', as.character(packageVersion("dada2"))),
   sprintf('  "sample_id": "%s",', options$sample_id),
+  sprintf('  "library_layout": "%s",', if (is.null(input_r2)) "single" else "paired"),
   sprintf('  "threads": %d,', options$threads),
   sprintf('  "reads_in": %d,', filter_result[[1, "reads.in"]]),
   sprintf('  "reads_filtered": %d,', filter_result[[1, "reads.out"]]),
@@ -123,3 +150,5 @@ report <- c(
   "}"
 )
 writeLines(report, file.path(output_dir, "report.json"))
+unlink(filtered_r1)
+if (!is.null(input_r2)) unlink(filtered_r2)
