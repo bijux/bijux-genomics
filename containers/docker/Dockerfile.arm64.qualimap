@@ -44,7 +44,8 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
     apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
     apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
     apt-get -o Acquire::Check-Valid-Until=false update && \
-    apt-get install -y --no-install-recommends fonts-dejavu-core libharfbuzz0b openjdk-11-jre-headless && \
+    apt-get install -y --no-install-recommends fontconfig fonts-dejavu-core libharfbuzz0b openjdk-11-jre-headless && \
+    fc-cache --force && \
     rm -rf /var/lib/apt/lists/* && \
     useradd --system --uid 65532 --home-dir /work --create-home bijux
 COPY --from=builder /opt/qualimap /opt/qualimap
