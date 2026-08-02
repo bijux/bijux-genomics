@@ -159,6 +159,7 @@ fn damage_params_complete() -> Result<()> {
     let plan = bijux_dna_planner_bam::tool_adapters::bam::damage::plan(
         &dummy_tool("pydamage"),
         Path::new("reads.bam"),
+        None,
         Path::new("out"),
         &params,
     )?;

@@ -179,6 +179,7 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
         let damage = bijux_dna_planner_bam::tool_adapters::bam::damage::plan(
             &dummy_tool(tool_name),
             bam,
+            (tool_name == "ngsbriggs").then_some(Path::new("reference.fasta")),
             out,
             &damage_params,
         )?;

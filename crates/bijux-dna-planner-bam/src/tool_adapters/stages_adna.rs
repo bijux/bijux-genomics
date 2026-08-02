@@ -61,6 +61,7 @@ pub mod damage {
     pub fn plan(
         tool: &ToolExecutionSpecV1,
         bam: &Path,
+        reference: Option<&Path>,
         out_dir: &Path,
         params: &DamageEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
@@ -72,6 +73,11 @@ pub mod damage {
         .into_iter()
         .filter(|artifact| required_outputs.contains(&artifact.name.as_str()))
         .collect();
+        let ngsbriggs_reference = if tool.tool_id.as_str() == "ngsbriggs" {
+            Some(reference.ok_or_else(|| anyhow::anyhow!("ngsbriggs requires a reference FASTA"))?)
+        } else {
+            None
+        };
         let out_json = out_dir.join("damage.pydamage.json");
         let command = match tool.tool_id.as_str() {
             "mapdamage2" => {
@@ -89,6 +95,7 @@ pub mod damage {
             ),
             "ngsbriggs" => crate::tool_adapters::tools::ngsbriggs::args(
                 bam,
+                ngsbriggs_reference.expect("ngsbriggs reference validated above"),
                 &out_dir.join("damage.ngsbriggs.json"),
                 params,
             ),
@@ -99,6 +106,18 @@ pub mod damage {
             ),
             _ => crate::tool_adapters::tools::pydamage::args(bam, &out_json, params),
         };
+        let mut inputs = vec![bijux_dna_stage_contract::ArtifactRef::required(
+            ArtifactId::from_static("bam"),
+            bam.to_path_buf(),
+            ArtifactRole::Bam,
+        )];
+        if let Some(reference) = ngsbriggs_reference {
+            inputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("reference"),
+                reference.to_path_buf(),
+                ArtifactRole::Reference,
+            ));
+        }
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_instance_id: None,
@@ -108,17 +127,11 @@ pub mod damage {
             image: tool.image.clone(),
             command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
-            io: StageIO {
-                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
-                    ArtifactId::from_static("bam"),
-                    bam.to_path_buf(),
-                    ArtifactRole::Bam,
-                )],
-                outputs,
-            },
+            io: StageIO { inputs, outputs },
             out_dir: out_dir.to_path_buf(),
             params: serde_json::json!({
                 "bam": bam,
+                "reference": ngsbriggs_reference,
                 "udg_model": params.udg_model,
                 "pmd_threshold_5p": params.pmd_threshold_5p,
                 "pmd_threshold_3p": params.pmd_threshold_3p,

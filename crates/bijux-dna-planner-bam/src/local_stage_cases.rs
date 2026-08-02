@@ -311,6 +311,7 @@ pub struct LocalOverlapCorrectionSmokeCasePlan {
 pub struct LocalDamageSmokeCasePlan {
     pub sample_id: String,
     pub bam: PathBuf,
+    pub reference: PathBuf,
     pub expected_terminal_c_to_t_5p: f64,
     pub expected_terminal_g_to_a_3p: f64,
     pub expected_short_fragment_fraction: f64,
@@ -821,6 +822,7 @@ struct LocalOverlapCorrectionSmokeCase {
 struct LocalDamageSmokeCase {
     sample_id: String,
     bam: PathBuf,
+    reference: PathBuf,
     expected_terminal_c_to_t_5p: f64,
     expected_terminal_g_to_a_3p: f64,
     expected_short_fragment_fraction: f64,
@@ -2880,6 +2882,14 @@ fn build_local_damage_smoke_case(
         ));
     }
 
+    let reference_abs = repo_root.join(&case.reference);
+    if !reference_abs.is_file() {
+        return Err(anyhow!(
+            "local-smoke bam.damage case `{}` reference does not exist: {}",
+            case.sample_id,
+            reference_abs.display()
+        ));
+    }
     let params = DamageEffectiveParams {
         udg_model: bijux_dna_domain_bam::params::UdgModel::NonUdg,
         pmd_threshold_5p: 0.3,
@@ -2895,11 +2905,18 @@ fn build_local_damage_smoke_case(
         &case.sample_id,
         tool_spec.tool_id.as_str(),
     )?;
-    let plan = crate::tool_adapters::bam::damage::plan(tool_spec, &case.bam, &out_dir, &params)?;
+    let plan = crate::tool_adapters::bam::damage::plan(
+        tool_spec,
+        &case.bam,
+        Some(&case.reference),
+        &out_dir,
+        &params,
+    )?;
 
     Ok(LocalDamageSmokeCasePlan {
         sample_id: case.sample_id,
         bam: case.bam,
+        reference: case.reference,
         expected_terminal_c_to_t_5p: case.expected_terminal_c_to_t_5p,
         expected_terminal_g_to_a_3p: case.expected_terminal_g_to_a_3p,
         expected_short_fragment_fraction: case.expected_short_fragment_fraction,
