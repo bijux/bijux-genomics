@@ -299,7 +299,8 @@ pub(super) fn check_version_hash_pin(workspace: &Workspace) -> Result<ContainerC
         }
         let source_sha = table_string(&row, "source_sha256");
         let pin = table_string(&row, "pinned_commit");
-        if source_sha.is_empty() && pin.is_empty() {
+        let status = table_string(&row, "status");
+        if source_sha.is_empty() && pin.is_empty() && status != "unsupported" {
             errors.push(format!("{tool}: missing source_sha256 or pinned_commit"));
         }
         if !source_sha.is_empty()
