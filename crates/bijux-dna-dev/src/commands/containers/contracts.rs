@@ -38,6 +38,8 @@ struct ContainerContract {
     purpose: String,
     version: String,
     support_disposition: String,
+    #[serde(default)]
+    support_reason: String,
     qualification: String,
     upstream: String,
     documentation: String,
@@ -83,6 +85,7 @@ struct ContractLockTool<'a> {
     display_name: &'a str,
     version: &'a str,
     support_disposition: &'a str,
+    support_reason: &'a str,
     qualification: &'a str,
     upstream: &'a str,
     license: &'a str,
@@ -226,6 +229,15 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
                 tool.id, tool.support_disposition
             ));
         }
+        if tool.support_disposition == "retained" && !tool.support_reason.is_empty() {
+            errors.push(format!("{}: retained tool must not carry a support reason", tool.id));
+        }
+        if tool.support_disposition != "retained" && tool.support_reason.trim().is_empty() {
+            errors.push(format!(
+                "{}: non-retained tool must explain its support disposition",
+                tool.id
+            ));
+        }
         if !matches!(tool.qualification.as_str(), "unverified" | "qualified" | "not_applicable") {
             errors.push(format!(
                 "{}: unsupported evidence qualification {}",
@@ -262,9 +274,7 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
         if tool.real_test_stage.trim().is_empty() || tool.real_test_input_kind.trim().is_empty() {
             errors.push(format!("{}: real-test selection is incomplete", tool.id));
         }
-        if !tool.apptainer_supported {
-            errors.push(format!("{}: every retained tool must support Apptainer", tool.id));
-        } else {
+        if tool.apptainer_supported {
             let expected = format!("containers/apptainer/{}.def", tool.id);
             if tool.apptainer_definition != expected {
                 errors.push(format!("{}: apptainer_definition must be {expected}", tool.id));
@@ -273,6 +283,16 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
                 errors.push(format!("{}: missing {}", tool.id, tool.apptainer_definition));
             }
             catalog_apptainer.insert(tool.id.clone());
+        } else {
+            if tool.support_disposition == "retained" {
+                errors.push(format!("{}: every retained tool must support Apptainer", tool.id));
+            }
+            if !tool.apptainer_definition.is_empty() {
+                errors.push(format!(
+                    "{}: unsupported Apptainer runtime must not name a definition",
+                    tool.id
+                ));
+            }
         }
         if tool.docker_arm64_supported {
             let expected = format!("containers/docker/Dockerfile.arm64.{}", tool.id);
@@ -362,6 +382,7 @@ fn contract_lock_content(workspace: &Workspace) -> Result<String> {
                 display_name: &tool.display_name,
                 version: &tool.version,
                 support_disposition: &tool.support_disposition,
+                support_reason: &tool.support_reason,
                 qualification: &tool.qualification,
                 upstream: &tool.upstream,
                 license: &tool.license,
