@@ -179,6 +179,27 @@ class BuildAdmissionTests(unittest.TestCase):
             "adapterremoval-2.3.4-linux-amd64-aaaaaaaaaaaa.sif",
         )
 
+    def test_definition_file_sources_are_repository_relative(self) -> None:
+        definition = b"""Bootstrap: docker
+%files
+    containers/tools/tool/wrapper /usr/local/bin/tool
+    containers/tools/tool/data /opt/tool/data
+
+%post
+    true
+"""
+        self.assertEqual(
+            container_build.definition_file_sources(definition),
+            [
+                Path("containers/tools/tool/wrapper"),
+                Path("containers/tools/tool/data"),
+            ],
+        )
+
+    def test_definition_file_sources_reject_parent_traversal(self) -> None:
+        with self.assertRaisesRegex(container_build.ContractError, "repository-relative"):
+            container_build.definition_file_sources(b"%files\n    ../secret /opt/secret\n")
+
 
 if __name__ == "__main__":
     unittest.main()
