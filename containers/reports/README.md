@@ -19,6 +19,7 @@ a new run identifier after the cause is corrected.
 
 ## Reports
 
+- [LUNARC ancient-DNA damage validation](lunarc-ancient-damage.md)
 - [LUNARC FASTQ-to-BAM validation](lunarc-fastq-bam.md)
 - [LUNARC VCF phasing validation](lunarc-vcf-phasing.md)
 - [LUNARC VCF relatedness validation](lunarc-vcf-relatedness.md)

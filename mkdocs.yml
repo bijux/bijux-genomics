@@ -175,6 +175,7 @@ nav:
       - Explainability: 30-operations/EXPLAINABILITY.md
       - Containers: 30-operations/CONTAINERS.md
       - Container Evidence:
+          - Ancient DNA Damage: 30-operations/container-evidence/ANCIENT_DAMAGE.md
           - FASTQ to BAM: 30-operations/container-evidence/FASTQ_BAM.md
           - VCF Phasing: 30-operations/container-evidence/VCF_PHASING.md
           - VCF Relatedness: 30-operations/container-evidence/VCF_RELATEDNESS.md

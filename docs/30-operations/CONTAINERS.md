@@ -53,6 +53,9 @@ failed runs and collects terminal accounting separately.
 
 The [LUNARC FASTQ-to-BAM report](container-evidence/FASTQ_BAM.md)
 records a real horse WGS trimming, alignment, sorting, indexing, and QC chain.
+The [LUNARC ancient-DNA damage report](container-evidence/ANCIENT_DAMAGE.md)
+records ngsBriggs input-contract correction and real Slurm execution on a
+public ancient-horse alignment.
 The [LUNARC VCF phasing report](container-evidence/VCF_PHASING.md)
 records a real 2,504-sample BCFtools, SHAPEIT4, SHAPEIT5, and Eagle execution
 chain. The

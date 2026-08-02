@@ -1,0 +1,70 @@
+{
+  "schema_version": "bijux.container.report_index.v1",
+  "report_id": "lunarc-ancient-damage",
+  "site": "lunarc",
+  "corpus": "ena-prjeb22390-err2112767-ngsbriggs-input",
+  "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
+  "claims": {
+    "runtime": "passed",
+    "stage": "passed",
+    "science": "not_assessed",
+    "benchmark": "not_assessed",
+    "release": "not_qualified"
+  },
+  "runs": [
+    {
+      "tool": "ngsbriggs",
+      "run_id": "run-1043",
+      "repository_commit": "1ec0802ac10350906532028677026783fe00f940",
+      "slurm_job_id": "3457815",
+      "status": "failed",
+      "failure_class": "input_and_wrapper_contract",
+      "elapsed_seconds": 5,
+      "evidence_sha256": "bf9ac135661774525a57bee75a92a36a48d81425c555d4785b29158742db09c0",
+      "accounting_sha256": "ba2fcc085fd12cd94c9a703a45b1d77729e6c944c1a3bae393c3d79e777f2762"
+    },
+    {
+      "tool": "samtools",
+      "run_id": "run-1044",
+      "repository_commit": "1ec0802ac10350906532028677026783fe00f940",
+      "slurm_job_id": "3457816",
+      "status": "failed",
+      "failure_class": "acceptance_contract",
+      "elapsed_seconds": 3,
+      "evidence_sha256": "6921aa27b883de211e7689918c584b07b68732bfbd1fb56bee520b75b132db9e",
+      "accounting_sha256": "3b1bdb1d8f4baa3e72ac328aece9f4f9571e1b6f2f810509bcaaba7fe8e29979"
+    },
+    {
+      "tool": "samtools",
+      "run_id": "run-1045",
+      "repository_commit": "1ec0802ac10350906532028677026783fe00f940",
+      "slurm_job_id": "3457817",
+      "status": "passed",
+      "elapsed_seconds": 2,
+      "evidence_sha256": "ac3c4fd1690064c2f5c02c8dcfe41388a391ead524abd07a6ce714d503ea029d",
+      "accounting_sha256": "3e553e2ef89b1a145f70345d7bd7799e693cb07d49b86ab442334215fa5eda65"
+    },
+    {
+      "tool": "ngsbriggs",
+      "run_id": "run-1046",
+      "repository_commit": "a7abc8a7c2639bb801718439c099abd5a4b18708",
+      "slurm_job_id": "3457823",
+      "status": "passed",
+      "elapsed_seconds": 5,
+      "image_sha256": "ecbca47636d53e8e85482bbdb72551a7cfef1aa642689cb315a0ea7d1122da95",
+      "input_sha256": "b742e0c144da4e8593ae8f2d820dc29268be6c7d4cd92177c5347ccc1663c059",
+      "evidence_sha256": "e8cda25b355afc2e0ed1ee9dcc0f1a0ae26eebf90b709fb00f5bc23170b08874",
+      "accounting_sha256": "e0a19aed1213d4a410a2dafc464e65141ffb47336721e51d2b8fb5b6512e7718",
+      "outputs": {
+        "damage_json_sha256": "fc977e8f61b3a8517d9ec628941857767b2c765228428879f1daeff754c5e265",
+        "misincorporation_sha256": "289f060a99113e3ef82c2ceb7871feac0501024093da1a53c35fe5cbd1090a9b",
+        "parameters_sha256": "6d1dc35ee8aac063ba64e546252b6a090c8f7df7ea12b1833158d61d63182f14",
+        "lengths_sha256": "09ea711dde948f8942b33c83d0d4f58ae364959bea612db5353aab313f945f29"
+      },
+      "observations": {
+        "c_to_t_5p": 0.0,
+        "g_to_a_3p": 0.0
+      }
+    }
+  ]
+}
