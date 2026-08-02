@@ -59,6 +59,9 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
     let nextest_expression_builder = root.join("makes/bin/nextest_expr.sh");
     let nextest_expression_builder_source = std::fs::read_to_string(&nextest_expression_builder)
         .expect("read Nextest expression builder");
+    let github_gate_runner =
+        std::fs::read_to_string(root.join("makes/bin/run_github_workflow_gate.sh"))
+            .expect("read GitHub workflow gate runner");
     let slow_roster = std::fs::read_to_string(root.join("configs/rust/nextest-slow-roster.txt"))
         .expect("read nextest slow roster");
     bijux_dna_policies::policy_assert!(
@@ -112,6 +115,12 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
             && nextest_expression_builder_source
                 .contains("sed 's#test(/\\^(?:#test(/(?:^|::)(?:#g'"),
         "the repository Nextest expression boundary must preserve the shared builder and match rostered unit-test suffixes"
+    );
+    bijux_dna_policies::policy_assert!(
+        github_gate_runner.contains("cargo nextest list")
+            && github_gate_runner.contains("export CARGO_TARGET_DIR=\"${cargo_target_dir}\"")
+            && !github_gate_runner.contains("gate_target=\"test-all\""),
+        "github-all must prepare one shared test build and preserve the workflow's fast test lane"
     );
     bijux_dna_policies::policy_assert!(
         cargo_mk.contains("NEXTEST_SLOW_NAME_EXPR ?= test(/::slow__/)"),

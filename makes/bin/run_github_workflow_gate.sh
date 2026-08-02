@@ -10,12 +10,30 @@ require_tool() {
 
 require_tool git
 require_tool sed
+require_tool cargo
+require_tool cargo-nextest
 
 repo_root="$(git rev-parse --show-toplevel)"
-artifact_dir="${GITHUB_WORKFLOW_ARTIFACT_DIR:-${repo_root}/artifacts/github-all}"
+artifact_root_input="${ARTIFACT_ROOT:-${repo_root}/artifacts}"
+if [[ "${artifact_root_input}" != /* ]]; then
+  artifact_root_input="${repo_root}/${artifact_root_input}"
+fi
+mkdir -p "${artifact_root_input}"
+artifact_root="$(cd "${artifact_root_input}" && pwd -P)"
+cargo_target_dir="${artifact_root}/target"
+cargo_home="${artifact_root}/cargo/home"
+mkdir -p "${cargo_target_dir}" "${cargo_home}"
+export CARGO_TARGET_DIR="${cargo_target_dir}"
+export CARGO_HOME="${cargo_home}"
+export RS_TARGET_DIR="${cargo_target_dir}"
+export RS_CARGO_HOME="${cargo_home}"
+
+artifact_dir="${GITHUB_WORKFLOW_ARTIFACT_DIR:-${artifact_root}/github-all}"
 make_bin="${GITHUB_WORKFLOW_MAKE_BIN:-make}"
 summary_file="${artifact_dir}/summary.tsv"
 workflow_file="${repo_root}/.github/workflows/ci.yml"
+nextest_config_file="${NEXTEST_CONFIG_FILE:-${repo_root}/configs/rust/nextest.toml}"
+nextest_profile="${NEXTEST_PROFILE_FAST:-fast-unit}"
 
 require_tool "${make_bin}"
 
@@ -28,9 +46,6 @@ gate_names=()
 gate_targets=()
 while IFS= read -r workflow_target; do
   gate_target="${workflow_target}"
-  if [[ "${gate_target}" == "test" ]]; then
-    gate_target="test-all"
-  fi
   already_registered=0
   for registered_target in "${gate_targets[@]:-}"; do
     if [[ "${registered_target}" == "${gate_target}" ]]; then
@@ -64,6 +79,27 @@ rm -f \
   "${artifact_dir}"/*.log \
   "${summary_file}"
 printf 'gate\ttarget\texit_code\tlog\n' >"${summary_file}"
+
+workspace_compile_log="${artifact_dir}/workspace-compile.log"
+printf 'preparing shared workspace binaries\nlog: %s\n' "${workspace_compile_log}"
+if (
+  "${make_bin}" --no-print-directory _dev-dna-bin
+  cargo nextest list \
+    --workspace \
+    --all-features \
+    --locked \
+    --config-file "${nextest_config_file}" \
+    --profile "${nextest_profile}" \
+    --target-dir "${cargo_target_dir}" \
+    >/dev/null
+) >"${workspace_compile_log}" 2>&1; then
+  printf 'prepared shared workspace binaries\n'
+else
+  compile_status=$?
+  printf 'workspace binary preparation failed (exit %s)\n' "${compile_status}" >&2
+  tail -n 80 "${workspace_compile_log}" >&2
+  exit "${compile_status}"
+fi
 
 pids=()
 
