@@ -22,6 +22,7 @@ root.
 | low-complexity filtering | fastp 0.23.4 | `run-1075` | `3458056` | 2s | filtered FASTQ plus JSON and HTML reports |
 | paired-read merging | FLASH2 2.2.00 | `run-1078` | `3458063` | 1s | 774,658-byte merged-read FASTQ |
 | adapter trimming | Skewer 0.2.2 | `run-1079` | `3458064` | 1s | 25,992,094-byte trimmed FASTQ stream |
+| adapter trimming | AlienTrimmer 3.2 | `run-1091` | `3458077` | 13s | paired trimmed FASTQ streams |
 | adapter clipping | FASTX Clipper 0.0.14 | `run-1083` | `3458067` | 3s | 23,421,049-byte trimmed FASTQ stream |
 | paired-read preparation | SeqPrep 1.3.2 | `run-1082` | `3458066` | 8s | merged reads plus two unmerged-read streams |
 | sequence clustering | VSEARCH 2.29.3 | `run-1084` | `3458068` | 5s | 5,143,891-byte centroid FASTA |
@@ -59,7 +60,14 @@ are biologically suitable for a downstream analysis. FLASH2 produced merged
 reads from the governed pair, but overlap correctness and agreement with
 another merger have not been assessed. Skewer exercised its default adapter
 contract on the full read stream; retained-read and adapter-removal thresholds
-have not yet been declared or assessed. FASTX Clipper processed a governed
+have not yet been declared or assessed. AlienTrimmer consumed both digest-pinned
+read streams and the governed UniVec adapter sequence, then emitted 8,756,213-
+and 9,005,796-byte trimmed outputs. Preserved `run-1089` proved that the
+upstream Java CLI returns success for an unknown long option; the production
+wrapper now rejects unsupported long options, and `run-1091` reproduced the
+same output digests while satisfying negative-input acceptance. This verifies
+the paired trimming interface, not adapter-removal sensitivity or a retention
+threshold. FASTX Clipper processed a governed
 uncompressed derivative of the same public FASTQ because its native parser
 rejected the gzip stream in preserved run `run-1080`; this proves the declared
 plain-FASTQ interface and makes the compression limitation explicit. SeqPrep
