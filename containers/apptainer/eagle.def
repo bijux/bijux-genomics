@@ -41,11 +41,12 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends build-essential curl libboost-iostreams-dev libboost-program-options-dev libbz2-dev libcurl4-gnutls-dev libhts-dev liblzma-dev libopenblas-dev patch zlib1g-dev
     curl --fail --location --silent --show-error --output /opt/eagle.tar.gz https://github.com/poruloh/Eagle/archive/dec140eefc0eda3b7f02233a3c02361eaeb8227c.tar.gz
-    echo '85804bfe972186ccb66e602856d6e04044302e5c0dbf9309849b0cde981e3432  /opt/eagle.tar.gz' | sha256sum --check --strict
+    echo '6ea8f16fb17ca92ebec9cf4ae6b16cccc0ab63f1ca445e6a83b4c16bf4e50255  /opt/eagle.tar.gz' | sha256sum --check --strict
     mkdir /opt/eagle
     tar --extract --gzip --file /opt/eagle.tar.gz --directory /opt/eagle --strip-components 1
     patch --directory /opt/eagle --strip 1 < /opt/portable-aligned-memory.patch
     make --directory /opt/eagle/src -j"$(nproc)" BOOST_INSTALL_DIR=/usr HTSLIB_DIR=/usr BLAS_DIR=/usr/lib/$(uname -m)-linux-gnu LBLAS=-lopenblas CFLAGS='-O2 -std=c++0x -fopenmp -Wall'
+    install -d -m 0755 /usr/local/libexec
     install -m 0755 /opt/eagle/src/eagle /usr/local/libexec/eagle
     chmod 0755 /usr/local/bin/eagle
     eagle --version | grep -Fx 'eagle 2.4.1 (commit dec140eefc0eda3b7f02233a3c02361eaeb8227c)'

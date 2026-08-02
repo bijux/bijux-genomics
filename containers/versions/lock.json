@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-02T18:02:17+02:00",
+  "build_date_utc": "2026-08-02T18:11:23+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -438,7 +438,7 @@
       "version": "2.15.0"
     },
     {
-      "entry_sha256": "0c6e59bca4560a97877b7038667554ef308ee4e647c1d764a1241edbe6de566e",
+      "entry_sha256": "e50b58bc0c69db16dea5c2440238f1db880d021530c37a7e83418bff5d4e29db",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -448,7 +448,7 @@
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://github.com/poruloh/Eagle/archive/dec140eefc0eda3b7f02233a3c02361eaeb8227c.tar.gz",
-      "source_sha256": "85804bfe972186ccb66e602856d6e04044302e5c0dbf9309849b0cde981e3432",
+      "source_sha256": "6ea8f16fb17ca92ebec9cf4ae6b16cccc0ab63f1ca445e6a83b4c16bf4e50255",
       "status": "production",
       "tool": "eagle",
       "version": "2.4.1"
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "7eb6c69fdf135ab5fda1b7ce2a8daa573c691b7200ba0e67b34948422945f6ac",
+  "source_sha256": "e71ac1dbeb978756f8612dbc844603615373045183fc6365f6d470c16d9e66e3",
   "version_map_source": "artifacts/containers/version_map.json"
 }

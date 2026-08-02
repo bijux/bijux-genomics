@@ -45,7 +45,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `damageprofiler` | `bijux` | `NOASSERTION` | `https://github.com/Integrative-Transcriptomics/DamageProfiler` | `1.1` | `sha256:c8eb0b80e93d2b994ba2b5c4662713cc8e19214345a9488390796e2cebcef1fa` |
 | `diamond` | `bijux` | `NOASSERTION` | `https://github.com/bbuchfink/diamond` | `2.1.10` | `sha256:a89e4dbd4099a8facf8c244ccc591dc0b20fcb7d026dd469b346a2c7a04839c7` |
 | `dustmasker` | `bijux` | `LicenseRef-NCBI-Public-Domain` | `https://www.ncbi.nlm.nih.gov/books/NBK279690/` | `2.15.0` | `sha256:6918c370524c8d44e028bf491e8f245a895e07c66c77b261ce3b38d6058216e0` |
-| `eagle` | `non-bijux` | `GPL-3.0-or-later` | `https://github.com/poruloh/Eagle/archive/dec140eefc0eda3b7f02233a3c02361eaeb8227c.tar.gz` | `2.4.1` | `sha256:85804bfe972186ccb66e602856d6e04044302e5c0dbf9309849b0cde981e3432` |
+| `eagle` | `non-bijux` | `GPL-3.0-or-later` | `https://github.com/poruloh/Eagle/archive/dec140eefc0eda3b7f02233a3c02361eaeb8227c.tar.gz` | `2.4.1` | `sha256:6ea8f16fb17ca92ebec9cf4ae6b16cccc0ab63f1ca445e6a83b4c16bf4e50255` |
 | `eigensoft` | `non-bijux` | `GPL-2.0` | `https://github.com/DReichLab/EIG` | `8.0.0` | `sha256:fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9` |
 | `fastp` | `bijux` | `NOASSERTION` | `https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz` | `0.23.4` | `sha256:4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b5` |
 | `fastq_scan` | `bijux` | `NOASSERTION` | `https://github.com/rpetit3/fastq-scan` | `1.0.1` | `sha256:d932fa6a8fc8cafc20ac434b653c4324a0aecc75a5deef4f610971c3e368978d` |
