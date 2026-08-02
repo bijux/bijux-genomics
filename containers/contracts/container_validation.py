@@ -270,13 +270,31 @@ def validate_pipeline(
     for index, item in enumerate(inputs):
         if not isinstance(item, dict):
             raise ContractError(f"data input {index} must be a mapping")
-        require_keys(item, {"id", "path", "sha256"}, f"data input {index}")
+        allowed_input_keys = {"id", "kind", "path", "sha256"}
+        unknown_input_keys = set(item).difference(allowed_input_keys)
+        missing_input_keys = {"id", "path", "sha256"}.difference(item)
+        if missing_input_keys:
+            raise ContractError(
+                f"data input {index} is missing required fields: {sorted(missing_input_keys)}"
+            )
+        if unknown_input_keys:
+            raise ContractError(
+                f"data input {index} contains unknown fields: {sorted(unknown_input_keys)}"
+            )
         require_text(item, "id")
+        input_kind = item.get("kind", "data")
+        if input_kind not in {"data", "reference", "database", "upstream_result"}:
+            raise ContractError(f"data input {index} has unsupported kind: {input_kind}")
         declared_input_path = Path(require_text(item, "path"))
         if not declared_input_path.is_absolute():
             raise ContractError(f"data input {index} path must be absolute")
         input_path = resolved(str(declared_input_path))
-        require_under(input_path, GOVERNED_ROOT / "data", f"data.inputs[{index}].path")
+        input_root = (
+            GOVERNED_ROOT / "results"
+            if input_kind == "upstream_result"
+            else GOVERNED_ROOT / "data"
+        )
+        require_under(input_path, input_root, f"data.inputs[{index}].path")
         if not input_path.is_file():
             raise ContractError(f"data input does not exist: {input_path}")
         digest = require_text(item, "sha256")
