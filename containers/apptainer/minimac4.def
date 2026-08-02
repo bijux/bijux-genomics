@@ -45,9 +45,9 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     curl --fail --location --silent --show-error --output /opt/shrinkwrap.tar.gz https://github.com/jonathonl/shrinkwrap/archive/refs/tags/v1.2.0.tar.gz
     curl --fail --location --silent --show-error --output /opt/omp.tar.gz https://github.com/jonathonl/omp/archive/04fcbf28312c54f77fbaab4e968d33147602a9f5.tar.gz
     echo '5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3  /opt/minimac4.tar.gz' | sha256sum --check --strict
-    echo '83ebd88c097799b3bbf771dc8ebf6892797ca7a1f49c2d1665d52cfc1bf9e1de  /opt/savvy.tar.gz' | sha256sum --check --strict
+    echo 'a397097f5416df4c3588893927dcd3ed4a2ef4328e16d1bab9e0b401b442d193  /opt/savvy.tar.gz' | sha256sum --check --strict
     echo 'aa15583079c3dfccb118cf36fae9bc6353920b99d0204a9e349dad027b531286  /opt/shrinkwrap.tar.gz' | sha256sum --check --strict
-    echo '839bcd55953b7711dbfd6716d5bcdf90a82ff4fa2ac384712775528cb1dc8284  /opt/omp.tar.gz' | sha256sum --check --strict
+    echo '56c8390df22d4f417a381bd2156f7d90b9ac1672b524790ccec974f1f271ad16  /opt/omp.tar.gz' | sha256sum --check --strict
     mkdir -p /opt/minimac4 /opt/savvy /opt/shrinkwrap /opt/omp
     tar --extract --gzip --file /opt/minimac4.tar.gz --directory /opt/minimac4 --strip-components=1
     tar --extract --gzip --file /opt/savvy.tar.gz --directory /opt/savvy --strip-components=1
