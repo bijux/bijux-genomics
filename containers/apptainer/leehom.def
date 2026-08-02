@@ -47,6 +47,8 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     tar --extract --gzip --file /opt/leehom-source.tar.gz --directory /opt/leehom --strip-components=1
     tar --extract --gzip --file /opt/libgab-source.tar.gz --directory /opt/leehom/libgab --strip-components=1
     tar --extract --gzip --file /opt/bamtools-source.tar.gz --directory /opt/leehom/bamtools --strip-components=1
+    sed -i '/bool operator()(const MergeItem& lhs, const MergeItem& rhs)/s/)$/) const/' /opt/leehom/bamtools/src/api/internal/bam/BamMultiMerger_p.h
+    grep -F 'bool operator()(const MergeItem& lhs, const MergeItem& rhs) const' /opt/leehom/bamtools/src/api/internal/bam/BamMultiMerger_p.h
     printf '%s\n' '#define VERSION "v1.2.18"' > /opt/leehom/src/version.h
     make --directory /opt/leehom -j"$(nproc)"
     install -m 0755 /opt/leehom/src/leeHom /usr/local/libexec-leehom
