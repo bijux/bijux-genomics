@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "037cf5b1547c988569334381a8f50fccfdb2a57ba1ec7191f1c3786f371255c3",
+  "source_sha256": "b5dfa726f9a81c66657f1692bed920b7b6764fc1ee5b199fb834742517ddc280",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -78,7 +78,7 @@
     {
       "id": "angsd",
       "display_name": "ANGSD",
-      "version": "0.940",
+      "version": "0.941",
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
@@ -88,7 +88,7 @@
       "pinned_commit": "b3099ed756e7aff87d2d1dd4fd30cdf36998380b",
       "apptainer_definition": "containers/apptainer/angsd.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.angsd",
-      "contract_sha256": "87cbf07e634b9779ec7df7c4aa033e0e8474e2cdf4c50e343ddba30320b8d0ad"
+      "contract_sha256": "5155403bd3fb0d2ff9a3a74f921b7f3c3393d0989c07946207a5544ae3b987ab"
     },
     {
       "id": "atropos",
