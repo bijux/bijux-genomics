@@ -564,7 +564,7 @@ date_pinned = "2026-02-16"
 pinned_commit = "575507b0b9c94701bdf67bb592da8ba91ba9639c"
 
 [seqpurge]
-version = "0.1.0"
-source = "https://github.com/bijux/bijux-genomics"
-date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+version = "2026_06"
+source = "https://github.com/imgag/ngs-bits"
+date_pinned = "2026-08-02"
+pinned_commit = "1c7f71b1cf653d1f52c720290e5d5d2fe34adfe1"
