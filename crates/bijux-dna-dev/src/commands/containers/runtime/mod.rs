@@ -150,6 +150,17 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
             if !from_line.contains("@sha256:") {
                 errors.push(format!("{rel}: base image must be digest pinned"));
             }
+            if from_line
+                .split_once("@sha256:")
+                .map(|(repository, _)| {
+                    repository.rsplit('/').next().is_some_and(|image| image.contains(':'))
+                })
+                .unwrap_or(false)
+            {
+                errors.push(format!(
+                    "{rel}: Apptainer base reference must not combine a tag and digest"
+                ));
+            }
             if !allowed_from_re.is_match(from_line) {
                 errors.push(format!(
                     "{rel}: base image repo must follow policy (ubuntu/debian/python/quay.io/*)"
