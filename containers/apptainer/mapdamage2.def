@@ -44,6 +44,9 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     tar --extract --gzip --file /opt/mapdamage2.tar.gz --directory /opt/mapdamage2 --strip-components 1
     python3 -m venv --system-site-packages /opt/mapdamage2-venv
     /opt/mapdamage2-venv/bin/pip install --no-cache-dir --no-build-isolation --no-deps /opt/mapdamage2
+    mapdamage_package=$(/opt/mapdamage2-venv/bin/python -c 'import pathlib, mapdamage; print(pathlib.Path(mapdamage.__file__).parent)')
+    install -d -m 0755 "$mapdamage_package/seqtk"
+    install -m 0755 /opt/mapdamage2/mapdamage/seqtk/seqtk "$mapdamage_package/seqtk/seqtk"
     install -d -m 0755 /usr/local/libexec
     ln -s /opt/mapdamage2-venv/bin/mapDamage /usr/local/libexec/mapDamage
     chmod 0755 /usr/local/bin/mapdamage2
@@ -55,7 +58,9 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 
 %test
     mapdamage2 --version | grep -Fx 'mapdamage2 2.2.2 (commit 55518aa83141d8f885ce10751c22113f674e95de)'
-    mapdamage2 --help 2>&1 | grep -F 'mapdamage2 analyze --bam FILE --reference FASTA --out-dir DIR'
+    mapdamage2 --help >/tmp/mapdamage2-help.txt
+    grep -F 'mapdamage2 analyze --bam FILE --reference FASTA --out-dir DIR' /tmp/mapdamage2-help.txt
+    grep -F 'Usage: mapDamage' /tmp/mapdamage2-help.txt
 
 %help
     mapDamage 2.2.2 built from the checksum-verified upstream release commit.
