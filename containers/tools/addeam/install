@@ -42,6 +42,10 @@ download_archive \
   'c22f20b5bb409c7db9e629300a89884266a03d0b2a60ef613101b477f32abc23' \
   /opt/addeam/submodules/lib/samtools
 
+printf '%s\n' \
+  '#define HTSCODECS_VERSION_TEXT "1.1.1-gb6615cdf542a83badc805d2195bc514220f19ce6"' \
+  > /opt/addeam/submodules/lib/htslib/htscodecs/htscodecs/version.h
+
 patch --directory /opt/addeam/submodules --strip 1 --input /opt/addeam-build/bam2prof-offline-build.patch
 make --directory /opt/addeam/submodules/src --jobs "$(nproc)"
 install -m 0755 /opt/addeam/submodules/src/bam2prof /usr/local/bin/bam2prof
