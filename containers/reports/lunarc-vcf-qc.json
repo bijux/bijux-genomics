@@ -1,0 +1,29 @@
+{
+  "schema_version": "bijux.container.report_index.v1",
+  "report_id": "lunarc-vcf-qc",
+  "site": "lunarc",
+  "corpus": "1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome",
+  "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
+  "claims": {
+    "runtime": "passed",
+    "stage": "passed",
+    "science": "not_assessed",
+    "benchmark": "not_assessed",
+    "release": "not_qualified"
+  },
+  "runs": [
+    {
+      "tool": "plink2",
+      "run_id": "run-1063",
+      "repository_commit": "7950bde13673acbf12afd252b278ed185234274c",
+      "slurm_job_id": "3457946",
+      "status": "passed",
+      "elapsed_seconds": 6,
+      "record_count": 41924,
+      "sample_count": 100,
+      "evidence_sha256": "5f76fbc09392ef7ba0b447a66e3ee6aa5ff09df51245932cb71cee82a055aef2",
+      "accounting_sha256": "c050b610a45964d9da8f1a2f9e981420bd711851a05e38c889bc155b5ada5127",
+      "output_sha256": "b30fdaa5cf4f171a0b39df7848b2de6174cb75a98a6f55d0211c5bb1cc02e103"
+    }
+  ]
+}

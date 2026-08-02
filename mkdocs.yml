@@ -181,6 +181,7 @@ nav:
           - Reference Complexity: 30-operations/container-evidence/REFERENCE_COMPLEXITY.md
           - FASTQ to BAM: 30-operations/container-evidence/FASTQ_BAM.md
           - VCF Phasing: 30-operations/container-evidence/VCF_PHASING.md
+          - VCF Quality Control: 30-operations/container-evidence/VCF_QC.md
           - VCF Relatedness: 30-operations/container-evidence/VCF_RELATEDNESS.md
       - Apptainer QA Matrix: 30-operations/APPTAINER_QA_MATRIX.md
       - Security: 30-operations/SECURITY.md

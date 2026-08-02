@@ -10,4 +10,5 @@ evidence identities.
 - [FASTQ to BAM](FASTQ_BAM.md)
 - [Reference complexity](REFERENCE_COMPLEXITY.md)
 - [VCF phasing](VCF_PHASING.md)
+- [VCF quality control](VCF_QC.md)
 - [VCF relatedness](VCF_RELATEDNESS.md)
