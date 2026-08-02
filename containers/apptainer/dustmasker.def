@@ -42,7 +42,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     apt-get install -y --no-install-recommends curl libgomp1
     curl --fail --location --silent --show-error --output /opt/blast.tar.gz 'https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.15.0/ncbi-blast-2.15.0+-x64-linux.tar.gz'
     curl --fail --location --silent --show-error --output /opt/blast-source.tar.gz 'https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.15.0/ncbi-blast-2.15.0+-src.tar.gz'
-    echo 'f2413f4ff68af27cdef05c8295007ad28c16390f4354f9919f5783959cca8cf6  /opt/blast.tar.gz' | sha256sum --check --strict
+    echo 'c5c0b7029069fe5b9cd5913ae606c7f2aa901db8264ca92cfaf04e4d4768c054  /opt/blast.tar.gz' | sha256sum --check --strict
     echo '6918c370524c8d44e028bf491e8f245a895e07c66c77b261ce3b38d6058216e0  /opt/blast-source.tar.gz' | sha256sum --check --strict
     tar --extract --gzip --file /opt/blast.tar.gz --directory /opt
     install -m 0755 '/opt/ncbi-blast-2.15.0+/bin/dustmasker' /usr/local/libexec-dustmasker

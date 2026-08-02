@@ -24,7 +24,7 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
     apt-get install -y --no-install-recommends curl libgomp1 && \
     curl --fail --location --silent --show-error --output /opt/blast.tar.gz 'https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.15.0/ncbi-blast-2.15.0+-aarch64-linux.tar.gz' && \
     curl --fail --location --silent --show-error --output /opt/blast-source.tar.gz 'https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.15.0/ncbi-blast-2.15.0+-src.tar.gz' && \
-    echo '4685a2d5438d22e1183e65dda9c66aadf5553bd895bf6dadc539b08bc057448d  /opt/blast.tar.gz' | sha256sum --check --strict && \
+    echo '47ce417832e31366ec6835adc0c88a2e164f17e646dd025d7e4ddd263ad8ed51  /opt/blast.tar.gz' | sha256sum --check --strict && \
     echo '6918c370524c8d44e028bf491e8f245a895e07c66c77b261ce3b38d6058216e0  /opt/blast-source.tar.gz' | sha256sum --check --strict && \
     tar --extract --gzip --file /opt/blast.tar.gz --directory /opt && \
     install -m 0755 '/opt/ncbi-blast-2.15.0+/bin/dustmasker' /usr/local/libexec-dustmasker && \
