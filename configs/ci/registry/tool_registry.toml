@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: bd79778636f8fd824ae1c7fa1782aea2f33a986c
+# source_commit: 7f452f4c48b06806c32f7a7ba503f117f94f5b0b
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -56,9 +56,9 @@ version = "1.0.0"
 default_version = "1.0.0"
 upstream = "https://github.com/LouisPwr/AdDeam"
 version_rule = "pinned"
-license = "GPL-3.0-or-later"
+license = "GPL-3.0-only"
 citation = "paper:https://academic.oup.com/bioinformatics/article/doi/10.1093/bioinformatics/btaf407/8205671"
-pinned_commit = "sha256:da5aa6c5791c69cf254f8d9b817392be79a74d6c3384fbcf6c32fcd392b76ae8"
+pinned_commit = "sha256:baf975b48cf42cf7f4c49428182f6faaf4996707984b353b7cccaa80daf7da40"
 pin_strategy = "source_sha256"
 container_ref = "bijuxdna/addeam:1.0.0"
 runtimes = ["docker", "apptainer"]
