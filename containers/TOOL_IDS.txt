@@ -79,7 +79,7 @@ seqprep	experimental
 seqpurge	experimental
 seqtk	production
 shapeit	planned
-shapeit5	experimental
+shapeit5	production
 skewer	production
 sortmerna	production
 spades	experimental
