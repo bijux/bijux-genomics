@@ -2,7 +2,7 @@
 # Copyright (C) 2026 Bijan Mousavi
 #
 # Container definition license: GPL-3.0.
-# The bijux-dna software source code is licensed under Apache-2.0.
+# Bijux Genomics source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4ba6f
 ARG OCI_REVISION=unknown
