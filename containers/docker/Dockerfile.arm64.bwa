@@ -25,6 +25,7 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
       --output /tmp/bwa.tar.gz \
       https://github.com/lh3/bwa/archive/9f26bfcc7780753129b60717ecab0ebba6f04b7c.tar.gz && \
     echo '79763dd6c48e8b01b8e27d99e6e5575d8bbca419e3eed9f3e330af072e63b370  /tmp/bwa.tar.gz' | sha256sum --check --strict && \
+    rm -rf /tmp/bwa-9f26bfcc7780753129b60717ecab0ebba6f04b7c && \
     tar --extract --gzip --file /tmp/bwa.tar.gz --directory /tmp && \
     make --directory /tmp/bwa-9f26bfcc7780753129b60717ecab0ebba6f04b7c \
       CFLAGS='-g -Wall -Wno-unused-function -O2 -fcommon' -j"$(nproc)" && \
