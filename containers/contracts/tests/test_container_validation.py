@@ -97,9 +97,27 @@ class GovernanceContractTests(unittest.TestCase):
                 ],
                 check=True,
             )
-            (repository / "tracked.txt").write_text("governed\n", encoding="utf-8")
+            contract_directory = repository / "containers" / "contracts"
+            contract_directory.mkdir(parents=True)
+            (contract_directory / "tracked.txt").write_text(
+                "governed\n",
+                encoding="utf-8",
+            )
+            unselected_directory = repository / "other"
+            unselected_directory.mkdir()
+            (unselected_directory / "unselected.txt").write_text(
+                "complete tree\n",
+                encoding="utf-8",
+            )
             subprocess.run(
-                ["git", "-C", str(repository), "add", "tracked.txt"],
+                [
+                    "git",
+                    "-C",
+                    str(repository),
+                    "add",
+                    "containers/contracts/tracked.txt",
+                    "other/unselected.txt",
+                ],
                 check=True,
             )
             subprocess.run(
@@ -129,7 +147,19 @@ class GovernanceContractTests(unittest.TestCase):
                 )
 
             self.assertEqual(frozen.name, commit)
-            self.assertEqual((frozen / "tracked.txt").read_text(), "governed\n")
+            self.assertEqual(
+                (frozen / "containers" / "contracts" / "tracked.txt").read_text(),
+                "governed\n",
+            )
+            self.assertFalse((frozen / "other" / "unselected.txt").exists())
+            self.assertEqual(
+                container_validation.git_output(
+                    frozen,
+                    "show",
+                    "HEAD:other/unselected.txt",
+                ),
+                "complete tree",
+            )
             self.assertEqual(
                 container_validation.git_output(frozen, "status", "--porcelain"),
                 "",

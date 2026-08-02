@@ -33,6 +33,7 @@ ACTIVE_SLURM_STATES = {
     "RUNNING",
     "SUSPENDED",
 }
+FROZEN_CHECKOUT_PATHS = ("containers/contracts",)
 
 
 class ContractError(RuntimeError):
@@ -124,6 +125,25 @@ def git_output(repo: Path, *args: str) -> str:
     if completed.returncode != 0:
         raise ContractError(f"git {' '.join(args)} failed: {completed.stderr.strip()}")
     return completed.stdout.strip()
+
+
+def remove_incomplete_worktree(active_repository: Path, target: Path) -> bool:
+    completed = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(active_repository),
+            "worktree",
+            "remove",
+            "--force",
+            "--force",
+            str(target),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return completed.returncode == 0 or not target.exists()
 
 
 def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
@@ -233,6 +253,7 @@ def freeze_repository(commit: str, governance_path: Path) -> Path:
             "worktree",
             "add",
             "--detach",
+            "--no-checkout",
             str(target),
             commit,
         ],
@@ -241,48 +262,41 @@ def freeze_repository(commit: str, governance_path: Path) -> Path:
         text=True,
     )
     if completed.returncode != 0:
-        cleanup = subprocess.run(
-            [
-                "git",
-                "-C",
-                str(active_repository),
-                "worktree",
-                "remove",
-                "--force",
-                "--force",
-                str(target),
-            ],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
+        cleanup_succeeded = remove_incomplete_worktree(active_repository, target)
         cleanup_note = ""
-        if cleanup.returncode != 0 and target.exists():
+        if not cleanup_succeeded:
             cleanup_note = f"; incomplete worktree remains for inspection: {target}"
         raise ContractError(
             f"cannot create frozen worktree: {completed.stderr.strip()}{cleanup_note}"
         )
+    for arguments, label in (
+        (
+            ("sparse-checkout", "set", "--cone", *FROZEN_CHECKOUT_PATHS),
+            "configure frozen sparse checkout",
+        ),
+        (("read-tree", "-mu", "HEAD"), "populate frozen sparse checkout"),
+    ):
+        configured = subprocess.run(
+            ["git", "-C", str(target), *arguments],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if configured.returncode != 0:
+            cleanup_succeeded = remove_incomplete_worktree(active_repository, target)
+            cleanup_note = ""
+            if not cleanup_succeeded:
+                cleanup_note = f"; incomplete worktree remains for inspection: {target}"
+            raise ContractError(
+                f"cannot {label}: {configured.stderr.strip()}{cleanup_note}"
+            )
     try:
         if git_output(target, "rev-parse", "HEAD") != commit:
             raise ContractError("new frozen worktree has the wrong commit")
         if git_output(target, "status", "--porcelain"):
             raise ContractError("new frozen worktree is not clean")
     except ContractError as exc:
-        subprocess.run(
-            [
-                "git",
-                "-C",
-                str(active_repository),
-                "worktree",
-                "remove",
-                "--force",
-                "--force",
-                str(target),
-            ],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
+        remove_incomplete_worktree(active_repository, target)
         raise ContractError(f"cannot verify frozen worktree: {exc}") from exc
     return target
 
