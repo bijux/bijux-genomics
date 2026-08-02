@@ -27,13 +27,11 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export LC_ALL=C
     export TZ=UTC
-    export VERSION_MUSKET=1.1
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-
     sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
     apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
     apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
@@ -48,7 +46,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 #!/bin/sh
 set -eu
 case "${1:-}" in
-  --version) echo "${VERSION_MUSKET}" ;;
+  --version) echo '1.1' ;;
   --help|-h|"") exec /usr/local/libexec-musket --help ;;
   *) exec /usr/local/libexec-musket "$@" ;;
 esac

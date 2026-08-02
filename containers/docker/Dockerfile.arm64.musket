@@ -27,7 +27,7 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
     tar --extract --gzip --file /opt/musket.tar.gz --directory /opt && \
     make --directory /opt/musket-1.1 -j"$(nproc)" && \
     install -m 0755 /opt/musket-1.1/musket /usr/local/libexec-musket && \
-    printf '%s\n' '#!/bin/sh' 'set -eu' 'case "${1:-}" in' '  --version) echo "${VERSION_MUSKET}" ;;' '  --help|-h|"") exec /usr/local/libexec-musket --help ;;' '  *) exec /usr/local/libexec-musket "$@" ;;' 'esac' > /usr/local/bin/musket && \
+    printf '%s\n' '#!/bin/sh' 'set -eu' 'case "${1:-}" in' "  --version) echo '1.1' ;;" '  --help|-h|"") exec /usr/local/libexec-musket --help ;;' '  *) exec /usr/local/libexec-musket "$@" ;;' 'esac' > /usr/local/bin/musket && \
     chmod 0755 /usr/local/bin/musket && \
     musket --version | grep -Fx '1.1'
 
