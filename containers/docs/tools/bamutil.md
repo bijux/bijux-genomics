@@ -12,7 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/bamutil.license.toml](../../licenses/bamutil.license.toml)
 
 - Version: `1.0.15`
-- License: `NOASSERTION`
+- License: `GPL-3.0-or-later`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

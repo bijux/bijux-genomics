@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-03T00:02:18+02:00",
+  "build_date_utc": "2026-08-03T00:17:21+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -118,7 +118,7 @@
       "version": "2.5.2"
     },
     {
-      "entry_sha256": "3cf3d5aa72615fc3eb0b56aab4df37736e32e12bee3702bfed8d94dbfebc809b",
+      "entry_sha256": "01e3bcc6d1a44f22fee271ffea4cd015fd53f846d15a1ba33b951e074fa8d35f",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -128,7 +128,7 @@
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://github.com/statgen/bamUtil",
-      "source_sha256": "",
+      "source_sha256": "24ac4bdb81eded6e33f60dba85ec3d32ebdb06d42f75df775c2632bbfbd8cce9",
       "status": "production",
       "tool": "bamutil",
       "version": "1.0.15"
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "b575910c2167d8a8bf8fd07abc6f47e908d90261c76a4305e3c948da647b4996",
+  "source_sha256": "3e677c41ccc44d5a6eef1558d2a87aac5fb899a9f2cd89164b560dc18bf1dcdb",
   "version_map_source": "artifacts/containers/version_map.json"
 }

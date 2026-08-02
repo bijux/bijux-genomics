@@ -521,6 +521,8 @@ version = "1.0.15"
 source = "https://github.com/statgen/bamUtil"
 date_pinned = "2026-02-16"
 pinned_commit = "3ad3980a3a3a3fc35eca3636b7206676c8303ce6"
+source_sha256 = "24ac4bdb81eded6e33f60dba85ec3d32ebdb06d42f75df775c2632bbfbd8cce9"
+upstream_license = "GPL-3.0-or-later"
 
 [clumpify]
 version = "39.06"
