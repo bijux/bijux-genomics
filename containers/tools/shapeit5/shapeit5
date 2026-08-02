@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+case "${1:-}" in
+    --version)
+        echo 'shapeit5 5.1.1 (commit c34d4db3e99a2f7e23deb727671ae260901a5886)'
+        ;;
+    --help|-h|"")
+        cat <<'EOF'
+SHAPEIT5 5.1.1 commands:
+  phase_common  phase common variants
+  phase_rare    phase rare variants onto a common-variant scaffold
+  ligate        join phased chunks
+  switch        calculate switch and genotype error rates
+  xcftools      convert BCF/VCF and XCF data
+EOF
+        ;;
+    phase_common|phase_rare|ligate|switch|xcftools)
+        command_name="$1"
+        shift
+        exec "/usr/local/libexec/shapeit5/${command_name}" "$@"
+        ;;
+    *)
+        echo "unknown SHAPEIT5 command: $1" >&2
+        exit 2
+        ;;
+esac

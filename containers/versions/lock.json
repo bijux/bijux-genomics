@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-02T18:15:06+02:00",
+  "build_date_utc": "2026-08-02T18:23:24+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -1254,18 +1254,18 @@
       "version": "4.2.2"
     },
     {
-      "entry_sha256": "8dec25755d2ada9f3312fbafa0191673565dc9b2c87e623966bf8401ee9d06c1",
+      "entry_sha256": "305a5a0746d990ace3c9e0d6226abcd7d65245b2f138ea0d1fd7e92b56a27e15",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "c34d4db3e99a2f7e23deb727671ae260901a5886",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://odelaneau.github.io/shapeit5/",
-      "source_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
-      "status": "planned",
+      "source": "https://github.com/odelaneau/shapeit/archive/c34d4db3e99a2f7e23deb727671ae260901a5886.tar.gz",
+      "source_sha256": "dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8",
+      "status": "production",
       "tool": "shapeit5",
       "version": "5.1.1"
     },
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "447289049788704f9011049251c9e833cdb16b2379391884511bbc213665db55",
+  "source_sha256": "2ff01638c8a2485ada0842f97bf25684b69e4912bc583ba4f777e83d3de525d6",
   "version_map_source": "artifacts/containers/version_map.json"
 }

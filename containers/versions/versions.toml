@@ -427,11 +427,12 @@ source_sha256 = "2ee4e369ada23e58d6d3bbb4e0ac7a252b2769f24d63fc635ffbbace0f2b3ce
 
 [shapeit5]
 version = "5.1.1"
-source = "https://odelaneau.github.io/shapeit5/"
-date_pinned = "2026-02-13"
-status = "planned"
+source = "https://github.com/odelaneau/shapeit/archive/c34d4db3e99a2f7e23deb727671ae260901a5886.tar.gz"
+date_pinned = "2026-08-02"
+status = "production"
 upstream_license = "MIT"
-source_sha256 = "1111111111111111111111111111111111111111111111111111111111111111"
+pinned_commit = "c34d4db3e99a2f7e23deb727671ae260901a5886"
+source_sha256 = "dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8"
 
 [skewer]
 version = "0.2.2"
