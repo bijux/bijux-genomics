@@ -197,8 +197,10 @@ pinned_commit = "105a189a102d66d246bd618f07af2b861916272c"
 [flash2]
 version = "2.2.00"
 source = "https://github.com/dstreett/FLASH2"
-date_pinned = "2026-02-12"
+date_pinned = "2026-08-02"
 pinned_commit = "64826f4574b11b3c0ae7460826f30be16f49c3ea"
+source_sha256 = "da5aa6c5791c69cf254f8d9b817392be79a74d6c3384fbcf6c32fcd392b76ae8"
+upstream_license = "GPL-3.0-or-later"
 
 [fqtools]
 version = "2.3"

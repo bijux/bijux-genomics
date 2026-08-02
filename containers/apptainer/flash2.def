@@ -2,62 +2,65 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: flash2
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-# VERSION_SOURCE: containers/versions/versions.toml
+# Version policy: exact upstream commit archive with a governed SHA-256 digest
+# Upstream source: https://github.com/dstreett/FLASH2/tree/2.2.00
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    MAINTAINER Bijan Mousavi <bijan@bijux.io>
-    VERSION FLASH2-v2.2.00
     org.opencontainers.image.source https://github.com/dstreett/FLASH2
-
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.revision 64826f4574b11b3c0ae7460826f30be16f49c3ea
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-3.0-or-later
     org.opencontainers.image.version 2.2.00
     org.opencontainers.image.tool flash2
-    org.opencontainers.image.title flash2
+    org.opencontainers.image.title FLASH2
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+
+%files
+    containers/tools/flash2/flash2 /usr/local/bin/flash2
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential zlib1g-dev git ca-certificates && \
-
-    git clone https://github.com/dstreett/FLASH2.git /opt/FLASH2 && \
-    cd /opt/FLASH2 && \
-    git checkout 64826f4574b11b3c0ae7460826f30be16f49c3ea && \
-    make -j$(nproc) && \
-    cp flash2 /usr/local/bin/flash2 && \
-
-    cd / && \
-    rm -rf /opt/FLASH2 && \
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends zlib1g
+    apt-get install -y --no-install-recommends curl gcc make zlib1g-dev
+    curl --fail --location --proto '=https' --tlsv1.2 --output /opt/flash2.tar.gz https://codeload.github.com/dstreett/FLASH2/tar.gz/64826f4574b11b3c0ae7460826f30be16f49c3ea
+    echo 'da5aa6c5791c69cf254f8d9b817392be79a74d6c3384fbcf6c32fcd392b76ae8  /opt/flash2.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/flash2.tar.gz --directory /opt
+    make --directory /opt/FLASH2-64826f4574b11b3c0ae7460826f30be16f49c3ea -j2
+    install -d -m 0755 /opt/flash2/bin
+    install -m 0755 /opt/FLASH2-64826f4574b11b3c0ae7460826f30be16f49c3ea/flash2 /opt/flash2/bin/flash2-native
+    chmod 0755 /usr/local/bin/flash2
+    flash2 --version | grep -Fx 'flash2 2.2.00'
+    flash2 --help >/dev/null
+    rm -rf /opt/flash2.tar.gz /opt/FLASH2-64826f4574b11b3c0ae7460826f30be16f49c3ea
+    apt-get purge -y --auto-remove curl gcc make zlib1g-dev
+    apt-get clean
     rm -rf /var/lib/apt/lists/*
+
 %runscript
-    if [ $# -eq 0 ]; then
-        exec /usr/local/bin/flash2 --help
-    else
-        exec /usr/local/bin/flash2 "$@"
-    fi
+    exec /usr/local/bin/flash2 "$@"
+
+%test
+    flash2 --version | grep -Fx 'flash2 2.2.00'
+    flash2 --help >/dev/null
+    test -x /opt/flash2/bin/flash2-native
 
 %help
-    This Apptainer image provides FLASH2 version 2.2.00, compiled from source.
-    Run with arguments to execute flash2, or without arguments to display detailed help.
+    FLASH2 2.2.00 built from the exact checksummed upstream commit archive.
