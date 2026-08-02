@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: e828f071e4f058111477d1eb0327bb7a261ba7af
+# source_commit: 69777be752a577d6edb2722658771b4d09eb7587
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -120,15 +120,15 @@ status = "production"
 stage_ids = ["bam.genotyping", "bam.kinship", "bam.sex"]
 bindings = ["bam.genotyping", "bam.kinship", "bam.sex"]
 tool_role = "transform"
-version = "0.940"
-default_version = "0.940"
+version = "0.941"
+default_version = "0.941"
 upstream = "https://github.com/ANGSD/angsd"
 version_rule = "pinned"
 license = "NOASSERTION"
 citation = "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4"
 pinned_commit = "sha256:e3da076b523e7d1fc32450019ff9d99f5cd2db722d260ce236bb775bc163fdc7"
 pin_strategy = "source_sha256"
-container_ref = "bijuxdna/angsd:0.940"
+container_ref = "bijuxdna/angsd:0.941"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "angsd --version"
