@@ -59,3 +59,8 @@ python3 containers/contracts/container_build.py \
   --definition containers/apptainer/TOOL.def \
   --staged-image STAGED_SIF --build-log BUILD_LOG
 ```
+
+For an immutable image built before admission automation was available, use
+`--immutable-image` instead. Admission then verifies that the existing name
+matches its content identity and that any recorded inspection is identical;
+it never renames or overwrites the image.

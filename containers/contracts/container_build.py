@@ -52,8 +52,9 @@ def finalize_image(
     version: str,
     repository_commit: str,
     definition_path: Path,
-    staged_image_path: Path,
+    image_path: Path,
     build_log_path: Path,
+    already_immutable: bool = False,
 ) -> Path:
     governance = load_governance(governance_path)
     if TOOL_PATTERN.fullmatch(tool) is None:
@@ -82,10 +83,14 @@ def finalize_image(
     study_root: Path = governance["study_root"]
     image_root = study_root / "containers" / "apptainer"
     staged_root = image_root / ".building"
-    staged_image_path = staged_image_path.resolve()
-    require_under(staged_image_path, staged_root, "staged image")
-    if not staged_image_path.is_file() or staged_image_path.suffix != ".sif":
-        raise ContractError(f"staged image is not a SIF file: {staged_image_path}")
+    image_path = image_path.resolve()
+    require_under(
+        image_path,
+        image_root if already_immutable else staged_root,
+        "immutable image" if already_immutable else "staged image",
+    )
+    if not image_path.is_file() or image_path.suffix != ".sif":
+        raise ContractError(f"candidate image is not a SIF file: {image_path}")
 
     evidence_root = study_root / "containers" / "evidence"
     build_log_path = build_log_path.resolve()
@@ -96,7 +101,7 @@ def finalize_image(
     if "Build complete:" not in build_log:
         raise ContractError("build log does not record Apptainer completion")
 
-    image_sha256 = sha256_file(staged_image_path)
+    image_sha256 = sha256_file(image_path)
     architecture = governance["apptainer_architecture"]
     final_image_path = image_root / immutable_image_name(
         tool,
@@ -104,11 +109,13 @@ def finalize_image(
         architecture,
         image_sha256,
     )
-    if final_image_path.exists():
+    if already_immutable and image_path != final_image_path:
+        raise ContractError(f"immutable image name does not match its content: {image_path}")
+    if not already_immutable and final_image_path.exists():
         raise ContractError(f"refusing to overwrite immutable image: {final_image_path}")
 
     inspection = subprocess.run(
-        ["apptainer", "inspect", "--json", str(staged_image_path)],
+        ["apptainer", "inspect", "--json", str(image_path)],
         check=False,
         capture_output=True,
         text=True,
@@ -124,12 +131,20 @@ def finalize_image(
     identity = f"{tool}-{version}-{image_sha256[:12]}"
     inspection_path = evidence_root / f"{identity}.inspect.json"
     build_evidence_path = evidence_root / f"{identity}.build.json"
-    for evidence_path in (inspection_path, build_evidence_path):
-        if evidence_path.exists():
-            raise ContractError(f"refusing to overwrite image evidence: {evidence_path}")
+    if build_evidence_path.exists():
+        raise ContractError(f"refusing to overwrite image evidence: {build_evidence_path}")
+    if inspection_path.exists():
+        try:
+            recorded_inspection = json.loads(inspection_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise ContractError(f"recorded Apptainer inspection is invalid: {exc}") from exc
+        if recorded_inspection != inspection_record:
+            raise ContractError("recorded inspection differs from the candidate image")
 
-    staged_image_path.replace(final_image_path)
-    write_json(inspection_path, inspection_record)
+    if not already_immutable:
+        image_path.replace(final_image_path)
+    if not inspection_path.exists():
+        write_json(inspection_path, inspection_record)
     record = {
         "schema_version": "bijux.container.build_evidence.v1",
         "status": "passed",
@@ -177,7 +192,9 @@ def parser() -> argparse.ArgumentParser:
     root.add_argument("--version", required=True)
     root.add_argument("--repository-commit", required=True)
     root.add_argument("--definition", type=Path, required=True)
-    root.add_argument("--staged-image", type=Path, required=True)
+    image = root.add_mutually_exclusive_group(required=True)
+    image.add_argument("--staged-image", type=Path)
+    image.add_argument("--immutable-image", type=Path)
     root.add_argument("--build-log", type=Path, required=True)
     return root
 
@@ -191,8 +208,9 @@ def main() -> int:
             args.version,
             args.repository_commit,
             args.definition,
-            args.staged_image,
+            args.staged_image or args.immutable_image,
             args.build_log,
+            already_immutable=args.immutable_image is not None,
         )
         print(admitted)
         return 0
