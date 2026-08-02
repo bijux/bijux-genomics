@@ -28,6 +28,9 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export LC_ALL=C
     export TZ=UTC
 
+%files
+    containers/tools/leehom/leehom /usr/local/bin/leehom
+
 %post
     set -eux
     umask 022
@@ -54,7 +57,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     printf '%s\n' '#define VERSION "v1.2.18"' > /opt/leehom/src/version.h
     make --directory /opt/leehom -j"$(nproc)"
     install -m 0755 /opt/leehom/src/leeHom /usr/local/libexec-leehom
-    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'exec /usr/local/libexec-leehom "$@"' > /usr/local/bin/leehom
     chmod 0755 /usr/local/bin/leehom
     ln -s /usr/local/bin/leehom /usr/local/bin/leeHom
     leehom --version | grep -F 'leeHom version: v1.2.18'

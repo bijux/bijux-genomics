@@ -61,8 +61,8 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
     rm -rf /var/lib/apt/lists/* && \
     useradd --system --uid 65532 --home-dir /work --create-home bijux
 COPY --from=builder /usr/local/libexec-leehom /usr/local/libexec-leehom
-RUN printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'exec /usr/local/libexec-leehom "$@"' > /usr/local/bin/leehom && \
-    chmod 0755 /usr/local/bin/leehom && \
+COPY containers/tools/leehom/leehom /usr/local/bin/leehom
+RUN chmod 0755 /usr/local/bin/leehom && \
     ln -s /usr/local/bin/leehom /usr/local/bin/leeHom && \
     leehom --version | grep -F 'leeHom version: v1.2.18'
 
