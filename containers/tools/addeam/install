@@ -47,7 +47,11 @@ printf '%s\n' \
   > /opt/addeam/submodules/lib/htslib/htscodecs/htscodecs/version.h
 
 patch --directory /opt/addeam/submodules --strip 1 --input /opt/addeam-build/bam2prof-offline-build.patch
-make --directory /opt/addeam/submodules/src --jobs "$(nproc)"
+# bam2prof's native graph asks for HTSlib directly and through Samtools.  Its
+# Makefiles do not serialize those two paths, so a parallel build can have two
+# archivers mutate libhts.a at once.  Keep this upstream boundary serial while
+# retaining the immutable source graph.
+make --directory /opt/addeam/submodules/src --jobs 1
 install -m 0755 /opt/addeam/submodules/src/bam2prof /usr/local/bin/bam2prof
 install -m 0755 /opt/addeam/submodules/src/diffprof /usr/local/bin/diffprof
 
