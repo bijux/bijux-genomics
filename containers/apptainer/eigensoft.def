@@ -43,6 +43,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     curl --fail --location --proto '=https' --tlsv1.2 --output /opt/eigensoft.tar.gz https://github.com/DReichLab/EIG/archive/09ed563fdec05648a66c206ba1fc37a198395cd7.tar.gz
     echo '83207df20d658142c8d3d93db8d2d668b06812a90cc474454d18b62b973ca4c2  /opt/eigensoft.tar.gz' | sha256sum -c -
     tar --extract --gzip --file /opt/eigensoft.tar.gz --directory /opt
+    sed -i 's/^# override LDLIBS += -llapacke$/override LDLIBS += -llapacke/' /opt/EIG-09ed563fdec05648a66c206ba1fc37a198395cd7/src/Makefile
     make --directory /opt/EIG-09ed563fdec05648a66c206ba1fc37a198395cd7/src eigensrc/smartpca OPTIMIZE=1
     install -d -m 0755 /opt/eigensoft/bin
     install -m 0755 /opt/EIG-09ed563fdec05648a66c206ba1fc37a198395cd7/src/eigensrc/smartpca /opt/eigensoft/bin/smartpca-native
