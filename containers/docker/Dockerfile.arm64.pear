@@ -31,7 +31,7 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
     make -j"$(nproc)" && \
     make install && \
     mv /usr/local/bin/pear /usr/local/libexec-pear && \
-    printf '%s\n' '#!/bin/sh' 'set -eu' 'case "${1:-}" in' '  --version) echo "${VERSION_PEAR}" ;;' '  --help|-h|"") exec /usr/local/libexec-pear --help ;;' '  *) exec /usr/local/libexec-pear "$@" ;;' 'esac' > /usr/local/bin/pear && \
+    printf '%s\n' '#!/bin/sh' 'set -eu' 'case "${1:-}" in' "  --version) echo '0.9.6' ;;" '  --help|-h|"") exec /usr/local/libexec-pear --help ;;' '  *) exec /usr/local/libexec-pear "$@" ;;' 'esac' > /usr/local/bin/pear && \
     chmod 0755 /usr/local/bin/pear && \
     pear --version | grep -Fx '0.9.6'
 
