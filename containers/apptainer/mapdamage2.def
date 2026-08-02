@@ -28,6 +28,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 
 %files
     containers/tools/mapdamage2/mapdamage2 /usr/local/bin/mapdamage2
+    containers/tools/mapdamage2/patches/skip-r-library-check-without-r.patch /opt/skip-r-library-check-without-r.patch
 
 %post
     set -eux
@@ -42,6 +43,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     echo 'a7dd300489674eeb72e28c5e99627f73840dd7a74c6efce76c1eaee8e7898c54  /opt/mapdamage2.tar.gz' | sha256sum --check --strict
     mkdir /opt/mapdamage2
     tar --extract --gzip --file /opt/mapdamage2.tar.gz --directory /opt/mapdamage2 --strip-components 1
+    patch --directory=/opt/mapdamage2 --strip=1 --input=/opt/skip-r-library-check-without-r.patch
     python3 -m venv --system-site-packages /opt/mapdamage2-venv
     /opt/mapdamage2-venv/bin/pip install --no-cache-dir --no-build-isolation --no-deps /opt/mapdamage2
     mapdamage_package=$(/opt/mapdamage2-venv/bin/python -c 'import pathlib, mapdamage; print(pathlib.Path(mapdamage.__file__).parent)')
@@ -51,7 +53,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     ln -s /opt/mapdamage2-venv/bin/mapDamage /usr/local/libexec/mapDamage
     chmod 0755 /usr/local/bin/mapdamage2
     mapdamage2 --version | grep -Fx 'mapdamage2 2.2.2 (commit 55518aa83141d8f885ce10751c22113f674e95de)'
-    rm -rf /opt/mapdamage2 /opt/mapdamage2.tar.gz
+    rm -rf /opt/mapdamage2 /opt/mapdamage2.tar.gz /opt/skip-r-library-check-without-r.patch
     rm -rf /var/lib/apt/lists/*
 %runscript
     exec /usr/local/bin/mapdamage2 "$@"

@@ -47,8 +47,8 @@ class GovernanceContractTests(unittest.TestCase):
                 resolved = container_validation.validate_governance(self.governance(root))
 
         self.assertEqual(resolved["site_id"], "test-cluster")
-        self.assertEqual(resolved["study_root"], root / "study")
-        self.assertEqual(resolved["active_repository"], root / "active-repository")
+        self.assertEqual(resolved["study_root"], (root / "study").resolve())
+        self.assertEqual(resolved["active_repository"], (root / "active-repository").resolve())
         self.assertEqual(resolved["slurm_account"], "science")
         self.assertEqual(resolved["slurm_partitions"], ["compute"])
 
