@@ -43,7 +43,7 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
     cd /opt/ngs-bits-source/src/build/cppXML && qmake6 ../../cppXML/cppXML.pro 'CONFIG-=debug' 'CONFIG+=release' && make -j"$(nproc)" && \
     cd /opt/ngs-bits-source/src/build/cppNGS && qmake6 ../../cppNGS/cppNGS.pro 'CONFIG-=debug' 'CONFIG+=release' && make -j"$(nproc)" && \
     cd /opt/ngs-bits-source/src/build/SeqPurge && qmake6 ../../SeqPurge/SeqPurge.pro 'CONFIG-=debug' 'CONFIG+=release' && make -j"$(nproc)" && \
-    install -m 0755 /opt/ngs-bits-source/bin/SeqPurge /usr/local/bin/seqpurge && \
+    install -m 0755 /opt/ngs-bits-source/bin/SeqPurge /usr/local/libexec-seqpurge && \
     install -m 0755 /opt/ngs-bits-source/bin/libcppCORE.so* /usr/local/lib/ && \
     install -m 0755 /opt/ngs-bits-source/bin/libcppXML.so* /usr/local/lib/ && \
     install -m 0755 /opt/ngs-bits-source/bin/libcppNGS.so* /usr/local/lib/
@@ -69,9 +69,10 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
     apt-get install -y --no-install-recommends libhts3 libqt6charts6 libqt6core6 libqt6gui6 libqt6network6 libqt6widgets6 libxml2 zlib1g && \
     rm -rf /var/lib/apt/lists/* && \
     useradd --system --uid 65532 --home-dir /work --create-home bijux
-COPY --from=builder /usr/local/bin/seqpurge /usr/local/bin/seqpurge
+COPY --from=builder /usr/local/libexec-seqpurge /usr/local/libexec-seqpurge
 COPY --from=builder /usr/local/lib/ /usr/local/lib/
-RUN ldconfig && seqpurge --version | grep -F '2026_06'
+COPY containers/tools/seqpurge/seqpurge /usr/local/bin/seqpurge
+RUN chmod 0755 /usr/local/bin/seqpurge && ldconfig && seqpurge --version | grep -F '2026_06'
 
 USER 65532:65532
 WORKDIR /work

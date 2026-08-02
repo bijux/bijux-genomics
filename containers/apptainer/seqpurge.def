@@ -30,6 +30,9 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export LC_ALL=C
     export TZ=UTC
 
+%files
+    containers/tools/seqpurge/seqpurge /usr/local/bin/seqpurge
+
 %post
     set -eux
     umask 022
@@ -69,10 +72,11 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     cd /opt/ngs-bits-source/src/build/SeqPurge
     qmake6 ../../SeqPurge/SeqPurge.pro 'CONFIG-=debug' 'CONFIG+=release'
     make -j"$(nproc)"
-    install -m 0755 /opt/ngs-bits-source/bin/SeqPurge /usr/local/bin/seqpurge
+    install -m 0755 /opt/ngs-bits-source/bin/SeqPurge /usr/local/libexec-seqpurge
     install -m 0755 /opt/ngs-bits-source/bin/libcppCORE.so* /usr/local/lib/
     install -m 0755 /opt/ngs-bits-source/bin/libcppXML.so* /usr/local/lib/
     install -m 0755 /opt/ngs-bits-source/bin/libcppNGS.so* /usr/local/lib/
+    chmod 0755 /usr/local/bin/seqpurge
     ldconfig
     seqpurge --version | grep -F '2026_06'
     rm -rf /opt/ngs-bits-source
