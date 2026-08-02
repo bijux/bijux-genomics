@@ -26,13 +26,19 @@ pub(crate) fn encode_threshold_map(map: &BTreeMap<String, ThresholdBand>) -> Str
 
 pub(crate) fn generated_header(source: &str, source_commit: &str) -> String {
     format!(
-        "# GENERATED - DO NOT EDIT - source: {source}\n# source_commit: {source_commit}\n# domain_schema_version: bijux.domain.v1\n# Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs\n# schema_version = 1\n# owner = bijux-dna-domain-compiler\n# purpose = Contract config generated from domain/** sources\n# authority = bijux-dna-domain-compiler\n# stability = stable\n# last_updated = 2026-02-14\n\n"
+        "# GENERATED - DO NOT EDIT - source: {source}\n# source_commit: {source_commit}\n# domain_schema_version: bijux.domain.v1\n# Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs\n# schema_version = 1\n# owner = bijux-dna-domain-compiler\n# purpose = Contract config generated from {source}\n# authority = bijux-dna-domain-compiler\n# stability = stable\n# last_updated = 2026-02-14\n\n"
     )
+}
+
+pub(crate) fn normalize_generated_text(value: &str) -> String {
+    let mut normalized = value.trim_end().to_string();
+    normalized.push('\n');
+    normalized
 }
 
 #[cfg(test)]
 mod tests {
-    use super::toml_array;
+    use super::{normalize_generated_text, toml_array};
 
     #[test]
     fn toml_array_escapes_string_values() {
@@ -47,5 +53,10 @@ mod tests {
             toml_array(&values),
             r#"["plain", "quote\"value", "path\\value", "line\nvalue"]"#
         );
+    }
+
+    #[test]
+    fn generated_text_has_one_trailing_newline() {
+        assert_eq!(normalize_generated_text("governed\n\n\n"), "governed\n");
     }
 }

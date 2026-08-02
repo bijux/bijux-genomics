@@ -136,14 +136,6 @@ fn build_tool_row(tool: DomainTool, resolved_domain: &str) -> ToolRow {
         version_rule,
         license: tool.license,
         citation: tool.citation,
-        container_image: tool
-            .container
-            .as_ref()
-            .map_or_else(String::new, |container| container.image.clone()),
-        container_digest: tool
-            .container
-            .as_ref()
-            .map_or_else(String::new, |container| container.digest.clone()),
         expected_version_regex: default_version_regex(&tool_id).to_string(),
         healthcheck_cmd: default_healthcheck_cmd(&tool_id, &help_cmd_value),
     }
@@ -188,8 +180,6 @@ fn merge_tool_rows(existing: &mut ToolRow, candidate: ToolRow) -> Result<()> {
     {
         existing.metrics_schema = candidate.metrics_schema;
     }
-    merge_optional_field(&mut existing.container_image, &candidate.container_image);
-    merge_optional_field(&mut existing.container_digest, &candidate.container_digest);
     merge_comparability_notes(existing, &candidate.comparability_notes);
 
     existing.tool_role = infer_tool_role(&existing.bindings);
@@ -214,10 +204,4 @@ fn merge_comparability_notes(existing: &mut ToolRow, candidate_notes: &str) {
     existing.comparability_notes =
         "Comparable only within the same governed stage contract and emitted artifact set."
             .to_string();
-}
-
-fn merge_optional_field(existing: &mut String, candidate: &str) {
-    if existing.is_empty() && !candidate.is_empty() {
-        *existing = candidate.to_string();
-    }
 }

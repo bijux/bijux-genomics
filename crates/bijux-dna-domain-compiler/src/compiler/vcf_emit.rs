@@ -48,44 +48,19 @@ fn vcf_registry_stage_ids(index: &DomainIndex, tool: &DomainToolLoose) -> Vec<St
     stage_ids
 }
 
-fn vcf_apptainer_def(tool: &DomainToolLoose) -> String {
-    let shared = format!("containers/apptainer/{}.def", tool.tool_id);
-    if Path::new(&shared).exists() {
-        return shared;
-    }
-    if let Some(container) = tool.container.as_ref() {
-        let image = container.image.trim();
-        if Path::new(image)
-            .extension()
-            .and_then(|ext| ext.to_str())
-            .is_some_and(|ext| ext.eq_ignore_ascii_case("def"))
-            && Path::new(image).exists()
-        {
-            return image.to_string();
-        }
-    }
-    shared
-}
-
-fn vcf_dockerfile(tool: &DomainToolLoose) -> String {
-    format!("containers/docker/Dockerfile.arm64.{}", tool.tool_id)
-}
-
-fn vcf_expected_version_regex(expected_bin: &str) -> String {
-    format!("{expected_bin} [0-9]+([.][0-9]+)?")
-}
-
 /// # Errors
 /// Returns an error when VCF post-processing domain views cannot be read or written.
 pub(super) fn write_vcf_generated_views(
     domain_dir: &Path,
     ci_registry_dir: &Path,
     ci_stages_dir: &Path,
+    container_catalog: &BTreeMap<String, ContainerToolContract>,
     source_commit: &str,
 ) -> Result<()> {
     let tool_registry_vcf_path = ci_registry_dir.join("tool_registry_vcf.toml");
     let stages_vcf_path = ci_stages_dir.join("stages_vcf.toml");
-    let vcf_header = generated_header("domain/vcf/**", source_commit);
+    let vcf_header =
+        generated_header("domain/vcf/** + containers/contracts/catalog.toml", source_commit);
     let vcf_index_path = domain_dir.join("vcf").join("index.yaml");
     let vcf_index: DomainIndex = read_yaml(&vcf_index_path)?;
 
@@ -153,65 +128,72 @@ pub(super) fn write_vcf_generated_views(
         if tool.scope != "post_vcf" || tool.status == "out_of_scope" {
             continue;
         }
+        let contract = container_catalog.get(&tool.tool_id).ok_or_else(|| {
+            anyhow!(
+                "VCF domain tool `{}` is absent from containers/contracts/catalog.toml",
+                tool.tool_id
+            )
+        })?;
         let stage_ids = vcf_registry_stage_ids(&vcf_index, &tool);
         let _ = writeln!(tools_vcf_toml, "[[tools]]");
         let _ = writeln!(tools_vcf_toml, "id = \"{}\"", tool.tool_id);
         let _ = writeln!(tools_vcf_toml, "tool_id = \"{}\"", tool.tool_id);
         let _ = writeln!(tools_vcf_toml, "domain = \"vcf\"");
-        let vcf_status = if tool.status == "supported" { "production" } else { "planned" };
+        let vcf_status = match contract.support_disposition.as_str() {
+            "unsupported" | "retired" | "excluded" => contract.support_disposition.as_str(),
+            _ if tool.status == "supported" => "production",
+            _ => "planned",
+        };
         let _ = writeln!(tools_vcf_toml, "status = \"{vcf_status}\"");
         let _ = writeln!(tools_vcf_toml, "stage_ids = {}", toml_array(&stage_ids));
-        let _ = writeln!(tools_vcf_toml, "version = \"{}\"", tool.default_version);
-        let _ = writeln!(tools_vcf_toml, "default_version = \"{}\"", tool.default_version);
-        let _ = writeln!(tools_vcf_toml, "upstream = \"{}\"", tool.upstream);
+        let _ = writeln!(tools_vcf_toml, "version = \"{}\"", contract.version);
+        let _ = writeln!(tools_vcf_toml, "default_version = \"{}\"", contract.version);
+        let _ = writeln!(tools_vcf_toml, "upstream = \"{}\"", contract.upstream);
         let _ = writeln!(tools_vcf_toml, "version_rule = \"pinned\"");
-        let _ = writeln!(tools_vcf_toml, "license = \"{}\"", tool.license);
+        let _ = writeln!(tools_vcf_toml, "license = \"{}\"", contract.license);
         let _ = writeln!(tools_vcf_toml, "citation = \"{}\"", tool.citation);
-        let digest = if let Some(container) = tool.container.as_ref() {
-            container.digest.clone()
-        } else {
-            String::new()
-        };
-        let image = if let Some(container) = tool.container.as_ref() {
-            container.image.clone()
-        } else {
-            String::new()
-        };
-        let _ = writeln!(tools_vcf_toml, "pinned_commit = \"{digest}\"");
-        let _ = writeln!(tools_vcf_toml, "pin_strategy = \"{}\"", tool.pin_strategy);
-        let _ = writeln!(tools_vcf_toml, "container_ref = \"{image}@{digest}\"");
-        let _ = writeln!(tools_vcf_toml, "runtimes = [\"docker\", \"apptainer\"]");
-        let _ = writeln!(tools_vcf_toml, "container = true");
-        let _ = writeln!(tools_vcf_toml, "version_cmd = \"{}\"", tool.version_cmd);
-        let _ = writeln!(tools_vcf_toml, "help_cmd = \"{}\"", tool.help_cmd);
-        let _ = writeln!(tools_vcf_toml, "smoke_version_cmd = \"{}\"", tool.version_cmd);
-        let _ = writeln!(tools_vcf_toml, "smoke_help_cmd = \"{}\"", tool.help_cmd);
-        let expected_bin =
-            tool.version_cmd.split_whitespace().next().unwrap_or(tool.tool_id.as_str());
+        let _ = writeln!(tools_vcf_toml, "pinned_commit = \"{}\"", contract.source_identity());
+        let _ = writeln!(tools_vcf_toml, "pin_strategy = \"{}\"", contract.source_pin_strategy());
+        let runtimes = contract.runtimes();
+        let container_ref = contract.container_ref();
+        let _ = writeln!(tools_vcf_toml, "container_ref = \"{container_ref}\"");
+        let _ = writeln!(tools_vcf_toml, "runtimes = {}", toml_array(&runtimes));
+        let _ = writeln!(tools_vcf_toml, "container = {}", !runtimes.is_empty());
+        let _ = writeln!(tools_vcf_toml, "version_cmd = \"{}\"", contract.version_command);
+        let _ = writeln!(tools_vcf_toml, "help_cmd = \"{}\"", contract.help_command);
+        let _ = writeln!(tools_vcf_toml, "smoke_version_cmd = \"{}\"", contract.version_command);
+        let _ = writeln!(tools_vcf_toml, "smoke_help_cmd = \"{}\"", contract.help_command);
         let _ = writeln!(
             tools_vcf_toml,
             "expected_version_regex = \"{}\"",
-            vcf_expected_version_regex(expected_bin)
+            contract.expected_version_regex
         );
-        let _ = writeln!(tools_vcf_toml, "healthcheck_cmd = \"{}\"", tool.help_cmd);
-        let _ = writeln!(tools_vcf_toml, "expected_bin = \"{}\"", expected_bin);
+        let _ = writeln!(tools_vcf_toml, "healthcheck_cmd = \"{}\"", contract.help_command);
+        let _ = writeln!(tools_vcf_toml, "expected_bin = \"{}\"", contract.expected_bin);
         let _ = writeln!(
             tools_vcf_toml,
             "expected_artifacts = {}",
             toml_array(&tool.expected_artifacts)
         );
         let _ = writeln!(tools_vcf_toml, "metrics_schema = \"{}\"", tool.metrics_schema_id);
+        let comparability_notes = if contract.support_reason.is_empty() {
+            &tool.comparability_notes
+        } else {
+            &contract.support_reason
+        };
         let _ = writeln!(
             tools_vcf_toml,
             "comparability_notes = \"{}\"",
-            tool.comparability_notes.replace('"', "'")
+            comparability_notes.replace('"', "'")
         );
-        let _ = writeln!(tools_vcf_toml, "dockerfile = \"{}\"", vcf_dockerfile(&tool));
-        let _ = writeln!(tools_vcf_toml, "apptainer_def = \"{}\"", vcf_apptainer_def(&tool));
-        let _ = writeln!(tools_vcf_toml, "require_labels = true\n");
+        let _ = writeln!(tools_vcf_toml, "dockerfile = \"{}\"", contract.dockerfile);
+        let _ = writeln!(tools_vcf_toml, "apptainer_def = \"{}\"", contract.apptainer_definition);
+        let _ = writeln!(tools_vcf_toml, "require_labels = {}\n", !runtimes.is_empty());
     }
     tools_vcf_toml.push_str(&registry_stage_toml);
 
+    let tools_vcf_toml = normalize_generated_text(&tools_vcf_toml);
+    let stages_vcf_toml = normalize_generated_text(&stages_vcf_toml);
     write_string(&tool_registry_vcf_path, &tools_vcf_toml)
         .with_context(|| format!("write {}", tool_registry_vcf_path.display()))?;
     write_string(&stages_vcf_path, &stages_vcf_toml)

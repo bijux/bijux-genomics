@@ -94,6 +94,18 @@ pub(crate) fn domain_content_hash(domain_dir: &Path) -> Result<String> {
     Ok(hex.chars().take(40).collect())
 }
 
+pub(crate) fn generation_content_hash(domain_dir: &Path, catalog_path: &Path) -> Result<String> {
+    let domain_hash = domain_content_hash(domain_dir)?;
+    let catalog_hash = bijux_dna_infra::hash_file_sha256(catalog_path)
+        .with_context(|| format!("hash {}", catalog_path.display()))?;
+    let mut hasher = Sha256::new();
+    hasher.update(domain_hash.as_bytes());
+    hasher.update([0]);
+    hasher.update(catalog_hash.as_bytes());
+    let hex = sha256_hex(hasher.finalize());
+    Ok(hex.chars().take(40).collect())
+}
+
 fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
     let bytes = digest.as_ref();
     let mut hex = String::with_capacity(bytes.len() * 2);
