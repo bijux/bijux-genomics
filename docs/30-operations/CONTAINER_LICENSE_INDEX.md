@@ -53,7 +53,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `fastqc` | `bijux` | `GPL-3.0-only` | `https://github.com/s-andrews/FastQC` | `0.12.1` | `sha256:5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa7` |
 | `fastqvalidator` | `bijux` | `GPL-3.0-or-later` | `https://github.com/statgen/fastQValidator` | `0.1.1` | `sha256:0172c7e86bdb33dbf71900a3a9b2a6aae4ec9f6918f934a7c23a9d599e12181c` |
 | `fastuniq` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/fastuniq/` | `1.1` | `sha256:9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae` |
-| `fastx_clipper` | `bijux` | `NOASSERTION` | `https://github.com/agordon/fastx_toolkit` | `0.0.14` | `sha256:f29b52706133c33c925d6a472d6d7b39a705aba26001074bb1d87446f3ecfcd5` |
+| `fastx_clipper` | `bijux` | `AGPL-3.0-or-later` | `https://github.com/agordon/fastx_toolkit` | `0.0.14` | `sha256:9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806` |
 | `flash2` | `bijux` | `GPL-3.0-or-later` | `https://github.com/dstreett/FLASH2` | `2.2.00` | `sha256:da5aa6c5791c69cf254f8d9b817392be79a74d6c3384fbcf6c32fcd392b76ae8` |
 | `fqtools` | `bijux` | `NOASSERTION` | `https://github.com/alastair-droop/fqtools` | `2.3` | `sha256:af3aa3e7d5db3a503cab3cea73c58ca19ea2108f8ebc54f50283fe733028eec2` |
 | `gatk` | `bijux` | `NOASSERTION` | `https://github.com/broadinstitute/gatk` | `4.6.2.0` | `sha256:343d7b6ed18123e559b7d4277c31cbcbd1c6ce68a2285175bf9a400b1e613bc9` |

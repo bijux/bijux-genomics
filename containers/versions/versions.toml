@@ -191,8 +191,10 @@ upstream_license = "GPL-3.0-or-later"
 [fastx_clipper]
 version = "0.0.14"
 source = "https://github.com/agordon/fastx_toolkit"
-date_pinned = "2026-02-12"
+date_pinned = "2026-08-02"
 pinned_commit = "105a189a102d66d246bd618f07af2b861916272c"
+source_sha256 = "9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806"
+upstream_license = "AGPL-3.0-or-later"
 
 [flash2]
 version = "2.2.00"
