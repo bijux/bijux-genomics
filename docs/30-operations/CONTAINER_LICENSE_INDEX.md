@@ -23,7 +23,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `alientrimmer` | `bijux` | `GPL-3.0` | `https://gitlab.pasteur.fr/GIPhy/AlienTrimmer` | `3.2` | `sha256:5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730` |
 | `angsd` | `bijux` | `NOASSERTION` | `https://github.com/ANGSD/angsd` | `0.940` | `sha256:c0c7f752a60e08102b81ef2955038ac89731e10e5828046afbe1cbcd4978e51d` |
 | `atropos` | `bijux` | `NOASSERTION` | `https://github.com/jdidion/atropos` | `1.1.31` | `sha256:b36f26cbc0749ea5fde0b0fccc8a048c178dc1481f5acac2c04c0bd362b19d25` |
-| `authenticct` | `bijux` | `NOASSERTION` | `https://github.com/StephanePeyregne/AuthentiCT` | `1.0.0` | `sha256:1efe53ab7cd0d6d899899d506c25d86f8ab3d397f5754a992584ffc38ea8a6d0` |
+| `authenticct` | `bijux` | `GPL-3.0-only` | `https://github.com/StephanePeyregne/AuthentiCT` | `1.0.0` | `sha256:179b79fa0e23ed18c2cc9338055a691575addc513a6e3765d912bb728c249834` |
 | `bamtools` | `bijux` | `MIT` | `https://github.com/pezmaster31/bamtools` | `2.5.2` | `sha256:4d8b84bd07b673d0ed41031348f10ca98dd6fa6a4460f9b9668d6f1d4084dfc8` |
 | `bamutil` | `bijux` | `GPL-3.0-or-later` | `https://github.com/statgen/bamUtil` | `1.0.15` | `sha256:24ac4bdb81eded6e33f60dba85ec3d32ebdb06d42f75df775c2632bbfbd8cce9` |
 | `bayeshammer` | `bijux` | `NOASSERTION` | `https://github.com/ablab/spades` | `3.15.5` | `sha256:5e25657c6a1de41018d361815aeec0c8c4a6cc1966d9d64af121fec88fbb3e8c` |

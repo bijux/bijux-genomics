@@ -37,6 +37,8 @@ version = "1.0.0"
 source = "https://github.com/StephanePeyregne/AuthentiCT"
 date_pinned = "2026-02-12"
 pinned_commit = "13ba26ef82f5a3febd74401f65fb8c1776aa16b2"
+source_sha256 = "179b79fa0e23ed18c2cc9338055a691575addc513a6e3765d912bb728c249834"
+upstream_license = "GPL-3.0-only"
 
 [bamtools]
 version = "2.5.2"

@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "3d145c4496651d62f1f620cc0825825b14bf5be3b091b93c88897c00cf880b49",
+  "source_sha256": "20d3167d7f99dbb156fdd6d07d49d3759c1752fdddb92112f746eff2efde9c83",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -113,12 +113,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/StephanePeyregne/AuthentiCT",
-      "license": "BSD-2-Clause",
-      "source_sha256": "6a1039a99422340cbfb3c723f0caa414e91e7d36b963075e59f033ac59580c0e",
+      "license": "GPL-3.0-only",
+      "source_sha256": "179b79fa0e23ed18c2cc9338055a691575addc513a6e3765d912bb728c249834",
       "pinned_commit": "13ba26ef82f5a3febd74401f65fb8c1776aa16b2",
       "apptainer_definition": "containers/apptainer/authenticct.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.authenticct",
-      "contract_sha256": "891ad93f93d6e122265e8f86eb7c5b3176fcb04d511c580bb0ec19b3a9e3d75e"
+      "contract_sha256": "9e86d052f2b93c7ec43cf8922127b1d6e79cdb91ca12c1310b4bba29241326d8"
     },
     {
       "id": "bamtools",
@@ -1343,12 +1343,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/torognes/vsearch",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "BSD-2-Clause",
+      "source_sha256": "6a1039a99422340cbfb3c723f0caa414e91e7d36b963075e59f033ac59580c0e",
       "pinned_commit": "bbd17a05faaf7401176e36b7947874c1e5152cee",
       "apptainer_definition": "containers/apptainer/vsearch.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.vsearch",
-      "contract_sha256": "aa66b1707e2c7e1138eed1baf84daf02aa7789c84a73cd0bade5289a8823ed29"
+      "contract_sha256": "cc2a31a1f889b945b9214a48b31626377ee7f8867f85a37cf2981e95261c1fea"
     },
     {
       "id": "yleaf",
