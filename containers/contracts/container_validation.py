@@ -26,6 +26,15 @@ SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 GOVERNED_ROOT = Path("/home/bijan/lu2024-12-24/Dardel/STUDY").resolve()
 ACTIVE_SOURCE_ROOT = Path("/home/bijan/bijux/bijux-genomics").resolve()
 FROZEN_SOURCE_ROOT = Path("/home/bijan/bijux/bijux-genomics-runs").resolve()
+ACTIVE_SLURM_STATES = {
+    "CONFIGURING",
+    "COMPLETING",
+    "PENDING",
+    "REQUEUED",
+    "RESIZING",
+    "RUNNING",
+    "SUSPENDED",
+}
 
 
 class ContractError(RuntimeError):
@@ -556,16 +565,6 @@ def collect_accounting(manifest_path: Path) -> Path:
     job_id = (manifest_path / "slurm-job-id.txt").read_text(encoding="utf-8").strip()
     if not job_id.isdigit():
         raise ContractError("manifest Slurm job id must be numeric")
-    queued = subprocess.run(
-        ["squeue", "-h", "-j", job_id, "-o", "%T"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if queued.returncode != 0:
-        raise ContractError(f"cannot query queued job {job_id}: {queued.stderr.strip()}")
-    if queued.stdout.strip():
-        raise ContractError(f"Slurm job {job_id} is not terminal: {queued.stdout.strip()}")
     fields = [
         "JobID",
         "JobName",
@@ -598,7 +597,16 @@ def collect_accounting(manifest_path: Path) -> Path:
             raise ContractError(f"unexpected sacct row for {job_id}: {line}")
         rows.append(dict(zip(fields, values)))
     if not rows:
-        raise ContractError(f"Slurm accounting is unavailable for terminal job {job_id}")
+        raise ContractError(f"Slurm accounting is unavailable for job {job_id}")
+    active_states = {
+        row["State"].split("+", 1)[0]
+        for row in rows
+        if row["State"].split("+", 1)[0] in ACTIVE_SLURM_STATES
+    }
+    if active_states:
+        raise ContractError(
+            f"Slurm job {job_id} is not terminal: {sorted(active_states)}"
+        )
     result_root: Path = contract["result_root"]
     if not result_root.is_dir():
         raise ContractError(f"run result root does not exist: {result_root}")
