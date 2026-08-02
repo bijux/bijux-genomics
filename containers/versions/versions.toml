@@ -270,10 +270,11 @@ date_pinned = "2026-02-12"
 pinned_commit = "d3305ac7d7fddbd3e62240ab62869aded869f133"
 
 [leehom]
-version = "1.0.17"
+version = "1.2.18"
 source = "https://github.com/grenaud/leeHom"
-date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+date_pinned = "2026-08-02"
+source_sha256 = "87cbc83c04b51264b7d986aaf9bf7abaedaa827d1a72f783d4c43b63b3cc95ca"
+pinned_commit = "fea84b803aefb00b05386d802b5382d7d268f3be"
 
 [lighter]
 version = "1.1.2"

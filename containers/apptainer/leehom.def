@@ -2,69 +2,67 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: leehom
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
+# Version policy: immutable release commit and verified source archives
+# Upstream source: https://github.com/grenaud/leeHom
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archives
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 
-# VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    VERSION unknown
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
-    org.opencontainers.image.version 1.0.17
+    org.opencontainers.image.source https://github.com/grenaud/leeHom
+    org.opencontainers.image.revision fea84b803aefb00b05386d802b5382d7d268f3be
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-3.0-only
+    org.opencontainers.image.version 1.2.18
     org.opencontainers.image.tool leehom
-    org.opencontainers.image.title leehom
+    org.opencontainers.image.title leeHom
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends \
-        git build-essential cmake zlib1g-dev ca-certificates && \
-        rm -rf /var/lib/apt/lists/*
-    git clone https://github.com/grenaud/leeHom.git /opt/leeHom
-    cd /opt/leeHom
-    git checkout bbddce1542cea0e73e3814df86268445f707b0d2
-    git describe --tags --always >/dev/null 2>&1 || git tag -f v0.0.0 "$(git rev-parse HEAD)"
-    make -j"$(nproc)"
-    bin="$(find /opt/leeHom -maxdepth 2 -type f -perm -111 -name 'leeHom*' | head -n 1 || true)"
-    [ -n "$bin" ] || { echo "leeHom binary not found after build"; exit 1; }
-    install -m 0755 "$bin" /usr/local/bin/leeHom-bin
-    cat > /usr/local/bin/leehom <<'EOS'
-#!/usr/bin/env sh
-set -eu
-bin="/usr/local/bin/leeHom-bin"
-show_and_succeed() {
-  tmp="$(mktemp)"
-  "$@" >"$tmp" 2>&1 || true
-  cat "$tmp"
-  rm -f "$tmp"
-  exit 0
-}
-case "${1:-}" in
-  --help|-h|"") show_and_succeed "$bin" --help ;;
-esac
-exec "$bin" "$@"
-EOS
-    chmod +x /usr/local/bin/leehom
-    ln -sf /usr/local/bin/leehom /usr/local/bin/leeHom
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends build-essential cmake curl zlib1g-dev
+    mkdir -p /opt/leehom /opt/leehom/libgab /opt/leehom/bamtools
+    curl --fail --location --silent --show-error --output /opt/leehom-source.tar.gz https://github.com/grenaud/leeHom/archive/fea84b803aefb00b05386d802b5382d7d268f3be.tar.gz
+    curl --fail --location --silent --show-error --output /opt/libgab-source.tar.gz https://github.com/grenaud/libgab/archive/81da9c622242225c76494b7eb2b8c9af03aebc12.tar.gz
+    curl --fail --location --silent --show-error --output /opt/bamtools-source.tar.gz https://github.com/pezmaster31/bamtools/archive/d24d850de17134fe4e7984b26493c5c0a1844b35.tar.gz
+    echo '87cbc83c04b51264b7d986aaf9bf7abaedaa827d1a72f783d4c43b63b3cc95ca  /opt/leehom-source.tar.gz' | sha256sum --check --strict
+    echo 'd3cf9da762846cd616d91ccf71ca7b45544c3d7dcbb9a7f9ff6eba732bfc0ddd  /opt/libgab-source.tar.gz' | sha256sum --check --strict
+    echo '1cab593e050f8db20361c8a777c81c70d22fde9648b205d4794617c876920600  /opt/bamtools-source.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/leehom-source.tar.gz --directory /opt/leehom --strip-components=1
+    tar --extract --gzip --file /opt/libgab-source.tar.gz --directory /opt/leehom/libgab --strip-components=1
+    tar --extract --gzip --file /opt/bamtools-source.tar.gz --directory /opt/leehom/bamtools --strip-components=1
+    printf '%s\n' '#define VERSION "v1.2.18"' > /opt/leehom/src/version.h
+    make --directory /opt/leehom -j"$(nproc)"
+    install -m 0755 /opt/leehom/src/leeHom /usr/local/libexec-leehom
+    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'exec /usr/local/libexec-leehom "$@"' > /usr/local/bin/leehom
+    chmod 0755 /usr/local/bin/leehom
+    ln -s /usr/local/bin/leehom /usr/local/bin/leeHom
+    leehom --version | grep -F 'leeHom version: v1.2.18'
+    rm -rf /opt/leehom /opt/leehom-source.tar.gz /opt/libgab-source.tar.gz /opt/bamtools-source.tar.gz
+    rm -rf /var/lib/apt/lists/*
+
 %runscript
     exec /usr/local/bin/leehom "$@"
 
+%test
+    leehom --version | grep -F 'leeHom version: v1.2.18'
+    leehom --help >/dev/null
+
 %help
-    Apptainer image for leeHom.
+    leeHom 1.2.18 built from the release commit and exact submodule sources.
