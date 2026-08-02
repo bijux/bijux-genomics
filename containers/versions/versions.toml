@@ -296,11 +296,12 @@ pinned_commit = "66d5a7ebd21c64c5b6fd6db6a35ff44b820dfbd2"
 
 [minimac4]
 version = "4.1.6"
-source = "https://genome.sph.umich.edu/wiki/Minimac4"
-date_pinned = "2026-02-13"
-status = "planned"
-upstream_license = "MIT"
-source_sha256 = "5555555555555555555555555555555555555555555555555555555555555555"
+source = "https://github.com/statgen/Minimac4"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "GPL-3.0-only"
+pinned_commit = "0c4a8d894338809eb257be2a9f4bf37ced0e2a6c"
+source_sha256 = "5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3"
 
 [mosdepth]
 version = "0.3.11"

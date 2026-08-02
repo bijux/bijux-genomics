@@ -2,52 +2,80 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# VERSION_SOURCE: containers/versions/versions.toml
+# Tool ID: minimac4
+# Version policy: immutable release commit and verified source archives
+# Upstream source: https://github.com/statgen/Minimac4
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archives
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
+
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-# Tool ID: minimac4
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-    org.opencontainers.image.source https://genome.sph.umich.edu/wiki/Minimac4
-    org.opencontainers.image.revision planned-2026-02-13
-    org.opencontainers.image.created 2026-02-13T00:00:00Z
-    org.opencontainers.image.licenses MIT
-    org.opencontainers.image.version planned
+    org.opencontainers.image.source https://github.com/statgen/Minimac4
+    org.opencontainers.image.revision 0c4a8d894338809eb257be2a9f4bf37ced0e2a6c
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-3.0-only
+    org.opencontainers.image.version 4.1.6
     org.opencontainers.image.tool minimac4
-    org.opencontainers.image.title minimac4
+    org.opencontainers.image.title Minimac4
 
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+
+%files
+    containers/tools/minimac4/minimac4 /usr/local/bin/minimac4
 
 %post
     set -eux
     umask 022
-    cat >/usr/local/bin/minimac4 <<'SH'
-#!/usr/bin/env bash
-set -euo pipefail
-if [[ "${1:-}" == "--version" ]]; then
-  echo "minimac4 planned"
-  exit 0
-fi
-if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
-  echo "Minimac4 wrapper image. Upstream: https://genome.sph.umich.edu/wiki/Minimac4"
-  exit 0
-fi
-echo "error: minimac4 runtime payload is not bundled in this planned wrapper image" >&2
-exit 2
-SH
+    export DEBIAN_FRONTEND=noninteractive
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends build-essential cmake curl liblzma-dev libzstd-dev zlib1g-dev
+    curl --fail --location --silent --show-error --output /opt/minimac4.tar.gz https://github.com/statgen/Minimac4/archive/0c4a8d894338809eb257be2a9f4bf37ced0e2a6c.tar.gz
+    curl --fail --location --silent --show-error --output /opt/savvy.tar.gz https://github.com/statgen/savvy/archive/99d85c20ea1af941ab0a07daa49f1e425faec32a.tar.gz
+    curl --fail --location --silent --show-error --output /opt/shrinkwrap.tar.gz https://github.com/jonathonl/shrinkwrap/archive/refs/tags/v1.2.0.tar.gz
+    curl --fail --location --silent --show-error --output /opt/omp.tar.gz https://github.com/jonathonl/omp/archive/04fcbf28312c54f77fbaab4e968d33147602a9f5.tar.gz
+    echo '5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3  /opt/minimac4.tar.gz' | sha256sum --check --strict
+    echo '83ebd88c097799b3bbf771dc8ebf6892797ca7a1f49c2d1665d52cfc1bf9e1de  /opt/savvy.tar.gz' | sha256sum --check --strict
+    echo 'aa15583079c3dfccb118cf36fae9bc6353920b99d0204a9e349dad027b531286  /opt/shrinkwrap.tar.gz' | sha256sum --check --strict
+    echo '839bcd55953b7711dbfd6716d5bcdf90a82ff4fa2ac384712775528cb1dc8284  /opt/omp.tar.gz' | sha256sum --check --strict
+    mkdir -p /opt/minimac4 /opt/savvy /opt/shrinkwrap /opt/omp
+    tar --extract --gzip --file /opt/minimac4.tar.gz --directory /opt/minimac4 --strip-components=1
+    tar --extract --gzip --file /opt/savvy.tar.gz --directory /opt/savvy --strip-components=1
+    tar --extract --gzip --file /opt/shrinkwrap.tar.gz --directory /opt/shrinkwrap --strip-components=1
+    tar --extract --gzip --file /opt/omp.tar.gz --directory /opt/omp --strip-components=1
+    cmake -S /opt/shrinkwrap -B /opt/shrinkwrap/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DSHRINKWRAP_PREFER_STATIC=ON
+    cmake --build /opt/shrinkwrap/build --parallel "$(nproc)"
+    cmake --install /opt/shrinkwrap/build
+    cmake -S /opt/savvy -B /opt/savvy/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_PREFIX_PATH=/usr/local
+    cmake --build /opt/savvy/build --parallel "$(nproc)"
+    cmake --install /opt/savvy/build
+    cmake -S /opt/omp -B /opt/omp/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+    cmake --build /opt/omp/build --parallel "$(nproc)"
+    cmake --install /opt/omp/build
+    cmake -S /opt/minimac4 -B /opt/minimac4/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_PREFIX_PATH=/usr/local
+    cmake --build /opt/minimac4/build --parallel "$(nproc)"
+    install -m 0755 /opt/minimac4/build/minimac4 /usr/local/libexec-minimac4
     chmod 0755 /usr/local/bin/minimac4
+    minimac4 --version | grep -Fx 'minimac4 4.1.6'
+    rm -rf /opt/minimac4 /opt/savvy /opt/shrinkwrap /opt/omp /opt/minimac4.tar.gz /opt/savvy.tar.gz /opt/shrinkwrap.tar.gz /opt/omp.tar.gz
+    rm -rf /var/lib/apt/lists/*
+
 %runscript
-    exec minimac4 "$@"
+    exec /usr/local/bin/minimac4 "$@"
+
+%test
+    minimac4 --version | grep -Fx 'minimac4 4.1.6'
+    minimac4 --help >/dev/null
 
 %help
-    Non-bijux Apptainer wrapper for Minimac4.
+    Minimac4 4.1.6 built from its release commit and exact dependency sources.
