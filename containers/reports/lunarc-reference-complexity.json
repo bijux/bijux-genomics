@@ -1,0 +1,45 @@
+{
+  "schema_version": "bijux.container.report_index.v1",
+  "report_id": "lunarc-reference-complexity",
+  "site": "lunarc",
+  "repository_commit": "3151d5ae8139baf2035914c59d3830da3cadf62b",
+  "corpus": "equcab3-nc_009144.3-first-megabase",
+  "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
+  "claims": {
+    "runtime": "passed",
+    "stage": "passed",
+    "science": "not_assessed",
+    "benchmark": "not_assessed",
+    "release": "not_qualified"
+  },
+  "runs": [
+    {
+      "tool": "samtools",
+      "run_id": "run-1054",
+      "slurm_job_id": "3457877",
+      "status": "passed",
+      "elapsed_seconds": 5,
+      "region": "NC_009144.3:1-1000000",
+      "evidence_sha256": "93bbe2fb2bdb7cab8cdc01a4cc9f3c725e7efa79719e2c7c123710b231553ed1",
+      "accounting_sha256": "07d315748e17bc5af17c85ecc42dff091966938920294a19e03bec4e2e55aaf2",
+      "output_sha256": "31c05c963f35d1c98fb95ef7872712ea005f95d9ebffeee35c1f7207a17bbd9a"
+    },
+    {
+      "tool": "dustmasker",
+      "run_id": "run-1055",
+      "slurm_job_id": "3457878",
+      "status": "passed",
+      "elapsed_seconds": 1,
+      "interval_count": 969,
+      "soft_masked_bases": 37734,
+      "evidence_sha256": "6ea271eda22ee138243e175553cd6d1b257222261542dbdd83a71e09238f185b",
+      "accounting_sha256": "f255f19a93871d65598a14cb73d37fb16e5dc0bab52db8d18f91f71de0e4cfa5",
+      "interval_output_sha256": "e2dd6a037053ddff8ccc8c72c16a31bd37ef96707f97f1aa597d9ee3f56af924",
+      "masked_fasta_sha256": "b929c7182b9cadd81403d2a9acdf7d623deb7a2506f977081c558fba5799b909"
+    }
+  ],
+  "science_boundary": {
+    "missing_scope": "representative whole assemblies and predefined parameter-comparison criteria",
+    "prohibited_claim": "the run-1055 interval is not a whole-genome complexity benchmark"
+  }
+}
