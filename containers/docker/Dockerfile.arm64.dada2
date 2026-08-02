@@ -26,7 +26,10 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
     echo 'c6653fe77c3d62dd91207bbbf6641ec143fb8a498967e240a97af26de7e27667  /opt/dada2_1.30.0.tar.gz' | sha256sum --check --strict && \
     R CMD INSTALL /opt/dada2_1.30.0.tar.gz && \
     Rscript -e 'stopifnot(as.character(packageVersion("dada2")) == "1.30.0")' && \
-    rm /opt/dada2_1.30.0.tar.gz && rm -rf /var/lib/apt/lists/* && \
+    rm /opt/dada2_1.30.0.tar.gz && \
+    apt-get purge -y --auto-remove build-essential curl r-base-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
     useradd --system --uid 65532 --home-dir /work --create-home bijux
 COPY containers/tools/dada2/dada2 /usr/local/bin/dada2
 COPY containers/tools/dada2/infer-asvs.R /opt/dada2/infer-asvs.R
