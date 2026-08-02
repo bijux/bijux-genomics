@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-02T22:18:30+02:00",
+  "build_date_utc": "2026-08-02T22:32:00+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -630,17 +630,17 @@
       "version": "4.6.2.0"
     },
     {
-      "entry_sha256": "de6b53384fcd66cdb8b61ce44f139dc7c726065d7d1cef427525a996c9188f4c",
+      "entry_sha256": "6cadcd9fa796c99ee5ff101231891be7723e955689ce21caa6c400ebcbd379d7",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "",
+      "pinned_commit": "f8029fcf469a09a83aa1e0d1fb45769f6dcb3c6d",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://www.cs.columbia.edu/~gusev/germline/",
-      "source_sha256": "2712053ab9d4dea7b2346e7f5a70ec84f6f003720f5e1ab5fbe1c709c7c8f6d2",
+      "source": "https://github.com/gusevlab/germline",
+      "source_sha256": "42a6e14e003ac6aa5cc5c3b14db4ba355d748c014b0d0a10f0f734dca2bfb991",
       "status": "experimental",
       "tool": "germline",
       "version": "1.5.3"
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "cbbbc7512224f3a748fdd79ae1069339e6942fa9f0572981b58b794c2294d5c3",
+  "source_sha256": "caae700256e599e0440bfebdb50e7ba144cb95708811dc4f75be01e5f0e9feff",
   "version_map_source": "artifacts/containers/version_map.json"
 }

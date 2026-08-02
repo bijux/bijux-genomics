@@ -202,11 +202,12 @@ pinned_commit = "63c6fa707fabc7569c2f256b8bcfc6ebb760f72a"
 
 [germline]
 version = "1.5.3"
-source = "https://www.cs.columbia.edu/~gusev/germline/"
+source = "https://github.com/gusevlab/germline"
 date_pinned = "2026-02-13"
 status = "experimental"
-upstream_license = "GPL-3.0"
-source_sha256 = "2712053ab9d4dea7b2346e7f5a70ec84f6f003720f5e1ab5fbe1c709c7c8f6d2"
+upstream_license = "Apache-2.0"
+pinned_commit = "f8029fcf469a09a83aa1e0d1fb45769f6dcb3c6d"
+source_sha256 = "42a6e14e003ac6aa5cc5c3b14db4ba355d748c014b0d0a10f0f734dca2bfb991"
 
 [glimpse]
 version = "1.1.1"

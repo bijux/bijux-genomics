@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "940ea2ff55bd61acc177eda61da32e42ce012296fa6bcb7350268dcfe4c298cf",
+  "source_sha256": "6471513032a2f87582500216d3548144e9a19e7b6e8134e1a6d4b3dbed0fc943",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -622,13 +622,13 @@
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
-      "upstream": "https://www.cs.columbia.edu/~gusev/germline/",
-      "license": "GPL-3.0",
-      "source_sha256": "2712053ab9d4dea7b2346e7f5a70ec84f6f003720f5e1ab5fbe1c709c7c8f6d2",
-      "pinned_commit": "",
+      "upstream": "https://github.com/gusevlab/germline",
+      "license": "Apache-2.0",
+      "source_sha256": "42a6e14e003ac6aa5cc5c3b14db4ba355d748c014b0d0a10f0f734dca2bfb991",
+      "pinned_commit": "f8029fcf469a09a83aa1e0d1fb45769f6dcb3c6d",
       "apptainer_definition": "containers/apptainer/germline.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.germline",
-      "contract_sha256": "2002bd96f9bf8a061f01c8c646beb7e382149e03c8e0cb384b129bc3b8c0f78a"
+      "contract_sha256": "089bb11f6dbd251c719cb4aa3e7740e911bb51b6cd535396d759464fc82f2578"
     },
     {
       "id": "glimpse",

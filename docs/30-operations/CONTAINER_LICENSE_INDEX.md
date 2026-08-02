@@ -57,7 +57,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `flash2` | `bijux` | `NOASSERTION` | `https://github.com/dstreett/FLASH2` | `2.2.00` | `sha256:f544a5ff21d9ba908520fc400b0097317a253838e39d80834be1163c16cac7a9` |
 | `fqtools` | `bijux` | `NOASSERTION` | `https://github.com/alastair-droop/fqtools` | `2.3` | `sha256:af3aa3e7d5db3a503cab3cea73c58ca19ea2108f8ebc54f50283fe733028eec2` |
 | `gatk` | `bijux` | `NOASSERTION` | `https://github.com/broadinstitute/gatk` | `4.6.2.0` | `sha256:343d7b6ed18123e559b7d4277c31cbcbd1c6ce68a2285175bf9a400b1e613bc9` |
-| `germline` | `non-bijux` | `GPL-3.0` | `https://www.cs.columbia.edu/~gusev/germline/` | `1.5.3` | `sha256:2712053ab9d4dea7b2346e7f5a70ec84f6f003720f5e1ab5fbe1c709c7c8f6d2` |
+| `germline` | `non-bijux` | `Apache-2.0` | `https://github.com/gusevlab/germline` | `1.5.3` | `sha256:42a6e14e003ac6aa5cc5c3b14db4ba355d748c014b0d0a10f0f734dca2bfb991` |
 | `glimpse` | `non-bijux` | `MIT` | `https://github.com/odelaneau/GLIMPSE` | `1.1.1` | `sha256:d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c` |
 | `ibdhap` | `non-bijux` | `LicenseRef-MORGAN-2006` | `https://sites.stat.washington.edu/thompson/Genepi/MORGAN/Morgan.shtml` | `3.4` | `sha256:195a84d877413a83de15a20da45d92d2441303b8373b47727ed2e3ab92dc2e6a` |
 | `ibdne` | `non-bijux` | `Apache-2.0` | `https://faculty.washington.edu/browning/ibdne.html` | `23Apr20.ae9` | `sha256:b3324ebd74ed69477067e0aec1dd22be56b1bcedbbe72d8757cda28746312665` |
