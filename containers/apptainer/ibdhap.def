@@ -42,8 +42,10 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     curl --fail --location --silent --show-error --output /opt/morgan.tar.gz https://faculty.washington.edu/eathomp/Anonftp/PANGAEA/MORGAN/morgan_v34_release.tar.gz
     echo '195a84d877413a83de15a20da45d92d2441303b8373b47727ed2e3ab92dc2e6a  /opt/morgan.tar.gz' | sha256sum --check --strict
     tar --extract --gzip --file /opt/morgan.tar.gz --directory /opt
-    # MORGAN 3.4 predates GCC 10's -fno-common default.
-    make --directory /opt/MORGAN_V34_Release morgan.gcc CFLAGS=-fcommon
+    # MORGAN 3.4 predates GCC 10's -fno-common default. Build only the
+    # libraries and IBDHap executable instead of unrelated MORGAN programs.
+    make --directory /opt/MORGAN_V34_Release libs CC=gcc 'CFLAGS=-fcommon -pedantic -Wall -std=c99 -I../Headers -I./'
+    make --directory /opt/MORGAN_V34_Release/IBD_Haplo ibd_haplo.gcc CFLAGS=-fcommon
     install -d -m 0755 /opt/morgan/bin
     install -m 0755 /opt/MORGAN_V34_Release/IBD_Haplo/ibd_haplo /opt/morgan/bin/ibd_haplo
     chmod 0755 /usr/local/bin/ibdhap
