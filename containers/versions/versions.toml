@@ -207,11 +207,11 @@ source_sha256 = "2712053ab9d4dea7b2346e7f5a70ec84f6f003720f5e1ab5fbe1c709c7c8f6d
 
 [glimpse]
 version = "1.1.1"
-source = "https://odelaneau.github.io/GLIMPSE/"
-date_pinned = "2026-02-13"
-status = "planned"
+source = "https://github.com/odelaneau/GLIMPSE"
+date_pinned = "2026-08-02"
 upstream_license = "MIT"
-source_sha256 = "2222222222222222222222222222222222222222222222222222222222222222"
+source_sha256 = "d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c"
+pinned_commit = "c27e90d0f8df6b64c0ecf26af13ad6f112c94a9a"
 
 [ibdhap]
 version = "0.1.0"
