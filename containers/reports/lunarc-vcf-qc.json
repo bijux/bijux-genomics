@@ -48,6 +48,22 @@
       "evidence_sha256": "b1089ba1ca0ac57cba8a18574bd2931c55dbdaf3145485f966036437e2b5b637",
       "accounting_sha256": "2082700ba91b602232b0291a88832fd74e3a06a69c26053b31827cb81e72e8e4",
       "output_sha256": "83a19b6dc64cdf725ba92ca901dc15f431475cca9ee64de889d36b3f7c23b20a"
+    },
+    {
+      "tool": "eigensoft",
+      "run_id": "run-1070",
+      "repository_commit": "e91d3dac0ccf34fba5f266ab175449ddeb5a7079",
+      "slurm_job_id": "3457998",
+      "status": "passed",
+      "elapsed_seconds": 5,
+      "sample_count": 100,
+      "principal_component_count": 10,
+      "population_labels": "absent",
+      "interpretation": "runtime PCA output, not ancestry inference",
+      "evidence_sha256": "137cf7ab69abec9583d3df3260624a7b505f37b57c17d48697e2d4e49141c2e6",
+      "accounting_sha256": "5d786f8988239acbea39397f4fec00baa2cea288b7047c054e00fa92fbb4e5de",
+      "eigenvectors_sha256": "25e766f8bbcb0bac1a2fb4046d72b9eabcf0c1ed79dbb016c5fffc19343f01a8",
+      "eigenvalues_sha256": "759891c83d17cdcacec95e82f0d683be3658ea605f2174f876828d460eebd49d"
     }
   ]
 }
