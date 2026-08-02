@@ -1153,7 +1153,7 @@ real_test_input_kind = "vcf"
 [[tools]]
 id = "ibdne"
 display_name = "IBDNe"
-purpose = "Provides scientific tool execution for governed genomics stages."
+purpose = "Estimates recent effective population size from whole-genome hap-IBD segments."
 version = "23Apr20.ae9"
 support_disposition = "retained"
 qualification = "unverified"
@@ -1163,7 +1163,7 @@ license = "Apache-2.0"
 source_sha256 = "b3324ebd74ed69477067e0aec1dd22be56b1bcedbbe72d8757cda28746312665"
 pinned_commit = ""
 domains = ["vcf"]
-stage_ids = ["vcf.demography", "vcf.ibd"]
+stage_ids = ["vcf.demography"]
 expected_bin = "ibdne"
 version_command = "ibdne --version"
 help_command = "ibdne --help"
@@ -1175,12 +1175,12 @@ docker_arm64_supported = true
 build_network = true
 runtime_network = false
 real_test_stage = "vcf.demography"
-real_test_input_kind = "vcf"
+real_test_input_kind = "hap_ibd_segments"
 
 [[tools]]
 id = "ibdseq"
 display_name = "IBDseq"
-purpose = "Provides scientific tool execution for governed genomics stages."
+purpose = "Detects genotype-based IBD segments from VCF and reports LOD scores."
 version = "r1206"
 support_disposition = "retained"
 qualification = "unverified"

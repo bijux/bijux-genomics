@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "47135575792943f40cd4389c218c8c7c0fd59cb554778b050ed9ff102e639781",
+  "source_sha256": "462dcbd56d3fbe9429a0e8ec00b89e64e0feb4570ef43f91a9c1775e121ecb9f",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -673,7 +673,7 @@
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/ibdne.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.ibdne",
-      "contract_sha256": "c5258210e3959d3825de4ae36f38e325c1c5da60fc59417b9c8ba84d7ba9684a"
+      "contract_sha256": "038eb858d1cf335990df7a2d26e7d53abc33f9d61e1fdcf9818b62a1ad616a90"
     },
     {
       "id": "ibdseq",
@@ -688,7 +688,7 @@
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/ibdseq.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.ibdseq",
-      "contract_sha256": "a5a128c9389844d2349b2b72d7212868920aca4093491572ca1beb8bb4ef0231"
+      "contract_sha256": "34773ca52874844fbbfff262cfb40f472bb29355c91b937e761c87c66d3c6155"
     },
     {
       "id": "impute5",
