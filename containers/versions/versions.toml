@@ -328,6 +328,8 @@ version = "0.3.11"
 source = "https://github.com/brentp/mosdepth"
 date_pinned = "2026-02-12"
 pinned_commit = "e065a5f38ad6ff6c612a63d32f82fcfb6c00915d"
+source_sha256 = "4564b69249f03cb5ccb2bb04a8b4723293c86b9c9183cf40c50711e5003cdef2"
+upstream_license = "MIT"
 
 [multiqc]
 version = "1.21"

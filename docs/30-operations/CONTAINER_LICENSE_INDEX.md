@@ -72,7 +72,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `mapdamage2` | `bijux` | `MIT` | `https://github.com/ginolhac/mapDamage/archive/55518aa83141d8f885ce10751c22113f674e95de.tar.gz` | `2.2.2` | `sha256:a7dd300489674eeb72e28c5e99627f73840dd7a74c6efce76c1eaee8e7898c54` |
 | `metaphlan` | `bijux` | `NOASSERTION` | `https://github.com/biobakery/MetaPhlAn` | `4.1.1` | `sha256:db3f6105a8466aa493be0acc3a11f0d205a8c8b6b1f6778e95b700ac262dff92` |
 | `minimac4` | `non-bijux` | `GPL-3.0-only` | `https://github.com/statgen/Minimac4` | `4.1.6` | `sha256:5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3` |
-| `mosdepth` | `bijux` | `NOASSERTION` | `https://github.com/brentp/mosdepth` | `0.3.11` | `sha256:32105a34f76f78b6912833010dd0bf66a7ab527a2a3c267d7670ee63ff267ac8` |
+| `mosdepth` | `bijux` | `MIT` | `https://github.com/brentp/mosdepth` | `0.3.11` | `sha256:4564b69249f03cb5ccb2bb04a8b4723293c86b9c9183cf40c50711e5003cdef2` |
 | `multiqc` | `bijux` | `NOASSERTION` | `https://github.com/multiqc/multiqc` | `1.21` | `sha256:4e2b7aa385bc8c26eec70c46b244b5fd0da27c11a46a3ea1fd8901ff8e835809` |
 | `musket` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/musket/` | `1.1` | `sha256:306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba` |
 | `ngsbriggs` | `bijux` | `NOASSERTION` | `https://github.com/RAHenriksen/ngsBriggs/archive/ab3b5ae8a388b9b1874dd2854fdec32bd9195f22.tar.gz` | `0.01` | `sha256:afa0d40a8ab85074363cbb6415461504888bb707f04a40ee31b4f632ce629cf7` |

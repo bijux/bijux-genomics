@@ -12,8 +12,8 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/mosdepth.license.toml](../../licenses/mosdepth.license.toml)
 
 - Version: `0.3.11`
-- License: `NOASSERTION`
-- Runtime support: `docker-arm64, apptainer`
+- License: `MIT`
+- Runtime support: `apptainer`
 - Smoke status: `unknown`
 
 ## Known Limitations

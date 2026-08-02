@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "20d3167d7f99dbb156fdd6d07d49d3759c1752fdddb92112f746eff2efde9c83",
+  "source_sha256": "523eaa040a553b29013645ace20cc4c042780026387f17aaa1db55492bb8c4f1",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -848,12 +848,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/brentp/mosdepth",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "MIT",
+      "source_sha256": "4564b69249f03cb5ccb2bb04a8b4723293c86b9c9183cf40c50711e5003cdef2",
       "pinned_commit": "e065a5f38ad6ff6c612a63d32f82fcfb6c00915d",
       "apptainer_definition": "containers/apptainer/mosdepth.def",
-      "dockerfile": "containers/docker/Dockerfile.arm64.mosdepth",
-      "contract_sha256": "2edc6ac52f860efec2eb3a245a5c62a1ace678fb3d15e3b191feea194caf5edf"
+      "dockerfile": "",
+      "contract_sha256": "2de3efecd86ad43156479c113c0de203a58ef10f5d5cd3524f2c884932519569"
     },
     {
       "id": "multiqc",
