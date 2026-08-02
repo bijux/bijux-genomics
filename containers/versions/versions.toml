@@ -155,7 +155,8 @@ source = "https://github.com/DReichLab/EIG"
 date_pinned = "2026-02-13"
 status = "experimental"
 upstream_license = "GPL-2.0"
-source_sha256 = "fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9"
+pinned_commit = "09ed563fdec05648a66c206ba1fc37a198395cd7"
+source_sha256 = "83207df20d658142c8d3d93db8d2d668b06812a90cc474454d18b62b973ca4c2"
 
 [fastp]
 version = "0.23.4"

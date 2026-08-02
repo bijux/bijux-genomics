@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "48e8320d0c5626df5c1df9a272fb263bf6c9d367618a449b53a6852bd6171436",
+  "source_sha256": "01e15b54a12ee48522c461d272487a44a2cd54b2372c3ed5a6241df359e8735f",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -459,11 +459,11 @@
       "qualification": "unverified",
       "upstream": "https://github.com/DReichLab/EIG",
       "license": "GPL-2.0",
-      "source_sha256": "fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9",
-      "pinned_commit": "",
+      "source_sha256": "83207df20d658142c8d3d93db8d2d668b06812a90cc474454d18b62b973ca4c2",
+      "pinned_commit": "09ed563fdec05648a66c206ba1fc37a198395cd7",
       "apptainer_definition": "containers/apptainer/eigensoft.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.eigensoft",
-      "contract_sha256": "fdc647f203de8a3f37d019a841e3f524870873564460b9f99419ab5c5aaad5de"
+      "contract_sha256": "f70847961274ef08f52ac6dc30666926f8140fadacb313a546a56410d7996840"
     },
     {
       "id": "fastp",
