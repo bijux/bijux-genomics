@@ -26,6 +26,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 %files
     containers/tools/addeam/requirements.lock /opt/addeam-build/requirements.lock
     containers/tools/addeam/bam2prof-offline-build.patch /opt/addeam-build/bam2prof-offline-build.patch
+    containers/tools/addeam/profile-execution.patch /opt/addeam-build/profile-execution.patch
     containers/tools/addeam/install /opt/addeam-build/install
     containers/tools/addeam/addeam /usr/local/bin/addeam
 

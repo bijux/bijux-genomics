@@ -46,6 +46,7 @@ printf '%s\n' \
   '#define HTSCODECS_VERSION_TEXT "1.1.1-gb6615cdf542a83badc805d2195bc514220f19ce6"' \
   > /opt/addeam/submodules/lib/htslib/htscodecs/htscodecs/version.h
 
+patch --directory /opt/addeam --strip 1 --input /opt/addeam-build/profile-execution.patch
 patch --directory /opt/addeam/submodules --strip 1 --input /opt/addeam-build/bam2prof-offline-build.patch
 # bam2prof's native graph asks for HTSlib directly and through Samtools.  Its
 # Makefiles do not serialize those two paths, so a parallel build can have two

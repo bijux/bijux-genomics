@@ -25,6 +25,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 COPY containers/tools/addeam/requirements.lock /opt/addeam-build/requirements.lock
 COPY containers/tools/addeam/bam2prof-offline-build.patch /opt/addeam-build/bam2prof-offline-build.patch
+COPY containers/tools/addeam/profile-execution.patch /opt/addeam-build/profile-execution.patch
 COPY containers/tools/addeam/install /opt/addeam-build/install
 COPY containers/tools/addeam/addeam /usr/local/bin/addeam
 
