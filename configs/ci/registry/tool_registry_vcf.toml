@@ -323,19 +323,19 @@ require_labels = true
 id = "impute5"
 tool_id = "impute5"
 domain = "vcf"
-status = "planned"
+status = "unsupported"
 stage_ids = ["vcf.imputation_metrics", "vcf.impute"]
-version = "planned"
-default_version = "planned"
+version = "1.2.0"
+default_version = "1.2.0"
 upstream = "https://jmarchini.org/software/#impute-5"
 version_rule = "pinned"
-license = "research_only_or_restricted"
+license = "LicenseRef-Oxford-Academic-Use"
 citation = "paper:https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009049"
 pinned_commit = "external"
 pin_strategy = "external_tool"
-container_ref = "external@external"
-runtimes = ["docker", "apptainer"]
-container = true
+container_ref = "external@licensed-installation"
+runtimes = []
+container = false
 version_cmd = "impute5 --version"
 help_cmd = "impute5 --help"
 smoke_version_cmd = "impute5 --version"
@@ -345,10 +345,10 @@ healthcheck_cmd = "impute5 --help"
 expected_bin = "impute5"
 expected_artifacts = ["imputed_vcf"]
 metrics_schema = "bijux.vcf.imputation_metrics.v1"
-comparability_notes = "External planned tool pending container policy and licensing review."
-dockerfile = "containers/docker/Dockerfile.arm64.impute5"
-apptainer_def = "containers/apptainer/impute5.def"
-require_labels = true
+comparability_notes = "Available only through a separately licensed institutional installation; Bijux Genomics does not distribute a runtime."
+dockerfile = ""
+apptainer_def = ""
+require_labels = false
 
 [[tools]]
 id = "minimac4"
@@ -689,4 +689,3 @@ planned_out_of_scope = []
 default_rationale = "minimal required metrics for quality gating."
 requires_validation = false
 requires_reporting = false
-

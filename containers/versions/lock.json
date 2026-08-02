@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-02T18:11:23+02:00",
+  "build_date_utc": "2026-08-02T18:15:06+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -710,7 +710,7 @@
       "version": "r1206"
     },
     {
-      "entry_sha256": "c20cc261861264c568941f456206507f080fa94f832e0652e61c265026490731",
+      "entry_sha256": "2ab9cb1cccbf8141b4036b397687afcf791026edce79456ec56d528ec9a4afb3",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -720,8 +720,8 @@
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://jmarchini.org/software/#impute-5",
-      "source_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
-      "status": "planned",
+      "source_sha256": "",
+      "status": "unsupported",
       "tool": "impute5",
       "version": "1.2.0"
     },
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "e71ac1dbeb978756f8612dbc844603615373045183fc6365f6d470c16d9e66e3",
+  "source_sha256": "447289049788704f9011049251c9e833cdb16b2379391884511bbc213665db55",
   "version_map_source": "artifacts/containers/version_map.json"
 }

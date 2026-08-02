@@ -243,9 +243,8 @@ source_sha256 = "a835c7282444d8920109362ca012f9a9ac1eb54665d34fb0ca0380a3e0fed8e
 version = "1.2.0"
 source = "https://jmarchini.org/software/#impute-5"
 date_pinned = "2026-02-13"
-status = "planned"
-upstream_license = "research-only"
-source_sha256 = "3333333333333333333333333333333333333333333333333333333333333333"
+status = "unsupported"
+upstream_license = "LicenseRef-Oxford-Academic-Use"
 
 [kaiju]
 version = "1.10.0"
