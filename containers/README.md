@@ -9,6 +9,7 @@ Operational docs index:
 - [containers/reports/README.md](reports/README.md)
 - [containers/reports/lunarc-fastq-bam.md](reports/lunarc-fastq-bam.md)
 - [containers/reports/lunarc-vcf-phasing.md](reports/lunarc-vcf-phasing.md)
+- [containers/reports/lunarc-vcf-relatedness.md](reports/lunarc-vcf-relatedness.md)
 - [containers/docs/TOOL_LIFECYCLE.md](docs/TOOL_LIFECYCLE.md)
 - [containers/docs/VERSION_AUTHORITY.md](docs/VERSION_AUTHORITY.md)
 - [containers/docs/SCIENCE_EVIDENCE_BOUNDARY.md](docs/SCIENCE_EVIDENCE_BOUNDARY.md)

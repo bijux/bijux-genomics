@@ -21,3 +21,4 @@ a new run identifier after the cause is corrected.
 
 - [LUNARC FASTQ-to-BAM validation](lunarc-fastq-bam.md)
 - [LUNARC VCF phasing validation](lunarc-vcf-phasing.md)
+- [LUNARC VCF relatedness validation](lunarc-vcf-relatedness.md)

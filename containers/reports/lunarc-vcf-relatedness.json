@@ -1,0 +1,69 @@
+{
+  "schema_version": "bijux.container.report_index.v1",
+  "report_id": "lunarc-vcf-relatedness",
+  "site": "lunarc",
+  "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+  "corpus": "1000-genomes-phase3-chr22-biallelic-100-samples",
+  "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
+  "claims": {
+    "runtime": "partial",
+    "stage": "partial",
+    "science": "not_assessed",
+    "benchmark": "not_assessed",
+    "release": "not_qualified"
+  },
+  "runs": [
+    {
+      "tool": "bcftools",
+      "run_id": "run-1038",
+      "slurm_job_id": "3457765",
+      "status": "passed",
+      "elapsed_seconds": 11,
+      "evidence_sha256": "108df5fe77a3fc63aa12d032e950b64022ce4d3f4388a978b0c50ce7058d2f31",
+      "accounting_sha256": "d938f5b2e1562571d2cca813c8597a00632a1f05bcdeb6c153f39f895420eb03",
+      "output_sha256": "798371000af62ddca9f997a816679565fdb7cdd2937ba8cdf2dcfba7a3ab932c"
+    },
+    {
+      "tool": "ibdseq",
+      "run_id": "run-1039",
+      "slurm_job_id": "3457774",
+      "status": "passed",
+      "elapsed_seconds": 3,
+      "evidence_sha256": "be5ed97ea2fb252970733c3030c53cd23e216df8a5fe173c1792959b738fc821",
+      "accounting_sha256": "32bc7237e8843a004471ebf44414f47fd7f9e3e62588904d5249f53f43573a97",
+      "output_sha256": "b2d2d3f1fb41254343b9207304d95de5938abdf927f897a2c0c1138a305ed956"
+    },
+    {
+      "tool": "ibdne",
+      "run_id": "run-1040",
+      "slurm_job_id": "3457781",
+      "status": "failed",
+      "failure": "single-chromosome input cannot support bootstrap resampling",
+      "evidence_sha256": "842c5f0aa8450841ef780b1d14ff74e9cbc3317b1d37e45439c4a57d82c831be",
+      "accounting_sha256": "681cb1a350497cb5bf53c7c57eb9035426ceda23f268b03336fdc3dd9e5f849b"
+    },
+    {
+      "tool": "ibdne",
+      "run_id": "run-1041",
+      "slurm_job_id": "3457787",
+      "status": "failed",
+      "failure": "cross-chromosome sample filtering is not defined for the one-chromosome validation slice",
+      "evidence_sha256": "86870a66e7700de604a8370dc58768a4110481fc63ff0ce547e9d95bde54ef4a",
+      "accounting_sha256": "58a8f5be62dd958fcb4c7e3d939d145d98e70c649cb19c0feee562fe62080107"
+    },
+    {
+      "tool": "ibdne",
+      "run_id": "run-1042",
+      "slurm_job_id": "3457791",
+      "status": "failed",
+      "failure": "IBDseq LOD output is not the hap-IBD centimorgan segment format required by IBDNe",
+      "evidence_sha256": "8afdd16cf00d2093c9e2d53b76ad14b50e4782fefab7c6677d56733b3ab08859",
+      "accounting_sha256": "7cf1ac517c2e636ce4ee4c2f0bc233cc4605befad8d7bd8bc1e807f2ebfda93b"
+    }
+  ],
+  "blocker": {
+    "required_input": "whole-genome hap-IBD segments with genetic length in centimorgans",
+    "required_producer": "authenticated hap-IBD runtime",
+    "resolution": "admit a population-aware whole-genome cohort and hap-IBD container before any further IBDNe run"
+  }
+}

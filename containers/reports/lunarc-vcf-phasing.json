@@ -52,6 +52,16 @@
       "evidence_sha256": "858b7fe65b848732f2efc6011ab96f36110ea8970157477e895ea38eb575d2a1",
       "accounting_sha256": "03c19e12259e2818c1ccc780656850d962885ea880bac2dbdb978ac625bb4e40",
       "output_sha256": "331e17ceb743a72752dcc6b56f7cc12bbb5a01b481bdf6840873c1290f1564ae"
+    },
+    {
+      "tool": "shapeit",
+      "run_id": "run-1037",
+      "slurm_job_id": "3457752",
+      "status": "passed",
+      "elapsed_seconds": 640,
+      "evidence_sha256": "bb8642eab60615e4e5181b323cc1292d82f8fc6faccd82e1f58e2277a091b733",
+      "accounting_sha256": "0a2bdb8a65a00794c107d14019e91690d98d01382ce43fcc9cf402c1efccf725",
+      "output_sha256": "1f7dbdc685af7961c96d54cbbaf535d3018e3bb9acce665a65951790d85fdb7c"
     }
   ]
 }

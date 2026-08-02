@@ -54,9 +54,12 @@ failed runs and collects terminal accounting separately.
 The [LUNARC FASTQ-to-BAM report](../../containers/reports/lunarc-fastq-bam.md)
 records a real horse WGS trimming, alignment, sorting, indexing, and QC chain.
 The [LUNARC VCF phasing report](../../containers/reports/lunarc-vcf-phasing.md)
-records a real 2,504-sample BCFtools, SHAPEIT5, and Eagle execution chain. Both
-reports explain why stage success is not yet a scientific accuracy or release
-claim.
+records a real 2,504-sample BCFtools, SHAPEIT4, SHAPEIT5, and Eagle execution
+chain. The
+[LUNARC VCF relatedness report](../../containers/reports/lunarc-vcf-relatedness.md)
+records a passing IBDseq run and the incompatible-input boundary that prevents
+an honest IBDNe claim. The reports explain why stage success is not yet a
+scientific accuracy or release claim.
 
 ## Failure modes
 
