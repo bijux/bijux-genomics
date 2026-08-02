@@ -16,12 +16,9 @@ Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    MAINTAINER Bijan Mousavi <bijan@bijux.io>
-    VERSION Musket-v1.1
-
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
+    org.opencontainers.image.source https://sourceforge.net/projects/musket/
+    org.opencontainers.image.revision 306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba
+    org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 1.1
     org.opencontainers.image.tool musket
@@ -30,44 +27,35 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+    export VERSION_MUSKET=1.1
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
 
-    apt-get update -qq && \
-    apt-get install -y --no-install-recommends \
-        wget \
-        ca-certificates \
-        build-essential \
-        zlib1g-dev \
-        libgomp1 && \
-
-    wget -q https://sourceforge.net/projects/musket/files/musket-1.1.tar.gz/download -O /tmp/musket.tar.gz && \
-    tar -xzf /tmp/musket.tar.gz -C /opt && \
-    cd /opt/musket-1.1 && \
-    make && \
-    mv musket /usr/local/bin/musket-bin && \
-
-    # Create a wrapper script with version override and help handling.
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends build-essential curl libgomp1 zlib1g-dev
+    curl --fail --location --silent --show-error --output /opt/musket.tar.gz https://sourceforge.net/projects/musket/files/musket-1.1.tar.gz/download
+    echo '306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba  /opt/musket.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/musket.tar.gz --directory /opt
+    make --directory /opt/musket-1.1 -j"$(nproc)"
+    install -m 0755 /opt/musket-1.1/musket /usr/local/libexec-musket
     cat > /usr/local/bin/musket <<'EOF'
 #!/bin/sh
-if [ "$1" = "--version" ]; then
-    echo "1.1"
-    exit 0
-elif [ "$1" = "--help" ]; then
-    /usr/local/bin/musket-bin --help
-    exit 0
-else
-    /usr/local/bin/musket-bin "$@"
-fi
+set -eu
+case "${1:-}" in
+  --version) echo "${VERSION_MUSKET}" ;;
+  --help|-h|"") exec /usr/local/libexec-musket --help ;;
+  *) exec /usr/local/libexec-musket "$@" ;;
+esac
 EOF
-    chmod +x /usr/local/bin/musket && \
-
-    cd / && \
-    rm -rf /tmp/musket.tar.gz /opt/musket-1.1 && \
+    chmod 0755 /usr/local/bin/musket
+    musket --version | grep -Fx '1.1'
+    rm -rf /opt/musket.tar.gz /opt/musket-1.1
     rm -rf /var/lib/apt/lists/*
 %runscript
     if [ $# -eq 0 ]; then

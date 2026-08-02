@@ -317,8 +317,9 @@ pinned_commit = "abe4d3d8a0aaebada77dc5ffcb0c352c23d8de82"
 [musket]
 version = "1.1"
 source = "https://sourceforge.net/projects/musket/"
-date_pinned = "2026-02-12"
+date_pinned = "2026-08-02"
 pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba"
 
 [pear]
 version = "0.9.6"
