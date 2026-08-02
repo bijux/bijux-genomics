@@ -28,6 +28,9 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export LC_ALL=C
     export TZ=UTC
 
+%files
+    containers/tools/musket/musket /usr/local/bin/musket
+
 %post
     set -eux
     umask 022
@@ -42,19 +45,15 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     tar --extract --gzip --file /opt/musket.tar.gz --directory /opt
     make --directory /opt/musket-1.1 -j"$(nproc)"
     install -m 0755 /opt/musket-1.1/musket /usr/local/libexec-musket
-    cat > /usr/local/bin/musket <<'EOF'
-#!/bin/sh
-set -eu
-case "${1:-}" in
-  --version) echo '1.1' ;;
-  --help|-h|"") exec /usr/local/libexec-musket --help ;;
-  *) exec /usr/local/libexec-musket "$@" ;;
-esac
-EOF
     chmod 0755 /usr/local/bin/musket
     musket --version | grep -Fx '1.1'
     rm -rf /opt/musket.tar.gz /opt/musket-1.1
     rm -rf /var/lib/apt/lists/*
+
+%test
+    musket --version | grep -Fx '1.1'
+    musket --help >/dev/null
+
 %runscript
     if [ $# -eq 0 ]; then
         exec /usr/local/bin/musket --help

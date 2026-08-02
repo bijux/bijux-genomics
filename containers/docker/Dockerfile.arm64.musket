@@ -26,10 +26,7 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
     echo '306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba  /opt/musket.tar.gz' | sha256sum --check --strict && \
     tar --extract --gzip --file /opt/musket.tar.gz --directory /opt && \
     make --directory /opt/musket-1.1 -j"$(nproc)" && \
-    install -m 0755 /opt/musket-1.1/musket /usr/local/libexec-musket && \
-    printf '%s\n' '#!/bin/sh' 'set -eu' 'case "${1:-}" in' "  --version) echo '1.1' ;;" '  --help|-h|"") exec /usr/local/libexec-musket --help ;;' '  *) exec /usr/local/libexec-musket "$@" ;;' 'esac' > /usr/local/bin/musket && \
-    chmod 0755 /usr/local/bin/musket && \
-    musket --version | grep -Fx '1.1'
+    install -m 0755 /opt/musket-1.1/musket /usr/local/libexec-musket
 
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ARG OCI_CREATED=governed-by-build-evidence
@@ -52,8 +49,8 @@ RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubun
     rm -rf /var/lib/apt/lists/* && \
     useradd --system --uid 65532 --home-dir /work --create-home bijux
 COPY --from=builder /usr/local/libexec-musket /usr/local/libexec-musket
-COPY --from=builder /usr/local/bin/musket /usr/local/bin/musket
-RUN musket --version | grep -Fx '1.1'
+COPY containers/tools/musket/musket /usr/local/bin/musket
+RUN chmod 0755 /usr/local/bin/musket && musket --version | grep -Fx '1.1' && musket --help >/dev/null
 USER 65532:65532
 WORKDIR /work
 ENTRYPOINT ["musket"]
