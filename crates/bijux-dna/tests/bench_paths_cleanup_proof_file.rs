@@ -48,7 +48,7 @@ fn stage_all(root: &Path) {
     let output = Command::new("git")
         .arg("-C")
         .arg(root)
-        .args(["add", "benchmarks", "tests"])
+        .args(["add", "benchmarks"])
         .output()
         .expect("git add");
     assert!(output.status.success(), "git add failed: {}", String::from_utf8_lossy(&output.stderr));
@@ -70,11 +70,6 @@ fn write_benchmark_root(root: &Path) {
         "stage_id\ttool_id\nfastq.validate_reads\tfastp\n",
     );
     write_text(&root.join("benchmarks/tests/fixtures/.gitkeep"), "");
-    write_text(&root.join("tests/README.md"), "# Root Tests\n");
-    std::fs::create_dir_all(root.join("tests")).expect("create tests root");
-    #[cfg(unix)]
-    std::os::unix::fs::symlink("../benchmarks/tests/fixtures", root.join("tests/fixtures"))
-        .expect("symlink tests fixtures");
 }
 
 fn seed_disposable_root(path: &Path) {

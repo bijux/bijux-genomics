@@ -1,5 +1,5 @@
 {
-  "schema_version": "bijux.bench.paths_validate.v1",
+  "schema_version": "bijux.bench.paths_validate.v2",
   "output_path": "benchmarks/readiness/benchmark-paths-validation.json",
   "repo_root": "/Users/bijan/bijux/bijux-genomics",
   "strict": true,
@@ -10,21 +10,8 @@
   "readiness_snapshot_count": 1325,
   "readiness_json_snapshot_count": 1263,
   "readiness_tsv_snapshot_count": 62,
-  "root_tests_regular_file_count": 1,
-  "root_tests_readme_tracked_by_git": true,
   "violation_count": 0,
   "ok": true,
-  "legacy_fixture_wrapper": {
-    "wrapper_path": "tests/fixtures",
-    "expected_target": "../benchmarks/tests/fixtures",
-    "actual_target": "../benchmarks/tests/fixtures",
-    "exists": true,
-    "is_symlink": true,
-    "root_tests_readme_path": "tests/README.md",
-    "root_tests_readme_exists": true,
-    "root_tests_readme_tracked_by_git": true,
-    "root_tests_regular_file_count": 1
-  },
   "readiness_snapshots": [
     "benchmarks/readiness/ESSENTIAL_PIPELINES_READY.json",
     "benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.json",
