@@ -4,12 +4,11 @@
 # Container definition license: GPL-3.0.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
-FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=0.9.6
+LABEL org.opencontainers.image.source="https://cme.h-its.org/exelixis/web/software/pear/" \
+      org.opencontainers.image.revision="f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b" \
       org.opencontainers.image.created="${OCI_CREATED}" \
       org.opencontainers.image.licenses="GPL-3.0" \
       org.opencontainers.image.version="${TOOL_VERSION}"
@@ -17,49 +16,49 @@ LABEL org.opencontainers.image.tool="pear"
 LABEL org.opencontainers.image.title="pear"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
-
-ARG VERSION_PEAR=0.9.6
-ENV VERSION_PEAR=${VERSION_PEAR}
-
-RUN apt-get update -qq && \
-    apt-get install -y --no-install-recommends --no-install-suggests -o Acquire::Retries=3 \
-        wget \
-        ca-certificates \
-        build-essential \
-        zlib1g-dev \
-        libbz2-dev \
-        liblzma-dev \
-        autoconf \
-        automake \
-        libtool \
-        m4 \
-        pkg-config && \
-    wget -q https://depot.galaxyproject.org/software/pear/pear_${VERSION_PEAR}_src_all.tar.gz -O /tmp/pear.tar.gz && \
-    tar -xzf /tmp/pear.tar.gz -C /opt && \
-    cd /opt/pear-${VERSION_PEAR}-src && \
-    autoreconf -i && \
+ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive VERSION_PEAR=0.9.6
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y --no-install-recommends autoconf automake build-essential curl libbz2-dev liblzma-dev libtool m4 pkg-config zlib1g-dev && \
+    curl --fail --location --silent --show-error --output /opt/pear.tar.gz https://depot.galaxyproject.org/software/pear/pear_0.9.6_src_all.tar.gz && \
+    echo 'f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b  /opt/pear.tar.gz' | sha256sum --check --strict && \
+    tar --extract --gzip --file /opt/pear.tar.gz --directory /opt && \
+    cd /opt/pear-0.9.6-src && \
+    autoreconf --install && \
     ./configure --prefix=/usr/local && \
     make -j"$(nproc)" && \
     make install && \
-    mv /usr/local/bin/pear /usr/local/bin/pear-bin && \
-    rm -rf /opt/pear-${VERSION_PEAR}-src /tmp/pear.tar.gz /var/lib/apt/lists/* && \
-    apt-get purge -y wget ca-certificates build-essential autoconf automake libtool m4 pkg-config && \
-    apt-get autoremove -y
+    mv /usr/local/bin/pear /usr/local/libexec-pear && \
+    printf '%s\n' '#!/bin/sh' 'set -eu' 'case "${1:-}" in' '  --version) echo "${VERSION_PEAR}" ;;' '  --help|-h|"") exec /usr/local/libexec-pear --help ;;' '  *) exec /usr/local/libexec-pear "$@" ;;' 'esac' > /usr/local/bin/pear && \
+    chmod 0755 /usr/local/bin/pear && \
+    pear --version | grep -Fx '0.9.6'
 
-# Create a wrapper script for unified PEAR execution
-RUN echo '#!/bin/sh' > /usr/local/bin/pear && \
-    echo 'if [ "$1" = "--version" ]; then' >> /usr/local/bin/pear && \
-    echo '    echo "$VERSION_PEAR"' >> /usr/local/bin/pear && \
-    echo '    exit 0' >> /usr/local/bin/pear && \
-    echo 'elif [ "$1" = "--help" ]; then' >> /usr/local/bin/pear && \
-    echo '    /usr/local/bin/pear-bin --help' >> /usr/local/bin/pear && \
-    echo '    exit 0' >> /usr/local/bin/pear && \
-    echo 'else' >> /usr/local/bin/pear && \
-    echo '    /usr/local/bin/pear-bin "$@"' >> /usr/local/bin/pear && \
-    echo 'fi' >> /usr/local/bin/pear && \
-    chmod +x /usr/local/bin/pear
-
-WORKDIR /data
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=0.9.6
+LABEL org.opencontainers.image.source="https://cme.h-its.org/exelixis/web/software/pear/" \
+      org.opencontainers.image.revision="f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="pear" \
+      org.opencontainers.image.title="PEAR" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive VERSION_PEAR=0.9.6
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y --no-install-recommends libbz2-1.0 libgomp1 liblzma5 zlib1g && \
+    rm -rf /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
+COPY --from=builder /usr/local/libexec-pear /usr/local/libexec-pear
+COPY --from=builder /usr/local/bin/pear /usr/local/bin/pear
+RUN pear --version | grep -Fx '0.9.6'
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["pear"]
 CMD ["--help"]

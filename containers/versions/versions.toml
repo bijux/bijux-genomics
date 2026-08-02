@@ -324,8 +324,9 @@ source_sha256 = "306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497ab
 [pear]
 version = "0.9.6"
 source = "https://cme.h-its.org/exelixis/web/software/pear/"
-date_pinned = "2026-02-12"
+date_pinned = "2026-08-02"
 pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b"
 
 [plink]
 version = "1.90"
