@@ -29,6 +29,9 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export TZ=UTC
     export VERSION_PEAR=0.9.6
 
+%files
+    containers/tools/pear/pear /usr/local/bin/pear
+
 %post
     set -eux
     umask 022
@@ -48,15 +51,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     make -j"$(nproc)"
     make install
     mv /usr/local/bin/pear /usr/local/libexec-pear
-    cat > /usr/local/bin/pear <<'EOF'
-#!/bin/sh
-set -eu
-case "${1:-}" in
-  --version) echo '0.9.6' ;;
-  --help|-h|"") exec /usr/local/libexec-pear --help ;;
-  *) exec /usr/local/libexec-pear "$@" ;;
-esac
-EOF
     chmod 0755 /usr/local/bin/pear
     pear --version | grep -Fx '0.9.6'
     cd /
@@ -68,6 +62,10 @@ EOF
     else
         exec /usr/local/bin/pear "$@"
     fi
+
+%test
+    pear --version | grep -Fx '0.9.6'
+    pear --help >/dev/null
 
 %help
     This Apptainer image provides PEAR version 0.9.6, compiled from source.
