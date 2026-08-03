@@ -144,3 +144,47 @@ python3 containers/runs/result_layout.py verify \
 
 `rollback` accepts the same arguments and restores the recorded nested paths.
 The journal is execution-site evidence and remains outside Git.
+
+## Keep the active result surface publication-only
+
+Published tool evidence and superseded attempts have different operational
+roles. The active `results/container-validation/` root contains exactly one
+flat directory for each record admitted under `containers/runs/`. Older
+successful, failed, and incomplete attempts remain reproducible, but belong
+under governed execution-site evidence rather than beside current results.
+
+The superseded archive command derives its exact move set from the checked-in
+attempt ledger, inventories every file before mutation, journals every atomic
+rename, verifies the publication-only active surface, and supports rollback:
+
+```console
+commit="$(git rev-parse HEAD)"
+study=/home/bijan/lu2024-12-24/Dardel/STUDY
+plan="$study/containers/evidence/result-layout/$commit/superseded-results.json"
+archive="$study/containers/evidence/superseded/results/$commit"
+
+python3 containers/runs/result_layout.py plan-superseded-archive \
+  --runs-root containers/runs \
+  --ledger containers/runs/attempt-ledger.json \
+  --result-root "$study/results/container-validation" \
+  --archive-root "$archive" \
+  --plan "$plan"
+
+python3 containers/runs/result_layout.py apply-superseded-archive \
+  --runs-root containers/runs \
+  --ledger containers/runs/attempt-ledger.json \
+  --result-root "$study/results/container-validation" \
+  --archive-root "$archive" \
+  --plan "$plan"
+
+python3 containers/runs/result_layout.py verify-superseded-archive \
+  --runs-root containers/runs \
+  --ledger containers/runs/attempt-ledger.json \
+  --result-root "$study/results/container-validation" \
+  --archive-root "$archive" \
+  --plan "$plan"
+```
+
+`rollback-superseded-archive` accepts the same arguments. No result file is
+deleted or rewritten; the plan records its path, size, SHA-256, category, and
+replacement identity before any move occurs.

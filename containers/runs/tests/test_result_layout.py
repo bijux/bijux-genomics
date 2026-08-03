@@ -80,6 +80,116 @@ class ResultLayoutTests(unittest.TestCase):
             with self.assertRaisesRegex(layout.ResultLayoutError, "size changed"):
                 layout.apply_layout(plan, runs, result_root)
 
+    def make_superseded_archive(self, root: Path) -> tuple[Path, Path, Path]:
+        runs = root / "runs"
+        result_root = root / "results" / "container-validation"
+        final = result_root / "run-1002-samtools"
+        superseded = result_root / "run-1001-samtools"
+        cache = result_root / "python-cache"
+        final.mkdir(parents=True)
+        superseded.mkdir()
+        cache.mkdir()
+        (final / "sample.bam").write_bytes(b"published")
+        (superseded / "sample.bam").write_bytes(b"superseded")
+        (cache / "module.pyc").write_bytes(b"cache")
+        lock_root = runs / "run-1002-samtools"
+        lock_root.mkdir(parents=True)
+        (lock_root / "evidence.lock.json").write_text(
+            json.dumps(
+                {
+                    "run_id": "run-1002",
+                    "tool": "samtools",
+                    "source_result": "results/container-validation/run-1002-samtools",
+                    "source_files": [
+                        {
+                            "path": "sample.bam",
+                            "size_bytes": 9,
+                            "sha256": layout.sha256_file(final / "sample.bam"),
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        ledger = runs / "attempt-ledger.json"
+        ledger.write_text(
+            json.dumps(
+                {
+                    "schema_version": layout.ATTEMPT_LEDGER_SCHEMA,
+                    "attempts": [
+                        {
+                            "run_id": "run-1001",
+                            "tool": "samtools",
+                            "evidence_lock_sha256": "a" * 64,
+                            "superseded_by": "run-1002",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        return runs, result_root, ledger
+
+    def test_superseded_archive_preserves_attempts_and_active_finals(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runs, result_root, ledger = self.make_superseded_archive(root)
+            archive_root = root / "evidence" / "superseded-results"
+            plan = root / "evidence" / "result-layout.json"
+
+            self.assertEqual(
+                layout.plan_superseded_archive(
+                    runs, ledger, result_root, archive_root, plan
+                ),
+                2,
+            )
+            self.assertEqual(
+                layout.apply_superseded_archive(
+                    plan, runs, ledger, result_root, archive_root
+                ),
+                2,
+            )
+            self.assertEqual(
+                layout.verify_superseded_archive(
+                    plan, runs, ledger, result_root, archive_root
+                ),
+                2,
+            )
+            self.assertEqual(
+                sorted(path.name for path in result_root.iterdir()),
+                ["run-1002-samtools"],
+            )
+            self.assertEqual(
+                (archive_root / "run-1001-samtools" / "sample.bam").read_bytes(),
+                b"superseded",
+            )
+            self.assertEqual(
+                layout.rollback_superseded_archive(
+                    plan, runs, ledger, result_root, archive_root
+                ),
+                2,
+            )
+            self.assertTrue((result_root / "run-1001-samtools").is_dir())
+            self.assertTrue((result_root / "python-cache").is_dir())
+
+    def test_changed_superseded_result_blocks_archive(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runs, result_root, ledger = self.make_superseded_archive(root)
+            archive_root = root / "evidence" / "superseded-results"
+            plan = root / "evidence" / "result-layout.json"
+            layout.plan_superseded_archive(
+                runs, ledger, result_root, archive_root, plan
+            )
+            (result_root / "run-1001-samtools" / "sample.bam").write_bytes(
+                b"changed"
+            )
+
+            with self.assertRaisesRegex(layout.ResultLayoutError, "size changed"):
+                layout.apply_superseded_archive(
+                    plan, runs, ledger, result_root, archive_root
+                )
+
 
 if __name__ == "__main__":
     unittest.main()
