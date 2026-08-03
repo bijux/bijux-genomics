@@ -1444,17 +1444,38 @@ assertions = ["the report consumer accepts the normalized result"]
             container_validation.ISOLATED_RUNTIME_HOSTNAME,
         )
 
-    def test_measured_execution_uses_host_time_around_apptainer(self) -> None:
+    def test_measured_execution_uses_wait4_resource_accounting(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             stdout = root / "stdout.log"
             stderr = root / "stderr.log"
             resource = root / "resource.tsv"
-            with mock.patch.object(
-                container_validation.subprocess,
-                "run",
-                return_value=subprocess.CompletedProcess([], 0),
-            ) as execute:
+            process = mock.Mock(pid=42, returncode=None)
+            usage = mock.Mock(
+                ru_utime=1.25,
+                ru_stime=0.5,
+                ru_maxrss=4096,
+                ru_inblock=12,
+                ru_oublock=3,
+            )
+            with (
+                mock.patch.object(container_validation.sys, "platform", "linux"),
+                mock.patch.object(
+                    container_validation.subprocess,
+                    "Popen",
+                    return_value=process,
+                ) as execute,
+                mock.patch.object(
+                    container_validation.os,
+                    "wait4",
+                    return_value=(42, 0, usage),
+                ),
+                mock.patch.object(
+                    container_validation.time,
+                    "monotonic",
+                    side_effect=(10.0, 12.0),
+                ),
+            ):
                 status = container_validation.run_apptainer_measured(
                     root / "tool.sif",
                     ["tool", "run"],
@@ -1464,12 +1485,13 @@ assertions = ["the report consumer accepts the normalized result"]
                     stderr,
                     resource,
                 )
+            resource_text = resource.read_text(encoding="utf-8")
 
         command = execute.call_args.args[0]
         self.assertEqual(status, 0)
-        self.assertEqual(command[0], "/usr/bin/time")
-        self.assertIn("apptainer", command)
-        self.assertIn(str(resource), command)
+        self.assertEqual(command[0], "apptainer")
+        self.assertIn("wall_seconds\t2.000000000\tseconds", resource_text)
+        self.assertIn("peak_rss_kib\t4096\tkibibytes", resource_text)
 
 
 class BuildAdmissionTests(unittest.TestCase):

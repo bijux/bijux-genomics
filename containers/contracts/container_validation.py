@@ -13,6 +13,7 @@ import shlex
 import socket
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -1347,31 +1348,31 @@ def run_apptainer_measured(
     stderr_path: Path,
     resource_path: Path,
 ) -> int:
-    command = [
-        "/usr/bin/time",
-        "-f",
-        (
-            "metric\\tvalue\\tunit\\n"
-            "wall_seconds\\t%e\\tseconds\\n"
-            "user_seconds\\t%U\\tseconds\\n"
-            "system_seconds\\t%S\\tseconds\\n"
-            "peak_rss_kib\\t%M\\tkibibytes\\n"
-            "filesystem_input_operations\\t%I\\toperations\\n"
-            "filesystem_output_operations\\t%O\\toperations"
-        ),
-        "-o",
-        str(resource_path),
-        *apptainer_command(image_path, argv, binds),
-    ]
+    if not sys.platform.startswith("linux") or not hasattr(os, "wait4"):
+        raise ContractError("measured container execution requires Linux wait4")
+    command = apptainer_command(image_path, argv, binds)
     with stdout_path.open("wb") as stdout, stderr_path.open("wb") as stderr:
-        completed = subprocess.run(
+        started = time.monotonic()
+        process = subprocess.Popen(
             command,
-            check=False,
             stdout=stdout,
             stderr=stderr,
             env=apptainer_environment(scratch_path),
         )
-    return completed.returncode
+        _, wait_status, usage = os.wait4(process.pid, 0)
+        wall_seconds = time.monotonic() - started
+        process.returncode = os.waitstatus_to_exitcode(wait_status)
+    resource_path.write_text(
+        "metric\tvalue\tunit\n"
+        f"wall_seconds\t{wall_seconds:.9f}\tseconds\n"
+        f"user_seconds\t{usage.ru_utime:.9f}\tseconds\n"
+        f"system_seconds\t{usage.ru_stime:.9f}\tseconds\n"
+        f"peak_rss_kib\t{usage.ru_maxrss}\tkibibytes\n"
+        f"filesystem_input_operations\t{usage.ru_inblock}\toperations\n"
+        f"filesystem_output_operations\t{usage.ru_oublock}\toperations\n",
+        encoding="utf-8",
+    )
+    return process.returncode
 
 
 def write_json(path: Path, value: dict[str, Any]) -> None:
