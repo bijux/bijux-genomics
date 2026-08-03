@@ -609,6 +609,8 @@ version = "3.3.0"
 source = "https://github.com/broadinstitute/picard"
 date_pinned = "2026-02-16"
 pinned_commit = "63138fc8b7ae33eb0490a8ef707b61befa2f51d4"
+source_sha256 = "58819a7660646b74b34e282f5d4d21c8dbaea22ddeff96e3258755dafa0f86dc"
+upstream_license = "MIT"
 
 [preseq]
 version = "3.2.0"

@@ -2,25 +2,22 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: picard
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-# VERSION_SOURCE: containers/versions/versions.toml
+# Version policy: catalog-locked release artifact and Git tag commit
+# Upstream source: https://github.com/broadinstitute/picard
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to locked Ubuntu snapshot and release asset
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
     org.opencontainers.image.source https://github.com/broadinstitute/picard
     org.opencontainers.image.title picard
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.revision 63138fc8b7ae33eb0490a8ef707b61befa2f51d4
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses MIT
     org.opencontainers.image.version 3.3.0
     org.opencontainers.image.tool picard
 %environment
@@ -30,14 +27,17 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export VERSION_PICARD=3.3.0
 %post
     set -eux
-    # NETWORK_SOURCE_VERIFIED_BY_LOCK
     umask 022
     VERSION_PICARD=3.3.0
     export VERSION_PICARD
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update
-    apt-get install -y --no-install-recommends ca-certificates wget openjdk-21-jre-headless
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates=20260601~24.04.1
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends wget=1.21.4-1ubuntu4.4 openjdk-21-jre-headless=21.0.11+10-1~24.04.2
     wget -q -O /opt/picard.jar "https://github.com/broadinstitute/picard/releases/download/${VERSION_PICARD}/picard.jar"
+    echo '58819a7660646b74b34e282f5d4d21c8dbaea22ddeff96e3258755dafa0f86dc  /opt/picard.jar' | sha256sum -c -
     cat > /usr/local/bin/picard <<'EOS'
 #!/usr/bin/env sh
 set -eu
@@ -48,6 +48,7 @@ esac
 exec java -jar /opt/picard.jar "$@"
 EOS
     chmod 0755 /usr/local/bin/picard
+    java -jar /opt/picard.jar MarkDuplicates --version | grep -F 'Version:3.3.0'
     rm -rf /var/lib/apt/lists/*
 %runscript
     if [ $# -eq 0 ]; then
@@ -55,5 +56,9 @@ EOS
     else
         exec picard "$@"
     fi
+%test
+    picard --version | grep -Fx 'picard 3.3.0'
+    picard --help >/dev/null
+    java -jar /opt/picard.jar MarkDuplicates --version | grep -F 'Version:3.3.0'
 %help
-    Picard image.
+    Picard 3.3.0 from the checksummed upstream release JAR.
