@@ -1,0 +1,107 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "seqprep",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e16029906bed461a1a83c5ee7a90163d61d9f38ba381aaec6b488523899334b2"
+    },
+    "negative": {
+      "argv": [
+        "seqprep",
+        "--governed-invalid-option"
+      ],
+      "exit_code": 2,
+      "stderr_sha256": "19e6d0deedb3f64c8f48161c449f1a75a73bfc47a125debda911ebc2d741c80b",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "seqprep",
+        "-f",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+        "-r",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+        "-1",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/seqprep/run-1082/unmerged-r1.fastq.gz",
+        "-2",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/seqprep/run-1082/unmerged-r2.fastq.gz",
+        "-s",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/seqprep/run-1082/merged.fastq.gz"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "b8f96a0b75afc7acc47c93c50b8a740cabcb9604a03090edbf401483542d5012",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "seqprep",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "7d6457eca2b28bae7be228f5d381686169e1b52a74f4557734e081079c328330"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/seqprep-1.3.2-linux-amd64-685325d733fd.sif",
+    "sha256": "685325d733fde648552d38ad0666eb5645950b2fdac4e835fcbe9d3ad238debf",
+    "size_bytes": 30748672
+  },
+  "inputs": [
+    {
+      "id": "ena-err1021817-read-prefix-100000-r1",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "sha256": "37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc"
+    },
+    {
+      "id": "ena-err1021817-read-prefix-100000-r2",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+      "sha256": "14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "merged.fastq.gz",
+      "sha256": "02eab7c405406d92d16492da7df53743d0bfe714006e4e2d2adf06055e7f8222",
+      "size_bytes": 9813
+    },
+    {
+      "path": "unmerged-r1.fastq.gz",
+      "sha256": "1c3fc630226d03f8c5021da79a5bdc65b3723f78b58429b05f782d4eb6a06b6f",
+      "size_bytes": 7533030
+    },
+    {
+      "path": "unmerged-r2.fastq.gz",
+      "sha256": "3a07d0091be6defc01f0188bcd0848ec45a0295a94f207b559c94e91f12d3a64",
+      "size_bytes": 7770262
+    }
+  ],
+  "pipeline_sha256": "a4cd01faa5bba4b6b8d192baad159756db361e9b1bfa01cafe709161a4790f32",
+  "repository_clean": true,
+  "repository_commit": "2b0acb2c14e60801cd7e94b13dbec2f39799bc82",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/2b0acb2c14e60801cd7e94b13dbec2f39799bc82",
+  "run_id": "run-1082",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "host": "cn087",
+    "slurm_job_id": "3458066",
+    "started_at_utc": "2026-08-02T22:04:58.494213+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn087",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

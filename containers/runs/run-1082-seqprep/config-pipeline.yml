@@ -1,0 +1,60 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1082
+  campaign: public-fastq-pair-preparation-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq
+  stage: fastq.merge_pairs
+  tool: seqprep
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/2b0acb2c14e60801cd7e94b13dbec2f39799bc82
+  commit: 2b0acb2c14e60801cd7e94b13dbec2f39799bc82
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqprep-1.3.2-linux-amd64-685325d733fd.sif
+  sha256: 685325d733fde648552d38ad0666eb5645950b2fdac4e835fcbe9d3ad238debf
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+    - id: ena-err1021817-read-prefix-100000-r2
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+      sha256: 14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf
+commands:
+  version: [seqprep, --version]
+  help: [seqprep, --help]
+  real:
+    - seqprep
+    - -f
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+    - -r
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+    - '-1'
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/seqprep/run-1082/unmerged-r1.fastq.gz
+    - '-2'
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/seqprep/run-1082/unmerged-r2.fastq.gz
+    - -s
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/seqprep/run-1082/merged.fastq.gz
+  negative: [seqprep, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/seqprep/run-1082
+  required_files: [merged.fastq.gz, unmerged-r1.fastq.gz, unmerged-r2.fastq.gz]
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 1
+  memory_mb: 2048
+  walltime: '00:15:00'
+  scratch_mb: 512
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^seqprep 1[.]3[.]2$'
+  negative_exit_nonzero: true

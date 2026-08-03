@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T21:52:23.601923+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "218467a7bc8fb996f85c3624eb7a24303c274ecea8569abb1d24467c27e6b1d4",
+  "rows": [
+    {
+      "AllocCPUS": "2",
+      "AveRSS": "",
+      "CPUTimeRAW": "2",
+      "Elapsed": "00:00:01",
+      "ElapsedRaw": "1",
+      "ExitCode": "0:0",
+      "JobID": "3458063",
+      "JobName": "fastq-merge_pairs-flash2-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn087",
+      "ReqMem": "2G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1078",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458063",
+  "submit_script_sha256": "b57b3c2198b1acecdbd29fd24266b246925c2216b670873a408a9d3b62880c2b"
+}
