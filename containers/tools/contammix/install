@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+archive="$work_dir/contammix.tar.gz"
+
+curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
+  --output "$archive" \
+  'https://github.com/plfjohnson/contamMix/archive/46c2b9c9fa82c2507f2b084f0b37d862a0825f4b.tar.gz'
+printf '%s  %s\n' \
+  '8fb3b2c84827e9697abb75e2fc71ffec82031db59514879d35b62257365a10f5' \
+  "$archive" | sha256sum --check --strict
+R CMD INSTALL "$archive"
+
+Rscript -e 'stopifnot(as.character(packageVersion("contamMix")) == "1.0.10")'
+/usr/local/bin/contammix --version | \
+  grep -Fx 'contammix 1.0.11 (contamMix package 1.0-10)'
+/usr/local/bin/contammix --help >/dev/null
