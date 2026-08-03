@@ -14,7 +14,10 @@ printf '%s  %s\n' \
 mkdir -p "$work_dir/source" /opt/kraken2
 tar --extract --gzip --file "$archive" --directory "$work_dir/source" \
   --strip-components=1
-"$work_dir/source/install_kraken2.sh" /opt/kraken2
+(
+  cd "$work_dir/source"
+  ./install_kraken2.sh /opt/kraken2
+)
 
 /usr/local/bin/kraken2 --version | grep -Fx 'Kraken 2.1.3'
 /usr/local/bin/kraken2 --help >/dev/null
