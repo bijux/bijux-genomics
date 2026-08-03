@@ -31,6 +31,11 @@ sets `run.kind: benchmark`; the execution validator then confines results to
 admitted Apptainer image. LUNARC modules or host-installed scientific binaries
 are not valid benchmark participants.
 
+Measured Apptainer images include GNU `time` as a non-scientific runtime
+dependency. The campaign records wall, user, system, and peak-resident-memory
+values inside the same container boundary as the tool; a missing measurement
+binary fails evidence instead of silently dropping resource metrics.
+
 The current BAM-genotyping campaign uses one warmup and three measured warm
 cache repetitions. Candidate-site recovery is reported honestly: the Ensembl
 panel is independent of the ancient horse sample, but it is not a truth

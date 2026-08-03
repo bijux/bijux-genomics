@@ -39,7 +39,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
     apt-get install -y --no-install-recommends ca-certificates
     apt-get -o Acquire::Check-Valid-Until=false update
-    apt-get install -y --no-install-recommends libbz2-1.0 liblzma5 zlib1g
+    apt-get install -y --no-install-recommends libbz2-1.0 liblzma5 time zlib1g
     apt-get install -y --no-install-recommends curl g++ libbz2-dev liblzma-dev make python3 zlib1g-dev
     curl --fail --location --proto '=https' --tlsv1.2 --output /opt/bedtools.tar.gz https://codeload.github.com/arq5x/bedtools2/tar.gz/refs/tags/v2.31.1
     echo '79a1ba318d309f4e74bfa74258b73ef578dccb1045e270998d7fe9da9f43a50e  /opt/bedtools.tar.gz' | sha256sum --check --strict
