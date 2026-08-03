@@ -22,8 +22,8 @@ or successful command does not become a scientific or release claim.
 | `source` | 87 |
 | `build` | 87 |
 | `runtime` | 87 |
-| `stage` | 67 |
-| `real_data` | 67 |
+| `stage` | 68 |
+| `real_data` | 68 |
 | `science` | 0 |
 | `benchmark` | 0 |
 | `security` | 0 |
@@ -99,7 +99,7 @@ permitted. Unsupported tools use `n/a`.
 | `picard` | `3.3.0` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
 | `plink` | `1.90b7.2` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `plink2` | `2.00a6` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
-| `pmdtools` | `0.60` | retained | pass | pass | missing | missing | missing | missing | missing | **unverified** |
+| `pmdtools` | `0.60` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `preseq` | `3.2.0` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `prinseq` | `1.2.4` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |
 | `pydamage` | `1.0` | retained | pass | pass | pass | missing | missing | missing | missing | **unverified** |

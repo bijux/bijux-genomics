@@ -3,19 +3,19 @@
   "sources": {
     "catalog": {
       "path": "containers/contracts/catalog.toml",
-      "sha256": "e87319f9871ec78271b345ff331792bd3fc23933262887756372ec215b4cd9e0"
+      "sha256": "5c6b24ede72ef6c5d8f1dfe7d510f92ffa64ba06ce3b8c9662e3f8234b42850e"
     },
     "inventory": {
-      "path": "artifacts/report-render/fdcc6d75bfdf6ead103b48f4a10d96e5bdb882b7/image-inventory.json",
-      "sha256": "fad4453e469f614b2f572abed23fea36529456311632d924f7b8aa0a74840ea8"
+      "path": "artifacts/report-render/55330776660ad96c8ae21349fb7beeb06a9015df/image-inventory.json",
+      "sha256": "4d9560ca422ddcd9f74a7975d32ab5565cdce567832094939c004ab0f0d88700"
     },
     "runs": {
       "path": "containers/reports/run-evidence.json",
-      "sha256": "92efb2b08d0429dbdc87a8f988eb858b354eb4f372a0825e74c399a9341edab9"
+      "sha256": "6d1188455320bba0ee85856776ba50ad2c5f6f99f87ff537ccf9c94d67abbf10"
     },
     "runtime": {
-      "path": "artifacts/report-render/fdcc6d75bfdf6ead103b48f4a10d96e5bdb882b7/runtime-verification.json",
-      "sha256": "96644ce57fa0b89d94787c8007d5ca21dd73eace16d4bcb61b2686e40bea8edf"
+      "path": "artifacts/report-render/55330776660ad96c8ae21349fb7beeb06a9015df/runtime-verification.json",
+      "sha256": "4e17acedf87c42327145d7d7d4ce9ab67597f8761c9911f1d104d3dee9cb00e8"
     }
   },
   "summary": {
@@ -24,13 +24,13 @@
       "build": 87,
       "catalog": 87,
       "freshness": 87,
-      "real_data": 67,
+      "real_data": 68,
       "release": 0,
       "runtime": 87,
       "science": 0,
       "security": 0,
       "source": 87,
-      "stage": 67
+      "stage": 68
     },
     "qualification": {
       "unsupported": 2,
@@ -1731,26 +1731,24 @@
         "build": "passed",
         "catalog": "passed",
         "freshness": "passed",
-        "real_data": "missing",
+        "real_data": "passed",
         "release": "missing",
         "runtime": "passed",
         "science": "missing",
         "security": "missing",
         "source": "passed",
-        "stage": "missing"
+        "stage": "passed"
       },
       "id": "pmdtools",
       "missing_dimensions": [
-        "stage",
-        "real_data",
         "science",
         "benchmark",
         "security",
         "release"
       ],
       "qualification": "unverified",
-      "real_run_attempts": 0,
-      "real_run_passes": 0,
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
       "support_disposition": "retained",
       "version": "0.60"
     },

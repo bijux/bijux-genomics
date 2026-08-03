@@ -1,7 +1,7 @@
 {
-  "catalog_sha256": "e87319f9871ec78271b345ff331792bd3fc23933262887756372ec215b4cd9e0",
-  "created_at_utc": "2026-08-03T07:00:21.512172+00:00",
-  "repository_commit": "fdcc6d75bfdf6ead103b48f4a10d96e5bdb882b7",
+  "catalog_sha256": "5c6b24ede72ef6c5d8f1dfe7d510f92ffa64ba06ce3b8c9662e3f8234b42850e",
+  "created_at_utc": "2026-08-03T07:16:03.383998+00:00",
+  "repository_commit": "55330776660ad96c8ae21349fb7beeb06a9015df",
   "schema_version": "bijux.container.image_inventory.v1",
   "staged_images": [],
   "summary": {
@@ -2344,25 +2344,25 @@
             {
               "definition_matches_commit": true,
               "definition_matches_current": true,
-              "definition_sha256": "28a27768050d670a93949d8d05fac4545b0438ef156509cb6cf7d8f19a2fa22a",
+              "definition_sha256": "0a475eee04e3dc13f7f8875472cfa15b8ae5978953eb30b9f1b49738a060fdfc",
               "image_matches": true,
-              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/pmdtools-0.60-e8b0fb78f195.build.json",
-              "repository_commit": "1811d96605f1a6ea8136eb344383f39bea6a7de2",
+              "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/pmdtools-0.60-634782e108fe.build.json",
+              "repository_commit": "b78cd27c0109b3ab996122fd843662c5cb129ded",
               "status": "passed"
             }
           ],
           "current_recipe": true,
           "disposition": "canonical",
           "immutable_name": true,
-          "name": "pmdtools-0.60-linux-amd64-e8b0fb78f195.sif",
-          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pmdtools-0.60-linux-amd64-e8b0fb78f195.sif",
-          "real_run_references": 0,
-          "sha256": "e8b0fb78f1950d4132abc229fdd6a0c937ff8b154f7948bf9c050baa134e2b99",
-          "size_bytes": 62992384
+          "name": "pmdtools-0.60-linux-amd64-634782e108fe.sif",
+          "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pmdtools-0.60-linux-amd64-634782e108fe.sif",
+          "real_run_references": 1,
+          "sha256": "634782e108fe1384642b7f5da026b8a628f5f61d35b438333eb64ae688bbb8be",
+          "size_bytes": 46628864
         }
       ],
-      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pmdtools-0.60-linux-amd64-e8b0fb78f195.sif",
-      "selected_image_sha256": "e8b0fb78f1950d4132abc229fdd6a0c937ff8b154f7948bf9c050baa134e2b99",
+      "selected_image": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pmdtools-0.60-linux-amd64-634782e108fe.sif",
+      "selected_image_sha256": "634782e108fe1384642b7f5da026b8a628f5f61d35b438333eb64ae688bbb8be",
       "state": "current",
       "support_disposition": "retained",
       "tool": "pmdtools",
