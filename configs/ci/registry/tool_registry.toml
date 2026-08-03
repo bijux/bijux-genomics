@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: ce73bbbfbe4d11ddc38d62916cb8aafae6f8fcc5
+# source_commit: f8754f4d40897168bb736735d34596ffa0018587
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -940,10 +940,10 @@ version = "2.2.00"
 default_version = "2.2.00"
 upstream = "https://github.com/dstreett/FLASH2"
 version_rule = "pinned"
-license = "GPL-3.0"
-citation = "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC3198573/"
-pinned_commit = "git:64826f4574b11b3c0ae7460826f30be16f49c3ea"
-pin_strategy = "source_commit"
+license = "GPL-3.0-or-later"
+citation = "software:https://github.com/dstreett/FLASH2/tree/2.2.00"
+pinned_commit = "sha256:da5aa6c5791c69cf254f8d9b817392be79a74d6c3384fbcf6c32fcd392b76ae8"
+pin_strategy = "source_sha256"
 container_ref = "bijuxdna/flash2:2.2.00"
 runtimes = ["docker", "apptainer"]
 container = true

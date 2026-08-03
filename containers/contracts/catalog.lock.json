@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "16288501b793289cad6f480ca866fa5a03748d5b5e7223732c0b38b60bafa8b9",
+  "source_sha256": "5b7e25662d78f390ed728970269e489852b006d2ed11ca6a2be786fcffc6799b",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -578,12 +578,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/dstreett/FLASH2",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "da5aa6c5791c69cf254f8d9b817392be79a74d6c3384fbcf6c32fcd392b76ae8",
       "pinned_commit": "64826f4574b11b3c0ae7460826f30be16f49c3ea",
       "apptainer_definition": "containers/apptainer/flash2.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.flash2",
-      "contract_sha256": "7ec583d8f1bf5abc8950a2f0c119f28b41cbff3402d49d8158996c15fd61e36d"
+      "contract_sha256": "525362cebf60a1fa7a1aebcc99dd1581802ef403b481f34a58dff1d0ce15e8a6"
     },
     {
       "id": "fqtools",
