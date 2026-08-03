@@ -7,7 +7,7 @@ accepted_input_contracts = [
   "bijux.fastq.artifact.paired_end.v1",
   "bijux.fastq.artifact.merged.v1",
 ]
-output_contract = "bijux.fastq.profile_reads.report.v2"
+output_contract = "bijux.benchmark.fastq.profile_reads.bundle.v1"
 normalized_result_contract = "benchmarks/contracts/schemas/fastq-profile-reads-result.schema.json"
 parameter_schema_version = "bijux.fastq.params.stats.v1"
 default_provider = "bijux_dna_domain_fastq::params::defaults::stats_defaults"
@@ -32,11 +32,11 @@ seqkit = "bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads"
 seqkit_stats = "bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads"
 
 [interfaces.downstream_probe]
-consumer_stage_id = "fastq.report_qc"
-input_contract = "bijux.fastq.profile_reads.report.v2"
-source = "bijux_dna_domain_fastq::artifacts::qc_bundle"
+consumer_stage_id = "benchmark.fastq.profile_reads.compare"
+input_contract = "bijux.benchmark.fastq.profile_reads.bundle.v1"
+source = "benchmarks/execution/fastq_profile_reads.awk"
 assertions = [
-  "every retained tool report parses through the governed observer",
-  "every normalized report contributes the same required QC fields",
-  "the report-QC consumer accepts each tool result without tool-specific branching",
+  "every retained tool output normalizes to the same benchmark bundle schema",
+  "every normalized bundle contributes the same required comparison fields",
+  "the comparison consumer accepts each tool result without tool-specific branching",
 ]

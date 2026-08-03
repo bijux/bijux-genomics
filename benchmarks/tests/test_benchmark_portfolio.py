@@ -109,15 +109,11 @@ class BenchmarkPortfolioTests(unittest.TestCase):
         self.assertEqual(report["summary"]["ready_count"], 0)
         self.assertEqual(report["summary"]["qualification_campaign_count"], 4)
         self.assertEqual(report["summary"]["comparative_campaign_count"], 1)
-        row = next(
-            row for row in report["stages"] if row["stage_id"] == "bam.coverage"
-        )
+        row = next(row for row in report["stages"] if row["stage_id"] == "bam.coverage")
         self.assertEqual(row["campaign_tier"], "qualification")
         self.assertIn("active campaign is qualification-only", row["blockers"])
         profile_reads = next(
-            row
-            for row in report["stages"]
-            if row["stage_id"] == "fastq.profile_reads"
+            row for row in report["stages"] if row["stage_id"] == "fastq.profile_reads"
         )
         self.assertEqual(profile_reads["interface_status"], "closed")
         self.assertEqual(profile_reads["readiness"], "blocked")
@@ -125,7 +121,9 @@ class BenchmarkPortfolioTests(unittest.TestCase):
             "no admitted comparative execution evidence", profile_reads["blockers"]
         )
 
-    def test_stage_interface_closes_schemas_adapters_defaults_and_consumer(self) -> None:
+    def test_stage_interface_closes_schemas_adapters_defaults_and_consumer(
+        self,
+    ) -> None:
         interfaces = self.validated_interfaces()
         profile_reads = interfaces["fastq.profile_reads"]
 
@@ -138,7 +136,11 @@ class BenchmarkPortfolioTests(unittest.TestCase):
         )
         self.assertEqual(
             profile_reads["downstream_probe"]["consumer_stage_id"],
-            "fastq.report_qc",
+            "benchmark.fastq.profile_reads.compare",
+        )
+        self.assertEqual(
+            profile_reads["output_contract"],
+            "bijux.benchmark.fastq.profile_reads.bundle.v1",
         )
         self.assertEqual(profile_reads["operator_override_keys"], ["threads"])
         self.assertEqual(profile_reads["input_derived_parameters"], ["paired_mode"])
