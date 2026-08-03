@@ -1,0 +1,62 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1113
+  campaign: public-ancient-horse-container-qualification
+  corpus: ena-prjeb22390-err2112767
+  sample: ERR2112767
+  domain: bam
+  stage: bam.damage
+  tool: damageprofiler
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/12514022891a719e82c87c8535fc9c40bc56eb6c
+  commit: 12514022891a719e82c87c8535fc9c40bc56eb6c
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/damageprofiler-1.1-linux-amd64-eb310de6eefe.sif
+  sha256: eb310de6eefec837f53969e20b164b9e813ed69d11e599bb231268b7962fdb52
+data:
+  inputs:
+    - id: ena-prjeb22390-err2112767-calmd-sam
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1112/ERR2112767.calmd.sam
+      sha256: 8f6b56f8699512142726bf2f1911680897443ccd03f22affc56ebca614719716
+commands:
+  version: [damageprofiler, --version]
+  help: [damageprofiler, --help]
+  real:
+    - damageprofiler
+    - -i
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1112/ERR2112767.calmd.sam
+    - -o
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/damageprofiler/run-1113
+    - -title
+    - ERR2112767
+  negative:
+    - damageprofiler
+    - -i
+    - /governed-missing.sam
+    - -o
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/damageprofiler/run-1113/negative
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/damageprofiler/run-1113
+  required_files:
+    - 5pCtoT_freq.txt
+    - 3pGtoA_freq.txt
+    - misincorporation.txt
+    - dmgprof.json
+    - DamageProfiler.log
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 1
+  memory_mb: 8192
+  walltime: '01:00:00'
+  scratch_mb: 4096
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^DamageProfiler v1[.]1$'
+  negative_exit_nonzero: true
