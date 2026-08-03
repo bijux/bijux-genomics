@@ -600,7 +600,6 @@ def validate_pipeline(
         raise ContractError("repository.commit must be a full Git commit")
     active_repository: Path = governance["active_repository"]
     frozen_repositories: Path = governance["frozen_repositories"]
-    study_root: Path = governance["study_root"]
     is_active_checkout = repository_path == active_repository
     is_frozen_checkout = (
         repository_path.parent == frozen_repositories
@@ -1209,8 +1208,13 @@ def render_slurm(
     pipeline_path: Path,
     credential_path: Path,
     output_path: Path,
+    validated_contract: dict[str, Any] | None = None,
 ) -> None:
-    contract = validate_contracts(governance_path, pipeline_path, credential_path)
+    contract = validated_contract or validate_contracts(
+        governance_path,
+        pipeline_path,
+        credential_path,
+    )
     resources = contract["resources"]
     run = contract["pipeline"]["run"]
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1386,7 +1390,13 @@ def submit_manifest(
     job_id_path = submission_root / "slurm-job-id.txt"
     if submit_path.exists() or job_id_path.exists():
         raise ContractError("refusing to overwrite an existing submission record")
-    render_slurm(governance_path, pipeline_path, credential_path, submit_path)
+    render_slurm(
+        governance_path,
+        pipeline_path,
+        credential_path,
+        submit_path,
+        validated_contract=contract,
+    )
     syntax = subprocess.run(
         ["bash", "-n", str(submit_path)],
         check=False,

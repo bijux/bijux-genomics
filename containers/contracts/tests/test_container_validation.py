@@ -565,6 +565,27 @@ class CurrentPipelineContractTests(unittest.TestCase):
         self.assertIn("available_scratch_kib < 1048576", rendered)
         self.assertIn("umask 027", rendered)
 
+    def test_slurm_render_reuses_the_submission_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root)
+            script = root / "submit.sh"
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                contract = container_validation.validate_contracts(*paths)
+            with mock.patch.object(
+                container_validation,
+                "validate_contracts",
+                side_effect=AssertionError("contract was revalidated"),
+            ):
+                container_validation.render_slurm(
+                    *paths,
+                    script,
+                    validated_contract=contract,
+                )
+                self.assertTrue(script.is_file())
+
     def test_completed_dependency_uses_evidence_without_stale_scheduler_wait(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
