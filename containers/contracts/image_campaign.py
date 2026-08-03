@@ -534,6 +534,8 @@ def campaign_report(
         if isinstance(execution_summary, dict)
         else 0
     )
+    retained_count = int(states.get("current", 0) or 0)
+    campaign_scope = "complete_roster" if selected_count == retained_count else "targeted"
     evidence_root = Path(str(execution.get("evidence_root", "")))
     campaign_root = evidence_root.parent
     report = {
@@ -543,6 +545,7 @@ def campaign_report(
         "repository_commit": execution.get("repository_commit"),
         "finished_at_utc": execution.get("finished_at_utc"),
         "verdict": verdict,
+        "campaign_scope": campaign_scope,
         "selected_tool_count": selected_count,
         "execution_summary": execution_summary,
         "inventory_summary": inventory_summary,
@@ -578,20 +581,40 @@ def campaign_report(
     markdown = [
         "# LUNARC Apptainer image rebuild evidence",
         "",
-        "Purpose: record whether every catalog-supported Apptainer image can be rebuilt from a frozen clean repository commit and admitted without leftover or unknown images.",
+        (
+            "Purpose: record whether every catalog-supported Apptainer image can be "
+            "rebuilt from a frozen clean repository commit and admitted without "
+            "leftover or unknown images."
+            if campaign_scope == "complete_roster"
+            else "Purpose: record whether the selected stale or missing Apptainer "
+            "images can be rebuilt from a frozen clean repository commit and "
+            "admitted into a clean canonical inventory."
+        ),
         "",
         "## Verdict",
         "",
         f"- Verdict: **{verdict}**",
         f"- Run: `{report['run_id']}`",
         f"- Repository commit: `{report['repository_commit']}`",
+        f"- Campaign scope: **{campaign_scope.replace('_', ' ')}**",
         f"- Selected tools: **{selected_count}**",
         f"- Final execution: **{passed_count} passed**, **{selected_count - passed_count} not passed**",
         f"- Final inventory: **{states.get('current', 0)} current**, **{states.get('unsupported', 0)} unsupported**, **{inventory_summary.get('staged_image_count', 0)} staged**, **{inventory_summary.get('unknown_image_count', 0)} unknown**, **{inventory_summary.get('unreferenced_obsolete_count', 0)} unreferenced obsolete**",
         "",
         "## Claim boundary",
         "",
-        "This report proves source, build, and freshness evidence for the complete retained Apptainer roster. It does not prove runtime behavior, stage integration, real-data correctness, scientific validity, benchmark quality, security acceptance, or release qualification.",
+        (
+            "This report proves source, build, and freshness evidence for the complete "
+            "retained Apptainer roster."
+            if campaign_scope == "complete_roster"
+            else "This report proves source, build, and freshness evidence only for "
+            "the selected tools. The final inventory checks prove that the canonical "
+            "root is internally classified; they do not rebuild or requalify every "
+            "unselected image."
+        )
+        + " It does not prove runtime behavior, stage integration, real-data "
+        "correctness, scientific validity, benchmark quality, security acceptance, "
+        "or release qualification.",
         "",
         "The machine-readable report records SHA-256 digests and study-relative locations for the immutable campaign execution and after-build inventory retained on LUNARC.",
         "",

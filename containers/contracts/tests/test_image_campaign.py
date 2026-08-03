@@ -287,6 +287,7 @@ class ImageCampaignTests(unittest.TestCase):
             report, markdown = campaign.campaign_report(execution_path, inventory_path)
 
         self.assertEqual(report["verdict"], "passed")
+        self.assertEqual(report["campaign_scope"], "targeted")
         self.assertEqual(report["tools"][0]["attempt_count"], 2)
         self.assertEqual(report["tools"][0]["failed_attempt_count"], 1)
         self.assertTrue(report["tools"][0]["inventory_matches_execution"])
@@ -299,6 +300,8 @@ class ImageCampaignTests(unittest.TestCase):
         )
         self.assertIn("science", report["not_evidence_for"])
         self.assertIn("does not prove runtime behavior", markdown)
+        self.assertIn("only for the selected tools", markdown)
+        self.assertNotIn("complete retained Apptainer roster", markdown)
 
 
 if __name__ == "__main__":
