@@ -59,6 +59,8 @@ use crate::model::check::{CheckSelection, CheckStatus};
 use crate::model::ops::{NativeOpsCommandKey, OpsCommandOutcome};
 use crate::runtime::workspace::Workspace;
 
+use super::containers::container_support_summary;
+
 pub fn run_native_ops_command(
     key: NativeOpsCommandKey,
     workspace: &Workspace,
@@ -324,9 +326,22 @@ fn ensure_generated_header_path(
 }
 
 fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
-    let summary_path = workspace.path("artifacts/containers/summary.json");
+    let support = container_support_summary(workspace)?;
+    let catalog: TomlValue =
+        toml::from_str(&read_utf8(&workspace.path("containers/contracts/catalog.toml"))?)?;
+    let catalog_tools = catalog
+        .get("tools")
+        .and_then(TomlValue::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|entry| {
+            entry
+                .get("id")
+                .and_then(TomlValue::as_str)
+                .map(|tool_id| (tool_id.to_string(), entry.clone()))
+        })
+        .collect::<BTreeMap<_, _>>();
     let mut tools = BTreeMap::<String, Value>::new();
-    let mut vcf_downstream = BTreeMap::<String, Value>::new();
     for rel in [
         "configs/ci/registry/tool_registry.toml",
         "configs/ci/registry/tool_registry_vcf.toml",
@@ -339,6 +354,65 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
             let Some(tool_id) = entry.get("id").and_then(TomlValue::as_str) else {
                 continue;
             };
+            let catalog_entry = catalog_tools.get(tool_id);
+            let registry_stage_ids = entry
+                .get("stage_ids")
+                .and_then(TomlValue::as_array)
+                .cloned()
+                .unwrap_or_default()
+                .into_iter()
+                .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+                .collect::<Vec<_>>();
+            let catalog_stage_ids = catalog_entry
+                .and_then(|row| row.get("stage_ids"))
+                .and_then(TomlValue::as_array)
+                .cloned()
+                .unwrap_or_default()
+                .into_iter()
+                .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+                .collect::<Vec<_>>();
+            let stage_ids =
+                if catalog_stage_ids.is_empty() { registry_stage_ids } else { catalog_stage_ids };
+            let citation = entry
+                .get("citation")
+                .and_then(TomlValue::as_str)
+                .filter(|citation| {
+                    !citation.trim().is_empty()
+                        && !matches!(citation.trim(), "planned" | "TBD" | "unknown")
+                })
+                .map(ToOwned::to_owned)
+                .or_else(|| {
+                    catalog_entry
+                        .and_then(|row| row.get("upstream"))
+                        .and_then(TomlValue::as_str)
+                        .map(|source| format!("software:{source}"))
+                })
+                .unwrap_or_else(|| "TBD".to_string());
+            tools.insert(
+                tool_id.to_string(),
+                json!({
+                    "purpose": catalog_entry
+                        .and_then(|row| row.get("purpose"))
+                        .and_then(TomlValue::as_str)
+                        .or_else(|| entry.get("tool_role").and_then(TomlValue::as_str))
+                        .unwrap_or("unknown"),
+                    "stages": stage_ids,
+                    "container_recipe": catalog_entry
+                        .and_then(|row| row.get("apptainer_definition"))
+                        .and_then(TomlValue::as_str)
+                        .unwrap_or("-"),
+                    "citation": citation,
+                    "version": catalog_entry
+                        .and_then(|row| row.get("version"))
+                        .and_then(TomlValue::as_str)
+                        .or_else(|| entry.get("version").and_then(TomlValue::as_str))
+                        .unwrap_or("-"),
+                }),
+            );
+        }
+    }
+    for (tool_id, entry) in &catalog_tools {
+        tools.entry(tool_id.clone()).or_insert_with(|| {
             let stage_ids = entry
                 .get("stage_ids")
                 .and_then(TomlValue::as_array)
@@ -347,57 +421,21 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
                 .into_iter()
                 .filter_map(|value| value.as_str().map(ToOwned::to_owned))
                 .collect::<Vec<_>>();
-            tools.insert(
-                tool_id.to_string(),
-                json!({
-                    "purpose": entry.get("tool_role").and_then(TomlValue::as_str).unwrap_or("unknown"),
-                    "stages": stage_ids,
-                    "container_ref": entry.get("container_ref").and_then(TomlValue::as_str).unwrap_or("-"),
-                    "citation": entry.get("citation").and_then(TomlValue::as_str).unwrap_or("TBD"),
-                    "status": entry.get("status").and_then(TomlValue::as_str).unwrap_or("unknown"),
-                    "version": entry.get("version").and_then(TomlValue::as_str).unwrap_or("-"),
-                }),
-            );
-            if entry.get("domain").and_then(TomlValue::as_str) == Some("vcf")
-                && stage_ids.iter().any(|stage| stage.starts_with("vcf."))
-            {
-                vcf_downstream.insert(
-                    tool_id.to_string(),
-                    json!({
-                        "status": entry.get("status").and_then(TomlValue::as_str).unwrap_or("unknown"),
-                        "stages": stage_ids,
-                    }),
-                );
-            }
-        }
-    }
-    let mut self_reports = BTreeMap::<String, Value>::new();
-    if summary_path.is_file() {
-        let summary: Value = serde_json::from_str(&read_utf8(&summary_path)?)?;
-        if let Some(items) = summary.get("items").and_then(Value::as_array) {
-            for item in items {
-                let Some(tool) = item.get("tool").and_then(Value::as_str) else {
-                    continue;
-                };
-                let Some(manifest_path) = item.get("manifest").and_then(Value::as_str) else {
-                    continue;
-                };
-                let manifest_path = PathBuf::from(manifest_path);
-                if !manifest_path.is_file() {
-                    continue;
-                }
-                let manifest: Value = serde_json::from_str(&read_utf8(&manifest_path)?)?;
-                let Some(report_path) = manifest.get("self_report_path").and_then(Value::as_str)
-                else {
-                    continue;
-                };
-                let report_path = PathBuf::from(report_path);
-                if report_path.is_file() {
-                    self_reports
-                        .insert(tool.to_string(), serde_json::from_str(&read_utf8(&report_path)?)?);
-                }
-            }
-        }
+            let upstream = entry
+                .get("upstream")
+                .and_then(TomlValue::as_str)
+                .map_or_else(|| "TBD".to_string(), |source| format!("software:{source}"));
+            json!({
+                "purpose": entry.get("purpose").and_then(TomlValue::as_str).unwrap_or("unknown"),
+                "stages": stage_ids,
+                "container_recipe": entry
+                    .get("apptainer_definition")
+                    .and_then(TomlValue::as_str)
+                    .unwrap_or("-"),
+                "citation": upstream,
+                "version": entry.get("version").and_then(TomlValue::as_str).unwrap_or("-"),
+            })
+        });
     }
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
@@ -406,17 +444,18 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
         "# TOOL_INDEX".to_string(),
         String::new(),
         "## Purpose".to_string(),
-        "Generated index of registry tools with stage bindings and container references/self-reports.".to_string(),
+        "Generated index of governed tools, stage bindings, container recipes, support disposition, and evidence qualification.".to_string(),
         String::new(),
         "## Scope".to_string(),
-        "Source of truth = registry contracts + `artifacts/containers/summary.json` self-reports when available.".to_string(),
+        "Source of truth = pipeline registries + `containers/contracts/catalog.toml` + `containers/reports/qualification.json`.".to_string(),
         String::new(),
         "## Non-goals".to_string(),
         "- Replacing full scientific method docs for each domain.".to_string(),
         String::new(),
         "## Contracts".to_string(),
         "- Manual edits are forbidden; regenerate via native control-plane.".to_string(),
-        "- Source of truth is registry + containers; this file is a rendered view.".to_string(),
+        "- Local artifacts never influence this tracked document; it is deterministic for a repository commit.".to_string(),
+        "- Container support and qualification are derived from governed catalog and evidence, never registry maturity labels.".to_string(),
         "- Tool admission policy is documented in `docs/50-reference/TOOL_ADMISSION.md`.".to_string(),
         String::new(),
         "See also: [Tool Admission](../50-reference/TOOL_ADMISSION.md)".to_string(),
@@ -425,7 +464,13 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
         "## VCF Downstream / IBD Toolkit".to_string(),
         String::new(),
     ];
-    for (tool_id, info) in &vcf_downstream {
+    for (tool_id, info) in tools.iter().filter(|(_, info)| {
+        info.get("stages").and_then(Value::as_array).is_some_and(|stages| {
+            stages
+                .iter()
+                .any(|stage| stage.as_str().is_some_and(|stage_id| stage_id.starts_with("vcf.")))
+        })
+    }) {
         let stages = info
             .get("stages")
             .and_then(Value::as_array)
@@ -435,17 +480,21 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
             .filter_map(|value| value.as_str().map(ToOwned::to_owned))
             .collect::<Vec<_>>()
             .join(", ");
+        let (disposition, qualification) = support
+            .get(tool_id)
+            .map_or(("not_cataloged", "unverified"), |(disposition, qualification)| {
+                (disposition.as_str(), qualification.as_str())
+            });
         lines.push(format!(
-            "- `{tool_id}` ({}) : {}",
-            info.get("status").and_then(Value::as_str).unwrap_or("unknown"),
+            "- `{tool_id}` ({disposition}; {qualification}): {}",
             if stages.is_empty() { "-".to_string() } else { stages }
         ));
     }
     lines.extend([
         String::new(),
-        "| Tool ID | Purpose | Stage Bindings | Container Ref | Version | Citation | Status |"
+        "| Tool ID | Purpose | Stage Bindings | Apptainer Definition | Version | Citation | Support | Qualification |"
             .to_string(),
-        "|---|---|---|---|---|---|---|".to_string(),
+        "|---|---|---|---|---|---|---|---|".to_string(),
     ]);
     for (tool_id, row) in tools {
         let stages = row
@@ -457,19 +506,18 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
             .filter_map(|value| value.as_str().map(ToOwned::to_owned))
             .collect::<Vec<_>>()
             .join(", ");
-        let version = self_reports
+        let (disposition, qualification) = support
             .get(&tool_id)
-            .and_then(|report| report.get("version"))
-            .and_then(Value::as_str)
-            .unwrap_or_else(|| row.get("version").and_then(Value::as_str).unwrap_or("-"));
+            .map_or(("not_cataloged", "unverified"), |(disposition, qualification)| {
+                (disposition.as_str(), qualification.as_str())
+            });
         lines.push(format!(
-            "| `{tool_id}` | `{}` | `{}` | `{}` | `{}` | {} | `{}` |",
+            "| `{tool_id}` | {} | `{}` | `{}` | `{}` | {} | `{disposition}` | `{qualification}` |",
             row.get("purpose").and_then(Value::as_str).unwrap_or("unknown"),
             if stages.is_empty() { "-" } else { &stages },
-            row.get("container_ref").and_then(Value::as_str).unwrap_or("-"),
-            version,
+            row.get("container_recipe").and_then(Value::as_str).unwrap_or("-"),
+            row.get("version").and_then(Value::as_str).unwrap_or("-"),
             row.get("citation").and_then(Value::as_str).unwrap_or("TBD"),
-            row.get("status").and_then(Value::as_str).unwrap_or("unknown"),
         ));
     }
     write_utf8(out, &format!("{}\n", lines.join("\n")))

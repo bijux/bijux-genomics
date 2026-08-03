@@ -91,7 +91,7 @@ fn policy__contracts__science_boundary_docs_policy__container_science_boundary_l
         "../../domain/fastq/docs/EVIDENCE_CLOSURE.md".to_string(),
         "../../science/generated/current/evidence/README.md".to_string(),
         "SMOKE_CONTRACT.md".to_string(),
-        "PROMOTION_POLICY.md".to_string(),
+        "EVIDENCE_QUALIFICATION.md".to_string(),
     ]);
     let documented = markdown_link_targets("containers/docs/SCIENCE_EVIDENCE_BOUNDARY.md");
     assert_eq!(
@@ -122,13 +122,20 @@ fn policy__contracts__science_boundary_docs_policy__container_root_readme_links_
     let expected = BTreeSet::from([
         "index.md".to_string(),
         "docs/index.md".to_string(),
-        "docs/TOOL_LIFECYCLE.md".to_string(),
+        "docs/EVIDENCE_QUALIFICATION.md".to_string(),
         "docs/VERSION_AUTHORITY.md".to_string(),
         "docs/SCIENCE_EVIDENCE_BOUNDARY.md".to_string(),
         "licenses/README.md".to_string(),
         "docs/GHCR_PUBLISH.md".to_string(),
         "docs/SMOKE_CONTRACT.md".to_string(),
-        "docs/PROMOTION_POLICY.md".to_string(),
+        "docs/LUNARC_EXECUTION_CONTRACT.md".to_string(),
+        "contracts/sites/lunarc.yml".to_string(),
+        "reports/README.md".to_string(),
+        "reports/lunarc-fastq-bam.md".to_string(),
+        "reports/lunarc-vcf-phasing.md".to_string(),
+        "reports/lunarc-vcf-relatedness.md".to_string(),
+        "reports/lunarc-reference-complexity.md".to_string(),
+        "reports/lunarc-amplicon-asv.md".to_string(),
     ]);
     let documented = markdown_link_targets("containers/README.md");
     assert_eq!(
@@ -142,19 +149,17 @@ fn policy__contracts__science_boundary_docs_policy__container_index_links_govern
 ) {
     let expected = BTreeSet::from([
         "docs/index.md".to_string(),
-        "docs/TOOL_LIFECYCLE.md".to_string(),
-        "docs/VERSION_AUTHORITY.md".to_string(),
-        "versions/index.md".to_string(),
-        "versions/LOCK.md".to_string(),
-        "docs/SMOKE_CONTRACT.md".to_string(),
-        "docs/PROMOTION_POLICY.md".to_string(),
+        "docs/EVIDENCE_QUALIFICATION.md".to_string(),
+        "README.md".to_string(),
+        "contracts/catalog.toml".to_string(),
+        "docs/LUNARC_EXECUTION_CONTRACT.md".to_string(),
         "docs/SCIENCE_EVIDENCE_BOUNDARY.md".to_string(),
-        "docs/SECURITY_BOUNDARY.md".to_string(),
-        "docs/MULTIARCH_POLICY.md".to_string(),
-        "licenses/README.md".to_string(),
-        "versions/versions.toml".to_string(),
+        "reports/README.md".to_string(),
+        "reports/image-inventory.md".to_string(),
+        "reports/run-evidence.md".to_string(),
+        "reports/runtime-verification.md".to_string(),
+        "runs/README.md".to_string(),
         "versions/lock.json".to_string(),
-        "versions/index.sha256".to_string(),
     ]);
     let documented = markdown_link_targets("containers/index.md");
     assert_eq!(
@@ -172,7 +177,17 @@ fn policy__contracts__science_boundary_docs_policy__operations_container_doc_lin
         "../../containers/docs/index.md".to_string(),
         "../../containers/README.md".to_string(),
         "../../containers/docs/RELEASE_CHECKLIST.md".to_string(),
-        "../../containers/docs/PLANNED.md".to_string(),
+        "container-evidence/QUALIFICATION.md".to_string(),
+        "container-evidence/IMAGE_INVENTORY.md".to_string(),
+        "container-evidence/RUNTIME_VERIFICATION.md".to_string(),
+        "container-evidence/FASTQ_BAM.md".to_string(),
+        "container-evidence/PAIRED_READ_TRIMMING.md".to_string(),
+        "container-evidence/ANCIENT_DAMAGE.md".to_string(),
+        "container-evidence/ANCIENT_GENOTYPE_LIKELIHOODS.md".to_string(),
+        "container-evidence/REFERENCE_COMPLEXITY.md".to_string(),
+        "container-evidence/AMPLICON_ASV.md".to_string(),
+        "container-evidence/VCF_PHASING.md".to_string(),
+        "container-evidence/VCF_RELATEDNESS.md".to_string(),
     ]);
     let documented = markdown_link_targets("docs/30-operations/CONTAINERS.md");
     assert_eq!(
@@ -254,21 +269,24 @@ fn policy__contracts__science_boundary_docs_policy__container_version_lock_doc_l
 }
 
 #[test]
-fn policy__contracts__science_boundary_docs_policy__container_promotion_policy_links_governed_surfaces_exactly(
+fn policy__contracts__science_boundary_docs_policy__container_evidence_qualification_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
         "../README.md".to_string(),
         "../index.md".to_string(),
-        "VERSION_AUTHORITY.md".to_string(),
-        "UPSTREAM_SOURCES.md".to_string(),
-        "../versions/versions.toml".to_string(),
-        "../versions/LOCK.md".to_string(),
-        "../OWNERS.toml".to_string(),
+        "../contracts/catalog.toml".to_string(),
+        "../reports/qualification.md".to_string(),
+        "../reports/qualification.json".to_string(),
+        "../reports/image-inventory.md".to_string(),
+        "../reports/runtime-verification.md".to_string(),
+        "../reports/run-evidence.md".to_string(),
+        "SCIENCE_EVIDENCE_BOUNDARY.md".to_string(),
+        "RELEASE_CHECKLIST.md".to_string(),
     ]);
-    let documented = markdown_link_targets("containers/docs/PROMOTION_POLICY.md");
+    let documented = markdown_link_targets("containers/docs/EVIDENCE_QUALIFICATION.md");
     assert_eq!(
         expected, documented,
-        "containers/docs/PROMOTION_POLICY.md must link the governed promotion-policy surfaces exactly"
+        "containers/docs/EVIDENCE_QUALIFICATION.md must link the governed support and evidence surfaces exactly"
     );
 }
 
@@ -280,6 +298,7 @@ fn policy__contracts__science_boundary_docs_policy__container_release_checklist_
         "../index.md".to_string(),
         "VERSION_AUTHORITY.md".to_string(),
         "GHCR_PUBLISH.md".to_string(),
+        "EVIDENCE_QUALIFICATION.md".to_string(),
         "../../configs/ci/registry/".to_string(),
         "../versions/versions.toml".to_string(),
         "../versions/LOCK.md".to_string(),
@@ -327,41 +346,6 @@ fn policy__contracts__science_boundary_docs_policy__frontend_traceability_doc_li
 }
 
 #[test]
-fn policy__contracts__science_boundary_docs_policy__container_tool_lifecycle_links_governed_surfaces_exactly(
-) {
-    let expected = BTreeSet::from([
-        "../README.md".to_string(),
-        "../index.md".to_string(),
-        "PROMOTION_POLICY.md".to_string(),
-        "../versions/deprecations.toml".to_string(),
-        "../TOOL_IDS.txt".to_string(),
-    ]);
-    let documented = markdown_link_targets("containers/docs/TOOL_LIFECYCLE.md");
-    assert_eq!(
-        expected, documented,
-        "containers/docs/TOOL_LIFECYCLE.md must link the governed lifecycle surfaces exactly"
-    );
-}
-
-#[test]
-fn policy__contracts__science_boundary_docs_policy__container_planned_doc_links_governed_surfaces_exactly(
-) {
-    let expected = BTreeSet::from([
-        "../README.md".to_string(),
-        "../index.md".to_string(),
-        "TOOL_LIFECYCLE.md".to_string(),
-        "../../configs/ci/registry/tool_registry_vcf_downstream.toml".to_string(),
-        "../../configs/ci/tools/images.toml".to_string(),
-        "../versions/versions.toml".to_string(),
-    ]);
-    let documented = markdown_link_targets("containers/docs/PLANNED.md");
-    assert_eq!(
-        expected, documented,
-        "containers/docs/PLANNED.md must link the governed planned-tool surfaces exactly"
-    );
-}
-
-#[test]
 fn policy__contracts__science_boundary_docs_policy__container_ghcr_publish_doc_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
@@ -369,6 +353,8 @@ fn policy__contracts__science_boundary_docs_policy__container_ghcr_publish_doc_l
         "../index.md".to_string(),
         "VERSION_AUTHORITY.md".to_string(),
         "RELEASE_CHECKLIST.md".to_string(),
+        "EVIDENCE_QUALIFICATION.md".to_string(),
+        "../reports/qualification.json".to_string(),
         "../../.github/workflows/publish-ghcr-container-images.yml".to_string(),
         "../../.github/workflows/publish-ghcr-apptainer-images.yml".to_string(),
         "../versions/versions.toml".to_string(),
@@ -385,6 +371,7 @@ fn policy__contracts__science_boundary_docs_policy__container_ghcr_publish_doc_l
                 || target.starts_with("../../configs/")
                 || target == "VERSION_AUTHORITY.md"
                 || target == "RELEASE_CHECKLIST.md"
+                || target == "EVIDENCE_QUALIFICATION.md"
                 || target == "UPSTREAM_SOURCES.md"
         })
         .collect::<BTreeSet<_>>();
@@ -552,6 +539,7 @@ fn policy__contracts__science_boundary_docs_policy__container_tool_ids_contract_
         "../README.md".to_string(),
         "../index.md".to_string(),
         "../TOOL_IDS.txt".to_string(),
+        "../reports/qualification.md".to_string(),
     ]);
     let documented = markdown_link_targets("containers/docs/TOOL_IDS_CONTRACT.md");
     assert_eq!(
@@ -574,24 +562,6 @@ fn policy__contracts__science_boundary_docs_policy__container_smoke_contract_doc
     assert_eq!(
         expected, documented,
         "containers/docs/SMOKE_CONTRACT.md must link the governed smoke-contract authorities exactly"
-    );
-}
-
-#[test]
-fn policy__contracts__science_boundary_docs_policy__hpc_frontend_stage_freeze_doc_links_governed_surfaces_exactly(
-) {
-    let expected = BTreeSet::from([
-        "../README.md".to_string(),
-        "FRONTEND_BUILD_AUTHORITY.md".to_string(),
-        "TOOL_IDS_CONTRACT.md".to_string(),
-        "VERSION_AUTHORITY.md".to_string(),
-        "../versions/LOCK.md".to_string(),
-        "../../docs/30-operations/APPTAINER_QA_MATRIX.md".to_string(),
-    ]);
-    let documented = markdown_link_targets("containers/docs/HPC_FRONTEND_STAGE1_STABLE.md");
-    assert_eq!(
-        expected, documented,
-        "containers/docs/HPC_FRONTEND_STAGE1_STABLE.md must link the governed frontend-freeze authorities exactly"
     );
 }
 
@@ -635,8 +605,8 @@ fn policy__contracts__science_boundary_docs_policy__retired_defs_doc_links_gover
     let expected = BTreeSet::from([
         "../README.md".to_string(),
         "../index.md".to_string(),
-        "TOOL_LIFECYCLE.md".to_string(),
-        "PLANNED.md".to_string(),
+        "EVIDENCE_QUALIFICATION.md".to_string(),
+        "../contracts/catalog.toml".to_string(),
         "../../configs/ci/registry/tool_registry.toml".to_string(),
     ]);
     let documented = markdown_link_targets("containers/docs/RETIRED_DEFS.md");
@@ -652,8 +622,7 @@ fn policy__contracts__science_boundary_docs_policy__container_docs_index_links_g
     let expected = BTreeSet::from([
         "../README.md".to_string(),
         "../index.md".to_string(),
-        "PROMOTION_POLICY.md".to_string(),
-        "TOOL_LIFECYCLE.md".to_string(),
+        "EVIDENCE_QUALIFICATION.md".to_string(),
         "VERSION_AUTHORITY.md".to_string(),
         "LOCK_LIFECYCLE.md".to_string(),
         "FRONTEND_BUILD_AUTHORITY.md".to_string(),
@@ -667,13 +636,15 @@ fn policy__contracts__science_boundary_docs_policy__container_docs_index_links_g
         "../licenses/README.md".to_string(),
         "../docker/NONROOT_EXCEPTIONS.md".to_string(),
         "../docker/ENTRYPOINT_EXCEPTIONS.md".to_string(),
-        "PLANNED.md".to_string(),
         "TOOL_IDS_CONTRACT.md".to_string(),
         "../TOOL_IDS.txt".to_string(),
         "../versions/versions.toml".to_string(),
         "../versions/lock.json".to_string(),
         "UPSTREAM_SOURCES.md".to_string(),
-        "../OWNERS.toml".to_string(),
+        "../contracts/catalog.toml".to_string(),
+        "../reports/image-inventory.md".to_string(),
+        "../reports/runtime-verification.md".to_string(),
+        "../reports/run-evidence.md".to_string(),
     ]);
     let documented = markdown_link_targets("containers/docs/index.md");
     assert_eq!(
@@ -738,7 +709,7 @@ fn policy__contracts__science_boundary_docs_policy__apptainer_qa_matrix_links_go
         "../../containers/docs/FRONTEND_BUILD_AUTHORITY.md".to_string(),
         "../../containers/docs/SMOKE_CONTRACT.md".to_string(),
         "../../containers/docs/NETWORK_USAGE.md".to_string(),
-        "../../containers/docs/PLANNED.md".to_string(),
+        "../../containers/reports/qualification.md".to_string(),
     ]);
     let documented = markdown_link_targets("docs/30-operations/APPTAINER_QA_MATRIX.md");
     assert_eq!(

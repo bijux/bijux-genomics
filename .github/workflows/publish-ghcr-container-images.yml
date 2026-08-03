@@ -13,18 +13,13 @@ on:
         required: false
         type: string
         default: ""
-      status_filter:
-        description: "Optional comma or space separated statuses"
-        required: false
-        type: string
-        default: ""
       package_prefix:
         description: "GHCR package prefix"
         required: false
         type: string
         default: "ghcr.io/bijux/bijux-genomics"
       push_latest:
-        description: "Add latest tag for production tools"
+        description: "Add latest tag for evidence-qualified tools"
         required: false
         type: boolean
         default: true
@@ -62,7 +57,6 @@ jobs:
         env:
           INPUT_ENABLED: ${{ inputs.enabled }}
           INPUT_TOOL_IDS: ${{ inputs.tool_ids }}
-          INPUT_STATUS_FILTER: ${{ inputs.status_filter }}
           INPUT_PACKAGE_PREFIX: ${{ inputs.package_prefix }}
         run: |
           set -euo pipefail
@@ -84,7 +78,7 @@ jobs:
             args+=(--package-prefix "${INPUT_PACKAGE_PREFIX}")
           fi
 
-          python3 - <<'PY' "${INPUT_TOOL_IDS}" "${INPUT_STATUS_FILTER}" > "${RUNNER_TEMP}/publish-filters.json"
+          python3 - <<'PY' "${INPUT_TOOL_IDS}" > "${RUNNER_TEMP}/publish-filters.json"
           import json
           import re
           import sys
@@ -94,7 +88,6 @@ jobs:
 
           payload = {
               "tool_ids": split_values(sys.argv[1]),
-              "statuses": split_values(sys.argv[2]),
           }
           print(json.dumps(payload))
           PY
@@ -108,19 +101,6 @@ jobs:
 
           payload = json.loads(pathlib.Path(__import__("sys").argv[1]).read_text())
           for item in payload["tool_ids"]:
-              print(item)
-          PY
-          )
-
-          while IFS= read -r status; do
-            [[ -n "${status}" ]] || continue
-            args+=(--status "${status}")
-          done < <(python3 - <<'PY' "${RUNNER_TEMP}/publish-filters.json"
-          import json
-          import pathlib
-
-          payload = json.loads(pathlib.Path(__import__("sys").argv[1]).read_text())
-          for item in payload["statuses"]:
               print(item)
           PY
           )

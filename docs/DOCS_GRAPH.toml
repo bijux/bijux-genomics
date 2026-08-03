@@ -202,9 +202,16 @@ from = "docs/30-operations/container-evidence/index.md"
 children = [
   "docs/30-operations/container-evidence/AMPLICON_ASV.md",
   "docs/30-operations/container-evidence/ANCIENT_DAMAGE.md",
+  "docs/30-operations/container-evidence/ANCIENT_GENOTYPE_LIKELIHOODS.md",
+  "docs/30-operations/container-evidence/BAM_COVERAGE.md",
   "docs/30-operations/container-evidence/FASTQ_BAM.md",
+  "docs/30-operations/container-evidence/IMAGE_INVENTORY.md",
+  "docs/30-operations/container-evidence/PAIRED_READ_TRIMMING.md",
+  "docs/30-operations/container-evidence/QUALIFICATION.md",
   "docs/30-operations/container-evidence/REFERENCE_COMPLEXITY.md",
+  "docs/30-operations/container-evidence/RUNTIME_VERIFICATION.md",
   "docs/30-operations/container-evidence/VCF_PHASING.md",
+  "docs/30-operations/container-evidence/VCF_QC.md",
   "docs/30-operations/container-evidence/VCF_RELATEDNESS.md",
 ]
 

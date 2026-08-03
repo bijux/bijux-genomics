@@ -1,6 +1,6 @@
 use super::{
-    anyhow, fs, load_toml, read_json, read_utf8, run_program_with_env, table_string, tool_versions,
-    BTreeMap, BTreeSet, Context, PathBuf, Result, WalkDir, Workspace,
+    anyhow, fs, load_toml, read_json, read_utf8, run_program_with_env, table_string, BTreeMap,
+    BTreeSet, Context, PathBuf, Result, WalkDir, Workspace,
 };
 
 pub(super) fn canonical_container_label_keys() -> [&'static str; 7] {
@@ -122,42 +122,7 @@ pub(super) fn governed_container_file_ids(workspace: &Workspace) -> Result<BTree
     Ok(ids)
 }
 
-pub(super) fn governed_container_statuses(
-    workspace: &Workspace,
-) -> Result<BTreeMap<String, String>> {
-    let registry = registry_tool_map(workspace)?;
-    let versions = tool_versions(workspace)?;
-    let mut statuses = BTreeMap::new();
-    for tool_id in governed_container_file_ids(workspace)? {
-        let status = registry
-            .get(&tool_id)
-            .map(|row| table_string(row, "status"))
-            .filter(|value| !value.is_empty())
-            .or_else(|| {
-                versions
-                    .get(&tool_id)
-                    .map(|row| table_string(row, "status"))
-                    .filter(|value| !value.is_empty())
-            })
-            .unwrap_or_else(|| "experimental".to_string());
-        statuses.insert(tool_id, status);
-    }
-    for (tool_id, row) in registry {
-        let status = table_string(&row, "status");
-        if !status.is_empty() {
-            statuses.entry(tool_id).or_insert(status);
-        }
-    }
-    for (tool_id, row) in versions {
-        let status = table_string(&row, "status");
-        if matches!(status.as_str(), "unsupported" | "retired" | "excluded") {
-            statuses.entry(tool_id).or_insert(status);
-        }
-    }
-    Ok(statuses)
-}
-
-pub(super) fn container_support_summary(
+pub(crate) fn container_support_summary(
     workspace: &Workspace,
 ) -> Result<BTreeMap<String, (String, String)>> {
     let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;

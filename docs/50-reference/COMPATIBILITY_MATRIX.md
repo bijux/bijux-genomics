@@ -7,7 +7,7 @@
 Generated compatibility matrix derived from pipeline profile IDs and tool registry inventory.
 
 ## Scope
-Profiles sourced from `crates/bijux-dna-core/src/id_catalog/pipeline/`; registries include 95 tool entries.
+Profiles sourced from `crates/bijux-dna-core/src/id_catalog/pipeline/`; registries include 94 tool entries.
 
 ## Non-goals
 - Replacing detailed per-domain migration guides.

@@ -12,14 +12,13 @@ Operational docs index:
 - [containers/reports/lunarc-vcf-relatedness.md](reports/lunarc-vcf-relatedness.md)
 - [containers/reports/lunarc-reference-complexity.md](reports/lunarc-reference-complexity.md)
 - [containers/reports/lunarc-amplicon-asv.md](reports/lunarc-amplicon-asv.md)
-- [containers/docs/TOOL_LIFECYCLE.md](docs/TOOL_LIFECYCLE.md)
+- [containers/docs/EVIDENCE_QUALIFICATION.md](docs/EVIDENCE_QUALIFICATION.md)
 - [containers/docs/VERSION_AUTHORITY.md](docs/VERSION_AUTHORITY.md)
 - [containers/docs/SCIENCE_EVIDENCE_BOUNDARY.md](docs/SCIENCE_EVIDENCE_BOUNDARY.md)
 - [containers/licenses/README.md](licenses/README.md)
 - [containers/docs/GHCR_PUBLISH.md](docs/GHCR_PUBLISH.md) (GHCR publication surface)
 - `https://github.com/bijux?tab=packages&repo_name=bijux-genomics` (repository packages view)
 - [containers/docs/SMOKE_CONTRACT.md](docs/SMOKE_CONTRACT.md) (smoke contract)
-- [containers/docs/PROMOTION_POLICY.md](docs/PROMOTION_POLICY.md) (promotion and demotion policy)
 
 Site paths and scheduler policy are configuration, not source-code constants.
 The reviewed LUNARC authority is

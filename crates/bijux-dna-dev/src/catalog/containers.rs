@@ -272,34 +272,14 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckVersionDeprecations,
         ),
         native(
-            "check-promotion-policy",
-            "Validate promotion policy documentation markers and native command references.",
-            NativeContainerCommandKey::CheckPromotionPolicy,
-        ),
-        native(
-            "check-promotion-lock-integrity",
-            "Validate that production tools remain represented by canonical lock metadata.",
-            NativeContainerCommandKey::CheckPromotionLockIntegrity,
-        ),
-        native(
-            "promote",
-            "Change a tool lifecycle status and regenerate governed container metadata.",
-            NativeContainerCommandKey::Promote,
-        ),
-        native(
-            "demote",
-            "Demote a production tool and append registry deprecation metadata.",
-            NativeContainerCommandKey::Demote,
+            "check-evidence-qualification",
+            "Validate that container qualification is reproducibly derived from current evidence.",
+            NativeContainerCommandKey::CheckEvidenceQualification,
         ),
         native(
             "deprecate-version",
             "Append a container version deprecation entry and regenerate governed metadata.",
             NativeContainerCommandKey::DeprecateVersion,
-        ),
-        native(
-            "tool-lifecycle",
-            "Apply lifecycle aliases for experimental and stable container states.",
-            NativeContainerCommandKey::ToolLifecycle,
         ),
         native(
             "check-apptainer-cache-policy",
@@ -395,11 +375,6 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             "check-hpc-image-naming",
             "Validate HPC image naming against the ensure-images plan report and naming policy.",
             NativeContainerCommandKey::CheckHpcImageNaming,
-        ),
-        native(
-            "check-planned-actionability",
-            "Validate that PLANNED.md retains actionable rows and explicit ownership.",
-            NativeContainerCommandKey::CheckPlannedActionability,
         ),
         native(
             "check-bijux-template-markers",

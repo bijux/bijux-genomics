@@ -86,7 +86,7 @@ accuracy or release claim.
 
 ## Failure modes
 
-- Missing digest blocks promotion to production.
+- A missing required evidence dimension blocks release qualification.
 - A path outside the configured root blocks submission.
 - An existing result directory blocks overwrite and requires a new run ID.
 - Missing input normalization is recorded as a failed run and corrected by an
@@ -99,8 +99,8 @@ accuracy or release claim.
 
 ## References
 
-- [Container implementation](https://github.com/bijux/bijux-genomics/tree/main/containers)
-- [Container contract documentation](https://github.com/bijux/bijux-genomics/tree/main/containers/docs)
-- [Release checklist](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/RELEASE_CHECKLIST.md)
-- [LUNARC execution contract](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/LUNARC_EXECUTION_CONTRACT.md)
-- [Evidence report index](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/README.md)
+- [Container implementation](../../containers/index.md)
+- [Container contract documentation](../../containers/docs/index.md)
+- [Container operating guide](../../containers/README.md)
+- [Release checklist](../../containers/docs/RELEASE_CHECKLIST.md)
+- [Tool admission reference](../50-reference/TOOL_ADMISSION.md)

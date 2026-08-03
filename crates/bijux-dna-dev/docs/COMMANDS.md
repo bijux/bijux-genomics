@@ -171,6 +171,7 @@ check-docker-labels
 check-docker-unpinned-apt
 check-docker-version-sync
 check-dockerfiles-built
+check-evidence-qualification
 check-hpc-frontend-policy-enforcement
 check-hpc-image-naming
 check-image-size-regression
@@ -191,9 +192,6 @@ check-network-disclosure
 check-no-secrets
 check-non-bijux-sources
 check-owners
-check-planned-actionability
-check-promotion-lock-integrity
-check-promotion-policy
 check-qa-matrix-generated
 check-rebuild-repro
 check-registry-vs-defs
@@ -231,7 +229,6 @@ container-doctor
 container-runtime-check
 container-smoke
 containers-smoke
-demote
 deprecate-version
 docker-build-all
 ensure-images
@@ -253,7 +250,6 @@ generate-versions-index-sha
 image-qa
 image-smoke-vcf
 lint
-promote
 registry-tools
 release-gate
 run-apptainer-frontend-reproducibility
@@ -275,7 +271,6 @@ summary
 test-images
 test-images-stage
 test-images-tool
-tool-lifecycle
 vuln-scan-hook
 ```
 

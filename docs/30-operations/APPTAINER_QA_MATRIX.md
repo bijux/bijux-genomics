@@ -7,7 +7,7 @@
 Generated matrix for Apptainer-enabled tools, runtime checks, and evidence qualification.
 
 ## Scope
-Runtime commands come from the tool registries; support disposition and qualification come from the canonical container catalog.
+Runtime commands come from the tool registries, support disposition comes from the canonical catalog, and qualification comes from the generated evidence report.
 
 ## Non-goals
 - Replacing full per-tool smoke manifests.

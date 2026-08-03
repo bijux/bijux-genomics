@@ -18,8 +18,7 @@ output.
 ## Strict TOC
 - Root contract: [containers/README.md](../README.md)
 - Entry point: [containers/index.md](../index.md)
-- Policy: [containers/docs/PROMOTION_POLICY.md](PROMOTION_POLICY.md)
-- Lifecycle: [containers/docs/TOOL_LIFECYCLE.md](TOOL_LIFECYCLE.md)
+- Evidence qualification: [containers/docs/EVIDENCE_QUALIFICATION.md](EVIDENCE_QUALIFICATION.md)
 - Version authority: [containers/docs/VERSION_AUTHORITY.md](VERSION_AUTHORITY.md)
 - Lock lifecycle: [containers/docs/LOCK_LIFECYCLE.md](LOCK_LIFECYCLE.md)
 - HPC frontend build authority: [containers/docs/FRONTEND_BUILD_AUTHORITY.md](FRONTEND_BUILD_AUTHORITY.md)
@@ -33,7 +32,7 @@ output.
 - GHCR packages view: `https://github.com/bijux?tab=packages&repo_name=bijux-genomics`
 - Licenses: [containers/licenses/README.md](../licenses/README.md)
 - SBOM + vulnerability hooks: `cargo run -p bijux-dna-dev -- containers run check-sbom-artifacts`, `cargo run -p bijux-dna-dev -- containers run check-vuln-hook`
-- Exceptions: [containers/docker/NONROOT_EXCEPTIONS.md](../docker/NONROOT_EXCEPTIONS.md), [containers/docker/ENTRYPOINT_EXCEPTIONS.md](../docker/ENTRYPOINT_EXCEPTIONS.md), [containers/docs/PLANNED.md](PLANNED.md)
+- Runtime exceptions: [containers/docker/NONROOT_EXCEPTIONS.md](../docker/NONROOT_EXCEPTIONS.md), [containers/docker/ENTRYPOINT_EXCEPTIONS.md](../docker/ENTRYPOINT_EXCEPTIONS.md)
 - Tool ID contract: [containers/docs/TOOL_IDS_CONTRACT.md](TOOL_IDS_CONTRACT.md)
 
 ## Authority

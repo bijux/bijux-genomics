@@ -43,4 +43,6 @@ record their identities and checksums.
   scratch, submission, collection, and recovery behavior.
 - [Evidence boundaries](docs/SCIENCE_EVIDENCE_BOUNDARY.md): what runtime, stage,
   science, benchmark, security, and release claims mean.
+- [Evidence qualification](docs/EVIDENCE_QUALIFICATION.md): how catalog support
+  and independently derived production evidence remain separate.
 - [Detailed documentation index](docs/index.md): policies and operator reference.

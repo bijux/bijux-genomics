@@ -30,10 +30,10 @@ pub(super) use self::compliance::{
     check_bijux_template_markers, check_docker_arch_policy, check_docker_arm64_completeness,
     check_docker_context, check_docker_hardening, check_docker_labels, check_docker_unpinned_apt,
     check_docker_version_sync, check_dockerfiles_built, check_hpc_image_naming, check_no_secrets,
-    check_planned_actionability, check_runtime_downloads, check_sbom_artifacts,
-    check_smoke_inputs_policy, check_time_locale_determinism, check_tool_container_coverage,
-    check_tool_id_contract, check_tool_invocation_normalization, check_tool_name_collision,
-    check_toolkit_bundles, check_vuln_allowlist, check_vuln_hook,
+    check_runtime_downloads, check_sbom_artifacts, check_smoke_inputs_policy,
+    check_time_locale_determinism, check_tool_container_coverage, check_tool_id_contract,
+    check_tool_invocation_normalization, check_tool_name_collision, check_toolkit_bundles,
+    check_vuln_allowlist, check_vuln_hook,
 };
 pub(super) use self::operations::{
     check_apptainer_bijux_header, check_apptainer_rebuild_repro, check_build_provenance,

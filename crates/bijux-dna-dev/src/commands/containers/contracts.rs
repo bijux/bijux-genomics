@@ -1,6 +1,6 @@
 use super::{
-    failure_lines, out_path_arg, read_utf8, sha256_hex, success_line, write_utf8, BTreeSet,
-    ContainerCommandOutcome, Deserialize, Result, Serialize, Workspace,
+    failure_lines, out_path_arg, read_utf8, run_argv, sha256_hex, success_line, write_utf8,
+    BTreeSet, ContainerCommandOutcome, Deserialize, Result, Serialize, Workspace,
 };
 
 const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
@@ -444,6 +444,37 @@ pub(super) fn check_contract_lock(workspace: &Workspace) -> Result<ContainerComm
         )));
     }
     success_line("container contract lock: OK")
+}
+
+pub(super) fn check_evidence_qualification(
+    workspace: &Workspace,
+) -> Result<ContainerCommandOutcome> {
+    let args = [
+        "python3",
+        "-B",
+        "containers/contracts/qualification_report.py",
+        "--catalog",
+        "containers/contracts/catalog.toml",
+        "--inventory",
+        "containers/reports/image-inventory.json",
+        "--runtime",
+        "containers/reports/runtime-verification.json",
+        "--runs",
+        "containers/reports/run-evidence.json",
+        "--json-output",
+        "containers/reports/qualification.json",
+        "--markdown-output",
+        "containers/reports/qualification.md",
+        "--check",
+    ]
+    .into_iter()
+    .map(ToOwned::to_owned)
+    .collect::<Vec<_>>();
+    let outcome = run_argv(workspace, &args)?;
+    if outcome.is_success() {
+        return success_line("container evidence qualification: OK");
+    }
+    Ok(outcome)
 }
 
 #[cfg(test)]

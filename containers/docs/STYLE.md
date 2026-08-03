@@ -81,7 +81,7 @@ Must export deterministic runtime env:
 
 ## Floating Versions
 - Production tools must not use floating values (`latest`, `main`, `master`, `head`, `unknown`) for `org.opencontainers.image.version`.
-- Experimental/planned tools may use transitional values only when lock/provenance policy is still satisfied.
+- Registry maturity labels must not stand in for container support or qualification; use the catalog disposition and evidence report.
 
 ## Base Image Policy (Apptainer)
 - `From:` must be digest-pinned (`@sha256:`).
