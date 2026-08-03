@@ -1,0 +1,91 @@
+{
+  "checks": {
+    "all_selected_images_current": true,
+    "all_selected_records_match_inventory": true,
+    "all_selected_tools_passed": true,
+    "campaign_passed": true,
+    "no_staged_images": true,
+    "no_unknown_images": true,
+    "no_unreferenced_obsolete_images": true
+  },
+  "evidence_dimensions": [
+    "source",
+    "build",
+    "freshness"
+  ],
+  "execution_summary": {
+    "passed": 2
+  },
+  "finished_at_utc": "2026-08-03T17:04:37.588420+00:00",
+  "inventory_summary": {
+    "historical_dependency_count": 3,
+    "staged_image_count": 0,
+    "states": {
+      "current": 85,
+      "unsupported": 4
+    },
+    "tool_count": 89,
+    "unknown_image_count": 0,
+    "unreferenced_obsolete_count": 0
+  },
+  "not_evidence_for": [
+    "runtime",
+    "stage",
+    "real_data",
+    "science",
+    "benchmark",
+    "security",
+    "release"
+  ],
+  "repository_commit": "32a447d03b36aeb617de08fda69f8b9fb1ff0f56",
+  "run_id": "run-1000",
+  "schema_version": "bijux.container.image_rebuild_report.v1",
+  "selected_tool_count": 2,
+  "site": {
+    "host": "cosmos3.int.lunarc",
+    "id": "lunarc"
+  },
+  "source_artifacts": {
+    "after_build_inventory": {
+      "name": "after-storage.json",
+      "sha256": "fda830f4f70750062281cff44640517c8fbdf4c1d8853f82eb2728570334e8d0",
+      "study_relative_path": "containers/inventory/after-storage.json"
+    },
+    "execution": {
+      "name": "execution.json",
+      "sha256": "01d6a8bfac626dae5e222920e2a9c213514552b7f1f946bcfc1f8430de94a8d0",
+      "study_relative_path": "containers/campaign/execution.json"
+    }
+  },
+  "tools": [
+    {
+      "attempt_count": 1,
+      "build_log_name": "bijux_dna-4780b0580a53-32a447d03b36-attempt-1.log",
+      "build_log_sha256": "af43138998e6d1e73fe21615736522515b880625086aca627c2eef71da5aef83",
+      "failed_attempt_count": 0,
+      "image_name": "bijux_dna-0.1.0-linux-amd64-5a7e64cf5cbe.sif",
+      "image_sha256": "5a7e64cf5cbe13f9af7396a32a082348c844c992351074a8f8b66ac37735ccde",
+      "image_size_bytes": 460161024,
+      "inventory_matches_execution": true,
+      "inventory_state": "current",
+      "status": "passed",
+      "tool": "bijux_dna",
+      "version": "0.1.0"
+    },
+    {
+      "attempt_count": 1,
+      "build_log_name": "picard-87b8a8ebfda6-32a447d03b36-attempt-1.log",
+      "build_log_sha256": "3fb15c079232a0d558713a5c0f2becff6b7f9e99a61f9e6395402415f56d713e",
+      "failed_attempt_count": 0,
+      "image_name": "picard-3.3.0-linux-amd64-5d820089bef7.sif",
+      "image_sha256": "5d820089bef7854e698a7014f79df3f7b47568ed78b30e85842e9434ca6dcc92",
+      "image_size_bytes": 160616448,
+      "inventory_matches_execution": true,
+      "inventory_state": "current",
+      "status": "passed",
+      "tool": "picard",
+      "version": "3.3.0"
+    }
+  ],
+  "verdict": "passed"
+}

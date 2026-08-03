@@ -112,6 +112,10 @@ python3 -B containers/contracts/image_campaign.py report \
 
 The tracked [complete-roster rebuild report](reports/lunarc-image-rebuild.md)
 is the reviewed source/build/freshness summary for this campaign.
+The later [current-image refresh report](reports/lunarc-image-refresh.md)
+records the governed rebuild of only the images made stale by complete recipe
+input fingerprinting; it complements rather than replaces the full-roster
+proof.
 
 The before-build inventory must report every catalog-supported image as missing
 and preserve each unsupported disposition. The execution and after-build

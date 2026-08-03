@@ -26,6 +26,7 @@ one campaign record because it admits one final immutable image per tool.
 
 - [Canonical Apptainer storage reconciliation](image-storage.md)
 - [Complete LUNARC Apptainer image rebuild](lunarc-image-rebuild.md)
+- [Current LUNARC Apptainer image refresh](lunarc-image-refresh.md)
 - [LUNARC Apptainer image inventory](image-inventory.md)
 - [Complete LUNARC run-evidence index](run-evidence.md)
 - [Real-data stage benchmark definition coverage](stage-benchmark-coverage.md)
