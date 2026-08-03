@@ -576,8 +576,9 @@ source_sha256 = "74a665f4550a98bb0565de47cc17772d8372a9777c4dc845b959090363fe778
 [fastuniq]
 version = "1.1"
 source = "https://sourceforge.net/projects/fastuniq/"
-date_pinned = "2026-08-02"
-pinned_commit = "0000000000000000000000000000000000000000"
+date_pinned = "2026-08-03"
+status = "unsupported"
+upstream_license = "NOASSERTION"
 source_sha256 = "9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae"
 
 [gatk]

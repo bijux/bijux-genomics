@@ -158,7 +158,6 @@ stages:
     benchmark_support: "cohort"
     default_tool: "clumpify"
     admitted_tools:
-      - "fastuniq"
       - "clumpify"
   - stage_id: "fastq.filter_low_complexity"
     execution_status: "closed"

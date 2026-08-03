@@ -42,7 +42,6 @@ tool_ids = [
   "fastp",
   "fastq_scan",
   "fastqvalidator",
-  "fastuniq",
   "fastx_clipper",
   "flash2",
   "fqtools",

@@ -9,16 +9,16 @@
 
 ## Governed tool cohort
 - The benchmark runner must resolve the roster from `bijux-dna registry list-tools --stage fastq.remove_duplicates --kind benchmark`.
-- The current governed fairness cohort is:
+- The current governed execution cohort is:
   - `clumpify`
-  - `fastuniq`
+- FastUniq rows in the previously published corpus dossier are historical observations, not current promotion evidence. FastUniq is excluded from new governed runs because upstream does not publish a software license grant for the distributed source archive.
 
 ## Execution contract
 - Use only the paired-end subset of `corpus-01/normalized/`.
 - Require the balanced paired corpus contract:
   - `5` ancient paired-end
   - `5` modern paired-end
-- Hold one governed duplicate-removal contract across the paired cohort:
+- Hold one governed duplicate-removal contract across the paired samples:
   - identical paired input hashes
   - identical dedup policy hash
   - identical keep-order policy where the governed surface requires it
