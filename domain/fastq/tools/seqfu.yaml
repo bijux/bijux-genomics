@@ -16,11 +16,13 @@ stage_contracts:
   fastq.profile_read_lengths:
     required_inputs:
     - reads_r1
+    optional_inputs:
+    - reads_r2
     expected_artifacts:
     - report_json
     - length_distribution_tsv
     - length_distribution_json
-    notes: SeqFu read-length profiling emits the governed summary report plus deterministic histogram artifacts.
+    notes: SeqFu tabulate emits every FASTQ sequence for exact per-record length observation; the shared observer normalizes those observations into the governed histogram and report contracts.
   fastq.profile_reads:
     required_inputs:
     - reads_r1
@@ -76,6 +78,8 @@ outputs:
 execution_contract:
   required_inputs:
   - reads_r1
+  optional_inputs:
+  - reads_r2
   expected_outputs:
   - report_json
   - length_distribution_tsv

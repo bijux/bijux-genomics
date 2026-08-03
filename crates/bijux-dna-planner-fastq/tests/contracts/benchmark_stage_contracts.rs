@@ -42,7 +42,8 @@ fn read_length_benchmark_contract_is_planner_derived() -> Result<()> {
     let expected =
         std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     assert_eq!(rendered, expected);
-    assert_eq!(contract.tools.len(), 4);
+    let tool_ids = contract.tools.iter().map(|tool| tool.tool_id.as_str()).collect::<Vec<_>>();
+    assert_eq!(tool_ids, ["seqfu", "seqkit"]);
     assert!(contract.tools.iter().all(|tool| {
         tool.single_end.effective_params["threads"] == 4
             && tool.paired_end.effective_params["histogram_bins"] == 100

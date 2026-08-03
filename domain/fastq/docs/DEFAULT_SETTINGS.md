@@ -45,7 +45,7 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.subsample_reads`: default `bijux_dna`. rationale: planned internal contract harness records deterministic subsampling inputs and report expectations for benchmark-comparable plans.
 - `fastq.verify_assets`: default `bijux_dna`. rationale: planned internal contract harness records asset-lock verification report expectations before backend-native asset inspectors are admitted.
 - `fastq.validate_reads`: default `fastqvalidator`.
-- `fastq.profile_read_lengths`: default `seqkit_stats`.
+- `fastq.profile_read_lengths`: default `seqkit`.
 - `fastq.detect_adapters`: default `fastqc`.
 - `fastq.trim_polyg_tails`: default `fastp`.
 - `fastq.trim_reads`: default `fastp`.
@@ -98,11 +98,11 @@ extract_umis_benchmark_policy: fastq.extract_umis
 - the current governed benchmark surface is intentionally single-tool; completing the row contract must not be misrepresented as admitted alternative-backend coverage
 
 profile_read_lengths_benchmark_policy: fastq.profile_read_lengths
-- default benchmark backend is `seqkit_stats`
-- governed comparison backends are `fastp`, `prinseq`, and `seqfu` for read-length agreement studies
+- default benchmark backend is `seqkit`; `seqfu` is the governed comparison backend
+- a backend is admitted only when it emits one exact length observation per FASTQ record; summary-only statistics and read-transforming invocations are not read-length observers
 - every governed `fastq.profile_read_lengths` row must emit `read_count`, `min_read_length`, `mean_read_length`, `median_read_length`, and `max_read_length`
-- `fastp` must run in report-only mode with trimming and filtering disabled so the benchmark remains pre-trim length profiling instead of quietly reusing a trim contract
-- `prinseq` length profiling may stream all output classes to `/dev/null`, but the invocation must remain non-destructive and produce the governed report plus histogram artifacts
+- both retained backends must normalize to `record_id<TAB>length` without downstream tool-specific branches
+- normalized backend observations must match an independent FASTQ decode before reports, histograms, or benchmark metrics are admitted
 
 detect_adapters_benchmark_policy: fastq.detect_adapters
 - default benchmark backend is `fastqc`

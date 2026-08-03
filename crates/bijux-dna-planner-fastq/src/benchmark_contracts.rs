@@ -95,7 +95,7 @@ pub fn profile_read_lengths_benchmark_contract(
             .to_string(),
         observation_authority: "bijux_dna_api::internal::fastq::stages::profile_read_lengths"
             .to_string(),
-        result_attribution: "shared_observer_after_backend_execution".to_string(),
+        result_attribution: "backend_exact_observations_independently_validated".to_string(),
         domain_defaults: BenchmarkLayoutDefaultsV1 {
             single_end: serde_json::to_value(
                 bijux_dna_domain_fastq::params::defaults::read_length_profile_defaults(false),

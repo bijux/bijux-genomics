@@ -45,12 +45,6 @@ outputs:
   - name: "raw_backend_report_json"
     data_type: "json"
     cardinality: "One"
-  - name: "length_distribution_tsv"
-    data_type: "tsv"
-    cardinality: "One"
-  - name: "length_distribution_json"
-    data_type: "json"
-    cardinality: "One"
 metrics_parser: "fastp_v0"
 constraints:
   runtime: "local"
@@ -79,7 +73,6 @@ license: "GPL-3.0"
 citation: "paper:https://academic.oup.com/bioinformatics/article/34/17/i884/5093234"
 stage_ids:
   - "fastq.filter_low_complexity"
-  - "fastq.profile_read_lengths"
   - "fastq.trim_reads"
   - "fastq.filter_reads"
   - "fastq.trim_polyg_tails"
@@ -114,20 +107,6 @@ stage_contracts:
       - "filtered_reads_r2"
       - "report_json"
     notes: "fastp filter mode emits paired filtered reads and the governed filter report."
-  fastq.profile_read_lengths:
-    required_inputs:
-      - "reads_r1"
-    execution_contract:
-      expected_outputs:
-        - "report_json"
-        - "length_distribution_tsv"
-        - "length_distribution_json"
-      optional_outputs: []
-    expected_artifacts:
-      - "report_json"
-      - "length_distribution_tsv"
-      - "length_distribution_json"
-    notes: "fastp length profiling emits the governed read-length report alongside deterministic histogram summaries."
   fastq.filter_low_complexity:
     required_inputs:
       - "reads_r1"
@@ -168,8 +147,6 @@ expected_artifacts:
   - "filtered_fastq_r1"
   - "filtered_fastq_r2"
   - "filter_report_json"
-  - "length_distribution_tsv"
-  - "length_distribution_json"
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "fastp --version"

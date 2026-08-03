@@ -141,7 +141,6 @@ governed_tool_ids:
   - fastq_scan
   - fastqc
   - fastqvalidator
-  - fastuniq
   - fastx_clipper
   - flash2
   - fqtools
@@ -233,10 +232,8 @@ stage_tool_compatibility:
   - fastq_scan
   - seqkit
   fastq.profile_read_lengths:
-  - fastp
-  - prinseq
   - seqfu
-  - seqkit_stats
+  - seqkit
   fastq.profile_reads:
   - seqfu
   - seqkit
@@ -244,7 +241,6 @@ stage_tool_compatibility:
   fastq.remove_chimeras:
   - vsearch
   fastq.remove_duplicates:
-  - fastuniq
   - clumpify
   fastq.repair_pairs:
   fastq.report_qc:
@@ -294,10 +290,8 @@ stage_tool_integration:
     seqtk: governed_contract
     fqtools: governed_contract
   fastq.profile_read_lengths:
-    fastp: governed_contract
-    prinseq: governed_contract
     seqfu: governed_contract
-    seqkit_stats: governed_contract
+    seqkit: governed_contract
   fastq.detect_adapters:
     fastqc: governed_contract
   fastq.detect_duplicates_premerge:
@@ -387,7 +381,7 @@ reference_index_compatibility:
 active_defaults:
   fastq.index_reference: bowtie2_build
   fastq.validate_reads: fastqvalidator
-  fastq.profile_read_lengths: seqkit_stats
+  fastq.profile_read_lengths: seqkit
   fastq.detect_adapters: fastqc
   fastq.detect_duplicates_premerge: bijux_dna
   fastq.trim_terminal_damage: cutadapt
@@ -739,18 +733,12 @@ stage_default_settings:
       profile: adna_sane_default
       notes: sequence counting preset for overrepresentation summaries
   fastq.profile_read_lengths:
-    fastp:
-      profile: adna_sane_default
-      notes: report-only read-length profiling preset
-    prinseq:
-      profile: adna_sane_default
-      notes: non-destructive read-length profiling preset
     seqfu:
-      profile: adna_sane_default
-      notes: seqfu compatibility-wrapper read-length profiling preset
-    seqkit_stats:
-      profile: adna_sane_default
-      notes: deterministic read-length histogram preset
+      profile: exact_record_lengths
+      notes: tabulated FASTQ sequence lengths normalized through the common observation schema
+    seqkit:
+      profile: exact_record_lengths
+      notes: fx2tab record lengths normalized through the common observation schema
   fastq.profile_reads:
     seqfu:
       profile: adna_sane_default
