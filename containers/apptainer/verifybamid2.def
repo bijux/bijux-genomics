@@ -53,9 +53,28 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 #!/usr/bin/env sh
 set -eu
 case "${1:-}" in
-  --version) echo "verifybamid2 2.0.1"; exit 0 ;;
+  --version)
+    set +e
+    version_output="$(/usr/local/bin/verifybamid2-bin --version 2>&1)"
+    version_status=$?
+    set -e
+    if [ "$version_status" -ne 255 ] || ! printf '%s\n' "$version_output" | grep -Fq 'Version:2.0.1'; then
+      printf 'error: unexpected VerifyBamID2 version probe (status=%s)\n' "$version_status" >&2
+      exit 70
+    fi
+    printf 'verifybamid2 2.0.1\n'
+    exit 0
+    ;;
   --help|-h|"")
-    /usr/local/bin/verifybamid2-bin --help 2>&1 || true
+    set +e
+    help_output="$(/usr/local/bin/verifybamid2-bin --help 2>&1)"
+    help_status=$?
+    set -e
+    if [ "$help_status" -ne 1 ] || ! printf '%s\n' "$help_output" | grep -Fq 'Detailed instructions of parameters'; then
+      printf 'error: unexpected VerifyBamID2 help probe (status=%s)\n' "$help_status" >&2
+      exit 70
+    fi
+    printf '%s\n' "$help_output"
     exit 0
     ;;
   --__bijux_invalid_flag__*)
@@ -66,8 +85,14 @@ esac
 exec /usr/local/bin/verifybamid2-bin "$@"
 EOS
     chmod +x /usr/local/bin/verifybamid2
+    verifybamid2 --version | grep -Fx 'verifybamid2 2.0.1'
+    verifybamid2 --help | grep -Fq 'Detailed instructions of parameters'
 %runscript
     exec /usr/local/bin/verifybamid2 "$@"
+
+%test
+    verifybamid2 --version | grep -Fx 'verifybamid2 2.0.1'
+    verifybamid2 --help | grep -Fq 'Detailed instructions of parameters'
 
 %help
     Apptainer image for verifybamid2.

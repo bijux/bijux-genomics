@@ -34,10 +34,14 @@ From: quay.io/biocontainers/bcftools@sha256:badc3a0c7af72a83e5761ab0e881aa842046
 %post
     set -eux
     umask 022
-    set -eu
-    bcftools --version >/dev/null 2>&1 || true
+    bcftools --version | grep -F 'bcftools 1.20'
+    bcftools --help >/dev/null
 %runscript
     exec bcftools "$@"
+
+%test
+    bcftools --version | grep -F 'bcftools 1.20'
+    bcftools --help >/dev/null
 
 %help
     Apptainer image for bcftools.

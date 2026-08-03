@@ -192,9 +192,9 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
                     "{rel}: disabling apt TLS peer verification is forbidden; use the governed snapshot bootstrap"
                 ));
             }
-            if recipe_ignores_build_failure(post) {
+            if recipe_ignores_runtime_failure(&text) {
                 errors.push(format!(
-                    "{rel}: build commands must not convert failures into successful images"
+                    "{rel}: commands must not convert unchecked failures into successful images"
                 ));
             }
             if post.contains("latest")
@@ -308,13 +308,10 @@ fn apt_tls_peer_verification_disabled(post: &str) -> bool {
     post.contains("Acquire::https::Verify-Peer=false")
 }
 
-fn recipe_ignores_build_failure(recipe: &str) -> bool {
+fn recipe_ignores_runtime_failure(recipe: &str) -> bool {
     recipe.lines().any(|line| {
         let command = line.split('#').next().unwrap_or_default();
         command.contains("|| true")
-            && ["make ", "make -", "make --", "cmake --build", "cargo build"]
-                .iter()
-                .any(|build| command.contains(build))
     })
 }
 
@@ -1301,7 +1298,7 @@ pub(super) fn merge_outcomes(
 mod tests {
     use super::{
         apt_tls_peer_verification_disabled, merge_bijux_command_env,
-        provenance_label_is_placeholder, recipe_ignores_build_failure,
+        provenance_label_is_placeholder, recipe_ignores_runtime_failure,
     };
 
     #[test]
@@ -1327,11 +1324,13 @@ mod tests {
     }
 
     #[test]
-    fn apptainer_policy_rejects_ignored_build_failures() {
-        assert!(recipe_ignores_build_failure("make -j2 || true"));
-        assert!(recipe_ignores_build_failure("cargo build --release || true"));
-        assert!(!recipe_ignores_build_failure("make --directory /opt/tool -j2"));
-        assert!(!recipe_ignores_build_failure("tool --help >/dev/null 2>&1 || true"));
+    fn apptainer_policy_rejects_ignored_runtime_failures() {
+        assert!(recipe_ignores_runtime_failure("make -j2 || true"));
+        assert!(recipe_ignores_runtime_failure("tool --help >/dev/null 2>&1 || true"));
+        assert!(!recipe_ignores_runtime_failure("make --directory /opt/tool -j2"));
+        assert!(!recipe_ignores_runtime_failure(
+            "set +e\ntool --help\nstatus=$?\nset -e\ntest $status -eq 1"
+        ));
     }
 
     #[test]

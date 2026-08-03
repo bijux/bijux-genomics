@@ -44,14 +44,42 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     cat > /usr/local/bin/picard <<'EOS'
 #!/usr/bin/env sh
 set -eu
+picard_version_output() {
+  set +e
+  version_output="$(java -jar /opt/picard.jar MarkDuplicates --version 2>&1)"
+  version_status=$?
+  set -e
+  if [ "$version_status" -ne 1 ] || [ "$version_output" != 'Version:3.3.0' ]; then
+    printf 'error: unexpected Picard version probe (status=%s): %s\n' \
+      "$version_status" "$version_output" >&2
+    exit 70
+  fi
+}
+
 case "${1:-}" in
-  --version) echo "picard ${VERSION_PICARD}"; exit 0 ;;
-  --help|-h|"") echo "picard ${VERSION_PICARD}"; echo "usage: picard <Command> [options]"; exit 0 ;;
+  --version)
+    picard_version_output
+    printf 'picard %s\n' "${version_output#Version:}"
+    exit 0
+    ;;
+  --help|-h|"")
+    set +e
+    help_output="$(java -jar /opt/picard.jar MarkDuplicates --help 2>&1)"
+    help_status=$?
+    set -e
+    if [ "$help_status" -ne 1 ] || ! printf '%s\n' "$help_output" | grep -Fq 'USAGE: MarkDuplicates'; then
+      printf 'error: unexpected Picard help probe (status=%s)\n' "$help_status" >&2
+      exit 70
+    fi
+    printf '%s\n' "$help_output"
+    exit 0
+    ;;
 esac
 exec java -jar /opt/picard.jar "$@"
 EOS
     chmod 0755 /usr/local/bin/picard
-    test "$(java -jar /opt/picard.jar MarkDuplicates --version 2>&1 || true)" = 'Version:3.3.0'
+    picard --version | grep -Fx 'picard 3.3.0'
+    picard --help | grep -Fq 'USAGE: MarkDuplicates'
     rm -rf /var/lib/apt/lists/*
 %runscript
     if [ $# -eq 0 ]; then
@@ -61,7 +89,6 @@ EOS
     fi
 %test
     picard --version | grep -Fx 'picard 3.3.0'
-    picard --help >/dev/null
-    test "$(java -jar /opt/picard.jar MarkDuplicates --version 2>&1 || true)" = 'Version:3.3.0'
+    picard --help | grep -Fq 'USAGE: MarkDuplicates'
 %help
     Picard 3.3.0 from the checksummed upstream release JAR.
