@@ -53,6 +53,7 @@ Validate the portfolio and render the exact blockers for every stage:
 python3 -B benchmarks/benchmark_portfolio.py \
   --portfolio benchmarks/contracts/portfolio.toml \
   --registry benchmarks/contracts/stage-campaigns.toml \
+  --interfaces benchmarks/contracts/stage-interfaces.toml \
   --catalog containers/contracts/catalog.toml \
   --repository-root . \
   --json-output benchmarks/reports/scientific-benchmark-readiness.json \

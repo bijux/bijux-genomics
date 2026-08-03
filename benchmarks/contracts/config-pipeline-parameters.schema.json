@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bijux.github.io/bijux-genomics/schemas/benchmark-pipeline-parameters-v1.json",
+  "title": "Bijux Genomics benchmark pipeline parameter overrides",
+  "type": "object",
+  "required": ["schema_version", "profile", "stages"],
+  "properties": {
+    "schema_version": {"const": "bijux.benchmark.pipeline_parameters.v1"},
+    "profile": {"type": "string", "minLength": 1},
+    "stages": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["parameter_schema_version", "defaults_provider", "overrides"],
+        "properties": {
+          "parameter_schema_version": {"type": "string", "minLength": 1},
+          "defaults_provider": {"type": "string", "minLength": 1},
+          "overrides": {"type": "object"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

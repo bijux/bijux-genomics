@@ -1,0 +1,11 @@
+{
+  "schema_version": "bijux.benchmark.pipeline_parameters.v1",
+  "profile": "generic-fastq",
+  "stages": {
+    "fastq.profile_reads": {
+      "parameter_schema_version": "bijux.fastq.params.stats.v1",
+      "defaults_provider": "bijux_dna_domain_fastq::params::defaults::stats_defaults",
+      "overrides": {}
+    }
+  }
+}

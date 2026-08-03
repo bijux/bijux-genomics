@@ -12,6 +12,15 @@ requirements. `stage-campaigns.toml` contains only executable campaigns whose
 complete retained-tool closure, inputs, parameters, resource measurements,
 quality metrics, interpretation, and limitations have been reviewed.
 
+`stage-interfaces.toml` closes an executable stage definition over its accepted
+input contracts, canonical output, normalized benchmark result, complete tool
+adapter set, crate-owned default provider, and downstream substitution probe.
+A campaign without that interface remains blocked. The single
+`config-pipeline-parameters.yml` records only explicit operator overrides;
+empty overrides mean the named crate provider remains authoritative. Every run
+must archive the override file and the resolved effective parameters separately
+so replay does not depend on whichever defaults happen to exist later.
+
 Run specifications and raw evidence do not belong here. Specifications are
 published under the governed study result root, large execution evidence stays
 under `STUDY/results/benchmarks/`, and small reviewed reports belong in

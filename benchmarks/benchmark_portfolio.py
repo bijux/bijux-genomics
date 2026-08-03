@@ -17,6 +17,8 @@ except ModuleNotFoundError:
 
 PORTFOLIO_SCHEMA = "bijux.benchmark.portfolio.v1"
 REGISTRY_SCHEMA = "bijux.benchmark.stage_campaigns.v1"
+INTERFACE_SCHEMA = "bijux.benchmark.stage_interfaces.v1"
+PARAMETER_CONFIG_SCHEMA = "bijux.benchmark.pipeline_parameters.v1"
 REPORT_SCHEMA = "bijux.container.benchmark_readiness.v1"
 CORPUS_STATUSES = {"missing", "source_defined", "admitted"}
 EVIDENCE_SCOPES = {"qualification", "comparative"}
@@ -51,6 +53,17 @@ def load_toml(path: Path) -> dict[str, Any]:
         raise PortfolioError(f"cannot read TOML {path}: {exc}") from exc
     if not isinstance(value, dict):
         raise PortfolioError(f"TOML root must be a mapping: {path}")
+    return value
+
+
+def load_yaml(path: Path) -> dict[str, Any]:
+    """Load the dependency-free JSON subset of YAML used by benchmark policy."""
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise PortfolioError(f"cannot read YAML {path}: {exc}") from exc
+    if not isinstance(value, dict):
+        raise PortfolioError(f"YAML root must be a mapping: {path}")
     return value
 
 
@@ -276,8 +289,100 @@ def campaign_index(registry: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return result
 
 
+def validate_interfaces(
+    registry: dict[str, Any],
+    stage_tools: dict[str, set[str]],
+    repository_root: Path,
+) -> dict[str, dict[str, Any]]:
+    """Validate executable stage boundaries without inventing missing contracts."""
+    if registry.get("schema_version") != INTERFACE_SCHEMA:
+        raise PortfolioError("benchmark stage-interface schema is unsupported")
+    result: dict[str, dict[str, Any]] = {}
+    for interface in registry.get("interfaces", []):
+        if not isinstance(interface, dict):
+            raise PortfolioError("benchmark stage interface must be a mapping")
+        stage_id = text(interface.get("stage_id"), "interface stage id")
+        if stage_id in result:
+            raise PortfolioError(f"stage has multiple interfaces: {stage_id}")
+        if stage_id not in stage_tools:
+            raise PortfolioError(f"interface uses an unretained stage: {stage_id}")
+        accepted_inputs = text_list(
+            interface.get("accepted_input_contracts"),
+            f"{stage_id} accepted input contracts",
+        )
+        if not accepted_inputs:
+            raise PortfolioError(f"stage interface has no accepted inputs: {stage_id}")
+        for key in (
+            "output_contract",
+            "parameter_schema_version",
+            "default_provider",
+        ):
+            text(interface.get(key), f"{stage_id} {key}")
+        for key in ("normalized_result_contract", "parameter_config"):
+            relative = Path(text(interface.get(key), f"{stage_id} {key}"))
+            if relative.is_absolute() or ".." in relative.parts:
+                raise PortfolioError(f"{stage_id} {key} must be repository-relative")
+            if not (repository_root / relative).is_file():
+                raise PortfolioError(f"{stage_id} {key} is absent: {relative}")
+        parameter_config = load_yaml(repository_root / interface["parameter_config"])
+        if parameter_config.get("schema_version") != PARAMETER_CONFIG_SCHEMA:
+            raise PortfolioError(f"{stage_id} parameter config schema is unsupported")
+        configured_stages = parameter_config.get("stages")
+        if not isinstance(configured_stages, dict) or stage_id not in configured_stages:
+            raise PortfolioError(f"{stage_id} parameter config lacks its stage entry")
+        parameter_entry = configured_stages[stage_id]
+        if (
+            not isinstance(parameter_entry, dict)
+            or parameter_entry.get("parameter_schema_version")
+            != interface["parameter_schema_version"]
+            or parameter_entry.get("defaults_provider") != interface["default_provider"]
+            or not isinstance(parameter_entry.get("overrides"), dict)
+        ):
+            raise PortfolioError(f"{stage_id} parameter config disagrees with its interface")
+        declared_tools = set(text_list(interface.get("tool_ids"), f"{stage_id} tools"))
+        if declared_tools != stage_tools[stage_id]:
+            raise PortfolioError(
+                f"stage interface tool closure failed for {stage_id}: "
+                f"missing={sorted(stage_tools[stage_id] - declared_tools)}, "
+                f"extra={sorted(declared_tools - stage_tools[stage_id])}"
+            )
+        adapters = interface.get("adapters")
+        if not isinstance(adapters, dict) or set(adapters) != declared_tools:
+            raise PortfolioError(
+                f"stage interface adapters must cover the exact tool closure: {stage_id}"
+            )
+        for tool_id, adapter in adapters.items():
+            text(adapter, f"{stage_id} {tool_id} adapter")
+        sources = text_list(
+            interface.get("provenance_sources"), f"{stage_id} provenance sources"
+        )
+        for source in sources:
+            path = Path(source)
+            if (
+                path.is_absolute()
+                or ".." in path.parts
+                or not (repository_root / path).is_file()
+            ):
+                raise PortfolioError(f"{stage_id} provenance source is absent: {source}")
+        probe = interface.get("downstream_probe")
+        if not isinstance(probe, dict):
+            raise PortfolioError(f"stage interface lacks downstream probe: {stage_id}")
+        for key in ("consumer_stage_id", "input_contract", "source"):
+            text(probe.get(key), f"{stage_id} downstream {key}")
+        text_list(probe.get("assertions"), f"{stage_id} downstream assertions")
+        if probe["input_contract"] != interface["output_contract"]:
+            raise PortfolioError(
+                f"downstream probe input differs from canonical output: {stage_id}"
+            )
+        result[stage_id] = interface
+    return result
+
+
 def readiness_report(
-    validated: dict[str, Any], registry: dict[str, Any]
+    validated: dict[str, Any],
+    registry: dict[str, Any],
+    interfaces: dict[str, dict[str, Any]] | None = None,
+    evidence_root: Path | None = None,
 ) -> dict[str, Any]:
     campaigns = campaign_index(registry)
     rows = []
@@ -285,6 +390,9 @@ def readiness_report(
         profile_id = validated["assignments"][stage_id]
         profile = validated["profiles"][profile_id]
         blockers = []
+        interface = (interfaces or {}).get(stage_id)
+        if interface is None:
+            blockers.append("no closed stage interface is defined")
         available_samples: set[tuple[str, int]] = set()
         for role in profile["required_corpus_roles"]:
             candidates = [
@@ -381,6 +489,14 @@ def readiness_report(
                         f"campaign real sample count {declared_samples} is below "
                         f"{profile['minimum_real_samples']}"
                     )
+            if campaign_tier == "comparative":
+                evidence_path = (
+                    evidence_root / f"{run_id}-{campaign.get('slug')}.json"
+                    if evidence_root is not None and run_id is not None
+                    else None
+                )
+                if evidence_path is None or not evidence_path.is_file():
+                    blockers.append("no admitted comparative execution evidence")
         rows.append(
             {
                 "stage_id": stage_id,
@@ -391,6 +507,7 @@ def readiness_report(
                 "campaign_run_id": run_id,
                 "reserved_run_id": reserved_run_id,
                 "campaign_tier": campaign_tier,
+                "interface_status": "closed" if interface is not None else "missing",
                 "readiness": "ready" if not blockers else "blocked",
                 "blockers": blockers,
             }
@@ -514,10 +631,12 @@ def parser() -> argparse.ArgumentParser:
     value = argparse.ArgumentParser(description=__doc__)
     value.add_argument("--portfolio", type=Path, required=True)
     value.add_argument("--registry", type=Path, required=True)
+    value.add_argument("--interfaces", type=Path, required=True)
     value.add_argument("--catalog", type=Path, required=True)
     value.add_argument("--repository-root", type=Path, required=True)
     value.add_argument("--json-output", type=Path, required=True)
     value.add_argument("--markdown-output", type=Path, required=True)
+    value.add_argument("--evidence-root", type=Path)
     return value
 
 
@@ -529,7 +648,15 @@ def main() -> int:
             load_toml(args.catalog),
             args.repository_root.resolve(),
         )
-        report = readiness_report(validated, load_toml(args.registry))
+        interfaces = validate_interfaces(
+            load_toml(args.interfaces), validated["stage_tools"], args.repository_root.resolve()
+        )
+        report = readiness_report(
+            validated,
+            load_toml(args.registry),
+            interfaces,
+            args.evidence_root,
+        )
         write_report(report, args.json_output, args.markdown_output)
         print(
             "scientific benchmark readiness: "
