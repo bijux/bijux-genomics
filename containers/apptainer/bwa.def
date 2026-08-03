@@ -26,6 +26,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 
 %files
     containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+    containers/tools/bwa/bwa /usr/local/bin/bwa
 
 %environment
     export PATH=/usr/local/bin:/usr/bin:/bin
@@ -50,36 +51,12 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     make --directory /tmp/bwa-9f26bfcc7780753129b60717ecab0ebba6f04b7c \
         CFLAGS='-g -Wall -Wno-unused-function -O2 -fcommon' -j"$(nproc)"
     install -m 0755 /tmp/bwa-9f26bfcc7780753129b60717ecab0ebba6f04b7c/bwa /usr/local/libexec-bwa
-    cat > /usr/local/bin/bwa <<'EOF'
-#!/usr/bin/env sh
-set -eu
-native_info() {
-  set +e
-  native_output="$(/usr/local/libexec-bwa 2>&1)"
-  native_status=$?
-  set -e
-  if [ "$native_status" -ne 1 ] || ! printf '%s\n' "$native_output" | grep -Fq 'Version: 0.7.17-r1188'; then
-    printf 'error: unexpected BWA information probe (status=%s)\n' "$native_status" >&2
-    exit 70
-  fi
-}
-
-case "${1:-}" in
-  --version)
-    native_info
-    printf '%s\n' "$native_output" | sed -n 's/^Version: //p'
-    ;;
-  --help|-h|"")
-    native_info
-    printf '%s\n' "$native_output"
-    ;;
-  *)
-    exec /usr/local/libexec-bwa "$@"
-    ;;
-esac
-EOF
-    chmod 0755 /usr/local/bin/bwa
-    test "$(bwa --version)" = "0.7.17-r1188"
+    chmod 0555 /usr/local/bin/bwa
+    bwa --version > /tmp/bwa.version
+    grep -Fx '0.7.17-r1188' /tmp/bwa.version
+    bwa --help > /tmp/bwa.help
+    grep -F 'Program: bwa ' /tmp/bwa.help
+    rm -f /tmp/bwa.version /tmp/bwa.help
     rm -rf /tmp/bwa*
     rm -rf /var/lib/apt/lists/*
 
@@ -87,8 +64,11 @@ EOF
     exec /usr/local/bin/bwa "$@"
 
 %test
-    test "$(bwa --version)" = "0.7.17-r1188"
-    bwa --help >/dev/null
+    bwa --version > /tmp/bwa.version
+    grep -Fx '0.7.17-r1188' /tmp/bwa.version
+    bwa --help > /tmp/bwa.help
+    grep -F 'Program: bwa ' /tmp/bwa.help
+    rm -f /tmp/bwa.version /tmp/bwa.help
 
 %help
     BWA 0.7.17 built from the catalog-locked upstream commit.

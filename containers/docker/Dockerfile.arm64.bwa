@@ -3,6 +3,7 @@
 # VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+COPY --chmod=0555 containers/tools/bwa/bwa /usr/local/bin/bwa
 
 ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=0.7.17
@@ -30,14 +31,11 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     make --directory /tmp/bwa-9f26bfcc7780753129b60717ecab0ebba6f04b7c \
       CFLAGS='-g -Wall -Wno-unused-function -O2 -fcommon' -j"$(nproc)" && \
     install -m 0755 /tmp/bwa-9f26bfcc7780753129b60717ecab0ebba6f04b7c/bwa /usr/local/libexec-bwa && \
-    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' \
-      'case "${1:-}" in' \
-      '  --version) /usr/local/libexec-bwa 2>&1 | sed -n "s/^Version: //p" ;;' \
-      '  --help|-h|"") /usr/local/libexec-bwa 2>&1 || true ;;' \
-      '  *) exec /usr/local/libexec-bwa "$@" ;;' \
-      'esac' > /usr/local/bin/bwa && \
-    chmod 0755 /usr/local/bin/bwa && \
-    test "$(bwa --version)" = "0.7.17-r1188" && \
+    bwa --version > /tmp/bwa.version && \
+    grep -Fx '0.7.17-r1188' /tmp/bwa.version && \
+    bwa --help > /tmp/bwa.help && \
+    grep -F 'Program: bwa ' /tmp/bwa.help && \
+    rm -f /tmp/bwa.version /tmp/bwa.help && \
     rm -rf /tmp/bwa* /var/lib/apt/lists/* && \
     useradd --system --uid 65532 --home-dir /work --create-home bijux
 
