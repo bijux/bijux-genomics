@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "908256f4cf62939f8dc2809fdbd8792facfa867cb234159f7e4f5227768b1e40",
+  "source_sha256": "7c4fae13c7346c09e013195e143f2cd3ee7f28739dab93c605394173abf5c8ca",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -1186,11 +1186,11 @@
       "support_reason": "",
       "upstream": "https://github.com/alexdobin/STAR",
       "license": "GPL-3.0",
-      "source_sha256": "",
+      "source_sha256": "65976afe9b8c5dbda05282c7c02ba27d0f908a7eb83ec12e3fca86ed5eb91cac",
       "pinned_commit": "b1edc1208d91a53bf40ebae8669f71d50b994851",
       "apptainer_definition": "containers/apptainer/star.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.star",
-      "contract_sha256": "3538e2343fae19b7a36c8daf46f0fd8fb3eab38c9b26b282817d05bc3d857131"
+      "contract_sha256": "eb754c68350940862fe9c1d66606be6ba1e557e47869a05794246e23a5ae21a7"
     },
     {
       "id": "trim_galore",

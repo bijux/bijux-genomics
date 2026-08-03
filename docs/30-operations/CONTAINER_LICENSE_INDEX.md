@@ -100,7 +100,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `skewer` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/relipmoc/skewer` | `0.2.2` | `sha256:695c5f714e23ba5572e2525b7445439b632f52653e28ea46ed9988fc2f765169` |
 | `sortmerna` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/sortmerna/sortmerna` | `4.3.7` | `sha256:1add6d30e2ce3cffd8bc022e5cf359882aa50dcae647bfaef3937132e46a0ab3` |
 | `spades` | `retained` | `bijux` | `GPL-2.0-only` | `https://github.com/ablab/spades` | `4.2.0` | `sha256:b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985` |
-| `star` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/alexdobin/STAR` | `2.7.11b` | `sha256:756c7904006c87a84da81d04bb2f9b3a760601f697606fd23dc687cd7ec9da7e` |
+| `star` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/alexdobin/STAR` | `2.7.11b` | `sha256:65976afe9b8c5dbda05282c7c02ba27d0f908a7eb83ec12e3fca86ed5eb91cac` |
 | `trim_galore` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/FelixKrueger/TrimGalore` | `0.6.10` | `sha256:8efa46f091785659e6cc36e8bf0d89c2beaead17f11ff793c64c57b93b9d33ec` |
 | `trimmomatic` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/usadellab/Trimmomatic/releases/download/v${VERSION_TRIMMOMATIC}/Trimmomatic-${VERSION_TRIMMOMATIC}.zip` | `0.39` | `sha256:2f7a5de11416899e5b38d3131019bc655946f770f9b7df5355d6a36acbcc488c` |
 | `umi_tools` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/CGATOxford/UMI-tools` | `1.1.6` | `sha256:52f5a89a629a746671fe7c7642e847d7a1e81e49cde6bf05b330c23eab817a0d` |
