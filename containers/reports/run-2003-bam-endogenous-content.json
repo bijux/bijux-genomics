@@ -1,0 +1,154 @@
+{
+  "accuracy_claim": "mapping_derived_fraction_not_endogenous_truth",
+  "comparison_scope": "primary mapped-read fraction from one governed coordinate-sorted EquCab3 BAM",
+  "cross_tool_comparison": {
+    "metrics": [],
+    "status": "not_applicable"
+  },
+  "design": {
+    "cache_policy": "warm",
+    "container_only": true,
+    "corpus_catalog_ids": [
+      "ena-prjeb22390-err2112767-bam"
+    ],
+    "database_catalog_ids": [],
+    "input_size_keys": [
+      "bam_input_bytes",
+      "bam_index_input_bytes"
+    ],
+    "measured_repetitions": 3,
+    "reference_catalog_ids": [
+      "equcab3-gcf-002863925.1"
+    ],
+    "result_artifact": "endogenous-content.tsv",
+    "runtime": "apptainer",
+    "scheduler": "slurm",
+    "threads_by_tool": {
+      "samtools": 4
+    },
+    "tool_closure": [
+      "samtools"
+    ],
+    "warmup_repetitions": 1
+  },
+  "interpretation": "This campaign measures a reproducible primary mapped-read fraction for one BAM and one reference. It is an operational endogenous-content proxy, not biological truth about the library's endogenous DNA fraction.",
+  "limitations": [
+    "The result depends on the EquCab3 reference, upstream alignment parameters, and the BAM flag semantics declared by this campaign.",
+    "Mapped-read fraction does not distinguish authentic ancient horse molecules from contamination that also maps to EquCab3.",
+    "The corpus is one low-coverage ancient horse library and does not establish population-wide or protocol-wide behavior."
+  ],
+  "run_id": "run-2003",
+  "schema_version": "bijux.container.stage_benchmark_report.v1",
+  "scientific_question": "What fraction of primary reads in the governed ancient horse alignment map to the declared EquCab3 reference before duplicate removal?",
+  "stage_id": "bam.endogenous_content",
+  "tools": [
+    {
+      "determinism": {
+        "artifact": "endogenous-content.tsv",
+        "identical_across_repetitions": true,
+        "sha256": "217de08cebc5759bf8f216ba15686c4fb748e50adaefcb01edc65ad6fb625d06"
+      },
+      "image": {
+        "name": "samtools-1.20-linux-amd64-a29122faccca.sif",
+        "sha256": "a29122faccca9bcba0c51adc528400970502b32e0a57f54e5c15cadda879b85f",
+        "size_bytes": 122376192
+      },
+      "input_bytes": {
+        "bam": 23312078,
+        "bam_index": 3280144,
+        "total": 26592222
+      },
+      "input_locks": [
+        {
+          "id": "err2112767_bam",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam",
+          "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+        },
+        {
+          "id": "err2112767_bam_index",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam.bai",
+          "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+        },
+        {
+          "id": "err2112767_catalog",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.catalog.json",
+          "sha256": "2e30dda04f4f1b3e44e97973d007420347a6cdc7f01b1637307ec8f9368ca6ff"
+        },
+        {
+          "id": "equcab3_reference_index",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.fna.fai",
+          "sha256": "fd9abaac2aa522291dbb792ab3d23d694809cf36a7e1c6a4aa471a652a807f01"
+        },
+        {
+          "id": "equcab3_reference_catalog",
+          "kind": "reference",
+          "mount_path": "/input/EquCab3.0.catalog.json",
+          "sha256": "f26f2abf91cc718eef7f82bbf41c2417cbc9200c8a82ab61f3d51eec5358ff7f"
+        }
+      ],
+      "performance": {
+        "cpu_seconds": {
+          "maximum": 0.4,
+          "mean": 0.39,
+          "minimum": 0.38,
+          "sample_standard_deviation": 0.01
+        },
+        "output_bytes": {
+          "maximum": 140.0,
+          "mean": 140.0,
+          "minimum": 140.0,
+          "sample_standard_deviation": 0.0
+        },
+        "peak_rss_kib": {
+          "maximum": 10752.0,
+          "mean": 10496.0,
+          "minimum": 10368.0,
+          "sample_standard_deviation": 221.702503
+        },
+        "wall_seconds": {
+          "maximum": 0.21,
+          "mean": 0.203333,
+          "minimum": 0.2,
+          "sample_standard_deviation": 0.005774
+        }
+      },
+      "repository_commit": "4e24ded282af44fb985dd869ba944684538814aa",
+      "scientific_observations": {
+        "mapped_fraction": [
+          0.996518910953,
+          0.996518910953,
+          0.996518910953
+        ],
+        "mapped_nonduplicate_primary_reads": [
+          235311,
+          235311,
+          235311
+        ],
+        "mapped_primary_reads": [
+          235311,
+          235311,
+          235311
+        ],
+        "total_primary_reads": [
+          236133,
+          236133,
+          236133
+        ]
+      },
+      "slurm": {
+        "allocated_cpus": "4",
+        "elapsed": "00:00:02",
+        "host": "cn091",
+        "job_id": "3459847"
+      },
+      "source_evidence_sha256": "d9a7849f493802f43cf03f22dbbabd576c897b50396e03d9649d4cdaf9a43f88",
+      "tool": "samtools",
+      "verdict": "passed"
+    }
+  ],
+  "verdict": "passed"
+}

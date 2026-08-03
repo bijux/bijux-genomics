@@ -88,7 +88,7 @@
     {
       "campaign_run_id": "run-2003",
       "definition_status": "defined",
-      "execution_status": "not_admitted",
+      "execution_status": "admitted",
       "retained_tools": [
         "samtools"
       ],
@@ -724,7 +724,7 @@
     }
   ],
   "summary": {
-    "admitted_stage_count": 2,
+    "admitted_stage_count": 3,
     "defined_stage_count": 3,
     "missing_stage_count": 68,
     "retained_stage_count": 71

@@ -80,10 +80,20 @@ python3 -B containers/benchmarks/benchmark_evidence.py \
   --stage-result-root "$STUDY/results/benchmarks/run-2002-bam-coverage" \
   --json-output containers/reports/run-2002-bam-coverage.json \
   --markdown-output containers/reports/run-2002-bam-coverage.md
+
+python3 -B containers/benchmarks/benchmark_evidence.py \
+  --registry containers/benchmarks/campaigns.toml \
+  --catalog containers/contracts/catalog.toml \
+  --run-id run-2003 \
+  --stage-result-root "$STUDY/results/benchmarks/run-2003-bam-endogenous-content" \
+  --json-output containers/reports/run-2003-bam-endogenous-content.json \
+  --markdown-output containers/reports/run-2003-bam-endogenous-content.md
 ```
 
 The reviewed [BAM-genotyping report](../reports/run-2001-bam-genotyping.md)
 records performance and candidate-site observations. The [BAM-coverage
 report](../reports/run-2002-bam-coverage.md) compares the complete retained
-tool closure under their honestly declared concurrency. Both reports keep
-large run products on the governed study filesystem.
+tool closure under their honestly declared concurrency. The [endogenous-content
+report](../reports/run-2003-bam-endogenous-content.md) publishes the mapping
+proxy with its biological claim boundary. All reports keep large run products
+on the governed study filesystem.

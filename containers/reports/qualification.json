@@ -15,6 +15,10 @@
       {
         "path": "containers/reports/run-2002-bam-coverage.json",
         "sha256": "9d80d31cce856f0477568d7ee6416df9062d8add2c02428a57b0512260402f47"
+      },
+      {
+        "path": "containers/reports/run-2003-bam-endogenous-content.json",
+        "sha256": "823ae72fdf3175feb4de4719abf0be17f89da6b29786445d88bf6c3709a86f22"
       }
     ],
     "catalog": {
@@ -2562,7 +2566,8 @@
     },
     {
       "benchmark_stages": [
-        "bam.coverage"
+        "bam.coverage",
+        "bam.endogenous_content"
       ],
       "declared_real_test_stage": "bam.coverage",
       "dimensions": {
@@ -2591,7 +2596,8 @@
         "release"
       ],
       "passing_benchmark_runs": [
-        "run-2002"
+        "run-2002",
+        "run-2003"
       ],
       "passing_real_test_runs": [],
       "qualification": "unverified",
