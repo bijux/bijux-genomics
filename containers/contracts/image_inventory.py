@@ -257,15 +257,44 @@ def audit_images(
                 "candidates": candidates,
             }
         )
+    catalog_ids = sorted(
+        (str(tool["id"]) for tool in tools),
+        key=len,
+        reverse=True,
+    )
     unknown_images = []
     for image in sorted(image_root.glob("*.sif")):
         if image not in known_images:
+            digest = sha256_file(image)
+            catalog_tool = next(
+                (
+                    tool_id
+                    for tool_id in catalog_ids
+                    if image.name.startswith(f"{tool_id}-")
+                    and re.search(
+                        rf"-linux-amd64-{digest[:12]}[.]sif$",
+                        image.name,
+                    )
+                ),
+                None,
+            )
+            reference_count = references[digest]
             unknown_images.append(
                 {
                     "path": str(image),
-                    "sha256": sha256_file(image),
+                    "sha256": digest,
                     "size_bytes": image.stat().st_size,
-                    "real_run_references": references[sha256_file(image)],
+                    "real_run_references": reference_count,
+                    "catalog_tool": catalog_tool,
+                    "disposition": (
+                        "historical_run_dependency"
+                        if reference_count
+                        else (
+                            "unreferenced_obsolete"
+                            if catalog_tool is not None
+                            else "unclassified"
+                        )
+                    ),
                 }
             )
     staged_images = [
@@ -296,6 +325,10 @@ def audit_images(
                 candidate["disposition"] == "unreferenced_obsolete"
                 for record in records
                 for candidate in record["candidates"]
+            )
+            + sum(
+                image["disposition"] == "unreferenced_obsolete"
+                for image in unknown_images
             ),
         },
         "tools": records,

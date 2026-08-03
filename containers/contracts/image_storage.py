@@ -85,6 +85,14 @@ def plan_storage(
                     "obsolete candidate still has real-run references"
                 )
             moves.append(("obsolete", candidate))
+    for image in inventory.get("unknown_images", []):
+        if image.get("disposition") != "unreferenced_obsolete":
+            continue
+        if image.get("real_run_references") != 0:
+            raise ImageStorageError(
+                "obsolete unknown image still has real-run references"
+            )
+        moves.append(("obsolete", image))
     moves.extend(("interrupted", row) for row in inventory.get("staged_images", []))
     records = []
     targets: set[Path] = set()

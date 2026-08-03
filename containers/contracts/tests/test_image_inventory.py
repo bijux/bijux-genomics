@@ -88,6 +88,13 @@ class ImageInventoryTests(unittest.TestCase):
             image_digest = __import__("hashlib").sha256(image_bytes).hexdigest()
             image = image_root / f"samtools-1.20-linux-amd64-{image_digest[:12]}.sif"
             image.write_bytes(image_bytes)
+            previous_bytes = b"previous-immutable-sif"
+            previous_digest = __import__("hashlib").sha256(previous_bytes).hexdigest()
+            previous = (
+                image_root
+                / f"samtools-1.19-linux-amd64-{previous_digest[:12]}.sif"
+            )
+            previous.write_bytes(previous_bytes)
             (evidence_root / "samtools.build.json").write_text(
                 json.dumps(
                     {
@@ -120,6 +127,15 @@ class ImageInventoryTests(unittest.TestCase):
         self.assertEqual(
             result["tools"][0]["candidates"][0]["disposition"], "canonical"
         )
+        self.assertEqual(
+            result["unknown_images"][0]["catalog_tool"],
+            "samtools",
+        )
+        self.assertEqual(
+            result["unknown_images"][0]["disposition"],
+            "unreferenced_obsolete",
+        )
+        self.assertEqual(result["summary"]["unreferenced_obsolete_count"], 1)
 
     def test_report_does_not_claim_release_or_science_qualification(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -22,8 +22,10 @@ class ImageStorageTests(unittest.TestCase):
             staged.mkdir(parents=True)
             obsolete = images / "tool-old.sif"
             interrupted = staged / "tool-build.sif"
+            superseded = images / "tool-0.9-linux-amd64-deadbeef0000.sif"
             obsolete.write_bytes(b"old")
             interrupted.write_bytes(b"partial")
+            superseded.write_bytes(b"superseded")
             inventory = root / "inventory.json"
             inventory.write_text(
                 json.dumps(
@@ -49,6 +51,16 @@ class ImageStorageTests(unittest.TestCase):
                                 "sha256": storage.sha256_file(interrupted),
                             }
                         ],
+                        "unknown_images": [
+                            {
+                                "path": str(superseded),
+                                "size_bytes": 10,
+                                "sha256": storage.sha256_file(superseded),
+                                "real_run_references": 0,
+                                "catalog_tool": "tool",
+                                "disposition": "unreferenced_obsolete",
+                            }
+                        ],
                     }
                 )
             )
@@ -56,15 +68,17 @@ class ImageStorageTests(unittest.TestCase):
             quarantine = images / ".quarantine" / "inventory"
 
             self.assertEqual(
-                storage.plan_storage(inventory, images, quarantine, plan), 2
+                storage.plan_storage(inventory, images, quarantine, plan), 3
             )
-            self.assertEqual(storage.apply_storage(plan, images), 2)
-            self.assertEqual(storage.verify_storage(plan, images), 2)
+            self.assertEqual(storage.apply_storage(plan, images), 3)
+            self.assertEqual(storage.verify_storage(plan, images), 3)
             self.assertFalse(obsolete.exists())
             self.assertFalse(interrupted.exists())
-            self.assertEqual(storage.rollback_storage(plan, images), 2)
+            self.assertFalse(superseded.exists())
+            self.assertEqual(storage.rollback_storage(plan, images), 3)
             self.assertEqual(obsolete.read_bytes(), b"old")
             self.assertEqual(interrupted.read_bytes(), b"partial")
+            self.assertEqual(superseded.read_bytes(), b"superseded")
 
 
 if __name__ == "__main__":
