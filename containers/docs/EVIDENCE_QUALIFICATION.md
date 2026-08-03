@@ -54,6 +54,16 @@ container execution and scientific acceptance require independent review.
 
 Regenerate the reports only from their four governed inputs:
 
+- the canonical catalog;
+- the portable published image inventory;
+- the portable published runtime execution; and
+- the final run-evidence index.
+
+The inventory and runtime inputs must carry publication schemas with
+`study://` and `repository://` paths plus the raw evidence SHA-256. Raw LUNARC
+execution JSON is intentionally rejected because tracked qualification must
+not depend on one operator's absolute paths.
+
 ```console
 python3 -B containers/contracts/qualification_report.py \
   --catalog containers/contracts/catalog.toml \

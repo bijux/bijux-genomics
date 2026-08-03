@@ -195,6 +195,33 @@ version and help dimensions. Real one-sample execution remains a governed
 Slurm run, and scientific, benchmark, security, and release claims remain
 independent.
 
+Raw execution JSON keeps the absolute paths needed to audit files at LUNARC;
+it is not suitable for a public repository. Publish portable companions before
+reviewing or importing tracked reports:
+
+```console
+publication_root="${runtime_root}/publication"
+mkdir -p "${publication_root}"
+
+python3 -B containers/contracts/image_inventory.py publish \
+  --inventory "${canonical_inventory}" \
+  --study-root /home/bijan/lu2024-12-24/Dardel/STUDY \
+  --repository "$(pwd)" \
+  --output "${publication_root}/image-inventory.json"
+
+python3 -B containers/contracts/runtime_verification.py publish \
+  --execution "${runtime_root}/execution.json" \
+  --study-root /home/bijan/lu2024-12-24/Dardel/STUDY \
+  --repository "$(pwd)" \
+  --output "${publication_root}/runtime-verification.json"
+```
+
+Publication replaces governed absolute roots with `study://` and
+`repository://` identifiers and records the SHA-256 of the untouched raw JSON.
+It fails when any absolute path lies outside those roots. Qualification accepts
+only these portable publication schemas; execution and replay continue to use
+the raw site records.
+
 ## Prepare governed input data
 
 Container validation does not download or silently replace scientific input.
