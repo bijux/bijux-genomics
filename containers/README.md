@@ -71,3 +71,27 @@ python3 containers/contracts/image_campaign.py execute \
 
 Image construction runs on the approved frontend. Real scientific tool runs
 remain Slurm jobs with separate pipeline and credential-reference contracts.
+
+Superseded images and interrupted builds are never deleted from an ad hoc
+shell command. After the image campaign is idle, create and inspect a
+checksummed quarantine plan, then apply and verify its same-filesystem moves:
+
+```console
+python3 containers/contracts/image_storage.py plan \
+  --inventory "${inventory_root}/image-inventory.json" \
+  --image-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer \
+  --quarantine-root "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/.quarantine/${image_commit}" \
+  --plan "${inventory_root}/image-storage-plan.json"
+
+python3 containers/contracts/image_storage.py apply \
+  --image-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer \
+  --plan "${inventory_root}/image-storage-plan.json"
+
+python3 containers/contracts/image_storage.py verify \
+  --image-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer \
+  --plan "${inventory_root}/image-storage-plan.json"
+```
+
+`rollback` restores every file only after rechecking its size and SHA-256.
+Unknown images and images referenced by historical runs are excluded from the
+quarantine plan.
