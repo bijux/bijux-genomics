@@ -1,3 +1,19 @@
+diff --git a/src/api/algorithms/Sort.h b/src/api/algorithms/Sort.h
+index c11f239..aa7fa44 100644
+--- a/src/api/algorithms/Sort.h
++++ b/src/api/algorithms/Sort.h
+@@ -89,1 +89,1 @@ struct API_EXPORT Sort
+-        bool operator()(const BamTools::BamAlignment& lhs, const BamTools::BamAlignment& rhs)
++        bool operator()(const BamTools::BamAlignment& lhs, const BamTools::BamAlignment& rhs) const
+@@ -130,1 +130,1 @@ struct API_EXPORT Sort
+-        bool operator()(const BamTools::BamAlignment& lhs, const BamTools::BamAlignment& rhs)
++        bool operator()(const BamTools::BamAlignment& lhs, const BamTools::BamAlignment& rhs) const
+@@ -181,1 +181,1 @@ struct API_EXPORT Sort
+-        bool operator()(const BamTools::BamAlignment& lhs, const BamTools::BamAlignment& rhs)
++        bool operator()(const BamTools::BamAlignment& lhs, const BamTools::BamAlignment& rhs) const
+@@ -219,1 +219,1 @@ struct API_EXPORT Sort
+-        inline bool operator()(const BamTools::BamAlignment&, const BamTools::BamAlignment&)
++        inline bool operator()(const BamTools::BamAlignment&, const BamTools::BamAlignment&) const
 diff --git a/src/api/internal/bam/BamMultiMerger_p.h b/src/api/internal/bam/BamMultiMerger_p.h
 index f91c024..2108559 100644
 --- a/src/api/internal/bam/BamMultiMerger_p.h
