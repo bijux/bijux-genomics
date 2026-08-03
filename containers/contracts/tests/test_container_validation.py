@@ -583,6 +583,77 @@ class CurrentPipelineContractTests(unittest.TestCase):
         )
         return overrides_path, effective_path
 
+    def attach_stage_interface(
+        self,
+        paths: tuple[Path, Path, Path],
+    ) -> None:
+        _, pipeline_path, _ = paths
+        pipeline = container_validation.load_yaml(pipeline_path)
+        repository = Path(pipeline["repository"]["path"])
+        contracts = repository / "benchmarks/contracts"
+        schemas = contracts / "schemas"
+        schemas.mkdir(parents=True)
+        (schemas / "fastq-validate-result.schema.json").write_text(
+            "{}\n", encoding="utf-8"
+        )
+        (contracts / "stage-interfaces.toml").write_text(
+            """schema_version = "bijux.benchmark.stage_interfaces.v1"
+
+[[interfaces]]
+stage_id = "fastq.validate"
+accepted_input_contracts = ["bijux.fastq.artifact.single_end.v1"]
+output_contract = "bijux.fastq.validate.report.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/fastq-validate-result.schema.json"
+
+[interfaces.adapters]
+tool = "bijux_test::fastq::validate"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "fastq.report_qc"
+input_contract = "bijux.fastq.validate.report.v1"
+source = "bijux_test::fastq::qc_bundle"
+assertions = ["the report consumer accepts the normalized result"]
+""",
+            encoding="utf-8",
+        )
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(repository),
+                "add",
+                "benchmarks/contracts/stage-interfaces.toml",
+                "benchmarks/contracts/schemas/fastq-validate-result.schema.json",
+            ],
+            check=True,
+        )
+        subprocess.run(
+            ["git", "-C", str(repository), "commit", "--quiet", "-m", "fixture"],
+            check=True,
+        )
+        pipeline["repository"]["commit"] = container_validation.git_output(
+            repository, "rev-parse", "HEAD"
+        )
+        pipeline["interface"] = {
+            "schema_version": "bijux.benchmark.stage_interface_evidence.v1",
+            "accepted_input_contracts": ["bijux.fastq.artifact.single_end.v1"],
+            "output_contract": "bijux.fastq.validate.report.v1",
+            "normalized_result_contract": (
+                "benchmarks/contracts/schemas/fastq-validate-result.schema.json"
+            ),
+            "adapter": "bijux_test::fastq::validate",
+            "downstream_probe": {
+                "stage_id": "fastq.report_qc",
+                "input_contract": "bijux.fastq.validate.report.v1",
+                "source": "bijux_test::fastq::qc_bundle",
+                "artifact": "repetitions/repetition-1.report-qc.json",
+            },
+        }
+        pipeline_path.write_text(
+            container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+            encoding="utf-8",
+        )
+
     def test_current_contract_freezes_science_and_execution_parameters(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             paths = self.make_contracts(Path(directory))
@@ -630,6 +701,40 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 ),
                 self.assertRaisesRegex(
                     container_validation.ContractError, "digest mismatch"
+                ),
+            ):
+                container_validation.validate_contracts(*paths)
+
+    def test_stage_interface_is_resolved_from_frozen_source(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            paths = self.make_contracts(Path(directory))
+            self.attach_stage_interface(paths)
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                contract = container_validation.validate_contracts(*paths)
+
+        self.assertEqual(
+            contract["interface"]["adapter"], "bijux_test::fastq::validate"
+        )
+
+    def test_catalogued_stage_rejects_an_untyped_pipeline(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            paths = self.make_contracts(Path(directory))
+            self.attach_stage_interface(paths)
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline.pop("interface")
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError,
+                    "requires governed interface evidence",
                 ),
             ):
                 container_validation.validate_contracts(*paths)

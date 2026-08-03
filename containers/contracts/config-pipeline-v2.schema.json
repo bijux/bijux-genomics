@@ -110,6 +110,41 @@
       },
       "additionalProperties": false
     },
+    "interface": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "accepted_input_contracts",
+        "output_contract",
+        "normalized_result_contract",
+        "adapter",
+        "downstream_probe"
+      ],
+      "properties": {
+        "schema_version": {"const": "bijux.benchmark.stage_interface_evidence.v1"},
+        "accepted_input_contracts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "output_contract": {"type": "string", "minLength": 1},
+        "normalized_result_contract": {"$ref": "#/$defs/relative_path"},
+        "adapter": {"type": "string", "minLength": 1},
+        "downstream_probe": {
+          "type": "object",
+          "required": ["stage_id", "input_contract", "source", "artifact"],
+          "properties": {
+            "stage_id": {"type": "string", "minLength": 1},
+            "input_contract": {"type": "string", "minLength": 1},
+            "source": {"type": "string", "minLength": 1},
+            "artifact": {"$ref": "#/$defs/relative_path"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "outputs": {
       "type": "object",
       "required": ["result_root", "mount_path", "required_files", "collection_rule"],

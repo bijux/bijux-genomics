@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import tomllib
 import yaml
 
 PIPELINE_SCHEMA_V1 = "bijux.container.pipeline.v1"
@@ -28,6 +29,8 @@ EVIDENCE_SCHEMA_V1 = "bijux.container.evidence.v1"
 EVIDENCE_SCHEMA_V2 = "bijux.container.evidence.v2"
 PARAMETER_EVIDENCE_SCHEMA = "bijux.benchmark.parameter_evidence.v1"
 EFFECTIVE_PARAMETERS_SCHEMA = "bijux.benchmark.effective_parameters.v1"
+STAGE_INTERFACE_EVIDENCE_SCHEMA = "bijux.benchmark.stage_interface_evidence.v1"
+STAGE_INTERFACE_CATALOG_SCHEMA = "bijux.benchmark.stage_interfaces.v1"
 RUN_ID_PATTERN = re.compile(r"run-[1-9][0-9]{3,}")
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 ACTIVE_SLURM_STATES = {
@@ -39,7 +42,11 @@ ACTIVE_SLURM_STATES = {
     "RUNNING",
     "SUSPENDED",
 }
-FROZEN_CHECKOUT_PATHS = ("containers/contracts",)
+FROZEN_CHECKOUT_PATHS = (
+    "benchmarks/contracts",
+    "benchmarks/execution",
+    "containers/contracts",
+)
 
 
 class ContractError(RuntimeError):
@@ -174,6 +181,101 @@ def validate_parameter_evidence(
             "resolved_sample_count": len(resolved_by_sample),
         },
     }
+
+
+def load_stage_interface_catalog(repository_path: Path) -> list[dict[str, Any]]:
+    catalog_path = repository_path / "benchmarks/contracts/stage-interfaces.toml"
+    if not catalog_path.is_file():
+        return []
+    try:
+        catalog = tomllib.loads(catalog_path.read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError) as exc:
+        raise ContractError(f"cannot read stage interface catalog: {exc}") from exc
+    if catalog.get("schema_version") != STAGE_INTERFACE_CATALOG_SCHEMA:
+        raise ContractError("stage interface catalog schema is unsupported")
+    interfaces = catalog.get("interfaces")
+    if not isinstance(interfaces, list) or any(
+        not isinstance(interface, dict) for interface in interfaces
+    ):
+        raise ContractError("stage interface catalog must contain interface mappings")
+    return interfaces
+
+
+def validate_stage_interface_evidence(
+    value: Any,
+    repository_path: Path,
+    stage_id: str,
+    tool_id: str,
+) -> dict[str, Any] | None:
+    matches = [
+        interface
+        for interface in load_stage_interface_catalog(repository_path)
+        if interface.get("stage_id") == stage_id
+    ]
+    if not matches:
+        if value is not None:
+            raise ContractError(
+                f"pipeline declares an interface absent from the catalog: {stage_id}"
+            )
+        return None
+    if len(matches) != 1:
+        raise ContractError(f"stage interface is not unique: {stage_id}")
+    if not isinstance(value, dict):
+        raise ContractError(
+            f"pipeline stage {stage_id} requires governed interface evidence"
+        )
+    require_keys(
+        value,
+        {
+            "schema_version",
+            "accepted_input_contracts",
+            "output_contract",
+            "normalized_result_contract",
+            "adapter",
+            "downstream_probe",
+        },
+        "interface",
+    )
+    if value.get("schema_version") != STAGE_INTERFACE_EVIDENCE_SCHEMA:
+        raise ContractError("interface schema is unsupported")
+    expected = matches[0]
+    accepted = value.get("accepted_input_contracts")
+    if not isinstance(accepted, list) or accepted != expected.get(
+        "accepted_input_contracts"
+    ):
+        raise ContractError("pipeline input contracts differ from the stage catalog")
+    for key in ("output_contract", "normalized_result_contract"):
+        if value.get(key) != expected.get(key):
+            raise ContractError(f"pipeline {key} differs from the stage catalog")
+    normalized_schema = repository_path / str(value["normalized_result_contract"])
+    if not normalized_schema.is_file():
+        raise ContractError("normalized result contract is absent from frozen source")
+    adapters = expected.get("adapters")
+    if not isinstance(adapters, dict) or value.get("adapter") != adapters.get(tool_id):
+        raise ContractError("pipeline adapter differs from the stage catalog")
+    declared_probe = value.get("downstream_probe")
+    catalog_probe = expected.get("downstream_probe")
+    if not isinstance(declared_probe, dict) or not isinstance(catalog_probe, dict):
+        raise ContractError("stage downstream probe must be a mapping")
+    require_keys(
+        declared_probe,
+        {"stage_id", "input_contract", "source", "artifact"},
+        "interface downstream probe",
+    )
+    expected_probe = {
+        "stage_id": catalog_probe.get("consumer_stage_id"),
+        "input_contract": catalog_probe.get("input_contract"),
+        "source": catalog_probe.get("source"),
+    }
+    if any(
+        declared_probe.get(key) != expected_value
+        for key, expected_value in expected_probe.items()
+    ):
+        raise ContractError("pipeline downstream probe differs from the stage catalog")
+    artifact = Path(require_text(declared_probe, "artifact"))
+    if artifact.is_absolute() or ".." in artifact.parts:
+        raise ContractError("interface downstream probe artifact is unsafe")
+    return value
 
 
 def require_mapping(parent: dict[str, Any], key: str) -> dict[str, Any]:
@@ -680,6 +782,8 @@ def validate_pipeline(
         top_level_fields.add("dependencies")
         if "parameters" in config:
             top_level_fields.add("parameters")
+        if "interface" in config:
+            top_level_fields.add("interface")
     require_keys(
         config,
         top_level_fields,
@@ -791,6 +895,12 @@ def validate_pipeline(
         raise ContractError("repository HEAD differs from frozen pipeline commit")
     if git_output(repository_path, "status", "--porcelain"):
         raise ContractError("repository worktree is not clean")
+    interface_evidence = validate_stage_interface_evidence(
+        config.get("interface"),
+        repository_path,
+        str(run["stage"]),
+        str(run["tool"]),
+    )
 
     image = require_mapping(config, "image")
     require_keys(image, {"path", "sha256"}, "image")
@@ -1103,6 +1213,7 @@ def validate_pipeline(
         "dependencies": dependencies,
         "pipeline_schema": schema_version,
         "parameters": parameter_evidence,
+        "interface": interface_evidence,
         "governance": governance,
     }
 
@@ -1306,6 +1417,7 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
         raise ContractError(f"Slurm scratch directory does not exist: {scratch_path}")
     binds = [
         *input_binds,
+        (contract["repository_path"], Path("/repository"), "ro"),
         (output_root, contract["result_mount_path"], "rw"),
         (scratch_path, Path("/scratch"), "rw"),
     ]
@@ -1391,6 +1503,7 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
             if contract["parameters"] is not None
             else None
         ),
+        "interface": contract["interface"],
         "image": {
             "path": str(contract["image_path"]),
             "sha256": contract["image_sha256"],
