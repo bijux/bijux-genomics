@@ -213,7 +213,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         String::new(),
         format!("- Image inventory: **{inventory_states}** ([details](../reports/image-inventory.md))."),
         format!("- Version/help runtime campaign: **{runtime_status}**, **{runtime_passed} images passed** ([details](../reports/runtime-verification.md))."),
-        format!("- Governed real executions: **{governed_runs} attempts**, **{passed_runs} passed**; scientific status is tracked independently ([details](../reports/run-evidence.md))."),
+        format!("- Final governed real executions: **{governed_runs} tools**, **{passed_runs} passed**; scientific status is tracked independently ([details](../reports/run-evidence.md))."),
         "- Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.".to_string(),
         String::new(),
         "## Strict TOC".to_string(),
