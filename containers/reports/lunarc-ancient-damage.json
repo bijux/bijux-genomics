@@ -265,6 +265,56 @@
         "minimum_mapping_quality": 20,
         "minimum_read_length": 30
       }
+    },
+    {
+      "tool": "samtools",
+      "run_id": "run-1107",
+      "repository_commit": "84651657741bfebe8ab25874e95139dcafd3c962",
+      "slurm_job_id": "3458129",
+      "status": "passed",
+      "elapsed_seconds": 1,
+      "image_sha256": "5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f",
+      "build_evidence_sha256": "9f0b39e8c8b5947f92e4c519d540fe2eb025b469f175c9dbecd518a2052fe0aa0",
+      "evidence_sha256": "c91dbbdc5f9074d8535fdf4aa31257e4ad4c304deea998e4b4d7c6c6e2da207f",
+      "accounting_sha256": "6661e4eb2eb223b61e3b6ed575977e43f1f09f86b24ecc8b2a3709f3500ec4ad",
+      "output_sha256": "340f22ee1509baf1cc172a276712f8c769c3362256498b14a689de202a455edc",
+      "output_bytes": 51791,
+      "observations": {
+        "mitochondrial_records": 28,
+        "reference_sequence": "NC_001640.1"
+      }
+    },
+    {
+      "tool": "contammix",
+      "run_id": "run-1108",
+      "repository_commit": "84651657741bfebe8ab25874e95139dcafd3c962",
+      "slurm_job_id": "3458130",
+      "status": "passed",
+      "elapsed_seconds": 3,
+      "image_sha256": "10a74dccedc1580d500c18d9fc1724fea0229ccc6646825cecab69364e3a4243",
+      "build_evidence_sha256": "f69c732a758a812258017882058dd71c3a86f5b8bb66df1310cae54dff3b3e19",
+      "data_catalog_sha256": "bce69464d22798b67220d9e2d31e679129da884e441d08afcfb65c63898ac1a2",
+      "evidence_sha256": "e1d5bcbce5ba834a38c52a44829d300cdf6188a432d5a96d4053797d7466dd9c",
+      "accounting_sha256": "8fb16dffbac64626b5539a645962dff04d5971603ba71bfb819f5de970a2c774",
+      "outputs": {
+        "r_workspace_sha256": "c26291218f931a95082a40e14f180d30d4c8c693f5c0b60fd1b9220c5338b285",
+        "r_workspace_bytes": 2227672,
+        "diagnostics_pdf_sha256": "cb58185f9fe23d6cd84631d06bb3b97f227ba780d04fe9fffc3013d9e7dd178e",
+        "diagnostics_pdf_bytes": 77854
+      },
+      "observations": {
+        "mitochondrial_records": 28,
+        "candidate_sequences": 3,
+        "iterations": 50000,
+        "chains": 3,
+        "threads": 2,
+        "inferred_error_rate": 0.0054,
+        "map_authentic_fraction": 0.2705522,
+        "authentic_fraction_interval_95_lower": 0.02686201,
+        "authentic_fraction_interval_95_upper": 0.7980419,
+        "gelman_diagnostic": 1.000006,
+        "gelman_upper_confidence_limit": 1.000031
+      }
     }
   ]
 }
