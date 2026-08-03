@@ -30,6 +30,12 @@ probe required for each of the 71 retained stages. The assignment closure is
 machine validated: a newly retained stage cannot appear without an explicit
 scientific profile.
 
+The same file reserves one stable `run-2001`–`run-2071` identity for every
+retained stage. A reservation is not evidence: it gives the corpus preparation,
+Slurm manifests, tool/sample executions, aggregate report, and replay record one
+durable campaign identity before any result exists. An active campaign whose
+stage and reserved identity disagree is rejected.
+
 The portfolio separates three facts that were previously blurred:
 
 - `source_defined` means accessions and selection rationale exist, but the data

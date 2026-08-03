@@ -40,6 +40,7 @@ class BenchmarkPortfolioTests(unittest.TestCase):
 
         self.assertEqual(len(validated["stage_tools"]), 71)
         self.assertEqual(set(validated["stage_tools"]), set(validated["assignments"]))
+        self.assertEqual(set(validated["stage_tools"]), set(validated["stage_runs"]))
         self.assertEqual(
             validated["assignments"]["fastq.screen_taxonomy"], "fastq-taxonomy"
         )
@@ -47,6 +48,18 @@ class BenchmarkPortfolioTests(unittest.TestCase):
         self.assertEqual(
             validated["assignments"]["vcf.impute"], "vcf-phasing-imputation"
         )
+        self.assertEqual(validated["stage_runs"]["fastq.screen_taxonomy"], "run-2047")
+        self.assertEqual(validated["stage_runs"]["vcf.impute"], "run-2063")
+
+    def test_stage_run_identity_must_be_unique_and_complete(self) -> None:
+        portfolio = copy.deepcopy(self.portfolio)
+        portfolio["stage_runs"]["vcf.impute"] = portfolio["stage_runs"]["vcf.qc"]
+
+        with self.assertRaisesRegex(
+            benchmark_portfolio.PortfolioError,
+            "assigned more than once",
+        ):
+            self.validate(portfolio)
 
     def test_missing_stage_assignment_is_rejected(self) -> None:
         portfolio = copy.deepcopy(self.portfolio)

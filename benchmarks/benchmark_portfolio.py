@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -19,6 +20,7 @@ REGISTRY_SCHEMA = "bijux.container.stage_benchmarks.v1"
 REPORT_SCHEMA = "bijux.container.benchmark_readiness.v1"
 CORPUS_STATUSES = {"missing", "source_defined", "admitted"}
 EVIDENCE_SCOPES = {"qualification", "comparative"}
+STAGE_RUN = re.compile(r"run-2[0-9]{3}")
 REQUIRED_RESOURCE_METRICS = {
     "wall_seconds",
     "cpu_seconds",
@@ -216,6 +218,26 @@ def validate_assignments(
     return assigned
 
 
+def validate_stage_runs(value: Any, stages: set[str]) -> dict[str, str]:
+    if not isinstance(value, dict):
+        raise PortfolioError("benchmark stage run registry must be a mapping")
+    missing = sorted(stages - set(value))
+    extra = sorted(set(value) - stages)
+    if missing or extra:
+        raise PortfolioError(
+            f"benchmark run identity closure failed: missing={missing}, extra={extra}"
+        )
+    run_ids: dict[str, str] = {}
+    for stage_id, run_id in value.items():
+        run = text(run_id, f"{stage_id} benchmark run id")
+        if STAGE_RUN.fullmatch(run) is None:
+            raise PortfolioError(f"benchmark run id is outside run-2000..2999: {run}")
+        if run in run_ids.values():
+            raise PortfolioError(f"benchmark run id is assigned more than once: {run}")
+        run_ids[str(stage_id)] = run
+    return run_ids
+
+
 def validate_portfolio(
     portfolio: dict[str, Any], catalog: dict[str, Any], repository_root: Path
 ) -> dict[str, Any]:
@@ -228,6 +250,7 @@ def validate_portfolio(
     assignments = validate_assignments(
         portfolio.get("assignments"), profiles, stage_tools
     )
+    stage_runs = validate_stage_runs(portfolio.get("stage_runs"), set(stage_tools))
     return {
         "measurement": measurement,
         "corpora": corpora,
@@ -235,6 +258,7 @@ def validate_portfolio(
         "profiles": profiles,
         "stage_tools": stage_tools,
         "assignments": assignments,
+        "stage_runs": stage_runs,
     }
 
 
@@ -290,6 +314,7 @@ def readiness_report(
                 f"{profile['minimum_real_samples']}"
             )
         campaign = campaigns.get(stage_id)
+        reserved_run_id = validated["stage_runs"][stage_id]
         if campaign is None:
             blockers.append("no execution campaign is defined")
             campaign_tier = None
@@ -297,6 +322,10 @@ def readiness_report(
         else:
             campaign_tier = campaign.get("evidence_tier")
             run_id = campaign.get("run_id")
+            if run_id != reserved_run_id:
+                blockers.append(
+                    f"campaign run id {run_id} does not match reserved {reserved_run_id}"
+                )
             if campaign.get("profile_id") != profile_id:
                 blockers.append("campaign does not bind the assigned scientific profile")
             if campaign_tier != "comparative":
@@ -360,6 +389,7 @@ def readiness_report(
                 "retained_tools": sorted(tools),
                 "available_comparative_samples": available_real_samples,
                 "campaign_run_id": run_id,
+                "reserved_run_id": reserved_run_id,
                 "campaign_tier": campaign_tier,
                 "readiness": "ready" if not blockers else "blocked",
                 "blockers": blockers,
@@ -377,6 +407,7 @@ def readiness_report(
         "schema_version": REPORT_SCHEMA,
         "summary": {
             "stage_count": len(rows),
+            "reserved_run_count": len(validated["stage_runs"]),
             "ready_count": sum(row["readiness"] == "ready" for row in rows),
             "blocked_count": sum(row["readiness"] == "blocked" for row in rows),
             "corpus_count": len(validated["corpora"]),
@@ -468,11 +499,9 @@ def write_report(report: dict[str, Any], json_path: Path, markdown_path: Path) -
     )
     for row in report["stages"]:
         tools = ", ".join(f"`{tool}`" for tool in row["retained_tools"])
-        campaign = (
-            f"`{row['campaign_run_id']}` ({row['campaign_tier']})"
-            if row["campaign_run_id"]
-            else "—"
-        )
+        campaign = f"`{row['reserved_run_id']}`"
+        if row["campaign_run_id"]:
+            campaign += f" ({row['campaign_tier']})"
         blockers = "<br>".join(row["blockers"]) if row["blockers"] else "—"
         lines.append(
             f"| `{row['stage_id']}` | {tools} | `{row['profile_id']}` | "
