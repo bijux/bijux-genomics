@@ -55,7 +55,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `fastuniq` | `unsupported` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/fastuniq/` | `1.1` | `sha256:9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae` |
 | `fastx_clipper` | `production` | `bijux` | `AGPL-3.0-or-later` | `https://github.com/agordon/fastx_toolkit` | `0.0.14` | `sha256:9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806` |
 | `flash2` | `production` | `bijux` | `GPL-3.0-or-later` | `https://github.com/dstreett/FLASH2` | `2.2.00` | `sha256:da5aa6c5791c69cf254f8d9b817392be79a74d6c3384fbcf6c32fcd392b76ae8` |
-| `fqtools` | `production` | `bijux` | `NOASSERTION` | `https://github.com/alastair-droop/fqtools` | `2.3` | `sha256:af3aa3e7d5db3a503cab3cea73c58ca19ea2108f8ebc54f50283fe733028eec2` |
+| `fqtools` | `production` | `bijux` | `GPL-3.0-only` | `https://github.com/alastair-droop/fqtools` | `2.3` | `sha256:209020076fcc0e7beee4e86ca2579242799536ba47f4fdd2411dc5a0f86aa3f6` |
 | `gatk` | `experimental` | `bijux` | `NOASSERTION` | `https://github.com/broadinstitute/gatk` | `4.6.2.0` | `sha256:343d7b6ed18123e559b7d4277c31cbcbd1c6ce68a2285175bf9a400b1e613bc9` |
 | `germline` | `experimental` | `non-bijux` | `Apache-2.0` | `https://github.com/gusevlab/germline` | `1.5.3` | `sha256:42a6e14e003ac6aa5cc5c3b14db4ba355d748c014b0d0a10f0f734dca2bfb991` |
 | `glimpse` | `planned` | `non-bijux` | `MIT` | `https://github.com/odelaneau/GLIMPSE` | `1.1.1` | `sha256:d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c` |

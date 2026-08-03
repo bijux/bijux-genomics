@@ -13,7 +13,7 @@ Purpose: generated per-tool container contract summary.
 
 - Version: `2.3`
 - Support disposition: `retained`
-- License: `NOASSERTION`
+- License: `GPL-3.0-only`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

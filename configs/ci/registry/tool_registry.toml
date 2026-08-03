@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: f8754f4d40897168bb736735d34596ffa0018587
+# source_commit: 1f0375ab12344bf1ef175019326921a7dd67753f
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -975,7 +975,7 @@ default_version = "2.3"
 upstream = "https://github.com/alastair-droop/fqtools"
 version_rule = "pinned"
 license = "GPL-3.0"
-citation = "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4908325/"
+citation = "software:https://github.com/alastair-droop/fqtools/tree/63c6fa707fabc7569c2f256b8bcfc6ebb760f72a"
 pinned_commit = "sha256:209020076fcc0e7beee4e86ca2579242799536ba47f4fdd2411dc5a0f86aa3f6"
 pin_strategy = "source_sha256"
 container_ref = "bijuxdna/fqtools:2.3"

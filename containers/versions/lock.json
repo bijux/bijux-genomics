@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-03T04:20:21+02:00",
+  "build_date_utc": "2026-08-03T04:49:31+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -598,7 +598,7 @@
       "version": "2.2.00"
     },
     {
-      "entry_sha256": "951c2a4477d954da0a5194b71089f3436da07339000d82b4dc8fa1932af3c818",
+      "entry_sha256": "3d315d9781a1478af27a9513a2f35c3f6d63878567953f1492fa76256dc74f0a",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -608,7 +608,7 @@
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://github.com/alastair-droop/fqtools",
-      "source_sha256": "",
+      "source_sha256": "209020076fcc0e7beee4e86ca2579242799536ba47f4fdd2411dc5a0f86aa3f6",
       "status": "production",
       "tool": "fqtools",
       "version": "2.3"
@@ -1432,6 +1432,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "c4ea4119e8f46b0c681f4480015fd3f0c5e0c0beb43153cf256714a90068c8dc",
+  "source_sha256": "0661d75bbbed58fbc47dc4745ae6ab7d36a2309164096bffa29a11fb4838b08c",
   "version_map_source": "artifacts/containers/version_map.json"
 }

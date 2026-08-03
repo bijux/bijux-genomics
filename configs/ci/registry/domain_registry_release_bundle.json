@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "f8754f4d40897168bb736735d34596ffa0018587",
-  "bundle_checksum_sha256": "65b4e994bdd28e4bce65eac76dfab2aae2a606665dc6f23720c900a830905300",
+  "source_commit": "1f0375ab12344bf1ef175019326921a7dd67753f",
+  "bundle_checksum_sha256": "f91593bc5be2a98f42d794d313c09add58287516be3618111a8a802a3d65fc83",
   "domains": [
     {
       "domain_id": "bam",
@@ -4358,7 +4358,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "2237df3ad51c97de695b86721213d79296ff8a9b2f04067f299511a5c134f92a"
+      "checksum_sha256": "083781031609a7bf453628d9bd03e4327945af1429d15c8fca44cc4cd07684f4"
     },
     {
       "domain_id": "fastq",
@@ -10578,11 +10578,11 @@
           "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "latest-pinned",
-          "upstream": "unknown",
+          "default_version": "2.3",
+          "upstream": "https://github.com/alastair-droop/fqtools",
           "pin_strategy": "pinned",
-          "license": "GPL-3.0",
-          "citation": "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4908325/",
+          "license": "GPL-3.0-only",
+          "citation": "software:https://github.com/alastair-droop/fqtools/tree/63c6fa707fabc7569c2f256b8bcfc6ebb760f72a",
           "version_cmd": "fqtools --version",
           "help_cmd": "fqtools --help",
           "stage_ids": [
@@ -13502,7 +13502,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "c57bec2ba721587ceec452cf5446c99477bb4cecc1fe946ea3c86b832424d71b"
+      "checksum_sha256": "8848b9524f278abfee6682a087dd018f5891882c029e7abdff0a374df5249945"
     },
     {
       "domain_id": "vcf",
@@ -16662,7 +16662,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "891c9dbc1a332c763f5eca6401c0053b92b6eb64237953725f2d1face18a0a10"
+      "checksum_sha256": "abab913dd89f88a526802afebfc3b2f904608a490984f6127c5f6f2241261500"
     }
   ]
 }
