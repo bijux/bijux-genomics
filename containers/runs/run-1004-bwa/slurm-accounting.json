@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T14:05:47.770787+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "0ebf5293f5cb7d73993355cc8a3360c761683edf068471ca135358490e8fc108",
+  "rows": [
+    {
+      "AllocCPUS": "4",
+      "AveRSS": "",
+      "CPUTimeRAW": "44",
+      "Elapsed": "00:00:11",
+      "ElapsedRaw": "11",
+      "ExitCode": "0:0",
+      "JobID": "3457596",
+      "JobName": "fastq-to-bam-align-bwa-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn053",
+      "ReqMem": "16G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1004",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457596",
+  "submit_script_sha256": "cac4ec249b7404d6e502bbf3cb579a53f5a8dbad596d4f316d7f41c1a5f51f01"
+}

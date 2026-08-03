@@ -1,0 +1,136 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bwa-0.7.17-linux-amd64-64c8e0c32f1a.sif",
+    "sha256": "64c8e0c32f1adbee7f46ac4c4a52bad390577593881688023d02da4585f479c8",
+    "size_bytes": 103317504
+  },
+  "repository_commit": "8c93c770b8b1fe41c23f2ee6a47686c9722c16f7",
+  "run_id": "run-1003",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457577",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "7f1aad5cc5493f9b79e72662f63ca1108d487073169f75a2cab44e9270ef0963",
+      "size_bytes": 1801
+    },
+    {
+      "path": "equcab3.amb",
+      "sha256": "147f2c4b0e846ac27fdfb03b878e0f6d00df408689b5efaab7c046a7ef01eaf8",
+      "size_bytes": 106589
+    },
+    {
+      "path": "equcab3.ann",
+      "sha256": "5f6c26f4220201b214c6371a9ca0325b4346077b8528eb74a395bc6d57305ffa",
+      "size_bytes": 778120
+    },
+    {
+      "path": "equcab3.bwt",
+      "sha256": "5ce69dd3da64f19109eeab82be014ccc12d970c0cbc749b52b5a1e0d19472a96",
+      "size_bytes": 2506966212
+    },
+    {
+      "path": "equcab3.pac",
+      "sha256": "fff4fdfe6cd05f731fe58bea6f07aac85ac21b493125ab3a8e30939408d98de0",
+      "size_bytes": 626741535
+    },
+    {
+      "path": "equcab3.sa",
+      "sha256": "27e66ea8531cbdd409c92c7a7358b05c85a9f42fcd32e3ffece2188535d20c71",
+      "size_bytes": 1253483120
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "c337903cb858b3dfd16fade0b94d3afae93c5b5b394663faed9c24667375d5c1",
+      "size_bytes": 3729
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "57d02e431df9a5d5f3f4b6ad987c9d64844ff136bd58f29671feb346648712eb",
+      "size_bytes": 1180
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "a8acf9970b17015b9f71707c23905b1df5fe0af61d1491da69a65fef6d1808a9",
+      "size_bytes": 96
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "57b66960f94cb2d594c699963949132ea17701c1d5f2a87fb720898aa4a4dd5d",
+      "size_bytes": 5289
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "c082187f030898dd47af834c9e14695f9979f805e3f8c8bae43b506617755c15",
+      "size_bytes": 934
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "9394574180bcaeea9a2bcebe1e03dd005c1e298a280758342bd748f98790fa4f",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "a895d369cd7b358af1125d2659aa9a8e01e6cc30be1d5446ca4cd449fcbbf6ba",
+      "size_bytes": 1005
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "ab99e401a7ebf0b82dfb35c17608acd5b6447308d8a436fa1bc2d36fd3eeb469",
+      "size_bytes": 13
+    }
+  ],
+  "source_result": "results/container-validation/bwa/run-1003",
+  "tool": "bwa",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "7f1aad5cc5493f9b79e72662f63ca1108d487073169f75a2cab44e9270ef0963",
+      "size_bytes": 1801
+    },
+    "evidence.json": {
+      "sha256": "c337903cb858b3dfd16fade0b94d3afae93c5b5b394663faed9c24667375d5c1",
+      "size_bytes": 3729
+    },
+    "slurm-accounting.json": {
+      "sha256": "c082187f030898dd47af834c9e14695f9979f805e3f8c8bae43b506617755c15",
+      "size_bytes": 934
+    }
+  }
+}

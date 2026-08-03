@@ -1,0 +1,99 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "clumpify",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "de264982f460a8669be7cfbe72df7e6104923524b72a177ceeda4733f7c717e0"
+    },
+    "negative": {
+      "argv": [
+        "clumpify",
+        "in=/governed-missing.fastq.gz",
+        "out=/tmp/rejected.fastq.gz"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "cbb5b9cf1f4797defeee621a3bbd79f6d519d0f4a43a36f5c769f37536381622",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "clumpify",
+        "in=/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+        "in2=/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+        "out=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/clumpify/run-1008/deduplicated.pair1.fastq.gz",
+        "out2=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/clumpify/run-1008/deduplicated.pair2.fastq.gz",
+        "dedupe=t",
+        "overwrite=t"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "345c29ab463e7f42b0ef5936b28a76ebee6bf0a57bed1ef9b8e1a71f717740f7",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "clumpify",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e2c38bb24a8378c52ebe9b8c2bb8f7bdb8d1852caf7b8020719b2db85efe63e1"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/clumpify-39.06-linux-amd64-10ebdaa418a2.sif",
+    "sha256": "10ebdaa418a20267cd054d19debff04571628d74d7cabf5f9b829dc6689b939c",
+    "size_bytes": 117092352
+  },
+  "inputs": [
+    {
+      "id": "ena-err1021817-read-prefix-100000-pair1",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "sha256": "37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc"
+    },
+    {
+      "id": "ena-err1021817-read-prefix-100000-pair2",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+      "sha256": "14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "deduplicated.pair1.fastq.gz",
+      "sha256": "004864ec99769b6047efe5c7a4693a92dbd04887989bc4ec5d3859e188971508",
+      "size_bytes": 8320785
+    },
+    {
+      "path": "deduplicated.pair2.fastq.gz",
+      "sha256": "fc945375f7648eaad120da07d8c6d1f2b190294bd920801739c614fa2bc81bfb",
+      "size_bytes": 8748542
+    }
+  ],
+  "pipeline_sha256": "fc3935cb3dde32c78bb4b457b12d4ba1cefbdc0e9eefe21a4a52ddd754a9e055",
+  "repository_clean": true,
+  "repository_commit": "a7690273fbf58648d4adf485d7d4037e0f983132",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/a7690273fbf58648d4adf485d7d4037e0f983132",
+  "run_id": "run-1008",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "4",
+    "host": "cn010",
+    "slurm_job_id": "3457602",
+    "started_at_utc": "2026-08-02T14:09:35.905043+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn010",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

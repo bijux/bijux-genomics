@@ -1,0 +1,121 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/clumpify-39.06-linux-amd64-10ebdaa418a2.sif",
+    "sha256": "10ebdaa418a20267cd054d19debff04571628d74d7cabf5f9b829dc6689b939c",
+    "size_bytes": 117092352
+  },
+  "repository_commit": "a7690273fbf58648d4adf485d7d4037e0f983132",
+  "run_id": "run-1008",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457602",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "fc3935cb3dde32c78bb4b457b12d4ba1cefbdc0e9eefe21a4a52ddd754a9e055",
+      "size_bytes": 2360
+    },
+    {
+      "path": "deduplicated.pair1.fastq.gz",
+      "sha256": "004864ec99769b6047efe5c7a4693a92dbd04887989bc4ec5d3859e188971508",
+      "size_bytes": 8320785
+    },
+    {
+      "path": "deduplicated.pair2.fastq.gz",
+      "sha256": "fc945375f7648eaad120da07d8c6d1f2b190294bd920801739c614fa2bc81bfb",
+      "size_bytes": 8748542
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "13bdf4eb86f1603e1f84238d0f7609c6b1fcdb7972b6436ef6f2d7336d46b8b2",
+      "size_bytes": 3917
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "de264982f460a8669be7cfbe72df7e6104923524b72a177ceeda4733f7c717e0",
+      "size_bytes": 11319
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "cbb5b9cf1f4797defeee621a3bbd79f6d519d0f4a43a36f5c769f37536381622",
+      "size_bytes": 462
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "345c29ab463e7f42b0ef5936b28a76ebee6bf0a57bed1ef9b8e1a71f717740f7",
+      "size_bytes": 2652
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "8771c82234c55b3d3899d15965a3d59f92b0ed74218f3a74afe7cade2da9491b",
+      "size_bytes": 927
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "821de32c53c875ee7c921c577d6b47d73a63fb430fc165e9977319c4b909892f",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "e453672dc6be166509ada94f02471dc66a8ab72e2919712c211586759af46c6f",
+      "size_bytes": 1058
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "e2c38bb24a8378c52ebe9b8c2bb8f7bdb8d1852caf7b8020719b2db85efe63e1",
+      "size_bytes": 23
+    }
+  ],
+  "source_result": "results/container-validation/clumpify/run-1008",
+  "tool": "clumpify",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "fc3935cb3dde32c78bb4b457b12d4ba1cefbdc0e9eefe21a4a52ddd754a9e055",
+      "size_bytes": 2360
+    },
+    "evidence.json": {
+      "sha256": "13bdf4eb86f1603e1f84238d0f7609c6b1fcdb7972b6436ef6f2d7336d46b8b2",
+      "size_bytes": 3917
+    },
+    "slurm-accounting.json": {
+      "sha256": "8771c82234c55b3d3899d15965a3d59f92b0ed74218f3a74afe7cade2da9491b",
+      "size_bytes": 927
+    }
+  }
+}

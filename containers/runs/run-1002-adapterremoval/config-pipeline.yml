@@ -1,0 +1,69 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1002
+  campaign: horse-wgs-container-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq
+  stage: fastq.trim_reads
+  tool: adapterremoval
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/fd989ab019a266afb10950271012bfef48833570
+  commit: fd989ab019a266afb10950271012bfef48833570
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/adapterremoval-2.3.4-linux-amd64-a662fe75344f.sif
+  sha256: a662fe75344f09f9f756dbedf1000f1dcc572d1aff35136e0eeb80fcfd0c2687
+data:
+  inputs:
+  - id: ERR1021817-mate-1-read-prefix-100000
+    path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+    sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+  - id: ERR1021817-mate-2-read-prefix-100000
+    path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+    sha256: 14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf
+commands:
+  version:
+  - adapterremoval
+  - --version
+  help:
+  - adapterremoval
+  - --help
+  real:
+  - adapterremoval
+  - --file1
+  - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+  - --file2
+  - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+  - --basename
+  - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/adapterremoval/run-1002/reads
+  - --gzip
+  - --threads
+  - '4'
+  negative:
+  - adapterremoval
+  - --file1
+  - /governed-missing.fastq.gz
+  - --basename
+  - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/adapterremoval/run-1002/negative
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/adapterremoval/run-1002
+  required_files:
+  - reads.settings
+  - reads.pair1.truncated.gz
+  - reads.pair2.truncated.gz
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 4
+  memory_mb: 4096
+  walltime: 00:15:00
+  scratch_mb: 4096
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: AdapterRemoval ver[.] 2[.]3[.]4
+  negative_exit_nonzero: true

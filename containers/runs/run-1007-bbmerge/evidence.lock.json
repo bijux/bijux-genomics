@@ -1,0 +1,126 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bbmerge-39.06-linux-amd64-c2eb1201530e.sif",
+    "sha256": "c2eb1201530e2f7113b5e2ca2f1c91aef34b3fc5a6de67cea958c54bc0c32643",
+    "size_bytes": 117092352
+  },
+  "repository_commit": "a7690273fbf58648d4adf485d7d4037e0f983132",
+  "run_id": "run-1007",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457601",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "288cff5e3fc2c4320c45c81fc8e62867524b288bfcf7adb7eb3b76b3a327e3cf",
+      "size_bytes": 2502
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "e5fd41244fcfe6381d7b3d7c5f334fd31f7cae5c0b05cdd0a664710967a85d4a",
+      "size_bytes": 4217
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "59a1a2c961d86b16da031631d420ec857799361eac7185716ede19db69982bc1",
+      "size_bytes": 12971
+    },
+    {
+      "path": "merged.fastq.gz",
+      "sha256": "8e63fdd4df040115373921813e86dccc354df2a460ca3031633498359dbd437c",
+      "size_bytes": 31221
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "3176652d4d64abcc183bfc898816a4a48ebfcd4c624f3bf690ca49b20ff007a2",
+      "size_bytes": 557
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "917f1251db9046c0f76d802a873938130b0054e6744c9acde2d7bc8f58dadf6d",
+      "size_bytes": 1853
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "9e9cd3653ce97c44f20b4f5a769b0a6535fa317dcac9273cc653667966beb055",
+      "size_bytes": 925
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "1609c1c02ff6c9aab9c611e9f16c875da36e9a633df003d749db2023cda88f1c",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "26a67ba6f9fd23afffb39c6bf8fe4008ec8c617b2b45375d02fcf147d65d7570",
+      "size_bytes": 1051
+    },
+    {
+      "path": "unmerged.pair1.fastq.gz",
+      "sha256": "c8c67e36a0e503afc9102b6b7856f287ff4a47aedee75797b8031e834c763764",
+      "size_bytes": 7998327
+    },
+    {
+      "path": "unmerged.pair2.fastq.gz",
+      "sha256": "45759a49b8b3ab141ad983b4af233e37b0842ea646bc1e5badbd43b37826c262",
+      "size_bytes": 8222053
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "e2839c008c01a9392e7d3b72bfb059bf28ac730dc22160410f3a0bf8d05425c5",
+      "size_bytes": 22
+    }
+  ],
+  "source_result": "results/container-validation/bbmerge/run-1007",
+  "tool": "bbmerge",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "288cff5e3fc2c4320c45c81fc8e62867524b288bfcf7adb7eb3b76b3a327e3cf",
+      "size_bytes": 2502
+    },
+    "evidence.json": {
+      "sha256": "e5fd41244fcfe6381d7b3d7c5f334fd31f7cae5c0b05cdd0a664710967a85d4a",
+      "size_bytes": 4217
+    },
+    "slurm-accounting.json": {
+      "sha256": "9e9cd3653ce97c44f20b4f5a769b0a6535fa317dcac9273cc653667966beb055",
+      "size_bytes": 925
+    }
+  }
+}

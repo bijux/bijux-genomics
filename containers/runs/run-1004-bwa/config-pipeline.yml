@@ -1,0 +1,85 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1004
+  campaign: horse-wgs-container-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq-to-bam
+  stage: bam.align
+  tool: bwa
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/8f34c94a3a9306720d80e02939e2d081f9de6197
+  commit: 8f34c94a3a9306720d80e02939e2d081f9de6197
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bwa-0.7.17-linux-amd64-64c8e0c32f1a.sif
+  sha256: 64c8e0c32f1adbee7f46ac4c4a52bad390577593881688023d02da4585f479c8
+data:
+  inputs:
+    - id: adapterremoval-run-1002-pair1
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/adapterremoval/run-1002/reads.pair1.truncated.gz
+      sha256: a59b53576a7978d5ebf3a927aa91a8d7492ed43d6fe05c9326025ac93dbd8a6b
+    - id: adapterremoval-run-1002-pair2
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/adapterremoval/run-1002/reads.pair2.truncated.gz
+      sha256: b74a01e0b2f2c6c4dbfdcb39778118b16547edffb8ab337bab76cf9bcace64bf
+    - id: bwa-index-run-1003-amb
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bwa/run-1003/equcab3.amb
+      sha256: 147f2c4b0e846ac27fdfb03b878e0f6d00df408689b5efaab7c046a7ef01eaf8
+    - id: bwa-index-run-1003-ann
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bwa/run-1003/equcab3.ann
+      sha256: 5f6c26f4220201b214c6371a9ca0325b4346077b8528eb74a395bc6d57305ffa
+    - id: bwa-index-run-1003-bwt
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bwa/run-1003/equcab3.bwt
+      sha256: 5ce69dd3da64f19109eeab82be014ccc12d970c0cbc749b52b5a1e0d19472a96
+    - id: bwa-index-run-1003-pac
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bwa/run-1003/equcab3.pac
+      sha256: fff4fdfe6cd05f731fe58bea6f07aac85ac21b493125ab3a8e30939408d98de0
+    - id: bwa-index-run-1003-sa
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bwa/run-1003/equcab3.sa
+      sha256: 27e66ea8531cbdd409c92c7a7358b05c85a9f42fcd32e3ffece2188535d20c71
+commands:
+  version:
+    - bwa
+    - --version
+  help:
+    - bwa
+    - --help
+  real:
+    - bwa
+    - mem
+    - -t
+    - '4'
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bwa/run-1003/equcab3
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/adapterremoval/run-1002/reads.pair1.truncated.gz
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/adapterremoval/run-1002/reads.pair2.truncated.gz
+  negative:
+    - bwa
+    - mem
+    - /governed-missing-reference
+    - /governed-missing-reads.fastq.gz
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bwa/run-1004
+  required_files:
+    - real.stdout.log
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 4
+  memory_mb: 16384
+  walltime: 02:00:00
+  scratch_mb: 4096
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^0[.]7[.]17-r1188$'
+  negative_exit_nonzero: true
