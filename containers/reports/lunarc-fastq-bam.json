@@ -299,6 +299,26 @@
       "accounting_sha256": "4cc6d53eafa098ac3b1cd5768678ec7fd2788982c358146e1fae7b90936e4ec1"
     },
     {
+      "tool": "bowtie2",
+      "run_id": "run-1101",
+      "repository_commit": "b5a58ac70e8deb09184cc20535fa86d019147e3c",
+      "slurm_job_id": "3458123",
+      "status": "passed",
+      "elapsed_seconds": 5,
+      "image_sha256": "71a296b7b15f5b59c9213910cfad03a7393624b099b2f973041a18c0fb98b558",
+      "build_evidence_sha256": "77fe6dfb8b4feb2315071c794b527fa8c1eb8cf010ddef0b7e29c7fe54c850bd",
+      "evidence_sha256": "24ef693532f7aa8a99eb50aa53f794018388ca82b5e92ed1a430963dcfc7a53a",
+      "accounting_sha256": "f450c73c97930fed865c4d1cb999e46483024a225e3cfc149dc8ee90737025ba",
+      "output_sha256": "4b5d0a85ee31df1c25b79cc7a2c163c641e0f581ba3d866cbb0336ba7ebf071a",
+      "output_bytes": 47621650,
+      "input_pairs": 100000,
+      "concordant_once_pairs": 190,
+      "concordant_multiple_pairs": 64,
+      "discordant_pairs": 30,
+      "overall_alignment_percent": 1.05,
+      "reference_scope": "NC_009144.3:1-1000000"
+    },
+    {
       "tool": "bwa",
       "run_id": "run-1003",
       "repository_commit": "8c93c770b8b1fe41c23f2ee6a47686c9722c16f7",

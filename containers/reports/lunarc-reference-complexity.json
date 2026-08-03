@@ -2,7 +2,6 @@
   "schema_version": "bijux.container.report_index.v1",
   "report_id": "lunarc-reference-complexity",
   "site": "lunarc",
-  "repository_commit": "3151d5ae8139baf2035914c59d3830da3cadf62b",
   "corpus": "equcab3-nc_009144.3-first-megabase",
   "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
   "claims": {
@@ -15,6 +14,7 @@
   "runs": [
     {
       "tool": "samtools",
+      "repository_commit": "3151d5ae8139baf2035914c59d3830da3cadf62b",
       "run_id": "run-1054",
       "slurm_job_id": "3457877",
       "status": "passed",
@@ -26,6 +26,7 @@
     },
     {
       "tool": "dustmasker",
+      "repository_commit": "3151d5ae8139baf2035914c59d3830da3cadf62b",
       "run_id": "run-1055",
       "slurm_job_id": "3457878",
       "status": "passed",
@@ -36,6 +37,27 @@
       "accounting_sha256": "f255f19a93871d65598a14cb73d37fb16e5dc0bab52db8d18f91f71de0e4cfa5",
       "interval_output_sha256": "e2dd6a037053ddff8ccc8c72c16a31bd37ef96707f97f1aa597d9ee3f56af924",
       "masked_fasta_sha256": "b929c7182b9cadd81403d2a9acdf7d623deb7a2506f977081c558fba5799b909"
+    },
+    {
+      "tool": "bowtie2_build",
+      "run_id": "run-1100",
+      "repository_commit": "b5a58ac70e8deb09184cc20535fa86d019147e3c",
+      "slurm_job_id": "3458122",
+      "status": "passed",
+      "elapsed_seconds": 2,
+      "image_sha256": "a134b7012023af66a0a313572bc355a54f67cdd0f3e45cb5559638d03294fef2",
+      "build_evidence_sha256": "0dc60e640ea7aa95e6b7c19026b2c289c015ce47d39b8df0691634e145922ad6",
+      "evidence_sha256": "cede01f4237554be2951ee2d34c31256208270756464f70ac4d8c4ba27dc5955",
+      "accounting_sha256": "74f0b6badaf69049b8de2b0a4853804c708cd07ab3d1c0aada1851cdd8376b3e",
+      "input_reference_sha256": "31c05c963f35d1c98fb95ef7872712ea005f95d9ebffeee35c1f7207a17bbd9a",
+      "index_shards": {
+        "1": "945f5044ebd8db69239aabff27c93076b9803c6c38a10e92b16f26d4ef2dd744",
+        "2": "427b2699b8344bb7bcd9dc0d069135a3e523388b52693fe9b4a4fc0469a48d11",
+        "3": "a9b6e245ee52e756e9a37f7ff284df5f420ff79bc9bcc19602d7cac80fcefc33",
+        "4": "dc622d329ff6a15985bd4835cec68b89687eb2f23e33de54d59b70a8ddf0be6e",
+        "reverse_1": "08ef156df383cc0e1d838a4af7507acc85c7b19a809d7fab5e92fe47bd760e5a",
+        "reverse_2": "8c06a53480c19c563e4d4343f4e413fdac442b901ed863f9cffa8b72e46f76f1"
+      }
     }
   ],
   "science_boundary": {

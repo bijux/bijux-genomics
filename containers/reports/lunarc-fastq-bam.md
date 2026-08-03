@@ -32,6 +32,7 @@ root.
 | paired-read preparation | SeqPrep 1.3.2 | `run-1082` | `3458066` | 8s | merged reads plus two unmerged-read streams |
 | sequence clustering | VSEARCH 2.29.3 | `run-1084` | `3458068` | 5s | 5,143,891-byte centroid FASTA |
 | paired-read trimming | AdapterRemoval 2.3.4 | `run-1002` | `3457168` | 4s | two trimmed FASTQ files |
+| read alignment | Bowtie 2 2.5.4 | `run-1101` | `3458123` | 5s | 47,621,650-byte SAM stream against a real reference segment |
 | reference indexing | BWA 0.7.17 | `run-1003` | `3457577` | 30m01s | five EquCab3.0 index files |
 | read alignment | BWA 0.7.17 | `run-1004` | `3457596` | 11s | 60,534,232-byte SAM stream |
 | SAM-to-BAM conversion | Samtools 1.20 | `run-1011` | `3457606` | 2s | 15,639,030-byte BAM |
@@ -112,6 +113,14 @@ the governed output files and establish the filter, merge, and deduplication
 interfaces. They are corpus observations, not evidence that entropy 0.5 is an
 appropriate biological threshold, that BBMerge recovered every true overlap,
 or that every Clumpify duplicate is a library duplicate.
+
+Bowtie 2 consumed the six digest-pinned shards from `run-1100` and aligned all
+100,000 public read pairs against a real one-megabase EquCab3.0 segment. It
+reported 190 pairs aligned concordantly once, 64 more than once, 30
+discordantly, and a 1.05% overall alignment rate. The deliberately narrow
+reference makes this a stage and lineage proof, not a whole-genome mapping
+benchmark. Its alignment percentage must not be compared with the full-genome
+BWA run or interpreted as sample quality.
 
 BamTools applied its declared mapping-quality expression to the governed
 coordinate-sorted BAM and emitted a readable non-empty BAM. bamUtil executed
