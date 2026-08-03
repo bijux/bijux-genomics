@@ -46,7 +46,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     umask 022
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq
-    apt-get install -y --no-install-recommends build-essential ca-certificates curl pkg-config libssl-dev xz-utils
+    apt-get install -y --no-install-recommends build-essential ca-certificates curl libsqlite3-dev pkg-config libssl-dev xz-utils
     case "$(uname -m)" in
         x86_64)
             rust_target=x86_64-unknown-linux-gnu
