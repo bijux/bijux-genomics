@@ -36,7 +36,7 @@ the identities and lock hashes of superseded attempts.
 | `bayeshammer` | [run-1099](../runs/run-1099-bayeshammer/) | `ena-prjeb10854-err1021817-read-prefix-100000` | `fastq.correct_errors` | passed | not_assessed |
 | `bbduk` | [run-1006](../runs/run-1006-bbduk/) | `ena-prjeb10854-err1021817-read-prefix-100000` | `fastq.trim` | passed | not_assessed |
 | `bbmerge` | [run-1007](../runs/run-1007-bbmerge/) | `ena-prjeb10854-err1021817-read-prefix-100000` | `fastq.merge_pairs` | passed | not_assessed |
-| `bcftools` | [run-1051](../runs/run-1051-bcftools/) | `1000-genomes-phase3-chr22` | `vcf.prepare_reference_panel` | passed | not_assessed |
+| `bcftools` | [run-1140](../runs/run-1140-bcftools/) | `ena-prjeb22390-err2112767-bam` | `bam.genotyping` | passed | not_assessed |
 | `beagle` | [run-1062](../runs/run-1062-beagle/) | `1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome` | `vcf.phasing` | passed | not_assessed |
 | `bedtools` | [run-1074](../runs/run-1074-bedtools/) | `ena-prjeb22390-err2112767-bam` | `bam.coverage` | passed | not_assessed |
 | `bowtie2` | [run-1101](../runs/run-1101-bowtie2/) | `ena-prjeb10854-err1021817-read-prefix-100000` | `bam.align` | passed | not_assessed |
