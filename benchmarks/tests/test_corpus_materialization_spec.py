@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import sys
@@ -102,6 +103,49 @@ class CorpusMaterializationSpecificationTests(unittest.TestCase):
                     root / "study" / "data" / "evidence" / "materializations" / "x",
                     jobs=1,
                 )
+
+    def test_materialization_verification_rehashes_admitted_fastq(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            data_root = Path(directory) / "data"
+            corpus_root = data_root / "corpora" / "real-fastq"
+            fastq = corpus_root / "raw" / "ERR1" / "ERR1.fastq.gz"
+            fastq.parent.mkdir(parents=True)
+            fastq.write_bytes(b"compressed-fastq")
+            catalog = data_root / "catalog" / "real-fastq.json"
+            catalog.parent.mkdir()
+            catalog.write_text(
+                json.dumps(
+                    {
+                        "id": "real-fastq",
+                        "files": [
+                            {
+                                "path": str(fastq),
+                                "sha256": hashlib.sha256(fastq.read_bytes()).hexdigest(),
+                                "size_bytes": fastq.stat().st_size,
+                                "read_count": 7,
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            pipeline = {
+                "schema_version": specification.PIPELINE_SCHEMA,
+                "corpus": {
+                    "id": "real-fastq",
+                    "file_count": 1,
+                    "source_size_bytes": fastq.stat().st_size,
+                },
+                "outputs": {
+                    "catalog": str(catalog),
+                    "corpus_root": str(corpus_root),
+                },
+            }
+
+            observed = specification.verify_materialization(pipeline)
+
+        self.assertEqual(observed["file_count"], 1)
+        self.assertEqual(observed["read_count"], 7)
 
 
 if __name__ == "__main__":

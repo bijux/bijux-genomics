@@ -115,6 +115,19 @@ python3 -B benchmarks/corpus_materialization_spec.py submit \
   --specification "$specification"
 ```
 
+After the job is terminal, collect scheduler accounting, re-hash the admitted
+FASTQ files and catalog, and publish the commit-scoped data index:
+
+```console
+python3 -B benchmarks/corpus_materialization_spec.py collect \
+  --specification "$specification"
+```
+
+Collection refuses active jobs and existing evidence. A completed Slurm state
+is insufficient by itself: catalog identity, file count, byte total, per-file
+SHA-256, and positive read counts must all pass before the corpus receives a
+passing materialization record and data index.
+
 This transfer job uses site Python only for checksum-pinned public data
 acquisition; it runs no scientific application. FASTQ, BAM, and VCF stage
 campaigns remain strictly container-only.

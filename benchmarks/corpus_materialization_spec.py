@@ -17,6 +17,15 @@ PIPELINE_SCHEMA = "bijux.benchmark.corpus_materialization.v1"
 CREDENTIAL_SCHEMA = "bijux.container.credential_reference.v1"
 PLAN_SCHEMA = "bijux.benchmark.corpus_acquisition.v1"
 COMMIT = re.compile(r"[0-9a-f]{40}")
+ACTIVE_STATES = {
+    "CONFIGURING",
+    "COMPLETING",
+    "PENDING",
+    "REQUEUED",
+    "RESIZING",
+    "RUNNING",
+    "SUSPENDED",
+}
 
 
 class SpecificationError(RuntimeError):
@@ -257,6 +266,147 @@ def submit(specification: Path) -> str:
     return job_id
 
 
+def verify_materialization(pipeline: dict[str, Any]) -> dict[str, Any]:
+    if pipeline.get("schema_version") != PIPELINE_SCHEMA:
+        raise SpecificationError("materialization pipeline schema is unsupported")
+    corpus = pipeline.get("corpus")
+    outputs = pipeline.get("outputs")
+    if not isinstance(corpus, dict) or not isinstance(outputs, dict):
+        raise SpecificationError("materialization pipeline identity is incomplete")
+    catalog_path = Path(str(outputs.get("catalog", ""))).resolve()
+    corpus_root = Path(str(outputs.get("corpus_root", ""))).resolve()
+    catalog = load_json(catalog_path)
+    files = catalog.get("files")
+    if catalog.get("id") != corpus.get("id") or not isinstance(files, list):
+        raise SpecificationError("materialized catalog identity disagrees")
+    if len(files) != corpus.get("file_count"):
+        raise SpecificationError("materialized catalog file count disagrees")
+    observed_bytes = 0
+    observed_reads = 0
+    for record in files:
+        if not isinstance(record, dict):
+            raise SpecificationError("materialized catalog file is invalid")
+        path = governed_child(Path(str(record.get("path", ""))), corpus_root, "FASTQ")
+        digest = str(record.get("sha256", ""))
+        size = record.get("size_bytes")
+        reads = record.get("read_count")
+        if (
+            not path.is_file()
+            or not isinstance(size, int)
+            or isinstance(size, bool)
+            or path.stat().st_size != size
+            or sha256_file(path) != digest
+            or not isinstance(reads, int)
+            or isinstance(reads, bool)
+            or reads < 1
+        ):
+            raise SpecificationError(f"materialized FASTQ identity is invalid: {path}")
+        observed_bytes += size
+        observed_reads += reads
+    if observed_bytes != corpus.get("source_size_bytes"):
+        raise SpecificationError("materialized catalog byte total disagrees")
+    return {
+        "catalog": str(catalog_path),
+        "catalog_sha256": sha256_file(catalog_path),
+        "file_count": len(files),
+        "size_bytes": observed_bytes,
+        "read_count": observed_reads,
+    }
+
+
+def collect(specification: Path) -> Path:
+    try:
+        import yaml
+        import data_catalog
+    except ImportError as exc:
+        raise SpecificationError("PyYAML and benchmark data catalog are required") from exc
+    specification = specification.resolve()
+    evidence_path = specification / "materialization-evidence.json"
+    accounting_path = specification / "slurm-accounting.json"
+    if evidence_path.exists() or accounting_path.exists():
+        raise SpecificationError("refusing to replace materialization evidence")
+    pipeline_path = specification / "config-pipeline.yml"
+    credential_path = specification / "config-credential.yml"
+    job_path = specification / "slurm-job-id.txt"
+    if not all(path.is_file() for path in (pipeline_path, credential_path, job_path)):
+        raise SpecificationError("submitted materialization specification is incomplete")
+    pipeline = yaml.safe_load(pipeline_path.read_text(encoding="utf-8"))
+    if not isinstance(pipeline, dict):
+        raise SpecificationError("materialization pipeline YAML is invalid")
+    job_id = job_path.read_text(encoding="utf-8").strip()
+    fields = ("JobID", "State", "ExitCode", "Elapsed", "MaxRSS", "AllocCPUS")
+    completed = subprocess.run(
+        ["sacct", "-X", "-n", "-P", "-j", job_id, "-o", ",".join(fields)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        raise SpecificationError(f"cannot collect Slurm accounting: {completed.stderr.strip()}")
+    rows = []
+    for line in completed.stdout.splitlines():
+        if not line.strip():
+            continue
+        values = line.split("|")
+        if len(values) != len(fields):
+            raise SpecificationError(f"invalid Slurm accounting row: {line}")
+        rows.append(dict(zip(fields, values)))
+    if not rows:
+        raise SpecificationError(f"Slurm accounting is unavailable for {job_id}")
+    states = {row["State"].split("+", 1)[0] for row in rows}
+    active = sorted(states & ACTIVE_STATES)
+    if active:
+        raise SpecificationError(f"Slurm job is not terminal: {active}")
+    accounting = {
+        "schema_version": "bijux.benchmark.slurm_accounting.v1",
+        "job_id": job_id,
+        "rows": rows,
+    }
+    primary = next((row for row in rows if row["JobID"] == job_id), rows[0])
+    passed = primary["State"].split("+", 1)[0] == "COMPLETED" and primary[
+        "ExitCode"
+    ].startswith("0:")
+    failure = None if passed else f"Slurm terminal state {primary['State']}"
+    verified = None
+    if passed:
+        try:
+            verified = verify_materialization(pipeline)
+        except SpecificationError as exc:
+            passed = False
+            failure = str(exc)
+    repository_commit = str(pipeline["repository"]["commit"])
+    if verified is not None:
+        data_root = Path(str(pipeline["outputs"]["catalog"])).resolve().parents[1]
+        index_root = data_root / "evidence" / "indexes" / repository_commit
+        index_path = index_root / "data-index.json"
+        report_path = index_root / "data-index.md"
+        if index_path.exists() or report_path.exists():
+            raise SpecificationError("refusing to replace governed data index")
+        try:
+            index = data_catalog.build_index(data_root / "catalog", data_root)
+            data_catalog.write_json(index_path, index)
+            report_path.parent.mkdir(parents=True, exist_ok=True)
+            report_path.write_text(data_catalog.render_report(index), encoding="utf-8")
+        except data_catalog.DataCatalogError as exc:
+            passed = False
+            failure = str(exc)
+            verified = None
+    accounting_path.write_text(json.dumps(accounting, indent=2, sort_keys=True) + "\n")
+    evidence = {
+        "schema_version": "bijux.benchmark.corpus_materialization_evidence.v1",
+        "status": "passed" if passed else "failed",
+        "repository_commit": repository_commit,
+        "job_id": job_id,
+        "pipeline_sha256": sha256_file(pipeline_path),
+        "credential_reference_sha256": sha256_file(credential_path),
+        "accounting_sha256": sha256_file(accounting_path),
+        "verified_corpus": verified,
+        "failure": failure,
+    }
+    evidence_path.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n")
+    return evidence_path
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(description=__doc__)
     commands = root.add_subparsers(dest="command", required=True)
@@ -269,6 +419,8 @@ def parser() -> argparse.ArgumentParser:
     prepare.add_argument("--jobs", type=int, default=4)
     submit_command = commands.add_parser("submit")
     submit_command.add_argument("--specification", type=Path, required=True)
+    collect_command = commands.add_parser("collect")
+    collect_command.add_argument("--specification", type=Path, required=True)
     return root
 
 
@@ -285,8 +437,10 @@ def main() -> int:
                 args.jobs,
             )
             print(args.output.resolve())
-        else:
+        elif args.command == "submit":
             print(submit(args.specification))
+        else:
+            print(collect(args.specification))
         return 0
     except SpecificationError as exc:
         print(f"corpus materialization specification failed: {exc}", file=sys.stderr)
