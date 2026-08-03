@@ -37,6 +37,8 @@ root.
 | viral species abundance re-estimation | Bracken 2.9 | `run-1104` | `3458126` | 1s | abundance table plus re-estimated Kraken report |
 | single-reference taxonomy indexing | Centrifuge 1.0.4 | `run-1105` | `3458127` | 4s | four digest-pinned Centrifuge index shards |
 | single-reference taxonomy screening | Centrifuge 1.0.4 | `run-1106` | `3458128` | 2s | classifications plus a digest-pinned Centrifuge report |
+| protein database indexing | DIAMOND 2.1.10 | `run-1116` | `3458166` | 1s | 50,744,508-byte EquCab3.0 RefSeq protein database |
+| translated-read protein alignment | DIAMOND 2.1.10 | `run-1117` | `3458167` | 9s | 1,127 top protein alignments from 100,000 real horse reads |
 | read alignment | Bowtie 2 2.5.4 | `run-1101` | `3458123` | 5s | 47,621,650-byte SAM stream against a real reference segment |
 | reference indexing | BWA 0.7.17 | `run-1003` | `3457577` | 30m01s | five EquCab3.0 index files |
 | read alignment | BWA 0.7.17 | `run-1004` | `3457596` | 11s | 60,534,232-byte SAM stream |
@@ -162,6 +164,24 @@ runtime evidence small and reproducible; it is not a representative taxonomy
 database. Its count must not be compared directly with Kraken's one assigned
 sequence because the reference sets and classification models differ, and it
 does not establish infection, contamination, sensitivity, or specificity.
+
+DIAMOND was built from the exact checksummed `v2.1.10` source commit and used
+without runtime network access. The reference preparation run indexed all
+60,750 proteins in the NCBI RefSeq annotation for EquCab3.0 assembly
+`GCF_002863925.1`; the governed catalog records the NCBI checksum manifest,
+assembly report, source URL, retrieval time, and SHA-256 identities. The
+dependent `blastx` run translated 100,000 first-mate reads from public horse
+WGS run `ERR1021817` and emitted one top hit for 1,127 distinct queries. Those
+alignments had 83.005% mean identity, 28.626 residues mean aligned length, and
+52.016 mean bit score. This proves exact-source image construction, real
+protein-database creation, compressed FASTQ ingestion, translated alignment,
+and immutable lineage across two Slurm jobs. It does not estimate proteome
+coverage, gene expression, sample quality, or annotation completeness; most
+random WGS reads are non-coding or do not span a sufficiently long coding
+segment, and only one mate and one top hit were retained for this bounded
+runtime qualification. The reference and download method follow the
+[NCBI EquCab3.0 assembly record](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_002863925.1/)
+and [NCBI genome package guidance](https://www.ncbi.nlm.nih.gov/datasets/docs/v2/how-tos/genomes/download-genome/).
 
 BamTools applied its declared mapping-quality expression to the governed
 coordinate-sorted BAM and emitted a readable non-empty BAM. bamUtil executed
