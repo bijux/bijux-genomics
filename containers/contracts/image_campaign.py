@@ -92,6 +92,20 @@ def selected_tools(inventory: dict[str, Any], selection: str) -> list[str]:
     return sorted(str(tool["tool"]) for tool in tools)
 
 
+def requested_tool_selection(eligible: list[str], requested: list[str]) -> list[str]:
+    """Restrict an inventory-derived refresh without admitting ineligible tools."""
+    if not requested:
+        return eligible
+    if len(requested) != len(set(requested)):
+        raise ContractError("targeted image refresh contains duplicate tools")
+    ineligible = sorted(set(requested) - set(eligible))
+    if ineligible:
+        raise ContractError(
+            f"targeted image refresh contains current or unsupported tools: {ineligible}"
+        )
+    return sorted(requested)
+
+
 def image_source_roots(repository: Path, tools: list[str]) -> tuple[str, ...]:
     """Return the minimal tracked roots required by selected image definitions."""
     roots = {"containers"}
@@ -160,6 +174,7 @@ def create_execution(
     governance_path: Path,
     image_root: Path | None,
     output: Path,
+    requested_tools: list[str] | None = None,
 ) -> dict[str, Any]:
     if output.exists() or output.is_symlink():
         raise ContractError(f"refusing to replace campaign execution: {output}")
@@ -182,7 +197,8 @@ def create_execution(
         raise ContractError(
             "image inventory must be regenerated from the active commit"
         )
-    tools = selected_tools(inventory, str(campaign["selection"]))
+    eligible_tools = selected_tools(inventory, str(campaign["selection"]))
+    tools = requested_tool_selection(eligible_tools, requested_tools or [])
     versions = load_tool_versions(catalog_path)
     unknown = sorted(set(tools) - set(versions))
     if unknown:
@@ -222,6 +238,8 @@ def create_execution(
             "sha256": sha256_file(inventory_path),
         },
         "selected_tools": tools,
+        "eligible_tools": eligible_tools,
+        "selection_mode": "targeted" if requested_tools else "campaign",
         "tools": {
             tool: {
                 "version": versions[tool],
@@ -724,6 +742,7 @@ def parser() -> argparse.ArgumentParser:
     prepare.add_argument("--governance", type=Path, required=True)
     prepare.add_argument("--image-root", type=Path)
     prepare.add_argument("--output", type=Path, required=True)
+    prepare.add_argument("--tool", action="append", default=[])
     execute = commands.add_parser("execute")
     execute.add_argument("--execution", type=Path, required=True)
     execute.add_argument("--governance", type=Path, required=True)
@@ -751,6 +770,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.governance,
                 args.image_root,
                 args.output,
+                args.tool,
             )
             print(
                 f"prepared {execution['run_id']} for "

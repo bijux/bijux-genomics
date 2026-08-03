@@ -136,6 +136,17 @@ class ImageCampaignTests(unittest.TestCase):
 
         self.assertEqual(selected, ["samtools"])
 
+    def test_targeted_selection_is_a_subset_of_inventory_eligibility(self) -> None:
+        self.assertEqual(
+            campaign.requested_tool_selection(
+                ["bijux_dna", "picard"],
+                ["picard"],
+            ),
+            ["picard"],
+        )
+        with self.assertRaisesRegex(campaign.ContractError, "current or unsupported"):
+            campaign.requested_tool_selection(["picard"], ["samtools"])
+
     def test_isolated_admission_keeps_images_and_evidence_together(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             containers_root = Path(directory) / "containers"
