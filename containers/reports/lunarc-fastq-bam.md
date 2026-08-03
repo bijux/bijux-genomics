@@ -32,6 +32,8 @@ root.
 | paired-read preparation | SeqPrep 1.3.2 | `run-1082` | `3458066` | 8s | merged reads plus two unmerged-read streams |
 | sequence clustering | VSEARCH 2.29.3 | `run-1084` | `3458068` | 5s | 5,143,891-byte centroid FASTA |
 | paired-read trimming | AdapterRemoval 2.3.4 | `run-1002` | `3457168` | 4s | two trimmed FASTQ files |
+| viral taxonomy screening | Kraken 2 2.1.3 | `run-1102` | `3458124` | 2s | classifications plus a digest-pinned Kraken report |
+| viral species abundance re-estimation | Bracken 2.9 | `run-1104` | `3458126` | 1s | abundance table plus re-estimated Kraken report |
 | read alignment | Bowtie 2 2.5.4 | `run-1101` | `3458123` | 5s | 47,621,650-byte SAM stream against a real reference segment |
 | reference indexing | BWA 0.7.17 | `run-1003` | `3457577` | 30m01s | five EquCab3.0 index files |
 | read alignment | BWA 0.7.17 | `run-1004` | `3457596` | 11s | 60,534,232-byte SAM stream |
@@ -121,6 +123,23 @@ discordantly, and a 1.05% overall alignment rate. The deliberately narrow
 reference makes this a stage and lineage proof, not a whole-genome mapping
 benchmark. Its alignment percentage must not be compared with the full-genome
 BWA run or interpreted as sample quality.
+
+Kraken 2 classified the 100,000 public read pairs against the official
+viral-only database released on 2026-06-26. The database archive and all
+unpacked Kraken and Bracken files were verified against the publisher's MD5
+manifest and then recorded with SHA-256 identities in the governed data
+catalog. The run classified one sequence to *Gemykibivirus rhina2* and left
+99,999 sequences unclassified. Bracken consumed that exact report and the
+matching 100-base k-mer distribution, retaining the single species-level
+assignment without redistributing additional reads. Preserved `run-1103`
+exposed that the first Bracken image lacked upstream's required `python`
+command; `run-1104` used the corrected image and passed version, help,
+invalid-input, real-execution, output, and accounting checks. These results
+prove the offline taxonomy and abundance interfaces and their data lineage.
+They do not establish a viral infection, contamination source, taxonomic
+accuracy, detection threshold, or absence of non-viral organisms. Those claims
+would require a representative database, controls, independent confirmation,
+and a predeclared scientific acceptance design.
 
 BamTools applied its declared mapping-quality expression to the governed
 coordinate-sorted BAM and emitted a readable non-empty BAM. bamUtil executed

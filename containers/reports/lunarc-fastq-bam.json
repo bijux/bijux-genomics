@@ -299,6 +299,45 @@
       "accounting_sha256": "4cc6d53eafa098ac3b1cd5768678ec7fd2788982c358146e1fae7b90936e4ec1"
     },
     {
+      "tool": "kraken2",
+      "run_id": "run-1102",
+      "repository_commit": "4e050cb0432c0e70d0e7c6256a15bc3df1e3c4c2",
+      "slurm_job_id": "3458124",
+      "status": "passed",
+      "elapsed_seconds": 2,
+      "image_sha256": "4a2f52a05b4ead9a99848c5c0ffb0f1cd5aaf18d011992389027ade1e5ebbf2b",
+      "build_evidence_sha256": "15c9fd4f07c14f0e78da4a7ac797b0f364f948c4702e94d00a052e345f4c4c77",
+      "evidence_sha256": "8c37c2cf3ce31d9a5eb5614575879cb43661132a38e2179c1762e939928148e9",
+      "accounting_sha256": "b4925ef0adee352b3eae810ace48a56fc87181ceb97c625262349f49410401b7",
+      "classification_output_sha256": "b994a9d99372e3876d50455f2178d64f4d12936a5f012c1637c27c7c1a63af68",
+      "report_output_sha256": "95623c1c63c1e3ce139483d5f63e2c712be0edcd0427490861596d4dcb6b9307",
+      "database_catalog_sha256": "e2bc8e270425d064b4cef7a0856eefc288bd114a0549eaa6cb86ca781e736d2e",
+      "database_release": "viral-20260626",
+      "input_pairs": 100000,
+      "classified_sequences": 1,
+      "unclassified_sequences": 99999,
+      "science_scope": "viral_only_runtime_interface"
+    },
+    {
+      "tool": "bracken",
+      "run_id": "run-1104",
+      "repository_commit": "457df23743a98b41b4d213a41a85278391db4dfe",
+      "slurm_job_id": "3458126",
+      "status": "passed",
+      "elapsed_seconds": 1,
+      "image_sha256": "9627dd7121113897677f0b8a670f1f1cdba63b9f5ca8f4fadb94d34fee783f55",
+      "build_evidence_sha256": "8c14e508677009af26726dfe0d6971831bdf69150c86481e3f8fac6808e239fa",
+      "evidence_sha256": "112d4c3d36fef1ab01bb98e8f5b9ef8f52cd848d72c20f0c92846754d3313876",
+      "accounting_sha256": "1d0517ddca688940a2e6855d361fd38ea8ba26301da96f3714f3b8021fe372a8",
+      "abundance_output_sha256": "ffcab78e4ef712056fe5f3b2d7b8e7768936d249e0760fed279a698a36691e25",
+      "report_output_sha256": "7d95130be088bf65850ec5ad36a7c555844082aac934fad4544253a18e7c899b",
+      "database_catalog_sha256": "e2bc8e270425d064b4cef7a0856eefc288bd114a0549eaa6cb86ca781e736d2e",
+      "read_length": 100,
+      "taxonomic_level": "species",
+      "estimated_species": 1,
+      "science_scope": "viral_only_runtime_interface"
+    },
+    {
       "tool": "bowtie2",
       "run_id": "run-1101",
       "repository_commit": "b5a58ac70e8deb09184cc20535fa86d019147e3c",
@@ -427,6 +466,13 @@
     }
   ],
   "preserved_failures": [
+    {
+      "tool": "bracken",
+      "run_id": "run-1103",
+      "classification": "missing_python_compatibility_command",
+      "evidence_sha256": "009c8aa624c1709483beba6d8d8bbb397f108b7db31e8ee904d8e4f78b48bcfa",
+      "accounting_sha256": "c84296ec301666f1bbb409cae5d34ca4ee0837247912452f4881a5c9b65c8326"
+    },
     {
       "tool": "atropos",
       "run_id": "run-1097",
