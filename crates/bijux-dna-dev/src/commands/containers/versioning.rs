@@ -768,6 +768,29 @@ pub(super) fn check_version_lock(workspace: &Workspace) -> Result<ContainerComma
     success_line("version lock: OK")
 }
 
+fn is_noncanonical_version_authority_path(rel: &str) -> bool {
+    if !rel.starts_with("containers/") || rel.starts_with("containers/docs/") {
+        return false;
+    }
+    if rel.starts_with("containers/runs/") && rel.ends_with("/evidence.lock.json") {
+        return false;
+    }
+    if ["requirements.lock", "package-lock.json", "pnpm-lock.yaml", "poetry.lock", "uv.lock"]
+        .iter()
+        .any(|name| rel.ends_with(name))
+    {
+        return false;
+    }
+    !matches!(
+        rel,
+        "containers/contracts/catalog.lock.json"
+            | "containers/versions/versions.toml"
+            | "containers/versions/lock.json"
+            | "containers/versions/LOCK.md"
+            | "containers/versions/index.md"
+    )
+}
+
 pub(super) fn check_version_authority(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let violations = std::process::Command::new("find")
         .arg(workspace.path("containers"))
@@ -778,23 +801,7 @@ pub(super) fn check_version_authority(workspace: &Workspace) -> Result<Container
     let forbidden = listing
         .lines()
         .map(|line| workspace.rel(&PathBuf::from(line)).display().to_string())
-        .filter(|rel| rel.starts_with("containers/"))
-        .filter(|rel| !rel.starts_with("containers/docs/"))
-        .filter(|rel| {
-            !["requirements.lock", "package-lock.json", "pnpm-lock.yaml", "poetry.lock", "uv.lock"]
-                .iter()
-                .any(|name| rel.ends_with(name))
-        })
-        .filter(|rel| {
-            !matches!(
-                rel.as_str(),
-                "containers/contracts/catalog.lock.json"
-                    | "containers/versions/versions.toml"
-                    | "containers/versions/lock.json"
-                    | "containers/versions/LOCK.md"
-                    | "containers/versions/index.md"
-            )
-        })
+        .filter(|rel| is_noncanonical_version_authority_path(rel))
         .collect::<Vec<_>>();
     if !forbidden.is_empty() {
         let mut stderr =
@@ -1231,7 +1238,17 @@ pub(super) fn tool_lifecycle(
 
 #[cfg(test)]
 mod tests {
-    use super::choose_lock_build_date_utc;
+    use super::{choose_lock_build_date_utc, is_noncanonical_version_authority_path};
+
+    #[test]
+    fn distinguishes_run_evidence_locks_from_version_authorities() {
+        assert!(!is_noncanonical_version_authority_path(
+            "containers/runs/run-1134-pydamage/evidence.lock.json"
+        ));
+        assert!(is_noncanonical_version_authority_path(
+            "containers/contracts/alternate-version-lock.json"
+        ));
+    }
 
     #[test]
     fn prefers_git_timestamp_when_repository_is_not_shallow() {
